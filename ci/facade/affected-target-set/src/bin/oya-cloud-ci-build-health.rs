@@ -32,10 +32,11 @@ use std::time::Duration;
 
 use ci_affected_target_set::{
     BASELINE_PROVENANCE_FILENAME, BASELINE_REUSE_OUTCOME_FILENAME, BaselineKind,
-    BaselineReuseState, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH, baseline_artifact_name,
-    build_health_verdict, classify_api_status, failing_targets, parse_build_report,
-    parse_test_verdicts, test_verdicts_to_report_value, trusted_baseline_artifact_id,
-    trusted_dev_push_run_id, validate_trusted_baseline_artifact, validated_merge_base_sha,
+    BaselineReuseState, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH, TrustedProducerJob,
+    baseline_artifact_name, build_health_verdict, classify_api_status, failing_targets,
+    parse_build_report, parse_test_verdicts, test_verdicts_to_report_value,
+    trusted_affected_set_producer_job, trusted_baseline_artifact_id, trusted_dev_push_run_id,
+    validate_trusted_baseline_artifact, validated_merge_base_sha,
 };
 
 const LOG: &str = "build-health";
@@ -174,12 +175,14 @@ fn require<'a>(raw: &'a [String], flag: &str) -> Result<&'a str, String> {
 ///
 /// ANTI-LAUNDERING (the D6 guarantees, preserved and tightened): a baseline is accepted ONLY from
 /// a GitHub Actions run whose PROVENANCE proves the candidate could not have produced it —
-/// `event=push`, `head_branch=dev`, `conclusion=success`, `path` = the single required-context
-/// workflow file, and `head_sha` EXACTLY the merge-base. The artifact NAME is never sufficient on
-/// its own; it is additionally checked against the name the API reports for the id actually
-/// downloaded, and the payload must parse to a non-empty build-report `results` map. ANY doubt at
-/// ANY step exits non-zero with the partial outputs deleted, and the workflow then runs the
-/// untouched cold rebuild.
+/// `event=push`, `head_branch=dev`, `status=completed`, `path` = the single required-context
+/// workflow file, and `head_sha` EXACTLY the merge-base. The run's paginated jobs must contain
+/// exactly one exact-name affected-set producer with `status=completed` and
+/// `conclusion=success`; aggregate run failure is allowed because unrelated lanes do not produce
+/// these artifacts. The artifact NAME is never sufficient on its own; it is additionally checked
+/// against the name the API reports for the id actually downloaded, and the payload must parse to
+/// a non-empty build-report `results` map. ANY doubt at ANY step exits non-zero with the partial
+/// outputs deleted, and the workflow then runs the untouched cold rebuild.
 ///
 /// Usage: `--trusted-baseline --merge-base <sha> --repo <owner/name> --out-dir <dir>`.
 fn trusted_baseline_exit(raw: &[String]) -> u8 {
@@ -313,8 +316,19 @@ fn select_trusted_run(runs_json: &str, merge_base: &str) -> Result<u64, TrustedB
     {
         Some(id) => Ok(id),
         None => Err(Unavailable(format!(
-            "no successful push-to-dev `{REQUIRED_CONTEXT_WORKFLOW_PATH}` run at merge-base {merge_base}"
+            "no completed push-to-dev `{REQUIRED_CONTEXT_WORKFLOW_PATH}` run at merge-base {merge_base}"
         ))),
+    }
+}
+
+/// PURE: require the unique exact producer job to be terminal green.
+fn select_trusted_producer(jobs_json: &str) -> Result<TrustedProducerJob, TrustedBaselineOutcome> {
+    match trusted_affected_set_producer_job(jobs_json).map_err(Refused)? {
+        Some(job) => Ok(job),
+        None => Err(Unavailable(
+            "the completed run has no unique exact affected-set producer job with conclusion=success"
+                .to_owned(),
+        )),
     }
 }
 
@@ -415,6 +429,42 @@ impl GitHubApi {
         self.get(route)?
             .text()
             .map_err(|e| CapabilityFault(format!("GET {route}: could not read the body: {e}")))
+    }
+
+    /// Fetch every page from the Actions jobs endpoint and return one selector payload.
+    ///
+    /// The exact producer can appear after page one on a wide workflow. Stopping at the first
+    /// hundred jobs would turn ordering into provenance, so pagination is mandatory. The hard
+    /// ceiling prevents a broken server from making the consumer loop forever; reaching it while
+    /// pages remain full is a refusal and therefore falls back to the cold rebuild.
+    fn get_paginated_jobs(
+        &self,
+        repo: &str,
+        run_id: u64,
+    ) -> Result<String, TrustedBaselineOutcome> {
+        let mut jobs = Vec::new();
+        for page in 1..=100 {
+            let route = format!(
+                "repos/{repo}/actions/runs/{run_id}/jobs?per_page=100&page={page}&filter=latest"
+            );
+            let body = self.get_text(&route)?;
+            let payload: serde_json::Value = serde_json::from_str(&body)
+                .map_err(|e| Refused(format!("workflow-jobs page {page} is not valid JSON: {e}")))?;
+            let batch = payload
+                .get("jobs")
+                .and_then(serde_json::Value::as_array)
+                .ok_or_else(|| Refused(format!("workflow-jobs page {page} has no `jobs` array")))?;
+            let count = batch.len();
+            jobs.extend(batch.iter().cloned());
+            if count < 100 {
+                return serde_json::to_string(&serde_json::json!({ "jobs": jobs }))
+                    .map_err(|e| Refused(format!("could not assemble workflow-jobs payload: {e}")));
+            }
+        }
+        Err(Refused(
+            "workflow-jobs pagination exceeded 100 full pages; refusing a potentially truncated producer set"
+                .to_owned(),
+        ))
     }
 
     /// Stream `route` straight to `dest` — artifact zips are binary and do not belong in memory.
@@ -540,9 +590,11 @@ fn reuse_trusted_baselines_inner(
     let api = GitHubApi::from_env()?;
 
     let runs = api.get_text(&format!(
-        "repos/{repo}/actions/workflows/oya-ci-required.yml/runs?event=push&branch=dev&status=success&head_sha={merge_base}&per_page=20"
+        "repos/{repo}/actions/workflows/oya-ci-required.yml/runs?event=push&branch=dev&status=completed&head_sha={merge_base}&per_page=20"
     ))?;
     let run_id = select_trusted_run(&runs, merge_base)?;
+    let jobs = api.get_paginated_jobs(repo, run_id)?;
+    let producer = select_trusted_producer(&jobs)?;
     let artifacts = api.get_text(&format!(
         "repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100"
     ))?;
@@ -551,12 +603,13 @@ fn reuse_trusted_baselines_inner(
     // `buck2 test //...` would rebuild the workspace anyway, so a partial reuse saves nothing and
     // would leave the test ratchet without its baseline.
     //
-    // STRICTNESS NOTE: a dev tip only publishes these after passing admission, where ANY failure
-    // hard-fails — so a reused baseline's failure set is empty and the FULL tier grandfathers
-    // nothing. That is the SAFE direction (a reused baseline can never be laxer than a rebuilt
-    // one), but it does differ from the cold path, which can observe env-dependent merge-base
-    // failures and grandfather them. A PR blocked here is being told the truth: the merge-base
-    // was proven green, so the failure is new.
+    // STRICTNESS NOTE: the exact affected-set producer publishes these only after its own binding
+    // build/test passes, so a reused baseline's failure set is empty and the FULL tier
+    // grandfathers nothing. Other jobs may make the aggregate run red without changing that fact.
+    // This is the SAFE direction (a reused baseline can never be laxer than a rebuilt one), but it
+    // does differ from the cold path, which can observe env-dependent merge-base failures and
+    // grandfather them. A PR blocked here is being told the truth: the producer proved this
+    // merge-base green, so the failure is new.
     for kind in [BaselineKind::Build, BaselineKind::Test] {
         // Partial-state cleanup is the caller's single handler — nothing to unwind here.
         fetch_one_baseline(&api, repo, merge_base, run_id, &artifacts, kind, out_dir)?;
@@ -565,12 +618,14 @@ fn reuse_trusted_baselines_inner(
     // reads this sidecar beside the baseline it was handed and stamps it into the operator
     // decision artifact, so "reused vs rebuilt" is a recorded decision, not an inheritance.
     let provenance = serde_json::json!({
-        "schema_version": 1,
+        "schema_version": 2,
         "source": "trusted-artifact",
         "merge_base": merge_base,
         "workflow_run_id": run_id,
         "workflow_path": REQUIRED_CONTEXT_WORKFLOW_PATH,
-        "grandfathering": "none — the source dev tip passed admission, so its failure set is empty",
+        "producer_job_id": producer.id,
+        "producer_job_conclusion": producer.conclusion,
+        "grandfathering": "none — the exact affected-set producer passed, so its failure set is empty",
     });
     let sidecar = out_dir.join(BASELINE_PROVENANCE_FILENAME);
     let bytes = serde_json::to_vec_pretty(&provenance)
@@ -578,8 +633,10 @@ fn reuse_trusted_baselines_inner(
     fs::write(&sidecar, bytes)
         .map_err(|e| Refused(format!("could not write `{}`: {e}", sidecar.display())))?;
     println!(
-        "{LOG}: trusted merge-base baseline pair REUSED from run {run_id} at {merge_base} — the \
+        "{LOG}: trusted merge-base baseline pair REUSED from run {run_id}, producer job {} at \
+         {merge_base} — the \
          cold merge-base rebuild is skipped (provenance: {})",
+        producer.id,
         sidecar.display()
     );
     Ok(())
@@ -736,7 +793,7 @@ mod trusted_baseline_tests {
 
     fn run_entry(id: u64, sha: &str, event: &str, branch: &str, conclusion: &str) -> String {
         format!(
-            r#"{{"id":{id},"head_sha":"{sha}","event":"{event}","head_branch":"{branch}","conclusion":"{conclusion}","path":".github/workflows/oya-ci-required.yml"}}"#
+            r#"{{"id":{id},"head_sha":"{sha}","event":"{event}","head_branch":"{branch}","status":"completed","conclusion":"{conclusion}","path":".github/workflows/oya-ci-required.yml"}}"#
         )
     }
 
@@ -756,22 +813,60 @@ mod trusted_baseline_tests {
     fn selects_the_exact_merge_base_dev_push_run() {
         let payload = runs(&[
             run_entry(11, OTHER_SHA, "push", "dev", "success"),
-            run_entry(13, SHA, "push", "dev", "success"),
+            // Aggregate failure is not producer failure. The exact producer is selected from
+            // the run's paginated jobs before any artifact is accepted.
+            run_entry(13, SHA, "push", "dev", "failure"),
         ]);
         assert_eq!(select_trusted_run(&payload, SHA), Ok(13));
     }
 
     #[test]
-    fn wrong_sha_wrong_event_wrong_branch_and_red_runs_are_all_unavailable() {
+    fn wrong_sha_wrong_event_wrong_branch_and_incomplete_runs_are_all_unavailable() {
         // Each entry is a distinct rejected provenance shape; none may be selected.
         let payload = runs(&[
             run_entry(11, OTHER_SHA, "push", "dev", "success"),
             run_entry(12, SHA, "pull_request", "dev", "success"),
             run_entry(13, SHA, "push", "feature", "success"),
-            run_entry(14, SHA, "push", "dev", "failure"),
+            format!(
+                r#"{{"id":14,"head_sha":"{SHA}","event":"push","head_branch":"dev","status":"in_progress","conclusion":null,"path":".github/workflows/oya-ci-required.yml"}}"#
+            ),
         ]);
         let err = select_trusted_run(&payload, SHA).unwrap_err();
         assert!(is_unavailable(&err), "{err:?}");
+    }
+
+    #[test]
+    fn producer_selection_requires_unique_exact_terminal_green_job() {
+        let exact = ci_affected_target_set::AFFECTED_SET_PRODUCER_JOB_NAME;
+        let valid = format!(
+            r#"{{"jobs":[{{"id":81,"name":"{exact}","status":"completed","conclusion":"success"}}]}}"#
+        );
+        assert_eq!(
+            select_trusted_producer(&valid),
+            Ok(TrustedProducerJob {
+                id: 81,
+                conclusion: "success".to_owned(),
+            })
+        );
+
+        for conclusion in ["failure", "cancelled"] {
+            let jobs = format!(
+                r#"{{"jobs":[{{"id":81,"name":"{exact}","status":"completed","conclusion":"{conclusion}"}}]}}"#
+            );
+            assert!(is_unavailable(&select_trusted_producer(&jobs).unwrap_err()));
+        }
+        assert!(is_unavailable(
+            &select_trusted_producer(r#"{"jobs":[]}"#).unwrap_err()
+        ));
+        let duplicate = format!(
+            r#"{{"jobs":[
+                {{"id":81,"name":"{exact}","status":"completed","conclusion":"success"}},
+                {{"id":82,"name":"{exact}","status":"completed","conclusion":"success"}}
+            ]}}"#
+        );
+        assert!(is_unavailable(
+            &select_trusted_producer(&duplicate).unwrap_err()
+        ));
     }
 
     #[test]
@@ -998,4 +1093,3 @@ mod trusted_baseline_tests {
         let _ = fs::remove_dir_all(&dir);
     }
 }
-
