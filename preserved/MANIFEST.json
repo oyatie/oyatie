@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "authority": "archive-only; non-authoritative; masterplan_v2 and live Git/GitHub remain current truth",
-  "file_count": 271,
+  "file_count": 279,
   "files": [
     {
       "bytes": 21339,
@@ -65,6 +65,62 @@
       "path": ".omc/notepad.md",
       "scope": "root",
       "sha256": "3ee9a04f0371d3cee6aa41e88a7e235b4e4cbb258da7dd753b443f7bc398310a"
+    },
+    {
+      "bytes": 11272,
+      "classification": "design-context",
+      "path": ".omc/design/DESIGN-LANGUAGE.md",
+      "scope": "root",
+      "sha256": "05d88c757510c731b5ea43d1a43666ef4a5a8f97b4dbb1a47017a6071fb5017a"
+    },
+    {
+      "bytes": 9226,
+      "classification": "design-context",
+      "path": ".omc/design/NORTH-STAR.md",
+      "scope": "root",
+      "sha256": "7e2a6fc0980350c0cf3335efc36cf229177496a7789cd816285a82e6fbf9925b"
+    },
+    {
+      "bytes": 7468,
+      "classification": "design-context",
+      "path": ".omc/design/claude-design-seed-prompt.md",
+      "scope": "root",
+      "sha256": "1a32835255437bce032afac40c154442bb677380b904abf3cd281e1f45491890"
+    },
+    {
+      "bytes": 63126,
+      "classification": "design-context",
+      "path": ".omc/design/prototypes/desktop-overview-calm.html",
+      "scope": "root",
+      "sha256": "d626da70648813eaf28f5ec97e234ef80b655dfd86be4b12635ed3eb1d253332"
+    },
+    {
+      "bytes": 74579,
+      "classification": "design-context",
+      "path": ".omc/design/prototypes/desktop-overview-instrument.html",
+      "scope": "root",
+      "sha256": "74a828aeb236c2b9b9f5367c089b23e9f73730c351b6f53823b688cf2a6a3c9b"
+    },
+    {
+      "bytes": 66438,
+      "classification": "design-context",
+      "path": ".omc/design/prototypes/desktop-overview-noir.html",
+      "scope": "root",
+      "sha256": "6fea02e44348cf81b11c2fda785a3644f19afa05aa1c3e722da36d9f30545a46"
+    },
+    {
+      "bytes": 39802,
+      "classification": "design-context",
+      "path": ".omc/design/research-hyperscaler-console-ux.md",
+      "scope": "root",
+      "sha256": "dd9d8bbc809a44b48963ee06e28e50aeb34a9a688d970cc23d16997447a9e470"
+    },
+    {
+      "bytes": 22873,
+      "classification": "design-context",
+      "path": ".omc/design/research-multiplatform-spatial.md",
+      "scope": "root",
+      "sha256": "498b2b62bbea8433eff5224f48102ad10a6f9b81658e908510c2764b671a612f"
     },
     {
       "bytes": 17345,
@@ -1903,7 +1959,7 @@
   ],
   "record_class": "prewipe-curated-agent-context-archive",
   "record_id": "prewipe-curated-agent-context-20260804",
-  "recorded_at": "2026-08-04T03:38:59.479621Z",
+  "recorded_at": "2026-08-04T03:51:59.491214Z",
   "security_scan": {
     "claim_ceiling": "Files with any strong-signature finding were omitted. This is a bounded scan, not proof that arbitrary prose contains no sensitive data.",
     "matched_file_count": 2,
@@ -1948,5 +2004,5 @@
     ]
   },
   "source_baseline": "origin/dev@ee389362f76681a2ab45a2f531f09180a1993460",
-  "total_bytes": 2047397
+  "total_bytes": 2342181
 }

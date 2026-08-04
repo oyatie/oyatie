@@ -19,9 +19,9 @@
   "exposed_commit_literal_count": 2,
   "forbidden_generated_json_count": 0,
   "forbidden_sensitive_talos_files_count": 0,
-  "included_file_count": 271,
-  "included_total_bytes": 2047397,
+  "included_file_count": 279,
+  "included_total_bytes": 2342181,
   "record_class": "prewipe-curated-agent-context-security-scan",
-  "recorded_at": "2026-08-04T03:38:59.479621Z",
+  "recorded_at": "2026-08-04T03:51:59.491214Z",
   "secret_values_emitted": false
 }
