@@ -22,7 +22,8 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_sequencing, evaluate_prewipe_priority_github_snapshot,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -1475,6 +1476,125 @@ fn masterplan_v2_live_authority_contract_is_green() {
         findings.is_empty(),
         "masterplan v2 authority contract must stay green: {findings:?}"
     );
+}
+
+#[test]
+fn prewipe_priority_github_snapshot_is_bounded_offline_evidence() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let snapshot = load_json(
+        &root.join("evidence/consolidation/prewipe-priority-github-snapshot-20260804.json"),
+    );
+    let findings = evaluate_prewipe_priority_github_snapshot(&masterplan, &snapshot);
+    assert!(
+        findings.is_empty(),
+        "pre-wipe priority snapshot must remain bounded offline evidence: {findings:?}"
+    );
+
+    let active: BTreeSet<u64> = snapshot["active_issues"]
+        .as_array()
+        .expect("active issue provenance rows")
+        .iter()
+        .map(|row| {
+            row["external_issue_number"]
+                .as_u64()
+                .expect("GitHub issue number")
+        })
+        .collect();
+    assert_eq!(active, BTreeSet::from([1504, 1534, 1541, 1549, 1551]));
+
+    let merged: BTreeMap<u64, (&str, &str, &str)> = snapshot["recent_merged_pr_evidence"]
+        .as_array()
+        .expect("merged PR provenance rows")
+        .iter()
+        .map(|row| {
+            (
+                row["external_pr_number"]
+                    .as_u64()
+                    .expect("GitHub PR number"),
+                (
+                    row["merge_commit_sha"].as_str().expect("merge SHA"),
+                    row["pull_request_head_sha"].as_str().expect("PR head SHA"),
+                    row["required_context_run_url"]
+                        .as_str()
+                        .expect("required run URL"),
+                ),
+            )
+        })
+        .collect();
+    assert_eq!(
+        merged,
+        BTreeMap::from([
+            (
+                1548,
+                (
+                    "2574ee68d2a42fe155e8d5b6105a522e622ebadf",
+                    "989bbba6430395f16fb698c2cd87b2c482762e1d",
+                    "https://github.com/jason931225/oyatie/actions/runs/30916856497"
+                )
+            ),
+            (
+                1550,
+                (
+                    "36f63111b37dadb0d9476c9ee09fa75d3ab06544",
+                    "e1f04d58c502e520a9dbc61886fbe1bee121cf45",
+                    "https://github.com/jason931225/oyatie/actions/runs/30912764537"
+                )
+            ),
+            (
+                1552,
+                (
+                    "8419c249a62a051a40b82da08ee13544e658f17e",
+                    "232af4f4ec95c0056da97248706fd4377d35aebb",
+                    "https://github.com/jason931225/oyatie/actions/runs/30919463375"
+                )
+            ),
+        ])
+    );
+
+    let mut mutations: Vec<(&str, Value)> = Vec::new();
+    let mut failed_context = snapshot.clone();
+    failed_context["recent_merged_pr_evidence"][0]["required_context_conclusion"] =
+        serde_json::json!("failure");
+    mutations.push(("failed required context", failed_context));
+    let mut bad_sha = snapshot.clone();
+    bad_sha["recent_merged_pr_evidence"][0]["pull_request_head_sha"] =
+        serde_json::json!("deadbeef");
+    mutations.push(("bad PR head SHA", bad_sha));
+    let mut duplicate = snapshot.clone();
+    duplicate["active_issues"][1]["external_issue_number"] = serde_json::json!(1541);
+    mutations.push(("duplicate issue id", duplicate));
+    let mut scope_drift = snapshot.clone();
+    scope_drift["selection_rule"]["active_issue_numbers"] = serde_json::json!([1504, 1534, 1541]);
+    mutations.push(("selection scope drift", scope_drift));
+    let mut missing = snapshot.clone();
+    missing["recent_merged_pr_evidence"][0]
+        .as_object_mut()
+        .expect("PR row")
+        .remove("required_context_job_url");
+    mutations.push(("missing required field", missing));
+    let mut dangling_dependency = snapshot.clone();
+    dangling_dependency["active_issues"][0]["dependency_issue_refs"] = serde_json::json!([9999]);
+    mutations.push(("undeclared dependency", dangling_dependency));
+    let mut head_mismatch = snapshot.clone();
+    head_mismatch["recent_merged_pr_evidence"][0]["required_context_commit_sha"] =
+        serde_json::json!("1111111111111111111111111111111111111111");
+    mutations.push(("required context not bound to PR head", head_mismatch));
+    let mut bad_timestamp = snapshot.clone();
+    bad_timestamp["active_issues"][0]["observed_updated_at"] =
+        serde_json::json!("2026-02-30T00:00:00Z");
+    mutations.push(("invalid RFC3339 timestamp", bad_timestamp));
+    let mut bad_job_url = snapshot.clone();
+    bad_job_url["recent_merged_pr_evidence"][0]["required_context_job_url"] =
+        serde_json::json!("https://github.com/jason931225/oyatie/actions/runs/1/job/92013809304");
+    mutations.push(("job URL bound to another run", bad_job_url));
+
+    for (label, mutation) in mutations {
+        assert!(
+            !evaluate_prewipe_priority_github_snapshot(&masterplan, &mutation).is_empty(),
+            "{label} must fail closed"
+        );
+    }
 }
 
 /// Sub-AC 4.1 masterplan structural gate: the frozen fixture corpus must keep one
