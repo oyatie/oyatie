@@ -18,6 +18,7 @@
 //!   issue-identity --role R --pki-mount M --pki-role R --uri-san URI
 
 use std::fs;
+use std::net::{TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus};
 use std::time::Duration;
@@ -198,6 +199,77 @@ fn controlled_child(
 
 fn required_env(name: &str) -> Result<String, String> {
     std::env::var(name).map_err(|_| format!("required environment variable {name} is missing"))
+}
+
+fn require_tcp_denied(host: &str, port: u16) -> Result<(), String> {
+    let addresses = (host, port)
+        .to_socket_addrs()
+        .map_err(|error| format!("resolve {host}:{port}: {error}"))?
+        .collect::<Vec<_>>();
+    if addresses.is_empty() {
+        return Err(format!("resolve {host}:{port}: no addresses"));
+    }
+    if addresses
+        .iter()
+        .any(|address| TcpStream::connect_timeout(address, Duration::from_secs(3)).is_ok())
+    {
+        return Err(format!(
+            "forbidden plaintext path {host}:{port} accepted a TCP connection"
+        ));
+    }
+    Ok(())
+}
+
+fn require_reader_rejected_by_writer() -> Result<(), String> {
+    let ca_path = required_env(app::TLS_CA_CERTS_ENV)?;
+    let identity_path = required_env(app::CLIENT_CERT_ENV)?;
+    let ca = reqwest::Certificate::from_pem(
+        &fs::read(&ca_path).map_err(|error| format!("read {ca_path}: {error}"))?,
+    )
+    .map_err(|error| format!("parse NativeLink public CA: {error}"))?;
+    let identity = reqwest::Identity::from_pem(
+        &fs::read(&identity_path).map_err(|error| format!("read {identity_path}: {error}"))?,
+    )
+    .map_err(|error| format!("parse short-lived cache identity: {error}"))?;
+    let client = Client::builder()
+        .add_root_certificate(ca)
+        .identity(identity)
+        .connect_timeout(Duration::from_secs(5))
+        .timeout(Duration::from_secs(10))
+        .build()
+        .map_err(|error| format!("build NativeLink boundary client: {error}"))?;
+    if client
+        .post("https://nativelink-cas-writer.oya-ci.svc.cluster.local:50051/build.bazel.remote.execution.v2.Capabilities/GetCapabilities")
+        .header("content-type", "application/grpc")
+        .header("te", "trailers")
+        .body(vec![0_u8; 5])
+        .send()
+        .is_ok()
+    {
+        return Err("reader identity was accepted by the NativeLink writer endpoint".to_string());
+    }
+    Ok(())
+}
+
+fn boundary_receipt(mode: &str) -> Value {
+    serde_json::json!({
+        "schema_version": 1,
+        "identity": mode,
+        "openbao_plaintext_8200_denied": true,
+        "openbao_tls_8202_identity_exchange_succeeded": true,
+        "declared_nativelink_path_succeeded": true,
+        "reader_to_writer_50051_denied": if mode == "reader" { Some(true) } else { None },
+        "secrets_recorded": false
+    })
+}
+
+fn write_boundary_receipt(mode: &str) -> Result<(), String> {
+    let Ok(path) = std::env::var("OYA_CAS_BOUNDARY_PROOF_OUT") else {
+        return Ok(());
+    };
+    let payload = serde_json::to_string_pretty(&boundary_receipt(mode))
+        .map_err(|error| format!("serialize CAS boundary proof: {error}"))?;
+    write_out(Some(path), &payload)
 }
 
 fn issue_identity(options: &[String]) -> Result<(), String> {
@@ -478,7 +550,18 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let Some(identity) = workflow_identity else {
                 return controlled_child(&root, &resolution, child);
             };
+            remove_identity_files()?;
+            require_tcp_denied("openbao.oya-kms.svc", 8200)?;
             if let Err(error) = issue_identity(&identity) {
+                let cleanup = remove_identity_files();
+                return Err(match cleanup {
+                    Ok(()) => error,
+                    Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
+                });
+            }
+            if workflow_mode.as_deref() == Some("reader")
+                && let Err(error) = require_reader_rejected_by_writer()
+            {
                 let cleanup = remove_identity_files();
                 return Err(match cleanup {
                     Ok(()) => error,
@@ -488,6 +571,10 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let child_result = controlled_child(&root, &resolution, child);
             let cleanup = remove_identity_files();
             match (child_result, cleanup) {
+                (Ok(code), Ok(())) if code == ExitCode::SUCCESS => {
+                    write_boundary_receipt(workflow_mode.as_deref().unwrap_or_default())?;
+                    Ok(code)
+                }
                 (Ok(code), Ok(())) => Ok(code),
                 (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
                 (Err(error), Err(cleanup)) => {
@@ -698,6 +785,28 @@ mod tests {
         assert_eq!(writer[5], "cas-writer");
         assert_eq!(writer[7], "spiffe://oyatie.dev/ci/cas-writer");
         assert!(fixed_identity_options("other").is_err());
+    }
+
+    #[test]
+    fn boundary_receipt_records_only_falsifiable_non_secret_results() {
+        let reader = boundary_receipt("reader");
+        assert_eq!(reader["openbao_plaintext_8200_denied"], true);
+        assert_eq!(reader["openbao_tls_8202_identity_exchange_succeeded"], true);
+        assert_eq!(reader["reader_to_writer_50051_denied"], true);
+        assert_eq!(reader["declared_nativelink_path_succeeded"], true);
+        assert_eq!(reader["secrets_recorded"], false);
+
+        let writer = boundary_receipt("writer");
+        assert!(writer["reader_to_writer_50051_denied"].is_null());
+    }
+
+    #[test]
+    fn plaintext_probe_fails_when_a_tcp_listener_accepts_connections() {
+        let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let port = listener.local_addr().unwrap().port();
+        assert!(require_tcp_denied("127.0.0.1", port).is_err());
+        drop(listener);
+        assert!(require_tcp_denied("127.0.0.1", port).is_ok());
     }
 
     #[test]

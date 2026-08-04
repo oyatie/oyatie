@@ -988,6 +988,10 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
         ".connect_timeout(Duration::from_secs(10))",
         ".timeout(Duration::from_secs(30))",
         "oidc_authorization.set_sensitive(true)",
+        "require_tcp_denied(\"openbao.oya-kms.svc\", 8200)",
+        "require_reader_rejected_by_writer",
+        "OYA_CAS_BOUNDARY_PROOF_OUT",
+        "reader identity was accepted by the NativeLink writer endpoint",
     ] {
         assert!(
             controller.contains(binding),
@@ -1045,6 +1049,8 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(canary.contains("--prelicense-probe"));
     assert!(canary.contains("OYA_CACHE_TLS_CLIENT_CERT: /tmp/oya-cache-client.pem"));
     assert!(canary.contains("OYA_CACHE_TLS_CA_CERTS: /tmp/oya-cache-server-ca.pem"));
+    assert!(canary.contains("OYA_CAS_BOUNDARY_PROOF_OUT: /tmp/cas-identity-boundary-proof.json"));
+    assert!(canary.contains("/tmp/cas-identity-boundary-proof.json"));
     assert!(!canary.contains("${{ runner.temp }}"));
     assert!(!canary.contains("name: Exchange GitHub OIDC"));
     assert!(!canary.contains("name: Remove short-lived cache identity"));
