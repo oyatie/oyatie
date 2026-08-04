@@ -21,9 +21,9 @@ controllerServiceAccount:
 # toolchain. That is a KNOWN, DELIBERATE gap at this slice — a warm pool is
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
-# One 44 Gi workspace claim from this set plus one from the live-PostgreSQL set
-# fit inside the dedicated 96 Gi Talos user volume. Keep each set at one until a
-# cold maximum-concurrency exercise proves a larger safe envelope.
+# This set has its own physically separate 48 Gi Talos user volume. Local-path
+# does not enforce the advertised 44 Gi request, so maxRunners=1 prevents a
+# second claim from sharing that filesystem; no 4 Gi reserve is claimed.
 maxRunners: 1
 minRunners: 0
 listenerTemplate:
@@ -51,8 +51,8 @@ listenerMetrics:
 template:
   metadata:
     labels:
-      # Selects the Cilium egress-deny that prevents candidate code from
-      # reaching the shared oya-data namespace even without its credentials.
+      # Selects the Kubernetes-native default-deny egress allowlist that keeps
+      # candidate code away from shared/private cluster namespaces.
       oya.io/ci-cell: general
       # REQUIRED for the CAS to be reachable AT ALL. infra/nativelink's
       # NetworkPolicy `nativelink-cas-ingress` admits :50051 only from pods
@@ -69,7 +69,6 @@ template:
     nodeSelector:
       kubernetes.io/arch: arm64
       kubernetes.io/hostname: oya-talos-worker-2
-      oya.io/ci-workspace: "true"
     securityContext:
       fsGroup: 1001
       fsGroupChangePolicy: OnRootMismatch
@@ -130,7 +129,7 @@ template:
                 oya.io/lifecycle: disposable-ci-workspace
             spec:
               accessModes: ["ReadWriteOnce"]
-              storageClassName: oya-ci-workspace
+              storageClassName: oya-ci-workspace-general
               resources:
                 requests:
                   storage: 44Gi

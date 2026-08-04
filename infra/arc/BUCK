@@ -12,4 +12,9 @@ rust_test(
     srcs = ["tests/ci_workspace_capacity.rs"],
     crate_root = "tests/ci_workspace_capacity.rs",
     edition = "2021",
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+    ],
 )

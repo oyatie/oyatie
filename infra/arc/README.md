@@ -4,12 +4,14 @@ Issue #1504 isolates disposable ARC build work from the Talos system filesystem.
 The repository declaration has four parts:
 
 1. `infra/talos/local/patches/ci-workspace-worker-2.yaml` allocates a bounded
-   96 GiB XFS user volume on the exact blank 150 GiB `/dev/vdb` and labels the node.
+   two fixed 48 GiB XFS user volumes on the exact blank 150 GiB `/dev/vdb`.
 2. `ci-workspace-storage.yaml` runs a separate local-path provisioner identity and
-   StorageClass rooted only at `/var/mnt/ci-workspace` on `oya-talos-worker-2`.
+   StorageClasses rooted only at `/var/mnt/ci-workspace-general` and
+   `/var/mnt/ci-workspace-live-postgres` on `oya-talos-worker-2`.
 3. Both runner scale sets mount a 44 GiB generic ephemeral PVC at
    `/home/runner/_work`, pin runners to that node, and cap each scale set at one.
-   Two claims consume at most 88 GiB of the 96 GiB physical aggregate boundary.
+   Local-path does not enforce each 44 GiB request. Safety comes from max one runner
+   per scale set and a separate fixed 48 GiB filesystem for each set; no reserve is claimed.
 4. `ci-workspace-alerts.yaml` covers node pressure, PVC free space, runner writable
    layer growth, eviction, delayed PVC cleanup, and ARC startup/queue latency.
 
@@ -43,16 +45,18 @@ NativeLink, OpenBao, and their PVCs are out of scope and must not be modified.
 Record all of the following before allowing either scale set above zero:
 
 ```sh
-talosctl -n <worker-2-ip> get volumestatus u-ci-workspace -o yaml
-talosctl -n <worker-2-ip> get mountstatus u-ci-workspace -o yaml
+talosctl -n <worker-2-ip> get volumestatus u-ci-workspace-general -o yaml
+talosctl -n <worker-2-ip> get volumestatus u-ci-workspace-live-postgres -o yaml
+talosctl -n <worker-2-ip> get mountstatus u-ci-workspace-general -o yaml
+talosctl -n <worker-2-ip> get mountstatus u-ci-workspace-live-postgres -o yaml
 kubectl get node oya-talos-worker-2 --show-labels
-kubectl get storageclass oya-ci-workspace -o yaml
+kubectl get storageclass oya-ci-workspace-general oya-ci-workspace-live-postgres -o yaml
 kubectl -n oya-ci-workspace-storage get deploy,pods,configmap -o wide
 kubectl -n arc-runners get pvc,pods -o wide
 ```
 
-The volume must be ready at `/var/mnt/ci-workspace`, the provisioner identity must
-be `oyatie.io/ci-workspace-local-path`, every runner/PVC must bind to worker 2, and
+Both volumes must be ready at their distinct `/var/mnt/ci-workspace-*` paths, the provisioner
+identity must be `oyatie.io/ci-workspace-local-path`, every runner/PVC must bind to worker 2, and
 the existing `local-path` StorageClass/PVs must be byte-for-byte unchanged.
 
 ## Safe rollback
@@ -60,9 +64,9 @@ the existing `local-path` StorageClass/PVs must be byte-for-byte unchanged.
 Do not roll back to the earlier three-runner root-filesystem placement: that state
 is the #1504 incident condition. First land a GitOps change setting both scale sets'
 `maxRunners: 0`,
-wait for all runner Pods and generic-ephemeral PVCs to disappear, and verify the
-workspace directory is empty. Then revert the ARC storage/placement Applications.
-Remove the Talos `UserVolumeConfig` document only after no Pod mounts it; Talos
+wait for all runner Pods and generic-ephemeral PVCs to disappear, and verify both
+workspace directories are empty. Then revert the ARC storage/placement Applications.
+Remove the two Talos `UserVolumeConfig` documents only after no Pod mounts either; Talos
 leaves the data on disk, so disk wiping is a separate destructive action and is
 never part of this rollback. Branch protection and `oya-ci-required` remain intact;
 admission stays queued until safe runner capacity or hosted fallback exists.

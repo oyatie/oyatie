@@ -6,24 +6,30 @@
 #   talosctl --nodes <worker-2-ip> patch mc --patch @infra/talos/local/patches/ci-workspace-worker-2.yaml
 #
 # The exact path + size predicate fails closed if the VM disk topology changes.
-machine:
-  kubelet:
-    nodeLabels:
-      # Storage-placement label only. Worker 2 remains a mixed node until a
-      # genuinely dedicated CI worker exists; do not misrepresent it as a cell.
-      oya.io/ci-workspace: "true"
----
 apiVersion: v1alpha1
 kind: UserVolumeConfig
-name: ci-workspace
+name: ci-workspace-general
 provisioning:
   diskSelector:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
-  # The two scale sets are capped at one runner each. Two 44 Gi claims fit in
-  # this 96 Gi filesystem with 8 Gi metadata/headroom. The physical filesystem,
-  # not local-path's advertised PVC size, is the aggregate capacity boundary.
-  minSize: 96GiB
-  maxSize: 96GiB
+  # Local Path Provisioner does not enforce PVC byte requests. A dedicated
+  # filesystem plus maxRunners=1 is therefore the enforceable blast-radius
+  # boundary: this scale set can fill at most this 48 GiB filesystem and cannot
+  # consume the other scale set's workspace.
+  minSize: 48GiB
+  maxSize: 48GiB
+filesystem:
+  type: xfs
+  projectQuotaSupport: true
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: ci-workspace-live-postgres
+provisioning:
+  diskSelector:
+    match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
+  minSize: 48GiB
+  maxSize: 48GiB
 filesystem:
   type: xfs
   projectQuotaSupport: true

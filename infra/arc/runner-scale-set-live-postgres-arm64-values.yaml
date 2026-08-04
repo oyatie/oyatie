@@ -11,8 +11,8 @@ runnerScaleSetName: oya-live-postgres-arm64
 controllerServiceAccount:
   namespace: arc-systems
   name: arc-gha-rs-controller
-# Fail closed to one disk-heavy integration job. Together with the general
-# scale-set cap this bounds aggregate workspace claims at 2 x 44 Gi.
+# Fail closed to one disk-heavy integration job on this set's physically
+# separate 48 Gi Talos user volume. Local-path claim size is not enforcement.
 maxRunners: 1
 minRunners: 0
 template:
@@ -23,7 +23,6 @@ template:
     nodeSelector:
       kubernetes.io/arch: arm64
       kubernetes.io/hostname: oya-talos-worker-2
-      oya.io/ci-workspace: "true"
     securityContext:
       fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch
@@ -138,7 +137,7 @@ template:
                 oya.io/lifecycle: disposable-ci-workspace
             spec:
               accessModes: ["ReadWriteOnce"]
-              storageClassName: oya-ci-workspace
+              storageClassName: oya-ci-workspace-live-postgres
               resources:
                 requests:
                   storage: 44Gi

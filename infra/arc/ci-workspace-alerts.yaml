@@ -26,7 +26,7 @@ spec:
               kubelet_volume_stats_capacity_bytes{namespace="arc-runners"}
             )
             * on(namespace, persistentvolumeclaim) group_left(storageclass)
-              kube_persistentvolumeclaim_info{storageclass="oya-ci-workspace"}
+              kube_persistentvolumeclaim_info{storageclass=~"oya-ci-workspace-(general|live-postgres)"}
             < 0.15
           for: 2m
           labels: { severity: critical }
@@ -34,7 +34,6 @@ spec:
             summary: ARC workspace volume has less than 15 percent free
         - alert: OyaCiRunnerWritableLayerHigh
           expr: container_fs_usage_bytes{namespace="arc-runners",container="runner"} > 6 * 1024 * 1024 * 1024
-          for: 5m
           labels: { severity: warning }
           annotations:
             summary: ARC runner writable layer exceeds the 6 GiB root-filesystem budget
@@ -44,15 +43,20 @@ spec:
           annotations:
             summary: An ARC runner pod was evicted
         - alert: OyaCiWorkspaceCleanupStalled
+          # Generic-ephemeral owner teardown sets the PVC deletion timestamp.
+          # Measuring from that timestamp avoids paging on a healthy long job.
           expr: |
-            (time() - kube_persistentvolumeclaim_created{namespace="arc-runners"})
+            (
+              (time() - kube_persistentvolumeclaim_deletion_timestamp{namespace="arc-runners"} > 900)
+              and
+              kube_persistentvolumeclaim_deletion_timestamp{namespace="arc-runners"} > 0
+            )
             * on(namespace, persistentvolumeclaim) group_left(storageclass)
-              kube_persistentvolumeclaim_info{storageclass="oya-ci-workspace"}
-            > 10800
-          for: 15m
+              kube_persistentvolumeclaim_info{storageclass=~"oya-ci-workspace-(general|live-postgres)"}
+          for: 5m
           labels: { severity: warning }
           annotations:
-            summary: A disposable ARC workspace PVC remains after the three-hour cleanup SLO
+            summary: A disposable ARC workspace PVC remains fifteen minutes after deletion began
         - alert: OyaCiRunnerQueueP95High
           expr: |
             histogram_quantile(

@@ -150,8 +150,8 @@ apps:
     # wave-2 runner scale set can create newly labelled Pods.
     syncWave: "1"
 
-  # Disposable ARC workspace storage. This is a distinct provisioner and class
-  # rooted on the Talos ci-workspace user volume; it never repoints the default
+  # Disposable ARC workspace storage. This is a distinct provisioner and two
+  # path-bound classes rooted on separate Talos user volumes; it never repoints the default
   # local-path class used by stateful services. The provisioner precedes the
   # general runner scale set through wave ordering.
   - name: oya-ci-workspace-storage

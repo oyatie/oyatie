@@ -115,10 +115,12 @@ limit**. It is temporarily capped at `maxRunners: 1`.
 - `memory 8Gi` plus concurrency one leaves more than 20Gi of the current 28.6Gi allocatable
   worker for co-tenants.
 - The build tree is a generic ephemeral PVC mounted at `/home/runner/_work`, not a writable
-  layer on Talos `EPHEMERAL`. Each scale set's 44Gi request comes from a dedicated StorageClass
-  backed only by a 96Gi Talos user-volume filesystem on worker-2's otherwise blank `/dev/vdb`.
-  The local-path provisioner does not enforce advertised claim size, so the physical filesystem
-  and the two one-runner caps are the aggregate bounds: 2 × 44Gi leaves 8Gi headroom.
+  layer on Talos `EPHEMERAL`. Each scale set's 44Gi request uses its own StorageClass, path, and
+  fixed 48Gi Talos user-volume filesystem carved from worker-2's otherwise blank `/dev/vdb`.
+  Local Path Provisioner does not enforce the advertised claim size, so **no 4Gi reserve is
+  claimed**. The enforceable boundary is one runner per scale set plus one separate 48Gi
+  filesystem per set: either runner can fill its own filesystem, but cannot consume the other's
+  workspace or the Talos system filesystem.
 - Root `ephemeral-storage` remains bounded at 4Gi/8Gi for image, tool installer, and writable
   layer pressure. A runaway installer is evicted rather than filling the Talos system filesystem.
 - **No CPU limit deliberately**: a throttled compile presents as a flaky slow test, which is
@@ -146,17 +148,20 @@ the existing admin-versus-`NOBYPASSRLS` application-role assertions.
 No Kubernetes Secret or shared CNPG hostname is projected into either runner scale set. The
 general-purpose runner receives no database admin environment, and the dedicated Pod exposes no
 Service. A namespace NetworkPolicy selects only the dedicated cell label and denies cross-Pod
-ingress; the tests reach PostgreSQL only over same-Pod localhost. A Cilium egress-deny selects
-both `general` and `live-postgres` runner-cell labels and blocks the shared `oya-data` namespace
-without default-denying the GitHub and package egress those jobs require. The dedicated cell has
+ingress; the tests reach PostgreSQL only over same-Pod localhost. A Kubernetes-native egress
+allowlist selects both runner-cell labels, default-denies them, and restores only DNS, NativeLink,
+the in-cluster registry, and public IPv4 excluding private/link-local ranges. This excludes
+`oya-data` without requiring a Cilium CRD; live CNI enforcement remains mandatory readback. The
+dedicated cell has
 no NativeLink reader/writer labels because every live test invocation is `--local-only`; granting
 an unused CAS network capability would widen its blast radius without changing execution. This is
 test-fixture isolation, not a production data-plane dependency.
 
-The dedicated set is capped at `maxRunners: 1`, mounts the same 44Gi generic-ephemeral workspace
-class as the general set, and limits root ephemeral storage to 8Gi. Its cap serializes the adapter
+The dedicated set is capped at `maxRunners: 1`, mounts a 44Gi generic-ephemeral workspace from
+its own StorageClass and 48Gi filesystem, and limits root ephemeral storage to 8Gi. Its cap
+serializes the adapter
 and facade jobs even though the workflow keeps them as separate required lanes. Combined with the
-general set's cap, at most two 44Gi claims can consume the 96Gi workspace filesystem. This
+general set's cap, at most one claim can consume each physically separate 48Gi workspace. This
 declaration is not rollout readiness: issue #1504 must verify the exact-head cold-concurrency
 envelope before closure.
 
@@ -189,11 +194,12 @@ cleanup, and rollback evidence can be recorded without a circular closure prereq
 
 The existing default `local-path` StorageClass and `rancher.io/local-path` controller continue to
 own CNPG, registry, NativeLink, OpenBao, and other stateful data. CI workspaces use a
-second provisioner identity, `oyatie.io/ci-workspace-local-path`, and StorageClass
-`oya-ci-workspace`. Its node-path map names only `oya-talos-worker-2` and
-`/var/mnt/ci-workspace`; there is no default path for unlisted nodes. The runner also selects the
-worker hostname and the `oya.io/ci-workspace=true` Talos machine label, so absent machine
-configuration fails closed instead of spilling builds onto stateful storage.
+second provisioner identity, `oyatie.io/ci-workspace-local-path`, and two StorageClasses,
+`oya-ci-workspace-general` and `oya-ci-workspace-live-postgres`. Its node-path map names only
+`oya-talos-worker-2` and the two distinct Talos mount paths; there is no default path for unlisted
+nodes. Each StorageClass selects exactly one mount path. Both runners select the exact worker
+hostname; `WaitForFirstConsumer` plus the provisioner's no-default node map makes an absent volume
+or wrong-node placement fail closed instead of spilling builds onto stateful storage.
 
 The repository declares alerts for DiskPressure, workspace free space, root writable-layer
 growth, eviction, lingering ephemeral PVC cleanup, and ARC startup/queue delay. The local cluster
@@ -204,7 +210,7 @@ rollout evidence.
 
 Rollback first sets both scale sets to `maxRunners: 0` through GitOps and waits for their Pods and
 ephemeral PVCs to disappear. Only then may the workspace storage Application be reverted and,
-after mount readback is empty, the Talos user volume removed. Rollback never repoints the existing
+after mount readback is empty, the two Talos user volumes removed. Rollback never repoints the existing
 stateful StorageClass, wipes the disk, or restores the unsafe three-runner root-filesystem layout.
 Issue #1504 remains open until exact-head cold maximum-concurrency evidence measures p50/p95/p99
 and proves no DiskPressure or eviction. Worker-2 remains a mixed compute node; a dedicated disk is
