@@ -967,7 +967,7 @@ fn workflows_use_the_local_config_controller_and_keep_the_cold_canary_absent() {
         .expect("cold canary step");
     assert!(!cold.contains("run --warm-probe"));
     assert!(!cold.contains(".buckconfig.local"));
-    assert!(canary.contains(" -- run --warm-probe"));
+    assert!(canary.contains(" -- run --workflow-mode"));
     assert!(canary.contains("--mode-out /tmp/canary-cache-mode -- buck2"));
     assert!(!canary.contains("--config-file infra/ci/buckconfig"));
     assert!(!canary.contains("--config \"buck2_re_client"));
@@ -1011,20 +1011,10 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
         .expect("trusted writer identity job");
     assert!(writer.contains("github.event_name == 'push'") && writer.contains("refs/heads/dev"));
     assert!(writer.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
-    assert!(writer.contains("timeout-minutes: 120"));
     assert!(writer.contains("id-token: write"));
-    assert!(writer.contains(" issue-identity \\"));
-    assert!(writer.contains("--role github-cas-writer-dev-push"));
-    assert!(writer.contains("--pki-mount pki_cas_writer"));
-    assert!(writer.contains("--prelicense-seed"));
-    assert!(writer.contains("-- canary-targets > \"${RUNNER_TEMP}/canary-targets\""));
-    assert!(
-        writer.contains(
-            "buck2 --isolation-dir canary-writer build @\"${RUNNER_TEMP}/canary-targets\""
-        )
-    );
-    assert!(writer.contains("OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt"));
-    assert!(writer.contains("if: always()") && writer.contains("rm -f"));
+    assert!(writer.contains("uses: ./.github/workflows/cache-integrity-canary.yml"));
+    assert!(writer.contains("writer_seed: true"));
+    assert!(!writer.contains("run:"), "writer must add no inline shell");
     let fan_in = required
         .split("  oya-ci-required:")
         .nth(1)
@@ -1043,14 +1033,25 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
 
     let canary = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH)).unwrap();
     assert!(canary.contains("id-token: write"));
-    assert!(canary.contains("--role github-cas-reader-integrity-canary"));
-    assert!(canary.contains("--pki-mount pki_cas_reader"));
+    assert!(canary.contains("workflow_call:"));
+    assert!(canary.contains("writer_seed:"));
+    assert!(
+        canary.contains("--workflow-mode \"${{ inputs.writer_seed && 'writer' || 'reader' }}\"")
+    );
     assert!(canary.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
     assert!(canary.contains("OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt"));
     assert!(canary.contains("prelicense_probe:"));
     assert!(canary.contains("timeout-minutes: 120"));
     assert!(canary.contains("--prelicense-probe"));
-    assert!(canary.contains("OYA_CACHE_TLS_CLIENT_CERT=${RUNNER_TEMP}/oya-cache-reader.pem"));
+    assert!(canary.contains("OYA_CACHE_TLS_CLIENT_CERT: /tmp/oya-cache-client.pem"));
+    assert!(canary.contains("OYA_CACHE_TLS_CA_CERTS: /tmp/oya-cache-server-ca.pem"));
+    assert!(!canary.contains("${{ runner.temp }}"));
+    assert!(!canary.contains("name: Exchange GitHub OIDC"));
+    assert!(!canary.contains("name: Remove short-lived cache identity"));
+    assert!(controller.contains("fixed_identity_options"));
+    assert!(controller.contains("remove_identity_files"));
+    assert!(controller.contains("github-cas-reader-integrity-canary"));
+    assert!(controller.contains("github-cas-writer-dev-push"));
     for workflow in [&required, &canary] {
         assert!(!workflow.contains("OYA_CACHE_WRITER_TLS_CLIENT_CERT_PATH"));
         assert!(!workflow.contains("OYA_CACHE_READER_TLS_CLIENT_CERT_PATH"));

@@ -186,6 +186,14 @@
       "prefix": "infra/ci/runner-image/"
     },
     {
+      "anchor": "ADR-0560 / PR #1553: exact Buck package marker that exposes the reviewed OpenBao TLS, workload-identity, and public-CA manifests to the repository corpus graph; the package adds indexing only and does not activate or apply the manifests.",
+      "prefix": "infra/kms/BUCK"
+    },
+    {
+      "anchor": "ADR-0560 / PR #1553: exact Buck package marker that exposes the reviewed OpenBao TLS-migration ExternalSecret stores to the repository corpus graph; the package adds indexing only and does not activate or apply the manifests.",
+      "prefix": "infra/external-secrets/BUCK"
+    },
+    {
       "anchor": "ADR-0630 D7 + infra/gitops/values.yaml oya-live-postgres-network-policy Application: exact network-policy artifact consumed by GitOps before the wave-2 live PostgreSQL ARC runner Pods; it denies runner-cell ingress and denies shared-data egress for the dedicated and general ARC cell labels. breadth: exact path only",
       "prefix": "infra/arc/live-postgres-runner-network-policy.yaml"
     },
