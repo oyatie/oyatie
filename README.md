@@ -16,7 +16,9 @@ work items, status evidence, and the dependency DAG — see
 
 How we build and review — the review lenses (Cartesian doubt, Red Team, blast-radius, opportunity
 cost…), the hyperscale architecture lenses, and the bars every change clears — is in
-[`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses).
+[`AGENTS.md`](AGENTS.md#engineering-principles--review-lenses). The bounded fan-out, preservation,
+and evidence-source rules are in
+[`docs/AGENTS.md`](docs/AGENTS.md#bounded-delivery-and-preservation).
 
 ## Build & verify
 

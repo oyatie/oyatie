@@ -68,6 +68,15 @@ fn authority_cohesion_rejects_retired_prescribed_authority() {
         Err(AuthorityCohesionError::RetiredPrescribedAuthority)
     );
 }
+
+#[test]
+fn preservation_quarantine_requires_off_machine_verified_restore_evidence() {
+    let contract = std::fs::read_to_string("docs/AGENTS.md").expect("read agent contract");
+    assert!(contract.contains(
+        "encrypted quarantine stored\noff-machine or otherwise durably beyond the machine being wiped, with a verified ciphertext hash\nand a successful clean-room decrypt-and-restore traversal using externally recoverable identities;\nor documented and reviewed explicit intentional discard"
+    ));
+}
+
 #[test]
 fn root_hub_pointer_reachability_accepts_green_fixture() {
     let targets = [
