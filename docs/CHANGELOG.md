@@ -31,8 +31,9 @@ doc_status: published
 
 - Prevent generated Talos machine configurations from re-entering preservation or product
   branches: exact root-anchored ignores cover the standard bootstrap outputs, while the existing
-  repo-root-hygiene admission lane now recognizes the credential-bearing Talos key topology across
-  renamed tracked YAML and emits path-only, value-redacted findings ([#1541](https://github.com/jason931225/oyatie/issues/1541)).
+  repo-root-hygiene admission lane now scans bounded tracked UTF-8 content regardless of filename
+  and blocks any sensitive Talos private-key/token/secret topology subset with path-only,
+  value-redacted findings ([#1541](https://github.com/jason931225/oyatie/issues/1541)).
 - Rotation, live-cluster mutation, dangling-object purge, and incident closeout remain explicitly
   outside this preventive-code slice.
 

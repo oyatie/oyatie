@@ -43,7 +43,7 @@ pub const VIOLATION_CODES: [&str; 6] = [
     "root_workspace_restricted_dir_unallowlisted_path",
     // An allowlist rule is malformed (missing/blank id, kind, or value).
     "root_workspace_policy_malformed_rule",
-    // A tracked YAML document has the key topology of a generated Talos machine config.
+    // A tracked UTF-8 document has a sensitive key subset from a generated Talos machine config.
     "credential_bearing_talos_machine_config",
 ];
 
@@ -361,11 +361,12 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
 /// stable even when an operator renames the file. This deliberately small parser considers only
 /// plain mapping keys and indentation. Text after the first `:` is discarded immediately, so a
 /// finding can never echo a token, certificate, private key, or other scalar value. Reviewed Talos
-/// patches/templates remain below the fingerprint because they do not contain the complete
-/// generated credential topology.
+/// patches/templates remain below the fingerprint when they contain no private key, token, or
+/// secret path from the generated credential topology.
 fn yaml_plain_mapping_key_paths(document: &str) -> BTreeSet<String> {
     let mut paths = BTreeSet::new();
     let mut parents: Vec<(usize, String)> = Vec::new();
+    let mut saw_mapping = false;
 
     for line in document.lines() {
         let indent = line.bytes().take_while(|byte| *byte == b' ').count();
@@ -374,12 +375,14 @@ fn yaml_plain_mapping_key_paths(document: &str) -> BTreeSet<String> {
             || trimmed.starts_with('#')
             || trimmed.starts_with("---")
             || trimmed.starts_with("...")
-            || trimmed.starts_with('-')
         {
             continue;
         }
 
         let Some((raw_key, _discarded_scalar)) = trimmed.split_once(':') else {
+            if !saw_mapping {
+                return BTreeSet::new();
+            }
             continue;
         };
         let key = raw_key.trim();
@@ -388,8 +391,15 @@ fn yaml_plain_mapping_key_paths(document: &str) -> BTreeSet<String> {
                 .bytes()
                 .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-'))
         {
+            if !saw_mapping {
+                return BTreeSet::new();
+            }
             continue;
         }
+        if !saw_mapping && indent != 0 {
+            return BTreeSet::new();
+        }
+        saw_mapping = true;
 
         while parents.last().is_some_and(|(depth, _)| *depth >= indent) {
             parents.pop();
@@ -412,22 +422,20 @@ fn has_generated_talos_machine_config_topology(document: &str) -> bool {
     let paths = yaml_plain_mapping_key_paths(document);
     [
         "machine.token",
-        "machine.ca.crt",
         "machine.ca.key",
-        "cluster.id",
         "cluster.secret",
         "cluster.token",
         "cluster.secretboxEncryptionSecret",
-        "cluster.ca.crt",
         "cluster.ca.key",
     ]
     .into_iter()
-    .all(|required| paths.contains(required))
+    .any(|sensitive_path| paths.contains(sensitive_path))
 }
 
-/// Reject tracked YAML documents that structurally match a credential-bearing generated Talos
-/// machine configuration. Findings intentionally contain only the repository-relative path and a
-/// fixed remediation; document contents and scalar values are never included.
+/// Reject tracked UTF-8 documents that contain any sensitive credential-bearing key path from a
+/// generated Talos machine configuration. Findings intentionally contain only the
+/// repository-relative path and a fixed remediation; document contents and scalar values are
+/// never included.
 pub fn evaluate_talos_machine_config_documents<'a>(
     documents: impl IntoIterator<Item = (&'a str, &'a str)>,
 ) -> BTreeSet<Finding> {
@@ -439,7 +447,7 @@ pub fn evaluate_talos_machine_config_documents<'a>(
                     "credential_bearing_talos_machine_config",
                     path,
                     format!(
-                        "tracked YAML `{path}` matches generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
+                        "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
                     ),
                 )
             })
@@ -508,6 +516,65 @@ cluster:
         assert!(
             !format!("{finding:?}").contains("DO_NOT_ECHO"),
             "the finding must contain path and remediation only, never document scalar values"
+        );
+    }
+
+    #[test]
+    fn partial_talos_credential_subsets_are_each_red() {
+        for (path, document) in [
+            (
+                "recovery/controlplane",
+                "machine:\n  token: DO_NOT_ECHO_MACHINE_TOKEN\n",
+            ),
+            (
+                "recovery/controlplane.txt",
+                "machine:\n  ca:\n    key: DO_NOT_ECHO_MACHINE_KEY\n",
+            ),
+            (
+                "recovery/partial-cluster-config",
+                "cluster:\n  secret: DO_NOT_ECHO_CLUSTER_SECRET\n",
+            ),
+            (
+                "recovery/partial-cluster-config.txt",
+                "cluster:\n  token: DO_NOT_ECHO_CLUSTER_TOKEN\n",
+            ),
+            (
+                "recovery/partial-secretbox",
+                "cluster:\n  secretboxEncryptionSecret: DO_NOT_ECHO_SECRETBOX_KEY\n",
+            ),
+            (
+                "recovery/partial-cluster-ca",
+                "cluster:\n  ca:\n    key: DO_NOT_ECHO_CLUSTER_KEY\n",
+            ),
+        ] {
+            let findings = evaluate_talos_machine_config_documents([(path, document)]);
+            assert!(
+                findings
+                    .iter()
+                    .any(|finding| finding.code == "credential_bearing_talos_machine_config"),
+                "sensitive Talos credential subset at extension-independent path {path} must be rejected"
+            );
+            assert!(
+                !format!("{findings:?}").contains("DO_NOT_ECHO"),
+                "subset findings must remain value-redacted"
+            );
+        }
+    }
+
+    #[test]
+    fn public_talos_certificate_topology_without_private_credentials_is_green() {
+        let public_only = r#"
+machine:
+  ca:
+    crt: public-certificate
+cluster:
+  ca:
+    crt: public-certificate
+"#;
+        assert!(
+            evaluate_talos_machine_config_documents([("review/public-ca.yaml", public_only)])
+                .is_empty(),
+            "public certificates without private keys/tokens/secrets are not credential-bearing"
         );
     }
 

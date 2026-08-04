@@ -66,8 +66,48 @@ fn generated_talos_root_outputs_are_ignored_by_exact_root_anchored_rules() {
     }
 }
 
+/// Exact pre-existing public parser/differential fixtures that intentionally model Talos
+/// credential topology with deterministic test-only values. This is a frozen exception, not a
+/// directory exemption: a renamed, extensionless, or newly added sibling remains scanned. The two
+/// invalid fixtures without sensitive topology (10/11) are not exceptions because they produce no
+/// finding.
+fn is_frozen_public_talos_parser_fixture(path: &str) -> bool {
+    if path == "os/core/init-app/testdata/machine-config.yaml" {
+        return true;
+    }
+    let fixture_name = [
+        "os/core/machine-config-domain/testdata/configs/",
+        "os/harness/difftest-app/configs/",
+    ]
+    .into_iter()
+    .find_map(|prefix| path.strip_prefix(prefix));
+    matches!(
+        fixture_name,
+        Some(
+            "01-controlplane-full.yaml"
+                | "02-controlplane-no-hostname-no-install.yaml"
+                | "03-controlplane-hostname-no-install.yaml"
+                | "04-worker-full.yaml"
+                | "05-worker-no-hostname-no-install.yaml"
+                | "06-worker-hostname-no-install.yaml"
+                | "07-worker-install-no-hostname.yaml"
+                | "08-controlplane-certsans.yaml"
+                | "09-invalid-bad-type.yaml"
+                | "12-invalid-no-endpoint.yaml"
+                | "13-invalid-worker-ca-key.yaml"
+                | "14-init-full.yaml"
+                | "15-controlplane-rich-network.yaml"
+                | "16-worker-rich.yaml"
+                | "17-controlplane-install-image-only.yaml"
+                | "18-worker-sysctls-env-only.yaml"
+                | "19-init-cluster-network.yaml"
+                | "20-worker-minimal-kubelet.yaml"
+        )
+    )
+}
+
 #[test]
-fn live_tracked_yaml_corpus_has_no_generated_talos_machine_config() {
+fn bounded_tracked_utf8_corpus_has_no_generated_talos_machine_config_regardless_of_filename() {
     let root = repo_root();
     let observed = observed_from_scm_facts(&root);
     let mut documents = Vec::new();
@@ -75,11 +115,18 @@ fn live_tracked_yaml_corpus_has_no_generated_talos_machine_config() {
         let Some(path) = row["path"].as_str() else {
             continue;
         };
-        if !(path.ends_with(".yaml") || path.ends_with(".yml")) {
+        let Ok(metadata) = fs::metadata(root.join(path)) else {
+            continue;
+        };
+        if metadata.len() > 2 * 1024 * 1024 {
             continue;
         }
-        let text = fs::read_to_string(root.join(path))
-            .unwrap_or_else(|error| panic!("read tracked YAML path {path}: {error}"));
+        let Ok(bytes) = fs::read(root.join(path)) else {
+            continue;
+        };
+        let Ok(text) = String::from_utf8(bytes) else {
+            continue;
+        };
         documents.push((path.to_owned(), text));
     }
     let borrowed = documents
@@ -88,9 +135,18 @@ fn live_tracked_yaml_corpus_has_no_generated_talos_machine_config() {
         .collect::<Vec<_>>();
 
     let findings = evaluate_talos_machine_config_documents(borrowed);
+    let unexpected = findings
+        .iter()
+        .filter(|finding| !is_frozen_public_talos_parser_fixture(&finding.key))
+        .collect::<Vec<_>>();
+    let frozen_count = findings.len() - unexpected.len();
+    assert_eq!(
+        frozen_count, 37,
+        "the exact pre-existing public Talos fixture exception set must neither grow nor silently disappear"
+    );
     assert!(
-        findings.is_empty(),
-        "tracked YAML must not contain generated Talos machine-config credential topology; findings are value-redacted: {findings:#?}"
+        unexpected.is_empty(),
+        "outside the exact frozen public fixture set, bounded tracked UTF-8 blobs must not contain generated Talos machine-config credential topology regardless of filename; findings are value-redacted: {unexpected:#?}"
     );
 }
 
