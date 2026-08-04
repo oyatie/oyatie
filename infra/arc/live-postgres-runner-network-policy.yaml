@@ -15,24 +15,57 @@ spec:
   # Deny every cross-Pod ingress path to the runner/database Pod.
   ingress: []
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
 metadata:
-  name: ci-runners-deny-shared-data-egress
+  name: ci-runners-egress-allowlist
   namespace: arc-runners
   labels:
     app.kubernetes.io/part-of: oya-cloud-ci
 spec:
-  endpointSelector:
+  podSelector:
     matchExpressions:
       - key: oya.io/ci-cell
         operator: In
         values: [general, live-postgres]
-  # Keep normal GitHub/CAS/package egress available, but deny the shared data
-  # namespace regardless of any allow rule. Cilium deny rules take precedence.
-  enableDefaultDeny:
-    egress: false
-  egressDeny:
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: oya-data
+  policyTypes: [Egress]
+  # Standard NetworkPolicy has allow semantics only. Selecting these Pods with
+  # Egress makes the declaration default-deny, then restores only DNS, the two
+  # runner substrate namespaces, and public IPv4. Private/link-local ranges stay
+  # excluded, so oya-data and every other unlisted in-cluster namespace fail
+  # closed without a Cilium-only CRD. Live CNI enforcement still needs readback.
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-ci
+      ports:
+        - { protocol: TCP, port: 50051 }
+        - { protocol: TCP, port: 50052 }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-registry
+      ports:
+        - { protocol: TCP, port: 5000 }
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 100.64.0.0/10
+              - 127.0.0.0/8
+              - 169.254.0.0/16
+              - 172.16.0.0/12
+              - 192.0.0.0/24
+              - 192.168.0.0/16
+              - 198.18.0.0/15
+              - 224.0.0.0/4
+              - 240.0.0.0/4
