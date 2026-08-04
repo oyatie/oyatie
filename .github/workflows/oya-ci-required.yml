@@ -51,7 +51,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 # The Rust-owned event parser validates this complete provider tuple before any candidate-tree
 # materializer or census receipt can select a commit. workflow_dispatch intentionally supplies an
@@ -634,6 +633,9 @@ jobs:
   #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
   gate-affected-target-set:
     name: "gate · affected-set (ADR-0554, binding workspace coverage)"
+    permissions:
+      contents: read
+      actions: read
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so a producer failure cannot suppress this independent binding verdict.
     runs-on: oya-arm64
@@ -775,8 +777,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
-          # Read-only; the workflow-level `permissions:` block already grants `actions: read`,
-          # which is exactly what listing runs/artifacts and downloading an artifact needs.
+          # Read-only, job-scoped token for the sole cross-run artifact consumer.
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -935,7 +936,7 @@ jobs:
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: build-health-baseline-${{ github.sha }}
+          name: build-health-baseline-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-gate-affected-target-set
           path: ${{ runner.temp }}/build-health-admission-report.json
           retention-days: 90
           if-no-files-found: error
@@ -958,7 +959,7 @@ jobs:
         # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: test-health-baseline-${{ github.sha }}
+          name: test-health-baseline-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-gate-affected-target-set
           path: ${{ runner.temp }}/test-health-admission-report.json
           retention-days: 90
           if-no-files-found: error

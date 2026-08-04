@@ -32,12 +32,14 @@ use std::time::Duration;
 
 use ci_affected_target_set::{
     BASELINE_PROVENANCE_FILENAME, BASELINE_REUSE_OUTCOME_FILENAME, BaselineKind,
-    BaselineReuseState, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH, TrustedProducerJob,
-    baseline_artifact_name, build_health_verdict, classify_api_status, failing_targets,
-    parse_build_report, parse_test_verdicts, test_verdicts_to_report_value,
-    trusted_affected_set_producer_job, trusted_baseline_artifact_id, trusted_dev_push_run_id,
-    validate_trusted_baseline_artifact, validated_merge_base_sha,
+    BaselineReuseState, BuildHealthVerdict, REQUIRED_CONTEXT_WORKFLOW_PATH,
+    TrustedBaselineArtifact, TrustedProducerJob, TrustedWorkflowRun, baseline_artifact_name,
+    build_health_verdict, classify_api_status, failing_targets, parse_build_report,
+    parse_test_verdicts, test_verdicts_to_report_value, trusted_affected_set_producer_job,
+    trusted_baseline_artifact, trusted_dev_push_run, validate_trusted_baseline_artifact,
+    validated_merge_base_sha,
 };
+use sha2::{Digest, Sha256};
 
 const LOG: &str = "build-health";
 
@@ -48,7 +50,7 @@ const GITHUB_API: &str = "https://api.github.com";
 /// GitHub rejects API requests without a User-Agent.
 const HTTP_USER_AGENT: &str = "oya-cloud-ci-build-health";
 /// GitHub's pinned REST version; unversioned requests can change shape under us.
-const GITHUB_API_VERSION: &str = "2022-11-28";
+const GITHUB_API_VERSION: &str = "2026-03-10";
 /// Per-request ceiling. The fast path exists to save ~12 minutes; a request that hangs longer than
 /// this has already lost to the cold rebuild it was avoiding.
 const HTTP_TIMEOUT: Duration = Duration::from_secs(60);
@@ -186,7 +188,7 @@ fn require<'a>(raw: &'a [String], flag: &str) -> Result<&'a str, String> {
 ///
 /// Usage: `--trusted-baseline --merge-base <sha> --repo <owner/name> --out-dir <dir>`.
 fn trusted_baseline_exit(raw: &[String]) -> u8 {
-    let (state, why) = match reuse_trusted_baselines(raw) {
+    let (mut state, mut why) = match reuse_trusted_baselines(raw) {
         Ok(()) => (
             BaselineReuseState::Reused,
             "validated merge-base baseline pair downloaded".to_owned(),
@@ -199,12 +201,17 @@ fn trusted_baseline_exit(raw: &[String]) -> u8 {
     // the whole life of the owned fleet. `--out-dir` is validated inside `reuse_trusted_baselines`,
     // so re-reading it here without validation is only ever used as a directory to write into.
     if let Some(out_dir) = flag_value(raw, "--out-dir") {
-        report_reuse_outcome(
+        if let Err(error) = report_reuse_outcome(
             Path::new(out_dir),
             flag_value(raw, "--merge-base").unwrap_or("<unparsed>"),
             state,
             &why,
-        );
+        ) {
+            cleanup_baseline_outputs(Path::new(out_dir));
+            state = BaselineReuseState::Refused;
+            why = format!("outcome telemetry could not be persisted: {error}");
+            println!("::error title=Trusted-baseline telemetry failed::{why}");
+        }
     }
 
     match state {
@@ -226,32 +233,48 @@ fn trusted_baseline_exit(raw: &[String]) -> u8 {
 
 /// Write the typed fast-path outcome everywhere it can be noticed: a machine-readable sidecar the
 /// affected-set gate folds into its operator artifact, the job step summary, and — for a capability
-/// fault only — a GitHub annotation.
-///
-/// DELIBERATELY NON-BLOCKING. A capability fault must never fail the step: baseline reuse is an
-/// optimization, and turning an observability improvement into a merge blocker would be a worse
-/// defect than the one being fixed. `::warning::` is the correct loudness — it renders on the run
-/// page without touching admission. Every write here is best-effort for the same reason: a failure
-/// to REPORT must not change what the gate DECIDES.
-fn report_reuse_outcome(out_dir: &Path, merge_base: &str, state: BaselineReuseState, why: &str) {
+/// fault/refusal — a GitHub annotation. The machine sidecar is mandatory: reuse without a durable
+/// outcome is refused and the cold fallback runs.
+fn report_reuse_outcome(
+    out_dir: &Path,
+    merge_base: &str,
+    state: BaselineReuseState,
+    why: &str,
+) -> Result<(), String> {
     let outcome = serde_json::json!({
-        "schema_version": 1,
+        "schema_version": 2,
         "state": state.as_str(),
         "capability_fault": state.is_capability_fault(),
         "reason": why,
         "merge_base": merge_base,
-        "cold_rebuild_ran": state != BaselineReuseState::Reused,
+        "cold_fallback_required": state != BaselineReuseState::Reused,
+        "exit_code": state.exit_code(),
+        "telemetry_persisted": true,
     });
-    if let Ok(bytes) = serde_json::to_vec_pretty(&outcome) {
-        let _ = fs::write(out_dir.join(BASELINE_REUSE_OUTCOME_FILENAME), bytes);
-    }
+    let bytes =
+        serde_json::to_vec_pretty(&outcome).map_err(|e| format!("serialize outcome: {e}"))?;
+    let path = out_dir.join(BASELINE_REUSE_OUTCOME_FILENAME);
+    let temporary = out_dir.join(format!(".{BASELINE_REUSE_OUTCOME_FILENAME}.tmp"));
+    fs::write(&temporary, bytes).map_err(|e| format!("write `{}`: {e}", temporary.display()))?;
+    fs::rename(&temporary, &path).map_err(|e| format!("publish `{}`: {e}", path.display()))?;
 
-    if state.is_capability_fault() {
-        // GitHub parses this from stdout and surfaces it on the run summary page.
-        println!("::warning title=Trusted-baseline fast path is dark::{why}");
+    match state {
+        BaselineReuseState::CapabilityFault => {
+            println!("::warning title=Trusted-baseline fast path is dark::{why}");
+        }
+        BaselineReuseState::Refused => {
+            println!("::warning title=Trusted-baseline provenance refused::{why}");
+        }
+        BaselineReuseState::Unavailable => {
+            println!("::notice title=Trusted baseline unavailable::{why}");
+        }
+        BaselineReuseState::Reused => {}
     }
     if let Ok(summary) = std::env::var("GITHUB_STEP_SUMMARY")
-        && let Ok(mut file) = fs::OpenOptions::new().append(true).create(true).open(summary)
+        && let Ok(mut file) = fs::OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(summary)
     {
         let _ = writeln!(
             file,
@@ -259,6 +282,7 @@ fn report_reuse_outcome(out_dir: &Path, merge_base: &str, state: BaselineReuseSt
             state.as_str()
         );
     }
+    Ok(())
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -305,13 +329,18 @@ fn validated_repo(repo: &str) -> Result<&str, TrustedBaselineOutcome> {
     if ok {
         Ok(repo)
     } else {
-        Err(Refused(format!("`{repo}` is not a valid <owner>/<name> repository")))
+        Err(Refused(format!(
+            "`{repo}` is not a valid <owner>/<name> repository"
+        )))
     }
 }
 
 /// PURE: which workflow run may be trusted for `merge_base`, given the runs payload.
-fn select_trusted_run(runs_json: &str, merge_base: &str) -> Result<u64, TrustedBaselineOutcome> {
-    match trusted_dev_push_run_id(runs_json, merge_base, REQUIRED_CONTEXT_WORKFLOW_PATH)
+fn select_trusted_run(
+    runs_json: &str,
+    merge_base: &str,
+) -> Result<TrustedWorkflowRun, TrustedBaselineOutcome> {
+    match trusted_dev_push_run(runs_json, merge_base, REQUIRED_CONTEXT_WORKFLOW_PATH)
         .map_err(Refused)?
     {
         Some(id) => Ok(id),
@@ -322,8 +351,11 @@ fn select_trusted_run(runs_json: &str, merge_base: &str) -> Result<u64, TrustedB
 }
 
 /// PURE: require the unique exact producer job to be terminal green.
-fn select_trusted_producer(jobs_json: &str) -> Result<TrustedProducerJob, TrustedBaselineOutcome> {
-    match trusted_affected_set_producer_job(jobs_json).map_err(Refused)? {
+fn select_trusted_producer(
+    jobs_json: &str,
+    run: &TrustedWorkflowRun,
+) -> Result<TrustedProducerJob, TrustedBaselineOutcome> {
+    match trusted_affected_set_producer_job(jobs_json, run.id, &run.head_sha).map_err(Refused)? {
         Some(job) => Ok(job),
         None => Err(Unavailable(
             "the completed run has no unique exact affected-set producer job with conclusion=success"
@@ -336,11 +368,13 @@ fn select_trusted_producer(jobs_json: &str) -> Result<TrustedProducerJob, Truste
 fn select_trusted_artifact(
     artifacts_json: &str,
     kind: BaselineKind,
-    merge_base: &str,
-) -> Result<(u64, String), TrustedBaselineOutcome> {
-    let name = baseline_artifact_name(kind, merge_base).map_err(Refused)?;
-    match trusted_baseline_artifact_id(artifacts_json, &name).map_err(Refused)? {
-        Some(id) => Ok((id, name)),
+    run: &TrustedWorkflowRun,
+) -> Result<TrustedBaselineArtifact, TrustedBaselineOutcome> {
+    let name = baseline_artifact_name(kind, &run.head_sha, run.id, run.attempt).map_err(Refused)?;
+    match trusted_baseline_artifact(artifacts_json, &name, run.id, &run.head_sha)
+        .map_err(Refused)?
+    {
+        Some(artifact) => Ok(artifact),
         None => Err(Unavailable(format!(
             "the trusted run published no unexpired `{name}` artifact"
         ))),
@@ -352,11 +386,18 @@ fn select_trusted_artifact(
 fn accept_downloaded_baseline(
     kind: BaselineKind,
     artifact_name: &str,
-    merge_base: &str,
+    run: &TrustedWorkflowRun,
     report_json: &str,
 ) -> Result<usize, TrustedBaselineOutcome> {
-    validate_trusted_baseline_artifact(kind, artifact_name, merge_base, report_json)
-        .map_err(Refused)
+    validate_trusted_baseline_artifact(
+        kind,
+        artifact_name,
+        &run.head_sha,
+        run.id,
+        run.attempt,
+        report_json,
+    )
+    .map_err(Refused)
 }
 
 /// Owned GitHub REST adapter. Carries no verdict of its own: it returns bytes, and the pure
@@ -440,16 +481,18 @@ impl GitHubApi {
     fn get_paginated_jobs(
         &self,
         repo: &str,
-        run_id: u64,
+        run: &TrustedWorkflowRun,
     ) -> Result<String, TrustedBaselineOutcome> {
         let mut jobs = Vec::new();
         for page in 1..=100 {
             let route = format!(
-                "repos/{repo}/actions/runs/{run_id}/jobs?per_page=100&page={page}&filter=latest"
+                "repos/{repo}/actions/runs/{}/attempts/{}/jobs?per_page=100&page={page}",
+                run.id, run.attempt
             );
             let body = self.get_text(&route)?;
-            let payload: serde_json::Value = serde_json::from_str(&body)
-                .map_err(|e| Refused(format!("workflow-jobs page {page} is not valid JSON: {e}")))?;
+            let payload: serde_json::Value = serde_json::from_str(&body).map_err(|e| {
+                Refused(format!("workflow-jobs page {page} is not valid JSON: {e}"))
+            })?;
             let batch = payload
                 .get("jobs")
                 .and_then(serde_json::Value::as_array)
@@ -457,8 +500,9 @@ impl GitHubApi {
             let count = batch.len();
             jobs.extend(batch.iter().cloned());
             if count < 100 {
-                return serde_json::to_string(&serde_json::json!({ "jobs": jobs }))
-                    .map_err(|e| Refused(format!("could not assemble workflow-jobs payload: {e}")));
+                return serde_json::to_string(&serde_json::json!({ "jobs": jobs })).map_err(|e| {
+                    Refused(format!("could not assemble workflow-jobs payload: {e}"))
+                });
             }
         }
         Err(Refused(
@@ -476,6 +520,12 @@ impl GitHubApi {
             .map_err(|e| CapabilityFault(format!("GET {route}: download interrupted: {e}")))?;
         Ok(())
     }
+}
+
+fn sha256_file(path: &Path) -> Result<String, TrustedBaselineOutcome> {
+    let bytes =
+        fs::read(path).map_err(|e| Refused(format!("cannot hash `{}`: {e}", path.display())))?;
+    Ok(format!("sha256:{:x}", Sha256::digest(bytes)))
 }
 
 /// Stream a subprocess's stdout straight to `dest` (`unzip -p` output can be large and does not
@@ -517,28 +567,44 @@ fn capture_to_file(
 fn fetch_one_baseline(
     api: &GitHubApi,
     repo: &str,
-    merge_base: &str,
-    run_id: u64,
+    run: &TrustedWorkflowRun,
     artifacts_json: &str,
     kind: BaselineKind,
     out_dir: &Path,
-) -> Result<(), TrustedBaselineOutcome> {
-    let (artifact_id, expected_name) = select_trusted_artifact(artifacts_json, kind, merge_base)?;
+) -> Result<TrustedBaselineArtifact, TrustedBaselineOutcome> {
+    let artifact = select_trusted_artifact(artifacts_json, kind, run)?;
     // The name the API reports for the id we are about to download closes the "selected one
     // artifact, fetched another" loop against a live server response.
-    let meta = api.get_text(&format!("repos/{repo}/actions/artifacts/{artifact_id}"))?;
-    let reported_name = serde_json::from_str::<serde_json::Value>(&meta)
-        .ok()
-        .and_then(|v| v.get("name").and_then(|n| n.as_str()).map(str::to_owned))
-        .ok_or_else(|| {
-            Refused(format!("artifact {artifact_id} metadata carries no string `name`"))
-        })?;
+    let meta = api.get_text(&format!("repos/{repo}/actions/artifacts/{}", artifact.id))?;
+    let wrapped_meta = format!(r#"{{"artifacts":[{meta}]}}"#);
+    let metadata_artifact =
+        trusted_baseline_artifact(&wrapped_meta, &artifact.name, run.id, &run.head_sha)
+            .map_err(Refused)?
+            .ok_or_else(|| {
+                Refused(format!(
+                    "artifact {} metadata reports it unavailable",
+                    artifact.id
+                ))
+            })?;
+    if metadata_artifact != artifact {
+        return Err(Refused(format!(
+            "artifact {} list metadata does not match its by-id metadata",
+            artifact.id
+        )));
+    }
 
     let zip = out_dir.join(format!("trusted-{}-health-baseline.zip", kind.prefix()));
     api.download(
-        &format!("repos/{repo}/actions/artifacts/{artifact_id}/zip"),
+        &format!("repos/{repo}/actions/artifacts/{}/zip", artifact.id),
         &zip,
     )?;
+    let downloaded_digest = sha256_file(&zip)?;
+    if downloaded_digest != artifact.digest {
+        return Err(Refused(format!(
+            "artifact {} digest mismatch: API={}, downloaded={downloaded_digest}",
+            artifact.id, artifact.digest
+        )));
+    }
     // The artifact API serves ONLY a zip and this crate takes no new dependency, so extraction is
     // delegated to `unzip`. Declared, with the full justification and cutover, as a path- and
     // count-scoped hermetic exception in ci/facade/gate-self-conformance/gate-self-conformance-policy.json
@@ -551,28 +617,33 @@ fn fetch_one_baseline(
 
     let payload = fs::read_to_string(&report)
         .map_err(|e| Refused(format!("cannot read `{}`: {e}", report.display())))?;
-    let count = accept_downloaded_baseline(kind, &reported_name, merge_base, &payload)?;
+    let count = accept_downloaded_baseline(kind, &artifact.name, run, &payload)?;
     println!(
-        "{LOG}: trusted {} baseline VALID — {count} target result(s) from `{expected_name}` \
-         (artifact {artifact_id} of run {run_id}) -> {}",
+        "{LOG}: trusted {} baseline VALID — {count} target result(s) from `{}` \
+         (artifact {} digest {} of run {} attempt {}) -> {}",
         kind.prefix(),
+        artifact.name,
+        artifact.id,
+        artifact.digest,
+        run.id,
+        run.attempt,
         report.display()
     );
-    Ok(())
+    Ok(artifact)
+}
+
+fn cleanup_baseline_outputs(out_dir: &Path) {
+    for kind in [BaselineKind::Build, BaselineKind::Test] {
+        let _ = fs::remove_file(out_dir.join(format!("{}-health-baseline.json", kind.prefix())));
+    }
+    let _ = fs::remove_file(out_dir.join(BASELINE_PROVENANCE_FILENAME));
 }
 
 fn reuse_trusted_baselines(raw: &[String]) -> Result<(), TrustedBaselineOutcome> {
     let out_dir = PathBuf::from(require(raw, "--out-dir").map_err(Refused)?);
     let outcome = reuse_trusted_baselines_inner(raw, &out_dir);
     if outcome.is_err() {
-        // ONE fail-closed cleanup for EVERY failure mode, including a late one after both halves
-        // validated: never leave a partial baseline the cold path's `test -s` guard could mistake
-        // for a freshly rebuilt one, and never leave a sidecar that would mislabel a cold rebuild
-        // as a reused artifact.
-        for kind in [BaselineKind::Build, BaselineKind::Test] {
-            let _ = fs::remove_file(out_dir.join(format!("{}-health-baseline.json", kind.prefix())));
-        }
-        let _ = fs::remove_file(out_dir.join(BASELINE_PROVENANCE_FILENAME));
+        cleanup_baseline_outputs(&out_dir);
     }
     outcome
 }
@@ -584,19 +655,20 @@ fn reuse_trusted_baselines_inner(
     // BOTH interpolated values are shape-checked BEFORE they reach an API route, not merely
     // before they are compared. `select_trusted_run` re-checks the SHA downstream, but that is
     // too late to keep a malformed value out of the URL.
-    let merge_base =
-        validated_merge_base_sha(require(raw, "--merge-base").map_err(Refused)?).map_err(Refused)?;
+    let merge_base = validated_merge_base_sha(require(raw, "--merge-base").map_err(Refused)?)
+        .map_err(Refused)?;
     let repo = validated_repo(require(raw, "--repo").map_err(Refused)?)?;
     let api = GitHubApi::from_env()?;
 
     let runs = api.get_text(&format!(
         "repos/{repo}/actions/workflows/oya-ci-required.yml/runs?event=push&branch=dev&status=completed&head_sha={merge_base}&per_page=20"
     ))?;
-    let run_id = select_trusted_run(&runs, merge_base)?;
-    let jobs = api.get_paginated_jobs(repo, run_id)?;
-    let producer = select_trusted_producer(&jobs)?;
+    let run = select_trusted_run(&runs, merge_base)?;
+    let jobs = api.get_paginated_jobs(repo, &run)?;
+    let producer = select_trusted_producer(&jobs, &run)?;
     let artifacts = api.get_text(&format!(
-        "repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100"
+        "repos/{repo}/actions/runs/{}/artifacts?per_page=100",
+        run.id
     ))?;
 
     // BOTH halves must validate. A build-only pair is worthless: the FULL tier's merge-base
@@ -610,21 +682,33 @@ fn reuse_trusted_baselines_inner(
     // does differ from the cold path, which can observe env-dependent merge-base failures and
     // grandfather them. A PR blocked here is being told the truth: the producer proved this
     // merge-base green, so the failure is new.
+    let mut receipts = Vec::new();
     for kind in [BaselineKind::Build, BaselineKind::Test] {
         // Partial-state cleanup is the caller's single handler — nothing to unwind here.
-        fetch_one_baseline(&api, repo, merge_base, run_id, &artifacts, kind, out_dir)?;
+        let artifact = fetch_one_baseline(&api, repo, &run, &artifacts, kind, out_dir)?;
+        receipts.push(serde_json::json!({
+            "kind": kind.prefix(),
+            "artifact_id": artifact.id,
+            "artifact_name": artifact.name,
+            "artifact_digest": artifact.digest,
+            "size_in_bytes": artifact.size_in_bytes,
+        }));
     }
     // Record WHICH baseline the FULL tier is about to grandfather against. The affected-set gate
     // reads this sidecar beside the baseline it was handed and stamps it into the operator
     // decision artifact, so "reused vs rebuilt" is a recorded decision, not an inheritance.
     let provenance = serde_json::json!({
-        "schema_version": 2,
+        "schema_version": 3,
         "source": "trusted-artifact",
         "merge_base": merge_base,
-        "workflow_run_id": run_id,
+        "workflow_run_id": run.id,
+        "workflow_run_attempt": run.attempt,
         "workflow_path": REQUIRED_CONTEXT_WORKFLOW_PATH,
         "producer_job_id": producer.id,
+        "producer_run_id": producer.run_id,
+        "producer_head_sha": producer.head_sha,
         "producer_job_conclusion": producer.conclusion,
+        "artifacts": receipts,
         "grandfathering": "none — the exact affected-set producer passed, so its failure set is empty",
     });
     let sidecar = out_dir.join(BASELINE_PROVENANCE_FILENAME);
@@ -633,9 +717,11 @@ fn reuse_trusted_baselines_inner(
     fs::write(&sidecar, bytes)
         .map_err(|e| Refused(format!("could not write `{}`: {e}", sidecar.display())))?;
     println!(
-        "{LOG}: trusted merge-base baseline pair REUSED from run {run_id}, producer job {} at \
+        "{LOG}: trusted merge-base baseline pair REUSED from run {} attempt {}, producer job {} at \
          {merge_base} — the \
          cold merge-base rebuild is skipped (provenance: {})",
+        run.id,
+        run.attempt,
         producer.id,
         sidecar.display()
     );
@@ -790,10 +876,13 @@ mod trusted_baseline_tests {
 
     const SHA: &str = "0123456789abcdef0123456789abcdef01234567";
     const OTHER_SHA: &str = "fedcba9876543210fedcba9876543210fedcba98";
+    const RUN_ID: u64 = 13;
+    const RUN_ATTEMPT: u64 = 2;
+    const DIGEST: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
     fn run_entry(id: u64, sha: &str, event: &str, branch: &str, conclusion: &str) -> String {
         format!(
-            r#"{{"id":{id},"head_sha":"{sha}","event":"{event}","head_branch":"{branch}","status":"completed","conclusion":"{conclusion}","path":".github/workflows/oya-ci-required.yml"}}"#
+            r#"{{"id":{id},"run_attempt":{RUN_ATTEMPT},"head_sha":"{sha}","event":"{event}","head_branch":"{branch}","status":"completed","conclusion":"{conclusion}","path":".github/workflows/oya-ci-required.yml"}}"#
         )
     }
 
@@ -809,26 +898,44 @@ mod trusted_baseline_tests {
         matches!(o, Refused(_))
     }
 
+    fn trusted_run() -> TrustedWorkflowRun {
+        TrustedWorkflowRun {
+            id: RUN_ID,
+            attempt: RUN_ATTEMPT,
+            head_sha: SHA.to_owned(),
+        }
+    }
+
+    fn artifact_payload(kind: BaselineKind, expired: bool) -> String {
+        let name = baseline_artifact_name(kind, SHA, RUN_ID, RUN_ATTEMPT).unwrap();
+        format!(
+            r#"{{"artifacts":[{{
+            "id":22,"name":"{name}","expired":{expired},"digest":"{DIGEST}",
+            "size_in_bytes":42,"workflow_run":{{"id":{RUN_ID},"head_sha":"{SHA}"}}
+        }}]}}"#
+        )
+    }
+
     #[test]
     fn selects_the_exact_merge_base_dev_push_run() {
         let payload = runs(&[
             run_entry(11, OTHER_SHA, "push", "dev", "success"),
-            // Aggregate failure is not producer failure. The exact producer is selected from
-            // the run's paginated jobs before any artifact is accepted.
-            run_entry(13, SHA, "push", "dev", "failure"),
+            run_entry(RUN_ID, SHA, "push", "dev", "failure"),
         ]);
-        assert_eq!(select_trusted_run(&payload, SHA), Ok(13));
+        assert_eq!(select_trusted_run(&payload, SHA), Ok(trusted_run()));
     }
 
     #[test]
-    fn wrong_sha_wrong_event_wrong_branch_and_incomplete_runs_are_all_unavailable() {
-        // Each entry is a distinct rejected provenance shape; none may be selected.
+    fn wrong_sha_event_branch_status_or_foreign_workflow_is_unavailable() {
         let payload = runs(&[
             run_entry(11, OTHER_SHA, "push", "dev", "success"),
             run_entry(12, SHA, "pull_request", "dev", "success"),
             run_entry(13, SHA, "push", "feature", "success"),
             format!(
-                r#"{{"id":14,"head_sha":"{SHA}","event":"push","head_branch":"dev","status":"in_progress","conclusion":null,"path":".github/workflows/oya-ci-required.yml"}}"#
+                r#"{{"id":14,"run_attempt":1,"head_sha":"{SHA}","event":"push","head_branch":"dev","status":"in_progress","conclusion":null,"path":".github/workflows/oya-ci-required.yml"}}"#
+            ),
+            format!(
+                r#"{{"id":15,"run_attempt":1,"head_sha":"{SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"success","path":".github/workflows/some-other-lane.yml"}}"#
             ),
         ]);
         let err = select_trusted_run(&payload, SHA).unwrap_err();
@@ -836,161 +943,134 @@ mod trusted_baseline_tests {
     }
 
     #[test]
-    fn producer_selection_requires_unique_exact_terminal_green_job() {
+    fn duplicate_or_malformed_runs_are_refused() {
+        let duplicate = runs(&[
+            run_entry(11, SHA, "push", "dev", "success"),
+            run_entry(12, SHA, "push", "dev", "failure"),
+        ]);
+        assert!(is_refused(
+            &select_trusted_run(&duplicate, SHA).unwrap_err()
+        ));
+        let malformed = format!(
+            r#"{{"workflow_runs":[{{"id":14,"head_sha":"{SHA}","event":"push","head_branch":"dev","status":"completed","conclusion":"success","path":".github/workflows/oya-ci-required.yml"}}]}}"#
+        );
+        assert!(is_refused(
+            &select_trusted_run(&malformed, SHA).unwrap_err()
+        ));
+        for payload in ["not json at all", r#"{"ok":true}"#, ""] {
+            assert!(is_refused(&select_trusted_run(payload, SHA).unwrap_err()));
+        }
+    }
+
+    #[test]
+    fn producer_selection_requires_unique_exact_terminal_green_bound_job() {
         let exact = ci_affected_target_set::AFFECTED_SET_PRODUCER_JOB_NAME;
         let valid = format!(
-            r#"{{"jobs":[{{"id":81,"name":"{exact}","status":"completed","conclusion":"success"}}]}}"#
+            r#"{{"jobs":[{{"id":81,"run_id":{RUN_ID},"head_sha":"{SHA}","name":"{exact}","status":"completed","conclusion":"success"}}]}}"#
         );
         assert_eq!(
-            select_trusted_producer(&valid),
+            select_trusted_producer(&valid, &trusted_run()),
             Ok(TrustedProducerJob {
                 id: 81,
+                run_id: RUN_ID,
+                head_sha: SHA.to_owned(),
                 conclusion: "success".to_owned(),
             })
         );
-
-        for conclusion in ["failure", "cancelled"] {
-            let jobs = format!(
-                r#"{{"jobs":[{{"id":81,"name":"{exact}","status":"completed","conclusion":"{conclusion}"}}]}}"#
-            );
-            assert!(is_unavailable(&select_trusted_producer(&jobs).unwrap_err()));
-        }
-        assert!(is_unavailable(
-            &select_trusted_producer(r#"{"jobs":[]}"#).unwrap_err()
-        ));
         let duplicate = format!(
             r#"{{"jobs":[
-                {{"id":81,"name":"{exact}","status":"completed","conclusion":"success"}},
-                {{"id":82,"name":"{exact}","status":"completed","conclusion":"success"}}
-            ]}}"#
+            {{"id":81,"run_id":{RUN_ID},"head_sha":"{SHA}","name":"{exact}","status":"completed","conclusion":"success"}},
+            {{"id":82,"run_id":{RUN_ID},"head_sha":"{SHA}","name":"{exact}","status":"completed","conclusion":"success"}}
+        ]}}"#
         );
-        assert!(is_unavailable(
-            &select_trusted_producer(&duplicate).unwrap_err()
+        assert!(is_refused(
+            &select_trusted_producer(&duplicate, &trusted_run()).unwrap_err()
+        ));
+        let wrong_run = valid.replace(&format!(r#""run_id":{RUN_ID}"#), r#""run_id":99"#);
+        assert!(is_refused(
+            &select_trusted_producer(&wrong_run, &trusted_run()).unwrap_err()
         ));
     }
 
     #[test]
-    fn a_foreign_workflow_at_the_exact_merge_base_is_never_trusted() {
-        // DEFENCE IN DEPTH: `reuse_trusted_baselines` queries the per-workflow runs route and
-        // reads artifacts per-run, so a foreign workflow's run is not reachable today. Pinned
-        // anyway so widening that route to the repo-wide run list cannot silently reduce
-        // selection to the artifact name alone.
-        let payload = format!(
-            r#"{{"workflow_runs":[{{"id":14,"head_sha":"{SHA}","event":"push","head_branch":"dev","conclusion":"success","path":".github/workflows/some-other-lane.yml"}}]}}"#
-        );
-        let err = select_trusted_run(&payload, SHA).unwrap_err();
-        assert!(is_unavailable(&err), "{err:?}");
-    }
-
-    #[test]
-    fn malformed_run_payloads_and_bad_sha_shapes_are_refused() {
-        for payload in ["not json at all", r#"{"ok":true}"#, ""] {
-            let err = select_trusted_run(payload, SHA).unwrap_err();
-            assert!(is_refused(&err), "payload {payload:?} -> {err:?}");
-        }
-        // An abbreviated SHA could resolve differently across runs — never a baseline key.
-        let err = select_trusted_run(r#"{"workflow_runs":[]}"#, "0123456").unwrap_err();
-        assert!(is_refused(&err), "{err:?}");
-    }
-
-    #[test]
-    fn artifact_selection_is_kind_scoped_and_ignores_other_commits() {
-        let artifacts = format!(
-            r#"{{"artifacts":[
-                {{"id":21,"name":"build-health-baseline-{OTHER_SHA}","expired":false}},
-                {{"id":22,"name":"build-health-baseline-{SHA}","expired":false}},
-                {{"id":23,"name":"test-health-baseline-{SHA}","expired":false}}
-            ]}}"#
-        );
+    fn artifact_selection_is_unique_kind_and_run_bound() {
+        let build = artifact_payload(BaselineKind::Build, false);
         assert_eq!(
-            select_trusted_artifact(&artifacts, BaselineKind::Build, SHA),
-            Ok((22, format!("build-health-baseline-{SHA}")))
+            select_trusted_artifact(&build, BaselineKind::Build, &trusted_run()),
+            Ok(TrustedBaselineArtifact {
+                id: 22,
+                name: baseline_artifact_name(BaselineKind::Build, SHA, RUN_ID, RUN_ATTEMPT)
+                    .unwrap(),
+                digest: DIGEST.to_owned(),
+                size_in_bytes: 42,
+                workflow_run_id: RUN_ID,
+                head_sha: SHA.to_owned(),
+            })
         );
-        assert_eq!(
-            select_trusted_artifact(&artifacts, BaselineKind::Test, SHA),
-            Ok((23, format!("test-health-baseline-{SHA}")))
-        );
-    }
-
-    #[test]
-    fn expired_or_absent_artifacts_are_unavailable() {
-        let expired = format!(
-            r#"{{"artifacts":[{{"id":22,"name":"build-health-baseline-{SHA}","expired":true}}]}}"#
-        );
-        let err = select_trusted_artifact(&expired, BaselineKind::Build, SHA).unwrap_err();
-        assert!(is_unavailable(&err), "expired must not be reused: {err:?}");
-
-        // The BUILD half exists but the TEST half was never published (the pre-#1323 state): the
-        // pair is incomplete, so the FULL tier must still rebuild cold.
-        let build_only = format!(
-            r#"{{"artifacts":[{{"id":22,"name":"build-health-baseline-{SHA}","expired":false}}]}}"#
-        );
-        let err = select_trusted_artifact(&build_only, BaselineKind::Test, SHA).unwrap_err();
-        assert!(is_unavailable(&err), "missing test half: {err:?}");
-
-        let err = select_trusted_artifact(r#"{"artifacts":[]}"#, BaselineKind::Build, SHA)
-            .unwrap_err();
-        assert!(is_unavailable(&err), "{err:?}");
-    }
-
-    #[test]
-    fn malformed_artifact_payloads_are_refused() {
+        assert!(is_unavailable(
+            &select_trusted_artifact(&build, BaselineKind::Test, &trusted_run()).unwrap_err()
+        ));
+        assert!(is_unavailable(
+            &select_trusted_artifact(
+                &artifact_payload(BaselineKind::Build, true),
+                BaselineKind::Build,
+                &trusted_run()
+            )
+            .unwrap_err()
+        ));
         for payload in ["not json", r#"{"ok":true}"#] {
-            let err = select_trusted_artifact(payload, BaselineKind::Build, SHA).unwrap_err();
-            assert!(is_refused(&err), "payload {payload:?} -> {err:?}");
+            assert!(is_refused(
+                &select_trusted_artifact(payload, BaselineKind::Build, &trusted_run()).unwrap_err()
+            ));
         }
     }
 
     #[test]
-    fn a_well_formed_exact_name_report_is_accepted() {
-        let report = r#"{"results":{"root//a:a":{"success":"SUCCESS"},"root//b:b":{"success":"FAIL"}}}"#;
-        let name = format!("build-health-baseline-{SHA}");
+    fn downloaded_reports_are_exactly_name_and_payload_bound() {
+        let report =
+            r#"{"results":{"root//a:a":{"success":"SUCCESS"},"root//b:b":{"success":"FAIL"}}}"#;
+        let name = baseline_artifact_name(BaselineKind::Build, SHA, RUN_ID, RUN_ATTEMPT).unwrap();
         assert_eq!(
-            accept_downloaded_baseline(BaselineKind::Build, &name, SHA, report),
+            accept_downloaded_baseline(BaselineKind::Build, &name, &trusted_run(), report),
             Ok(2)
         );
-    }
-
-    #[test]
-    fn downloads_that_do_not_match_the_selection_are_refused() {
-        let report = r#"{"results":{"root//a:a":{"success":"SUCCESS"}}}"#;
-
-        // A name for a DIFFERENT commit: what arrived is not what was selected.
-        let stale = format!("build-health-baseline-{OTHER_SHA}");
-        let err =
-            accept_downloaded_baseline(BaselineKind::Build, &stale, SHA, report).unwrap_err();
-        assert!(is_refused(&err), "stale name: {err:?}");
-
-        // A build-named artifact must never satisfy the TEST baseline slot.
-        let build_name = format!("build-health-baseline-{SHA}");
-        let err =
-            accept_downloaded_baseline(BaselineKind::Test, &build_name, SHA, report).unwrap_err();
-        assert!(is_refused(&err), "kind confusion: {err:?}");
-    }
-
-    #[test]
-    fn malformed_truncated_and_empty_reports_are_refused() {
-        let name = format!("build-health-baseline-{SHA}");
-        // `<html>` stands in for an error page landing where a zip entry was expected; the empty
-        // string for a download that produced no bytes; `{"results":{}}` for the laundering hole
-        // an empty baseline would open (every head failure would look pre-existing).
+        let stale =
+            baseline_artifact_name(BaselineKind::Build, OTHER_SHA, RUN_ID, RUN_ATTEMPT).unwrap();
+        assert!(is_refused(
+            &accept_downloaded_baseline(BaselineKind::Build, &stale, &trusted_run(), report)
+                .unwrap_err()
+        ));
         for payload in [
             "<html>404</html>",
             "",
             r#"{"ok":true}"#,
             r#"{"results":{}}"#,
-            r#"{"results":{"root//a:a":{"success":"SUCCESS"}"#,
         ] {
-            let err =
-                accept_downloaded_baseline(BaselineKind::Build, &name, SHA, payload).unwrap_err();
-            assert!(is_refused(&err), "payload {payload:?} -> {err:?}");
+            assert!(is_refused(
+                &accept_downloaded_baseline(BaselineKind::Build, &name, &trusted_run(), payload)
+                    .unwrap_err()
+            ));
         }
+    }
+
+    #[test]
+    fn downloaded_archive_digest_is_stable() {
+        let path = std::env::temp_dir().join("oya-build-health-digest-test");
+        fs::write(&path, b"trusted archive bytes").unwrap();
+        assert_eq!(
+            sha256_file(&path).unwrap(),
+            "sha256:5a76aff2b5371b6e71c59005abec7618f3a4dd88244f6cfc6cd65f93e68caa8d"
+        );
+        let _ = fs::remove_file(path);
     }
 
     #[test]
     fn repository_slugs_are_validated_before_they_reach_an_api_route() {
         assert_eq!(validated_repo("oyatie/oyatie"), Ok("oyatie/oyatie"));
-        assert_eq!(validated_repo("owner-1/repo_name.rs"), Ok("owner-1/repo_name.rs"));
+        assert_eq!(
+            validated_repo("owner-1/repo_name.rs"),
+            Ok("owner-1/repo_name.rs")
+        );
         for bad in [
             "",
             "noslash",
@@ -1074,22 +1154,25 @@ mod trusted_baseline_tests {
             SHA,
             BaselineReuseState::CapabilityFault,
             "could not execute `gh`",
-        );
+        )
+        .unwrap();
         let written = fs::read_to_string(dir.join(BASELINE_REUSE_OUTCOME_FILENAME))
             .expect("a degrade must write the outcome sidecar");
         let value: serde_json::Value = serde_json::from_str(&written).expect("valid JSON");
         assert_eq!(value["state"], "capability-fault");
         assert_eq!(value["capability_fault"], true);
-        assert_eq!(value["cold_rebuild_ran"], true);
+        assert_eq!(value["cold_fallback_required"], true);
+        assert_eq!(value["telemetry_persisted"], true);
+        assert_eq!(value["exit_code"], 4);
         assert_eq!(value["merge_base"], SHA);
 
-        report_reuse_outcome(&dir, SHA, BaselineReuseState::Reused, "pair downloaded");
+        report_reuse_outcome(&dir, SHA, BaselineReuseState::Reused, "pair downloaded").unwrap();
         let written = fs::read_to_string(dir.join(BASELINE_REUSE_OUTCOME_FILENAME))
             .expect("success must be recorded too");
         let value: serde_json::Value = serde_json::from_str(&written).expect("valid JSON");
         assert_eq!(value["state"], "reused");
         assert_eq!(value["capability_fault"], false);
-        assert_eq!(value["cold_rebuild_ran"], false);
+        assert_eq!(value["cold_fallback_required"], false);
         let _ = fs::remove_dir_all(&dir);
     }
 }

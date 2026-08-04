@@ -36,6 +36,7 @@ rust_binary(
         # whole fleet and every FULL-tier run paid the cold merge-base rebuild.
         "third-party//:reqwest",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 
@@ -52,6 +53,7 @@ rust_test(
         ":ci-affected-target-set",
         "third-party//:reqwest",
         "third-party//:serde_json",
+        "third-party//:sha2",
     ],
 )
 
@@ -103,6 +105,14 @@ rust_test(
     deps = [
         ":ci-affected-target-set",
     ],
+)
+
+rust_test(
+    name = "ci-affected-target-set-trusted-baseline-workflow-conformance",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_affected_target_set_trusted_baseline_workflow_conformance",
+    crate_root = "tests/trusted_baseline_workflow_conformance.rs",
+    visibility = ["PUBLIC"],
 )
 
 # Rename detection must be a property of the tool, not of the machine. Spawns git in a scratch repo
