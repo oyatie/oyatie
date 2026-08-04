@@ -1,5 +1,0 @@
-val	0	==
-val	1	!=
-parse	==	0
-parse	!=	1
-parse	__nope__	ERR

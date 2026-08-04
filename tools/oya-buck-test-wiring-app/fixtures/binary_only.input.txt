@@ -1,9 +1,0 @@
-rust_binary(
-    name = "oya-binary-only-app",
-    srcs = glob(["src/**/*.rs"]),
-    crate_root = "src/main.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        "third-party//:anyhow",
-    ],
-)

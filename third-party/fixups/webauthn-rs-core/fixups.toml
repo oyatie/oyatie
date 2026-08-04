@@ -1,6 +1,0 @@
-# Reads DEP_OPENSSL_VERSION_NUMBER from openssl-sys to verify OpenSSL >= 3.0.
-
-[buildscript.run]
-# DEP_OPENSSL_VERSION_NUMBER must be injected manually in Buck2 (not propagated
-# via Cargo's links mechanism). OpenSSL 3.6.2 = 0x30600020 >= 0x3_00_00_00_0.
-env = { DEP_OPENSSL_VERSION_NUMBER = "30600020" }

@@ -1,9 +1,0 @@
-val	1	invalid
-val	2	established
-val	4	related
-val	8	new
-parse	invalid	1
-parse	established	2
-parse	related	4
-parse	new	8
-parse	__nope__	ERR

@@ -1,4 +1,0 @@
-export_file(
-    name = "workload.proto",
-    visibility = ["PUBLIC"],
-)
