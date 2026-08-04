@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "record_class": "prewipe-priority-github-evidence-snapshot",
+  "record_id": "prewipe-priority-github-snapshot-20260804",
+  "purpose": "Bounded provider-fact receipt for the founder-approved pre-wipe critical chain and the immediately preceding merge train. It is not the repository backlog, a plan, or work-item authority.",
+  "planning_authority_ref": "/specs/masterplan.json#masterplan_v2",
+  "conflict_resolution": "/specs/masterplan.json#masterplan_v2",
+  "live_plan_authority": false,
+  "live_work_item_ids_allowed": false,
+  "source_system": "https://github.com/jason931225/oyatie",
+  "observed_at": "2026-08-04T16:00:30Z",
+  "selection_rule": {
+    "description": "Exactly the five open GitHub issues in the founder-approved current pre-wipe CI/security critical chain plus exactly the three pull requests in the immediately preceding preservation and runner-capacity merge train; no claim is made about any other open issue or merged pull request.",
+    "active_issue_count": 5,
+    "active_issue_numbers": [1504, 1534, 1541, 1549, 1551],
+    "external_parent_issue_numbers": [1245, 1502, 1503],
+    "recent_merged_pr_count": 3,
+    "recent_merged_pr_numbers": [1548, 1550, 1552]
+  },
+  "refresh_contract": {
+    "mode": "manual-provider-fact-capture",
+    "validator_network_access": false,
+    "stale_policy": "A later provider observation supersedes this receipt as evidence only; it never mutates masterplan authority implicitly.",
+    "reproduction_queries": [
+      "gh issue view <number> --repo jason931225/oyatie --json number,title,state,url,updatedAt,body",
+      "gh pr view <number> --repo jason931225/oyatie --json headRefOid,mergeCommit,mergedAt,url,state,statusCheckRollup"
+    ]
+  },
+  "active_issues": [
+    {
+      "external_issue_number": 1541,
+      "source_state": "OPEN",
+      "title": "security incident: revoke exposed Talos machine-config credentials and purge dangling object",
+      "url": "https://github.com/jason931225/oyatie/issues/1541",
+      "observed_updated_at": "2026-08-04T16:00:30Z",
+      "dependency_issue_refs": []
+    },
+    {
+      "external_issue_number": 1551,
+      "source_state": "OPEN",
+      "title": "blocker(ci): enforce runner NetworkPolicy before OpenBao CAS identity activation",
+      "url": "https://github.com/jason931225/oyatie/issues/1551",
+      "observed_updated_at": "2026-08-04T13:34:33Z",
+      "dependency_issue_refs": [1541]
+    },
+    {
+      "external_issue_number": 1534,
+      "source_state": "OPEN",
+      "title": "W3: activate NativeLink Buck2 remote action cache on ARC (cache-only; no RE)",
+      "url": "https://github.com/jason931225/oyatie/issues/1534",
+      "observed_updated_at": "2026-08-03T15:15:37Z",
+      "dependency_issue_refs": [1245]
+    },
+    {
+      "external_issue_number": 1549,
+      "source_state": "OPEN",
+      "title": "blocker(ci): redesign NativeLink RE worker sandbox before canary",
+      "url": "https://github.com/jason931225/oyatie/issues/1549",
+      "observed_updated_at": "2026-08-04T11:59:52Z",
+      "dependency_issue_refs": [1534, 1541]
+    },
+    {
+      "external_issue_number": 1504,
+      "source_state": "OPEN",
+      "title": "cloud-ci: isolate ARC runner ephemeral storage and capacity-bound scheduling",
+      "url": "https://github.com/jason931225/oyatie/issues/1504",
+      "observed_updated_at": "2026-08-04T15:39:41Z",
+      "dependency_issue_refs": [1502, 1503]
+    }
+  ],
+  "recent_merged_pr_evidence": [
+    {
+      "external_pr_number": 1550,
+      "source_state": "MERGED",
+      "title": "fix(ci): keep required gates on owned runners",
+      "url": "https://github.com/jason931225/oyatie/pull/1550",
+      "merged_at": "2026-08-04T13:53:43Z",
+      "merge_commit_sha": "36f63111b37dadb0d9476c9ee09fa75d3ab06544",
+      "pull_request_head_sha": "e1f04d58c502e520a9dbc61886fbe1bee121cf45",
+      "required_context_commit_sha": "e1f04d58c502e520a9dbc61886fbe1bee121cf45",
+      "required_context": "oya-ci-required",
+      "required_context_conclusion": "success",
+      "required_context_run_url": "https://github.com/jason931225/oyatie/actions/runs/30912764537",
+      "required_context_job_url": "https://github.com/jason931225/oyatie/actions/runs/30912764537/job/92013809304"
+    },
+    {
+      "external_pr_number": 1548,
+      "source_state": "MERGED",
+      "title": "docs(repo): codify bounded pre-wipe preservation",
+      "url": "https://github.com/jason931225/oyatie/pull/1548",
+      "merged_at": "2026-08-04T15:28:47Z",
+      "merge_commit_sha": "2574ee68d2a42fe155e8d5b6105a522e622ebadf",
+      "pull_request_head_sha": "989bbba6430395f16fb698c2cd87b2c482762e1d",
+      "required_context_commit_sha": "989bbba6430395f16fb698c2cd87b2c482762e1d",
+      "required_context": "oya-ci-required",
+      "required_context_conclusion": "success",
+      "required_context_run_url": "https://github.com/jason931225/oyatie/actions/runs/30916856497",
+      "required_context_job_url": "https://github.com/jason931225/oyatie/actions/runs/30916856497/job/92029579333"
+    },
+    {
+      "external_pr_number": 1552,
+      "source_state": "MERGED",
+      "title": "fix(ci): split ARC capacity across workers",
+      "url": "https://github.com/jason931225/oyatie/pull/1552",
+      "merged_at": "2026-08-04T15:28:58Z",
+      "merge_commit_sha": "8419c249a62a051a40b82da08ee13544e658f17e",
+      "pull_request_head_sha": "232af4f4ec95c0056da97248706fd4377d35aebb",
+      "required_context_commit_sha": "232af4f4ec95c0056da97248706fd4377d35aebb",
+      "required_context": "oya-ci-required",
+      "required_context_conclusion": "success",
+      "required_context_run_url": "https://github.com/jason931225/oyatie/actions/runs/30919463375",
+      "required_context_job_url": "https://github.com/jason931225/oyatie/actions/runs/30919463375/job/92038573658"
+    }
+  ],
+  "claim_ceiling": "This receipt records only the exact provider facts above at observed_at. It does not represent all open work, set ordering or readiness, close issues, authorize implementation, prove post-merge rollout, or supersede /specs/masterplan.json#masterplan_v2."
+}

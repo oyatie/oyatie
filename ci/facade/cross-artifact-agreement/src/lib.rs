@@ -878,6 +878,237 @@ pub fn evaluate_masterplan_v2_plan_evidence_drift(masterplan: &Value) -> BTreeSe
     findings
 }
 
+/// Validate the bounded pre-wipe GitHub snapshot as offline evidence only.
+pub fn evaluate_prewipe_priority_github_snapshot(
+    masterplan: &Value,
+    snapshot: &Value,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let key = "prewipe_priority_github_snapshot";
+    let expected_issues = BTreeSet::from([1504, 1534, 1541, 1549, 1551]);
+    let expected_parents = BTreeSet::from([1245, 1502, 1503]);
+    let expected_prs = BTreeSet::from([1548, 1550, 1552]);
+
+    let authority_boundary_is_valid = masterplan
+        .pointer("/masterplan_v2/canonical_plan_authority/path")
+        .and_then(Value::as_str)
+        == Some("/specs/masterplan.json")
+        && masterplan
+            .pointer("/masterplan_v2/canonical_plan_authority/live_work_item_id_space/external_live_ids_allowed")
+            .and_then(Value::as_bool)
+        == Some(false)
+        && non_empty_field(snapshot, "record_class")
+            == Some("prewipe-priority-github-evidence-snapshot")
+        && non_empty_field(snapshot, "record_id")
+            == Some("prewipe-priority-github-snapshot-20260804")
+        && non_empty_field(snapshot, "purpose").is_some()
+        && non_empty_field(snapshot, "planning_authority_ref")
+            == Some("/specs/masterplan.json#masterplan_v2")
+        && non_empty_field(snapshot, "conflict_resolution")
+            == Some("/specs/masterplan.json#masterplan_v2")
+        && snapshot.get("live_plan_authority").and_then(Value::as_bool) == Some(false)
+        && snapshot
+            .get("live_work_item_ids_allowed")
+            .and_then(Value::as_bool)
+            == Some(false)
+        && non_empty_field(snapshot, "source_system")
+            == Some("https://github.com/jason931225/oyatie")
+        && non_empty_field(snapshot, "observed_at").is_some_and(valid_rfc3339_utc)
+        && non_empty_field(snapshot, "claim_ceiling").is_some()
+        && non_empty_field(&snapshot["refresh_contract"], "mode")
+            == Some("manual-provider-fact-capture")
+        && non_empty_field(&snapshot["refresh_contract"], "stale_policy").is_some()
+        && snapshot
+            .pointer("/refresh_contract/validator_network_access")
+            .and_then(Value::as_bool)
+            == Some(false);
+    if !authority_boundary_is_valid {
+        findings.insert(Finding::new(
+            "masterplan_plan_evidence_drift",
+            &format!("{key}.authority_boundary"),
+        ));
+    }
+
+    let selection = &snapshot["selection_rule"];
+    let selected_issues = u64_set(selection.get("active_issue_numbers"));
+    let selected_parents = u64_set(selection.get("external_parent_issue_numbers"));
+    let selected_prs = u64_set(selection.get("recent_merged_pr_numbers"));
+    let selection_is_valid = non_empty_field(selection, "description").is_some()
+        && selection.get("active_issue_count").and_then(Value::as_u64) == Some(5)
+        && selection
+            .get("recent_merged_pr_count")
+            .and_then(Value::as_u64)
+            == Some(3)
+        && selected_issues.as_ref() == Some(&expected_issues)
+        && selected_parents.as_ref() == Some(&expected_parents)
+        && selected_prs.as_ref() == Some(&expected_prs);
+    if !selection_is_valid {
+        findings.insert(Finding::new(
+            "masterplan_plan_evidence_drift",
+            &format!("{key}.selection_rule"),
+        ));
+    }
+
+    let issues_are_valid = snapshot
+        .get("active_issues")
+        .and_then(Value::as_array)
+        .is_some_and(|rows| {
+            let ids = rows
+                .iter()
+                .filter_map(|row| row.get("external_issue_number").and_then(Value::as_u64))
+                .collect::<BTreeSet<_>>();
+            rows.len() == expected_issues.len()
+                && ids == expected_issues
+                && rows.iter().all(|row| {
+                    let Some(number) = row.get("external_issue_number").and_then(Value::as_u64)
+                    else {
+                        return false;
+                    };
+                    let allowed_dependencies = expected_issues
+                        .union(&expected_parents)
+                        .copied()
+                        .collect::<BTreeSet<_>>();
+                    non_empty_field(row, "source_state") == Some("OPEN")
+                        && non_empty_field(row, "title").is_some()
+                        && non_empty_field(row, "url")
+                            == Some(
+                                format!("https://github.com/jason931225/oyatie/issues/{number}")
+                                    .as_str(),
+                            )
+                        && non_empty_field(row, "observed_updated_at")
+                            .is_some_and(valid_rfc3339_utc)
+                        && u64_set(row.get("dependency_issue_refs"))
+                            .is_some_and(|refs| refs.is_subset(&allowed_dependencies))
+                })
+        });
+    if !issues_are_valid {
+        findings.insert(Finding::new(
+            "masterplan_plan_evidence_drift",
+            &format!("{key}.active_issues"),
+        ));
+    }
+
+    let prs_are_valid = snapshot
+        .get("recent_merged_pr_evidence")
+        .and_then(Value::as_array)
+        .is_some_and(|rows| {
+            let ids = rows
+                .iter()
+                .filter_map(|row| row.get("external_pr_number").and_then(Value::as_u64))
+                .collect::<BTreeSet<_>>();
+            rows.len() == expected_prs.len()
+                && ids == expected_prs
+                && rows.iter().all(|row| {
+                    let Some(number) = row.get("external_pr_number").and_then(Value::as_u64) else {
+                        return false;
+                    };
+                    let head = non_empty_field(row, "pull_request_head_sha");
+                    non_empty_field(row, "source_state") == Some("MERGED")
+                        && non_empty_field(row, "title").is_some()
+                        && non_empty_field(row, "url")
+                            == Some(
+                                format!("https://github.com/jason931225/oyatie/pull/{number}")
+                                    .as_str(),
+                            )
+                        && non_empty_field(row, "merged_at").is_some_and(valid_rfc3339_utc)
+                        && non_empty_field(row, "merge_commit_sha").is_some_and(valid_git_sha)
+                        && head.is_some_and(valid_git_sha)
+                        && non_empty_field(row, "required_context_commit_sha") == head
+                        && non_empty_field(row, "required_context") == Some("oya-ci-required")
+                        && non_empty_field(row, "required_context_conclusion") == Some("success")
+                        && github_actions_urls_match(
+                            non_empty_field(row, "required_context_run_url"),
+                            non_empty_field(row, "required_context_job_url"),
+                        )
+                })
+        });
+    if !prs_are_valid {
+        findings.insert(Finding::new(
+            "masterplan_plan_evidence_drift",
+            &format!("{key}.recent_merged_pr_evidence"),
+        ));
+    }
+    findings
+}
+
+fn u64_set(value: Option<&Value>) -> Option<BTreeSet<u64>> {
+    let rows = value?.as_array()?;
+    let set = rows
+        .iter()
+        .map(Value::as_u64)
+        .collect::<Option<BTreeSet<_>>>()?;
+    (set.len() == rows.len()).then_some(set)
+}
+
+fn valid_git_sha(value: &str) -> bool {
+    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn github_actions_urls_match(run_url: Option<&str>, job_url: Option<&str>) -> bool {
+    let Some(run_id) = run_url.and_then(|url| {
+        url.strip_prefix("https://github.com/jason931225/oyatie/actions/runs/")
+            .filter(|id| !id.is_empty() && id.bytes().all(|byte| byte.is_ascii_digit()))
+    }) else {
+        return false;
+    };
+    job_url.is_some_and(|url| {
+        url.strip_prefix(&format!(
+            "https://github.com/jason931225/oyatie/actions/runs/{run_id}/job/"
+        ))
+        .is_some_and(|id| !id.is_empty() && id.bytes().all(|byte| byte.is_ascii_digit()))
+    })
+}
+
+// ponytail: strict UTC shape used by GitHub; use a date crate only if offsets/fractions are admitted.
+fn valid_rfc3339_utc(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    if bytes.len() != 20
+        || bytes[4] != b'-'
+        || bytes[7] != b'-'
+        || bytes[10] != b'T'
+        || bytes[13] != b':'
+        || bytes[16] != b':'
+        || bytes[19] != b'Z'
+        || bytes.iter().enumerate().any(|(index, byte)| {
+            !matches!(index, 4 | 7 | 10 | 13 | 16 | 19) && !byte.is_ascii_digit()
+        })
+    {
+        return false;
+    }
+    let Some((year, month, day, hour, minute, second)) = (|| {
+        Some((
+            value[0..4].parse::<u16>().ok()?,
+            value[5..7].parse::<usize>().ok()?,
+            value[8..10].parse::<usize>().ok()?,
+            value[11..13].parse::<usize>().ok()?,
+            value[14..16].parse::<usize>().ok()?,
+            value[17..19].parse::<usize>().ok()?,
+        ))
+    })() else {
+        return false;
+    };
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days = [
+        31,
+        if leap { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
+    (1..=12).contains(&month)
+        && (1..=days[month - 1]).contains(&day)
+        && hour < 24
+        && minute < 60
+        && second < 60
+}
+
 /// Evaluate freshness coverage for every generated/read projection whose live
 /// truth resolves to `/specs/masterplan.json#masterplan_v2`.
 ///
