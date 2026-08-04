@@ -78,7 +78,7 @@ fn named<'a>(sequence: &'a Value, name: &str) -> &'a Value {
 #[derive(Debug, PartialEq, Eq)]
 struct RunnerWorkspace {
     max_runners: u64,
-    node: String,
+    node: Option<String>,
     mount_path: String,
     storage_class: String,
     requested_gib: u64,
@@ -105,10 +105,10 @@ fn runner_workspace(values: &Value) -> RunnerWorkspace {
     let workspace = named(at(values, &["template", "spec", "volumes"]), "workspace");
     RunnerWorkspace {
         max_runners: u64_at(values, &["maxRunners"]),
-        node: string_at(
-            values,
-            &["template", "spec", "nodeSelector", "kubernetes.io/hostname"],
-        ),
+        node: at(values, &["template", "spec", "nodeSelector"])
+            .get("kubernetes.io/hostname")
+            .and_then(Value::as_str)
+            .map(str::to_owned),
         mount_path: string_at(workspace_mounts[0], &["mountPath"]),
         storage_class: string_at(
             workspace,
@@ -140,9 +140,9 @@ fn validate_capacity_contract(
 ) -> Result<(), String> {
     let mut claimed_paths = BTreeSet::new();
     for runner in runners {
-        if runner.max_runners != 1 {
+        if runner.max_runners == 0 {
             return Err(format!(
-                "{} allows more than one runner",
+                "{} has no admitted runner capacity",
                 runner.storage_class
             ));
         }
@@ -161,24 +161,62 @@ fn validate_capacity_contract(
         let physical_gib = filesystems_gib
             .get(volume_name)
             .ok_or_else(|| format!("{path} has no Talos user volume"))?;
-        if *physical_gib != 48 {
-            return Err(format!("{volume_name} must be physically capped at 48GiB"));
+        if runner.requested_gib * runner.max_runners > *physical_gib {
+            return Err(format!(
+                "{volume_name} cannot hold {} x {}GiB claims inside {physical_gib}GiB",
+                runner.max_runners, runner.requested_gib
+            ));
         }
     }
     Ok(())
 }
 
 #[test]
-fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
+fn runner_cells_are_capacity_bounded_without_rootfs_fallback() {
     let root = repo_root();
     let runners = vec![
         runner_workspace(&yaml(&root, GENERAL_VALUES)),
         runner_workspace(&yaml(&root, LIVE_POSTGRES_VALUES)),
     ];
     for runner in &runners {
-        assert_eq!(runner.node, "oya-talos-worker-2");
         assert_eq!(runner.mount_path, "/home/runner/_work");
     }
+    assert_eq!(runners[0].max_runners, 2);
+    assert_eq!(
+        runners[0].node, None,
+        "general set must span admitted ARM nodes"
+    );
+    assert_eq!(
+        string_at(
+            &yaml(&root, GENERAL_VALUES),
+            &["template", "spec", "nodeSelector", "oya.io/ci-workspace"]
+        ),
+        "general"
+    );
+    assert_eq!(runners[1].max_runners, 1);
+    assert_eq!(
+        string_at(
+            &yaml(&root, LIVE_POSTGRES_VALUES),
+            &["template", "spec", "nodeSelector", "oya.io/ci-capacity"]
+        ),
+        "pg"
+    );
+
+    let general_values = yaml(&root, GENERAL_VALUES);
+    let affinity = serde_json::to_string(at(
+        &general_values,
+        &[
+            "template",
+            "spec",
+            "affinity",
+            "podAntiAffinity",
+            "requiredDuringSchedulingIgnoredDuringExecution",
+        ],
+    ))
+    .expect("serialize required general-runner anti-affinity");
+    assert!(affinity.contains("kubernetes.io/hostname"));
+    assert!(affinity.contains("oya.io/ci-cell"));
+    assert!(affinity.contains("general"));
 
     let storage_documents = yaml_documents(&root, "infra/arc/ci-workspace-storage.yaml");
     let storage_paths: BTreeMap<String, String> = storage_documents
@@ -202,10 +240,11 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     let config: serde_json::Value =
         serde_json::from_str(&string_at(config_map, &["data", "config.json"]))
             .expect("parse local-path config.json");
-    let configured_paths: BTreeSet<String> = config["nodePathMap"][0]["paths"]
+    let configured_paths: BTreeSet<String> = config["nodePathMap"]
         .as_array()
-        .expect("nodePathMap paths")
+        .expect("nodePathMap")
         .iter()
+        .flat_map(|node| node["paths"].as_array().expect("nodePathMap paths"))
         .map(|path| path.as_str().expect("node path string").to_owned())
         .collect();
     assert_eq!(
@@ -214,10 +253,13 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         "every StorageClass path must be admitted by the fail-closed provisioner map"
     );
 
-    let talos_documents = yaml_documents(
-        &root,
+    let talos_documents: Vec<Value> = [
+        "infra/talos/local/patches/ci-workspace-worker-1.yaml",
         "infra/talos/local/patches/ci-workspace-worker-2.yaml",
-    );
+    ]
+    .into_iter()
+    .flat_map(|path| yaml_documents(&root, path))
+    .collect();
     let filesystems_gib: BTreeMap<String, u64> = talos_documents
         .iter()
         .filter(|document| is_kind(document, "UserVolumeConfig"))
@@ -233,11 +275,14 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
                 string_at(document, &["name"]),
                 min.strip_suffix("GiB")
                     .expect("Talos size must be GiB")
-                    .parse()
+                    .parse::<u64>()
                     .expect("Talos GiB size must be numeric"),
             )
         })
-        .collect();
+        .fold(BTreeMap::new(), |mut totals, (name, size)| {
+            *totals.entry(name).or_default() += size;
+            totals
+        });
 
     validate_capacity_contract(&runners, &storage_paths, &filesystems_gib)
         .expect("live capacity declaration must be physically isolated");
@@ -248,17 +293,21 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         .expect("workspace provisioner deployment");
     let provisioner_args = serde_json::to_string(provisioner).expect("serialize provisioner");
     assert!(provisioner_args.contains("oyatie.io/ci-workspace-local-path"));
-    assert!(
-        !read(&root, "infra/arc/ci-workspace-storage.yaml")
-            .contains("DEFAULT_PATH_FOR_NON_LISTED_NODES")
+    let storage_text = read(&root, "infra/arc/ci-workspace-storage.yaml");
+    assert!(!storage_text.contains("DEFAULT_PATH_FOR_NON_LISTED_NODES"));
+    assert_eq!(
+        storage_text.matches("/dev/vdb*").count(),
+        2,
+        "setup and teardown must refuse Talos rootfs fallback"
     );
+    assert!(storage_text.contains("refusing CI workspace outside"));
 }
 
 #[test]
 fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bounds() {
     let runner = |class: &str, max_runners| RunnerWorkspace {
         max_runners,
-        node: "oya-talos-worker-2".to_owned(),
+        node: Some("oya-talos-worker-2".to_owned()),
         mount_path: "/home/runner/_work".to_owned(),
         storage_class: class.to_owned(),
         requested_gib: 44,
@@ -279,7 +328,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     ]);
     assert!(
         validate_capacity_contract(
-            &[runner("general", 2), runner("live", 1)],
+            &[runner("general", 3), runner("live", 1)],
             &distinct_paths,
             &filesystems
         )
@@ -367,11 +416,143 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
             .as_sequence()
             .expect("egress rules")
             .len(),
-        4
+        5
     );
     assert!(serialized.contains("0.0.0.0/0"));
     assert!(serialized.contains("10.0.0.0/8"));
     assert!(serialized.contains("oya-ci"));
     assert!(serialized.contains("oya-registry"));
+    assert!(serialized.contains("oya-kms"));
     assert!(!serialized.contains("oya-data"));
+}
+
+#[test]
+fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
+    let root = repo_root();
+    let documents = yaml_documents(&root, "infra/kms/openbao.k8s.yaml");
+    let deployment = documents
+        .iter()
+        .find(|document| is_kind(document, "Deployment"))
+        .expect("OpenBao Deployment");
+    let container = named(
+        at(deployment, &["spec", "template", "spec", "containers"]),
+        "openbao",
+    );
+    assert_eq!(
+        string_at(container, &["image"]),
+        "ghcr.io/openbao/openbao@sha256:5b2486ab0fb90bbc788cc345b0a08616dfb375873ee8be5df3a2fd4d378a67e0"
+    );
+
+    let migration = documents
+        .iter()
+        .find(|document| {
+            is_kind(document, "ConfigMap")
+                && string_at(document, &["metadata", "name"]) == "openbao-tls-migration-config"
+        })
+        .expect("TLS migration ConfigMap");
+    let hcl = string_at(migration, &["data", "openbao.hcl"]);
+    for required in [
+        "0.0.0.0:8200",
+        "0.0.0.0:8201",
+        "0.0.0.0:8202",
+        "0.0.0.0:8203",
+        "tls13",
+    ] {
+        assert!(
+            hcl.contains(required),
+            "missing TLS migration declaration {required}"
+        );
+    }
+
+    let identity = documents
+        .iter()
+        .find(|document| {
+            is_kind(document, "ConfigMap")
+                && string_at(document, &["metadata", "name"]) == "openbao-ci-identity-contract"
+        })
+        .expect("CI identity contract");
+    let data = at(identity, &["data"]);
+    for (role, workflow, policy) in [
+        (
+            "github-cas-writer-dev-push.json",
+            "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+            "ci-cas-writer",
+        ),
+        (
+            "github-cas-reader-integrity-canary.json",
+            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev",
+            "ci-cas-reader",
+        ),
+        (
+            "github-re-client-integrity-canary.json",
+            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev",
+            "ci-re-client",
+        ),
+    ] {
+        let payload: serde_json::Value = serde_json::from_str(
+            data.get(role)
+                .and_then(Value::as_str)
+                .expect("role payload"),
+        )
+        .expect("role JSON");
+        assert_eq!(payload["bound_audiences"][0], "oya-openbao");
+        assert_eq!(payload["bound_claims"]["job_workflow_ref"], workflow);
+        assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
+        assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
+        assert_eq!(payload["bound_claims"]["repository_visibility"], "private");
+        assert_eq!(payload["bound_claims"]["runner_environment"], "self-hosted");
+        assert_eq!(payload["token_policies"][0], policy);
+        assert_eq!(payload["token_max_ttl"], "5m");
+        if role == "github-cas-writer-dev-push.json" {
+            assert_eq!(payload["bound_claims"]["ref"], "refs/heads/dev");
+            assert_eq!(payload["bound_claims"]["event_name"], "push");
+        } else {
+            assert_eq!(payload["bound_claims"]["ref"], "refs/heads/dev");
+            assert_eq!(payload["bound_claims"]["event_name"][0], "schedule");
+            assert_eq!(
+                payload["bound_claims"]["event_name"][1],
+                "workflow_dispatch"
+            );
+        }
+    }
+    for role in [
+        "pki-cas-writer.json",
+        "pki-cas-reader.json",
+        "pki-re-client.json",
+    ] {
+        let payload: serde_json::Value = serde_json::from_str(
+            data.get(role)
+                .and_then(Value::as_str)
+                .expect("PKI role payload"),
+        )
+        .expect("PKI role JSON");
+        assert_eq!(payload["max_ttl"], "3h");
+        assert_eq!(payload["client_flag"], true);
+        assert_eq!(payload["server_flag"], false);
+    }
+    assert!(
+        !serde_json::to_string(identity)
+            .unwrap()
+            .contains("PRIVATE KEY")
+    );
+
+    let stores = yaml_documents(
+        &root,
+        "infra/external-secrets/clustersecretstore-openbao-oya.yaml",
+    );
+    let migration_stores: Vec<&Value> = stores
+        .iter()
+        .filter(|store| string_at(store, &["metadata", "name"]).ends_with("tls-migration"))
+        .collect();
+    assert_eq!(migration_stores.len(), 3);
+    for store in migration_stores {
+        assert_eq!(
+            string_at(store, &["spec", "provider", "vault", "server"]),
+            "https://openbao.oya-kms.svc:8202"
+        );
+        assert_eq!(
+            string_at(store, &["spec", "provider", "vault", "caProvider", "name"]),
+            "openbao-offline-root-ca"
+        );
+    }
 }

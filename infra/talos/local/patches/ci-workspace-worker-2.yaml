@@ -6,6 +6,12 @@
 #   talosctl --nodes <worker-2-ip> patch mc --patch @infra/talos/local/patches/ci-workspace-worker-2.yaml
 #
 # The exact path + size predicate fails closed if the VM disk topology changes.
+machine:
+  kubelet:
+    nodeLabels:
+      oya.io/ci-capacity: pg
+      oya.io/ci-workspace: general
+---
 apiVersion: v1alpha1
 kind: UserVolumeConfig
 name: ci-workspace-general
@@ -13,9 +19,8 @@ provisioning:
   diskSelector:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
   # Local Path Provisioner does not enforce PVC byte requests. A dedicated
-  # filesystem plus maxRunners=1 is therefore the enforceable blast-radius
-  # boundary: this scale set can fill at most this 48 GiB filesystem and cannot
-  # consume the other scale set's workspace.
+  # filesystem plus required hostname anti-affinity is the enforceable boundary:
+  # at most one general runner can consume this node-local filesystem.
   minSize: 48GiB
   maxSize: 48GiB
 filesystem:

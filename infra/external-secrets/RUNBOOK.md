@@ -20,6 +20,28 @@ directory, then run the OpenBao steps below.
 | `clusterrolebinding-external-secrets-auth-delegator.yaml` | `ClusterRoleBinding` | grants the ESO SA `system:auth-delegator` for TokenReview |
 | `externalsecret-github-ci-token.yaml` | `ExternalSecret github-ci-token` | projects the GitHub CI token into `oya-ci` |
 
+## TLS migration (8200/8201 -> 8202/8203)
+
+The live listener remains HTTP API `8200` / cluster `8201` during bootstrap.
+`infra/kms/openbao.k8s.yaml` declares the parallel TLS API `8202` / cluster
+`8203` config and exact GitHub OIDC/PKI roles without activating them early.
+
+1. Install the offline root's **public certificate only** as ConfigMap
+   `external-secrets/openbao-offline-root-ca` key `ca.crt`, and install the
+   separately protected server TLS Secret in `oya-kms`. Never put the CA private
+   key, JWT, OpenBao token, or issued leaf in git or captured output.
+2. Apply the dual-listener config, then verify both legacy and TLS health.
+3. Verify all three `*-tls-migration` ClusterSecretStores are Ready, restart ESO,
+   and prove they remain Ready and can refresh their existing prefixes.
+4. In a later reviewed change, point the three canonical stores at HTTPS 8202.
+   Only after consumer readback may HTTP 8200/8201 be removed; TLS 8202/8203 is
+   the permanent pair.
+
+The OIDC role payloads in `openbao-ci-identity-contract` bind audience
+`oya-openbao`, immutable repository/owner IDs, private visibility,
+self-hosted runners, exact workflow refs, and exact event/ref claims. JWTs are
+bounded to five minutes; issued client leaves are bounded to three hours.
+
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
 The whole binding hinges on **one** OpenBao config flag:

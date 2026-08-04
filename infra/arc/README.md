@@ -3,15 +3,18 @@
 Issue #1504 isolates disposable ARC build work from the Talos system filesystem.
 The repository declaration has four parts:
 
-1. `infra/talos/local/patches/ci-workspace-worker-2.yaml` allocates a bounded
-   two fixed 48 GiB XFS user volumes on the exact blank 150 GiB `/dev/vdb`.
+1. The worker-1/worker-2 Talos patches allocate fixed 48 GiB XFS general
+   workspaces on each exact blank 150 GiB `/dev/vdb`; worker-2 also carries the
+   dedicated 48 GiB PostgreSQL workspace.
 2. `ci-workspace-storage.yaml` runs a separate local-path provisioner identity and
    StorageClasses rooted only at `/var/mnt/ci-workspace-general` and
-   `/var/mnt/ci-workspace-live-postgres` on `oya-talos-worker-2`.
+   `/var/mnt/ci-workspace-live-postgres` on `oya-talos-worker-2`, with no default
+   path for any unlisted node.
 3. Both runner scale sets mount a 44 GiB generic ephemeral PVC at
-   `/home/runner/_work`, pin runners to that node, and cap each scale set at one.
-   Local-path does not enforce each 44 GiB request. Safety comes from max one runner
-   per scale set and a separate fixed 48 GiB filesystem for each set; no reserve is claimed.
+   `/home/runner/_work`. The general set is capped at two and uses required
+   hostname anti-affinity, so each runner gets a different node-local 48 GiB
+   filesystem. The PostgreSQL set is capped at one and selects
+   `oya.io/ci-capacity=pg`.
 4. `ci-workspace-alerts.yaml` covers node pressure, PVC free space, runner writable
    layer growth, eviction, delayed PVC cleanup, and ARC startup/queue latency.
 
@@ -28,12 +31,12 @@ DiskPressure or eviction and shows automatic PVC/directory cleanup.
 
 ## Pre-apply readback
 
-Before applying the Talos patch, an authorized operator records:
+Before applying either Talos patch, an authorized operator records:
 
 ```sh
-talosctl -n <worker-2-ip> get disks -o yaml
-talosctl -n <worker-2-ip> get discoveredvolumes -o yaml
-kubectl get node oya-talos-worker-2 -o yaml
+talosctl -n <worker-1-ip>,<worker-2-ip> get disks -o yaml
+talosctl -n <worker-1-ip>,<worker-2-ip> get discoveredvolumes -o yaml
+kubectl get node oya-talos-worker-1 oya-talos-worker-2 -o yaml
 kubectl get pv,pvc -A
 ```
 
@@ -55,9 +58,14 @@ kubectl -n oya-ci-workspace-storage get deploy,pods,configmap -o wide
 kubectl -n arc-runners get pvc,pods -o wide
 ```
 
-Both volumes must be ready at their distinct `/var/mnt/ci-workspace-*` paths, the provisioner
-identity must be `oyatie.io/ci-workspace-local-path`, every runner/PVC must bind to worker 2, and
+All three node-local volumes must be ready at their declared `/var/mnt/ci-workspace-*` paths, the provisioner
+identity must be `oyatie.io/ci-workspace-local-path`, every runner/PVC must bind only to an admitted node, and
 the existing `local-path` StorageClass/PVs must be byte-for-byte unchanged.
+
+Admission is staged `maxRunners: 0 -> 1 -> 2`: at zero prove both mounts and
+provisioner mappings; at one run the cold full fallback and prove cleanup; only
+then admit two simultaneous general jobs and prove they land on different
+hostnames without DiskPressure or eviction. A failed stage returns to zero.
 
 ## Safe rollback
 

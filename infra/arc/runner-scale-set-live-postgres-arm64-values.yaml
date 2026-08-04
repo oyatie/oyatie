@@ -22,7 +22,7 @@ template:
   spec:
     nodeSelector:
       kubernetes.io/arch: arm64
-      kubernetes.io/hostname: oya-talos-worker-2
+      oya.io/ci-capacity: pg
     securityContext:
       fsGroup: 2000
       fsGroupChangePolicy: OnRootMismatch

@@ -10,7 +10,7 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Policy-as-data buck2 cache wiring for the NativeLink CAS warm substrate (ADR-0560): resolves {bypass, warm-ro, warm-rw} per build class from specs/cache-warmth-policy.json + the specs/cache-warm-license.json kill-switch, emits opt-in overlay argfiles, proves canary builds cold, byte-compares cold vs warm digest manifests, and reports structured per-lane cache-hit telemetry."
+purpose = "Policy-as-data buck2 cache wiring for the NativeLink CAS warm substrate (ADR-0560): resolves {bypass, warm-ro, warm-rw}, controls one child daemon through private mode-0600 .buckconfig.local, proves canary builds cold, byte-compares cold vs warm digest manifests, and reports structured cache-hit telemetry."
 
 # cloud-ci-cache-wiring (ADR-0560, consuming ADR-0556): NEUTRAL engine — the
 # classification lives in /specs/cache-warmth-policy.json (single source), the

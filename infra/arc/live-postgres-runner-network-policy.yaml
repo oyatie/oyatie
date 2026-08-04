@@ -55,6 +55,14 @@ spec:
               kubernetes.io/metadata.name: oya-registry
       ports:
         - { protocol: TCP, port: 5000 }
+    # OpenBao TLS migration listener. GitHub OIDC exchange and short-lived PKI
+    # issuance are permitted; the legacy plaintext listener is not.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-kms
+      ports:
+        - { protocol: TCP, port: 8202 }
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
