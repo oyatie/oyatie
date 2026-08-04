@@ -6,7 +6,7 @@
 //!
 //! Subcommands:
 //!   resolve --build-class C [--require-bypass]
-//!   run (--build-class C | --warm-probe) [--mode-out PATH] -- COMMAND [ARG...]
+//!   run (--build-class C | --warm-probe) [--prelicense-seed] [--mode-out PATH] -- COMMAND [ARG...]
 //!   license-state                       (prints `warm_licensed=<bool>` for $GITHUB_OUTPUT)
 //!   report --record PATH --build-class C [--mode M] [--out PATH]
 //!   assert-warm --record PATH --build-class C --mode M
@@ -14,7 +14,7 @@
 //!   hash-outputs --show-output PATH [--out PATH]
 //!   canary-verdict --cold PATH [--warm PATH --warm-record PATH] [--out PATH]
 //!   canary-targets                      (prints the pinned target set, one per line)
-//!   issue-identity --role R --pki-role R --uri-san URI
+//!   issue-identity --role R --pki-mount M --pki-role R --uri-san URI
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -188,6 +188,8 @@ fn required_env(name: &str) -> Result<String, String> {
 fn issue_identity(options: &[String]) -> Result<(), String> {
     let role = flag_value(options, "--role")
         .ok_or_else(|| "issue-identity requires --role".to_string())?;
+    let pki_mount = flag_value(options, "--pki-mount")
+        .ok_or_else(|| "issue-identity requires --pki-mount".to_string())?;
     let pki_role = flag_value(options, "--pki-role")
         .ok_or_else(|| "issue-identity requires --pki-role".to_string())?;
     let uri_san = flag_value(options, "--uri-san")
@@ -196,11 +198,37 @@ fn issue_identity(options: &[String]) -> Result<(), String> {
     let request_token = required_env("ACTIONS_ID_TOKEN_REQUEST_TOKEN")?;
     let bao_addr = required_env(app::OPENBAO_ADDR_ENV)?;
     let bao_ca = required_env(app::OPENBAO_CA_ENV)?;
+    let cache_server_ca = required_env(app::CACHE_SERVER_CA_ENV)?;
     let client_pem = PathBuf::from(required_env(app::CLIENT_CERT_ENV)?);
     let ca_pem = PathBuf::from(required_env(app::TLS_CA_CERTS_ENV)?);
     if !bao_addr.starts_with("https://") || !uri_san.starts_with("spiffe://oyatie.dev/ci/") {
         return Err(
             "identity issuance requires HTTPS OpenBao and an Oyatie CI SPIFFE URI".to_string(),
+        );
+    }
+    let allowed = [
+        (
+            "github-cas-writer-dev-push",
+            "pki_cas_writer",
+            "cas-writer",
+            "spiffe://oyatie.dev/ci/cas-writer",
+        ),
+        (
+            "github-cas-reader-integrity-canary",
+            "pki_cas_reader",
+            "cas-reader",
+            "spiffe://oyatie.dev/ci/cas-reader",
+        ),
+    ];
+    if !allowed.contains(&(
+        role.as_str(),
+        pki_mount.as_str(),
+        pki_role.as_str(),
+        uri_san.as_str(),
+    )) {
+        return Err(
+            "identity role, PKI mount, PKI role, and URI SAN do not match a trusted tuple"
+                .to_string(),
         );
     }
 
@@ -244,7 +272,7 @@ fn issue_identity(options: &[String]) -> Result<(), String> {
     token_header.set_sensitive(true);
     let leaf: Value = client
         .post(format!(
-            "{}/v1/pki_int/issue/{pki_role}",
+            "{}/v1/{pki_mount}/issue/{pki_role}",
             bao_addr.trim_end_matches('/')
         ))
         .header("X-Vault-Token", token_header)
@@ -262,7 +290,8 @@ fn issue_identity(options: &[String]) -> Result<(), String> {
     app::write_private_file(&client_pem, &format!("{certificate}\n{private_key}\n"))?;
     app::write_private_file(
         &ca_pem,
-        &fs::read_to_string(&bao_ca).map_err(|error| format!("read {bao_ca}: {error}"))?,
+        &fs::read_to_string(&cache_server_ca)
+            .map_err(|error| format!("read {cache_server_ca}: {error}"))?,
     )?;
     Ok(())
 }
@@ -312,7 +341,25 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let root = repo_root()?;
             let policy = app::load_policy(&root)?;
             let license = app::load_license(&root)?;
-            let resolution = if has_flag(options, "--warm-probe") {
+            let resolution = if has_flag(options, "--prelicense-seed") {
+                let trusted_seed = std::env::var("GITHUB_EVENT_NAME").as_deref() == Ok("push")
+                    && std::env::var("GITHUB_REF").as_deref() == Ok("refs/heads/dev")
+                    && std::env::var("OYA_CAS_IDENTITY_PROOF_ENABLED").as_deref() == Ok("true");
+                if !trusted_seed {
+                    return Err(
+                        "pre-license seed requires the explicitly enabled trusted dev-push job"
+                            .to_string(),
+                    );
+                }
+                app::Resolution {
+                    build_class: "postmerge-dev-trunk-prelicense-seed".to_string(),
+                    mode: app::CacheMode::WarmReadWrite,
+                    reasons: vec![
+                        "explicit non-authoritative trusted seed for first integrity proof"
+                            .to_string(),
+                    ],
+                }
+            } else if has_flag(options, "--warm-probe") {
                 let licensed = license
                     .get("warm_reads_licensed")
                     .and_then(Value::as_bool)

@@ -384,6 +384,26 @@
     {
       "anchor": "ADR-0630 D5/D9 / issue #1504: exact source-contract test locking bounded Talos selection, separate provisioner identity, both runner workspace mounts, concurrency, and telemetry declarations.",
       "prefix": "infra/arc/tests/ci_workspace_capacity.rs"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: exact OpenBao GitHub OIDC roles, separate writer/reader PKI roots, and least-privilege issuance policies.",
+      "prefix": "infra/kms/openbao-ci-identity.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: public-only OpenBao and NativeLink server trust-anchor projections for ephemeral ARC clients.",
+      "prefix": "infra/kms/openbao-public-ca.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: dual-listener OpenBao TLS migration declaration used before workload-identity activation.",
+      "prefix": "infra/kms/openbao-tls-migration.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0560 keyed CAS boundary: TLS-migration-only ExternalSecret stores preserve the existing plaintext rollback path during staged cutover.",
+      "prefix": "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D5/D9 / issue #1504: exact Talos worker-1 machine patch selecting its blank non-system 150GiB vdb and provisioning the general CI workspace user volume.",
+      "prefix": "infra/talos/local/patches/ci-workspace-worker-1.yaml"
     }
   ]
 }

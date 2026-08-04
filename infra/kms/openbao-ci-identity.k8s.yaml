@@ -1,6 +1,6 @@
-# GitHub OIDC -> short-lived client-PKI desired state. These are role and
-# policy payloads for the authenticated bootstrap reconciler; no token, key, CA
-# private material, or issued certificate is stored here.
+# GitHub OIDC -> short-lived client-PKI bootstrap inputs. The runbook applies
+# these payloads with an authenticated OpenBao session; no controller is implied
+# and no token, key, CA private material, or issued certificate is stored here.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -18,6 +18,6 @@ data:
   pki-cas-reader.json: |
     {"require_cn":false,"allowed_domains":[],"allow_bare_domains":false,"allow_subdomains":false,"allow_glob_domains":false,"allow_ip_sans":false,"allow_localhost":false,"allowed_uri_sans":["spiffe://oyatie.dev/ci/cas-reader"],"allow_any_name":false,"server_flag":false,"client_flag":true,"key_type":"ec","key_bits":256,"ttl":"3h","max_ttl":"3h"}
   ci-cas-writer.hcl: |
-    path "pki_int/issue/cas-writer" { capabilities = ["update"] }
+    path "pki_cas_writer/issue/cas-writer" { capabilities = ["update"] }
   ci-cas-reader.hcl: |
-    path "pki_int/issue/cas-reader" { capabilities = ["update"] }
+    path "pki_cas_reader/issue/cas-reader" { capabilities = ["update"] }

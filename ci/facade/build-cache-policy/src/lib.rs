@@ -39,6 +39,9 @@ pub const TLS_CA_CERTS_ENV: &str = "OYA_CACHE_TLS_CA_CERTS";
 pub const OPENBAO_ADDR_ENV: &str = "OYA_OPENBAO_ADDR";
 /// Env var carrying the public CA path used to authenticate OpenBao.
 pub const OPENBAO_CA_ENV: &str = "OYA_OPENBAO_CA_CERT";
+/// Public CA that validates the NativeLink server certificate. This is not the
+/// OpenBao HTTPS CA and must never be derived from it.
+pub const CACHE_SERVER_CA_ENV: &str = "OYA_CACHE_TLS_SERVER_CA_CERT";
 /// Schema id of the structured per-lane cache-hit report artifact.
 pub const CACHE_HIT_REPORT_SCHEMA: &str = "oya-ci/cache-hit-report/v1";
 /// Schema id of the canary digest manifest artifact.

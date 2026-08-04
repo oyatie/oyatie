@@ -603,23 +603,49 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     let runner_text = serde_json::to_string(&runner).expect("serialize runner values");
     assert!(runner_text.contains("openbao-offline-root-ca"));
     assert!(runner_text.contains("/etc/openbao/ca"));
+    assert!(runner_text.contains("nativelink-server-ca"));
+    assert!(runner_text.contains("/etc/nativelink/ca"));
+    assert_eq!(runner_text.matches("optional\":true").count(), 2);
     assert!(!runner_text.contains("tls.key"));
 
     let public_ca = yaml_documents(&root, "infra/kms/openbao-public-ca.k8s.yaml");
-    let namespaces: BTreeSet<String> = public_ca
+    let openbao_namespaces: BTreeSet<String> = public_ca
         .iter()
+        .filter(|config_map| {
+            string_at(config_map, &["metadata", "name"]) == "openbao-offline-root-ca"
+        })
         .map(|config_map| {
             assert!(is_kind(config_map, "ConfigMap"));
-            assert_eq!(
-                string_at(config_map, &["metadata", "name"]),
-                "openbao-offline-root-ca"
-            );
             assert_eq!(string_at(config_map, &["data", "ca.crt"]), "");
             string_at(config_map, &["metadata", "namespace"])
         })
         .collect();
     assert_eq!(
-        namespaces,
+        openbao_namespaces,
         BTreeSet::from(["arc-runners".to_owned(), "external-secrets".to_owned()])
     );
+    let nativelink_ca = public_ca
+        .iter()
+        .find(|config_map| string_at(config_map, &["metadata", "name"]) == "nativelink-server-ca")
+        .expect("NativeLink server CA ConfigMap");
+    assert_eq!(
+        string_at(nativelink_ca, &["metadata", "namespace"]),
+        "arc-runners"
+    );
+
+    let identity_text = serde_json::to_string(identity).unwrap();
+    assert!(identity_text.contains("pki_cas_writer/issue/cas-writer"));
+    assert!(identity_text.contains("pki_cas_reader/issue/cas-reader"));
+    assert!(!identity_text.contains("pki_int/issue"));
+    let nativelink = read(&root, "infra/nativelink/nativelink-cas.k8s.yaml");
+    assert_eq!(nativelink.matches("/tls/ca-writer.crt").count(), 1);
+    assert_eq!(nativelink.matches("/tls/ca-reader.crt").count(), 1);
+    assert!(nativelink.contains(r#""socket_address": "0.0.0.0:50051""#));
+    assert!(nativelink.contains(r#""socket_address": "0.0.0.0:50052""#));
+
+    let runbook = read(&root, "infra/external-secrets/RUNBOOK.md");
+    assert!(runbook.contains("There is no bootstrap controller in this slice"));
+    assert!(runbook.contains("reader leaf against `:50051` fails"));
+    assert!(runbook.contains("OYA_NATIVELINK_SERVER_CA_CERT"));
+    assert!(!runbook.contains("authenticated bootstrap controller"));
 }
