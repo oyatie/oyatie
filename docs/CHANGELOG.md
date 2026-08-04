@@ -16,8 +16,14 @@ doc_status: published
   neither runner scale set projects a CNPG Secret or shared database hostname, and a Cilium
   egress-deny blocks both candidate-runner cell labels from the shared `oya-data` namespace.
 - Capped the dedicated set at one runner and accounted for the measured ~30Gi workspace with a
-  32Gi request/34Gi limit. Issue #1504 remains a live-deployment prerequisite because the current
-  runner node is under DiskPressure; this change does not claim rollout readiness.
+  32Gi request/34Gi limit; that cap serializes the two required PostgreSQL jobs. Issue #1504
+  remains a live-deployment prerequisite because the current runner node is under DiskPressure;
+  this change does not claim rollout readiness.
+- Added a two-hour, exact-SSH-signed-head Argo root-Application bootstrap/rollback contract so a
+  candidate can provision its new label before protected admission, with required revision,
+  sync-order, expiry, rollback, and API-readback evidence; no cluster mutation is claimed here.
+- Registered the ARC YAML package in Buck2 and ratcheted unpackaged YAML debt from 458 to 456;
+  exact reachability registrations keep both new deployment artifacts review-visible.
 - Amended ADR-0630 D2/D7 to bound workload-isolated same-architecture scale sets. Issues #1539
   and #1540; protected admission and live GitOps rollout verification remain pending.
 

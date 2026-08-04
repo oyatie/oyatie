@@ -98,6 +98,10 @@ fn live_postgres_network_policy_path(root: &Path) -> PathBuf {
     root.join("infra/arc/live-postgres-runner-network-policy.yaml")
 }
 
+fn live_postgres_admission_bootstrap_path(root: &Path) -> PathBuf {
+    root.join("infra/arc/live-postgres-admission-bootstrap.json")
+}
+
 fn gitops_values_path(root: &Path) -> PathBuf {
     root.join("infra/gitops/values.yaml")
 }
@@ -600,6 +604,9 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
         && values.contains("name: generate-postgres-credentials")
         && values.contains("name: postgres")
         && values.contains("restartPolicy: Always")
+        && values.contains(
+            "command: [\"/bin/sh\", \"-ec\", \"pg_isready -h 127.0.0.1 -U postgres -d oyatie\"]",
+        )
         && values.contains(POSTGRES_16_DIGEST)
         && values.contains("POSTGRES_PASSWORD_FILE")
         && values.contains("startupProbe:")
@@ -610,6 +617,8 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
         && values.contains("ephemeral-storage: 34Gi")
         && values.contains("/run/oya-ci-postgres")
         && !values.contains("secretKeyRef:")
+        && !values.contains("oya.io/nativelink-cas-reader")
+        && !values.contains("oya.io/nativelink-cas-writer")
         && !values.contains("oya-pg-rw.oya-data.svc.cluster.local")
 }
 
@@ -1714,6 +1723,39 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         gitops_registers_live_postgres_arc_cell(&gitops_values),
         "GitOps must own both the dedicated scale set and its ingress isolation policy"
     );
+
+    let bootstrap_path = live_postgres_admission_bootstrap_path(&root);
+    let bootstrap: Value = serde_json::from_str(
+        &fs::read_to_string(&bootstrap_path)
+            .unwrap_or_else(|e| panic!("read {}: {e}", bootstrap_path.display())),
+    )
+    .unwrap_or_else(|e| panic!("parse {}: {e}", bootstrap_path.display()));
+    assert_eq!(bootstrap["blocked_until_issue_closed"], 1504);
+    assert_eq!(bootstrap["maximum_ttl_seconds"], 7200);
+    let apply = bootstrap["apply_json_patch"]
+        .as_array()
+        .expect("bootstrap apply_json_patch must be an array");
+    assert!(apply.iter().any(|op| {
+        op["path"] == "/spec/source/targetRevision" && op["value"] == "${CANDIDATE_HEAD}"
+    }));
+    assert!(apply.iter().any(|op| {
+        op["path"] == "/spec/source/helm/valuesObject/targetRevision"
+            && op["value"] == "${CANDIDATE_HEAD}"
+    }));
+    let rollback = bootstrap["rollback_json_patch"]
+        .as_array()
+        .expect("bootstrap rollback_json_patch must be an array");
+    assert!(rollback.iter().any(|op| {
+        op["op"] == "replace"
+            && op["path"] == "/spec/source/targetRevision"
+            && op["value"] == "dev"
+    }));
+    assert!(bootstrap["required_readback"]
+        .as_array()
+        .is_some_and(|items| items.len() >= 6));
+    assert!(bootstrap["rollback_readback"]
+        .as_array()
+        .is_some_and(|items| items.len() >= 4));
 }
 
 #[test]

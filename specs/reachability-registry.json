@@ -186,6 +186,18 @@
       "prefix": "infra/ci/runner-image/"
     },
     {
+      "anchor": "ADR-0630 D7 + infra/gitops/values.yaml oya-live-postgres-network-policy Application: exact network-policy artifact consumed by GitOps before the wave-2 live PostgreSQL ARC runner Pods; it denies runner-cell ingress and denies shared-data egress for the dedicated and general ARC cell labels. breadth: exact path only",
+      "prefix": "infra/arc/live-postgres-runner-network-policy.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D7 + infra/gitops/values.yaml oya-live-postgres-arm64 Application: exact ARC 0.14.2 Helm values artifact consumed by the dedicated live PostgreSQL runner-scale-set GitOps Application. breadth: exact path only",
+      "prefix": "infra/arc/runner-scale-set-live-postgres-arm64-values.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D8: exact credential-gated Argo root-Application JSON Patch and rollback contract used to bootstrap the candidate-only live PostgreSQL runner label before protected admission, with a two-hour expiry and mandatory API readback. breadth: exact path only",
+      "prefix": "infra/arc/live-postgres-admission-bootstrap.json"
+    },
+    {
       "anchor": "ADR-0560 D1: NativeLink CAS deployable artifacts — the warm-substrate manifests consumed at cluster bring-up (GitOps apply); keyed mTLS boundary + SeaweedFS S3 backing per the ADR; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
       "prefix": "infra/nativelink/"
     },
