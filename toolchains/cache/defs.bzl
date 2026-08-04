@@ -1,20 +1,19 @@
-# Cache-only execution platform for the NativeLink CAS warm substrate (ADR-0560,
-# consuming the ADR-0556 classification; idea basis docs/ideas/nativelink-remote-cache-first.md).
+# Cache-only execution platform for NativeLink CAS-backed warm-substrate.
 #
-# Mirrors prelude//platforms:default exactly (same host cpu/os constraints, same
-# exec-platform marker, local execution ONLY) and adds the two cache-first executor
-# knobs the prelude hardcodes off: `remote_cache_enabled` + `allow_cache_uploads`.
-# Remote *execution* stays False until the ADR-0525 D3 RE phase flips it in its own
-# reviewed change.
+# This platform preserves the host/os constraints from prelude default and only
+# alters executor knobs required for cache-first behavior:
+# - local_enabled=true (keep action execution local by default)
+# - remote_enabled=false (Remote Execution stays staged behind cache; cache-only first)
+# - remote_cache_enabled / allow_cache_uploads controlled via [oya_cache] root overlay
 #
-# Dark-by-default invariant: the root .buckconfig never selects this platform and
-# never sets the [oya_cache] section. Only the opt-in CI overlays
-# (infra/ci/buckconfig/warm-cache-{rw,ro}.buckconfig) select it and set the knobs,
-# so every build that does not explicitly pass an overlay is bit-identical to today
-# (the conformance gate in ci/facade/build-cache-policy asserts the root config stays
-# clean; it moved there from cloud/cloud-ci/gates/ in the ADR-0562 reorg).
-
+# Why it is isolated: this keeps root `.buckconfig` unchanged for local builds.
+# CI can opt in safely by writing `.buckconfig.local` with:
+#   [build]
+#   execution_platforms = toolchains//cache:cache-platform
+#   [build]
+#   + this platform rule's flags via [oya_cache]
 load("@prelude//cfg/exec_platform:marker.bzl", "get_exec_platform_marker")
+
 
 def _cache_execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
     constraints = dict()
@@ -28,8 +27,9 @@ def _cache_execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
         configuration = cfg,
         executor_config = CommandExecutorConfig(
             local_enabled = True,
-            # Cache-first MVP (ADR-0556 D3 stage 3): the scheduler tier is not
-            # deployed; remote execution is a later, separate door (ADR-0525 D3).
+            # Cache-only stage: local execution remains authoritative while remote cache
+            # absorbs repeated work across runners. Remote execution is a separate, later
+            # control-plane stage.
             remote_enabled = False,
             remote_cache_enabled = ctx.attrs.remote_cache_enabled,
             allow_cache_uploads = ctx.attrs.allow_cache_uploads,
@@ -46,6 +46,7 @@ def _cache_execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
             exec_marker_constraint = get_exec_platform_marker(),
         ),
     ]
+
 
 cache_execution_platform = rule(
     impl = _cache_execution_platform_impl,
