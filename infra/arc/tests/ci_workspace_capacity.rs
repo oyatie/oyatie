@@ -532,11 +532,238 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
             .as_sequence()
             .expect("egress rules")
             .len(),
-        4
+        5
     );
     assert!(serialized.contains("0.0.0.0/0"));
     assert!(serialized.contains("10.0.0.0/8"));
     assert!(serialized.contains("oya-ci"));
     assert!(serialized.contains("oya-registry"));
+    assert!(serialized.contains("oya-kms"));
     assert!(!serialized.contains("oya-data"));
+}
+
+#[test]
+fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
+    let root = repo_root();
+    let base = read(&root, "infra/kms/openbao.k8s.yaml");
+    assert!(!base.contains("8202"));
+    assert!(!base.contains("openbao-server-tls"));
+
+    let documents = yaml_documents(&root, "infra/kms/openbao-tls-migration.k8s.yaml");
+    let deployment = documents
+        .iter()
+        .find(|document| is_kind(document, "Deployment"))
+        .expect("OpenBao Deployment");
+    let container = named(
+        at(deployment, &["spec", "template", "spec", "containers"]),
+        "openbao",
+    );
+    assert_eq!(
+        string_at(container, &["image"]),
+        "ghcr.io/openbao/openbao@sha256:5b2486ab0fb90bbc788cc345b0a08616dfb375873ee8be5df3a2fd4d378a67e0"
+    );
+
+    let migration = documents
+        .iter()
+        .find(|document| {
+            is_kind(document, "ConfigMap")
+                && string_at(document, &["metadata", "name"]) == "openbao-tls-migration-config"
+        })
+        .expect("TLS migration ConfigMap");
+    let hcl = string_at(migration, &["data", "openbao.hcl"]);
+    for required in [
+        "0.0.0.0:8200",
+        "0.0.0.0:8201",
+        "0.0.0.0:8202",
+        "0.0.0.0:8203",
+        "tls13",
+    ] {
+        assert!(
+            hcl.contains(required),
+            "missing TLS migration declaration {required}"
+        );
+    }
+    let deployment_text = serde_json::to_string(deployment).expect("serialize deployment");
+    assert!(deployment_text.contains("openbao-server-tls"));
+    assert!(deployment_text.contains("/openbao/tls"));
+    assert!(deployment_text.contains("containerPort\":8202"));
+    assert!(deployment_text.contains("containerPort\":8203"));
+
+    let identity_documents = yaml_documents(&root, "infra/kms/openbao-ci-identity.k8s.yaml");
+    let identity = identity_documents
+        .iter()
+        .find(|document| {
+            is_kind(document, "ConfigMap")
+                && string_at(document, &["metadata", "name"]) == "openbao-ci-identity-contract"
+        })
+        .expect("CI identity contract");
+    let data = at(identity, &["data"]);
+    for key in [
+        "pki-cas-writer.json",
+        "pki-cas-reader.json",
+        "ci-cas-writer.hcl",
+        "ci-cas-reader.hcl",
+    ] {
+        assert!(
+            data.get(key).and_then(Value::as_str).is_some(),
+            "missing {key}"
+        );
+    }
+    assert!(
+        !serde_json::to_string(identity)
+            .unwrap()
+            .contains("re-client")
+    );
+    for (role, workflow, policy) in [
+        (
+            "github-cas-writer-dev-push.json",
+            "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+            "ci-cas-writer",
+        ),
+        (
+            "github-cas-reader-integrity-canary.json",
+            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev",
+            "ci-cas-reader",
+        ),
+    ] {
+        let payload: serde_json::Value = serde_json::from_str(
+            data.get(role)
+                .and_then(Value::as_str)
+                .expect("role payload"),
+        )
+        .expect("role JSON");
+        assert_eq!(payload["bound_audiences"][0], "oya-openbao");
+        assert_eq!(payload["user_claim"], "workflow_ref");
+        assert_eq!(payload["bound_claims"]["workflow_ref"], workflow);
+        assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
+        assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
+        assert_eq!(payload["bound_claims"]["repository_visibility"], "private");
+        assert_eq!(payload["bound_claims"]["runner_environment"], "self-hosted");
+        assert_eq!(
+            payload["bound_claims"]["sub"],
+            "repo:jason931225/oyatie:ref:refs/heads/dev"
+        );
+        assert!(
+            payload["bound_claims"]
+                .get("repository_owner_type")
+                .is_none()
+        );
+        assert_eq!(payload["token_policies"][0], policy);
+        assert_eq!(payload["token_max_ttl"], "5m");
+        if role == "github-cas-writer-dev-push.json" {
+            assert_eq!(payload["bound_claims"]["ref"], "refs/heads/dev");
+            assert_eq!(payload["bound_claims"]["event_name"], "push");
+        } else {
+            assert_eq!(payload["bound_claims"]["ref"], "refs/heads/dev");
+            assert_eq!(payload["bound_claims"]["event_name"][0], "schedule");
+            assert_eq!(
+                payload["bound_claims"]["event_name"][1],
+                "workflow_dispatch"
+            );
+        }
+    }
+    for role in ["pki-cas-writer.json", "pki-cas-reader.json"] {
+        let payload: serde_json::Value = serde_json::from_str(
+            data.get(role)
+                .and_then(Value::as_str)
+                .expect("PKI role payload"),
+        )
+        .expect("PKI role JSON");
+        assert_eq!(payload["max_ttl"], "3h");
+        assert_eq!(payload["ttl"], "3h");
+        assert_eq!(payload["require_cn"], false);
+        assert_eq!(payload["allow_ip_sans"], false);
+        assert_eq!(payload["allow_localhost"], false);
+        assert_eq!(payload["allowed_domains"].as_array().unwrap().len(), 0);
+        assert_eq!(payload["allowed_uri_sans"].as_array().unwrap().len(), 1);
+        assert_eq!(payload["client_flag"], true);
+        assert_eq!(payload["server_flag"], false);
+    }
+    assert!(
+        !serde_json::to_string(identity)
+            .unwrap()
+            .contains("PRIVATE KEY")
+    );
+
+    let stores = yaml_documents(
+        &root,
+        "infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml",
+    );
+    assert!(
+        !read(
+            &root,
+            "infra/external-secrets/clustersecretstore-openbao-oya.yaml"
+        )
+        .contains("8202")
+    );
+    let migration_stores: Vec<&Value> = stores
+        .iter()
+        .filter(|store| {
+            is_kind(store, "ClusterSecretStore")
+                && string_at(store, &["metadata", "name"]).ends_with("tls-migration")
+        })
+        .collect();
+    assert_eq!(migration_stores.len(), 3);
+    for store in migration_stores {
+        assert_eq!(
+            string_at(store, &["spec", "provider", "vault", "server"]),
+            "https://openbao.oya-kms.svc:8202"
+        );
+        assert_eq!(
+            string_at(store, &["spec", "provider", "vault", "caProvider", "name"]),
+            "openbao-offline-root-ca"
+        );
+    }
+
+    let runner = yaml(&root, GENERAL_VALUES);
+    let runner_text = serde_json::to_string(&runner).expect("serialize runner values");
+    assert!(runner_text.contains("openbao-offline-root-ca"));
+    assert!(runner_text.contains("/etc/openbao/ca"));
+    assert!(runner_text.contains("nativelink-server-ca"));
+    assert!(runner_text.contains("/etc/nativelink/ca"));
+    assert_eq!(runner_text.matches("optional\":true").count(), 2);
+    assert!(!runner_text.contains("tls.key"));
+
+    let public_ca = yaml_documents(&root, "infra/kms/openbao-public-ca.k8s.yaml");
+    let openbao_namespaces: BTreeSet<String> = public_ca
+        .iter()
+        .filter(|config_map| {
+            string_at(config_map, &["metadata", "name"]) == "openbao-offline-root-ca"
+        })
+        .map(|config_map| {
+            assert!(is_kind(config_map, "ConfigMap"));
+            assert_eq!(string_at(config_map, &["data", "ca.crt"]), "");
+            string_at(config_map, &["metadata", "namespace"])
+        })
+        .collect();
+    assert_eq!(
+        openbao_namespaces,
+        BTreeSet::from(["arc-runners".to_owned(), "external-secrets".to_owned()])
+    );
+    let nativelink_ca = public_ca
+        .iter()
+        .find(|config_map| string_at(config_map, &["metadata", "name"]) == "nativelink-server-ca")
+        .expect("NativeLink server CA ConfigMap");
+    assert_eq!(
+        string_at(nativelink_ca, &["metadata", "namespace"]),
+        "arc-runners"
+    );
+
+    let identity_text = serde_json::to_string(identity).unwrap();
+    assert!(identity_text.contains("pki_cas_writer/issue/cas-writer"));
+    assert!(identity_text.contains("pki_cas_reader/issue/cas-reader"));
+    assert!(!identity_text.contains("pki_int/issue"));
+    let nativelink = read(&root, "infra/nativelink/nativelink-cas.k8s.yaml");
+    assert_eq!(nativelink.matches("/tls/ca-writer.crt").count(), 1);
+    assert_eq!(nativelink.matches("/tls/ca-reader.crt").count(), 1);
+    assert!(nativelink.contains(r#""socket_address": "0.0.0.0:50051""#));
+    assert!(nativelink.contains(r#""socket_address": "0.0.0.0:50052""#));
+
+    let runbook = read(&root, "infra/external-secrets/RUNBOOK.md");
+    assert!(runbook.contains("There is no bootstrap controller in this slice"));
+    assert!(runbook.contains("reader leaf against `:50051` fails"));
+    assert!(runbook.contains("OYA_NATIVELINK_SERVER_CA_CERT"));
+    assert!(runbook.contains("Do not apply the empty public-CA scaffold directly"));
+    assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-public-ca.k8s.yaml"));
+    assert!(!runbook.contains("authenticated bootstrap controller"));
 }

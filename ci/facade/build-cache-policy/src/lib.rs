@@ -6,8 +6,8 @@
 //!   this crate re-decides nothing, it only enforces the policy fail-closed);
 //! - the canary-licensed kill-switch comes from `/specs/cache-warm-license.json`
 //!   (the mechanical carrier of the ADR-0556 D2 trust-invariant clause (b));
-//! - the opt-in overlays live under `infra/ci/buckconfig/` and are selected, never
-//!   authored, here.
+//! - the opt-in overlays live under `infra/ci/buckconfig/`; the controller
+//!   materializes the selected effective config privately for one child daemon.
 //!
 //! Fail-closed everywhere: unknown class -> bypass, unlicensed -> bypass, the
 //! canary class -> bypass unconditionally, warm emission without a keyed identity
@@ -16,8 +16,9 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
-use std::fs;
-use std::path::Path;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -34,6 +35,13 @@ pub const OVERLAY_RO_PATH: &str = "infra/ci/buckconfig/warm-cache-ro.buckconfig"
 pub const CLIENT_CERT_ENV: &str = "OYA_CACHE_TLS_CLIENT_CERT";
 /// Env var carrying the path of the CA bundle that signed the CAS server cert.
 pub const TLS_CA_CERTS_ENV: &str = "OYA_CACHE_TLS_CA_CERTS";
+/// Env var carrying the trusted OpenBao HTTPS endpoint.
+pub const OPENBAO_ADDR_ENV: &str = "OYA_OPENBAO_ADDR";
+/// Env var carrying the public CA path used to authenticate OpenBao.
+pub const OPENBAO_CA_ENV: &str = "OYA_OPENBAO_CA_CERT";
+/// Public CA that validates the NativeLink server certificate. This is not the
+/// OpenBao HTTPS CA and must never be derived from it.
+pub const CACHE_SERVER_CA_ENV: &str = "OYA_CACHE_TLS_SERVER_CA_CERT";
 /// Schema id of the structured per-lane cache-hit report artifact.
 pub const CACHE_HIT_REPORT_SCHEMA: &str = "oya-ci/cache-hit-report/v1";
 /// Schema id of the canary digest manifest artifact.
@@ -208,18 +216,17 @@ pub fn resolve(policy: &Value, license: &Value, build_class: &str) -> Result<Res
     })
 }
 
-/// Emit the buck2 argfile lines for a resolution. Bypass emits an EMPTY argfile
-/// (the absence of RE config is the bypass). Warm modes REQUIRE the keyed mTLS
-/// identity: emitting warm config without one is a hard error, never a silent
-/// downgrade (a warm-intending lane without a key is a misconfiguration; untrusted
-/// contexts never resolve warm in the first place).
-pub fn argfile_lines(
+/// Materialize the effective project configuration Buck2 actually reads at daemon
+/// startup. `--config*` is deliberately not emitted: Buck2 does not apply those
+/// flags to `buck2_re_client`, so doing so would produce an inert warm-cache claim.
+pub fn effective_buckconfig(
     resolution: &Resolution,
+    overlay: &str,
     client_cert: Option<&str>,
     tls_ca_certs: Option<&str>,
-) -> Result<Vec<String>, String> {
+) -> Result<Option<String>, String> {
     match resolution.mode {
-        CacheMode::Bypass => Ok(Vec::new()),
+        CacheMode::Bypass => Ok(None),
         CacheMode::WarmReadOnly | CacheMode::WarmReadWrite => {
             let cert = client_cert.filter(|c| !c.trim().is_empty()).ok_or_else(|| {
                 format!(
@@ -229,22 +236,85 @@ pub fn argfile_lines(
                     resolution.mode
                 )
             })?;
-            let overlay = match resolution.mode {
-                CacheMode::WarmReadWrite => OVERLAY_RW_PATH,
-                _ => OVERLAY_RO_PATH,
-            };
-            let mut lines = vec![
-                "--config-file".to_string(),
-                overlay.to_string(),
-                "--config".to_string(),
-                format!("buck2_re_client.tls_client_cert={cert}"),
-            ];
-            if let Some(ca) = tls_ca_certs.filter(|c| !c.trim().is_empty()) {
-                lines.push("--config".to_string());
-                lines.push(format!("buck2_re_client.tls_ca_certs={ca}"));
+            if !Path::new(cert).is_absolute()
+                || tls_ca_certs
+                    .filter(|path| !path.trim().is_empty())
+                    .is_some_and(|path| !Path::new(path).is_absolute())
+            {
+                return Err("cache TLS certificate paths must be absolute".to_string());
             }
-            Ok(lines)
+            if [cert, tls_ca_certs.unwrap_or_default()]
+                .iter()
+                .any(|value| value.contains(['\n', '\r']))
+            {
+                return Err("cache TLS paths must not contain newlines".to_string());
+            }
+            if !overlay
+                .lines()
+                .any(|line| line.trim() == "[buck2_re_client]")
+            {
+                return Err("warm overlay missing [buck2_re_client] section".to_string());
+            }
+            let mut identity = format!("[buck2_re_client]\n  tls_client_cert = {cert}\n");
+            if let Some(ca) = tls_ca_certs.filter(|c| !c.trim().is_empty()) {
+                identity.push_str(&format!("  tls_ca_certs = {ca}\n"));
+            }
+            let config = overlay.replacen("[buck2_re_client]", &identity, 1);
+            Ok(Some(config))
         }
+    }
+}
+
+/// Create the ignored machine-local project config without clobbering a human or
+/// sibling controller's file. Warm credentials make 0600 mandatory.
+pub fn install_local_buckconfig(root: &Path, contents: &str) -> Result<PathBuf, String> {
+    let path = root.join(".buckconfig.local");
+    let mut options = OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    #[cfg(not(unix))]
+    return Err("warm-cache controller requires Unix mode-0600 file semantics".to_string());
+
+    #[cfg(unix)]
+    {
+        let mut file = options
+            .open(&path)
+            .map_err(|error| format!("create {} without clobbering: {error}", path.display()))?;
+        file.write_all(contents.as_bytes())
+            .and_then(|()| file.sync_all())
+            .map_err(|error| format!("write {}: {error}", path.display()))?;
+        Ok(path)
+    }
+}
+
+pub fn remove_local_buckconfig(path: &Path) -> Result<(), String> {
+    fs::remove_file(path).map_err(|error| format!("remove {}: {error}", path.display()))
+}
+
+/// Create a credential file without ever exposing group/other permissions.
+pub fn write_private_file(path: &Path, contents: &str) -> Result<(), String> {
+    let mut options = OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    #[cfg(not(unix))]
+    return Err("cache identity requires Unix mode-0600 file semantics".to_string());
+
+    #[cfg(unix)]
+    {
+        let mut file = options
+            .open(path)
+            .map_err(|error| format!("create {} without clobbering: {error}", path.display()))?;
+        file.write_all(contents.as_bytes())
+            .and_then(|()| file.sync_all())
+            .map_err(|error| format!("write {}: {error}", path.display()))
     }
 }
 
@@ -786,34 +856,75 @@ mod tests {
     }
 
     #[test]
-    fn bypass_emits_an_empty_argfile() {
+    fn bypass_materializes_no_local_config() {
         let r = resolve(&policy_fixture(), &license(false), "dev-agentic-iteration").unwrap();
-        assert_eq!(argfile_lines(&r, None, None).unwrap(), Vec::<String>::new());
+        assert_eq!(effective_buckconfig(&r, "", None, None).unwrap(), None);
     }
 
     #[test]
     fn warm_emission_without_a_keyed_identity_is_a_hard_error() {
         let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
-        let err = argfile_lines(&r, None, None).unwrap_err();
+        let err = effective_buckconfig(&r, "", None, None).unwrap_err();
         assert!(err.contains(CLIENT_CERT_ENV));
     }
 
     #[test]
-    fn warm_rw_argfile_selects_the_rw_overlay_and_carries_the_cert_flag() {
+    fn warm_identity_paths_must_be_absolute() {
         let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
-        let lines =
-            argfile_lines(&r, Some("/secrets/writer.pem"), Some("/secrets/ca.pem")).unwrap();
-        assert_eq!(lines[0], "--config-file");
-        assert_eq!(lines[1], OVERLAY_RW_PATH);
-        assert!(lines.contains(&"buck2_re_client.tls_client_cert=/secrets/writer.pem".to_string()));
-        assert!(lines.contains(&"buck2_re_client.tls_ca_certs=/secrets/ca.pem".to_string()));
+        let err = effective_buckconfig(
+            &r,
+            "[buck2_re_client]\ntls = true\n",
+            Some("relative/client.pem"),
+            None,
+        )
+        .unwrap_err();
+        assert!(err.contains("absolute"));
     }
 
     #[test]
-    fn warm_ro_argfile_selects_the_ro_overlay() {
-        let r = resolve(&policy_fixture(), &license(true), "future-read-only-class").unwrap();
-        let lines = argfile_lines(&r, Some("/secrets/reader.pem"), None).unwrap();
-        assert_eq!(lines[1], OVERLAY_RO_PATH);
+    fn warm_rw_effective_config_selects_the_rw_overlay_and_carries_the_identity() {
+        let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let config = effective_buckconfig(
+            &r,
+            "[buck2_re_client]\ntls = true\n",
+            Some("/secrets/writer.pem"),
+            Some("/secrets/ca.pem"),
+        )
+        .unwrap()
+        .expect("warm config");
+        assert!(config.contains("tls_client_cert = /secrets/writer.pem"));
+        assert!(config.contains("tls_ca_certs = /secrets/ca.pem"));
+        assert!(!config.contains("--config"));
+    }
+
+    #[test]
+    fn private_local_config_is_mode_0600_and_removed() {
+        let root = std::env::temp_dir().join(format!("oya-cache-config-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let path = install_local_buckconfig(&root, "[buck2_re_client]\ntls = true\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+        }
+        remove_local_buckconfig(&path).unwrap();
+        assert!(!path.exists());
+        let identity = root.join("client.pem");
+        write_private_file(&identity, "certificate\nprivate-key\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                fs::metadata(&identity).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+        }
+        assert!(write_private_file(&identity, "replacement").is_err());
+        fs::remove_dir_all(root).unwrap();
     }
 
     fn record_fixture(action_cache: u64, remote: u64, uploads: u64) -> Value {

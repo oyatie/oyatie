@@ -55,6 +55,13 @@ spec:
               kubernetes.io/metadata.name: oya-registry
       ports:
         - { protocol: TCP, port: 5000 }
+    # TLS-only OpenBao migration listener for short-lived CI identity.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-kms
+      ports:
+        - { protocol: TCP, port: 8202 }
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0

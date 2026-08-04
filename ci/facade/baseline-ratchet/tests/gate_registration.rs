@@ -328,7 +328,7 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
         .iter()
         .flat_map(|step| executable_lines(step))
         .any(|line| {
-            line.starts_with("buck2 test ")
+            line.contains("buck2 test ")
                 && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
                 && line.contains("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"")
         });
