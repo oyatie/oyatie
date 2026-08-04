@@ -1,41 +1,115 @@
 {
   "hooks": {
-    "Stop": [
+    "PostCompact": [
       {
         "hooks": [
-          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/local-authority-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh" }
-        ]
+          {
+            "command": "bd codex-hook PostCompact",
+            "statusMessage": "Scheduling Beads context refresh",
+            "type": "command"
+          }
+        ],
+        "matcher": "manual|auto"
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh" },
-          { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh" },
-          { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh" }
-        ]
+          {
+            "command": "tools/hooks/spec-version-pin-suggester.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/adr-orphan-detect.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/vacuous-green-gate-detect.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|MultiEdit|Write"
       },
       {
-        "matcher": "Bash|WebFetch|WebSearch",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/injection-content-scanner.sh" }
+          {
+            "command": "tools/hooks/injection-content-scanner.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|WebFetch|WebSearch"
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "bd codex-hook PreCompact",
+            "statusMessage": "Checking Beads context",
+            "type": "command"
+          }
+        ],
+        "matcher": "manual|auto"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "tools/hooks/local-authority-enforcer.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/no-cargo-enforcer.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/stale-tool-suggester.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "command": "tools/hooks/pre-dispatch-guide.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Task"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bd codex-hook SessionStart",
+            "statusMessage": "Loading Beads context",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume|clear"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "tools/hooks/stop-did-you-forget-suggester.sh",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "bd codex-hook UserPromptSubmit",
+            "statusMessage": "Refreshing Beads context",
+            "type": "command"
+          }
         ]
       }
     ]
