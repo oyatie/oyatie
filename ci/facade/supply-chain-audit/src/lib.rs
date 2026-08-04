@@ -11,10 +11,32 @@
 //! ## Split of concerns (hermetic gate vs network reconciler)
 //! The network/clock half — pinning a fresh advisory-db commit, distilling, opening a GitOps PR,
 //! and `remove_by` expiry SLOs — lives in a SEPARATE owned reconciler (deferred Slice D). THIS gate
+<<<<<<< HEAD
 //! only reads committed bytes: the `Cargo.lock` + the vendored `advisory-mirror/{advisories.json,
 //! mirror-manifest.json}` produced by `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable
 //! and deterministic.
 //!
+=======
+//! only reads candidate-tree bytes: the separately materialized SCM tracked-path snapshot, the
+//! configured `Cargo.lock` files, and the vendored
+//! `advisory-mirror/{advisories.json,mirror-manifest.json}` produced by
+//! `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable and deterministic.
+//!
+//! ## Lockfile corpus
+//! `policy.lockfile_corpus` is the reviewed authority: each entry pairs one repo-relative
+//! `Cargo.toml` workspace root with its sibling `Cargo.lock`. Before reading packages, collection
+//! projects every workspace-owned lock from the independently materialized
+//! `policy.scm_facts_path#tracked_paths` universe: a tracked lock is workspace-owned exactly when
+//! its tracked sibling manifest declares `[workspace]`. That projection must equal the policy
+//! corpus. A newly tracked workspace root therefore fails until declared, while orphan locks and
+//! member-local locks cannot expand the scan. Collection performs no tree walk, so ignored files,
+//! nested worktrees, build products, and directory iteration order cannot change the result. Every
+//! configured component is checked with `symlink_metadata`; absolute paths, `..`, symlinks, missing
+//! files, non-files, duplicate entries, and manifest/lockfile parent mismatch fail closed.
+//! `policy.min_lockfiles` remains a defense-in-depth shrink floor. The legacy single
+//! `policy.lockfile_path` form remains accepted as a one-entry corpus without the SCM projection.
+//!
+>>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 //! ## Matching
 //! For each advisory whose `package` matches a locked crate `name`, the locked [`semver::Version`] is
 //! AFFECTED iff it satisfies NO `patched` and NO `unaffected` [`semver::VersionReq`]. Fail-closed: an
@@ -60,6 +82,9 @@ use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target stem + the policy `gate_id`.
 pub const GATE_ID: &str = "cloud-ci-supply-chain-audit";
+
+/// Stable tracked-tree boundary schema emitted by the out-of-graph SCM facts producer.
+const SCM_FACTS_SCHEMA: &str = "oya-ci/scm-facts/v2";
 
 /// The remediation doctrine pointer findings carry.
 pub const REMEDIATION_DOCTRINE: &str =
@@ -107,14 +132,191 @@ impl std::error::Error for CollectError {}
 
 /// Collect the observed graph: the locked crates from `Cargo.lock` + the vendored advisory snapshot.
 ///
+<<<<<<< HEAD
 /// The ONLY I/O. Reads `policy.lockfile_path` (TOML) and `policy.mirror_dir/{advisories.json,
 /// mirror-manifest.json}` (JSON). Emits
+=======
+/// The structured `lockfile_corpus` form is authoritative for multi-workspace repositories. The
+/// legacy `lockfile_path` string remains supported as a one-entry corpus and defaults to
+/// `Cargo.lock`, preserving the original policy behavior.
+///
+/// # Errors
+///
+/// Returns [`CollectError::Parse`] for malformed, ambiguous, duplicate, non-relative, non-canonical,
+/// or non-sibling manifest/lockfile declarations.
+pub fn configured_lockfiles(policy: &Value) -> Result<Vec<LockfileSource>, CollectError> {
+    let mut sources = if let Some(corpus) = policy.get("lockfile_corpus") {
+        if policy.get("lockfile_path").is_some() {
+            return Err(CollectError::Parse(
+                "policy must use either lockfile_corpus or legacy lockfile_path, not both"
+                    .to_owned(),
+            ));
+        }
+        let entries = corpus.as_array().ok_or_else(|| {
+            CollectError::Parse("policy.lockfile_corpus must be a non-empty array".to_owned())
+        })?;
+        if entries.is_empty() {
+            return Err(CollectError::Parse(
+                "policy.lockfile_corpus must not be empty".to_owned(),
+            ));
+        }
+        minimum_lockfiles(policy, true)?;
+        scm_facts_path(policy)?;
+
+        let mut parsed = Vec::with_capacity(entries.len());
+        for (index, entry) in entries.iter().enumerate() {
+            let object = entry.as_object().ok_or_else(|| {
+                CollectError::Parse(format!("policy.lockfile_corpus[{index}] must be an object"))
+            })?;
+            if object.len() != 2 {
+                return Err(CollectError::Parse(format!(
+                    "policy.lockfile_corpus[{index}] must contain exactly manifest_path and lockfile_path"
+                )));
+            }
+            let manifest_path = object
+                .get("manifest_path")
+                .and_then(Value::as_str)
+                .ok_or_else(|| {
+                    CollectError::Parse(format!(
+                        "policy.lockfile_corpus[{index}].manifest_path must be a string"
+                    ))
+                })?;
+            let lockfile_path = object
+                .get("lockfile_path")
+                .and_then(Value::as_str)
+                .ok_or_else(|| {
+                    CollectError::Parse(format!(
+                        "policy.lockfile_corpus[{index}].lockfile_path must be a string"
+                    ))
+                })?;
+            parsed.push(validate_source(manifest_path, lockfile_path)?);
+        }
+        parsed
+    } else {
+        let lockfile_path = policy
+            .get("lockfile_path")
+            .map(|value| {
+                value.as_str().ok_or_else(|| {
+                    CollectError::Parse("policy.lockfile_path must be a string".to_owned())
+                })
+            })
+            .transpose()?
+            .unwrap_or("Cargo.lock");
+        let lock_path = validate_relative_path(lockfile_path, "Cargo.lock")?;
+        let manifest_path = lock_path
+            .parent()
+            .unwrap_or_else(|| Path::new(""))
+            .join("Cargo.toml")
+            .to_string_lossy()
+            .replace('\\', "/");
+        vec![validate_source(&manifest_path, lockfile_path)?]
+    };
+
+    let mut manifests = BTreeSet::new();
+    let mut lockfiles = BTreeSet::new();
+    for source in &sources {
+        if !manifests.insert(source.manifest_path.as_str()) {
+            return Err(CollectError::Parse(format!(
+                "duplicate manifest_path `{}` in policy lockfile corpus",
+                source.manifest_path
+            )));
+        }
+        if !lockfiles.insert(source.lockfile_path.as_str()) {
+            return Err(CollectError::Parse(format!(
+                "duplicate lockfile_path `{}` in policy lockfile corpus",
+                source.lockfile_path
+            )));
+        }
+    }
+    sources.sort_by(|a, b| {
+        a.lockfile_path
+            .cmp(&b.lockfile_path)
+            .then_with(|| a.manifest_path.cmp(&b.manifest_path))
+    });
+    Ok(sources)
+}
+
+fn validate_source(
+    manifest_path: &str,
+    lockfile_path: &str,
+) -> Result<LockfileSource, CollectError> {
+    let manifest = validate_relative_path(manifest_path, "Cargo.toml")?;
+    let lockfile = validate_relative_path(lockfile_path, "Cargo.lock")?;
+    if manifest.parent() != lockfile.parent() {
+        return Err(CollectError::Parse(format!(
+            "manifest `{manifest_path}` and lockfile `{lockfile_path}` must be siblings"
+        )));
+    }
+    Ok(LockfileSource {
+        manifest_path: manifest_path.to_owned(),
+        lockfile_path: lockfile_path.to_owned(),
+    })
+}
+
+fn validate_relative_path(raw: &str, expected_file_name: &str) -> Result<PathBuf, CollectError> {
+    if raw.is_empty() || raw.contains('\\') {
+        return Err(CollectError::Parse(format!(
+            "path `{raw}` must be a non-empty repo-relative `/`-separated path"
+        )));
+    }
+    let path = Path::new(raw);
+    if path.file_name().and_then(|name| name.to_str()) != Some(expected_file_name)
+        || normalized_relative(path).as_deref() != Some(raw)
+    {
+        return Err(CollectError::Parse(format!(
+            "path `{raw}` must be a normalized repo-relative path ending in {expected_file_name}"
+        )));
+    }
+    Ok(path.to_path_buf())
+}
+
+fn minimum_lockfiles(policy: &Value, structured: bool) -> Result<usize, CollectError> {
+    match policy.get("min_lockfiles") {
+        Some(value) => {
+            let floor = value.as_u64().ok_or_else(|| {
+                CollectError::Parse(
+                    "policy.min_lockfiles must be a non-negative integer".to_owned(),
+                )
+            })?;
+            let floor = usize::try_from(floor).map_err(|_| {
+                CollectError::Parse("policy.min_lockfiles exceeds platform capacity".to_owned())
+            })?;
+            if structured && floor == 0 {
+                return Err(CollectError::Parse(
+                    "policy.min_lockfiles must be at least 1 with policy.lockfile_corpus"
+                        .to_owned(),
+                ));
+            }
+            Ok(floor)
+        }
+        None if structured => Err(CollectError::Parse(
+            "policy.min_lockfiles is required with policy.lockfile_corpus".to_owned(),
+        )),
+        None => Ok(1),
+    }
+}
+
+/// Collect the observed graph from the configured lockfile corpus and vendored advisory snapshot.
+///
+/// The ONLY I/O. For structured policies, reads `policy.scm_facts_path` (JSON) and the tracked
+/// sibling manifests needed to project workspace ownership. Then reads the configured
+/// lockfiles/manifests (TOML) and `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON).
+/// Emits the backward-compatible
+>>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 /// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
+<<<<<<< HEAD
     let lockfile_path = policy
         .get("lockfile_path")
         .and_then(Value::as_str)
         .unwrap_or("Cargo.lock");
+=======
+    validate_repo_root(repo_root)?;
+    let sources = configured_lockfiles(policy)?;
+    if policy.get("lockfile_corpus").is_some() {
+        validate_lockfile_corpus_totality(repo_root, policy, &sources)?;
+    }
+>>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
     let mirror_dir = policy
         .get("mirror_dir")
         .and_then(Value::as_str)
@@ -138,9 +340,157 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
     }))
 }
 
+<<<<<<< HEAD
 fn read_file(path: &Path) -> Result<String, CollectError> {
     std::fs::read_to_string(path)
         .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))
+=======
+fn scm_facts_path(policy: &Value) -> Result<PathBuf, CollectError> {
+    let raw = policy
+        .get("scm_facts_path")
+        .and_then(Value::as_str)
+        .ok_or_else(|| {
+            CollectError::Parse(
+                "policy.scm_facts_path is required with policy.lockfile_corpus".to_owned(),
+            )
+        })?;
+    validate_relative_file(raw, "policy.scm_facts_path")
+}
+
+fn validate_relative_file(raw: &str, label: &str) -> Result<PathBuf, CollectError> {
+    let path = Path::new(raw);
+    if raw.is_empty() || raw.contains('\\') || normalized_relative(path).as_deref() != Some(raw) {
+        return Err(CollectError::Parse(format!(
+            "{label} `{raw}` must be a normalized repo-relative `/`-separated file path"
+        )));
+    }
+    Ok(path.to_path_buf())
+}
+
+/// Compare the reviewed lockfile corpus with the independently materialized tracked-tree topology.
+///
+/// The SCM facts face supplies the exact tracked path universe without a runtime filesystem walk.
+/// Within that universe, `[workspace]` is the explicit ownership marker for a sibling `Cargo.lock`.
+/// Package-only member locks and locks without a tracked sibling manifest are deliberately excluded.
+fn validate_lockfile_corpus_totality(
+    repo_root: &Path,
+    policy: &Value,
+    declared_sources: &[LockfileSource],
+) -> Result<(), CollectError> {
+    let facts_path = scm_facts_path(policy)?;
+    let facts_text = read_repo_file(repo_root, &facts_path)?;
+    let facts: Value = serde_json::from_str(&facts_text)
+        .map_err(|error| CollectError::Parse(format!("{}: {error}", facts_path.display())))?;
+    let schema = facts.get("schema").and_then(Value::as_str).ok_or_else(|| {
+        CollectError::Parse(format!("{}: missing string schema", facts_path.display()))
+    })?;
+    if schema != SCM_FACTS_SCHEMA {
+        return Err(CollectError::Parse(format!(
+            "{}: unsupported scm-facts schema {schema:?}; expected {SCM_FACTS_SCHEMA}",
+            facts_path.display()
+        )));
+    }
+    let tracked_values = facts
+        .get("tracked_paths")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            CollectError::Parse(format!(
+                "{}: missing tracked_paths array",
+                facts_path.display()
+            ))
+        })?;
+
+    let mut tracked_paths = BTreeSet::new();
+    let mut previous: Option<&str> = None;
+    for (index, value) in tracked_values.iter().enumerate() {
+        let raw = value.as_str().ok_or_else(|| {
+            CollectError::Parse(format!(
+                "{}: tracked_paths[{index}] must be a string",
+                facts_path.display()
+            ))
+        })?;
+        if previous.is_some_and(|prior| prior >= raw) {
+            return Err(CollectError::Parse(format!(
+                "{}: tracked_paths must be strictly sorted and unique; entry {index} is {raw:?}",
+                facts_path.display()
+            )));
+        }
+        previous = Some(raw);
+        tracked_paths.insert(raw.to_owned());
+    }
+
+    let mut projected_sources = BTreeSet::new();
+    for lockfile_path in tracked_paths
+        .iter()
+        .filter(|path| path.as_str() == "Cargo.lock" || path.ends_with("/Cargo.lock"))
+    {
+        let lockfile = validate_relative_path(lockfile_path, "Cargo.lock")?;
+        let manifest_path = lockfile
+            .parent()
+            .unwrap_or_else(|| Path::new(""))
+            .join("Cargo.toml")
+            .to_string_lossy()
+            .replace('\\', "/");
+        if !tracked_paths.contains(&manifest_path) {
+            continue;
+        }
+
+        let manifest_text = read_repo_file(repo_root, Path::new(&manifest_path))?;
+        let manifest: toml::Value = toml::from_str(&manifest_text)
+            .map_err(|error| CollectError::Parse(format!("{manifest_path}: {error}")))?;
+        if !manifest.get("workspace").is_some_and(toml::Value::is_table)
+            && !manifest.get("package").is_some_and(toml::Value::is_table)
+        {
+            return Err(CollectError::Parse(format!(
+                "{manifest_path} must declare [workspace] or [package] to classify its tracked Cargo.lock"
+            )));
+        }
+        match manifest.get("workspace") {
+            Some(value) if value.is_table() => {
+                projected_sources.insert((manifest_path, lockfile_path.clone()));
+            }
+            Some(_) => {
+                return Err(CollectError::Parse(format!(
+                    "{manifest_path}: top-level workspace must be a table"
+                )));
+            }
+            None => {
+                // A tracked package/member-local Cargo.lock is not a workspace-owned lockfile.
+            }
+        }
+    }
+
+    let declared_sources = declared_sources
+        .iter()
+        .map(|source| (source.manifest_path.clone(), source.lockfile_path.clone()))
+        .collect::<BTreeSet<_>>();
+    if projected_sources == declared_sources {
+        return Ok(());
+    }
+
+    let undeclared = projected_sources
+        .difference(&declared_sources)
+        .map(|(_, lockfile)| lockfile.as_str())
+        .collect::<Vec<_>>();
+    let not_workspace_owned = declared_sources
+        .difference(&projected_sources)
+        .map(|(_, lockfile)| lockfile.as_str())
+        .collect::<Vec<_>>();
+    Err(CollectError::Parse(format!(
+        "lockfile corpus totality mismatch against {}: undeclared workspace-owned lockfiles={undeclared:?}; declared paths absent from the workspace-owned projection={not_workspace_owned:?}",
+        facts_path.display()
+    )))
+}
+
+fn validate_relative_directory(raw: &str) -> Result<PathBuf, CollectError> {
+    let path = Path::new(raw);
+    if raw.is_empty() || raw.contains('\\') || normalized_relative(path).as_deref() != Some(raw) {
+        return Err(CollectError::Parse(format!(
+            "directory `{raw}` must be a normalized repo-relative `/`-separated path"
+        )));
+    }
+    Ok(path.to_path_buf())
+>>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 }
 
 /// Parse the `[[package]]` table of a `Cargo.lock` into `[{ "name", "version" }]` (sorted, deduped).
@@ -150,15 +500,39 @@ fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
     let packages = doc
         .get("package")
         .and_then(toml::Value::as_array)
+<<<<<<< HEAD
         .ok_or_else(|| CollectError::Parse("Cargo.lock has no [[package]] table".to_owned()))?;
+=======
+        .ok_or_else(|| CollectError::Parse(format!("{source} has no [[package]] table")))?;
+    if packages.is_empty() {
+        return Err(CollectError::Parse(format!(
+            "{source} contains zero [[package]] rows"
+        )));
+    }
+>>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
     let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
-    for pkg in packages {
-        let Some(name) = pkg.get("name").and_then(toml::Value::as_str) else {
-            continue;
-        };
-        let Some(version) = pkg.get("version").and_then(toml::Value::as_str) else {
-            continue;
-        };
+    for (index, pkg) in packages.iter().enumerate() {
+        let package = pkg.as_table().ok_or_else(|| {
+            CollectError::Parse(format!("{source} package[{index}] must be a table"))
+        })?;
+        let name = package
+            .get("name")
+            .and_then(toml::Value::as_str)
+            .filter(|name| !name.is_empty())
+            .ok_or_else(|| {
+                CollectError::Parse(format!(
+                    "{source} package[{index}].name must be a non-empty string"
+                ))
+            })?;
+        let version = package
+            .get("version")
+            .and_then(toml::Value::as_str)
+            .filter(|version| !version.is_empty())
+            .ok_or_else(|| {
+                CollectError::Parse(format!(
+                    "{source} package[{index}].version must be a non-empty string"
+                ))
+            })?;
         locked.push(json!({ "name": name, "version": version }));
     }
     locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));

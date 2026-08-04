@@ -43,8 +43,16 @@ rust_test(
 # Owned RustSec advisory gate live self-test: a pure-Rust born-blocking self-test (synthetic
 # quinn-proto 0.11.14 + fixture advisory => SCA-VULN keyed to RUSTSEC-2026-0185; 0.11.15 => clean;
 # unmaintained absent from ignore => SCA-UNMAINTAINED, present => clean; tampered manifest =>
+<<<<<<< HEAD
 # SCA-MIRROR-MALFORMED) PLUS a live_corpus_is_born_green leg over the real Cargo.lock + committed
 # advisory mirror (green: quinn fixed + the 3 unmaintained ids in policy.ignore).
+=======
+# SCA-MIRROR-MALFORMED) PLUS live multi-lockfile corpus coverage, nested-only vulnerability,
+# legacy observed-shape compatibility, exact SCM-facts workspace-lock totality (including fifth-root
+# RED plus member/orphan exclusion), strict package-row rejection, underflow/path rejection,
+# symlink containment, and a live born-green run over the authoritative root + kernel +
+# cloud-kernel + host-test lockfiles.
+>>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 rust_test(
     name = "ci-supply-chain-audit-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
