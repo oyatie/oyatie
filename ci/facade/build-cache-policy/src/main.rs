@@ -25,6 +25,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use ci_build_cache_policy as app;
+use prost::Message;
 use reqwest::blocking::Client;
 use reqwest::header::{AUTHORIZATION, HeaderValue};
 use serde_json::Value;
@@ -210,13 +211,46 @@ const WRITER_ENDPOINT: &str = "nativelink-cas-writer.oya-ci.svc.cluster.local:50
 const READER_ENDPOINT: &str = "nativelink-cas-reader.oya-ci.svc.cluster.local:50052";
 const CAPABILITIES_PATH: &str = "/build.bazel.remote.execution.v2.Capabilities/GetCapabilities";
 
-#[derive(Debug, PartialEq, Eq)]
-struct BoundaryProof {
-    identity: String,
-    positive_endpoint: String,
-    positive_http_version: String,
-    positive_grpc_status: u16,
-    reader_to_writer_peer_tls_alert: Option<String>,
+#[derive(Clone, PartialEq, Message)]
+struct GetCapabilitiesRequest {
+    #[prost(string, tag = "1")]
+    instance_name: String,
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct ServerCapabilities {
+    #[prost(message, optional, tag = "1")]
+    cache_capabilities: Option<CacheCapabilities>,
+    #[prost(message, optional, tag = "4")]
+    low_api_version: Option<SemVer>,
+    #[prost(message, optional, tag = "5")]
+    high_api_version: Option<SemVer>,
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct CacheCapabilities {
+    #[prost(int32, repeated, packed = "true", tag = "1")]
+    digest_functions: Vec<i32>,
+    #[prost(message, optional, tag = "2")]
+    action_cache_update_capabilities: Option<ActionCacheUpdateCapabilities>,
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct ActionCacheUpdateCapabilities {
+    #[prost(bool, tag = "1")]
+    update_enabled: bool,
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct SemVer {
+    #[prost(int32, tag = "1")]
+    major: i32,
+    #[prost(int32, tag = "2")]
+    minor: i32,
+    #[prost(int32, tag = "3")]
+    patch: i32,
+    #[prost(string, tag = "4")]
+    prerelease: String,
 }
 
 fn curl_metadata(stdout: &[u8]) -> Result<(&str, &str), String> {
@@ -254,6 +288,52 @@ fn grpc_frame(payload: &[u8]) -> Result<&[u8], String> {
     Ok(&payload[5..])
 }
 
+fn grpc_message(message: &[u8]) -> Result<Vec<u8>, String> {
+    let length = u32::try_from(message.len())
+        .map_err(|_| "gRPC request message exceeded the four-byte length field".to_string())?;
+    let mut frame = Vec::with_capacity(5 + message.len());
+    frame.push(0);
+    frame.extend_from_slice(&length.to_be_bytes());
+    frame.extend_from_slice(message);
+    Ok(frame)
+}
+
+fn validate_server_capabilities(message: &[u8]) -> Result<(), String> {
+    let capabilities = ServerCapabilities::decode(message)
+        .map_err(|error| format!("decode REAPI ServerCapabilities: {error}"))?;
+    let cache = capabilities
+        .cache_capabilities
+        .ok_or_else(|| "ServerCapabilities omitted cache_capabilities".to_string())?;
+    if !cache.digest_functions.contains(&1) {
+        return Err("cache_capabilities did not advertise SHA256 digest function".to_string());
+    }
+    if cache.action_cache_update_capabilities.is_none() {
+        return Err("cache_capabilities omitted action_cache_update_capabilities".to_string());
+    }
+    let low = capabilities
+        .low_api_version
+        .ok_or_else(|| "ServerCapabilities omitted low_api_version".to_string())?;
+    let high = capabilities
+        .high_api_version
+        .ok_or_else(|| "ServerCapabilities omitted high_api_version".to_string())?;
+    let valid_component = |version: &SemVer| {
+        version.major == 2
+            && version.minor >= 0
+            && version.patch >= 0
+            && version.prerelease.is_empty()
+    };
+    if !valid_component(&low) || !valid_component(&high) {
+        return Err(format!(
+            "REAPI version range must contain released major-2 versions, got {}.{}.{}..{}.{}.{}",
+            low.major, low.minor, low.patch, high.major, high.minor, high.patch
+        ));
+    }
+    if (low.major, low.minor, low.patch) > (high.major, high.minor, high.patch) {
+        return Err("REAPI low_api_version exceeded high_api_version".to_string());
+    }
+    Ok(())
+}
+
 fn grpc_status(headers: &str) -> Result<u16, String> {
     let statuses = headers
         .lines()
@@ -289,6 +369,26 @@ fn typed_client_auth_alert(error: &std::io::Error) -> Result<&'static str, Strin
             "reader-to-writer peer TLS alert was not a client-auth rejection: {other:?}"
         )),
     }
+}
+
+fn read_client_auth_rejection(
+    connection: &mut rustls::ClientConnection,
+    socket: &mut TcpStream,
+) -> Result<String, String> {
+    for _ in 0..2 {
+        match connection.complete_io(socket) {
+            Err(error) => return typed_client_auth_alert(&error).map(str::to_string),
+            Ok(_) if connection.is_handshaking() => continue,
+            // TLS 1.3 peers may send the fatal client-auth alert only after
+            // receiving the client's Certificate/CertificateVerify/Finished.
+            // One additional read is mandatory before concluding acceptance.
+            Ok(_) => continue,
+        }
+    }
+    Err(format!(
+        "reader identity completed the writer TLS handshake (ALPN {:?}); expected a typed peer alert before HTTP/2/gRPC",
+        connection.alpn_protocol().map(String::from_utf8_lossy)
+    ))
 }
 
 fn require_reader_tls_rejected_by_writer() -> Result<String, String> {
@@ -346,16 +446,10 @@ fn require_reader_tls_rejected_by_writer() -> Result<String, String> {
         .map_err(|error| format!("invalid writer TLS server name: {error}"))?;
     let mut connection = rustls::ClientConnection::new(Arc::new(config), server_name)
         .map_err(|error| format!("create reader-to-writer TLS client: {error}"))?;
-    match connection.complete_io(&mut socket) {
-        Err(error) => typed_client_auth_alert(&error).map(str::to_string),
-        Ok(_) => Err(format!(
-            "reader identity completed the writer TLS handshake (ALPN {:?}); expected a typed peer alert before HTTP/2/gRPC",
-            connection.alpn_protocol().map(String::from_utf8_lossy)
-        )),
-    }
+    read_client_auth_rejection(&mut connection, &mut socket)
 }
 
-fn curl_capabilities(endpoint: &str) -> Result<BoundaryProof, String> {
+fn curl_capabilities(endpoint: &str) -> Result<(), String> {
     let client_pem = required_env(app::CLIENT_CERT_ENV)?;
     let ca_pem = required_env(app::TLS_CA_CERTS_ENV)?;
     let scratch = std::env::temp_dir().join(format!(
@@ -367,7 +461,11 @@ fn curl_capabilities(endpoint: &str) -> Result<BoundaryProof, String> {
     let request = scratch.join("request.grpc");
     let response = scratch.join("response.grpc");
     let headers = scratch.join("headers.txt");
-    fs::write(&request, [0_u8; 5])
+    let request_message = GetCapabilitiesRequest {
+        instance_name: "main".to_string(),
+    }
+    .encode_to_vec();
+    fs::write(&request, grpc_message(&request_message)?)
         .map_err(|error| format!("write {}: {error}", request.display()))?;
 
     let output = Command::new("curl")
@@ -435,65 +533,65 @@ fn curl_capabilities(endpoint: &str) -> Result<BoundaryProof, String> {
         if status != 0 {
             return Err(format!("Capabilities returned grpc-status {status}"));
         }
-        grpc_frame(
+        validate_server_capabilities(grpc_frame(
             &fs::read(&response)
                 .map_err(|error| format!("read {}: {error}", response.display()))?,
-        )?;
-        Ok(BoundaryProof {
-            identity: String::new(),
-            positive_endpoint: endpoint.to_string(),
-            positive_http_version: "h2".to_string(),
-            positive_grpc_status: status,
-            reader_to_writer_peer_tls_alert: None,
-        })
+        )?)?;
+        Ok(())
     })();
     let cleanup = fs::remove_dir_all(&scratch)
         .map_err(|error| format!("remove {}: {error}", scratch.display()));
     match (result, cleanup) {
-        (Ok(proof), Ok(())) => Ok(proof),
-        (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
+        (Ok(()), Ok(())) => Ok(()),
+        (Err(error), Ok(())) | (Ok(()), Err(error)) => Err(error),
         (Err(error), Err(cleanup)) => Err(format!("{error}; probe cleanup also failed: {cleanup}")),
     }
 }
 
-fn prove_identity_boundary(mode: &str) -> Result<BoundaryProof, String> {
+fn prove_identity_boundary(mode: &str) -> Result<(), String> {
     let positive_endpoint = match mode {
         "writer" => WRITER_ENDPOINT,
         "reader" => READER_ENDPOINT,
         other => return Err(format!("unsupported identity boundary mode `{other}`")),
     };
-    let mut proof = curl_capabilities(positive_endpoint)?;
-    proof.identity = mode.to_string();
+    curl_capabilities(positive_endpoint)?;
     if mode == "reader" {
-        proof.reader_to_writer_peer_tls_alert = Some(require_reader_tls_rejected_by_writer()?);
+        require_reader_tls_rejected_by_writer()?;
     }
-    Ok(proof)
+    Ok(())
 }
 
-fn write_boundary_proof(proof: &BoundaryProof) -> Result<(), String> {
-    let Ok(path) = std::env::var("OYA_CAS_BOUNDARY_PROOF_OUT") else {
-        return Ok(());
+fn invocation_record_path(child: &[String]) -> Result<&str, String> {
+    child
+        .windows(2)
+        .find_map(|pair| {
+            (pair[0] == "--unstable-write-invocation-record").then_some(pair[1].as_str())
+        })
+        .or_else(|| {
+            child.iter().find_map(|argument| {
+                argument.strip_prefix("--unstable-write-invocation-record=")
+            })
+        })
+        .ok_or_else(|| {
+            "workflow cache proof requires --unstable-write-invocation-record".to_string()
+        })
+}
+
+fn validate_workflow_record(mode: &str, child: &[String]) -> Result<(), String> {
+    let path = invocation_record_path(child)?;
+    let document = read_json(path)?;
+    let record = app::invocation_record(&document)?;
+    let result = match mode {
+        "writer" => app::assert_writer_seed_record(record),
+        "reader" => app::assert_complete_warm_cache_coverage(record),
+        other => return Err(format!("unsupported workflow record mode `{other}`")),
     };
-    let payload = serde_json::to_string_pretty(&serde_json::json!({
-        "schema_version": 1,
-        "identity": proof.identity,
-        "positive_control": {
-            "endpoint": proof.positive_endpoint,
-            "tls": "1.3",
-            "alpn": proof.positive_http_version,
-            "rpc": "build.bazel.remote.execution.v2.Capabilities/GetCapabilities",
-            "grpc_status": proof.positive_grpc_status,
-        },
-        "reader_to_writer": proof.reader_to_writer_peer_tls_alert.as_ref().map(|alert| serde_json::json!({
-            "stage": "tls_handshake",
-            "peer_alert": alert,
-            "http_response": false,
-            "grpc_status": Value::Null,
-        })),
-        "secrets_recorded": false,
-    }))
-    .map_err(|error| format!("serialize CAS identity boundary proof: {error}"))?;
-    write_out(Some(path), &payload)
+    result.map_err(|findings| {
+        format!(
+            "{mode} invocation record did not prove the required cache behavior: {}",
+            findings.join("; ")
+        )
+    })
 }
 
 fn issue_identity(options: &[String]) -> Result<(), String> {
@@ -784,24 +882,19 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let mode = workflow_mode
                 .as_deref()
                 .ok_or_else(|| "workflow identity requires reader or writer mode".to_string())?;
-            let proof = match prove_identity_boundary(mode) {
-                Ok(proof) => proof,
-                Err(error) => {
-                    let cleanup = remove_identity_files();
-                    return Err(match cleanup {
-                        Ok(()) => error,
-                        Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
-                    });
-                }
-            };
-            if let Err(error) = write_boundary_proof(&proof) {
+            if let Err(error) = prove_identity_boundary(mode) {
                 let cleanup = remove_identity_files();
                 return Err(match cleanup {
                     Ok(()) => error,
                     Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
                 });
             }
-            let child_result = controlled_child(&root, &resolution, child);
+            let child_result = controlled_child(&root, &resolution, child).and_then(|code| {
+                if code == ExitCode::SUCCESS {
+                    validate_workflow_record(mode, child)?;
+                }
+                Ok(code)
+            });
             let cleanup = remove_identity_files();
             match (child_result, cleanup) {
                 (Ok(code), Ok(())) => Ok(code),
@@ -1075,7 +1168,17 @@ mod tests {
                     "cache_upload_attempt_count": 0,
                     "cache_upload_count": 0,
                     "exit_result_name": "SUCCESS",
-                    "last_snapshot": {"re_action_cache_started": 1}
+                    "last_snapshot": {
+                        "re_action_cache_started": 1,
+                        "re_action_cache_finished_with_error": 0,
+                        "re_upload_bytes": 0,
+                        "re_uploads_started": 0,
+                        "re_uploads_finished_successfully": 0,
+                        "re_uploads_finished_with_error": 0,
+                        "re_download_bytes": 1024,
+                        "re_downloads_finished_successfully": 1,
+                        "re_downloads_finished_with_error": 0
+                    }
                 }}}}
             }))
             .unwrap(),

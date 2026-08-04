@@ -496,12 +496,113 @@ pub fn assert_complete_warm_cache_coverage(record: &Value) -> Result<(), Vec<Str
             None => {}
         }
     }
+    for key in ["cache_upload_attempt_count", "cache_upload_count"] {
+        match record.get(key).and_then(Value::as_u64) {
+            Some(0) => {}
+            Some(value) => findings.push(format!(
+                "read-only warm probe violation: {key}={value} (expected 0)"
+            )),
+            None => findings.push(format!(
+                "record-shape violation: counter `{key}` missing from the invocation record (fail closed)"
+            )),
+        }
+    }
+    for key in [
+        "re_uploads_started",
+        "re_uploads_finished_successfully",
+        "re_uploads_finished_with_error",
+        "re_downloads_finished_with_error",
+        "re_action_cache_finished_with_error",
+    ] {
+        match record
+            .get("last_snapshot")
+            .and_then(|snapshot| snapshot.get(key))
+            .and_then(Value::as_u64)
+        {
+            Some(0) => {}
+            Some(value) => findings.push(format!(
+                "read-only warm probe violation: last_snapshot.{key}={value} (expected 0)"
+            )),
+            None => findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing (fail closed)"
+            )),
+        }
+    }
+    for key in ["re_download_bytes", "re_downloads_finished_successfully"] {
+        match record
+            .get("last_snapshot")
+            .and_then(|snapshot| snapshot.get(key))
+            .and_then(Value::as_u64)
+        {
+            Some(value) if value > 0 => {}
+            Some(value) => findings.push(format!(
+                "warm probe did not download from CAS: last_snapshot.{key}={value} (expected >0)"
+            )),
+            None => findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing (fail closed)"
+            )),
+        }
+    }
 
     if findings.is_empty() {
         Ok(())
     } else {
         Err(findings)
     }
+}
+
+/// Require the seed build to execute locally and successfully upload its outputs
+/// without remote execution or cache transport errors.
+pub fn assert_writer_seed_record(record: &Value) -> Result<(), Vec<String>> {
+    let mut findings = Vec::new();
+    match record.get("exit_result_name").and_then(Value::as_str) {
+        Some("SUCCESS") => {}
+        Some(value) => findings.push(format!("writer seed had non-success exit_result_name={value}")),
+        None => findings.push("record-shape violation: exit_result_name missing (fail closed)".to_string()),
+    }
+    for (key, expected_positive) in [
+        ("run_local_count", true),
+        ("run_remote_count", false),
+        ("cache_upload_attempt_count", true),
+        ("cache_upload_count", true),
+    ] {
+        match record.get(key).and_then(Value::as_u64) {
+            Some(value) if expected_positive && value > 0 => {}
+            Some(0) if !expected_positive => {}
+            Some(value) => findings.push(format!(
+                "writer seed counter {key}={value} (expected {})",
+                if expected_positive { ">0" } else { "0" }
+            )),
+            None => findings.push(format!(
+                "record-shape violation: counter `{key}` missing from the invocation record (fail closed)"
+            )),
+        }
+    }
+    for (key, expected_positive) in [
+        ("re_upload_bytes", true),
+        ("re_uploads_started", true),
+        ("re_uploads_finished_successfully", true),
+        ("re_uploads_finished_with_error", false),
+        ("re_downloads_finished_with_error", false),
+        ("re_action_cache_finished_with_error", false),
+    ] {
+        match record
+            .get("last_snapshot")
+            .and_then(|snapshot| snapshot.get(key))
+            .and_then(Value::as_u64)
+        {
+            Some(value) if expected_positive && value > 0 => {}
+            Some(0) if !expected_positive => {}
+            Some(value) => findings.push(format!(
+                "writer seed counter last_snapshot.{key}={value} (expected {})",
+                if expected_positive { ">0" } else { "0" }
+            )),
+            None => findings.push(format!(
+                "record-shape violation: last_snapshot.{key} missing (fail closed)"
+            )),
+        }
+    }
+    if findings.is_empty() { Ok(()) } else { Err(findings) }
 }
 
 /// Assert a build had ZERO cache participation (the canary's from-empty proof):
@@ -976,7 +1077,17 @@ mod tests {
                 "cache_upload_attempt_count": uploads,
                 "cache_upload_count": uploads,
                 "exit_result_name": "SUCCESS",
-                "last_snapshot": { "re_action_cache_started": action_cache }
+                "last_snapshot": {
+                    "re_action_cache_started": action_cache,
+                    "re_action_cache_finished_with_error": 0,
+                    "re_upload_bytes": if uploads > 0 { 1024 } else { 0 },
+                    "re_uploads_started": uploads,
+                    "re_uploads_finished_successfully": uploads,
+                    "re_uploads_finished_with_error": 0,
+                    "re_download_bytes": if action_cache > 0 { 1024 } else { 0 },
+                    "re_downloads_finished_successfully": action_cache,
+                    "re_downloads_finished_with_error": 0
+                }
             } } } }
         })
     }
