@@ -8,12 +8,13 @@
 # warm-eligible with cache_write AND /specs/cache-warm-license.json carries
 # warm_reads_licensed=true (the ADR-0556 D2 canary-licensed kill-switch). While the
 # license is false — the state until CAS bring-up + first GREEN integrity-canary —
-# the resolver emits an empty argfile and this file is dead config (dark wiring).
+# the controller runs the child without a local config and this file is dead
+# config (dark wiring).
 #
 # Keyed identity (founder 2026-05-30: keyed, never anonymous): the mTLS client
 # certificate is NOT in this file — the resolver appends
-# `--config buck2_re_client.tls_client_cert=$OYA_CACHE_TLS_CLIENT_CERT` from the
-# lane's secret-mounted env and FAILS if a warm mode is requested without it.
+# a mode-0600 `.buckconfig.local` from the lane's secret-mounted env, starts a
+# fresh daemon, and FAILS if warm mode is requested without the identity.
 # Untrusted authors hold no key: fork PRs receive no secrets, and the binding
 # refusal is the CAS service boundary (mTLS verify), never this client config.
 #

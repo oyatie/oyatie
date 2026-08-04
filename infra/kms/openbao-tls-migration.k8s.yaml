@@ -1,11 +1,7 @@
-# OpenBao on k3s — the canonical secrets/KMS substrate (ADR-0043: OpenBao MPL-2,
-# OSI-clean). Backs cloud-kms (transit engine = encrypt/decrypt-as-a-service) and
-# cloud-secrets (KV + rotation). The agent-dispatch gateway reads its pooled LLM
-# API keys FROM here at runtime — never a plaintext file/env (user directive).
-# File storage is BARRIER-ENCRYPTED by the seal, so secrets are never at rest in
-# plaintext. STAGE-0 single-node; HA + HSM auto-unseal per ADR-0043 is a follow-up.
-# NOTE: init unseal-keys + root-token are generated at runtime and stored in a
-# k8s Secret (etcd), NEVER committed — no secret appears in this manifest.
+# Complete GitOps replacement for openbao.k8s.yaml. Promote only after the
+# bootstrap has created Secret oya-kms/openbao-server-tls. Namespace and PVC are
+# repeated byte-for-byte so Argo prune/self-heal cannot delete the KMS namespace
+# or its barrier-encrypted data during the reviewed source switch.
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -15,24 +11,29 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: openbao-config
+  name: openbao-tls-migration-config
   namespace: oya-kms
 data:
   openbao.hcl: |
-    # This backend is REMOVED at OpenBao v2.7.0 (a minor). The binding version
-    # constraint lives at the `image:` pin below, where a bumper actually looks;
-    # tracked as F-SEC-OPENBAO-FILE-BACKEND.
-    storage "file" { path = "/openbao/data" }   # barrier-encrypted at rest
+    storage "file" { path = "/openbao/data" }
     listener "tcp" {
-      address     = "0.0.0.0:8200"
-      tls_disable = true   # plaintext listener is fenced by the NetworkPolicy below
+      address         = "0.0.0.0:8200"
+      cluster_address = "0.0.0.0:8201"
+      tls_disable     = true
     }
-    api_addr     = "http://openbao.oya-kms.svc.cluster.local:8200"
-    cluster_addr = "http://openbao.oya-kms.svc.cluster.local:8201"
-    ui        = true
+    listener "tcp" {
+      address         = "0.0.0.0:8202"
+      cluster_address = "0.0.0.0:8203"
+      tls_cert_file   = "/openbao/tls/tls.crt"
+      tls_key_file    = "/openbao/tls/tls.key"
+      tls_min_version = "tls13"
+    }
+    api_addr     = "https://openbao.oya-kms.svc.cluster.local:8202"
+    cluster_addr = "https://openbao.oya-kms.svc.cluster.local:8203"
+    ui = true
     log_level = "info"
     default_lease_ttl = "768h"
-    max_lease_ttl     = "8760h"
+    max_lease_ttl = "8760h"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -65,23 +66,14 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: openbao
-          # ⚠ DO NOT BUMP PAST 2.6.x AS A ROUTINE NON-MAJOR CHORE.
-          # This deployment stores KMS data on the `file` physical backend (see
-          # the openbao.hcl ConfigMap above), which OpenBao deprecates and
-          # removes at v2.7.0 — a MINOR. Verified by running this exact pin:
-          #   [WARN] storage.file: the file physical backend is deprecated; use
-          #          bao operator migrate to move to a supported storage backend
-          #          by v2.7.0
-          # The raft migration must land BEFORE any 2.7 bump, or this substrate
-          # loses the store every secret depends on. Tracked as
-          # F-SEC-OPENBAO-FILE-BACKEND. 2.6.1 is current upstream latest, so
-          # there is nothing to bump to today regardless.
           image: ghcr.io/openbao/openbao@sha256:5b2486ab0fb90bbc788cc345b0a08616dfb375873ee8be5df3a2fd4d378a67e0
           imagePullPolicy: IfNotPresent
           args: ["server", "-config=/openbao/config/openbao.hcl"]
           ports:
             - { name: http, containerPort: 8200 }
             - { name: cluster, containerPort: 8201 }
+            - { name: https, containerPort: 8202 }
+            - { name: cluster-tls, containerPort: 8203 }
           securityContext:
             allowPrivilegeEscalation: false
             capabilities: { drop: ["ALL"] }
@@ -91,15 +83,18 @@ spec:
           volumeMounts:
             - { name: config, mountPath: /openbao/config }
             - { name: data, mountPath: /openbao/data }
-          readinessProbe:                       # TCP — HTTP /health is non-200 while sealed
-            tcpSocket: { port: http }
+            - { name: tls, mountPath: /openbao/tls, readOnly: true }
+          readinessProbe:
+            tcpSocket: { port: https }
             initialDelaySeconds: 5
             periodSeconds: 10
       volumes:
         - name: config
-          configMap: { name: openbao-config }
+          configMap: { name: openbao-tls-migration-config }
         - name: data
           persistentVolumeClaim: { claimName: openbao-data }
+        - name: tls
+          secret: { secretName: openbao-server-tls, defaultMode: 0440 }
 ---
 apiVersion: v1
 kind: Service
@@ -111,6 +106,8 @@ spec:
   ports:
     - { name: http, port: 8200, targetPort: http }
     - { name: cluster, port: 8201, targetPort: cluster }
+    - { name: https, port: 8202, targetPort: https }
+    - { name: cluster-tls, port: 8203, targetPort: cluster-tls }
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -123,19 +120,23 @@ metadata:
     oya.io/adr: ADR-0043
 spec:
   podSelector:
-    matchLabels:
-      app.kubernetes.io/name: openbao
-  policyTypes: ["Ingress"]
+    matchLabels: { app.kubernetes.io/name: openbao }
+  policyTypes: [Ingress]
   ingress:
     - from:
         - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: external-secrets
+            matchLabels: { kubernetes.io/metadata.name: external-secrets }
       ports:
         - { protocol: TCP, port: 8200 }
+        - { protocol: TCP, port: 8202 }
     - from:
         - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: oya-kms
+            matchLabels: { kubernetes.io/metadata.name: arc-runners }
+      ports:
+        - { protocol: TCP, port: 8202 }
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: oya-kms }
       ports:
         - { protocol: TCP, port: 8201 }
+        - { protocol: TCP, port: 8203 }

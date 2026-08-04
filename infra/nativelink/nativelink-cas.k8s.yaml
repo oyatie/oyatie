@@ -167,8 +167,15 @@ data:
 ---
 # mTLS material: server cert/key + the two client CAs, projected out of OpenBao
 # (secret/oya/ci/nativelink-cas-tls, KV v2) by ESO — the standing
-# external-secrets/OpenBao pattern (see infra/external-secrets/). Rotation in
-# OpenBao propagates without redeploying. No key bytes live in git.
+# external-secrets/OpenBao pattern (see infra/external-secrets/). ESO refreshes
+# the Kubernetes Secret, but NativeLink v1.6.2 constructs its TlsAcceptor and
+# client-root verifiers once at process start. Every server/client CA refresh
+# therefore requires a deliberate Deployment rollout and readiness proof before
+# identity traffic; it is not a hot reload. No key bytes live in git.
+# The server leaf must cover both client-dialed service names:
+# nativelink-cas-writer.oya-ci.svc.cluster.local and
+# nativelink-cas-reader.oya-ci.svc.cluster.local. The no-echo import preflight
+# in infra/external-secrets/RUNBOOK.md rejects any other certificate.
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
@@ -226,6 +233,11 @@ metadata:
     oya.io/adr: ADR-0560
     oya.adr/decided-by: ADR-0560
 spec:
+  # One ReadWriteOnce filesystem store must never have overlapping NativeLink
+  # processes during the mandatory TLS/client-CA restart. Prefer bounded cache
+  # downtime to concurrent writers or local-store corruption.
+  strategy:
+    type: Recreate
   # Pinned at 1 while the slow tier is a ReadWriteOnce PV: the fast tier is a
   # node-local LRU on emptyDir (cache-of-cache, safe to lose), but the slow tier is
   # now pod-local durable state, not a shared object store. Horizontal scale-out
