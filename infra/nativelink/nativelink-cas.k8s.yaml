@@ -172,6 +172,10 @@ data:
 # client-root verifiers once at process start. Every server/client CA refresh
 # therefore requires a deliberate Deployment rollout and readiness proof before
 # identity traffic; it is not a hot reload. No key bytes live in git.
+# The server leaf must cover both client-dialed service names:
+# nativelink-cas-writer.oya-ci.svc.cluster.local and
+# nativelink-cas-reader.oya-ci.svc.cluster.local. The no-echo import preflight
+# in infra/external-secrets/RUNBOOK.md rejects any other certificate.
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:

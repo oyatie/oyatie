@@ -90,6 +90,8 @@ apps:
   - name: openbao
     type: path
     path: infra/kms
+    # TLS promotion is a reviewed source switch to openbao-tls-migration.k8s.yaml.
+    # Never kubectl-apply that manifest over this self-healing Application.
     include: openbao.k8s.yaml
     namespace: oya-kms
     syncWave: "1"

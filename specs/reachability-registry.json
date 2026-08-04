@@ -206,7 +206,7 @@
       "prefix": "infra/arc/live-postgres-admission-bootstrap.json"
     },
     {
-      "anchor": "ADR-0560 D1: NativeLink CAS deployable artifacts — the warm-substrate manifests consumed at cluster bring-up (GitOps apply); keyed mTLS boundary + SeaweedFS S3 backing per the ADR; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
+      "anchor": "ADR-0560 D1: dark NativeLink CAS/AC declaration with keyed mTLS and a bounded filesystem tier; activation requires a later reviewed GitOps Application plus #1551/#1534 live proof, so this reachability row grants no deployment claim; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
       "prefix": "infra/nativelink/"
     },
     {
@@ -224,6 +224,10 @@
     {
       "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate",
       "prefix": ".github/workflows/cache-integrity-canary.yml"
+    },
+    {
+      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): privilege-separated schedule/dispatch orchestrator for the reusable integrity-canary executor; the cold call has no OIDC permission and identity calls remain explicit activation-gated",
+      "prefix": ".github/workflows/cache-integrity-canary-schedule.yml"
     },
     {
       "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",

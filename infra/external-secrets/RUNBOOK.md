@@ -36,16 +36,26 @@ private key, or issued leaf in git or captured output.
    `openbao.oya-kms.svc` and the Secret/ConfigMaps exist without printing data.
 2. Apply `infra/kms/openbao-ci-identity.k8s.yaml`, then use the authenticated,
    no-echo bootstrap below. There is no bootstrap controller in this slice.
-   Apply `infra/kms/openbao-tls-migration.k8s.yaml` only after the readback passes.
-3. **Wait/readback.** Wait for Deployment `oya-kms/openbao` rollout completion;
+   Do **not** apply the TLS migration manifest directly: Argo owns the same
+   Deployment, Service, and NetworkPolicy with prune/self-heal enabled.
+3. After the bootstrap readback passes, promote TLS through a reviewed PR against
+   `dev` that changes the `openbao` Application include in
+   `infra/gitops/values.yaml` from `openbao.k8s.yaml` to
+   `openbao-tls-migration.k8s.yaml` and adds an exact-path Application for
+   `infra/kms/openbao-ci-identity.k8s.yaml`. Merge only after `oya-ci-required`
+   and review; then require both Argo Applications to be Synced and Healthy.
+4. **Wait/readback.** Wait for Deployment `oya-kms/openbao` rollout completion;
    verify the mounted config and Secret references, Service ports `8200..8203`,
    and successful authenticated TLS health on `8202`. Verify plaintext `8200`
    still answers during this dual-listener phase.
-4. Only after step 3 succeeds, apply
-   `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml`.
+5. Only after step 4 succeeds, use a second reviewed PR to add exact-path GitOps
+   Applications for
+   `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml` and
+   `infra/nativelink/nativelink-cas.k8s.yaml`; do not deploy either by raw apply.
    Wait until all three `*-tls-migration` stores report Ready, restart ESO, wait
-   for readiness again, and prove each existing consumer prefix refreshes.
-5. A later reviewed cutover may point canonical stores to `8202`; remove
+   for readiness again, and prove each existing consumer prefix refreshes before
+   the NativeLink Application may become Healthy.
+6. A later reviewed cutover may point canonical stores to `8202`; remove
    `8200/8201` only after consumer readback.
 
 Before `warm_reads_licensed` is true, run the cache canary manually on `dev` with
@@ -56,10 +66,11 @@ through the reader PKI without changing the license. Leave the variable absent
 until every prerequisite below exists. Scheduled runs remain fail-closed while
 unlicensed.
 
-**Rollback:** delete the three `*-tls-migration` ClusterSecretStores, re-apply
-`infra/kms/openbao.k8s.yaml`, wait for the base Deployment rollout, and verify
-the three canonical stores are Ready on `8200`. Preserve the bootstrap TLS
-Secret for diagnosis/forward repair; do not print or export it.
+**Rollback:** revert the reviewed GitOps promotion commits, require the affected
+Argo Applications to become Synced and Healthy, wait for the base OpenBao
+Deployment rollout, and verify the three canonical stores are Ready on `8200`.
+Never raw-apply the base manifest against Argo self-heal. Preserve the bootstrap
+TLS Secret for diagnosis/forward repair; do not print or export it.
 
 The OIDC role payloads in `openbao-ci-identity-contract` bind audience
 `oya-openbao`, immutable repository/owner IDs, private visibility,
@@ -69,17 +80,44 @@ bounded to five minutes; issued client leaves are bounded to three hours.
 ### Authenticated CI identity bootstrap
 
 Prerequisites are an unsealed OpenBao, an authenticated operator session in
-`BAO_TOKEN`, the public OpenBao HTTPS CA in `OYA_OPENBAO_CA_CERT`, and the
-NativeLink server certificate's independent public CA in
-`OYA_NATIVELINK_SERVER_CA_CERT`. Run from the repository root with `bao` and
-`kubectl`; the commands redirect PKI material to a mode-0700 temporary directory
-and print no token, private key, certificate, or ConfigMap body.
+`BAO_TOKEN`, the public OpenBao HTTPS CA in `OYA_OPENBAO_CA_CERT`, and a
+ceremony-issued NativeLink server leaf, key, and independent public CA in
+`OYA_NATIVELINK_SERVER_CERT`, `OYA_NATIVELINK_SERVER_KEY`, and
+`OYA_NATIVELINK_SERVER_CA_CERT`. Run from the repository root with `bao`,
+`kubectl`, and OpenSSL; the commands redirect PKI material to a mode-0700
+temporary directory and print no token, private key, certificate, or ConfigMap
+body. The import refuses to overwrite an existing NativeLink TLS record.
 
 ```sh
 set -eu
 umask 077
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
+: "${BAO_TOKEN:?BAO_TOKEN is required}"
+: "${OYA_OPENBAO_CA_CERT:?OYA_OPENBAO_CA_CERT is required}"
+: "${OYA_NATIVELINK_SERVER_CERT:?OYA_NATIVELINK_SERVER_CERT is required}"
+: "${OYA_NATIVELINK_SERVER_KEY:?OYA_NATIVELINK_SERVER_KEY is required}"
+: "${OYA_NATIVELINK_SERVER_CA_CERT:?OYA_NATIVELINK_SERVER_CA_CERT is required}"
+for path in "$OYA_OPENBAO_CA_CERT" "$OYA_NATIVELINK_SERVER_CERT" \
+  "$OYA_NATIVELINK_SERVER_KEY" "$OYA_NATIVELINK_SERVER_CA_CERT"; do
+  [ -s "$path" ] || { echo "required PKI input is absent or empty" >&2; exit 1; }
+done
+openssl verify -CAfile "$OYA_NATIVELINK_SERVER_CA_CERT" \
+  "$OYA_NATIVELINK_SERVER_CERT" >/dev/null
+for hostname in \
+  nativelink-cas-writer.oya-ci.svc.cluster.local \
+  nativelink-cas-reader.oya-ci.svc.cluster.local; do
+  openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -noout \
+    -checkhost "$hostname" >/dev/null
+done
+openssl x509 -in "$OYA_NATIVELINK_SERVER_CERT" -pubkey -noout \
+  >"$tmp/server-cert.pub"
+openssl pkey -in "$OYA_NATIVELINK_SERVER_KEY" -pubout \
+  >"$tmp/server-key.pub"
+cmp -s "$tmp/server-cert.pub" "$tmp/server-key.pub" || {
+  echo "NativeLink server certificate and key do not match" >&2
+  exit 1
+}
 kubectl apply -f infra/kms/openbao-ci-identity.k8s.yaml >/dev/null
 for namespace in external-secrets arc-runners; do
   kubectl -n "$namespace" create configmap openbao-offline-root-ca \
@@ -116,8 +154,15 @@ for binding in github-cas-writer-dev-push github-cas-reader-integrity-canary; do
   bao write "auth/jwt/role/$binding" @"$tmp/jwt-role.json" >/dev/null
 done
 
-# Store only public trust bundles beside the independently provisioned server key.
-bao kv patch secret/oya/ci/nativelink-cas-tls \
+# Create the four-field record atomically; never patch a missing fresh-cluster path
+# or overwrite a live record during bootstrap.
+if bao kv get -format=json secret/oya/ci/nativelink-cas-tls >/dev/null 2>&1; then
+  echo "NativeLink TLS record already exists; refusing overwrite" >&2
+  exit 1
+fi
+bao kv put secret/oya/ci/nativelink-cas-tls \
+  server-cert=@"$OYA_NATIVELINK_SERVER_CERT" \
+  server-key=@"$OYA_NATIVELINK_SERVER_KEY" \
   writer-client-ca=@"$tmp/writer-client-ca.crt" \
   reader-client-ca=@"$tmp/reader-client-ca.crt" >/dev/null
 # NativeLink v1.6.2 reads its TLS acceptors/client roots at process start. Force

@@ -797,9 +797,22 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
 
     let runbook = read(&root, "infra/external-secrets/RUNBOOK.md");
     assert!(runbook.contains("There is no bootstrap controller in this slice"));
-    let patch = runbook
-        .find("bao kv patch secret/oya/ci/nativelink-cas-tls")
-        .expect("public client CA write");
+    assert!(runbook.contains("reviewed PR against"));
+    assert!(runbook.contains("openbao-tls-migration.k8s.yaml"));
+    assert!(runbook.contains("infra/kms/openbao-ci-identity.k8s.yaml"));
+    assert!(runbook.contains("require both Argo Applications to be Synced and Healthy"));
+    assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-tls-migration.k8s.yaml"));
+    assert!(!runbook.contains("re-apply\n`infra/kms/openbao.k8s.yaml`"));
+    for hostname in [
+        "nativelink-cas-writer.oya-ci.svc.cluster.local",
+        "nativelink-cas-reader.oya-ci.svc.cluster.local",
+    ] {
+        assert!(runbook.contains(hostname), "missing server SAN {hostname}");
+    }
+    let server_import = runbook
+        .find("bao kv put secret/oya/ci/nativelink-cas-tls")
+        .expect("fail-closed NativeLink server identity import");
+    assert!(!runbook.contains("bao kv patch secret/oya/ci/nativelink-cas-tls"));
     let refresh = runbook
         .find("annotate externalsecret nativelink-cas-tls")
         .expect("forced ExternalSecret refresh");
@@ -816,7 +829,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         .find("issue #1551")
         .expect("typed negative proof boundary");
     assert!(
-        patch < refresh
+        server_import < refresh
             && refresh < secret_readback
             && secret_readback < restart
             && restart < ready
@@ -829,6 +842,12 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(runbook.contains("leaf on `:50051`"));
     assert!(runbook.contains("positive writer control on `:50051`"));
     assert!(runbook.contains("OYA_NATIVELINK_SERVER_CA_CERT"));
+    assert!(runbook.contains("OYA_NATIVELINK_SERVER_CERT"));
+    assert!(runbook.contains("OYA_NATIVELINK_SERVER_KEY"));
+    assert!(runbook.contains("NativeLink TLS record already exists; refusing overwrite"));
+    assert!(runbook.contains("openssl verify -CAfile"));
+    assert!(runbook.contains("-checkhost \"$hostname\""));
+    assert!(runbook.contains("server certificate and key do not match"));
     assert!(runbook.contains("Do not apply the empty public-CA scaffold directly"));
     assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-public-ca.k8s.yaml"));
     assert!(!runbook.contains("authenticated bootstrap controller"));

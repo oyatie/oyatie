@@ -56,8 +56,12 @@ fn bool_flag_value(args: &[String], flag: &str) -> Result<bool, String> {
     match args.get(index + 1).map(String::as_str) {
         Some("true") => Ok(true),
         Some("false") => Ok(false),
-        Some(value) if value.starts_with("--") => Ok(true),
-        None => Ok(true),
+        Some(value) if value.starts_with("--") => Err(format!(
+            "{flag} requires an explicit `true` or `false` value before `{value}`"
+        )),
+        None => Err(format!(
+            "{flag} requires an explicit `true` or `false` value"
+        )),
         Some(value) => Err(format!("{flag} must be `true` or `false`, got `{value}`")),
     }
 }
@@ -674,12 +678,14 @@ mod tests {
     fn workflow_boolean_flags_are_explicit_and_fail_closed() {
         let true_value = vec!["--prelicense-probe".into(), "true".into()];
         let false_value = vec!["--prelicense-probe".into(), "false".into()];
-        let valueless = vec!["--prelicense-probe".into(), "--mode-out".into()];
+        let flag_shaped_value = vec!["--prelicense-probe".into(), "--mode-out".into()];
+        let missing_value = vec!["--prelicense-probe".into()];
         let invalid_value = vec!["--prelicense-probe".into(), "yes".into()];
 
         assert!(bool_flag_value(&true_value, "--prelicense-probe").unwrap());
         assert!(!bool_flag_value(&false_value, "--prelicense-probe").unwrap());
-        assert!(bool_flag_value(&valueless, "--prelicense-probe").unwrap());
+        assert!(bool_flag_value(&flag_shaped_value, "--prelicense-probe").is_err());
+        assert!(bool_flag_value(&missing_value, "--prelicense-probe").is_err());
         assert!(!bool_flag_value(&[], "--prelicense-probe").unwrap());
         assert!(bool_flag_value(&invalid_value, "--prelicense-probe").is_err());
     }
