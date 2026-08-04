@@ -1,0 +1,537 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/regulatory-airgap-security-evidence-contract.json",
+  "title": "Regulatory Air-Gap Security Evidence Contract",
+  "version": "0.1.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "REGAIR-001-REGULATORY-AIRGAP-SECURITY-EVIDENCE",
+    "status": "Proposed",
+    "enforcement_status": "planning-contract-only-no-runtime-api-cli-or-readiness-authority",
+    "owner_team": "regulated-cloud + council-security + platform-toolchain + cloud-kms",
+    "created_at": "2026-07-01T13:28:43Z",
+    "created_by": "hermes-agent",
+    "kanban_task": "t_f15d213a",
+    "lane": "regulated-cloud/airgap",
+    "purpose": "Define the schema and RED fixture contract for importing, signing, caching, and replaying security evidence inside sovereign/air-gapped cells without live external egress or scanner/CLI authority.",
+    "claim_boundary": "Schema and fixture contract only. This artifact does not implement mirror services, network policy, scanner execution, admission webhooks, product APIs, certified cells, or air-gap operating readiness.",
+    "source_authorities": [
+      {
+        "path": "specs/sovereign-cloud-air-gapped-canonical.json",
+        "role": "Accepted air-gap environment substitution, no-egress, in-cell registry/KMS/observability, and sovereign pack current-state input."
+      },
+      {
+        "path": "docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+        "role": "Supply-chain security baseline for signed SBOMs, vulnerability scanning input, and artifact admission evidence."
+      },
+      {
+        "path": "docs/decisions/ADR-0164-sovereign-cloud-air-gapped.md",
+        "role": "Authoring ADR anchor referenced by the sovereign cloud air-gapped canonical spec."
+      },
+      {
+        "path": "docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
+        "role": "Private KMS/HSM/OpenBao binding anchor referenced by the sovereign cloud air-gapped canonical spec."
+      },
+      {
+        "path": "libs/oya-check-supply-chain/src/lib.rs",
+        "role": "Existing supply-chain kernel concepts for SBOM, provenance, vulnerability, and admission evidence; scanner output remains input data only."
+      }
+    ],
+    "non_claims": [
+      "No external advisory feed freshness is claimed after an offline bundle leaves the connected staging side; consumers must evaluate the signed cursor age and fail closed when stale.",
+      "No scanner CLI, local shell command, GitHub/Jenkins workflow, hosted dashboard, or human spreadsheet becomes security or merge authority through this contract.",
+      "No live egress, mirror service, admission webhook, policy engine, trust portal, or runtime API is implemented by this artifact.",
+      "No production, certification, FedRAMP/ITAR/BSI/SecNumCloud/ACN/KR-FSC, or air-gap readiness claim follows from this planning contract alone."
+    ]
+  },
+  "canonical_surface": {
+    "surface": "signed_evidence_records_and_offline_admission_decisions",
+    "rule": "Air-gapped cells consume only locally present signed mirror indexes, sync-bundle manifests, offline evidence packets, no-egress proof records, private trust bindings, and cached admission decisions. External scanner/feed bytes are untrusted input until normalized on the connected side and signed into a deterministic sync bundle.",
+    "forbidden_authority_surfaces": [
+      "scanner_cli_exit_code",
+      "shell_script_output",
+      "hosted_vulnerability_dashboard",
+      "candidate_pr_supplied_timestamp_or_feed_url",
+      "manual_spreadsheet_without_hash_owner_and_expiry",
+      "live_network_fetch_from_airgap_cell"
+    ],
+    "primary_join_keys": [
+      "pack_id",
+      "cell_id",
+      "tenant_id_or_internal_lane",
+      "artifact_digest",
+      "source_revision",
+      "component_purl",
+      "vulnerability_id",
+      "sbom_document_ref",
+      "vex_statement_ref",
+      "provenance_attestation_ref",
+      "sync_bundle_digest",
+      "admission_decision_id"
+    ]
+  },
+  "record_types": [
+    "advisory_feed_mirror_snapshot.v1",
+    "sbom_mirror_index.v1",
+    "vex_mirror_index.v1",
+    "provenance_mirror_index.v1",
+    "deterministic_sync_bundle_manifest.v1",
+    "offline_evidence_packet.v1",
+    "private_trust_binding.v1",
+    "no_egress_proof.v1",
+    "portable_cached_admission_decision.v1"
+  ],
+  "airgap_evidence_flow": [
+    {
+      "step": 1,
+      "id": "connected_feed_collection",
+      "output": "signed advisory/SBOM/VEX/provenance source snapshots with trusted timestamps and cursor positions",
+      "fail_closed_if": [
+        "source signature or trusted fetch receipt missing",
+        "feed cursor older than policy",
+        "candidate input tries to weaken feed list"
+      ]
+    },
+    {
+      "step": 2,
+      "id": "mirror_index_normalization",
+      "output": "normalized mirror indexes keyed by artifact digest, component PURL, vulnerability id, and source revision",
+      "fail_closed_if": [
+        "SBOM, VEX, or provenance cannot be joined to the artifact digest",
+        "vulnerability alias graph is ambiguous"
+      ]
+    },
+    {
+      "step": 3,
+      "id": "deterministic_bundle_build",
+      "output": "content-addressed sync bundle manifest with sorted entries, Merkle root, previous bundle digest, and HSM-backed signature",
+      "fail_closed_if": [
+        "manifest digest is not reproducible",
+        "previous high-water mark regresses",
+        "signature chain is absent"
+      ]
+    },
+    {
+      "step": 4,
+      "id": "offline_transfer_and_import",
+      "output": "import receipt recorded inside the air-gapped cell with media identity, operator identity, and bundle digest",
+      "fail_closed_if": [
+        "bundle digest differs",
+        "import media identity missing",
+        "bundle valid_until has passed"
+      ]
+    },
+    {
+      "step": 5,
+      "id": "private_trust_binding",
+      "output": "local PKI/KMS/HSM binding proves the cell verifies signatures and protects signing/decryption keys without external KMS",
+      "fail_closed_if": [
+        "root CA fingerprint or HSM key id missing",
+        "CRL/OCSP mirror stale",
+        "key ceremony evidence absent"
+      ]
+    },
+    {
+      "step": 6,
+      "id": "no_egress_proof",
+      "output": "network-policy, service-mesh, DNS, NTP, and admission evidence proving decisions do not require external egress",
+      "fail_closed_if": [
+        "external ServiceEntry or broad egress is present",
+        "DNS/NTP/OCSP are not in-cell",
+        "decision path fetches external URL"
+      ]
+    },
+    {
+      "step": 7,
+      "id": "offline_evidence_packet",
+      "output": "bounded packet for auditors/admission containing mirror freshness, SBOM/VEX/provenance refs, trust binding, and no-egress proof",
+      "fail_closed_if": [
+        "packet omits any required evidence ref",
+        "packet expiration is absent",
+        "packet claims readiness"
+      ]
+    },
+    {
+      "step": 8,
+      "id": "cached_admission_decision",
+      "output": "portable signed admission verdict with input digests, policy bundle version, expiration, and replay guard",
+      "fail_closed_if": [
+        "decision input digest cannot be reproduced",
+        "decision is replayed after high-water mark",
+        "KEV emergency invalidates the cache"
+      ]
+    }
+  ],
+  "required_mirror_feeds": [
+    {
+      "feed_id": "cve-nvd",
+      "source_family": "CVE/NVD",
+      "maximum_age_hours": 24,
+      "required_cursor_fields": [
+        "published_at",
+        "modified_at",
+        "cve_id",
+        "cvss_vector",
+        "affected_products"
+      ]
+    },
+    {
+      "feed_id": "osv",
+      "source_family": "Open Source Vulnerabilities",
+      "maximum_age_hours": 24,
+      "required_cursor_fields": [
+        "id",
+        "aliases",
+        "affected_package",
+        "affected_ranges",
+        "fixed_versions"
+      ]
+    },
+    {
+      "feed_id": "rustsec",
+      "source_family": "RustSec Advisory Database",
+      "maximum_age_hours": 24,
+      "required_cursor_fields": [
+        "advisory_id",
+        "crate_name",
+        "affected_versions",
+        "patched_versions"
+      ]
+    },
+    {
+      "feed_id": "github-advisories",
+      "source_family": "GitHub Security Advisories",
+      "maximum_age_hours": 24,
+      "required_cursor_fields": [
+        "ghsa_id",
+        "aliases",
+        "package_ecosystem",
+        "vulnerable_version_range"
+      ]
+    },
+    {
+      "feed_id": "cisa-kev",
+      "source_family": "Known Exploited Vulnerabilities",
+      "maximum_age_hours": 4,
+      "required_cursor_fields": [
+        "cve_id",
+        "date_added",
+        "due_date",
+        "known_ransomware_campaign_use",
+        "required_action"
+      ]
+    },
+    {
+      "feed_id": "epss",
+      "source_family": "Exploit Prediction Scoring System",
+      "maximum_age_hours": 24,
+      "required_cursor_fields": [
+        "cve_id",
+        "epss",
+        "percentile",
+        "model_version"
+      ]
+    },
+    {
+      "feed_id": "vendor-advisories",
+      "source_family": "Vendor Advisories",
+      "maximum_age_hours": 168,
+      "required_cursor_fields": [
+        "vendor_id",
+        "product_or_component",
+        "affected_versions",
+        "fixed_versions_or_mitigation",
+        "signature_ref"
+      ]
+    }
+  ],
+  "mirror_index_contracts": {
+    "advisory_feed_mirror_snapshot.v1": {
+      "required_fields": [
+        "feed_id",
+        "source_family",
+        "cursor",
+        "source_retrieved_at_trusted",
+        "mirror_snapshot_digest",
+        "signature_ref",
+        "maximum_age_hours",
+        "expires_at_trusted"
+      ],
+      "freshness_rule": "trusted_now - source_retrieved_at_trusted must be <= maximum_age_hours, with cisa-kev evaluated at the tighter emergency cadence."
+    },
+    "sbom_mirror_index.v1": {
+      "required_fields": [
+        "artifact_digest",
+        "source_revision",
+        "spdx_document_ref",
+        "cyclonedx_document_ref",
+        "sbom_signature_refs",
+        "component_purl_index_digest",
+        "provenance_attestation_ref"
+      ],
+      "admission_rule": "Every artifact referenced by an offline admission decision must have signed SPDX and CycloneDX refs plus a provenance attestation; VEX cannot compensate for a missing SBOM."
+    },
+    "vex_mirror_index.v1": {
+      "required_fields": [
+        "vulnerability_id",
+        "component_purl",
+        "artifact_digest",
+        "status",
+        "justification",
+        "author_or_service_identity",
+        "signature_ref",
+        "expires_at_trusted",
+        "audit_event_ref"
+      ],
+      "accepted_statuses": [
+        "affected",
+        "not_affected",
+        "fixed",
+        "under_investigation"
+      ],
+      "expiry_rule": "Expired VEX statements revert to blocking under_investigation until a newer signed VEX or fixed artifact exists."
+    },
+    "provenance_mirror_index.v1": {
+      "required_fields": [
+        "artifact_digest",
+        "source_revision",
+        "builder_identity",
+        "workflow_identity",
+        "slsa_or_in_toto_ref",
+        "cosign_signature_ref",
+        "rekor_or_transparency_ref",
+        "build_started_at_trusted",
+        "build_finished_at_trusted"
+      ],
+      "admission_rule": "Portable cached decisions must bind to provenance refs; missing provenance blocks promotion/admission."
+    }
+  },
+  "deterministic_sync_bundle_manifest_contract": {
+    "record_type": "deterministic_sync_bundle_manifest.v1",
+    "required_fields": [
+      "bundle_id",
+      "schema_version",
+      "sequence_number",
+      "previous_bundle_digest",
+      "created_at_trusted",
+      "valid_until_trusted",
+      "source_cursor_set",
+      "included_index_refs",
+      "entry_ordering_rule",
+      "hash_algorithm",
+      "merkle_root",
+      "manifest_digest",
+      "signer_identity",
+      "signature_ref",
+      "pki_chain_ref",
+      "hsm_key_id"
+    ],
+    "determinism_rules": [
+      "Entries are sorted by record_type, artifact_digest, component_purl, vulnerability_id, then source cursor.",
+      "All timestamps used for expiry are trusted producer timestamps, not candidate-supplied wall clock values.",
+      "manifest_digest is computed over canonical JSON with UTF-8, sorted object keys, and no insignificant whitespace.",
+      "sequence_number must be strictly greater than the last accepted bundle for the target cell and pack."
+    ],
+    "content_rules": [
+      "Bundle entries may include source URLs as provenance data but admission evaluation inside an air-gapped cell must not dereference them.",
+      "Every included index ref must be content-addressed and signed or covered by the bundle manifest signature.",
+      "Bundle valid_until_trusted cannot exceed the earliest required feed freshness expiry unless an explicit emergency hold state blocks admission."
+    ]
+  },
+  "offline_evidence_packet_contract": {
+    "record_type": "offline_evidence_packet.v1",
+    "required_fields": [
+      "packet_id",
+      "pack_id",
+      "cell_id",
+      "tenant_id_or_internal_lane",
+      "generated_at_trusted",
+      "expires_at_trusted",
+      "sync_bundle_digest",
+      "advisory_feed_snapshot_refs",
+      "sbom_mirror_index_ref",
+      "vex_mirror_index_ref",
+      "provenance_mirror_index_ref",
+      "private_trust_binding_ref",
+      "no_egress_proof_ref",
+      "cached_admission_decision_refs",
+      "claim_ceiling",
+      "producer_identity",
+      "signature_ref",
+      "replay_protection"
+    ],
+    "claim_ceiling_rule": "claim_ceiling must remain contract_only, planning_only, or evidence_packet_for_review until runtime implementation and independent review produce separate proof."
+  },
+  "private_trust_binding_contract": {
+    "record_type": "private_trust_binding.v1",
+    "required_fields": [
+      "cell_id",
+      "pack_id",
+      "offline_root_ca_fingerprint",
+      "signing_ca_ref",
+      "kms_provider",
+      "hsm_cluster_or_slot_ref",
+      "signing_key_id",
+      "key_ceremony_evidence_ref",
+      "crl_or_ocsp_mirror_ref",
+      "revocation_mirror_expires_at_trusted"
+    ],
+    "allowed_kms_providers": [
+      "OpenBao-HSM-seal",
+      "YubiHSM2",
+      "CloudHSM-compatible-in-cell",
+      "regulated-onprem-HSM"
+    ],
+    "forbidden": [
+      "external_kms_for_airgap_decision",
+      "live_ocsp_fetch",
+      "unsigned_bundle_import",
+      "shared_key_without_pack_or_cell_scope"
+    ]
+  },
+  "no_egress_proof_contract": {
+    "record_type": "no_egress_proof.v1",
+    "required_fields": [
+      "cell_id",
+      "pack_id",
+      "network_policy_ref",
+      "service_mesh_policy_ref",
+      "dns_in_cell_ref",
+      "ntp_in_cell_ref",
+      "ocsp_crl_in_cell_ref",
+      "admission_path_external_fetches",
+      "egress_exception_refs",
+      "verified_at_trusted",
+      "verifier_identity",
+      "audit_event_ref"
+    ],
+    "pass_rule": "admission_path_external_fetches must be false, egress_exception_refs must be empty or explicitly non-admission and expired-deny, and DNS/NTP/OCSP/CRL evidence must point to in-cell services."
+  },
+  "portable_cached_admission_decision_contract": {
+    "record_type": "portable_cached_admission_decision.v1",
+    "required_fields": [
+      "decision_id",
+      "artifact_digest",
+      "source_revision",
+      "policy_bundle_version",
+      "decision_input_digest",
+      "sync_bundle_digest",
+      "feed_cursor_set_digest",
+      "sbom_refs",
+      "vex_refs",
+      "provenance_refs",
+      "verdict",
+      "reason_codes",
+      "created_at_trusted",
+      "expires_at_trusted",
+      "sequence_number",
+      "nonce",
+      "signer_identity",
+      "signature_ref"
+    ],
+    "allowed_verdicts": [
+      "allow",
+      "block",
+      "hold_for_review",
+      "not_applicable"
+    ],
+    "portability_rule": "A cached decision is portable only with all input digests and the policy bundle version needed to reproduce it offline; it must expire no later than the earliest feed/VEX/provenance freshness limit that influenced the decision."
+  },
+  "freshness_and_expiry_policy": {
+    "trusted_time_source": "in-cell chrony or offline ceremony timestamp bound to the import receipt; candidate packets cannot provide their own trusted_now.",
+    "mirror_stale_behavior": "Any required feed snapshot older than its maximum_age_hours blocks allow verdicts and turns cached decisions into hold_for_review or block per policy.",
+    "vex_expiry_behavior": "Expired VEX statements are ignored for allow decisions and produce expired_vex_block until refreshed or the artifact is fixed.",
+    "sbom_missing_behavior": "Missing signed SPDX or CycloneDX SBOM blocks admission and cannot be waived by VEX, scanner output, or manual assertion.",
+    "kev_emergency_behavior": "A new or active KEV match for an artifact/component invalidates existing allow cache entries unless a newer signed bundle contains fixed/not_affected evidence with security review approval.",
+    "offline_replay_behavior": "Bundle and decision sequence numbers must be monotonic per cell/pack and nonce values must be single-use; replay or rollback attempts block even when signatures verify."
+  },
+  "fail_closed_rules": [
+    {
+      "rule_id": "stale_feed_mirror_blocks",
+      "fixture": "specs/fixtures/regulatory-airgap-security-evidence/bad-stale-feed.json",
+      "blocks_when": "any required advisory feed snapshot exceeds maximum_age_hours at trusted evaluation time"
+    },
+    {
+      "rule_id": "expired_vex_blocks",
+      "fixture": "specs/fixtures/regulatory-airgap-security-evidence/bad-expired-vex.json",
+      "blocks_when": "a vulnerability match depends on a VEX statement whose expires_at_trusted is before trusted_now"
+    },
+    {
+      "rule_id": "missing_signed_sbom_blocks",
+      "fixture": "specs/fixtures/regulatory-airgap-security-evidence/bad-missing-sbom.json",
+      "blocks_when": "artifact lacks signed SPDX or CycloneDX SBOM refs"
+    },
+    {
+      "rule_id": "kev_emergency_invalidates_cache",
+      "fixture": "specs/fixtures/regulatory-airgap-security-evidence/bad-kev-emergency.json",
+      "blocks_when": "KEV feed newer than the cached allow decision marks a matched vulnerability as known exploited without a newer fixed/not_affected decision"
+    },
+    {
+      "rule_id": "offline_replay_blocks",
+      "fixture": "specs/fixtures/regulatory-airgap-security-evidence/bad-offline-replay.json",
+      "blocks_when": "bundle or decision sequence regresses, nonce is reused, or previous_bundle_digest does not match the high-water mark"
+    }
+  ],
+  "positive_fixture": "specs/fixtures/regulatory-airgap-security-evidence/good-offline-evidence-packet.json",
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256Digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "fixture": {
+      "type": "object",
+      "required": [
+        "fixture_id",
+        "description",
+        "trusted_now",
+        "expected_verdict",
+        "packet"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fixture_id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "trusted_now": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "expected_verdict": {
+          "type": "object",
+          "required": [
+            "result",
+            "rule_id"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "result": {
+              "enum": [
+                "pass",
+                "block"
+              ]
+            },
+            "rule_id": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "packet": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

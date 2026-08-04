@@ -1,0 +1,61 @@
+# Oyatie structural merge drivers — VERSIONED registration.
+#
+# `.gitattributes` names four merge drivers. `union` is built into git; the other three are
+# structural drivers owned in this repo. Git resolves `merge=<name>` through git CONFIG, which is
+# not versioned, so before this file each driver was registered by hand, per machine, from a
+# per-crate README. Measured consequence: `cargo-lock` and `fixup-ledger` were registered nowhere,
+# and `friction-ledger` pointed at a `buck-out/` artifact inside a DIFFERENT worktree that no
+# longer existed. All three merges silently used git's plain text merge instead.
+#
+# ── Register once per clone (all linked worktrees of that clone inherit it) ────────────────────
+#
+#     git config --local include.path ../tools/hooks/merge-drivers.gitconfig
+#
+# `include.path` is resolved relative to the including file, i.e. `.git/config`, so `..` is the
+# repo root. This is the ONE remaining local step and it is machine-independent: git refuses to
+# take driver definitions from a versioned file on its own (a merge driver is arbitrary code
+# execution on checkout), so a repo cannot self-register. What this file removes is the
+# per-machine PAYLOAD — nobody hand-types a binary path again.
+#
+# ── Build the binaries into the stable location ───────────────────────────────────────────────
+#
+#     buck2 build //tools/oya-cargo-lock-merge-driver-app:oya-cargo-lock-merge-driver \
+#       --out tools/hooks/bin/oya-cargo-lock-merge-driver
+#     buck2 build //tools/fixup-ledger-merge-driver-app:fixup-ledger-merge-driver \
+#       --out tools/hooks/bin/fixup-ledger-merge-driver
+#     buck2 build //tools/oya-friction-ledger-merge-driver-app:oya-friction-ledger-merge-driver \
+#       --out tools/hooks/bin/oya-friction-ledger-merge-driver
+#
+# `tools/hooks/bin/` is the repo's established stable binary home (ADR-0523 irreducible glue; the
+# `oya-checkout-guard` hook already lands there). It is gitignored. Driver paths below are
+# repo-root-relative on purpose: git runs a merge driver with cwd set to the top of the working
+# tree even when `git merge` is invoked from a subdirectory (verified empirically), and a relative
+# path is the only form that stays correct across clones, worktrees and CI checkouts.
+#
+# ── Why each command is guarded ───────────────────────────────────────────────────────────────
+#
+# If a registered driver binary is simply ABSENT — fresh clone, or `buck-out` cleaned — git does
+# NOT fall back to its own merge. It takes whatever the failed driver left in `%A`, which is OURS,
+# unchanged and WITHOUT conflict markers, and marks the path `UU`. The file reads as clean and
+# complete while the other side's content is gone, so a reflexive `git add` loses it silently.
+# Verified: with an unguarded command and no binary, a 3-line conflicting merge produced
+# `line1/OURS/line3` and zero markers.
+#
+# So each command tests for the binary first and otherwise `exec`s git's own three-way text merge,
+# which reproduces today's behaviour exactly (real diff3 markers, exit 1). When the binary IS
+# present the first `exec` replaces the shell, so the second is unreachable and a driver that
+# exits 1 having written its own markers is never clobbered. Both directions verified.
+#
+# The values are double-quoted because `;` and `#` begin a COMMENT inside a git config value.
+
+[merge "cargo-lock"]
+	name = Oyatie Cargo.lock structural merge
+	driver = "test -x ./tools/hooks/bin/oya-cargo-lock-merge-driver && exec ./tools/hooks/bin/oya-cargo-lock-merge-driver %O %A %B; exec git merge-file -L ours -L base -L theirs %A %O %B"
+
+[merge "fixup-ledger"]
+	name = Oyatie fixup-ledger structural merge
+	driver = "test -x ./tools/hooks/bin/fixup-ledger-merge-driver && exec ./tools/hooks/bin/fixup-ledger-merge-driver %O %A %B; exec git merge-file -L ours -L base -L theirs %A %O %B"
+
+[merge "friction-ledger"]
+	name = Oyatie friction-ledger structural merge
+	driver = "test -x ./tools/hooks/bin/oya-friction-ledger-merge-driver && exec ./tools/hooks/bin/oya-friction-ledger-merge-driver %O %A %B; exec git merge-file -L ours -L base -L theirs %A %O %B"

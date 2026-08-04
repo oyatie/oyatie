@@ -1,0 +1,164 @@
+{
+  "$schema": "../../regulatory-airgap-security-evidence-contract.json#/$defs/fixture",
+  "fixture_id": "bad-stale-feed",
+  "description": "Negative packet: the NVD mirror snapshot is older than the 24h maximum at trusted evaluation time, so offline admission must fail closed.",
+  "trusted_now": "2026-07-01T12:00:00Z",
+  "expected_verdict": {
+    "result": "block",
+    "rule_id": "stale_feed_mirror_blocks",
+    "notes": ""
+  },
+  "packet": {
+    "packet_id": "pkt-airgap-evidence-20260701-good",
+    "record_type": "offline_evidence_packet.v1",
+    "pack_id": "pack-us-gov",
+    "cell_id": "cell-airgap-usgov-001",
+    "tenant_id_or_internal_lane": "oyatie-internal-regulated-cloud",
+    "generated_at_trusted": "2026-07-01T10:00:00Z",
+    "expires_at_trusted": "2026-07-01T14:00:00Z",
+    "sync_bundle": {
+      "bundle_id": "bundle-airgap-20260701T100000Z",
+      "sequence_number": 42,
+      "previous_bundle_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "manifest_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "merkle_root": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "created_at_trusted": "2026-07-01T10:00:00Z",
+      "valid_until_trusted": "2026-07-01T14:00:00Z",
+      "hash_algorithm": "sha256_merkle_canonical_json",
+      "entry_ordering_rule": "record_type/artifact_digest/component_purl/vulnerability_id/source_cursor",
+      "signer_identity": "spiffe://airgap-sync.connected-side/regulatory-bundler",
+      "signature_ref": "cosign://airgap-bundles/bundle-airgap-20260701T100000Z.sig",
+      "pki_chain_ref": "pki://cell-airgap-usgov-001/offline-signing-ca/2026q3",
+      "hsm_key_id": "hsm://cell-airgap-usgov-001/slot/7/key/airgap-bundle-signing-2026q3"
+    },
+    "advisory_feed_snapshots": [
+      {
+        "feed_id": "cve-nvd",
+        "source_retrieved_at_trusted": "2026-06-29T00:00:00Z",
+        "maximum_age_hours": 24,
+        "cursor": "nvd-2026-06-29T00:00Z",
+        "mirror_snapshot_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "signature_ref": "sig://feeds/nvd/20260701"
+      },
+      {
+        "feed_id": "osv",
+        "source_retrieved_at_trusted": "2026-07-01T09:05:00Z",
+        "maximum_age_hours": 24,
+        "cursor": "osv-2026-07-01T09:05Z",
+        "mirror_snapshot_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "signature_ref": "sig://feeds/osv/20260701"
+      },
+      {
+        "feed_id": "rustsec",
+        "source_retrieved_at_trusted": "2026-07-01T09:10:00Z",
+        "maximum_age_hours": 24,
+        "cursor": "rustsec-2026-07-01",
+        "mirror_snapshot_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "signature_ref": "sig://feeds/rustsec/20260701"
+      },
+      {
+        "feed_id": "github-advisories",
+        "source_retrieved_at_trusted": "2026-07-01T09:15:00Z",
+        "maximum_age_hours": 24,
+        "cursor": "ghsa-2026-07-01T09:15Z",
+        "mirror_snapshot_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "signature_ref": "sig://feeds/ghsa/20260701"
+      },
+      {
+        "feed_id": "cisa-kev",
+        "source_retrieved_at_trusted": "2026-07-01T11:00:00Z",
+        "maximum_age_hours": 4,
+        "cursor": "kev-2026-07-01T11:00Z",
+        "mirror_snapshot_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+        "signature_ref": "sig://feeds/kev/20260701",
+        "known_exploited_matches": []
+      },
+      {
+        "feed_id": "epss",
+        "source_retrieved_at_trusted": "2026-07-01T09:20:00Z",
+        "maximum_age_hours": 24,
+        "cursor": "epss-2026-07-01",
+        "mirror_snapshot_digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+        "signature_ref": "sig://feeds/epss/20260701"
+      },
+      {
+        "feed_id": "vendor-advisories",
+        "source_retrieved_at_trusted": "2026-06-30T12:00:00Z",
+        "maximum_age_hours": 168,
+        "cursor": "vendor-2026w27",
+        "mirror_snapshot_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "signature_ref": "sig://feeds/vendor/2026w27"
+      }
+    ],
+    "artifact": {
+      "artifact_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_revision": "66bc192d4c79a624fb6f1f3629c1b3be6400d0b3",
+      "component_purls": [
+        "pkg:cargo/oya-airgap-sample@0.1.0"
+      ],
+      "sbom_refs": {
+        "spdx": "sbom://spdx/oya-airgap-sample-0.1.0",
+        "cyclonedx": "sbom://cyclonedx/oya-airgap-sample-0.1.0",
+        "signatures": [
+          "sig://sbom/spdx",
+          "sig://sbom/cyclonedx"
+        ]
+      },
+      "provenance_refs": [
+        "in-toto://provenance/oya-airgap-sample-0.1.0",
+        "cosign://provenance/oya-airgap-sample-0.1.0.sig"
+      ]
+    },
+    "vex_statements": [
+      {
+        "vulnerability_id": "CVE-2026-0001",
+        "component_purl": "pkg:cargo/oya-airgap-sample@0.1.0",
+        "status": "not_affected",
+        "justification": "vulnerable_code_not_reachable",
+        "signature_ref": "sig://vex/CVE-2026-0001",
+        "expires_at_trusted": "2026-07-15T00:00:00Z",
+        "audit_event_ref": "audit://airgap/vex/CVE-2026-0001"
+      }
+    ],
+    "private_trust_binding": {
+      "offline_root_ca_fingerprint": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "kms_provider": "OpenBao-HSM-seal",
+      "hsm_cluster_or_slot_ref": "hsm://cell-airgap-usgov-001/slot/7",
+      "signing_key_id": "airgap-bundle-signing-2026q3",
+      "crl_or_ocsp_mirror_ref": "pki-mirror://cell-airgap-usgov-001/crl/20260701",
+      "revocation_mirror_expires_at_trusted": "2026-07-08T00:00:00Z"
+    },
+    "no_egress_proof": {
+      "network_policy_ref": "k8s://cell-airgap-usgov-001/networkpolicy/default-deny-egress",
+      "service_mesh_policy_ref": "istio://cell-airgap-usgov-001/no-external-serviceentry",
+      "dns_in_cell_ref": "coredns://cell-airgap-usgov-001",
+      "ntp_in_cell_ref": "chrony://cell-airgap-usgov-001",
+      "ocsp_crl_in_cell_ref": "pki-mirror://cell-airgap-usgov-001/crl/20260701",
+      "admission_path_external_fetches": false,
+      "egress_exception_refs": [],
+      "verified_at_trusted": "2026-07-01T10:15:00Z",
+      "audit_event_ref": "audit://airgap/no-egress/20260701"
+    },
+    "cached_admission_decision": {
+      "decision_id": "admit-airgap-20260701-0001",
+      "verdict": "allow",
+      "policy_bundle_version": "airgap-admission-policy-0.1.0",
+      "decision_input_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "feed_cursor_set_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "created_at_trusted": "2026-07-01T10:20:00Z",
+      "expires_at_trusted": "2026-07-01T14:00:00Z",
+      "sequence_number": 42,
+      "nonce": "nonce-42-good-0001",
+      "signer_identity": "spiffe://cell-airgap-usgov-001/admission-cache-signer",
+      "signature_ref": "sig://admission/admit-airgap-20260701-0001",
+      "reason_codes": [
+        "all_required_feeds_fresh",
+        "signed_sbom_present",
+        "vex_current",
+        "no_kev_match",
+        "no_egress_proven"
+      ]
+    },
+    "claim_ceiling": "evidence_packet_for_review"
+  }
+}

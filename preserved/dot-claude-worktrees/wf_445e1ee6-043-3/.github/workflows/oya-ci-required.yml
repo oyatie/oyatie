@@ -1,0 +1,1285 @@
+# oya-ci-required — the SINGLE canonical blocking required status check (ONE CANONICAL CI).
+#
+# Authority: ADR-0515 (Phase-0 firewall + one-canonical-CI + cloud-native posture; Accepted
+# 2026-06-07). Rulings: D-CICD-AUTHORITY, ONE CANONICAL CI, D-SEQUENCE (firewall-first),
+# D-DOCTRINE (no false-green / surface-all).
+#
+# Design (per FIREWALL-GO-LIVE-RUNBOOK.md Part 2 + CICD-DESIGN-PLAN Stage 1A/1B): the gate
+# lanes fan OUT (fail-fast:false, surface-all) and fan IN to ONE zero-build job named
+# `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
+# gate lane is green. Branch protection keys on that one context name. The GH #983 PR
+# metadata preflight is folded into the affected-set lane so it adds no new workflow shell surface.
+# F-PR5-06 target: the repo-owned controller adapter can produce fail-closed `oya-pr-review`
+# packets from GitHub PR/review APIs, bound to PR + exact head + author + designated eligible
+# reviewer policy + APPROVED verdict + durable review URL. It is deliberately NOT wired here until the trusted
+# controller is deployed and API/readback evidence exists. At cutover it becomes a constituent
+# input to this fan-in; branch protection continues to require only `oya-ci-required`.
+#
+# ░░ LIVE ░░
+# Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
+# triggers below are paired with making `oya-ci-required` the required status context on `dev`
+# branch protection (FIREWALL-GO-LIVE-RUNBOOK Part 2). This is the SINGLE canonical required CI
+# check — green IFF every constituent gate lane is green. workflow_dispatch remains available only
+# to prove the no-authoritative-base branch fails closed; it cannot synthesize retirement facts.
+
+name: oya-ci-required
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+  # CI-CLASS-FIX (same-SHA double-trigger, 2026-07-10 merge train): `push` is already
+  # dev-only above, so a PR-branch push never double-fires push+pull_request. The actual
+  # repeat-run source was `edited` — CodeRabbit (coderabbitai[bot]) auto-edits the PR body
+  # (walkthrough/summary) ~1-2 min after nearly every push, firing a SECOND pull_request
+  # event for the SAME head SHA. Because `cancel-in-progress` (below) is true for
+  # pull_request, that edit-triggered run cancels the still-running push-triggered
+  # `synchronize` run for that identical SHA, leaving a CANCELLED `oya-ci-required`
+  # check-run instance on a SHA whose later run may still go green — the exact
+  # false-block pattern that forced hand-reruns/empty-commit pushes on ~5 PRs (verified via
+  # gh api: coderabbitai userContentEdits timestamps land within 3-5s of the second run's
+  # created_at on PR #1297, #1322, #1309, #1327). `edited` fires on ANY title/body/base
+  # edit and carries no code-relevant signal. Since the PR-body admission check was retired
+  # (see the affected-set job below), NO job reads the PR description at all, so a title/body
+  # edit cannot change any verdict and needs no run whatsoever. Dropping `edited` removes the
+  # redundant trigger at its source instead of papering over the cancelled-run symptom.
+  pull_request:
+    branches: [dev]
+    types: [opened, reopened, synchronize, ready_for_review]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+  actions: read
+
+# The Rust-owned event parser validates this complete provider tuple before any candidate-tree
+# materializer or census receipt can select a commit. workflow_dispatch intentionally supplies an
+# unsupported event name and empty authority fields, which fails closed in that parser.
+env:
+  EVENT_EVALUATED_SHA: ${{ github.sha }}
+  EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+  EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
+  EVENT_PUSH_AFTER_SHA: ${{ github.event.after || '' }}
+  EVENT_MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha || '' }}
+  EVENT_MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha || '' }}
+  EVENT_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+  EVENT_NAME: ${{ github.event_name }}
+  EVENT_REF: ${{ github.ref }}
+  EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
+  EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
+
+# Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
+# collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
+# PR supersession is different: an older head SHA can never satisfy branch protection after a newer
+# head exists, so keep only the newest run per PR. Push / merge_group / manual runs retain the full
+# non-cancelling surface-all behavior for integration evidence. Group by workflow name instead of a
+# repository-specific literal so the pattern remains reusable by the owned cloud-ci adapter.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # ── Producer regen: materialize the cloud-ci generated faces from the checked-out candidate
+  #    tree. Generated JSON is not a contributor merge surface; the CI/controller workspace
+  #    regenerates it before gates consume it, then uploads it both as evidence AND as the
+  #    faces source the mere-reader gate matrix legs download (ADR-0556 D5 QW-1).
+  producer-regen:
+    name: producer-regen (accounting-registry)
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      - name: Materialize cloud-ci generated faces
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+      - name: Upload regenerated faces
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: generated-faces
+          # A single repository-rooted artifact preserves every controller-owned output's
+          # declared path for all consuming jobs.
+          path: |
+            ci/facade/artifact-inventory-registry/*.generated.json
+            ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
+            ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
+            registry/graph/active-artifact-contract-edges.json
+          if-no-files-found: error
+
+  # ── GATE LANES (reusable matrix). Every homogeneous gate is the SAME step — one
+  #    `buck2 test //ci/facade/<crate>:{ci-<crate>-unittest,ci-<crate>-gate}` — so instead of copy-pasting a job per gate, a single
+  #    matrixed `gate` job fans out over the crate list. Adding a homogeneous gate is ONE line in the matrix
+  #    below; the `gate_registration` meta-test (in the cloud-ci-firewall lane) ENFORCES that
+  #    every in-tree gate crate is listed here, every oya-ci.toml accounting/firewall gate has
+  #    bundled disposition DATA, and every gate lane is a fan-in dependency. Each matrix leg is its own check-run
+  #    `gate (oya-cloud-ci-<x>-app)`, preserving per-gate attribution; legs with a live-corpus
+  #    self-test are born-blocking. `fail-fast: false` = surface-all (every leg runs to
+  #    completion even if a sibling fails).
+  #    (Deliberately a matrix, NOT a `workflow_call` reusable workflow: a called workflow would
+  #    rename the published check-runs [`<caller> / <job>`], breaking the `oya-ci-required`
+  #    branch-protection context. A future owned oya-ci runner can reuse this matrix verbatim —
+  #    "one logic, two runners", D-CICD-AUTHORITY.)
+  #
+  #    FACES VIA ARTIFACT (ADR-0556 D5 QW-1, gate-fleet-shared-graph warm-safe same-run reuse):
+  #    every leg here is a MERE READER of the generated faces — none re-verifies regeneration
+  #    itself, so each leg downloads the producer-regen artifact instead of paying its own
+  #    materialize step (the audit-measured ~45-55s/leg hub rebuild, 16x per run).
+  #    Same-run, same candidate tree, same trusted writer — no cross-run cache participation.
+  #    The regeneration-checking gates KEEP materializing independently: registry-drift (the
+  #    byte-parity detector — detectors never consume the thing they attest), producer-regen
+  #    itself, and cloud-ci-firewall (its merge-base frozen baseline is per-job by design,
+  #    ADR-0551). `needs: producer-regen` serializes these legs behind a ~75s producer job;
+  #    the workflow critical path (affected-set/buck2 lanes) is unaffected. If producer-regen
+  #    fails, legs are skipped and the fan-in goes RED (fail-closed, same join as today).
+  #    `fetch-depth: 0` retained conservatively: no matrix gate calls git (verified — faces
+  #    carry all history-derived data per ADR-0552), but shallowing the checkout is a separate
+  #    reviewed change, not a side effect of artifact reuse.
+  gate:
+    needs: producer-regen
+    # Descriptive per-leg check-run name (matrix.label) — each leg publishes as
+    # "gate · <discipline>", not a bare "gate (crate)". Adding a gate = one `include` line
+    # (crate + label); the gate_registration meta-test enforces every gate crate is listed.
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { crate: cross-artifact-agreement, label: "gate · cross-artifact-agreement (GATE-1, incl. the 4 masterplan-v2 plan gates: structural ID/DAG/orphans · projection-freshness · plan-vs-evidence · read-contract/entry-surface)" }
+          - { crate: artifact-accountability,         label: "gate · total-accounting (GATE-2)" }
+          - { crate: stale-artifact-detection,         label: "gate · staleness-reaper (GATE-3, born-blocking)" }
+          - { crate: automation-coverage,       label: "gate · automation-ratchet (GATE-4, polices gates)" }
+          - { crate: crate-layer-suffix,         label: "gate · bnf-layer-suffix (BNF §2.5#4, born-blocking)" }
+          - { crate: package-manifest-hygiene,         label: "gate · manifest-hygiene (§2.5#7, born-blocking)" }
+          - { crate: crate-name-prefix,            label: "gate · cargo-prefix (ADR-0017)" }
+          - { crate: slo-coverage,            label: "gate · slo-coverage (catalog SLO input contract, born-blocking)" }
+          - { crate: license-policy,          label: "gate · license-policy (workspace package license policy, shrink-only)" }
+          - { crate: service-catalog-parity,        label: "gate · catalog-liveness (PR-C3 founder live-OR-explicitly-marked policy, born-blocking, EMPTY frozen baseline)" }
+          - { crate: workspace-member-coverage, label: "gate: workspace-glob-coverage (ADR-0538)" }
+          - { crate: build-target-parity,           label: "gate · target-parity (ADR-0540, test-wiring false-green)" }
+          - { crate: hook-wiring,    label: "gate · enforcement-liveness (FRIC-012, hook mirror liveness)" }
+          - { crate: action-item-accounting,     label: "gate · friction-accounting (ADR-0544, closed-loop friction-ledger accounting)" }
+          - { crate: canonical-json,          label: "gate · canonical-json (ADR-0546, deterministic JSON serialization)" }
+          - { crate: parity-claim-evidence, label: "gate · hyperscaler-parity-taxonomy (cloud hyperscaler parity taxonomy, born-blocking)" }
+          - { crate: resource-contract-conformance, label: "gate · cloud-resource-contracts (Rust/API replacement for P0 cloud-resource Python validators)" }
+          - { crate: contract-slice-conformance, label: "gate · contract-slice-conformance (paved-road Rust/Buck2 replacement for scripts/tests/*_check.py contract-slice validators; ADR-0515/0523/0528)" }
+          - { crate: embedded-asset-hermeticity, label: "gate · embedded-asset-hermeticity (ADR-0545, include_str!/include_bytes! __srcs-tree mapping)" }
+          - { crate: core-dependency-isolation,           label: "gate · kernel-purity (ADR-0547, *-kernel/*-core zero transient-tech deps)" }
+          - { crate: crypto-backend-policy,   label: "gate · crypto-backend-purity (ADR-0506, ring forbidden / aws-lc-rs mandated — zero ring activation)" }
+          - { crate: graphql-usage-policy,  label: "gate · no-graphql-without-adr (ADR-0565, zero-GraphQL: no graphql lib / .graphql/.gql/.sdl reintroduction without a reversing ADR — candidate-tree evaluated, EMPTY frozen baseline)" }
+          - { crate: endpoint-authorization-coverage,          label: "gate · authz-coverage (issue #770 / AUTH-005, NEW unauthenticated HTTP control planes blocked vs frozen baseline)" }
+          - { crate: caller-supplied-authorization,         label: "gate · dto-authz-trust (ADR-0582, the CLASS-FIX for caller-supplied-authz-trust: a NEW fn that trusts a forged *Authorization DTO / x-authorization-* header in place of a server-side PDP decide() is blocked vs the frozen baseline of ~92 known instances; v2: FN-01/02/03/04/05/06 hardened)" }
+          - { crate: generated-artifact-policy, label: "gate · generated-artifact-control-plane (public hermetic CI artifact policy)" }
+          - { crate: build-cache-policy,            label: "gate · cache-wiring conformance (ADR-0560/ADR-0556, dark-wiring + cold floor + kill-switch)" }
+          - { crate: dependency-graph-acyclicity, label: "gate · substrate-dependency-dag-acyclicity (ADR-0280 §D-3, Tarjan SCC + Kahn topo-order + forbidden-edge honouring)" }
+          - { crate: service-tier-metadata,     label: "gate · tier-field-coverage (Phase-0 reorg ADR-0562/0536/0245, per-service tier/tier_subtype/dr_tier coverage + enum validity + no type-overload, born-blocking)" }
+          - { crate: layer-dependency-acyclicity, label: "gate · tier-dependency-acyclicity (Phase-0 reorg ADR-0245/0280/0562, cargo+buck crate-graph tier rules + S-rank + Tarjan cycle backstop, born-ADVISORY vs frozen baseline → enforce-no-regression)" }
+          - { crate: facade-core-layering, label: "gate · facade-core-layering (ADR-0562 central rule: facade reaches its own core only through ports; BUCK-graph keyed by cargo package name, 35 frozen, shrink-only)" }
+          - { crate: module-membership,   label: "gate · capability-membership (Phase-0 reorg ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint: every crate → exactly one registered capability/meta home, no NEW unmapped crate, no NEW top-level dir, base/-admission; born-advisory + enforce-no-regression vs the frozen unmapped baseline)" }
+          - { crate: runner-disk-reclaim,     label: "gate · runner-disk-reclaim conformance (FRIC-017 productization, ADR-0548 pipeline-as-product: policy parse + threshold/INFRA-RED discrimination + reclaim plan)" }
+          - { crate: port-placement,          label: "gate · port-placement (ADR-0570, clean-arch ports-in-core: no storage-port trait DEFINED in an */adapters/* crate — productizes the #116 defect class; born-advisory + enforce-no-regression vs frozen baseline)" }
+          - { crate: repo-root-hygiene,  label: "gate · root-workspace-hygiene (ADR-0600, allowlist-as-DATA default-DENY: every TRACKED repo-root file must match the allowlist + every top-level dir must be a permitted capability/meta home — makes committed root scratch structurally impossible; complements the scratch DENYLIST)" }
+          - { crate: dependency-automation, label: "gate · dependency-automation (ADR-0535, owned oya-deps.toml Rust bump-bot contract; external bot configs remain absent)" }
+          - { crate: supply-chain-audit,    label: "gate · supply-chain-audit (owned RustSec advisory scan over vendored mirror, born-blocking)" }
+          - { crate: feature-maturity-policy, label: "gate · planned-maturity (GH #992, product PRD acceptance/verification contracts + rich capability records + retired-plan provenance boundary)" }
+          - { crate: operator-secret-rbac, label: "gate · operator-secret-bootstrap (GH #980 + GH #988 / ADR-0606, least-privilege secret RBAC, declarative join-token bootstrap, ESO/OpenBao role+namespace+prefix scope, and plaintext OpenBao NetworkPolicy isolation)" }
+          - { crate: policy-deploy-parity, label: "gate · cedar-deploy-parity (GH #16 / ADR-0608, deployed-vs-authored Cedar parity: no deployed ConfigMap permit may leave the action unconstrained (action-agnostic blanket grant) and every deployed permit MUST be ⊆ the capability's authored <cap>/{policy,cedar}/*.cedar set; fail-closed on missing-authored/un-extractable/empty-scan; GH #16 byte-identical blanket ConfigMaps grandfathered in a documented shrink-only baseline pending the blanket-disarm follow-up)" }
+          - { crate: topology-manifest-contract, label: "gate · cell-topology-manifest-contract (CELL-001R manifest contract)" }
+          - { crate: automation-language-policy, label: "gate · rust-first automation hygiene (cloud-native infra anti-patterns: scripts, workflow shell, retired interpreters, and new CLI packages)" }
+          - { crate: gate-self-conformance, label: "gate · gate-self-conformance (GH #777, pipeline-as-product 7-property bar over every gate)" }
+          - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
+          # The born-accounting register_crate ORCHESTRATOR (ADR-0568 slice 3b). It is deliberately
+          # NOT reclassified as a gate crate (it mutates the hand-authored SSOTs, so it stays in the
+          # `non_gate_crates` exclusion of gate-registration + gate-self-conformance); this leg exists
+          # so its unit fixtures AND its live-corpus liveness gate — the read-only `plan_registration`
+          # driven over the real checkout — carry merge authority instead of never running at all.
+          - { crate: crate-registration, label: "gate · born-accounting liveness (ADR-0568, register_crate read-only planner over the live corpus + orchestrator unit fixtures)" }
+          - { targets: "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential", os: windows-latest, label: "gate · Windows workspace resolver differential (ERROR_CANT_RESOLVE_FILENAME)" }
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      # Consume the producer-regen artifact (faces + volatile scm snapshot) instead of
+      # re-materializing per leg — see the FACES VIA ARTIFACT note on this job. The download
+      # restores the same regenerated bytes the producer derived from this run's candidate
+      # tree; registry-drift separately proves that derivation is byte-deterministic.
+      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
+        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: generated-faces
+          path: .
+      - name: Install buck2 (digest-pinned prebuilt release)
+        shell: bash
+        run: infra/ci/install-buck2.sh
+      # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
+      # the test action starts to avoid concurrent rustup writes inside parallel Buck2 actions.
+      - name: Pre-provision pinned Rust toolchain for Buck2 gate tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: buck2 test ${{ matrix.crate }}
+        shell: pwsh
+        # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
+        run: '$targets = "${{ matrix.targets || format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; if ([string]::IsNullOrWhiteSpace($targets)) { exit 1 }; if ($IsWindows) { $vswhere = Join-Path ${env:ProgramFiles(x86)} ''Microsoft Visual Studio\Installer\vswhere.exe''; if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) { Write-Error "vswhere is missing: $vswhere"; exit 1 }; $vsInstallCandidates = @(& $vswhere -latest -products ''*'' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath); $vswhereExitCode = $LASTEXITCODE; if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }; $vsInstall = $vsInstallCandidates | Select-Object -First 1; if ([string]::IsNullOrWhiteSpace($vsInstall)) { Write-Error ''No Visual Studio instance with the MSVC x64/x86 tool component was found''; exit 1 }; $vsDevCmd = Join-Path $vsInstall ''Common7\Tools\VsDevCmd.bat''; if (-not (Test-Path -LiteralPath $vsDevCmd -PathType Leaf)) { Write-Error "VsDevCmd.bat is missing: $vsDevCmd"; exit 1 }; Write-Host "Visual Studio developer command: $vsDevCmd"; $windowsBuckCommand = "call `"$vsDevCmd`" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets"; $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP ''buck2-windows-receipt.log''; & cmd.exe /d /s /c $windowsBuckCommand 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host "Windows Buck2 cmd exit code: $windowsBuckExitCode"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode }; $windowsBuckPassed = $windowsBuckReceiptText -match ''(?m)^Tests finished:\s*(?:\x1b\[[0-9;]*m)?Pass\s+[1-9][0-9]*\b''; if (-not ($windowsBuckReceiptText.Contains(''Build ID:'') -and $windowsBuckPassed)) { Write-Error ''Windows Buck2 execution receipt is missing Build ID or a positive passing test summary''; exit 1 } } else { $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; if ("${{ matrix.crate }}" -eq "scm-facts-snapshot") { & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } } }'
+
+  # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
+  #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
+  #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
+  gate-generated-artifact-freshness:
+    name: freshness (lock + generated faces, ADR-0539)
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4: the toolchain is a
+      # version-pinned input, not a build output). rustup still resolves/validates the
+      # toolchain on every run; the cache only pre-seeds ~/.rustup so the install is a no-op.
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: Run freshness gate
+        run: |
+          set -euo pipefail
+          freshness_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-freshness-app-bin --show-output | awk '{print $2}')"
+          "${freshness_bin}" --repo-root . --github-event
+
+  # ── registry-drift: materialized workspace == regenerated byte-equal. Starts at t=0 alongside
+  #    producer-regen; it rematerializes in-job so it is hermetic and self-contained. The
+  #    producer-regen needs-edge was cosmetic (evidence only, nothing consumed) and serialized
+  #    this job unnecessarily — removed so it starts at t=0.
+  gate-inventory-registry-drift:
+    name: registry-drift (materialized == regenerated)
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # HERMETICITY CONTRACT (ADR-0556 D5 QW-1 deliberate exception): this gate IS the
+      # byte-parity detector (committed == regenerated), so it MUST regenerate in-job —
+      # feeding it the producer-regen artifact it is supposed to verify would make the
+      # check self-referential. Detectors never consume the thing they attest.
+      - name: Materialize faces then assert byte-parity
+        run: |
+          rustup toolchain install
+          rustc --version
+          buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+          buck2 test //ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate
+
+  # ── cloud-ci-firewall: the baseline ratchet (blocks only NEW debt) + the gate-registration
+  #    meta-test (no in-tree gate may go unregistered in this workflow). This is the surface-all
+  #    runner; per the runbook the existing firewall runner suffices — no separate aggregator bin
+  #    is required for PRE-work.
+  gate-baseline-ratchet:
+    name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # Full history: the accounting producer derives last_touch_commit via
+          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
+          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
+          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
+          # and identical to a full local clone.
+          fetch-depth: 0
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # HERMETICITY CONTRACT (ADR-0551 frozen-policy-wins): the firewall's frozen reference —
+      # the merge-base baseline snapshot — is materialized per-job BY DESIGN via the emitter's
+      # out-of-band bootstrap ref, and is deliberately absent from the producer-regen artifact.
+      # This lane therefore KEEPS its own materialization (ADR-0556 D5 cold-must-stay list);
+      # it is never converted to artifact reuse.
+      - name: Materialize cloud-ci generated faces
+        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+      - name: buck2 test cloud-ci-firewall
+        run: |
+          set -euo pipefail
+          buck2 test \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-unittest \
+            //ci/facade/baseline-ratchet:oya-cloud-ci-firewall-signoff-fixer-unittest \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate-registration \
+            //ci/facade/baseline-ratchet:ci-baseline-ratchet-run-observability-packet
+
+  # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
+  #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from
+  #    registry/generated-artifact-control-plane.json `generated_path_rules` so adopters can encode
+  #    their generated-output conventions once; .gitignore is preventive hygiene, not policy
+  #    authority. The candidate workspace is regenerated by cloud-ci before gates consume it.
+  generated-output-diff-policy:
+    name: generated-output-diff-policy (no generated merge surfaces)
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
+      # validates the toolchain on every run.
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: Reject non-deletion generated output edits
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "push" ]; then
+            echo "generated-output-diff-policy: push event; presubmit diff policy not applicable."
+            exit 0
+          fi
+          git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          policy_bin="$(buck2 build //ci/facade/generated-artifact-policy:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
+          materializer_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin --show-output | awk '{print $2}')"
+          # Materialize (de-committed, never a contributor merge surface):
+          #   - specs/reorg/move-manifest.generated.json (ADR-0563): the policy's ratchet-diff check
+          #     authenticates a hand-curated-ratchet baseline's key substitution against the ACTUAL
+          #     candidate-tree move (anti-laundering; byte-bound), not a bare claim in a hand-authored
+          #     plan file.
+          #   - ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json: merge-base
+          #     CONTENT of every normal-source-merge artifact, read from the materializer's OWN
+          #     merge-base worktree checkout (the one sanctioned git boundary) so the policy gate
+          #     itself never calls git (ci-gate-self-conformance hermeticity).
+          "${materializer_bin}" --repo-root . --github-event
+          # --find-renames is REQUIRED, not cosmetic: the policy's sanctioned-relocation exemption
+          # only accepts byte-identical (R100) renames of declared generated artifacts (a capability
+          # move relocating the firewall's frozen gate-baseline). Without explicit rename detection a
+          # runner with diff.renames=off would surface the move as A+D and RED the legit move (fails
+          # safe, but false-blocks). Detection ON + the R100-only exemption is the correct behavior.
+          git diff --find-renames --name-status "origin/${BASE_REF}"...HEAD \
+            | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json --repo-root .
+
+  # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
+  #    gate logic through buck2: `buck2 build` compiles every
+  #    target (the env!CARGO eradication) and `buck2 test` runs the gate rust_tests fully
+  #    hermetically (no ambient git in any action — the producer reads the materialized scm-facts
+  #    face; the scm-facts emitter is the single out-of-graph boundary, run in the
+  #    materialization step BELOW, never inside a cacheable action). Scoped by the
+  #    affected-set driver (`infra/ci/buck2-affected-gate.sh`: uquery owner -> rdeps closure,
+  #    FAILS CLOSED) for speed. RBE/NativeLink is staged LAST (D4) and NOT required for
+  #    hermeticity — local-on-runner execution via the wired `noop_test_toolchain` is sufficient
+  #    here. This lane feeds the same fan-in as the targeted Buck2 gate matrix above.
+  buck2:
+    name: buck2 (hermetic build + affected gate tests)
+    needs: producer-regen
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # Full history: the materialization step below runs the emitter, which derives
+          # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
+          fetch-depth: 0
+      # Reuse the event-bound retirement face produced from the candidate checkout. The bare
+      # materializer below remains for this job's other generated faces; it receives no
+      # retirement tuple and therefore cannot replace this controller-owned face.
+      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
+        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: generated-faces
+          path: .
+      # buck2 is the BUILD TOOL, installed as a prebuilt release.
+      # The adapter edge is immutable at CI time: release tag selects the asset, SHA-256 pins
+      # the bytes, and CI verifies the digest before decompression/execution. Bump together.
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
+      # validates the toolchain on every run.
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
+      # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
+      # resolves rustc and toolchain components per compile action, and buck2 runs those actions in
+      # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
+      # rust-toolchain.toml channel (+ rustfmt,clippy) concurrently — the racing rustup
+      # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
+      # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
+      # each run: clippy, then a second toolchain component — proving a concurrency race, not a config defect). rustup
+      # is not concurrency-safe. Installing the toolchain once here makes it ambient so the
+      # parallel actions find it already present (no download).
+      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      # Restore buck-out across runs so ephemeral runners start warm (design §3.1 / ADR-0515 D4).
+      #
+      # WHAT IS WARMED, PRECISELY (ADR-0554 D9, round-5): 100% of buck2 cross-run warmth lives in
+      # ./buck-out — buck-out/v2/cache/{materializer_state,incremental_state}/db.sqlite plus
+      # buck-out/v2/art (the materialized action outputs). buck-out is PATH-RELOCATABLE (relative
+      # paths + --remap-cwd-prefix=., no absolute project root baked in; a restored hit is keyed
+      # only on buck2_revision + os + arch), so restoring it into any runner checkout is sound.
+      # ~/.buck2 and ~/.buck hold ONLY daemon pid/endpoint/log scratch — ZERO action results — so
+      # caching `path: buck-out` warms everything cacheable and ~/.buck2/~/.buck is DELIBERATELY
+      # NOT cached (caching daemon scratch warms nothing; do not copy-paste global-state caching).
+      #
+      # SAVE/RESTORE SPLIT (ADR-0554 D9; specs/cache-warmth-policy.json postmerge-dev-trunk = sole
+      # writer, presubmit-trusted-affected-cone = reader). dev-push is the SOLE canonical writer via
+      # the gate-affected-target-set job's SAVE step (see below): that job builds the FULL //... graph on
+      # push, so the saved buck-out is the full-graph superset. This buck2 job is READ-ONLY on every
+      # trigger — it restores the full-graph buck-out and its //ci/... build is a subset
+      # hit. PRs never write, eliminating the per-commit multi-GB write-churn/eviction (the
+      # Bazel/Google post-merge-fills-the-cache pattern).
+      #
+      # Cache key is STABLE per dependency/toolchain-set (.buckconfig + toolchains/BUCK +
+      # Cargo.lock + rust-toolchain.toml),
+      # NOT per-commit. The previous `-${{ github.sha }}` suffix made the primary key unique
+      # every commit, so actions/cache SAVED a fresh full buck-out (multi-GB) on EVERY run and
+      # never hit the primary key — bloating the 10GB repo cache into constant LRU eviction and
+      # exhausting ephemeral-runner disk at the save step (the "No space left on device" failure,
+      # FRIC-017). A stable key saves once per dependency-set and restores it exactly: deterministic
+      # warm start, no per-commit bloat. Changed crates still rebuild (buck2 is content-addressed,
+      # so a restored hit is bit-identical to a cold build); only a Cargo.lock/toolchain/.buckconfig
+      # or Rust channel change mints a new entry. The restore prefix is scoped by
+      # rust-toolchain.toml so a Rust-version bump never reuses old rlibs into the new compiler.
+      # Interim warm-by-default until the shared content-addressed
+      # remote cache (NativeLink/CAS, ADR-0560, HANDOFF W3) lands with a cold-canary integrity job
+      # proving cold==warm. See friction-ledger buck2-no-shared-cache.
+      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
+      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
+      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
+      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
+      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
+      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
+      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
+      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
+      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
+        # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
+        # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
+        # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
+        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
+        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
+        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
+        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
+        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
+        run: |
+          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
+          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
+          # root solely to remove the root-owned vendor preinstall dirs).
+          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
+          sudo -E "$BIN" \
+            --profile github-hosted-ubuntu-latest \
+            --infra-red-policy fail-closed \
+            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-buck2.json"
+      - name: Restore buck-out (read-only; dev-push is the sole writer)
+        # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          restore-keys: |
+            buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
+      # Generated-face materialization — the SINGLE out-of-graph git boundary. Re-run the emitter
+      # and producer against the checked-out candidate tree, then let buck2 consume those files as
+      # declared inputs. We deliberately do NOT byte-compare against committed JSON here: that was
+      # the self-referential merge-conflict surface. Byte-parity is checked after materialization.
+      # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): the hermetic
+      # graph's gate tests consume the firewall's merge-base frozen baseline, which is per-job
+      # by design (ADR-0551) and deliberately absent from the producer-regen artifact; this
+      # step is the sanctioned boundary that feeds ALL declared generated inputs to the graph.
+      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+      # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
+      # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
+      # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
+      # refactor's scope and is the binding hermetic check for this stage.
+      #
+      # The repo-wide affected-set verdict is owned by the binding gate-affected-target-set job below.
+      # Do not run a duplicate best-effort affected-set probe here: a non-blocking BUILD FAILED
+      # line inside a green job is indistinguishable from a false-green to humans and agents.
+      - name: buck2 build + test (//ci/..., hermetic — binding)
+        run: |
+          set -euo pipefail
+          # buck2 test builds its targets before running them, so a standalone
+          # `buck2 build` immediately before is redundant — removed (item 4 quick win).
+          # --unstable-write-invocation-record is additive observability only: it
+          # writes buck2's structured run record (cache_hit_rate, run_* counters)
+          # for the telemetry step below and changes nothing about the build.
+          buck2 test //ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
+      # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
+      # structured counters from buck2's invocation record — never log-grep — labeled with this
+      # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode
+      # sanity: once owned cloud-ci flips this lane from `bypass` to warm-ro/rw, a 0%-hit run or
+      # missing cache counters is an INFRA-RED misconfiguration, not advisory noise. Today GitHub
+      # Actions remains the transitional adapter and this lane stays bypass while NativeLink is dark.
+      - name: Cache-hit telemetry + warm-mode guard (ADR-0560)
+        if: always()
+        run: |
+          set -euo pipefail
+          CACHE_MODE=bypass
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
+          cat /tmp/cache-hit-report.json
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
+      - name: Upload cache-hit telemetry artifact
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: cache-hit-report-buck2-lane
+          path: /tmp/cache-hit-report.json
+          if-no-files-found: error
+      - name: Upload runner disk reclaim operator artifact (buck2 lane)
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: runner-disk-reclaim-buck2
+          path: ${{ runner.temp }}/runner-disk-reclaim-buck2.json
+          retention-days: 30
+          if-no-files-found: warn
+  # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
+  #    channel: the buck2 lane above is scoped to //ci/..., so code anywhere else
+  #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
+  #    cf16525 (E0433 x3 in oya/identity, buck2 lane green, run 27288019517) and by
+  #    //oya/ci-webhook-gateway carrying an E0428 on dev itself. This lane is the BINDING
+  #    Rust successor of the advisory infra/ci/buck2-affected-gate.sh step (G011): on
+  #    pull_request it derives the merge-base diff's owner()/rdeps() cone and builds+tests it;
+  #    any derivation uncertainty or escape-trigger path class (BUCK macros, toolchains,
+  #    third-party, .buckconfig) escalates FAIL-CLOSED to the full workspace — never skips.
+  #    On merge_group/push/dispatch it runs the full workspace (ADR-0515 Tide admission tier).
+  #    On a PR, the FULL tier is a BUILD-HEALTH RATCHET (ADR-0554 round-3; ADR-0551 merge-base
+  #    frozen pattern): it grandfathers targets already failing at the merge-base and blocks only
+  #    REGRESSIONS, so a BUCK-touching PR is not held hostage to pre-existing dev build debt (no
+  #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
+  gate-affected-target-set:
+    name: "gate · affected-set (ADR-0554, binding workspace coverage)"
+    needs: producer-regen
+    runs-on: ubuntu-latest
+    # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
+    # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
+    # indefinitely — a backstop, NOT a per-run budget. Raised 45 -> 120 because the round-6 FULL
+    # tier now does up to TWO full workspace passes: (1) the merge-base baseline, which defect 4
+    # moved into a CLEAN detached worktree — its own cold buck-out, ~31 min build measured on run
+    # 29110398688 (vs the old same-tree ~5m45s warm) plus a merge-base test pass for the defect-3
+    # test-health ratchet — and (2) the binding head build+test. 45 min was sized for a single warm
+    # full run and killed the head build mid-flight. 120 clears a pessimistic 2x-cold-full+tests
+    # (~100 min) with margin while still firing on a genuine runaway. The trusted-artifact
+    # fast-path (owned-Rust `--trusted-baseline` selector, GH #1323/#899) now makes the common
+    # merge-base case download-not-rebuild, so the typical FULL job is one head pass — but this
+    # backstop stays sized for the cold FALLBACK, which any unpublished/expired baseline still
+    # takes.
+    timeout-minutes: 120
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # Full history: the merge-base diff anchor + the materialization boundary both
+          # derive from git history; a shallow checkout collapses them (PM1).
+          fetch-depth: 0
+      # The broad candidate run consumes the producer's event-bound retirement face. Its bare
+      # materializer below is retained solely for per-job faces and cannot synthesize retirement
+      # facts without the complete explicit tuple.
+      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
+        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: generated-faces
+          path: .
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
+      # validates the toolchain on every run.
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
+      # racing a cold rustup install collide on shared download state.
+      # PR-body admission was removed here (founder directive 2026-07-26: "stop the entire pr
+      # body checks — that is just unnecessary"). It validated that a PR description contained
+      # nine string literals — three section markers, a summary bullet, three traceability
+      # fields, three evidence fields, and a verdict value. It inspected no code and could not
+      # fail on a defect: an author who wrote the right headings passed regardless of what the
+      # diff did. What it did produce was ~20-minute round trips to learn a heading, charged to
+      # the `gate-affected-target-set` job, so the red check read "affected-set (ADR-0554,
+      # binding workspace coverage)" and pointed authors at an unrelated gate.
+      #
+      # Review itself is unaffected — it just stops being a CI-blocking string match on prose.
+      # The validator (`libs/oya-check-pr-traceability`) is retained and still runs locally and
+      # via `--scaffold`; only the merge-blocking invocation is gone.
+      # NOTE: the step name is deliberately unchanged. The rust-first inline-shell baseline is
+      # keyed by step name, and validate_workflow_inline_shell_baseline_ceiling forbids adding a
+      # key absent from the merge-base baseline. So renaming a baselined step is not expressible
+      # in one PR: the new name is born-blocking as `unbaselined`, and the old name is `stale`.
+      # Retiring the admission check is the point of this PR; the rename can follow separately.
+      - name: Pre-provision pinned rust toolchain and PR metadata preflight
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      # Restore buck-out read-only (ADR-0554 D9). Same stable per-dependency/toolchain-set key as the buck2
+      # lane: warmth is 100% in buck-out/v2/cache + buck-out/v2/art (path-relocatable); ~/.buck2
+      # and ~/.buck are daemon pid/endpoint/log scratch and are deliberately NOT cached. dev-push
+      # is the sole writer (the save step below is push-to-dev-gated), so PR runs read only — no
+      # per-commit multi-GB write-churn/eviction (see the buck2-lane rationale above).
+      # Reclaim preinstalled ubuntu-latest bloat (.NET/Android/GHC/CodeQL/preloaded Docker images:
+      # ~25-30 GiB) BEFORE the multi-GB buck-out restore. This lane decompresses a ~5.78 GiB buck-out
+      # blob (~12-15 GiB on disk) on top of a fetch-depth:0 monorepo checkout, exhausting the ~14 GiB
+      # free on / on GitHub-hosted ubuntu-latest; FRIC-017 recurred on PR #741 (No space left on device
+      # at this restore, before any build ran). Hermetic: removes only vendor preinstall dirs that no
+      # oya/buck2 action consumes; touches NO repo content and NO cache (buck-out / ~/.rustup / the
+      # restored blob untouched), so the cold==warm integrity canary (ADR-0556/0560) is unaffected. df
+      # is emitted so a genuine disk-NEED growth surfaces as a true RED instead of being masked.
+      - name: Reclaim runner disk before warm restore (FRIC-017 preflight)
+        # Rust-first, data-driven preflight (ADR-0548 pipeline-as-product): retires the two
+        # duplicated inline `sudo rm -rf` blocks. The policy (reclaim_dirs + min_free_gib_after)
+        # lives in runner-disk-reclaim-policy.json; the bin best-effort removes the profile's
+        # vendor preinstall dirs and logs structured disk-before/after plus a JSON operator
+        # artifact. Policy is explicit fail-closed: threshold-miss exits INFRA-RED unless a future
+        # caller supplies a typed fail-open waiver, so the required context cannot silently green on
+        # insufficient runner capacity. Built as the runner user (buck2 on user PATH; daemon must
+        # not run as root); only the prebuilt binary is sudo'd (needs root for root-owned dirs).
+        run: |
+          # Build as the runner user (buck2 on user PATH; never run buck2 daemon as root —
+          # that corrupts cache/daemon ownership). Then sudo ONLY the prebuilt binary (needs
+          # root solely to remove the root-owned vendor preinstall dirs).
+          BIN="$(buck2 build //ci/facade/runner-disk-reclaim:oya-cloud-ci-runner-disk-reclaim-bin --show-output 2>/dev/null | awk '{print $2}')"
+          sudo -E "$BIN" \
+            --profile github-hosted-ubuntu-latest \
+            --infra-red-policy fail-closed \
+            --artifact-out "${RUNNER_TEMP}/runner-disk-reclaim-affected-set.json"
+      - name: Restore buck-out (read-only; dev-push is the sole writer)
+        # actions/cache/restore@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+          restore-keys: |
+            buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
+      # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): same rationale
+      # as the buck2 lane — the cone's gate tests consume the per-job merge-base frozen
+      # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
+      # design (ADR-0554 round-3).
+      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
+        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
+      - name: Fetch base ref for the merge-base anchor
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: git fetch --no-tags --prune origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+      # ── BUILD-HEALTH BASELINE (ADR-0554 D9 same-root build, round-5; ADR-0551 merge-base frozen
+      #    pattern). On a pull_request, derive the affected-set plan FIRST. Most PRs stay in the
+      #    affected cone and do not need a merge-base full-workspace build at all; only a derived
+      #    FULL decision needs the MERGE-BASE build-health baseline used by the ratchet. When FULL
+      #    is required, materialize that baseline IN THE MAIN ROOT so it shares the warm ./buck-out
+      #    restored above (the merge-base IS a dev commit, so the dev-keyed buck-out is near-fully
+      #    warm for it). We detach the SAME working tree to the merge-base COMMITTED tree-ish (the
+      #    candidate working tree is removed from disk for the build), run the full keep-going
+      #    build, capture per-target pass/fail, then a TRAP restores the candidate on EXIT. The
+      #    affected-set FULL tier grandfathers targets already failing at the merge-base and blocks
+      #    only REGRESSIONS. Skipped for push/merge_group/dispatch (the admission tier is a hard
+      #    full build — no grandfathering).
+      #
+      #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
+      #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); during the
+      #    baseline build the candidate working tree is GONE from disk, so it cannot feed the
+      #    baseline; the report reaches the verdict ONLY via --baseline-report. The warm ./buck-out
+      #    is a content-addressed substrate — a buck2 hit is bit-identical to a cold build (ADR-0556
+      #    D1/D2) — so warmth changes only wall-clock, never the baseline SOURCE. Warm-eligible
+      #    under ADR-0556 with no policy change (trusted-author, content-addressed; not the
+      #    integrity-canary/release cold floor). GH #899 activates the trusted D8 consumer first:
+      #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
+      #    fail closed to the same in-job merge-base rebuild below.
+      - name: Materialize merge-base build + test baselines when affected-set needs FULL
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+          # Read-only; the workflow-level `permissions:` block already grants `actions: read`,
+          # which is exactly what listing runs/artifacts and downloading an artifact needs.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # ── MERGE-BASE BUILD + TEST BASELINES in a CLEAN detached worktree (ADR-0554 round-6,
+          #    defects 3 + 4). Most PRs stay in the affected cone and skip this entirely; only a
+          #    derived FULL decision needs the merge-base baselines the ratchets grandfather against.
+          #
+          #    SOUNDNESS (defect 4): the baselines are built in a SEPARATE `git worktree` checked out
+          #    to the merge-base COMMITTED tree — NEVER in the candidate working tree. The previous
+          #    approach ran `git checkout --detach ${merge_base}` in the MAIN tree, which LEFT the
+          #    candidate's untracked/ignored materialized faces on disk; broad `**/*.json` BUCK globs
+          #    could then consume a candidate-controlled input into the baseline, laundering the
+          #    failure set. A clean worktree cannot see the candidate tree, so the baselines come
+          #    ENTIRELY from merge-base git objects (candidate-uncontrollable), and the candidate
+          #    working tree is untouched (no checkout, no restore trap).
+          #
+          merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
+          full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
+          echo "false" > "${full_required_marker}"
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          buildhealth_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-build-health-bin --show-output | awk '{print $2}')"
+          ci_step_telemetry="${RUNNER_TEMP}/oya-cloud-ci-step-telemetry"
+          cp "${telemetry_bin}" "${ci_step_telemetry}"; chmod +x "${ci_step_telemetry}"
+          cp "${gate_bin}" "${RUNNER_TEMP}/oya-cloud-ci-affected-set"; chmod +x "${RUNNER_TEMP}/oya-cloud-ci-affected-set"
+          cp "${buildhealth_bin}" "${RUNNER_TEMP}/oya-cloud-ci-build-health"; chmod +x "${RUNNER_TEMP}/oya-cloud-ci-build-health"
+          echo "affected-set preflight: derive plan before merge-base baselines"
+          "${ci_step_telemetry}" --phase derive-affected-set-tier -- "${RUNNER_TEMP}/oya-cloud-ci-affected-set" \
+            --policy ci/facade/affected-target-set/affected-set-policy.json \
+            --base "origin/${BASE_REF}" --mode auto --derive-only \
+            --decision-artifact-out "${RUNNER_TEMP}/affected-set-derive-decision.json" \
+            | tee "${RUNNER_TEMP}/affected-set-derive.log"
+          if grep -Eq '^affected-set: (decision=FULL|ESCALATE to FULL)' "${RUNNER_TEMP}/affected-set-derive.log"; then
+            echo "true" > "${full_required_marker}"
+            echo "affected-set preflight: FULL decision requires merge-base build + test baselines"
+          else
+            echo "affected-set preflight: derived non-FULL decision; skipping merge-base baselines"
+            exit 0
+          fi
+          # Owned-Rust D8 trusted-baseline consumer (GH #1323/#899); rationale + anti-laundering
+          # contract live on `trusted_baseline_exit`. Any doubt => cold rebuild below.
+          if "${RUNNER_TEMP}/oya-cloud-ci-build-health" --trusted-baseline \
+              --merge-base "${merge_base}" --repo "${GITHUB_REPOSITORY}" --out-dir "${RUNNER_TEMP}"; then
+            exit 0
+          fi
+          mb_tree="${RUNNER_TEMP}/merge-base-worktree"
+          rm -rf "${mb_tree}"
+          git worktree add --quiet --detach "${mb_tree}" "${merge_base}"
+          cleanup_worktree() {
+            local status="$?"
+            git -C "${GITHUB_WORKSPACE}" worktree remove --force "${mb_tree}" 2>/dev/null || rm -rf "${mb_tree}"
+            exit "${status}"
+          }
+          trap cleanup_worktree EXIT
+          (
+            cd "${mb_tree}"
+            rustup toolchain install
+            # Materialize merge-base faces in the clean historical tree. The historical binary owns
+            # epoch dispatch: new capability verifies authority; legacy bare mode must emit no receipt.
+            historical_help_status=0
+            historical_help="$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)" || historical_help_status=$?
+            (( historical_help_status == 0 || historical_help_status == 2 )) || { echo "historical materializer capability probe failed: status=${historical_help_status}"; exit 1; }
+            grep -Fq "usage: oya-cloud-ci-materialize-generated-faces" <<<"${historical_help}" || { echo "historical materializer capability probe returned no usage contract"; exit 1; }
+            historical_retirement_args=()
+            if grep -Fq -- "--historical-merge-base <oid>" <<<"${historical_help}"; then
+              historical_retirement_args=(--historical-merge-base "${merge_base}")
+            fi
+            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . "${historical_retirement_args[@]}"
+            (( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "historical materializer capability emitted no regular retirement facts"; exit 1; }
+            (( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == "object" and (.receipts | type == "array") and (.scm_facts | type == "object")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo "historical materializer capability emitted malformed retirement facts"; exit 1; }
+            (( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "legacy historical materializer unexpectedly emitted retirement facts"; exit 1; }
+            # BUILD baseline: whole merge-base workspace keep-going. The build is EXPECTED to be
+            # non-zero (dev carries pre-existing breakage) — that IS the baseline, not a failure, so
+            # its exit code is never propagated.
+            "${ci_step_telemetry}" --phase materialize-merge-base-build-health-baseline -- \
+              buck2 build //... --keep-going \
+                --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
+            test -s "${RUNNER_TEMP}/build-health-baseline.json" \
+              || { echo "build-health: FATAL empty merge-base build baseline report"; exit 1; }
+            # TEST baseline (defect 3): run the merge-base tests keep-going, capture the per-target
+            # verdict console, and normalize it with the owned-Rust build-health binary into the
+            # build-report shape so the test-health ratchet consumes it exactly like the build
+            # baseline. Exit code not propagated (pre-existing test debt is the baseline).
+            "${ci_step_telemetry}" --phase materialize-merge-base-test-health-baseline -- \
+              buck2 test //... --keep-going > "${RUNNER_TEMP}/merge-base-test-console.log" 2>&1 || true
+            "${RUNNER_TEMP}/oya-cloud-ci-build-health" \
+              --normalize-test-console "${RUNNER_TEMP}/merge-base-test-console.log" \
+              --normalize-out "${RUNNER_TEMP}/test-health-baseline.json"
+            test -s "${RUNNER_TEMP}/test-health-baseline.json" \
+              || { echo "test-health: FATAL empty merge-base test baseline report"; exit 1; }
+          )
+      - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: |
+          set -euo pipefail
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
+            # escalation runs the build-health ratchet AND the test-health ratchet (defect 3) against
+            # the merge-base build + test baselines. Both are only materialized when the derive
+            # preflight proves FULL is needed.
+            baseline_args=()
+            if [ -f "${RUNNER_TEMP}/affected-set-full-required" ] \
+                && grep -qx 'true' "${RUNNER_TEMP}/affected-set-full-required"; then
+              test -s "${RUNNER_TEMP}/build-health-baseline.json" \
+                || { echo "affected-set: FATAL missing build baseline after FULL derive preflight"; exit 1; }
+              test -s "${RUNNER_TEMP}/test-health-baseline.json" \
+                || { echo "affected-set: FATAL missing test baseline after FULL derive preflight"; exit 1; }
+              baseline_args=(
+                --baseline-report "${RUNNER_TEMP}/build-health-baseline.json"
+                --test-baseline-report "${RUNNER_TEMP}/test-health-baseline.json"
+              )
+            fi
+            "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
+              --policy ci/facade/affected-target-set/affected-set-policy.json \
+              --base "origin/${BASE_REF}" --mode auto \
+              --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json" \
+              "${baseline_args[@]}"
+          else
+            # Admission/integration tier (merge_group/push/dispatch): hard full build+test — the
+            # integration tip MUST be green, no grandfathering. ADR-0554 D7: this run ALSO captures
+            # a build-report at ${RUNNER_TEMP}/build-health-admission-report.json (the binary's
+            # stable RUNNER_TEMP-anchored path) as a pure byproduct; the verdict is unchanged
+            # (non-empty failure set = hard fail) and the report is uploaded below only on
+            # trusted push-to-dev.
+            "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
+              --policy ci/facade/affected-target-set/affected-set-policy.json \
+              --base "origin/${BASE_REF}" --mode full \
+              --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json"
+          fi
+      # ── FULL-GRAPH CACHE SAVE (ADR-0554 D9; sole canonical writer). On dev-push this job runs
+      #    --mode full (buck2 build + test //...), so buck-out is populated with the FULL workspace
+      #    graph — not just //ci/... as in the buck2 lane. Saving here means PR
+      #    gate-affected-target-set restores a full-graph buck-out, so the same-root merge-base baseline
+      #    build is near-fully-warm (the merge-base IS a recent dev commit whose full-graph buck-out
+      #    was just saved). The buck2 lane restores the same key and is a subset hit. One save step,
+      #    one job, one key — no two-writer race. Runs AFTER the Binding step (buck-out fully
+      #    populated). Guarded push-to-dev so PRs remain read-only (restore-only via the step above).
+      #    Size note: the full-graph buck-out is one blob per stable key (overwrites, non-accumulating
+      #    due to dev-push-sole-writer), bounded by the dependency-set change cadence — worth watching
+      #    against the GitHub 10GB cache limit; NativeLink CAS (ADR-0560) removes this at cutover.
+      - name: Save buck-out (dev-push only; sole canonical full-graph writer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/cache/save@v5.0.5 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: buck-out
+          key: buck-out-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('.buckconfig', 'toolchains/BUCK', 'Cargo.lock') }}
+      # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
+      #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
+      #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
+      #    pull_request — so the artifact namespace stays clean of attacker-controllable producers
+      #    (part of the DEFERRED D8 consumer's anti-laundering defense; D8 trusts workflow_run
+      #    PROVENANCE, never the artifact name). Producer-only: nothing consumes this yet, so it is
+      #    sound + harmless (no merge-authority change, no new permissions). The artifact is on the
+      #    critical path of BOTH the deferred D8 cross-run consumer AND the ADR-0560 warm-CAS.
+      - name: Upload build-health baseline artifact (trusted push-to-dev producer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: build-health-baseline-${{ github.sha }}
+          path: ${{ runner.temp }}/build-health-admission-report.json
+          retention-days: 90
+          if-no-files-found: error
+      # ── TEST-HEALTH BASELINE PRODUCER (GH #1323/#899; the TEST half of the D8 baseline pair).
+      #    The build baseline alone buys the FULL tier almost nothing: `buck2 test //...` at the
+      #    merge-base would rebuild the workspace anyway, so BOTH halves must be reusable for the
+      #    cold rebuild to be skippable. The admission `--mode full` run captures buck2's
+      #    per-target test verdicts and normalizes them into the build-report shape at this stable
+      #    path, so the test-health ratchet consumes it exactly like the build baseline. Same
+      #    trust posture as the build producer: push-to-dev ONLY — never merge_group, never
+      #    pull_request — so the artifact namespace stays free of candidate-controllable producers.
+      #    A red tip never reaches this step, so a published baseline is always a green dev commit.
+      - name: Upload test-health baseline artifact (trusted push-to-dev producer)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: test-health-baseline-${{ github.sha }}
+          path: ${{ runner.temp }}/test-health-admission-report.json
+          retention-days: 90
+          if-no-files-found: error
+      - name: Upload affected-set operator artifacts
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: affected-set-operator-artifacts
+          path: |
+            ${{ runner.temp }}/runner-disk-reclaim-affected-set.json
+            ${{ runner.temp }}/affected-set-derive-decision.json
+            ${{ runner.temp }}/affected-set-binding-decision.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANES (#101/#901). Runs the env-gated
+  #    cross-tenant-deny / RLS / CDC / SCIM durability integration tests against
+  #    CONTAINERIZED Postgres and GATES merge. Both adapter and facade groups block
+  #    the single required `oya-ci-required` context.
+  #
+  #    SPLIT SAFETY (#901): adapter and facade groups run in parallel only because
+  #    each job owns an independent Postgres service container and repeats the
+  #    deterministic bootstrap. Inside each group, `--num-threads 1` and sequential
+  #    target invocations remain because the harnesses in that group still share a
+  #    local database.
+  gate-live-postgres-adapters:
+    name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        # Pulled from mirror.gcr.io (Google's anonymous pull-through cache of Docker Hub),
+        # not registry-1.docker.io. Docker Hub timed out the service-container pull on three
+        # separate runs (#1423 twice, #1429 once) with `context deadline exceeded` /
+        # `Client.Timeout exceeded while awaiting headers`, exhausting the runner's own
+        # 3-attempt backoff before any test ran. A service container is pulled BEFORE any
+        # step executes, so no retry step, warm-up, or continue-on-error can wrap it — the
+        # registry has to be one that answers. Digest-pinned: the mirror is content-addressed
+        # so this is byte-identical to Docker Hub's postgres:16, and pinning also retires a
+        # tag-pin (see F-SUPPLY-IMAGE-PINS-UNDIGESTED). Issue #1427.
+        image: mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oyatie
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
+      OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: Install postgresql-client for the bootstrap
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+          psql --version
+      - name: Bootstrap app role + durable schemas/roles (admin, adapters)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
+          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
+          "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
+          server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
+          cat > "${RUNNER_TEMP}/live-postgres-adapters-bootstrap-provenance.json" <<JSON
+          {
+            "schema_version": 2,
+            "artifact_type": "cloud_ci_operator_artifact",
+            "artifact_id": "live-postgres-bootstrap-provenance",
+            "gate_id": "gate-live-postgres-adapters",
+            "lane": "adapters",
+            "postgres": {
+              "image": "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20",
+              "server_version": "${server_version}",
+              "database": "oyatie",
+              "host": "127.0.0.1",
+              "port": 5432
+            },
+            "roles": [
+              {"name": "postgres", "purpose": "admin bootstrap superuser; DSN/password redacted"},
+              {"name": "oya_app", "purpose": "non-superuser NOBYPASSRLS app login; DSN/password redacted"},
+              {"name": "tenancy_lifecycle_runtime", "purpose": "tenancy runtime role granted to oya_app"},
+              {"name": "identity_scim_runtime", "purpose": "SCIM runtime role granted to oya_app"}
+            ],
+            "migrations": [
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql",
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
+            ],
+            "source_revision": "${GITHUB_SHA}",
+            "retention_and_pii": {
+              "retention_days": 30,
+              "pii": "none; local CI database metadata and repo paths only",
+              "secret_redaction": "admin/app DSNs, passwords, tenant secrets, idempotency keys, and tokens are not emitted"
+            }
+          }
+          JSON
+      - name: buck2 test — durable adapters (admin=superuser, app=app-role)
+        env:
+          OYA_DATA_LIVE_POSTGRES: "1"
+          OYA_DATA_POSTGRES_ADMIN_URL: ${{ env.OYA_PG_ADMIN_URL }}
+          OYA_DATA_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
+          OYA_OUTBOX_LIVE_POSTGRES: "1"
+          OYA_OUTBOX_POSTGRES_ADMIN_URL: ${{ env.OYA_PG_ADMIN_URL }}
+          OYA_OUTBOX_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
+          OYA_BACKBONE_LIVE_POSTGRES: "1"
+          OYA_BACKBONE_POSTGRES_URL: ${{ env.OYA_PG_ADMIN_URL }}
+          OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
+        run: |
+          set -euo pipefail
+          LIVE_ENV=(
+            --env RUST_TEST_THREADS=1
+            --env OYA_DATA_LIVE_POSTGRES="${OYA_DATA_LIVE_POSTGRES}"
+            --env OYA_DATA_POSTGRES_ADMIN_URL="${OYA_DATA_POSTGRES_ADMIN_URL}"
+            --env OYA_DATA_POSTGRES_APP_URL="${OYA_DATA_POSTGRES_APP_URL}"
+            --env OYA_OUTBOX_LIVE_POSTGRES="${OYA_OUTBOX_LIVE_POSTGRES}"
+            --env OYA_OUTBOX_POSTGRES_ADMIN_URL="${OYA_OUTBOX_POSTGRES_ADMIN_URL}"
+            --env OYA_OUTBOX_POSTGRES_APP_URL="${OYA_OUTBOX_POSTGRES_APP_URL}"
+            --env OYA_BACKBONE_LIVE_POSTGRES="${OYA_BACKBONE_LIVE_POSTGRES}"
+            --env OYA_BACKBONE_POSTGRES_URL="${OYA_BACKBONE_POSTGRES_URL}"
+            --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
+          )
+          buck2 test --local-only --num-threads 1 //libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //libs/oya-data-outbox-adapter-postgres:oya-data-outbox-adapter-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
+      - name: Upload live-postgres adapter bootstrap provenance
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: live-postgres-adapters-bootstrap-provenance
+          path: ${{ runner.temp }}/live-postgres-adapters-bootstrap-provenance.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  gate-live-postgres-facades:
+    name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        # Pulled from mirror.gcr.io (Google's anonymous pull-through cache of Docker Hub),
+        # not registry-1.docker.io. Docker Hub timed out the service-container pull on three
+        # separate runs (#1423 twice, #1429 once) with `context deadline exceeded` /
+        # `Client.Timeout exceeded while awaiting headers`, exhausting the runner's own
+        # 3-attempt backoff before any test ran. A service container is pulled BEFORE any
+        # step executes, so no retry step, warm-up, or continue-on-error can wrap it — the
+        # registry has to be one that answers. Digest-pinned: the mirror is content-addressed
+        # so this is byte-identical to Docker Hub's postgres:16, and pinning also retires a
+        # tag-pin (see F-SUPPLY-IMAGE-PINS-UNDIGESTED). Issue #1427.
+        image: mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oyatie
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
+      OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
+    steps:
+      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install buck2 (digest-pinned prebuilt release)
+        run: infra/ci/install-buck2.sh
+      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.rustup/toolchains
+            ~/.rustup/update-hashes
+          key: rustup-toolchain-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}
+      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
+        run: |
+          set -euo pipefail
+          rustup toolchain install
+          rustc --version
+      - name: Install postgresql-client for the bootstrap
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql-client
+          psql --version
+      - name: Bootstrap app role + durable schemas/roles (admin, facades)
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
+          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
+          "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
+          "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
+          server_version="$("${ADMIN_PSQL[@]}" -Atqc "SHOW server_version;")"
+          cat > "${RUNNER_TEMP}/live-postgres-facades-bootstrap-provenance.json" <<JSON
+          {
+            "schema_version": 2,
+            "artifact_type": "cloud_ci_operator_artifact",
+            "artifact_id": "live-postgres-bootstrap-provenance",
+            "gate_id": "gate-live-postgres-facades",
+            "lane": "facades",
+            "postgres": {
+              "image": "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20",
+              "server_version": "${server_version}",
+              "database": "oyatie",
+              "host": "127.0.0.1",
+              "port": 5432
+            },
+            "roles": [
+              {"name": "postgres", "purpose": "admin bootstrap superuser; DSN/password redacted"},
+              {"name": "oya_app", "purpose": "non-superuser NOBYPASSRLS app login; DSN/password redacted"},
+              {"name": "tenancy_lifecycle_runtime", "purpose": "tenancy runtime role granted to oya_app"},
+              {"name": "identity_scim_runtime", "purpose": "SCIM runtime role granted to oya_app"}
+            ],
+            "migrations": [
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql",
+              "tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql",
+              "iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql"
+            ],
+            "source_revision": "${GITHUB_SHA}",
+            "retention_and_pii": {
+              "retention_days": 30,
+              "pii": "none; local CI database metadata and repo paths only",
+              "secret_redaction": "admin/app DSNs, passwords, tenant secrets, idempotency keys, and tokens are not emitted"
+            }
+          }
+          JSON
+      - name: buck2 test — durable facades (live test = app-role, non-live = in-memory)
+        env:
+          OYA_BACKBONE_LIVE_POSTGRES: "1"
+          OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
+        run: |
+          set -euo pipefail
+          FACADE_ENV=(
+            --env RUST_TEST_THREADS=1
+            --env OYA_BACKBONE_LIVE_POSTGRES="${OYA_BACKBONE_LIVE_POSTGRES}"
+            --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
+          )
+          buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-tests -- "${FACADE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-e2e -- "${FACADE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
+          buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
+      - name: Upload live-postgres facade bootstrap provenance
+        if: always()
+        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: live-postgres-facades-bootstrap-provenance
+          path: ${{ runner.temp }}/live-postgres-facades-bootstrap-provenance.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
+  #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
+  #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
+  #    meta-test (in the firewall lane) asserts every in-tree gate crate is represented here.
+  oya-ci-required:
+    name: oya-ci-required
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs:
+      - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)
+      - gate-generated-artifact-freshness          # bespoke: stale Cargo.lock + generated faces first diagnosis
+      - gate-inventory-registry-drift     # bespoke: materialized == regenerated byte-parity
+      - gate-baseline-ratchet  # bespoke: baseline ratchet + gate_registration meta-test
+      - generated-output-diff-policy # generated outputs are never PR merge surfaces
+      - buck2                   # hermetic buck2 build + affected gate tests
+      - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
+      - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
+      - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
+    steps:
+      - name: Fan-in verdict (green IFF every gate lane is green)
+        run: |
+          echo "Gate results:"
+          echo "  gate (matrix)     = ${{ needs.gate.result }}"
+          echo "  freshness         = ${{ needs.gate-generated-artifact-freshness.result }}"
+          echo "  registry-drift    = ${{ needs.gate-inventory-registry-drift.result }}"
+          echo "  cloud-ci-firewall = ${{ needs.gate-baseline-ratchet.result }}"
+          echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
+          echo "  buck2             = ${{ needs.buck2.result }}"
+          echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
+          echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
+          echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
+          # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
+          # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
+          if [ "${{ needs.gate.result }}" = "success" ] \
+            && [ "${{ needs.gate-generated-artifact-freshness.result }}" = "success" ] \
+            && [ "${{ needs.gate-inventory-registry-drift.result }}" = "success" ] \
+            && [ "${{ needs.gate-baseline-ratchet.result }}" = "success" ] \
+            && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
+            && [ "${{ needs.buck2.result }}" = "success" ] \
+            && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
+            && [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] \
+            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ]; then
+            echo "oya-ci-required: GREEN — every constituent gate lane passed."
+            exit 0
+          fi
+          echo "oya-ci-required: RED — at least one constituent gate lane failed or was skipped."
+          exit 1
