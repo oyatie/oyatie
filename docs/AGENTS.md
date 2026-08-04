@@ -135,10 +135,16 @@ or incomplete pilot blocks expansion.
 
 Preservation is lane-first and chronological. Record every lane's base/head, ownership, commands,
 test and review results, dependencies, and terminal state. Record empty, no-op, interrupted, and
-unknown outcomes explicitly; absence of findings is not evidence of success. Before cleanup,
-re-query live Git/GitHub state, prove each remote archive commit and tree are readable, and retain
-terminal anchors for every useful lane. GitHub issues remain the work-item source of truth and
-[`HANDOFF.md`](../HANDOFF.md) remains a thin redirect.
+unknown outcomes explicitly; absence of findings is not evidence of success. Before cleanup, every
+enumerated lane MUST resolve to a remotely readable durable anchor; encrypted quarantine stored
+off-machine or otherwise durably beyond the machine being wiped, with a verified ciphertext hash
+and a successful clean-room decrypt-and-restore traversal using externally recoverable identities;
+or documented and reviewed explicit intentional discard, with zero unresolved lanes. Re-query live
+Git/GitHub state, prove
+each remote archive commit and tree are readable, and retain terminal anchors for every useful
+lane. [`/specs/masterplan.json`](../specs/masterplan.json) remains the live work-item source of
+truth; GitHub issues are intake, coordination, and blocker mirrors that link to their masterplan v2
+items, and [`HANDOFF.md`](../HANDOFF.md) remains a thin redirect.
 
 Only durable useful work belongs in signed remote Git history. Secrets, credential-bearing
 machine configuration, raw `.omx`/`.omc` runtime state, caches, and generated build output MUST NOT
@@ -149,8 +155,9 @@ Evidence-grounded policy, regulatory, and compliance claims identify the exact s
 it is primary, its immutable version or retrieval date, effective date, jurisdiction and
 applicability, missing or conflicting authority, and the resulting claim ceiling. Revalidate when
 the source, date, applicability, or product behavior changes. This method paraphrases operational
-lessons reviewed from [Bun's Rust rewrite account](https://bun.com/blog/bun-in-rust),
-[gaebal-gajae's archive](https://blog.gaebal-gajae.dev/archive.html), and
+lessons reviewed from [Bun's Rust rewrite account](https://bun.com/blog/bun-in-rust) (retrieved
+2026-08-04), [gaebal-gajae's archive](https://blog.gaebal-gajae.dev/archive.html) (retrieved
+2026-08-04), and
 [`it-legal` at `5624ff1`](https://github.com/jclab-joseph/it-legal/tree/5624ff14e673863ec3b5645155742691a74ef152);
 none is Oyatie, legal, or product authority.
 
