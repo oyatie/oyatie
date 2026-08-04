@@ -639,7 +639,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         ),
         (
             "github-cas-reader-integrity-canary.json",
-            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev",
+            "jason931225/oyatie/.github/workflows/cache-integrity-canary-schedule.yml@refs/heads/dev",
             "ci-cas-reader",
         ),
     ] {
@@ -652,6 +652,10 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         assert_eq!(payload["bound_audiences"][0], "oya-openbao");
         assert_eq!(payload["user_claim"], "workflow_ref");
         assert_eq!(payload["bound_claims"]["workflow_ref"], workflow);
+        assert_eq!(
+            payload["bound_claims"]["job_workflow_ref"],
+            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev"
+        );
         assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
         assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
         assert_eq!(payload["bound_claims"]["repository_visibility"], "private");

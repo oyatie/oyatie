@@ -29,6 +29,7 @@ use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
+const CANARY_SCHEDULE_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary-schedule.yml";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
@@ -835,12 +836,13 @@ fn canary_workflow_is_scheduled_cold_and_wires_the_proof() {
                                     with the CAS wiring (ADR-0556 D2: no canary, no warm)"
         )
     });
+    let schedule = std::fs::read_to_string(root.join(CANARY_SCHEDULE_WORKFLOW_PATH)).unwrap();
     assert!(
-        text.contains("schedule:"),
+        schedule.contains("schedule:"),
         "canary must be cron-scheduled (ADR-0556 D4.3)"
     );
     assert!(
-        !text.contains("actions/cache@"),
+        !text.contains("actions/cache@") && !schedule.contains("actions/cache@"),
         "FROM-EMPTY VIOLATION: the canary workflow restores a cache — the proof is circular \
          (ADR-0556 D5 cold-must-stay)"
     );
@@ -1032,13 +1034,43 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(!untrusted.contains("issue-identity"));
 
     let canary = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH)).unwrap();
-    assert!(canary.contains("id-token: write"));
+    let schedule = std::fs::read_to_string(root.join(CANARY_SCHEDULE_WORKFLOW_PATH)).unwrap();
+    assert!(
+        !canary.contains("id-token:"),
+        "the reusable executor must inherit permissions from its caller so the cold call cannot elevate"
+    );
+    assert!(
+        !schedule.contains("run:"),
+        "the privilege-separating scheduler must only call the reviewed Rust-backed executor"
+    );
+    let cold = schedule
+        .split("  cold:")
+        .nth(1)
+        .and_then(|tail| tail.split("  reader-identity:").next())
+        .expect("contents-only cold job");
+    assert!(cold.contains("permissions:") && cold.contains("contents: read"));
+    assert!(!cold.contains("id-token:"));
+    assert!(cold.contains("uses: ./.github/workflows/cache-integrity-canary.yml"));
+    let reader = schedule
+        .split("  reader-identity:")
+        .nth(1)
+        .expect("activation-gated reader job");
+    assert!(reader.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
+    assert!(reader.contains("github.ref == 'refs/heads/dev'"));
+    assert!(reader.contains("github.event_name == 'workflow_dispatch'"));
+    assert!(reader.contains("needs.cold.result == 'success'"));
+    assert!(reader.contains("needs.cold.outputs.warm_licensed == 'true'"));
+    assert!(reader.contains("id-token: write"));
+    assert!(reader.contains("reader_probe: true"));
     assert!(canary.contains("workflow_call:"));
+    assert!(!canary.contains("\n  schedule:"));
+    assert!(!canary.contains("\n  workflow_dispatch:"));
     assert!(canary.contains("writer_seed:"));
+    assert!(canary.contains("reader_probe:"));
     assert!(
         canary.contains("--workflow-mode \"${{ inputs.writer_seed && 'writer' || 'reader' }}\"")
     );
-    assert!(canary.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
+    assert!(schedule.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true'"));
     assert!(canary.contains("OYA_CACHE_TLS_SERVER_CA_CERT: /etc/nativelink/ca/ca.crt"));
     assert!(canary.contains("prelicense_probe:"));
     assert!(canary.contains("timeout-minutes: 120"));
@@ -1048,11 +1080,17 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(!canary.contains("${{ runner.temp }}"));
     assert!(!canary.contains("name: Exchange GitHub OIDC"));
     assert!(!canary.contains("name: Remove short-lived cache identity"));
+    assert!(canary.contains("name: Download cold proof from the zero-OIDC invocation"));
+    assert!(canary.contains("cache-integrity-cold"));
+    assert!(
+        canary.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED != 'true'"),
+        "activation-off cold runs must execute the INACTIVE verdict and remain RED"
+    );
     assert!(controller.contains("fixed_identity_options"));
     assert!(controller.contains("remove_identity_files"));
     assert!(controller.contains("github-cas-reader-integrity-canary"));
     assert!(controller.contains("github-cas-writer-dev-push"));
-    for workflow in [&required, &canary] {
+    for workflow in [&required, &canary, &schedule] {
         assert!(!workflow.contains("OYA_CACHE_WRITER_TLS_CLIENT_CERT_PATH"));
         assert!(!workflow.contains("OYA_CACHE_READER_TLS_CLIENT_CERT_PATH"));
         assert!(!workflow.contains("OYA_CACHE_TLS_CA_CERTS_PATH"));
