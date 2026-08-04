@@ -1,0 +1,8 @@
+load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
+
+# Corpus graph extraction (ADR-0541). ARC controller, runner-scale-set, and runner-cell policy
+# values are deployment inputs owned by this package; fixed shards keep them in the Buck2 graph.
+corpus_yaml_facts_shards(
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    shard_size = 256,
+)

@@ -129,6 +129,27 @@ apps:
     valueFiles: [infra/arc/runner-scale-set-arm64-values.yaml]
     syncWave: "2"
 
+  # Dedicated one-job/one-PostgreSQL-Pod cell for required live-data tests.
+  # It deliberately does not inherit the general runner's environment and has
+  # no Secret or hostname reference to the shared CNPG data plane.
+  - name: oya-live-postgres-arm64
+    type: chart
+    repoURL: ghcr.io/actions/actions-runner-controller-charts
+    chart: gha-runner-scale-set
+    targetRevision: 0.14.2
+    namespace: arc-runners
+    valueFiles: [infra/arc/runner-scale-set-live-postgres-arm64-values.yaml]
+    syncWave: "2"
+
+  - name: oya-live-postgres-network-policy
+    type: path
+    path: infra/arc
+    include: live-postgres-runner-network-policy.yaml
+    namespace: arc-runners
+    # Establish both ingress and shared-data egress boundaries before either
+    # wave-2 runner scale set can create newly labelled Pods.
+    syncWave: "1"
+
   # In-cluster OCI registry (registry:2) — image target for in-cluster builds
   # (gateway + future microservice images); host docker is retired (ADR-0378).
   - name: registry

@@ -3,7 +3,7 @@
   "gate_id": "cloud-ci-corpus-index-coverage",
   "schema_version": "1.0.0",
   "baseline_uncovered_packages": 18,
-  "baseline_unpackaged_yaml_files": 458,
+  "baseline_unpackaged_yaml_files": 456,
   "min_expected_yaml_packages": 20,
   "min_expected_yaml_files": 4000,
   "min_expected_unpackaged_yaml_files": 400,
