@@ -18,8 +18,10 @@
 //!   issue-identity --role R --pki-mount M --pki-role R --uri-san URI
 
 use std::fs;
+use std::net::{TcpStream, ToSocketAddrs};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus};
+use std::sync::Arc;
 use std::time::Duration;
 
 use ci_build_cache_policy as app;
@@ -202,6 +204,296 @@ fn controlled_child(
 
 fn required_env(name: &str) -> Result<String, String> {
     std::env::var(name).map_err(|_| format!("required environment variable {name} is missing"))
+}
+
+const WRITER_ENDPOINT: &str = "nativelink-cas-writer.oya-ci.svc.cluster.local:50051";
+const READER_ENDPOINT: &str = "nativelink-cas-reader.oya-ci.svc.cluster.local:50052";
+const CAPABILITIES_PATH: &str = "/build.bazel.remote.execution.v2.Capabilities/GetCapabilities";
+
+#[derive(Debug, PartialEq, Eq)]
+struct BoundaryProof {
+    identity: String,
+    positive_endpoint: String,
+    positive_http_version: String,
+    positive_grpc_status: u16,
+    reader_to_writer_peer_tls_alert: Option<String>,
+}
+
+fn curl_metadata(stdout: &[u8]) -> Result<(&str, &str), String> {
+    let stdout =
+        std::str::from_utf8(stdout).map_err(|_| "curl metadata was not UTF-8".to_string())?;
+    let mut lines = stdout.lines();
+    let version = lines.next().unwrap_or_default();
+    let status = lines.next().unwrap_or_default();
+    if lines.next().is_some() {
+        return Err("curl metadata contained unexpected extra lines".to_string());
+    }
+    Ok((version, status))
+}
+
+fn grpc_frame(payload: &[u8]) -> Result<&[u8], String> {
+    let header: [u8; 5] = payload
+        .get(..5)
+        .ok_or_else(|| "Capabilities response missing the five-byte gRPC frame header".to_string())?
+        .try_into()
+        .map_err(|_| "Capabilities response gRPC header was not five bytes".to_string())?;
+    if header[0] != 0 {
+        return Err("Capabilities response used unsupported gRPC compression".to_string());
+    }
+    let length = u32::from_be_bytes(
+        header[1..]
+            .try_into()
+            .map_err(|_| "Capabilities response gRPC length was not four bytes".to_string())?,
+    ) as usize;
+    if payload.len() != 5 + length {
+        return Err(format!(
+            "Capabilities response gRPC frame length mismatch: declared {length}, received {}",
+            payload.len().saturating_sub(5)
+        ));
+    }
+    Ok(&payload[5..])
+}
+
+fn grpc_status(headers: &str) -> Result<u16, String> {
+    let statuses = headers
+        .lines()
+        .filter_map(|line| line.split_once(':'))
+        .filter(|(name, _)| name.trim().eq_ignore_ascii_case("grpc-status"))
+        .map(|(_, value)| value.trim())
+        .collect::<Vec<_>>();
+    if statuses.len() != 1 {
+        return Err(format!(
+            "Capabilities response must contain exactly one grpc-status trailer, found {}",
+            statuses.len()
+        ));
+    }
+    statuses[0]
+        .parse()
+        .map_err(|_| "Capabilities grpc-status was not an unsigned integer".to_string())
+}
+
+fn typed_client_auth_alert(error: &std::io::Error) -> Result<&'static str, String> {
+    let Some(rustls::Error::AlertReceived(alert)) = error
+        .get_ref()
+        .and_then(|source| source.downcast_ref::<rustls::Error>())
+    else {
+        return Err("reader-to-writer failure was not rustls::Error::AlertReceived".to_string());
+    };
+    match alert {
+        rustls::AlertDescription::AccessDenied => Ok("access_denied"),
+        rustls::AlertDescription::BadCertificate => Ok("bad_certificate"),
+        rustls::AlertDescription::CertificateRequired => Ok("certificate_required"),
+        rustls::AlertDescription::CertificateUnknown => Ok("certificate_unknown"),
+        rustls::AlertDescription::UnknownCA => Ok("unknown_ca"),
+        other => Err(format!(
+            "reader-to-writer peer TLS alert was not a client-auth rejection: {other:?}"
+        )),
+    }
+}
+
+fn require_reader_tls_rejected_by_writer() -> Result<String, String> {
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, ServerName, pem::PemObject};
+
+    let identity_pem = fs::read(required_env(app::CLIENT_CERT_ENV)?)
+        .map_err(|error| format!("read reader identity: {error}"))?;
+    let ca_pem = fs::read(required_env(app::TLS_CA_CERTS_ENV)?)
+        .map_err(|error| format!("read NativeLink server CA: {error}"))?;
+    let certificates = CertificateDer::pem_slice_iter(&identity_pem)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("parse reader certificate chain: {error}"))?;
+    if certificates.is_empty() {
+        return Err("reader identity contained no certificates".to_string());
+    }
+    let private_key = PrivateKeyDer::from_pem_slice(&identity_pem)
+        .map_err(|error| format!("parse reader private key: {error}"))?;
+    let roots = CertificateDer::pem_slice_iter(&ca_pem)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("parse NativeLink server CA: {error}"))?;
+    let mut root_store = rustls::RootCertStore::empty();
+    let (accepted, rejected) = root_store.add_parsable_certificates(roots);
+    if accepted == 0 || rejected != 0 {
+        return Err(format!(
+            "NativeLink server CA set was not fully parseable ({accepted} accepted, {rejected} rejected)"
+        ));
+    }
+    let mut config =
+        rustls::ClientConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
+            .with_root_certificates(root_store)
+            .with_client_auth_cert(certificates, private_key)
+            .map_err(|error| format!("configure reader mTLS identity: {error}"))?;
+    config.alpn_protocols = vec![b"h2".to_vec()];
+
+    let host = WRITER_ENDPOINT
+        .split_once(':')
+        .map(|(host, _)| host)
+        .ok_or_else(|| "writer endpoint missing port".to_string())?;
+    let addresses = WRITER_ENDPOINT
+        .to_socket_addrs()
+        .map_err(|error| format!("resolve {WRITER_ENDPOINT}: {error}"))?
+        .collect::<Vec<_>>();
+    if addresses.is_empty() {
+        return Err(format!("resolve {WRITER_ENDPOINT}: no addresses"));
+    }
+    let mut socket = addresses
+        .iter()
+        .find_map(|address| TcpStream::connect_timeout(address, Duration::from_secs(5)).ok())
+        .ok_or_else(|| format!("connect {WRITER_ENDPOINT}: all addresses failed"))?;
+    socket
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .and_then(|()| socket.set_write_timeout(Some(Duration::from_secs(10))))
+        .map_err(|error| format!("set {WRITER_ENDPOINT} TLS timeout: {error}"))?;
+    let server_name = ServerName::try_from(host.to_string())
+        .map_err(|error| format!("invalid writer TLS server name: {error}"))?;
+    let mut connection = rustls::ClientConnection::new(Arc::new(config), server_name)
+        .map_err(|error| format!("create reader-to-writer TLS client: {error}"))?;
+    match connection.complete_io(&mut socket) {
+        Err(error) => typed_client_auth_alert(&error).map(str::to_string),
+        Ok(_) => Err(format!(
+            "reader identity completed the writer TLS handshake (ALPN {:?}); expected a typed peer alert before HTTP/2/gRPC",
+            connection.alpn_protocol().map(String::from_utf8_lossy)
+        )),
+    }
+}
+
+fn curl_capabilities(endpoint: &str) -> Result<BoundaryProof, String> {
+    let client_pem = required_env(app::CLIENT_CERT_ENV)?;
+    let ca_pem = required_env(app::TLS_CA_CERTS_ENV)?;
+    let scratch = std::env::temp_dir().join(format!(
+        "oya-cas-capabilities-{}-{}",
+        std::process::id(),
+        endpoint.rsplit(':').next().unwrap_or("unknown")
+    ));
+    fs::create_dir(&scratch).map_err(|error| format!("create {}: {error}", scratch.display()))?;
+    let request = scratch.join("request.grpc");
+    let response = scratch.join("response.grpc");
+    let headers = scratch.join("headers.txt");
+    fs::write(&request, [0_u8; 5])
+        .map_err(|error| format!("write {}: {error}", request.display()))?;
+
+    let output = Command::new("curl")
+        .args([
+            "--silent",
+            "--show-error",
+            "--http2",
+            "--tlsv1.3",
+            "--connect-timeout",
+            "5",
+            "--max-time",
+            "15",
+            "--cert",
+            &client_pem,
+            "--key",
+            &client_pem,
+            "--cacert",
+            &ca_pem,
+            "--header",
+            "content-type: application/grpc",
+            "--header",
+            "te: trailers",
+            "--data-binary",
+            &format!("@{}", request.display()),
+            "--dump-header",
+            headers.to_str().ok_or("non-UTF-8 scratch header path")?,
+            "--output",
+            response.to_str().ok_or("non-UTF-8 scratch response path")?,
+            "--write-out",
+            "%{http_version}\n%{http_code}",
+            &format!("https://{endpoint}{CAPABILITIES_PATH}"),
+        ])
+        .output()
+        .map_err(|error| format!("spawn curl Capabilities probe: {error}"));
+
+    let result = (|| {
+        let output = output?;
+        if !output.status.success() {
+            return Err(format!(
+                "Capabilities probe failed before a typed REAPI response (curl exit {:?}): {}",
+                output.status.code(),
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+        let (version, http_status) = curl_metadata(&output.stdout)?;
+        if version != "2" || http_status != "200" {
+            return Err(format!(
+                "Capabilities probe requires negotiated HTTP/2 and HTTP 200, got HTTP/{version} {http_status}"
+            ));
+        }
+        let header_text = fs::read_to_string(&headers)
+            .map_err(|error| format!("read {}: {error}", headers.display()))?;
+        if !header_text.lines().any(|line| {
+            line.split_once(':').is_some_and(|(name, value)| {
+                name.trim().eq_ignore_ascii_case("content-type")
+                    && value
+                        .trim()
+                        .to_ascii_lowercase()
+                        .starts_with("application/grpc")
+            })
+        }) {
+            return Err("Capabilities response was not application/grpc".to_string());
+        }
+        let status = grpc_status(&header_text)?;
+        if status != 0 {
+            return Err(format!("Capabilities returned grpc-status {status}"));
+        }
+        grpc_frame(
+            &fs::read(&response)
+                .map_err(|error| format!("read {}: {error}", response.display()))?,
+        )?;
+        Ok(BoundaryProof {
+            identity: String::new(),
+            positive_endpoint: endpoint.to_string(),
+            positive_http_version: "h2".to_string(),
+            positive_grpc_status: status,
+            reader_to_writer_peer_tls_alert: None,
+        })
+    })();
+    let cleanup = fs::remove_dir_all(&scratch)
+        .map_err(|error| format!("remove {}: {error}", scratch.display()));
+    match (result, cleanup) {
+        (Ok(proof), Ok(())) => Ok(proof),
+        (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
+        (Err(error), Err(cleanup)) => Err(format!("{error}; probe cleanup also failed: {cleanup}")),
+    }
+}
+
+fn prove_identity_boundary(mode: &str) -> Result<BoundaryProof, String> {
+    let positive_endpoint = match mode {
+        "writer" => WRITER_ENDPOINT,
+        "reader" => READER_ENDPOINT,
+        other => return Err(format!("unsupported identity boundary mode `{other}`")),
+    };
+    let mut proof = curl_capabilities(positive_endpoint)?;
+    proof.identity = mode.to_string();
+    if mode == "reader" {
+        proof.reader_to_writer_peer_tls_alert = Some(require_reader_tls_rejected_by_writer()?);
+    }
+    Ok(proof)
+}
+
+fn write_boundary_proof(proof: &BoundaryProof) -> Result<(), String> {
+    let Ok(path) = std::env::var("OYA_CAS_BOUNDARY_PROOF_OUT") else {
+        return Ok(());
+    };
+    let payload = serde_json::to_string_pretty(&serde_json::json!({
+        "schema_version": 1,
+        "identity": proof.identity,
+        "positive_control": {
+            "endpoint": proof.positive_endpoint,
+            "tls": "1.3",
+            "alpn": proof.positive_http_version,
+            "rpc": "build.bazel.remote.execution.v2.Capabilities/GetCapabilities",
+            "grpc_status": proof.positive_grpc_status,
+        },
+        "reader_to_writer": proof.reader_to_writer_peer_tls_alert.as_ref().map(|alert| serde_json::json!({
+            "stage": "tls_handshake",
+            "peer_alert": alert,
+            "http_response": false,
+            "grpc_status": Value::Null,
+        })),
+        "secrets_recorded": false,
+    }))
+    .map_err(|error| format!("serialize CAS identity boundary proof: {error}"))?;
+    write_out(Some(path), &payload)
 }
 
 fn issue_identity(options: &[String]) -> Result<(), String> {
@@ -489,6 +781,26 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                     Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
                 });
             }
+            let mode = workflow_mode
+                .as_deref()
+                .ok_or_else(|| "workflow identity requires reader or writer mode".to_string())?;
+            let proof = match prove_identity_boundary(mode) {
+                Ok(proof) => proof,
+                Err(error) => {
+                    let cleanup = remove_identity_files();
+                    return Err(match cleanup {
+                        Ok(()) => error,
+                        Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
+                    });
+                }
+            };
+            if let Err(error) = write_boundary_proof(&proof) {
+                let cleanup = remove_identity_files();
+                return Err(match cleanup {
+                    Ok(()) => error,
+                    Err(cleanup) => format!("{error}; identity cleanup also failed: {cleanup}"),
+                });
+            }
             let child_result = controlled_child(&root, &resolution, child);
             let cleanup = remove_identity_files();
             match (child_result, cleanup) {
@@ -704,6 +1016,38 @@ mod tests {
         assert_eq!(writer[5], "cas-writer");
         assert_eq!(writer[7], "spiffe://oyatie.dev/ci/cas-writer");
         assert!(fixed_identity_options("other").is_err());
+    }
+
+    #[test]
+    fn reader_writer_denial_accepts_only_named_peer_tls_alerts() {
+        let alert = std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            rustls::Error::AlertReceived(rustls::AlertDescription::AccessDenied),
+        );
+        assert_eq!(typed_client_auth_alert(&alert).unwrap(), "access_denied");
+        let generic_eof = std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "generic EOF");
+        let server_ca = std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            rustls::Error::InvalidCertificate(rustls::CertificateError::UnknownIssuer),
+        );
+        let protocol_alert = std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            rustls::Error::AlertReceived(rustls::AlertDescription::ProtocolVersion),
+        );
+        assert!(typed_client_auth_alert(&generic_eof).is_err());
+        assert!(typed_client_auth_alert(&server_ca).is_err());
+        assert!(typed_client_auth_alert(&protocol_alert).is_err());
+    }
+
+    #[test]
+    fn capabilities_proof_requires_exact_grpc_framing_status_and_http_metadata() {
+        assert_eq!(grpc_frame(&[0, 0, 0, 0, 2, 8, 1]).unwrap(), &[8, 1]);
+        assert!(grpc_frame(&[0, 0, 0, 0, 2, 8]).is_err());
+        assert!(grpc_frame(&[1, 0, 0, 0, 0]).is_err());
+        assert_eq!(grpc_status("HTTP/2 200\r\ngrpc-status: 0\r\n").unwrap(), 0);
+        assert!(grpc_status("HTTP/2 200\r\n").is_err());
+        assert_eq!(curl_metadata(b"2\n200").unwrap(), ("2", "200"));
+        assert!(curl_metadata(b"1.1\n200\nextra").is_err());
     }
 
     #[test]
