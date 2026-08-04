@@ -20,6 +20,120 @@ directory, then run the OpenBao steps below.
 | `clusterrolebinding-external-secrets-auth-delegator.yaml` | `ClusterRoleBinding` | grants the ESO SA `system:auth-delegator` for TokenReview |
 | `externalsecret-github-ci-token.yaml` | `ExternalSecret github-ci-token` | projects the GitHub CI token into `oya-ci` |
 
+## TLS migration (8200/8201 -> 8202/8203)
+
+The base `infra/kms/openbao.k8s.yaml` exposes only live plaintext `8200/8201`.
+Run these stages in order; never put a CA private key, JWT, OpenBao token, server
+private key, or issued leaf in git or captured output.
+
+1. **Preflight.** Confirm the base Deployment is Available and its Service has
+   only `8200/8201`. Do not apply the empty public-CA scaffold directly. Have
+   the trusted bootstrap generate and apply populated ConfigMaps from the
+   offline root's **public certificate only**. Bootstrap Secret
+   `oya-kms/openbao-server-tls` with keys `tls.crt` and `tls.key`. Confirm the
+   populated ConfigMap `openbao-offline-root-ca` exists in both
+   `external-secrets` and `arc-runners`, the certificate covers
+   `openbao.oya-kms.svc` and the Secret/ConfigMaps exist without printing data.
+2. Apply `infra/kms/openbao-ci-identity.k8s.yaml`, then use the authenticated,
+   no-echo bootstrap below. There is no bootstrap controller in this slice.
+   Apply `infra/kms/openbao-tls-migration.k8s.yaml` only after the readback passes.
+3. **Wait/readback.** Wait for Deployment `oya-kms/openbao` rollout completion;
+   verify the mounted config and Secret references, Service ports `8200..8203`,
+   and successful authenticated TLS health on `8202`. Verify plaintext `8200`
+   still answers during this dual-listener phase.
+4. Only after step 3 succeeds, apply
+   `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml`.
+   Wait until all three `*-tls-migration` stores report Ready, restart ESO, wait
+   for readiness again, and prove each existing consumer prefix refreshes.
+5. A later reviewed cutover may point canonical stores to `8202`; remove
+   `8200/8201` only after consumer readback.
+
+Before `warm_reads_licensed` is true, run the cache canary manually on `dev` with
+`prelicense_probe=true`, but only after setting repository variable
+`OYA_CAS_IDENTITY_PROOF_ENABLED=true`. The next trusted `dev` push seeds the CAS
+through the isolated writer PKI; the explicit canary then reads those entries
+through the reader PKI without changing the license. Leave the variable absent
+until every prerequisite below exists. Scheduled runs remain fail-closed while
+unlicensed.
+
+**Rollback:** delete the three `*-tls-migration` ClusterSecretStores, re-apply
+`infra/kms/openbao.k8s.yaml`, wait for the base Deployment rollout, and verify
+the three canonical stores are Ready on `8200`. Preserve the bootstrap TLS
+Secret for diagnosis/forward repair; do not print or export it.
+
+The OIDC role payloads in `openbao-ci-identity-contract` bind audience
+`oya-openbao`, immutable repository/owner IDs, private visibility,
+self-hosted runners, exact `sub`/`workflow_ref`, and exact event/ref claims. JWTs are
+bounded to five minutes; issued client leaves are bounded to three hours.
+
+### Authenticated CI identity bootstrap
+
+Prerequisites are an unsealed OpenBao, an authenticated operator session in
+`BAO_TOKEN`, the public OpenBao HTTPS CA in `OYA_OPENBAO_CA_CERT`, and the
+NativeLink server certificate's independent public CA in
+`OYA_NATIVELINK_SERVER_CA_CERT`. Run from the repository root with `bao` and
+`kubectl`; the commands redirect PKI material to a mode-0700 temporary directory
+and print no token, private key, certificate, or ConfigMap body.
+
+```sh
+set -eu
+umask 077
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+kubectl apply -f infra/kms/openbao-ci-identity.k8s.yaml >/dev/null
+for namespace in external-secrets arc-runners; do
+  kubectl -n "$namespace" create configmap openbao-offline-root-ca \
+    --from-file=ca.crt="$OYA_OPENBAO_CA_CERT" \
+    --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+done
+kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+  -o jsonpath='{.data.jwt-config\.json}' >"$tmp/jwt-config.json"
+bao auth enable -path=jwt jwt >/dev/null 2>&1 || bao auth list -format=json | grep -q '"jwt/"'
+bao write auth/jwt/config @"$tmp/jwt-config.json" >/dev/null
+
+for identity in writer reader; do
+  mount="pki_cas_${identity}"
+  role="cas-${identity}"
+  if bao secrets list -format=json | grep -q "\"${mount}/\""; then
+    bao read -field=certificate "$mount/cert/ca" >"$tmp/${identity}-client-ca.crt"
+  else
+    bao secrets enable -path="$mount" pki >/dev/null
+    bao secrets tune -max-lease-ttl=8760h "$mount" >/dev/null
+    bao write -field=certificate "$mount/root/generate/internal" \
+      common_name="Oyatie CAS ${identity} client root" ttl=8760h >"$tmp/${identity}-client-ca.crt"
+  fi
+  kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+    -o "jsonpath={.data.pki-cas-${identity}\.json}" >"$tmp/pki-role.json"
+  bao write "$mount/roles/$role" @"$tmp/pki-role.json" >/dev/null
+  kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+    -o "jsonpath={.data.ci-cas-${identity}\.hcl}" >"$tmp/policy.hcl"
+  bao policy write "ci-cas-${identity}" "$tmp/policy.hcl" >/dev/null
+done
+
+for binding in github-cas-writer-dev-push github-cas-reader-integrity-canary; do
+  kubectl -n oya-kms get configmap openbao-ci-identity-contract \
+    -o "jsonpath={.data.${binding}\.json}" >"$tmp/jwt-role.json"
+  bao write "auth/jwt/role/$binding" @"$tmp/jwt-role.json" >/dev/null
+done
+
+# Store only public trust bundles beside the independently provisioned server key.
+bao kv patch secret/oya/ci/nativelink-cas-tls \
+  writer-client-ca=@"$tmp/writer-client-ca.crt" \
+  reader-client-ca=@"$tmp/reader-client-ca.crt" >/dev/null
+kubectl -n arc-runners create configmap nativelink-server-ca \
+  --from-file=ca.crt="$OYA_NATIVELINK_SERVER_CA_CERT" \
+  --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+```
+
+Read back names and metadata only: both PKI mounts must exist with different CA
+serials, both JWT roles must report five-minute maximum TTLs, both policies must
+name only their matching mount, and the NativeLink ExternalSecret must be Ready.
+After enabling the repository variable, capture live proof from fresh runner pods:
+writer succeeds on `:50051`, reader succeeds on `:50052`, and an `openssl
+s_client` handshake using the reader leaf against `:50051` fails. A successful
+reader-to-writer handshake is a hard stop: unset the variable and rotate both
+client roots before proceeding.
+
 ## The auth-delegator / `disable_local_ca_jwt` invariant (read this first)
 
 The whole binding hinges on **one** OpenBao config flag:

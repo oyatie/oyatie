@@ -1,0 +1,120 @@
+# Apply only after the bootstrap has created Secret oya-kms/openbao-server-tls.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openbao-tls-migration-config
+  namespace: oya-kms
+data:
+  openbao.hcl: |
+    storage "file" { path = "/openbao/data" }
+    listener "tcp" {
+      address         = "0.0.0.0:8200"
+      cluster_address = "0.0.0.0:8201"
+      tls_disable     = true
+    }
+    listener "tcp" {
+      address         = "0.0.0.0:8202"
+      cluster_address = "0.0.0.0:8203"
+      tls_cert_file   = "/openbao/tls/tls.crt"
+      tls_key_file    = "/openbao/tls/tls.key"
+      tls_min_version = "tls13"
+    }
+    api_addr     = "https://openbao.oya-kms.svc.cluster.local:8202"
+    cluster_addr = "https://openbao.oya-kms.svc.cluster.local:8203"
+    ui = true
+    log_level = "info"
+    default_lease_ttl = "768h"
+    max_lease_ttl = "8760h"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openbao
+  namespace: oya-kms
+  labels: { app.kubernetes.io/name: openbao }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector: { matchLabels: { app.kubernetes.io/name: openbao } }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: openbao }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: openbao
+          image: ghcr.io/openbao/openbao@sha256:5b2486ab0fb90bbc788cc345b0a08616dfb375873ee8be5df3a2fd4d378a67e0
+          imagePullPolicy: IfNotPresent
+          args: ["server", "-config=/openbao/config/openbao.hcl"]
+          ports:
+            - { name: http, containerPort: 8200 }
+            - { name: cluster, containerPort: 8201 }
+            - { name: https, containerPort: 8202 }
+            - { name: cluster-tls, containerPort: 8203 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          volumeMounts:
+            - { name: config, mountPath: /openbao/config }
+            - { name: data, mountPath: /openbao/data }
+            - { name: tls, mountPath: /openbao/tls, readOnly: true }
+          readinessProbe:
+            tcpSocket: { port: https }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap: { name: openbao-tls-migration-config }
+        - name: data
+          persistentVolumeClaim: { claimName: openbao-data }
+        - name: tls
+          secret: { secretName: openbao-server-tls, defaultMode: 0440 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openbao
+  namespace: oya-kms
+spec:
+  selector: { app.kubernetes.io/name: openbao }
+  ports:
+    - { name: http, port: 8200, targetPort: http }
+    - { name: cluster, port: 8201, targetPort: cluster }
+    - { name: https, port: 8202, targetPort: https }
+    - { name: cluster-tls, port: 8203, targetPort: cluster-tls }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: openbao-ingress
+  namespace: oya-kms
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: openbao }
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: external-secrets }
+      ports:
+        - { protocol: TCP, port: 8200 }
+        - { protocol: TCP, port: 8202 }
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: arc-runners }
+      ports:
+        - { protocol: TCP, port: 8202 }
+    - from:
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: oya-kms }
+      ports:
+        - { protocol: TCP, port: 8201 }
+        - { protocol: TCP, port: 8203 }
