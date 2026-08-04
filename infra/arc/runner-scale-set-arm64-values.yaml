@@ -26,12 +26,6 @@ controllerServiceAccount:
 # second claim from sharing that filesystem; no 4 Gi reserve is claimed.
 maxRunners: 1
 minRunners: 0
-listenerTemplate:
-  metadata:
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "8080"
-      prometheus.io/path: /metrics
 listenerMetrics:
   gauges:
     gha_assigned_jobs:
@@ -68,7 +62,7 @@ template:
     # that platform's buck2 cache namespace (action keys include cpu:/os:).
     nodeSelector:
       kubernetes.io/arch: arm64
-      kubernetes.io/hostname: oya-talos-worker-2
+      kubernetes.io/hostname: oya-talos-worker-1
     securityContext:
       fsGroup: 1001
       fsGroupChangePolicy: OnRootMismatch

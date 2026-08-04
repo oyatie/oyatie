@@ -362,16 +362,24 @@
       "prefix": "ci/facade/reset-eligibility-policy/"
     },
     {
-      "anchor": "ADR-0630 D9 / issue #1504: exact GitOps manifest for the separate fail-closed ARC workspace provisioner and two path-bound StorageClasses rooted only on distinct fixed Talos workspace volumes.",
+      "anchor": "ADR-0630 D9 / issue #1504: exact GitOps manifest for the separate fail-closed ARC workspace provisioner and two path-bound StorageClasses admitted on distinct worker nodes and fixed Talos workspace volumes.",
       "prefix": "infra/arc/ci-workspace-storage.yaml"
     },
     {
-      "anchor": "ADR-0630 D9 / issue #1504: exact PrometheusRule surface for runner node pressure, workspace capacity, writable-layer growth, eviction, cleanup latency, and queue-delay guardrails.",
+      "anchor": "ADR-0630 D9 / issue #1504: exact PrometheusRule surface for both runner nodes' pressure, workspace capacity, writable-layer growth, eviction, cleanup latency, and queue-delay guardrails.",
       "prefix": "infra/arc/ci-workspace-alerts.yaml"
     },
     {
-      "anchor": "ADR-0630 D5/D9 / issue #1504: exact Talos worker-2 machine patch selecting the blank non-system 150GiB vdb and provisioning two physically separate fixed 48GiB CI workspace user volumes.",
+      "anchor": "ADR-0630 D5/D9 / issue #1504: exact Talos worker-1 machine patch selecting the blank non-system 150GiB vdb and provisioning the fixed 48GiB general-runner workspace user volume.",
+      "prefix": "infra/talos/local/patches/ci-workspace-worker-1.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D5/D9 / issue #1504: exact Talos worker-2 machine patch selecting the blank non-system 150GiB vdb, provisioning the fixed 48GiB live-PostgreSQL workspace, and preserving the unadmitted general-workspace rollback reserve.",
       "prefix": "infra/talos/local/patches/ci-workspace-worker-2.yaml"
+    },
+    {
+      "anchor": "ADR-0630 D5/D9 / issue #1504: canonical Buck package declaration that makes the Talos runner-workspace patch YAML a hermetic corpus input.",
+      "prefix": "infra/talos/local/patches/BUCK"
     },
     {
       "anchor": "ADR-0630 D6/D9: exact ARC Buck package declaration indexing the deployment YAML corpus and registering the repository-side workspace capacity contract test.",

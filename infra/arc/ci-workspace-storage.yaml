@@ -80,7 +80,7 @@ metadata:
   namespace: oya-ci-workspace-storage
 data:
   config.json: |-
-    {"nodePathMap":[{"node":"oya-talos-worker-2","paths":["/var/mnt/ci-workspace-general","/var/mnt/ci-workspace-live-postgres"]}]}
+    {"nodePathMap":[{"node":"oya-talos-worker-1","paths":["/var/mnt/ci-workspace-general"]},{"node":"oya-talos-worker-2","paths":["/var/mnt/ci-workspace-live-postgres"]}]}
   setup: |-
     #!/bin/sh
     set -eu
