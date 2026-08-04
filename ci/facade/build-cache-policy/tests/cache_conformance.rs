@@ -62,7 +62,17 @@ fn invocation_record_fixture(
         "cache_upload_attempt_count": 0,
         "cache_upload_count": 0,
         "exit_result_name": "SUCCESS",
-        "last_snapshot": { "re_action_cache_started": action_hits },
+        "last_snapshot": {
+            "re_action_cache_started": action_hits,
+            "re_action_cache_finished_with_error": 0,
+            "re_upload_bytes": 0,
+            "re_uploads_started": 0,
+            "re_uploads_finished_successfully": 0,
+            "re_uploads_finished_with_error": 0,
+            "re_download_bytes": if action_hits > 0 { 1024 } else { 0 },
+            "re_downloads_finished_successfully": action_hits,
+            "re_downloads_finished_with_error": 0
+        },
     })
 }
 
@@ -995,6 +1005,7 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
         "expected a typed peer alert before HTTP/2/gRPC",
         "Capabilities probe requires negotiated HTTP/2 and HTTP 200",
         "Capabilities response must contain exactly one grpc-status trailer",
+        "assert_writer_seed_record",
     ] {
         assert!(
             controller.contains(binding),
@@ -1082,9 +1093,7 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(canary.contains("--prelicense-probe"));
     assert!(canary.contains("OYA_CACHE_TLS_CLIENT_CERT: /tmp/oya-cache-client.pem"));
     assert!(canary.contains("OYA_CACHE_TLS_CA_CERTS: /tmp/oya-cache-server-ca.pem"));
-    assert!(canary.contains("OYA_CAS_BOUNDARY_PROOF_OUT: /tmp/cas-identity-boundary-proof.json"));
-    assert!(canary.contains("name: Upload typed CAS identity boundary proof"));
-    assert!(canary.contains("if-no-files-found: error"));
+    assert!(!canary.contains("cas-identity-boundary-"));
     assert!(!canary.contains("${{ runner.temp }}"));
     assert!(!canary.contains("name: Exchange GitHub OIDC"));
     assert!(!canary.contains("name: Remove short-lived cache identity"));
