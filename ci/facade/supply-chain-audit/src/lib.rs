@@ -15,6 +15,23 @@
 //! mirror-manifest.json}` produced by `oya-advisory-mirror-kernel`. That keeps the gate buck2-cacheable
 //! and deterministic.
 //!
+//! ## Lockfile coverage (DERIVED, never hand-listed)
+//! The repo has MORE THAN ONE cargo workspace: the root plus the ADR-0512 carve-outs under `kernel/`
+//! and `cloud/cloud-kernel/`. The policy used to name ONE `lockfile_path` string, so every crate
+//! pinned only by a nested lockfile was never scanned — a silent COVERAGE hole, not an incident.
+//! The set is now DERIVED by [`discover_lockfiles`]: every committed `Cargo.lock` whose sibling
+//! `Cargo.toml` declares a `[workspace]` table (i.e. one a workspace ROOT owns) is scanned. A
+//! hand-listed array would rot exactly the way the single string did — a new carve-out would be
+//! invisible until somebody remembered to append it. Derivation makes a new workspace covered
+//! BY CONSTRUCTION. A workspace root with no committed lockfile pins nothing and contributes
+//! nothing; a `Cargo.lock` with NO workspace-declaring sibling is an orphan cargo itself ignores
+//! (only a workspace root's lock is authoritative) and is deliberately NOT scanned — flagging dead
+//! bytes would be a false positive against a dependency set nothing builds.
+//! `policy.min_lockfiles` is the fail-closed FLOOR (same shape as `min_advisories`): if discovery
+//! ever returns fewer owned lockfiles than the floor — a pruned directory, a deleted carve-out lock,
+//! a regressed walk — the gate goes RED with `SCA-LOCKFILE-UNDERFLOW` instead of scanning less and
+//! staying green. A floor is not a list: adding a workspace never edits it, losing one always trips it.
+//!
 //! ## Matching
 //! For each advisory whose `package` matches a locked crate `name`, the locked [`semver::Version`] is
 //! AFFECTED iff it satisfies NO `patched` and NO `unaffected` [`semver::VersionReq`]. Fail-closed: an
@@ -44,6 +61,8 @@
 //! - `SCA-STALE-IGNORE` — an ignore id matches no live affected advisory (shrink-only self-clean).
 //! - `SCA-MIRROR-MALFORMED` — the vendored mirror is corrupt / desynced (fail-closed).
 //! - `SCA-MIRROR-UNDERFLOW` — the mirror has too few advisories (fail-closed against a false-green).
+//! - `SCA-LOCKFILE-UNDERFLOW` — fewer workspace-owned lockfiles were discovered than
+//!   `policy.min_lockfiles` (fail-closed against a silently narrowed scan).
 //! - `SCA-POLICY-GATE-ID-MISMATCH` — the policy `gate_id` is not [`GATE_ID`] (fail-closed).
 //! - `SCA-POLICY-MALFORMED` — the policy is structurally invalid (fail-closed).
 //!
@@ -68,12 +87,13 @@ pub const REMEDIATION_DOCTRINE: &str =
      a reason, pull_chain, and remove_by date";
 
 /// The blocking + structural violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 7] = [
+pub const VIOLATION_CODES: [&str; 8] = [
     "SCA-VULN",
     "SCA-UNMAINTAINED",
     "SCA-STALE-IGNORE",
     "SCA-MIRROR-MALFORMED",
     "SCA-MIRROR-UNDERFLOW",
+    "SCA-LOCKFILE-UNDERFLOW",
     "SCA-POLICY-GATE-ID-MISMATCH",
     "SCA-POLICY-MALFORMED",
 ];
@@ -105,23 +125,85 @@ impl std::fmt::Display for CollectError {
 
 impl std::error::Error for CollectError {}
 
-/// Collect the observed graph: the locked crates from `Cargo.lock` + the vendored advisory snapshot.
+/// Directory names discovery never descends into: VCS metadata, build outputs, vendored node trees.
+/// None of them can hold a cargo workspace root of THIS repo, and buck-out/target hold generated
+/// copies whose presence would make the scan depend on whether a build had run (non-deterministic).
+const PRUNED_DIRS: [&str; 4] = [".git", "buck-out", "target", "node_modules"];
+
+/// Discover every `Cargo.lock` a cargo WORKSPACE ROOT owns, as repo-relative paths, sorted.
 ///
-/// The ONLY I/O. Reads `policy.lockfile_path` (TOML) and `policy.mirror_dir/{advisories.json,
-/// mirror-manifest.json}` (JSON). Emits
-/// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+/// A lockfile is OWNED iff its sibling `Cargo.toml` declares a `workspace` table — that is exactly
+/// cargo's own rule for which lock is authoritative. A lock next to a plain `[package]` member (or
+/// next to no manifest at all) is an orphan cargo ignores, and so does this gate.
+///
+/// DERIVED, not declared: a new nested workspace is covered the moment it is committed, with no
+/// policy edit. That is the whole point — the single `lockfile_path` string it replaces went stale
+/// the moment the second workspace appeared, and a hand-listed array would go stale the same way.
+pub fn discover_lockfiles(repo_root: &Path) -> Result<Vec<String>, CollectError> {
+    let mut found = Vec::new();
+    let mut stack = vec![repo_root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let entries = std::fs::read_dir(&dir)
+            .map_err(|e| CollectError::Io(format!("read_dir {}: {e}", dir.display())))?;
+        for entry in entries {
+            let entry =
+                entry.map_err(|e| CollectError::Io(format!("dir entry in {}: {e}", dir.display())))?;
+            let path = entry.path();
+            let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+                continue;
+            };
+            // `is_dir()` follows symlinks; a symlinked directory could re-enter the tree and loop.
+            let Ok(kind) = entry.file_type() else { continue };
+            if kind.is_dir() {
+                if !PRUNED_DIRS.contains(&name) {
+                    stack.push(path);
+                }
+            } else if name == "Cargo.lock" && manifest_declares_workspace(&dir)? {
+                let rel = path.strip_prefix(repo_root).unwrap_or(&path);
+                found.push(rel.to_string_lossy().replace('\\', "/"));
+            }
+        }
+    }
+    found.sort();
+    found.dedup();
+    Ok(found)
+}
+
+/// Whether `dir/Cargo.toml` exists and declares a `workspace` table (bare `[workspace]`,
+/// `[workspace.package]`, `[workspace.dependencies]` — any of them makes the dir a workspace root).
+fn manifest_declares_workspace(dir: &Path) -> Result<bool, CollectError> {
+    let manifest = dir.join("Cargo.toml");
+    if !manifest.is_file() {
+        return Ok(false);
+    }
+    let text = read_file(&manifest)?;
+    let doc: toml::Value = toml::from_str(&text)
+        .map_err(|e| CollectError::Parse(format!("{}: {e}", manifest.display())))?;
+    Ok(doc.get("workspace").is_some())
+}
+
+/// Collect the observed graph: the locked crates from EVERY workspace-owned `Cargo.lock` + the
+/// vendored advisory snapshot.
+///
+/// The ONLY I/O. Discovers lockfiles via [`discover_lockfiles`] (TOML) and reads
+/// `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON). Emits
+/// `{ "lockfiles": [ "<rel path>", .. ], "locked": [ { "name", "version", "lockfile" }, .. ],
+/// "advisories": [ <Advisory>, .. ], "manifest": {..} }`. Each locked crate carries the lockfile it
+/// came from so a finding can NAME its source instead of pointing at an unqualified crate name.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let lockfile_path = policy
-        .get("lockfile_path")
-        .and_then(Value::as_str)
-        .unwrap_or("Cargo.lock");
     let mirror_dir = policy
         .get("mirror_dir")
         .and_then(Value::as_str)
         .ok_or_else(|| CollectError::Parse("policy.mirror_dir is required".to_owned()))?;
 
-    let lock_text = read_file(&repo_root.join(lockfile_path))?;
-    let locked = parse_locked(&lock_text)?;
+    let lockfiles = discover_lockfiles(repo_root)?;
+    let mut locked: Vec<Value> = Vec::new();
+    for lockfile in &lockfiles {
+        let lock_text = read_file(&repo_root.join(lockfile))?;
+        locked.extend(parse_locked(&lock_text, lockfile)?);
+    }
+    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
+    locked.dedup();
 
     let advisories_text = read_file(&repo_root.join(mirror_dir).join("advisories.json"))?;
     let advisories: Value = serde_json::from_str(&advisories_text)
@@ -132,6 +214,7 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         .map_err(|e| CollectError::Parse(format!("mirror-manifest.json: {e}")))?;
 
     Ok(json!({
+        "lockfiles": lockfiles,
         "locked": locked,
         "advisories": advisories,
         "manifest": manifest,
@@ -143,14 +226,15 @@ fn read_file(path: &Path) -> Result<String, CollectError> {
         .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))
 }
 
-/// Parse the `[[package]]` table of a `Cargo.lock` into `[{ "name", "version" }]` (sorted, deduped).
-fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
+/// Parse the `[[package]]` table of one `Cargo.lock` into `[{ "name", "version", "lockfile" }]`.
+/// `lockfile` is the repo-relative path, carried so findings name their source.
+fn parse_locked(lock_text: &str, lockfile: &str) -> Result<Vec<Value>, CollectError> {
     let doc: toml::Value =
-        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("Cargo.lock: {e}")))?;
+        toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{lockfile}: {e}")))?;
     let packages = doc
         .get("package")
         .and_then(toml::Value::as_array)
-        .ok_or_else(|| CollectError::Parse("Cargo.lock has no [[package]] table".to_owned()))?;
+        .ok_or_else(|| CollectError::Parse(format!("{lockfile} has no [[package]] table")))?;
     let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
     for pkg in packages {
         let Some(name) = pkg.get("name").and_then(toml::Value::as_str) else {
@@ -159,18 +243,14 @@ fn parse_locked(lock_text: &str) -> Result<Vec<Value>, CollectError> {
         let Some(version) = pkg.get("version").and_then(toml::Value::as_str) else {
             continue;
         };
-        locked.push(json!({ "name": name, "version": version }));
+        locked.push(json!({ "name": name, "version": version, "lockfile": lockfile }));
     }
-    locked.sort_by(|a, b| locked_sort_key(a).cmp(&locked_sort_key(b)));
-    locked.dedup();
     Ok(locked)
 }
 
-fn locked_sort_key(v: &Value) -> (String, String) {
-    (
-        v.get("name").and_then(Value::as_str).unwrap_or("").to_owned(),
-        v.get("version").and_then(Value::as_str).unwrap_or("").to_owned(),
-    )
+fn locked_sort_key(v: &Value) -> (String, String, String) {
+    let field = |k: &str| v.get(k).and_then(Value::as_str).unwrap_or("").to_owned();
+    (field("name"), field("version"), field("lockfile"))
 }
 
 // ---------------------------------------------------------------------------
