@@ -23,8 +23,8 @@ use intelligence_kernel::{
 };
 use intelligence_rest::{
     AppState, ConfiguredBearerAdminAuthenticator, ConfiguredBearerIngressAuthenticator, EventSink,
-    LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore, TokenRefreshSingleflight,
-    build_router,
+    LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore,
+    UpstreamOAuthSingleflight, build_router,
 };
 use tower::ServiceExt; // for `oneshot`
 
@@ -100,7 +100,7 @@ fn make_state() -> Arc<AppState> {
         admin_bearer_token: None,
         environment: "test".to_string(),
         oauth_approved_providers: std::collections::HashSet::new(),
-        token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
+        upstream_oauth_singleflight: Arc::new(UpstreamOAuthSingleflight::new()),
         http_client: Arc::new(reqwest::Client::new()),
     })
 }

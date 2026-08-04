@@ -13,7 +13,7 @@
 //!   The adapter borrows `&reqwest::Client` — it does NOT own one. `AppState` holds
 //!   the shared `Arc<reqwest::Client>` so TLS handshakes and keep-alive connections
 //!   are pooled across requests.
-//! - Singleflight moved INSIDE `AnthropicAdapter::refresh_token` via
+//! - Singleflight is driven inside `AnthropicAdapter::refresh_token` via a process-shared
 //!   `tokio::sync::Mutex<HashMap<String, broadcast::Sender<...>>>`. Concurrent callers
 //!   on the same handle now coalesce exactly ONE upstream OAuth call (Item 2).
 //! - `handle_proxy` no longer uses `spawn_blocking`.
@@ -89,6 +89,8 @@ pub enum RestAdapterError {
     UpstreamError { status: u16, body: String },
     /// OAuth refresh token exchange failed.
     OAuthRefreshFailed(String),
+    /// OAuth rotation persistence requires the caller to retry the request.
+    OAuthRefreshRetryRequired,
     /// Kernel pool returned an error.
     PoolError(SubscriptionPoolError),
     /// Fan-out sink emit failed (logged; non-fatal in proxy path).
@@ -111,6 +113,9 @@ impl std::fmt::Display for RestAdapterError {
                 write!(f, "upstream error {status}: {body}")
             }
             Self::OAuthRefreshFailed(msg) => write!(f, "OAuth refresh failed: {msg}"),
+            Self::OAuthRefreshRetryRequired => {
+                write!(f, "OAuth refresh requires a request retry")
+            }
             Self::PoolError(e) => write!(f, "pool error: {e:?}"),
             Self::SinkEmitFailed(msg) => write!(f, "sink emit failed: {msg}"),
         }
@@ -322,9 +327,12 @@ pub struct AnthropicTokens {
 // Item 2 — upstream OAuth singleflight
 // ---------------------------------------------------------------------------
 
-/// Result type broadcast across concurrent waiters for a single token handle.
-/// `Ok` carries the new access token string; `Err` carries the error message.
-type RefreshResult = Result<String, String>; // data_class: INTERNAL_ONLY
+/// Result broadcast across concurrent waiters for one token handle.
+type RefreshResult = Result<String, RestAdapterError>; // data_class: INTERNAL_ONLY
+
+struct PendingOAuthRotation {
+    refresh_token: String, // data_class: SECRET
+}
 
 /// D3 upstream OAuth singleflight. Coalesces concurrent `refresh_token` calls
 /// for the same handle into exactly ONE upstream call. All concurrent callers
@@ -334,13 +342,44 @@ type RefreshResult = Result<String, String>; // data_class: INTERNAL_ONLY
 /// When a flight completes the entry is removed so the next caller starts fresh.
 pub struct UpstreamOAuthSingleflight {
     /// In-flight map: present = flight in progress. Absence = no flight.
-    flights: tokio::sync::Mutex<HashMap<String, broadcast::Sender<RefreshResult>>>, // data_class: INTERNAL_ONLY
+    flights: Arc<tokio::sync::Mutex<HashMap<String, broadcast::Sender<RefreshResult>>>>, // data_class: INTERNAL_ONLY
+    /// In-process recovery for an exchanged token not yet durably stored.
+    /// This does not close the process-crash atomicity gap.
+    pending_rotations: Arc<tokio::sync::Mutex<HashMap<String, Arc<PendingOAuthRotation>>>>, // data_class: SECRET
 }
 
 impl UpstreamOAuthSingleflight {
     pub fn new() -> Self {
         Self {
-            flights: tokio::sync::Mutex::new(HashMap::new()),
+            flights: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+            pending_rotations: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
+        }
+    }
+
+    async fn pending_rotation(&self, handle: &str) -> Option<Arc<PendingOAuthRotation>> {
+        self.pending_rotations.lock().await.get(handle).cloned()
+    }
+
+    async fn retain_pending_rotation(
+        &self,
+        handle: &str,
+        refresh_token: String,
+    ) -> Arc<PendingOAuthRotation> {
+        let pending = Arc::new(PendingOAuthRotation { refresh_token });
+        self.pending_rotations
+            .lock()
+            .await
+            .insert(handle.to_string(), Arc::clone(&pending));
+        pending
+    }
+
+    async fn clear_pending_rotation(&self, handle: &str, pending: &Arc<PendingOAuthRotation>) {
+        let mut rotations = self.pending_rotations.lock().await;
+        if rotations
+            .get(handle)
+            .is_some_and(|registered| Arc::ptr_eq(registered, pending))
+        {
+            rotations.remove(handle);
         }
     }
 
@@ -348,44 +387,94 @@ impl UpstreamOAuthSingleflight {
     /// All concurrent callers for the same handle wait on the broadcast channel
     /// and receive the leader's result.
     ///
-    /// `do_refresh` is an async closure/future that performs the actual upstream
-    /// OAuth call. It is awaited only by the leader task.
-    pub async fn refresh_or_wait<F, Fut>(
-        &self,
-        handle: &str,
-        do_refresh: F,
-    ) -> Result<String, String>
+    /// `do_refresh` owns the complete fetch/exchange/durable-rotation flight.
+    /// A helper-owned task drives it so cancelling the initiating request cannot
+    /// strand the keyed flight. Every caller, including the initiator, waits on
+    /// the same receiver.
+    pub async fn refresh_or_wait<F, Fut>(&self, handle: &str, do_refresh: F) -> RefreshResult
     where
-        F: FnOnce() -> Fut,
-        Fut: std::future::Future<Output = Result<String, String>>,
+        F: FnOnce() -> Fut + Send + 'static,
+        Fut: std::future::Future<Output = RefreshResult> + Send + 'static,
     {
-        let mut rx = {
+        let mut receiver = {
             let mut map = self.flights.lock().await;
-            if let Some(tx) = map.get(handle) {
-                // A flight is in progress — subscribe and wait below.
-                tx.subscribe()
+            if let Some(sender) = map.get(handle) {
+                sender.subscribe()
             } else {
-                // We are the leader. Create the broadcast channel (capacity 64 is
-                // ample; all subscribers will receive the single message sent).
-                let (tx, _rx) = broadcast::channel(64);
-                map.insert(handle.to_string(), tx.clone());
-                drop(map); // release lock before awaiting upstream
-
-                let result = do_refresh().await;
-                // Notify all waiters (ignore send errors: no active receivers is ok).
-                let _ = tx.send(result.clone());
-
-                // Remove flight so the next caller starts fresh.
-                self.flights.lock().await.remove(handle);
-
-                return result;
+                let (sender, receiver) = broadcast::channel(1);
+                map.insert(handle.to_string(), sender.clone());
+                let flights = Arc::clone(&self.flights);
+                let pending_rotations = Arc::clone(&self.pending_rotations);
+                let handle = handle.to_string();
+                tokio::spawn(async move {
+                    // The nested task converts both construction-time and poll-time
+                    // panics, plus task cancellation, into one shared typed result.
+                    let refresh_task = tokio::spawn(async move { do_refresh().await });
+                    // Resolve pending-rotation state before taking the flight
+                    // registry lock so cleanup never nests these mutexes.
+                    let task_result = refresh_task.await;
+                    let pending = pending_rotations.lock().await.contains_key(&handle);
+                    let result = if pending {
+                        // Never publish an access token while its rotated
+                        // refresh token is still only process-resident.
+                        Err(RestAdapterError::OAuthRefreshRetryRequired)
+                    } else {
+                        match task_result {
+                            Ok(result) => result,
+                            Err(error) => {
+                                let cause = if error.is_cancelled() {
+                                    "cancelled"
+                                } else if error.is_panic() {
+                                    "panicked"
+                                } else {
+                                    "terminated"
+                                };
+                                Err(RestAdapterError::OAuthRefreshFailed(format!(
+                                    "singleflight worker {cause}"
+                                )))
+                            }
+                        }
+                    };
+                    let mut map = flights.lock().await;
+                    if map
+                        .get(&handle)
+                        .is_some_and(|registered| registered.same_channel(&sender))
+                    {
+                        map.remove(&handle);
+                        // Remove and publish while holding the map lock. A later
+                        // caller cannot join an already-published flight.
+                        let _ = sender.send(result);
+                    } else {
+                        warn!(
+                            handle,
+                            "singleflight registry ownership changed before cleanup"
+                        );
+                        let error = if matches!(
+                            &result,
+                            Err(RestAdapterError::OAuthRefreshRetryRequired)
+                        ) {
+                            RestAdapterError::OAuthRefreshRetryRequired
+                        } else {
+                            RestAdapterError::OAuthRefreshFailed(
+                                "flight registry ownership changed before cleanup".to_string(),
+                            )
+                        };
+                        let _ = sender.send(Err(error));
+                    }
+                });
+                receiver
             }
         };
 
-        // Waiter path: await the broadcast result.
-        rx.recv()
-            .await
-            .unwrap_or_else(|_| Err("singleflight: leader channel closed unexpectedly".to_string()))
+        match receiver.recv().await {
+            Ok(result) => result,
+            Err(_) if self.pending_rotation(handle).await.is_some() => {
+                Err(RestAdapterError::OAuthRefreshRetryRequired)
+            }
+            Err(_) => Err(RestAdapterError::OAuthRefreshFailed(
+                "singleflight worker closed without a result".to_string(),
+            )),
+        }
     }
 }
 
@@ -395,9 +484,55 @@ impl Default for UpstreamOAuthSingleflight {
     }
 }
 
+const ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS: usize = 3;
+const ROTATED_REFRESH_TOKEN_STORE_RETRY_BASE_DELAY: Duration = Duration::from_millis(25);
+// Calibration knob pending production OpenBao p99 latency evidence.
+const ROTATED_REFRESH_TOKEN_STORE_ATTEMPT_TIMEOUT: Duration = Duration::from_secs(1);
+
+async fn persist_rotated_refresh_token<S: SecretProviderStore>(
+    secret_store: &S,
+    handle: &str,
+    rotated_refresh_token: &str,
+) -> Result<(), RestAdapterError> {
+    for attempt in 1..=ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS {
+        let store_result = tokio::time::timeout(
+            ROTATED_REFRESH_TOKEN_STORE_ATTEMPT_TIMEOUT,
+            secret_store.store_refresh_token(handle, rotated_refresh_token),
+        )
+        .await;
+
+        match store_result {
+            Ok(Ok(())) => return Ok(()),
+            Ok(Err(RestAdapterError::SecretStoreUnavailable(_))) => {
+                warn!(
+                    handle,
+                    attempt, "secret provider unavailable while persisting refresh-token rotation"
+                );
+            }
+            Ok(Err(_)) => return Err(RestAdapterError::OAuthRefreshRetryRequired),
+            Err(_) => warn!(
+                handle,
+                attempt, "refresh-token persistence attempt timed out"
+            ),
+        }
+
+        if attempt < ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS {
+            warn!(
+                handle,
+                attempt,
+                max_attempts = ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS,
+                "retrying durable refresh-token rotation"
+            );
+            tokio::time::sleep(ROTATED_REFRESH_TOKEN_STORE_RETRY_BASE_DELAY * attempt as u32).await;
+        }
+    }
+
+    Err(RestAdapterError::OAuthRefreshRetryRequired)
+}
+
 /// D3 Anthropic provider adapter. Responsible for:
 /// 1. Refreshing tokens before expiry (or on 401) via the Anthropic OAuth
-///    endpoint (coalesced via per-adapter [`UpstreamOAuthSingleflight`]).
+///    endpoint (coalesced via a process-shared [`UpstreamOAuthSingleflight`]).
 /// 2. Routing proxied requests to `https://api.anthropic.com` with the
 ///    bearer token fetched from [`SecretProviderStore`].
 ///
@@ -409,13 +544,13 @@ impl Default for UpstreamOAuthSingleflight {
 /// Codex OAuth flow in a follow-up PR. Scope boundary per ADR-0384 §v1-scope;
 /// tracked to closure as FRIC-1781133000 in the friction ledger.
 pub struct AnthropicAdapter<S: SecretProviderStore> {
-    secret_store: S,                              // data_class: INTERNAL_ONLY
+    secret_store: Arc<S>,                         // data_class: INTERNAL_ONLY
     singleflight: Arc<UpstreamOAuthSingleflight>, // data_class: INTERNAL_ONLY
     base_url: String,                             // data_class: INTERNAL_ONLY
     client_id: String,                            // data_class: INTERNAL_ONLY
 }
 
-impl<S: SecretProviderStore> AnthropicAdapter<S> {
+impl<S: SecretProviderStore + 'static> AnthropicAdapter<S> {
     /// Construct with a concrete [`SecretProviderStore`] implementation.
     /// Uses the default Anthropic base URL and client_id from ADR-0384.
     pub fn new(secret_store: S) -> Self {
@@ -424,9 +559,22 @@ impl<S: SecretProviderStore> AnthropicAdapter<S> {
 
     /// Construct with a custom base URL (for testing against a local mock server).
     pub fn with_base_url(secret_store: S, base_url: String) -> Self {
-        Self {
+        Self::with_base_url_and_singleflight(
             secret_store,
-            singleflight: Arc::new(UpstreamOAuthSingleflight::new()),
+            base_url,
+            Arc::new(UpstreamOAuthSingleflight::new()),
+        )
+    }
+
+    /// Construct with a process-shared keyed flight registry.
+    pub fn with_base_url_and_singleflight(
+        secret_store: S,
+        base_url: String,
+        singleflight: Arc<UpstreamOAuthSingleflight>,
+    ) -> Self {
+        Self {
+            secret_store: Arc::new(secret_store),
+            singleflight,
             base_url,
             client_id: ANTHROPIC_CLIENT_ID.to_string(),
         }
@@ -495,70 +643,72 @@ impl<S: SecretProviderStore> AnthropicAdapter<S> {
         http_client: &reqwest::Client,
         refresh_token_handle: &str,
     ) -> Result<String, RestAdapterError> {
-        let current_refresh = self
-            .secret_store
-            .fetch_refresh_token(refresh_token_handle)
-            .await?;
-
         let url = format!("{}/v1/oauth/token", self.base_url);
         let client_id = self.client_id.clone();
         let handle = refresh_token_handle.to_string();
+        let secret_store = Arc::clone(&self.secret_store);
+        let http_client = http_client.clone();
+        let rotation_registry = Arc::clone(&self.singleflight);
 
         debug!(
             handle = refresh_token_handle,
             "refreshing Anthropic OAuth token via singleflight"
         );
 
-        let result = self
-            .singleflight
-            .refresh_or_wait(refresh_token_handle, || {
-                let url = url.clone();
-                let client_id = client_id.clone();
-                let current_refresh = current_refresh.clone();
-                let http_client = http_client.clone();
-                async move {
-                    let body = OAuthRefreshRequest {
-                        client_id: &client_id,
-                        grant_type: "refresh_token",
-                        refresh_token: &current_refresh,
-                    };
-                    let resp = http_client
-                        .post(&url)
-                        .json(&body)
-                        .send()
-                        .await
-                        .map_err(|e| e.to_string())?;
-                    let status = resp.status().as_u16();
-                    if !resp.status().is_success() {
-                        let text = resp.text().await.unwrap_or_default();
-                        return Err(format!("token refresh failed: HTTP {status}: {text}"));
-                    }
-                    let token_resp: OAuthTokenResponse =
-                        resp.json().await.map_err(|e| e.to_string())?;
-                    Ok(token_resp.access_token + "\x00" + &token_resp.refresh_token)
+        self.singleflight
+            .refresh_or_wait(refresh_token_handle, move || async move {
+                if let Some(pending) = rotation_registry.pending_rotation(&handle).await {
+                    persist_rotated_refresh_token(
+                        secret_store.as_ref(),
+                        &handle,
+                        &pending.refresh_token,
+                    )
+                    .await?;
+                    rotation_registry
+                        .clear_pending_rotation(&handle, &pending)
+                        .await;
+                    return Err(RestAdapterError::OAuthRefreshRetryRequired);
                 }
+
+                let current_refresh = secret_store.fetch_refresh_token(&handle).await?;
+                let body = OAuthRefreshRequest {
+                    client_id: &client_id,
+                    grant_type: "refresh_token",
+                    refresh_token: &current_refresh,
+                };
+                let resp = http_client
+                    .post(&url)
+                    .json(&body)
+                    .send()
+                    .await
+                    .map_err(|error| RestAdapterError::OAuthRefreshFailed(error.to_string()))?;
+                let status = resp.status().as_u16();
+                if !resp.status().is_success() {
+                    let text = resp.text().await.unwrap_or_default();
+                    return Err(RestAdapterError::OAuthRefreshFailed(format!(
+                        "token refresh failed: HTTP {status}: {text}"
+                    )));
+                }
+                let token_resp: OAuthTokenResponse = resp
+                    .json()
+                    .await
+                    .map_err(|error| RestAdapterError::OAuthRefreshFailed(error.to_string()))?;
+                let access_token = token_resp.access_token;
+                let pending = rotation_registry
+                    .retain_pending_rotation(&handle, token_resp.refresh_token)
+                    .await;
+                persist_rotated_refresh_token(
+                    secret_store.as_ref(),
+                    &handle,
+                    &pending.refresh_token,
+                )
+                .await?;
+                rotation_registry
+                    .clear_pending_rotation(&handle, &pending)
+                    .await;
+                Ok(access_token)
             })
             .await
-            .map_err(RestAdapterError::OAuthRefreshFailed)?;
-
-        // Result is encoded as "access_token\x00new_refresh_token".
-        let mut parts = result.splitn(2, '\x00');
-        let access_token = parts.next().unwrap_or("").to_string();
-        let new_refresh = parts.next().unwrap_or("");
-
-        if !new_refresh.is_empty() {
-            // Rotate refresh token in secret store (best-effort for followers — leader
-            // already stored it; followers store again which is idempotent).
-            if let Err(error) = self
-                .secret_store
-                .store_refresh_token(&handle, new_refresh)
-                .await
-            {
-                warn!(?error, handle = %handle, "failed to rotate refreshed OAuth token");
-            }
-        }
-
-        Ok(access_token)
     }
 
     /// Forward `request` to the Anthropic API using the bearer token obtained
@@ -1012,104 +1162,6 @@ impl Stream for SseStreamWithLease {
 // D2 — axum router
 // ---------------------------------------------------------------------------
 
-/// Cached access token with its expiry wall-clock time.
-#[derive(Clone, Debug)]
-pub struct CachedToken {
-    pub access_token: String, // data_class: INTERNAL_ONLY
-    pub expires_at: Instant,  // data_class: INTERNAL_ONLY
-}
-
-/// Singleflight coalescer (legacy sync version, kept for backward compat with
-/// existing tests in d3_refresh_singleflight.rs). New code uses
-/// [`UpstreamOAuthSingleflight`] which is fully async.
-///
-/// In-flight refresh state for a single token handle.
-enum RefreshState {
-    /// Refresh is in progress; waiters block on the [`std::sync::Condvar`].
-    InFlight,
-    /// Refresh completed successfully.
-    Done(CachedToken),
-    /// Refresh failed with this error message.
-    Failed(String),
-}
-
-/// Shared state slot for a single in-flight token refresh.
-type FlightSlot = Arc<(Mutex<RefreshState>, std::sync::Condvar)>; // data_class: INTERNAL_ONLY
-
-/// Singleflight coalescer for token refreshes (sync, blocking). Ensures at
-/// most one in-flight token exchange per handle at any time. Kept for
-/// backward-compatibility with the Stage-5 singleflight tests.
-pub struct TokenRefreshSingleflight {
-    flights: Mutex<HashMap<String, FlightSlot>>, // data_class: INTERNAL_ONLY
-}
-
-impl TokenRefreshSingleflight {
-    pub fn new() -> Self {
-        Self {
-            flights: Mutex::new(HashMap::new()),
-        }
-    }
-
-    /// Refresh (or wait for an in-flight refresh) for `handle`.
-    ///
-    /// `do_refresh` is called exactly once per handle per flight. All other
-    /// concurrent callers for the same handle block until that call returns and
-    /// then receive the same result.
-    pub fn refresh_or_wait<F>(&self, handle: &str, do_refresh: F) -> Result<CachedToken, String>
-    where
-        F: FnOnce() -> Result<CachedToken, String>,
-    {
-        let (slot, is_leader) = {
-            let mut map = self.flights.lock().unwrap();
-            if let Some(existing) = map.get(handle) {
-                (Arc::clone(existing), false)
-            } else {
-                let slot: Arc<(Mutex<RefreshState>, std::sync::Condvar)> = Arc::new((
-                    Mutex::new(RefreshState::InFlight),
-                    std::sync::Condvar::new(),
-                ));
-                map.insert(handle.to_string(), Arc::clone(&slot));
-                (slot, true)
-            }
-        };
-
-        let (state_lock, cvar) = slot.as_ref();
-
-        if is_leader {
-            let result = do_refresh();
-            {
-                let mut state = state_lock.lock().unwrap();
-                *state = match &result {
-                    Ok(tok) => RefreshState::Done(tok.clone()),
-                    Err(e) => RefreshState::Failed(e.clone()),
-                };
-            }
-            cvar.notify_all();
-            self.flights.lock().unwrap().remove(handle);
-            result
-        } else {
-            let state = cvar
-                .wait_while(state_lock.lock().unwrap(), |s| {
-                    matches!(s, RefreshState::InFlight)
-                })
-                .unwrap();
-            match &*state {
-                RefreshState::Done(tok) => Ok(tok.clone()),
-                RefreshState::Failed(e) => Err(e.clone()),
-                RefreshState::InFlight => {
-                    Err("singleflight: unexpected InFlight after wait".to_string())
-                }
-            }
-        }
-    }
-}
-
-impl Default for TokenRefreshSingleflight {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Registry of static or dynamically registered tenant/provider pools.
 ///
 /// The v1 proxy path still uses `AppState::pool` as the default Anthropic
@@ -1335,8 +1387,8 @@ pub struct AppState {
     /// In production, runtime admin registration of an OAuth-subscription seat
     /// is rejected unless the provider is present here.
     pub oauth_approved_providers: std::collections::HashSet<Provider>, // data_class: INTERNAL_ONLY
-    /// D3 singleflight coalescer (sync, legacy). Kept for test compat.
-    pub token_singleflight: Arc<TokenRefreshSingleflight>, // data_class: INTERNAL_ONLY
+    /// Process-shared D3 upstream OAuth keyed-flight registry.
+    pub upstream_oauth_singleflight: Arc<UpstreamOAuthSingleflight>, // data_class: INTERNAL_ONLY
     /// Shared async reqwest::Client — amortizes TLS handshakes + keep-alive
     /// across all proxy requests (Item 1). ADR-0090 blessed HTTP backbone.
     pub http_client: Arc<reqwest::Client>, // data_class: INTERNAL_ONLY
@@ -1424,7 +1476,7 @@ impl AppState {
             admin_bearer_token,
             environment,
             oauth_approved_providers,
-            token_singleflight: Arc::new(TokenRefreshSingleflight::new()),
+            upstream_oauth_singleflight: Arc::new(UpstreamOAuthSingleflight::new()),
             http_client,
         })
     }
@@ -2115,6 +2167,15 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .with_state(state)
 }
 
+fn oauth_refresh_retry_response(lease: SeatLease) -> Response {
+    let _ = lease.complete(SeatOutcome::Released, Instant::now());
+    axum::response::Response::builder()
+        .status(StatusCode::SERVICE_UNAVAILABLE)
+        .header("retry-after", "1")
+        .body(Body::empty())
+        .unwrap_or_else(|_| StatusCode::SERVICE_UNAVAILABLE.into_response())
+}
+
 /// POST /v1/messages handler.
 async fn handle_proxy(
     State(state): State<Arc<AppState>>,
@@ -2233,11 +2294,12 @@ async fn handle_proxy(
     };
 
     // Build the async adapter (no spawn_blocking — Item 1).
-    let adapter = AnthropicAdapter::with_base_url(
+    let adapter = AnthropicAdapter::with_base_url_and_singleflight(
         ArcSecretStore {
             inner: Arc::clone(&state.secret_store),
         },
         state.anthropic_base_url.clone(),
+        Arc::clone(&state.upstream_oauth_singleflight),
     );
 
     // Detect SSE streaming intent from the Accept header.
@@ -2257,6 +2319,9 @@ async fn handle_proxy(
                     .await
                 {
                     Ok(t) => t,
+                    Err(RestAdapterError::OAuthRefreshRetryRequired) => {
+                        return oauth_refresh_retry_response(lease);
+                    }
                     Err(_) => {
                         let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
                         return StatusCode::INTERNAL_SERVER_ERROR.into_response();
@@ -2304,6 +2369,7 @@ async fn handle_proxy(
                     .body(body)
                     .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
             }
+            Err(RestAdapterError::OAuthRefreshRetryRequired) => oauth_refresh_retry_response(lease),
             Err(RestAdapterError::OAuthRefreshFailed(_)) => {
                 let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -2385,6 +2451,7 @@ async fn handle_proxy(
                     .body(Body::from(resp.body))
                     .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
             }
+            Err(RestAdapterError::OAuthRefreshRetryRequired) => oauth_refresh_retry_response(lease),
             Err(RestAdapterError::OAuthRefreshFailed(_)) => {
                 let _ = lease.complete(SeatOutcome::RefreshFailed, Instant::now());
                 StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -4259,6 +4326,45 @@ mod tests {
         }
     }
 
+    struct RotationStoreState {
+        token: String,
+        reject_writes: bool,
+        fetch_count: usize,
+        store_count: usize,
+    }
+
+    struct RotationPersistenceStore {
+        state: Arc<Mutex<RotationStoreState>>,
+    }
+
+    impl SecretProviderStore for RotationPersistenceStore {
+        fn fetch_refresh_token<'a>(&'a self, _handle: &'a str) -> SecretProviderFuture<'a, String> {
+            Box::pin(async move {
+                let mut state = self.state.lock().unwrap();
+                state.fetch_count += 1;
+                Ok(state.token.clone())
+            })
+        }
+
+        fn store_refresh_token<'a>(
+            &'a self,
+            _handle: &'a str,
+            plaintext: &'a str,
+        ) -> SecretProviderFuture<'a, ()> {
+            Box::pin(async move {
+                let mut state = self.state.lock().unwrap();
+                state.store_count += 1;
+                if state.reject_writes {
+                    return Err(RestAdapterError::SecretStoreUnavailable(
+                        "injected OpenBao outage".to_string(),
+                    ));
+                }
+                state.token = plaintext.to_string();
+                Ok(())
+            })
+        }
+    }
+
     fn test_state(has_seat: bool, secret_store_ready: bool) -> Arc<AppState> {
         test_state_with_secret_store(
             has_seat,
@@ -5381,6 +5487,23 @@ mod tests {
         credential_mode: CredentialMode,
         secret_handle: &str,
     ) -> Arc<AppState> {
+        proxy_state_with_secret_store(
+            base_url,
+            credential_mode,
+            secret_handle,
+            Arc::new(MemorySecretStore { ready: true }),
+            0,
+        )
+        .0
+    }
+
+    fn proxy_state_with_secret_store(
+        base_url: String,
+        credential_mode: CredentialMode,
+        secret_handle: &str,
+        secret_store: Arc<dyn SecretProviderStore>,
+        failure_count: u32,
+    ) -> (Arc<AppState>, Arc<Mutex<SubscriptionPool>>) {
         let tenant_id = TenantId::new("tenant-a").unwrap();
         let seat_id = SeatId::new("seat-a").unwrap();
         let mut pool = SubscriptionPool::new(
@@ -5396,7 +5519,7 @@ mod tests {
                 Provider::Anthropic,
                 SubscriptionState::Active,
                 secret_handle.to_string(),
-                0,
+                failure_count,
             )
             .with_credential_mode(credential_mode),
         )
@@ -5405,13 +5528,13 @@ mod tests {
         let pool = Arc::new(Mutex::new(pool));
         let registry = PoolRegistry::new();
         registry.insert_pool(tenant_id.clone(), Provider::Anthropic, Arc::clone(&pool));
-        Arc::new(
+        let state = Arc::new(
             AppState::new_with_pool_registry(
-                pool,
+                Arc::clone(&pool),
                 registry,
                 Arc::new(AllowGate),
                 Arc::new(NoopSink),
-                Arc::new(MemorySecretStore { ready: true }),
+                secret_store,
                 base_url,
                 tenant_id,
                 Some("ingress-token".to_string()),
@@ -5420,7 +5543,8 @@ mod tests {
                 std::collections::HashSet::new(),
             )
             .unwrap(),
-        )
+        );
+        (state, pool)
     }
 
     fn openai_proxy_state(base_url: String) -> Arc<AppState> {
@@ -6121,6 +6245,24 @@ mod tests {
             .unwrap()
     }
 
+    fn anthropic_proxy_request() -> Request<Body> {
+        Request::builder()
+            .method("POST")
+            .uri("/v1/messages")
+            .header("authorization", "Bearer ingress-token")
+            .header("x-agent-id", "agent-a")
+            .body(Body::from(r#"{"model":"claude-test","messages":[]}"#))
+            .unwrap()
+    }
+
+    fn anthropic_sse_proxy_request() -> Request<Body> {
+        let mut request = anthropic_proxy_request();
+        request
+            .headers_mut()
+            .insert("accept", HeaderValue::from_static("text/event-stream"));
+        request
+    }
+
     #[tokio::test]
     async fn production_admin_register_oauth_rejected_when_provider_pending() {
         let response = build_router(admin_state("production", std::collections::HashSet::new()))
@@ -6259,6 +6401,147 @@ mod tests {
             !messages_req.to_ascii_lowercase().contains("x-api-key:"),
             "OAuth path must not send x-api-key"
         );
+    }
+
+    #[tokio::test]
+    async fn rotation_persistence_outage_releases_seat_and_recovers_without_old_token_replay() {
+        let first_token_body = r#"{"access_token":"access-first","refresh_token":"rotated-refresh","expires_in":3600}"#;
+        let next_token_body =
+            r#"{"access_token":"access-next","refresh_token":"final-refresh","expires_in":3600}"#;
+        let message_body = r#"{"ok":true}"#;
+        let response = |body: &'static str| {
+            Box::leak(
+                format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{body}",
+                    body.len()
+                )
+                .into_boxed_str(),
+            ) as &'static str
+        };
+        let (base_url, received, _server) = recording_multi_request_server(vec![
+            response(first_token_body),
+            response(next_token_body),
+            response(message_body),
+        ]);
+        let store_state = Arc::new(Mutex::new(RotationStoreState {
+            token: "single-use-old".to_string(),
+            reject_writes: true,
+            fetch_count: 0,
+            store_count: 0,
+        }));
+        let (state, pool) = proxy_state_with_secret_store(
+            base_url,
+            CredentialMode::OAuthSubscription,
+            "secret-ref://tenant-a/anthropic/seat-a",
+            Arc::new(RotationPersistenceStore {
+                state: Arc::clone(&store_state),
+            }),
+            5,
+        );
+        let router = build_router(state);
+
+        for failure in 1..=6 {
+            let request = if failure == 1 {
+                anthropic_sse_proxy_request()
+            } else {
+                anthropic_proxy_request()
+            };
+            let response = router.clone().oneshot(request).await.unwrap();
+            assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+            assert_eq!(
+                response.headers().get("retry-after"),
+                Some(&HeaderValue::from_static("1"))
+            );
+            if failure == 1 {
+                assert_ne!(
+                    response.headers().get("content-type"),
+                    Some(&HeaderValue::from_static("text/event-stream"))
+                );
+            }
+            let response_body = response.into_body().collect().await.unwrap().to_bytes();
+            assert!(response_body.is_empty());
+            let response_text = String::from_utf8_lossy(&response_body);
+            assert!(!response_text.contains("single-use-old"));
+            assert!(!response_text.contains("rotated-refresh"));
+            let store = store_state.lock().unwrap();
+            assert_eq!(store.fetch_count, 1);
+            assert_eq!(
+                store.store_count,
+                failure * ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS
+            );
+            assert_eq!(store.token, "single-use-old");
+            drop(store);
+            let pool = pool.lock().unwrap();
+            let statuses = pool.redacted_seat_statuses(Instant::now());
+            assert_eq!(statuses[0].state, "active");
+            assert!(pool.has_eligible_seat(Instant::now()));
+        }
+        assert_eq!(received.lock().unwrap().len(), 1);
+
+        store_state.lock().unwrap().reject_writes = false;
+        let recovered = router
+            .clone()
+            .oneshot(anthropic_proxy_request())
+            .await
+            .unwrap();
+        assert_eq!(recovered.status(), StatusCode::SERVICE_UNAVAILABLE);
+        assert_eq!(
+            recovered.headers().get("retry-after"),
+            Some(&HeaderValue::from_static("1"))
+        );
+        let recovered_body = recovered.into_body().collect().await.unwrap().to_bytes();
+        assert!(recovered_body.is_empty());
+        let recovered_text = String::from_utf8_lossy(&recovered_body);
+        assert!(!recovered_text.contains("single-use-old"));
+        assert!(!recovered_text.contains("rotated-refresh"));
+        {
+            let store = store_state.lock().unwrap();
+            assert_eq!(store.fetch_count, 1);
+            assert_eq!(
+                store.store_count,
+                6 * ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS + 1
+            );
+            assert_eq!(store.token, "rotated-refresh");
+        }
+        assert_eq!(received.lock().unwrap().len(), 1);
+        {
+            let pool = pool.lock().unwrap();
+            assert_eq!(
+                pool.redacted_seat_statuses(Instant::now())[0].state,
+                "active"
+            );
+            assert!(pool.has_eligible_seat(Instant::now()));
+        }
+
+        let following = router.oneshot(anthropic_proxy_request()).await.unwrap();
+        assert_eq!(following.status(), StatusCode::OK);
+        {
+            let store = store_state.lock().unwrap();
+            assert_eq!(store.fetch_count, 2);
+            assert_eq!(
+                store.store_count,
+                6 * ROTATED_REFRESH_TOKEN_STORE_MAX_ATTEMPTS + 2
+            );
+            assert_eq!(store.token, "final-refresh");
+        }
+        let requests = received.lock().unwrap();
+        assert_eq!(requests.len(), 3);
+        assert!(requests[0].contains(r#""refresh_token":"single-use-old""#));
+        assert!(requests[1].contains(r#""refresh_token":"rotated-refresh""#));
+        assert!(!requests[1].contains("single-use-old"));
+        assert!(requests[2].starts_with("POST /v1/messages "));
+        assert!(
+            requests[2]
+                .to_ascii_lowercase()
+                .contains("authorization: bearer access-next")
+        );
+        drop(requests);
+        let pool = pool.lock().unwrap();
+        assert_eq!(
+            pool.redacted_seat_statuses(Instant::now())[0].state,
+            "active"
+        );
+        assert!(pool.has_eligible_seat(Instant::now()));
     }
 
     #[tokio::test]
