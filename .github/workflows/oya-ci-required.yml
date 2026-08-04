@@ -583,7 +583,8 @@ jobs:
           # for the telemetry step below and changes nothing about the build.
           buck2 test //ci/... \
             //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential \
-            --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
+            --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json \
+            -- --env "RUSTUP_HOME=${RUSTUP_HOME}"
       # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
       # structured counters from buck2's invocation record — never log-grep — labeled with this
       # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode

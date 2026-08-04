@@ -324,10 +324,19 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
     let buck2_job = workflow_job(workflow, "buck2");
     let executed = executed_patterns_by_job(workflow);
     let buck2_patterns = executed.get("buck2");
+    let differential_forwards_rustup = workflow_steps(&buck2_job)
+        .iter()
+        .flat_map(|step| executable_lines(step))
+        .any(|line| {
+            line.starts_with("buck2 test ")
+                && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
+                && line.contains("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"")
+        });
     buck2_job.contains("runs-on: oya-arm64")
         && buck2_patterns.is_some_and(|patterns| {
             patterns.contains("//ci/...") && patterns.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
         })
+        && differential_forwards_rustup
         && !workflow.lines().map(str::trim).any(|line| {
             line.starts_with("runs-on:")
                 && (line.contains("windows-latest") || line.contains("ubuntu-latest"))
@@ -1572,13 +1581,22 @@ fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
 
     assert!(
         workspace_resolver_differential_is_self_hosted_and_binding(&workflow),
-        "the portable Cargo differential must run beside //ci/... on the owned ARM64 Buck2 lane, with no hosted OS dependency"
+        "the portable Cargo differential must run beside //ci/... on the owned ARM64 Buck2 lane, with the owned rustup home forwarded through Buck2's hermetic test executor and no hosted OS dependency"
     );
 
     let without_target = workflow.replace(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET, "");
     assert!(
         !workspace_resolver_differential_is_self_hosted_and_binding(&without_target),
         "removing the differential target from the binding Buck2 lane must fail the registration guard"
+    );
+
+    let without_rustup_home = workflow.replace(
+        "-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
+        "",
+    );
+    assert!(
+        !workspace_resolver_differential_is_self_hosted_and_binding(&without_rustup_home),
+        "removing the owned rustup home from the hermetic Buck2 test executor must fail the registration guard"
     );
 }
 
