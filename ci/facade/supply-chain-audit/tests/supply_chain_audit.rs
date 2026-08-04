@@ -15,8 +15,10 @@
 
 use std::path::{Path, PathBuf};
 
+use ci_supply_chain_audit::{
+    GATE_ID, collect, configured_lockfiles, evaluate_keyed, render_findings,
+};
 use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
-use ci_supply_chain_audit::{GATE_ID, collect, evaluate_keyed, render_findings};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -35,9 +37,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn policy_path(root: &Path) -> PathBuf {
-    root.join(
-        "ci/facade/supply-chain-audit/supply-chain-audit-policy.json",
-    )
+    root.join("ci/facade/supply-chain-audit/supply-chain-audit-policy.json")
 }
 
 fn load_policy(root: &Path) -> Value {
@@ -45,8 +45,6 @@ fn load_policy(root: &Path) -> Value {
     serde_json::from_str(&text).expect("parse committed policy")
 }
 
-<<<<<<< HEAD
-=======
 const MINIMAL_LOCK: &str = "version = 4\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\n";
 
 struct TempRepo {
@@ -141,7 +139,6 @@ impl Drop for TempRepo {
     }
 }
 
->>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 #[test]
 fn live_corpus_is_born_blocking_green() {
     let root = repo_root();
@@ -163,8 +160,6 @@ fn live_corpus_is_born_blocking_green() {
 }
 
 #[test]
-<<<<<<< HEAD
-=======
 fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
     let root = repo_root();
     let policy = load_policy(&root);
@@ -648,7 +643,6 @@ fn symlinked_lockfile_manifest_and_path_component_are_rejected() {
 }
 
 #[test]
->>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     let root = repo_root();
 
@@ -699,9 +693,9 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         std::fs::read_to_string(root.join("infra/kyverno/policies/require-signed-images.yaml"))
             .expect("read legacy keyless image policy");
     assert!(
-        legacy_keyless_policy
-            .contains("https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)")
-            && !legacy_keyless_policy.contains(&broad_github_workflow),
+        legacy_keyless_policy.contains(
+            "https://github.com/jason931225/oyatie/.github/workflows/.+@refs/(heads/dev|tags/v.+)"
+        ) && !legacy_keyless_policy.contains(&broad_github_workflow),
         "secondary keyless policy must not keep the any-GitHub-repository wildcard"
     );
 
@@ -761,7 +755,8 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
         .expect("read governance lane index");
     assert!(
         lane_index.contains("cargo-vet | retired-until-inputs")
-            && lane_index.contains("current dependency/advisory authority is `cloud-ci-supply-chain-audit`")
+            && lane_index
+                .contains("current dependency/advisory authority is `cloud-ci-supply-chain-audit`")
             && !lane_index.contains("cargo run -p oya-governance-cargo-vet"),
         "the canonical lane index must not present cargo-vet as live CI authority"
     );
