@@ -510,7 +510,7 @@ fn cleanup_alert_uses_deletion_delay_not_healthy_job_age() {
 fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
     let root = repo_root();
     let policies = yaml_documents(&root, "infra/arc/live-postgres-runner-network-policy.yaml");
-    assert_eq!(policies.len(), 2);
+    assert_eq!(policies.len(), 3);
     for policy in &policies {
         assert_eq!(string_at(policy, &["apiVersion"]), "networking.k8s.io/v1");
         assert_eq!(string_at(policy, &["kind"]), "NetworkPolicy");
@@ -532,14 +532,31 @@ fn runner_network_policy_is_kubernetes_native_and_fail_closed() {
             .as_sequence()
             .expect("egress rules")
             .len(),
-        5
+        4
     );
     assert!(serialized.contains("0.0.0.0/0"));
     assert!(serialized.contains("10.0.0.0/8"));
     assert!(serialized.contains("oya-ci"));
     assert!(serialized.contains("oya-registry"));
-    assert!(serialized.contains("oya-kms"));
+    assert!(!serialized.contains("oya-kms"));
     assert!(!serialized.contains("oya-data"));
+
+    let openbao = policies
+        .iter()
+        .find(|policy| {
+            string_at(policy, &["metadata", "name"]) == "general-ci-runner-openbao-egress"
+        })
+        .expect("general-cell OpenBao egress policy");
+    assert_eq!(
+        string_at(
+            openbao,
+            &["spec", "podSelector", "matchLabels", "oya.io/ci-cell"]
+        ),
+        "general"
+    );
+    let serialized = serde_json::to_string(openbao).expect("serialize OpenBao egress policy");
+    assert!(serialized.contains("oya-kms") && serialized.contains("8202"));
+    assert!(!serialized.contains("live-postgres"));
 }
 
 #[test]

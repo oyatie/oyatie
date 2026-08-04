@@ -627,6 +627,7 @@ jobs:
     name: cache-writer identity (trusted dev push only)
     if: ${{ vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
     runs-on: oya-arm64
+    timeout-minutes: 120
     permissions:
       contents: read
       id-token: write
@@ -654,12 +655,13 @@ jobs:
             --pki-mount pki_cas_writer \
             --pki-role cas-writer \
             --uri-san spiffe://oyatie.dev/ci/cas-writer
-      - name: Exercise the trusted writer controller path
+      - name: Seed the complete pinned canary target set
         run: |
           set -euo pipefail
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- canary-targets > "${RUNNER_TEMP}/canary-targets"
           buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run \
             --build-class postmerge-dev-trunk --prelicense-seed --mode-out "${RUNNER_TEMP}/cache-mode" -- \
-            buck2 test //ci/facade/build-cache-policy:ci-build-cache-policy-unittest
+            buck2 --isolation-dir canary-writer build @"${RUNNER_TEMP}/canary-targets"
       - name: Remove short-lived cache identity
         if: always()
         run: rm -f "${OYA_CACHE_TLS_CLIENT_CERT}" "${OYA_CACHE_TLS_CA_CERTS}"
