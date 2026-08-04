@@ -10,15 +10,6 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-<<<<<<< HEAD
-purpose = "Cloud CI gate ENFORCING supply-chain advisory hygiene: matches the workspace Cargo.lock against a VENDORED, content-addressed RustSec advisory snapshot and blocks any locked crate affected by an un-ignored security (SCA-VULN) or unmaintained (SCA-UNMAINTAINED) advisory. Owned pure-Rust replacement for the reverted #974 shell cargo-audit/deny — hermetic (serde_json+toml+semver only, no rustsec/git2/libgit2, no shell/network/clock), born-blocking, with mirror integrity (content_hash+count+floor) failing closed against a truncated/vacuously-green snapshot."
-
-# cloud-ci-supply-chain-audit: self-contained, policy-driven gate. A pure evaluate_keyed(policy,
-# observed) matches Cargo.lock versions against the vendored advisory mirror via semver. The observed
-# signal is a read-only parse of Cargo.lock + advisory-mirror/{advisories.json,mirror-manifest.json}
-# (NO shell/network/clock). R0 pack-shaped: lockfile_path, mirror_dir, unmaintained_policy,
-# min_advisories floor, and the time-boxed ignore[] all live in supply-chain-audit-policy.json.
-=======
 purpose = "Cloud CI gate ENFORCING supply-chain advisory hygiene: proves the policy-declared workspace lockfile corpus exactly against the materialized SCM tracked-path boundary, then matches every strict non-empty lock package row against a VENDORED, content-addressed RustSec snapshot and blocks any un-ignored security (SCA-VULN) or unmaintained (SCA-UNMAINTAINED) advisory. Owned pure-Rust replacement for reverted #974 — hermetic (serde_json+toml+semver only; no recursive walk/rustsec/git2/libgit2/shell/network/clock), born-blocking, and fail-closed against corpus omission, malformed rows, narrowed inputs, and vacuously-green mirrors."
 
 # cloud-ci-supply-chain-audit: self-contained, policy-driven gate. A pure evaluate_keyed(policy,
@@ -28,7 +19,6 @@ purpose = "Cloud CI gate ENFORCING supply-chain advisory hygiene: proves the pol
 # R1 pack-shaped: corpus, SCM facts boundary, min_lockfiles, mirror_dir, unmaintained policy,
 # advisory floor, and ignores all live in supply-chain-audit-policy.json. Legacy lockfile_path
 # remains supported without the multi-workspace totality projection.
->>>>>>> 6d564e888 (fix(supply-chain): prove lockfile corpus totality)
 
 [lib]
 name = "ci_supply_chain_audit"
