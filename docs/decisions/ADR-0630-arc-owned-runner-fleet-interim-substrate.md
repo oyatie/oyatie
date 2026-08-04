@@ -60,7 +60,7 @@ product (ADR-0515 D5). ARC's replacement trigger is that product's runner surfac
 able to execute the canonical gate set; ARC is a runner *transport*, and nothing in the gate
 logic may become ARC-shaped.
 
-### D2 — ONE SCALE SET PER ARCHITECTURE, arch-pinned by nodeSelector
+### D2 — ONE GENERAL-PURPOSE SCALE SET PER ARCHITECTURE, arch-pinned by nodeSelector
 
 Founder requirement: *"we should be agnostic. arm64 / amd64 should both be a supported path"* —
 *"on this laptop arm. on another box that joins the cluster that is amd64, we can run amd64."*
@@ -71,6 +71,12 @@ anywhere**, and an "arm64" runner can land on an amd64 node and silently build f
 platform — poisoning that platform's buck2 cache namespace, because action keys include `cpu:`
 and `os:`. Adding capacity is joining a node; adding a PLATFORM is one more values file.
 `infra/ci/install-buck2.sh` already carries digest-pinned arms for both architectures.
+
+The one-per-architecture rule applies to the general-purpose fleet. A same-architecture sibling
+scale set is allowed only when its separate label is itself an isolation boundary for a job-local
+service, credential, trust, or resource profile that must not enter general-purpose Pods. Such a
+set remains architecture-pinned and may not fork gate logic; workflows select only its capability
+label. The dedicated live-PostgreSQL cell in D7 is the first bounded exception.
 
 ### D3 — GitHub App identity, scoped to one repository
 
@@ -124,6 +130,30 @@ drift** (maxRunners, minRunners, nodeSelector, both CAS labels, memory limit,
 ephemeral-storage limit, cpu request, githubConfigSecret) — it records reality rather than
 aspiration, which is the whole point of declaring it after an imperative bring-up.
 
+### D7 — Live-PostgreSQL tests use a dedicated ephemeral same-Pod cell
+
+The two merge-blocking live-PostgreSQL jobs select `oya-live-postgres-arm64`, not the
+general-purpose `oya-arm64` set. Each ARC runner Pod owns one digest-pinned PostgreSQL 16 native
+sidecar as a restartable init container. Its startup probe completes before the runner starts;
+both database state and credentials are size-bounded memory `emptyDir` volumes deleted with the
+Pod. An ordinary init container generates separate random admin and application passwords. The
+workflow reads those files from `/run/oya-ci-postgres`, masks both values before use, and preserves
+the existing admin-versus-`NOBYPASSRLS` application-role assertions.
+
+No Kubernetes Secret or shared CNPG hostname is projected into either runner scale set. The
+general-purpose runner receives no database admin environment, and the dedicated Pod exposes no
+Service. A namespace NetworkPolicy selects only the dedicated cell label and denies cross-Pod
+ingress; the tests reach PostgreSQL only over same-Pod localhost. A Cilium egress-deny selects
+both `general` and `live-postgres` runner-cell labels and blocks the shared `oya-data` namespace
+without default-denying the GitHub, CAS, and package egress those jobs require. This is
+test-fixture isolation, not a production data-plane dependency.
+
+The dedicated set is capped at `maxRunners: 1` and requests 32Gi ephemeral storage, above the
+31,347,796Ki observed workspace that triggered a current-node DiskPressure eviction. A 34Gi limit
+bounds further growth. This declaration is not rollout readiness: issue #1504 must supply and
+verify sufficient node capacity before the GitOps application is independently reviewed and
+deployed.
+
 ## Alternatives considered
 
 - **Wait for the billing fix and stay on GitHub-hosted runners** — rejected as the *only*
@@ -170,8 +200,10 @@ have shared a namespace — previously the blocker that made warm-cache work unm
 ## Artifact accounting (ADR-0555)
 
 This decision is the justification anchor for `infra/arc/OWNERS`,
-`infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`, and the two
-`infra/gitops/values.yaml` chart registrations.
+`infra/arc/controller-values.yaml`, `infra/arc/runner-scale-set-arm64-values.yaml`,
+`infra/arc/runner-scale-set-live-postgres-arm64-values.yaml`,
+`infra/arc/live-postgres-runner-network-policy.yaml`, and the ARC registrations in
+`infra/gitops/values.yaml`.
 
 It is also the justification anchor for the baked runner image this fleet runs. One path per
 bullet, spelled byte-exactly and unwrapped, because the born-accounting producer matches

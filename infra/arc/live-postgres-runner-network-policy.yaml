@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: live-postgres-runner-ingress-deny
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  podSelector:
+    matchLabels:
+      oya.io/ci-cell: live-postgres
+  policyTypes:
+    - Ingress
+  # PostgreSQL has no Service and is consumed only over same-Pod localhost.
+  # Deny every cross-Pod ingress path to the runner/database Pod.
+  ingress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ci-runners-deny-shared-data-egress
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: oya.io/ci-cell
+        operator: In
+        values: [general, live-postgres]
+  # Keep normal GitHub/CAS/package egress available, but deny the shared data
+  # namespace regardless of any allow rule. Cilium deny rules take precedence.
+  enableDefaultDeny:
+    egress: false
+  egressDeny:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: oya-data

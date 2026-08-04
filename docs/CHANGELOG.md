@@ -5,6 +5,22 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-04 — Dedicated ephemeral ARC PostgreSQL test cell
+
+- Moved both required live-PostgreSQL jobs from hosted service containers to the
+  architecture-pinned `oya-live-postgres-arm64` ARC label without changing their migrations,
+  serialized test targets, or required-context fan-in.
+- Added a digest-pinned PostgreSQL 16 native sidecar with startup ordering, memory-backed
+  per-Pod data and generated credentials, masked workflow loading, and cross-Pod ingress denial.
+- Removed shared database administrative credentials from the general-purpose runner values;
+  neither runner scale set projects a CNPG Secret or shared database hostname, and a Cilium
+  egress-deny blocks both candidate-runner cell labels from the shared `oya-data` namespace.
+- Capped the dedicated set at one runner and accounted for the measured ~30Gi workspace with a
+  32Gi request/34Gi limit. Issue #1504 remains a live-deployment prerequisite because the current
+  runner node is under DiskPressure; this change does not claim rollout readiness.
+- Amended ADR-0630 D2/D7 to bound workload-isolated same-architecture scale sets. Issues #1539
+  and #1540; protected admission and live GitOps rollout verification remain pending.
+
 ## 2026-08-03 — W0-D non-authorizing reset-eligibility gate
 
 - Added the W0-D eligibility-only schema, historical discovery observation, and
