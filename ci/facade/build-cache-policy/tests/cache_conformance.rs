@@ -61,17 +61,39 @@ fn invocation_record_fixture(
         "run_skipped_count": 0,
         "cache_upload_attempt_count": 0,
         "cache_upload_count": 0,
+        "dep_file_upload_attempt_count": 0,
+        "dep_file_upload_count": 0,
+        "run_remote_dep_file_cache_count": 0,
+        "re_upload_bytes": 0,
+        "re_download_bytes": if action_hits > 0 { 1024 } else { 0 },
         "exit_result_name": "SUCCESS",
+        "run_command_failure_count": 0,
+        "errors": [],
+        "daemon_connection_failure": false,
         "last_snapshot": {
             "re_action_cache_started": action_hits,
+            "re_action_cache_finished_successfully": action_hits,
             "re_action_cache_finished_with_error": 0,
             "re_upload_bytes": 0,
             "re_uploads_started": 0,
             "re_uploads_finished_successfully": 0,
             "re_uploads_finished_with_error": 0,
             "re_download_bytes": if action_hits > 0 { 1024 } else { 0 },
+            "re_downloads_started": action_hits,
             "re_downloads_finished_successfully": action_hits,
-            "re_downloads_finished_with_error": 0
+            "re_downloads_finished_with_error": 0,
+            "re_executes_started": 0,
+            "re_executes_finished_successfully": 0,
+            "re_executes_finished_with_error": 0,
+            "re_write_action_results_started": 0,
+            "re_write_action_results_finished_successfully": 0,
+            "re_write_action_results_finished_with_error": 0,
+            "re_get_digest_expirations_started": 0,
+            "re_get_digest_expirations_finished_successfully": 0,
+            "re_get_digest_expirations_finished_with_error": 0,
+            "re_materializes_started": 0,
+            "re_materializes_finished_successfully": 0,
+            "re_materializes_finished_with_error": 0
         },
     })
 }
@@ -1077,12 +1099,15 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(reader.contains("needs.cold.result == 'success'"));
     assert!(reader.contains("needs.cold.outputs.warm_licensed == 'true'"));
     assert!(reader.contains("id-token: write"));
+    assert!(reader.contains("actions: read"));
     assert!(reader.contains("reader_probe: true"));
+    assert!(reader.contains("writer_run_id:"));
     assert!(canary.contains("workflow_call:"));
     assert!(!canary.contains("\n  schedule:"));
     assert!(!canary.contains("\n  workflow_dispatch:"));
     assert!(canary.contains("writer_seed:"));
     assert!(canary.contains("reader_probe:"));
+    assert!(canary.contains("writer_run_id:"));
     assert!(
         canary.contains("--workflow-mode \"${{ inputs.writer_seed && 'writer' || 'reader' }}\"")
     );
@@ -1099,6 +1124,24 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     assert!(!canary.contains("name: Remove short-lived cache identity"));
     assert!(canary.contains("name: Download cold proof from the zero-OIDC invocation"));
     assert!(canary.contains("cache-integrity-cold"));
+    assert!(canary.contains("name: cache-writer-${{ github.sha }}"));
+    assert!(canary.contains("github-token: ${{ github.token }}"));
+    assert!(canary.contains("repository: ${{ github.repository }}"));
+    assert!(canary.contains("run-id: ${{ inputs.writer_run_id }}"));
+    assert!(canary.contains("writer-receipt --record"));
+    assert!(canary.contains("/tmp/canary-writer-report.json"));
+    assert!(canary.contains("/tmp/canary-writer-receipt.json"));
+    assert!(canary.contains("--writer-manifest"));
+    assert!(canary.contains("--writer-run-id \"$WRITER_RUN_ID\""));
+    assert!(canary.contains("/tmp/writer-proof/canary-writer-receipt.json"));
+    let writer_upload = canary
+        .split("      - name: Upload validated writer proof")
+        .nth(1)
+        .and_then(|tail| tail.split("      - name: Canary verdict").next())
+        .expect("writer proof upload step");
+    assert!(!writer_upload.contains("always()"));
+    assert!(schedule.contains("writer_run_id:"));
+    assert!(schedule.contains("default: \"\""));
     assert!(
         canary.contains("vars.OYA_CAS_IDENTITY_PROOF_ENABLED != 'true'"),
         "activation-off cold runs must execute the INACTIVE verdict and remain RED"

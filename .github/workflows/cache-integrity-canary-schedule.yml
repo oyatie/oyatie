@@ -13,6 +13,11 @@ on:
         description: Run the explicit manual warm proof before licensing reads
         type: boolean
         default: false
+      writer_run_id:
+        description: Successful dev-push writer run for the exact dispatched SHA
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -37,7 +42,9 @@ jobs:
     uses: ./.github/workflows/cache-integrity-canary.yml
     permissions:
       contents: read
+      actions: read
       id-token: write
     with:
       reader_probe: true
       prelicense_probe: ${{ inputs.prelicense_probe || false }}
+      writer_run_id: ${{ inputs.writer_run_id || '' }}
