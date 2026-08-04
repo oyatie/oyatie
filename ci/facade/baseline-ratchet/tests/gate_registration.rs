@@ -320,221 +320,27 @@ fn buck2_matrix_step_requires_pwsh_structurally_regardless_of_key_order() {
 const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
     "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential";
 
-/// The matrix currently uses compact YAML objects, so keep this deliberately narrow parser
-/// coupled to that stable workflow shape.  The important invariant is that the Windows runner
-/// and its one permitted target live in the same `matrix.include` entry; independent substring
-/// checks could pair fields from two different legs and silently accept a false-green split.
-fn windows_resolver_matrix_entry(gate_job: &str) -> Option<&str> {
-    gate_job.lines().map(str::trim).find(|line| {
-        line.starts_with("- {")
-            && line.contains("os: windows-latest")
-            && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
-    })
-}
-
-fn is_exact_windows_resolver_matrix_entry(entry: &str) -> bool {
-    entry.starts_with("- {")
-        && entry.ends_with('}')
-        && entry.contains("os: windows-latest")
-        && entry.contains(&format!(
-            "targets: \"{WINDOWS_RESOLVER_DIFFERENTIAL_TARGET}\""
-        ))
-        && !entry.contains("cargo test")
-        && !entry.contains("cargo.exe")
-}
-
-/// Extract the complete outer PowerShell `if ($IsWindows) { ... }` branch. Nested `if`/`else`
-/// pairs are legal in the workflow command, so a textual `} else {` delimiter is not a safe
-/// branch boundary. Quoted command text may contain braces without affecting block depth.
-fn windows_branch(gate_job: &str) -> Option<&str> {
-    let start = gate_job.find("if ($IsWindows)")?;
-    let open = gate_job[start..].find('{')? + start;
-    let bytes = gate_job.as_bytes();
-    let mut depth = 0usize;
-    let mut quote = None;
-    let mut index = open;
-
-    while index < bytes.len() {
-        let byte = bytes[index];
-        if let Some(delimiter) = quote {
-            if delimiter == b'"' && byte == b'`' {
-                index += 2;
-                continue;
-            }
-            if byte == delimiter {
-                if delimiter == b'\'' && bytes.get(index + 1) == Some(&b'\'') {
-                    index += 2;
-                    continue;
-                }
-                quote = None;
-            }
-            index += 1;
-            continue;
-        }
-
-        if byte == b'`' {
-            index += 2;
-            continue;
-        }
-
-        match byte {
-            b'\'' | b'"' => quote = Some(byte),
-            b'{' => depth += 1,
-            b'}' => {
-                depth = depth.checked_sub(1)?;
-                if depth == 0 {
-                    return Some(&gate_job[start..=index]);
-                }
-            }
-            _ => {}
-        }
-        index += 1;
-    }
-    None
-}
-
-/// True when the PowerShell source contains a direct `cargo` or `cargo.exe` executable token.
-/// Delimiters include every non-command-word character, so tabs and newlines cannot bypass it,
-/// while similarly named commands such as `cargo-fmt` remain distinct.
-fn contains_direct_cargo_executable(branch: &str) -> bool {
-    branch
-        .split(|character: char| {
-            !character.is_ascii_alphanumeric() && !matches!(character, '.' | '_' | '-')
+fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) -> bool {
+    let buck2_job = workflow_job(workflow, "buck2");
+    let executed = executed_patterns_by_job(workflow);
+    let buck2_patterns = executed.get("buck2");
+    let differential_forwards_rustup = workflow_steps(&buck2_job)
+        .iter()
+        .flat_map(|step| executable_lines(step))
+        .any(|line| {
+            line.starts_with("buck2 test ")
+                && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
+                && line.contains("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"")
+        });
+    buck2_job.contains("runs-on: oya-arm64")
+        && buck2_patterns.is_some_and(|patterns| {
+            patterns.contains("//ci/...") && patterns.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
         })
-        .any(|token| token.eq_ignore_ascii_case("cargo") || token.eq_ignore_ascii_case("cargo.exe"))
-}
-
-/// The Windows branch must provision MSVC before Buck2, and must never introduce a direct
-/// Cargo executable. The target itself owns the resolver/Cargo differential under Buck2.
-fn windows_branch_is_buck_only(gate_job: &str) -> bool {
-    let Some(branch) = windows_branch(gate_job) else {
-        return false;
-    };
-    // YAML single-quoted scalars escape a literal PowerShell quote as `''`; normalize that
-    // presentation detail before enforcing the executed-script receipt contract.
-    let branch = branch.replace("''", "'");
-    let Some(vsdevcmd) = branch.find("VsDevCmd.bat") else {
-        return false;
-    };
-    let Some(buck2) = branch.find("buck2 test $targets") else {
-        return false;
-    };
-    vsdevcmd < buck2 && !contains_direct_cargo_executable(&branch)
-}
-
-/// The hosted Windows image may change Visual Studio major version, edition, or install root.
-/// Resolve the current MSVC installation with Microsoft's bundled `vswhere.exe`, fail closed
-/// when either discovery executable is absent, and only then hand the derived `VsDevCmd.bat`
-/// path to the native Buck command.
-fn windows_branch_discovers_msvc_toolchain(gate_job: &str) -> bool {
-    let Some(branch) = windows_branch(gate_job) else {
-        return false;
-    };
-    let branch = branch.replace("''", "'");
-    let required_in_order = [
-        "$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\\Installer\\vswhere.exe'",
-        "Test-Path -LiteralPath $vswhere -PathType Leaf",
-        "$vsInstallCandidates = @(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath)",
-        "$vswhereExitCode = $LASTEXITCODE",
-        "if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }",
-        "$vsInstall = $vsInstallCandidates | Select-Object -First 1",
-        "[string]::IsNullOrWhiteSpace($vsInstall)",
-        "$vsDevCmd = Join-Path $vsInstall 'Common7\\Tools\\VsDevCmd.bat'",
-        "Test-Path -LiteralPath $vsDevCmd -PathType Leaf",
-        "$windowsBuckCommand = \"call `\"$vsDevCmd`\" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets\"",
-        "cmd.exe /d /s /c $windowsBuckCommand",
-    ];
-
-    let mut cursor = 0usize;
-    for required in required_in_order {
-        let Some(relative_index) = branch[cursor..].find(required) else {
-            return false;
-        };
-        cursor += relative_index + required.len();
-    }
-
-    !branch.contains("Microsoft Visual Studio\\2022")
-        && !branch.contains("Microsoft Visual Studio\\2026")
-        && !branch.contains("%ProgramFiles%")
-}
-
-fn has_positive_buck_test_pass_summary(receipt: &str) -> bool {
-    receipt.lines().any(|line| {
-        let Some(rest) = line.strip_prefix("Tests finished:") else {
-            return false;
-        };
-        let mut rest = rest.trim_start();
-        while let Some(ansi) = rest.strip_prefix("\u{1b}[") {
-            let Some(end) = ansi.find('m') else {
-                return false;
-            };
-            rest = ansi[end + 1..].trim_start();
-        }
-        let Some(count) = rest.strip_prefix("Pass").map(str::trim_start) else {
-            return false;
-        };
-        matches!(count.chars().next(), Some('1'..='9'))
-    })
-}
-
-/// The Windows cmd handoff is only a real Buck execution when it leaves a receipt with both
-/// Buck's build identifier and its successful-test summary.  `cmd.exe` can otherwise return a
-/// successful shell invocation while the intended Buck command was never observably run.
-fn windows_branch_has_buck_execution_receipt(gate_job: &str) -> bool {
-    let Some(branch) = windows_branch(gate_job) else {
-        return false;
-    };
-    // YAML single-quoted scalars escape a literal PowerShell quote as `''`; normalize that
-    // presentation detail before enforcing the executed-script receipt contract.
-    let branch = branch.replace("''", "'");
-
-    let receipt_assignment =
-        "$windowsBuckReceipt = Join-Path $env:RUNNER_TEMP 'buck2-windows-receipt.log'";
-    let tee = "| Tee-Object -FilePath $windowsBuckReceipt";
-    let exit_capture = "$windowsBuckExitCode = $LASTEXITCODE";
-    let exit_print = "Write-Host \"Windows Buck2 cmd exit code: $windowsBuckExitCode\"";
-    let print = "Get-Content -Path $windowsBuckReceipt";
-    let read = "$windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw";
-    let build_id = ".Contains('Build ID:')";
-    let positive_pass_summary = "$windowsBuckPassed = $windowsBuckReceiptText -match '(?m)^Tests finished:\\s*(?:\\x1b\\[[0-9;]*m)?Pass\\s+[1-9][0-9]*\\b'";
-    let exit_propagation = "if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode }";
-
-    let Some(receipt_assignment_index) = branch.find(receipt_assignment) else {
-        return false;
-    };
-    let Some(tee_index) = branch.find(tee) else {
-        return false;
-    };
-    let Some(exit_capture_index) = branch.find(exit_capture) else {
-        return false;
-    };
-    let Some(exit_print_index) = branch.find(exit_print) else {
-        return false;
-    };
-    let Some(print_index) = branch.find(print) else {
-        return false;
-    };
-    let Some(read_index) = branch.find(read) else {
-        return false;
-    };
-    let Some(build_id_index) = branch.find(build_id) else {
-        return false;
-    };
-    let Some(positive_pass_summary_index) = branch.find(positive_pass_summary) else {
-        return false;
-    };
-    let Some(exit_propagation_index) = branch.find(exit_propagation) else {
-        return false;
-    };
-
-    receipt_assignment_index < tee_index
-        && tee_index < exit_capture_index
-        && exit_capture_index < exit_print_index
-        && exit_print_index < print_index
-        && print_index < read_index
-        && read_index < positive_pass_summary_index
-        && positive_pass_summary_index < build_id_index
-        && exit_capture_index < exit_propagation_index
+        && differential_forwards_rustup
+        && !workflow.lines().map(str::trim).any(|line| {
+            line.starts_with("runs-on:")
+                && (line.contains("windows-latest") || line.contains("ubuntu-latest"))
+        })
 }
 
 /// The fan-in's success CONDITIONAL — the `if [ … ] && [ … ]; then` line, with shell
@@ -613,8 +419,12 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
         && values.contains("name: runner")
         && values.contains("medium: Memory")
         && values.contains("sizeLimit:")
-        && values.contains("ephemeral-storage: 32Gi")
-        && values.contains("ephemeral-storage: 34Gi")
+        && values.contains("memory: 4Gi")
+        && values.contains("memory: 8Gi")
+        && values.contains("ephemeral-storage: 4Gi")
+        && values.contains("ephemeral-storage: 8Gi")
+        && values.contains("storageClassName: oya-ci-workspace-live-postgres")
+        && values.contains("storage: 44Gi")
         && values.contains("/run/oya-ci-postgres")
         && !values.contains("secretKeyRef:")
         && !values.contains("oya.io/nativelink-cas-reader")
@@ -623,17 +433,23 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
 }
 
 fn live_postgres_network_policy_denies_cross_pod_ingress(policy: &str) -> bool {
-    policy.contains("kind: NetworkPolicy")
+    policy.matches("kind: NetworkPolicy").count() == 2
+        && !policy.contains("kind: CiliumNetworkPolicy")
+        && policy.contains("name: live-postgres-runner-ingress-deny")
         && policy.contains("oya.io/ci-cell: live-postgres")
         && policy.contains("policyTypes:")
         && policy.contains("- Ingress")
         && policy.lines().any(|line| line.trim() == "ingress: []")
-        && policy.contains("kind: CiliumNetworkPolicy")
-        && policy.contains("name: ci-runners-deny-shared-data-egress")
+        && policy.contains("name: ci-runners-egress-allowlist")
         && policy.contains("values: [general, live-postgres]")
-        && policy.contains("egress: false")
-        && policy.contains("egressDeny:")
-        && policy.contains("k8s:io.kubernetes.pod.namespace: oya-data")
+        && policy.contains("policyTypes: [Egress]")
+        && policy.contains("kubernetes.io/metadata.name: oya-ci")
+        && policy.contains("kubernetes.io/metadata.name: oya-registry")
+        && policy.contains("cidr: 0.0.0.0/0")
+        && policy.contains("- 10.0.0.0/8")
+        && policy.contains("- 172.16.0.0/12")
+        && policy.contains("- 192.168.0.0/16")
+        && !policy.contains("kubernetes.io/metadata.name: oya-data")
 }
 
 fn gitops_registers_live_postgres_arc_cell(values: &str) -> bool {
@@ -1759,205 +1575,28 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
 }
 
 #[test]
-fn windows_workspace_resolver_differential_is_a_buck2_matrix_leg() {
+fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
     let root = repo_root();
-    let wf = workflow_path(&root);
-    let workflow =
-        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+    let workflow = read_to_string(&workflow_path(&root));
 
-    // YAML single-quoted workflow scalars escape PowerShell's literal quote as `''`; inspect
-    // the decoded script shape so the guard validates execution semantics, not YAML spelling.
-    let gate_job = workflow_job(&workflow, "gate").replace("''", "'");
-    // Assert the MECHANISM (runner comes from the matrix, with a fallback), not which runner
-    // label happens to back the fallback today. This previously pinned the literal
-    // `|| 'ubuntu-latest'`, which made it fail the moment the required lane moved to the owned
-    // arm64 fleet — an infrastructure change that does not touch this guard's actual invariant.
-    // The `matrix.os` hatch is the load-bearing part: it is how the one windows-latest leg keeps
-    // requesting Windows while every other leg takes the default runner. The windows entry itself
-    // is asserted separately below, so pinning the fallback here bought no coverage.
     assert!(
-        gate_job.contains("runs-on: ${{ matrix.os || '"),
-        "the reusable gate matrix must select its runner from the matrix (runs-on: \
-         ${{{{ matrix.os || '<default>' }}}}), so a per-leg `os:` can override the default"
-    );
-    let windows_entry = windows_resolver_matrix_entry(&gate_job)
-        .expect("the Windows resolver differential must be one matrix.include entry");
-    assert!(
-        is_exact_windows_resolver_matrix_entry(windows_entry),
-        "the Windows matrix leg must pair exactly `os: windows-latest` with the exact resolver differential Buck2 target: {windows_entry}"
-    );
-    assert!(
-        buck2_matrix_step_uses_pwsh(&gate_job) && gate_job.contains("$IsWindows"),
-        "the exact Buck2 matrix-test step must use PowerShell, which is native on Windows and avoids Bash/MSYS rewriting"
-    );
-    assert!(
-        !buck2_matrix_step_uses_pwsh(&gate_job.replace("shell: pwsh", "shell: bash")),
-        "changing the exact Buck2 matrix-test step to Bash must be rejected without relying on comment text or YAML key ordering"
-    );
-    assert!(
-        gate_job.contains("[string]::IsNullOrWhiteSpace($targets)")
-            && gate_job.contains("$targetArgs = $targets -split '\\s+' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }")
-            && gate_job.contains("& buck2 test @targetArgs")
-            && !gate_job.contains("else { & buck2 test $targets }")
-            && gate_job.contains("cmd.exe /d /s /c")
-            && windows_branch_is_buck_only(&gate_job)
-            && windows_branch_discovers_msvc_toolchain(&gate_job)
-            && windows_branch_has_buck_execution_receipt(&gate_job),
-        "the non-Windows path must splat separate Buck2 arguments while Windows rejects an empty exact target, discovers the installed MSVC toolchain without a version/edition assumption, captures and prints the Buck receipt, and fails closed unless it contains Build ID plus a passing test summary"
-    );
-    assert!(
-        !workflow.contains("\n  windows-workspace-member-resolver:")
-            && !gate_job.contains("cargo test --locked -p oya-workspace-members-kernel"),
-        "the Windows differential must stay inside the Buck2 target, not add a direct Cargo job"
-    );
-    assert!(
-        fan_in_mentions_job(fan_in_block(&workflow), "gate"),
-        "the Windows matrix leg must remain under the single oya-ci-required fan-in"
-    );
-}
-
-#[test]
-fn windows_workspace_resolver_registration_rejects_split_or_direct_cargo_mutations() {
-    let valid = format!(
-        "- {{ targets: \"{WINDOWS_RESOLVER_DIFFERENTIAL_TARGET}\", os: windows-latest, label: \"Windows\" }}"
-    );
-    assert!(is_exact_windows_resolver_matrix_entry(&valid));
-    assert!(!is_exact_windows_resolver_matrix_entry(
-        &valid.replace("os: windows-latest", "os: ubuntu-latest")
-    ));
-    assert!(!is_exact_windows_resolver_matrix_entry(&valid.replace(
-        WINDOWS_RESOLVER_DIFFERENTIAL_TARGET,
-        "//libs/oya-workspace-members-kernel:wrong-target"
-    )));
-    assert!(!is_exact_windows_resolver_matrix_entry(&format!(
-        "{valid} cargo test"
-    )));
-
-    let branch = "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets } else { }";
-    assert!(windows_branch_is_buck_only(branch));
-    assert!(!windows_branch_is_buck_only(
-        &branch.replace("VsDevCmd.bat`\" && buck2", "buck2")
-    ));
-    assert!(!windows_branch_is_buck_only(
-        &branch.replace("buck2 test", "cargo test")
-    ));
-    assert!(!windows_branch_is_buck_only(
-        &branch.replace("buck2 test", "cargo.exe test")
-    ));
-    assert!(windows_branch_is_buck_only(
-        "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo-fmt --version } else { }"
-    ));
-    assert!(windows_branch_is_buck_only(
-        "if ($IsWindows) { Write-Host '} else {'; call `\"VsDevCmd.bat`\" && buck2 test $targets } else { }"
-    ));
-    assert!(
-        !windows_branch_is_buck_only(
-            "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; if ($nested) { Write-Host nested } else { cargo\t test } } else { }",
-        ),
-        "a nested else must not truncate the Windows branch before a direct Cargo invocation"
-    );
-    assert!(
-        !windows_branch_is_buck_only(
-            "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo\t test } else { }",
-        ),
-        "Cargo followed by whitespace other than a literal space is still a direct Cargo invocation"
-    );
-    assert!(
-        !windows_branch_is_buck_only(
-            "if ($IsWindows) { call `\"VsDevCmd.bat`\" && buck2 test $targets; cargo.exe\n test } else { }",
-        ),
-        "cargo.exe followed by a newline is still a direct Cargo invocation"
+        workspace_resolver_differential_is_self_hosted_and_binding(&workflow),
+        "the portable Cargo differential must run beside //ci/... on the owned ARM64 Buck2 lane, with the owned rustup home forwarded through Buck2's hermetic test executor and no hosted OS dependency"
     );
 
-    let discovered_toolchain_branch = "if ($IsWindows) { $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\\Installer\\vswhere.exe'; if (-not (Test-Path -LiteralPath $vswhere -PathType Leaf)) { exit 1 }; $vsInstallCandidates = @(& $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath); $vswhereExitCode = $LASTEXITCODE; if ($vswhereExitCode -ne 0) { exit $vswhereExitCode }; $vsInstall = $vsInstallCandidates | Select-Object -First 1; if ([string]::IsNullOrWhiteSpace($vsInstall)) { exit 1 }; $vsDevCmd = Join-Path $vsInstall 'Common7\\Tools\\VsDevCmd.bat'; if (-not (Test-Path -LiteralPath $vsDevCmd -PathType Leaf)) { exit 1 }; $windowsBuckCommand = \"call `\"$vsDevCmd`\" -arch=amd64 -host_arch=amd64 >nul && buck2 test $targets\"; cmd.exe /d /s /c $windowsBuckCommand } else { }";
-    assert!(windows_branch_discovers_msvc_toolchain(
-        discovered_toolchain_branch
-    ));
+    let without_target = workflow.replace(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET, "");
     assert!(
-        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
-            "Microsoft Visual Studio\\Installer\\vswhere.exe",
-            "Microsoft Visual Studio\\2022\\Enterprise\\Common7\\Tools\\VsDevCmd.bat"
-        )),
-        "a hard-coded Visual Studio major version and edition must not satisfy discovery"
-    );
-    assert!(
-        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
-            "Test-Path -LiteralPath $vsDevCmd -PathType Leaf",
-            "Test-Path -LiteralPath $vsDevCmd"
-        )),
-        "the discovered developer-command path must be a real file"
-    );
-    assert!(
-        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
-            "-requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 ",
-            ""
-        )),
-        "Visual Studio discovery must require the MSVC x64/x86 tool component"
-    );
-    assert!(
-        !windows_branch_discovers_msvc_toolchain(
-            &discovered_toolchain_branch.replace("$vswhereExitCode = $LASTEXITCODE; ", "")
-        ),
-        "the vswhere exit code must be captured immediately after discovery"
-    );
-    assert!(
-        !windows_branch_discovers_msvc_toolchain(&discovered_toolchain_branch.replace(
-            "cmd.exe /d /s /c $windowsBuckCommand",
-            "Invoke-Expression $windowsBuckCommand"
-        )),
-        "the discovered batch environment and Buck2 test must stay in one native cmd process"
+        !workspace_resolver_differential_is_self_hosted_and_binding(&without_target),
+        "removing the differential target from the binding Buck2 lane must fail the registration guard"
     );
 
-    let receipt_branch = "if ($IsWindows) { $windowsBuckReceipt = Join-Path $env:RUNNER_TEMP 'buck2-windows-receipt.log'; cmd.exe /d /s /c \"call `\"VsDevCmd.bat`\" && buck2 test $targets\" 2>&1 | Tee-Object -FilePath $windowsBuckReceipt; $windowsBuckExitCode = $LASTEXITCODE; Write-Host \"Windows Buck2 cmd exit code: $windowsBuckExitCode\"; Get-Content -Path $windowsBuckReceipt; $windowsBuckReceiptText = Get-Content -Path $windowsBuckReceipt -Raw; $windowsBuckPassed = $windowsBuckReceiptText -match '(?m)^Tests finished:\\s*(?:\\x1b\\[[0-9;]*m)?Pass\\s+[1-9][0-9]*\\b'; if (-not ($windowsBuckReceiptText.Contains('Build ID:') -and $windowsBuckPassed)) { exit 1 }; if ($windowsBuckExitCode -ne 0) { exit $windowsBuckExitCode } } else { }";
-    assert!(windows_branch_has_buck_execution_receipt(receipt_branch));
-    assert!(has_positive_buck_test_pass_summary(
-        "Tests finished: Pass 1"
-    ));
-    assert!(has_positive_buck_test_pass_summary(
-        "Tests finished: Pass 12"
-    ));
-    assert!(has_positive_buck_test_pass_summary(
-        "Tests finished: \u{1b}[mPass 1"
-    ));
-    assert!(!has_positive_buck_test_pass_summary(
-        "Tests finished: Pass 0"
-    ));
-    assert!(!has_positive_buck_test_pass_summary(
-        "Tests finished: Fail 1"
-    ));
-    assert!(!has_positive_buck_test_pass_summary(
-        "Buck completed without a summary"
-    ));
-    assert!(
-        !windows_branch_has_buck_execution_receipt(
-            &receipt_branch.replace("$windowsBuckExitCode = $LASTEXITCODE; ", "")
-        ),
-        "the cmd exit code must be captured before PowerShell inspection can overwrite it"
+    let without_rustup_home = workflow.replace(
+        "-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
+        "",
     );
     assert!(
-        !windows_branch_has_buck_execution_receipt(
-            &receipt_branch.replace(".Contains('Build ID:')", ".Contains('Build identifier:')")
-        ),
-        "a cmd prompt without Buck's Build ID is a false-green execution receipt"
-    );
-    assert!(
-        !windows_branch_has_buck_execution_receipt(
-            &receipt_branch.replace("[1-9][0-9]*", "[0-9]*")
-        ),
-        "the Windows receipt regex must reject Pass 0 rather than accepting any numeric count"
-    );
-    assert!(
-        !windows_branch_has_buck_execution_receipt(
-            &receipt_branch.replace("Get-Content -Path $windowsBuckReceipt; ", "")
-        ),
-        "the raw Windows job log must print the captured execution receipt"
-    );
-    assert!(
-        !windows_branch_has_buck_execution_receipt(&receipt_branch.replace(
-            "Write-Host \"Windows Buck2 cmd exit code: $windowsBuckExitCode\"; ",
-            ""
-        )),
-        "the raw Windows job log must print the original cmd exit code"
+        !workspace_resolver_differential_is_self_hosted_and_binding(&without_rustup_home),
+        "removing the owned rustup home from the hermetic Buck2 test executor must fail the registration guard"
     );
 }
 
