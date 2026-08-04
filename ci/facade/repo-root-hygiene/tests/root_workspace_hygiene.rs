@@ -16,7 +16,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ci_repo_root_hygiene::{Verdict, evaluate, evaluate_keyed};
+use ci_repo_root_hygiene::{
+    Verdict, evaluate, evaluate_keyed, evaluate_talos_machine_config_documents,
+};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -45,6 +47,107 @@ fn load_json(path: &Path) -> Value {
 
 fn load_policy(root: &Path) -> Value {
     load_json(&gate_dir(root).join("root-workspace-hygiene-policy.json"))
+}
+
+#[test]
+fn generated_talos_root_outputs_are_ignored_by_exact_root_anchored_rules() {
+    let root = repo_root();
+    let gitignore = fs::read_to_string(root.join(".gitignore")).expect("read root .gitignore");
+    for exact_rule in [
+        "/controlplane.yaml",
+        "/worker.yaml",
+        "/talosconfig",
+        "/secrets.yaml",
+    ] {
+        assert!(
+            gitignore.lines().any(|line| line == exact_rule),
+            "missing exact root-anchored Talos generated-output ignore rule: {exact_rule}"
+        );
+    }
+}
+
+/// Exact pre-existing public parser/differential fixtures that intentionally model Talos
+/// credential topology with deterministic test-only values. This is a frozen exception, not a
+/// directory exemption: a renamed, extensionless, or newly added sibling remains scanned. The two
+/// invalid fixtures without sensitive topology (10/11) are not exceptions because they produce no
+/// finding.
+fn is_frozen_public_talos_parser_fixture(path: &str) -> bool {
+    if path == "os/core/init-app/testdata/machine-config.yaml" {
+        return true;
+    }
+    let fixture_name = [
+        "os/core/machine-config-domain/testdata/configs/",
+        "os/harness/difftest-app/configs/",
+    ]
+    .into_iter()
+    .find_map(|prefix| path.strip_prefix(prefix));
+    matches!(
+        fixture_name,
+        Some(
+            "01-controlplane-full.yaml"
+                | "02-controlplane-no-hostname-no-install.yaml"
+                | "03-controlplane-hostname-no-install.yaml"
+                | "04-worker-full.yaml"
+                | "05-worker-no-hostname-no-install.yaml"
+                | "06-worker-hostname-no-install.yaml"
+                | "07-worker-install-no-hostname.yaml"
+                | "08-controlplane-certsans.yaml"
+                | "09-invalid-bad-type.yaml"
+                | "12-invalid-no-endpoint.yaml"
+                | "13-invalid-worker-ca-key.yaml"
+                | "14-init-full.yaml"
+                | "15-controlplane-rich-network.yaml"
+                | "16-worker-rich.yaml"
+                | "17-controlplane-install-image-only.yaml"
+                | "18-worker-sysctls-env-only.yaml"
+                | "19-init-cluster-network.yaml"
+                | "20-worker-minimal-kubelet.yaml"
+        )
+    )
+}
+
+#[test]
+fn bounded_tracked_utf8_corpus_has_no_generated_talos_machine_config_regardless_of_filename() {
+    let root = repo_root();
+    let observed = observed_from_scm_facts(&root);
+    let mut documents = Vec::new();
+    for row in observed["rows"].as_array().expect("rows") {
+        let Some(path) = row["path"].as_str() else {
+            continue;
+        };
+        let Ok(metadata) = fs::metadata(root.join(path)) else {
+            continue;
+        };
+        if metadata.len() > 2 * 1024 * 1024 {
+            continue;
+        }
+        let Ok(bytes) = fs::read(root.join(path)) else {
+            continue;
+        };
+        let Ok(text) = String::from_utf8(bytes) else {
+            continue;
+        };
+        documents.push((path.to_owned(), text));
+    }
+    let borrowed = documents
+        .iter()
+        .map(|(path, text)| (path.as_str(), text.as_str()))
+        .collect::<Vec<_>>();
+
+    let findings = evaluate_talos_machine_config_documents(borrowed);
+    let unexpected = findings
+        .iter()
+        .filter(|finding| !is_frozen_public_talos_parser_fixture(&finding.key))
+        .collect::<Vec<_>>();
+    let frozen_count = findings.len() - unexpected.len();
+    assert_eq!(
+        frozen_count, 37,
+        "the exact pre-existing public Talos fixture exception set must neither grow nor silently disappear"
+    );
+    assert!(
+        unexpected.is_empty(),
+        "outside the exact frozen public fixture set, bounded tracked UTF-8 blobs must not contain generated Talos machine-config credential topology regardless of filename; findings are value-redacted: {unexpected:#?}"
+    );
 }
 
 const SYNTHETIC_RUNTIME_STATE_PATHS: [&str; 5] = [
