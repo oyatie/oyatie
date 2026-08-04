@@ -60,3 +60,28 @@ when {
   principal has step_up_class &&
   principal.step_up_class == "a"
 };
+
+@id("re-capabilities-known-platform-callers")
+permit (
+  principal is OyaPlatform::PlatformPrincipal,
+  action == OyaPlatform::Action::"ReCapabilities",
+  resource is OyaPlatform::RemoteExecutionCell
+)
+when {
+  principal.spiffe_id == "spiffe://oyatie.cell-build/platform/ci-cache-reader" ||
+  principal.spiffe_id == "spiffe://oyatie.cell-build/platform/trusted-dev-writer" ||
+  principal.spiffe_id == "spiffe://oyatie.cell-build/platform/nativelink-worker" ||
+  principal.spiffe_id == "spiffe://oyatie.cell-build/platform/ci-re-input-client"
+};
+
+@id("re-execute-trusted-input-client")
+permit (
+  principal is OyaPlatform::PlatformPrincipal,
+  action == OyaPlatform::Action::"ReExecute",
+  resource is OyaPlatform::RemoteExecutionCell
+)
+when {
+  principal.spiffe_id == "spiffe://oyatie.cell-build/platform/ci-re-input-client" &&
+  resource.resource_kind == "remote_execution_cell" &&
+  resource.build_class == "trusted-dev"
+};

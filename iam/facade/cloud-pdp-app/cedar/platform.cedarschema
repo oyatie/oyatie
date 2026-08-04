@@ -30,6 +30,15 @@ namespace OyaPlatform {
     "spiffe_id": String,
   };
 
+  entity PlatformPrincipal = {
+    "spiffe_id": String,
+  };
+
+  entity RemoteExecutionCell = {
+    "resource_kind": String,
+    "build_class": String,
+  };
+
   entity TenantResource in [Tenant] = {
     "tenant_id": String,
     "resource_kind": String,
@@ -52,6 +61,18 @@ namespace OyaPlatform {
   action AdministerTenant appliesTo {
     principal: [Principal],
     resource: [Tenant],
+    context: {},
+  };
+
+  action ReCapabilities appliesTo {
+    principal: [PlatformPrincipal],
+    resource: [RemoteExecutionCell],
+    context: {},
+  };
+
+  action ReExecute appliesTo {
+    principal: [PlatformPrincipal],
+    resource: [RemoteExecutionCell],
     context: {},
   };
 }

@@ -57,6 +57,14 @@ pub fn action_map() -> BTreeMap<String, String> {
             "tenant.administer".to_owned(),
             r#"OyaPlatform::Action::"AdministerTenant""#.to_owned(),
         ),
+        (
+            "re_capabilities".to_owned(),
+            r#"OyaPlatform::Action::"ReCapabilities""#.to_owned(),
+        ),
+        (
+            "re_execute".to_owned(),
+            r#"OyaPlatform::Action::"ReExecute""#.to_owned(),
+        ),
     ])
 }
 

@@ -1,0 +1,325 @@
+# NativeLink v1.6.2 remote-execution desired state (ADR-0612).
+# Declarative only: issue #1541 forbids applying this manifest to a live cluster.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nativelink-scheduler-config
+  namespace: oya-ci
+  labels: { app: nativelink-scheduler, oya.io/adr: ADR-0612 }
+data:
+  scheduler.json: |
+    {
+      "stores": [
+        {
+          "name": "REMOTE_CAS",
+          "grpc": {
+            "instance_name": "main",
+            "endpoints": [{
+              "address": "grpcs://nativelink-cas-writer.oya-ci.svc.cluster.local:50051",
+              "tls_config": {
+                "ca_file": "/tls/cas-ca.crt",
+                "cert_file": "/tls/tls.crt",
+                "key_file": "/tls/tls.key"
+              }
+            }],
+            "store_type": "cas"
+          }
+        },
+        {
+          "name": "REMOTE_AC",
+          "grpc": {
+            "instance_name": "main",
+            "endpoints": [{
+              "address": "grpcs://nativelink-cas-writer.oya-ci.svc.cluster.local:50051",
+              "tls_config": {
+                "ca_file": "/tls/cas-ca.crt",
+                "cert_file": "/tls/tls.crt",
+                "key_file": "/tls/tls.key"
+              }
+            }],
+            "store_type": "ac"
+          }
+        }
+      ],
+      "schedulers": [{
+        "name": "MAIN_SCHEDULER",
+        "simple": {
+          "supported_platform_properties": {
+            "cpu_count": "minimum",
+            "cpu_arch": "exact",
+            "OSFamily": "exact",
+            "container-image": "exact"
+          }
+        }
+      }],
+      "servers": [
+        {
+          "name": "edge",
+          "listener": { "http": {
+            "socket_address": "0.0.0.0:51052",
+            "tls": {
+              "cert_file": "/tls/tls.crt",
+              "key_file": "/tls/tls.key",
+              "client_ca_file": "/tls/edge-ca.crt"
+            }
+          }},
+          "services": {
+            "ac": [{ "instance_name": "main", "ac_store": "REMOTE_AC", "read_only": false }],
+            "execution": [{ "instance_name": "main", "cas_store": "REMOTE_CAS", "scheduler": "MAIN_SCHEDULER" }],
+            "capabilities": [{ "instance_name": "main", "remote_execution": { "scheduler": "MAIN_SCHEDULER" } }]
+          }
+        },
+        {
+          "name": "workers",
+          "listener": { "http": {
+            "socket_address": "0.0.0.0:50061",
+            "tls": {
+              "cert_file": "/tls/tls.crt",
+              "key_file": "/tls/tls.key",
+              "client_ca_file": "/tls/worker-ca.crt"
+            }
+          }},
+          "services": { "worker_api": { "scheduler": "MAIN_SCHEDULER" } }
+        },
+        {
+          "name": "ops",
+          "listener": { "http": { "socket_address": "0.0.0.0:50062" } },
+          "services": { "health": {} }
+        }
+      ],
+      "global": { "max_open_files": 24576 }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nativelink-worker-config
+  namespace: oya-ci
+  labels: { app: nativelink-worker, oya.io/adr: ADR-0612 }
+data:
+  worker.json: |
+    {
+      "stores": [
+        {
+          "name": "REMOTE_CAS",
+          "grpc": {
+            "instance_name": "main",
+            "endpoints": [{
+              "address": "grpcs://nativelink-edge.oya-ci.svc.cluster.local:50053",
+              "tls_config": {
+                "ca_file": "/identity/cas-ca.crt",
+                "cert_file": "/identity/tls.crt",
+                "key_file": "/identity/tls.key"
+              }
+            }],
+            "store_type": "cas"
+          }
+        },
+        {
+          "name": "REMOTE_AC",
+          "grpc": {
+            "instance_name": "main",
+            "endpoints": [{
+              "address": "grpcs://nativelink-edge.oya-ci.svc.cluster.local:50053",
+              "tls_config": {
+                "ca_file": "/identity/cas-ca.crt",
+                "cert_file": "/identity/tls.crt",
+                "key_file": "/identity/tls.key"
+              }
+            }],
+            "store_type": "ac"
+          }
+        },
+        {
+          "name": "WORKER_LOCAL_CAS",
+          "cache_metrics": {
+            "cache_type": "cas",
+            "backend": {
+              "fast_slow": {
+                "fast": {
+                  "filesystem": {
+                    "content_path": "/var/lib/nativelink/local-cas/content",
+                    "temp_path": "/var/lib/nativelink/local-cas/tmp",
+                    "eviction_policy": { "max_bytes": 8000000000 }
+                  }
+                },
+                "slow": { "ref_store": { "name": "REMOTE_CAS" } }
+              }
+            }
+          }
+        }
+      ],
+      "workers": [{
+        "local": {
+          "name": "arm64-single-slot",
+          "worker_api_endpoint": {
+            "uri": "grpcs://nativelink-scheduler.oya-ci.svc.cluster.local:50061",
+            "tls_config": {
+              "ca_file": "/identity/scheduler-ca.crt",
+              "cert_file": "/identity/tls.crt",
+              "key_file": "/identity/tls.key"
+            }
+          },
+          "max_inflight_tasks": 1,
+          "cas_fast_slow_store": "WORKER_LOCAL_CAS",
+          "upload_action_result": { "ac_store": "REMOTE_AC", "upload_ac_results_strategy": "success_only" },
+          "work_directory": "/var/lib/nativelink/action-root",
+          "platform_properties": {
+            "cpu_count": { "values": ["1"] },
+            "cpu_arch": { "values": ["arm64"] },
+            "OSFamily": { "values": ["linux"] },
+            "container-image": { "values": ["nativelink-worker-v1.6.2"] }
+          },
+          "use_namespaces": true,
+          "use_mount_namespace": true
+        }
+      }],
+      "servers": [{
+        "name": "ops",
+        "listener": { "http": { "socket_address": "0.0.0.0:50062" } },
+        "services": { "health": {} }
+      }],
+      "global": { "max_open_files": 24576 }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nativelink-scheduler
+  namespace: oya-ci
+  labels: { app: nativelink-scheduler, oya.io/adr: ADR-0612 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: nativelink-scheduler } }
+  template:
+    metadata: { labels: { app: nativelink-scheduler } }
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: nativelink
+          image: ghcr.io/tracemachina/nativelink:v1.6.2@sha256:6750ab337eb1835ebe8452ddb76786641a80e23de71d8a5e630469399219b6ea
+          args: ["/etc/nativelink/scheduler.json"]
+          env:
+            - { name: NL_LOG, value: json }
+            - { name: NL_OTEL_ENDPOINT, value: "http://otel-collector.observability.svc.cluster.local:4317" }
+          ports:
+            - { name: execution, containerPort: 51052 }
+            - { name: worker-api, containerPort: 50061 }
+            - { name: ops, containerPort: 50062 }
+          volumeMounts:
+            - { name: config, mountPath: /etc/nativelink, readOnly: true }
+            - { name: identity, mountPath: /tls, readOnly: true }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 2Gi }
+          readinessProbe: { httpGet: { path: /status, port: ops }, periodSeconds: 15 }
+          livenessProbe: { httpGet: { path: /status, port: ops }, periodSeconds: 60 }
+      volumes:
+        - { name: config, configMap: { name: nativelink-scheduler-config } }
+        - { name: identity, secret: { secretName: nativelink-scheduler-svid } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nativelink-worker
+  namespace: oya-ci
+  labels: { app: nativelink-worker, oya.io/adr: ADR-0612 }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: nativelink-worker } }
+  template:
+    metadata: { labels: { app: nativelink-worker, oya.io/nativelink-role: worker-writer } }
+    spec:
+      automountServiceAccountToken: false
+      hostUsers: false
+      nodeSelector: { kubernetes.io/arch: arm64 }
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: nativelink
+          image: ghcr.io/tracemachina/nativelink:v1.6.2@sha256:6750ab337eb1835ebe8452ddb76786641a80e23de71d8a5e630469399219b6ea
+          args: ["/etc/nativelink/worker.json"]
+          env:
+            - { name: NL_LOG, value: json }
+            - { name: NL_OTEL_ENDPOINT, value: "http://otel-collector.observability.svc.cluster.local:4317" }
+          ports: [{ name: ops, containerPort: 50062 }]
+          volumeMounts:
+            - { name: config, mountPath: /etc/nativelink, readOnly: true }
+            - { name: identity, mountPath: /identity, readOnly: true }
+            - { name: execution, mountPath: /var/lib/nativelink }
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          resources:
+            requests: { cpu: "1", memory: 2Gi }
+            limits: { cpu: "1", memory: 4Gi }
+          readinessProbe: { httpGet: { path: /status, port: ops }, periodSeconds: 15 }
+          livenessProbe: { httpGet: { path: /status, port: ops }, periodSeconds: 60 }
+      volumes:
+        - { name: config, configMap: { name: nativelink-worker-config } }
+        # Workload identity only; no application/build secrets are projected.
+        - { name: identity, secret: { secretName: nativelink-worker-svid } }
+        - { name: execution, emptyDir: { sizeLimit: 20Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: nativelink-scheduler, namespace: oya-ci }
+spec:
+  selector: { app: nativelink-scheduler }
+  ports:
+    - { name: execution, port: 51052, targetPort: 51052 }
+    - { name: worker-api, port: 50061, targetPort: 50061 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: nativelink-scheduler-ingress, namespace: oya-ci }
+spec:
+  podSelector: { matchLabels: { app: nativelink-scheduler } }
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{ podSelector: { matchLabels: { app: nativelink-edge } } }]
+      ports: [{ protocol: TCP, port: 51052 }]
+    - from: [{ podSelector: { matchLabels: { app: nativelink-worker } } }]
+      ports: [{ protocol: TCP, port: 50061 }]
+    - from: [{ podSelector: {} }]
+      ports: [{ protocol: TCP, port: 50062 }]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: nativelink-worker-egress, namespace: oya-ci }
+spec:
+  podSelector: { matchLabels: { app: nativelink-worker } }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{ podSelector: {} }]
+      ports: [{ protocol: TCP, port: 50062 }]
+  egress:
+    - to: [{ podSelector: { matchLabels: { app: nativelink-scheduler } } }]
+      ports: [{ protocol: TCP, port: 50061 }]
+    - to: [{ podSelector: { matchLabels: { app: nativelink-edge } } }]
+      ports: [{ protocol: TCP, port: 50053 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: observability } }
+          podSelector: { matchLabels: { app.kubernetes.io/name: opentelemetry-collector } }
+      ports: [{ protocol: TCP, port: 4317 }]
+    - to:
+        - namespaceSelector: { matchLabels: { kubernetes.io/metadata.name: kube-system } }
+          podSelector: { matchLabels: { k8s-app: kube-dns } }
+      ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
