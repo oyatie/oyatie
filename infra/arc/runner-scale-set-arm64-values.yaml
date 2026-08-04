@@ -21,10 +21,11 @@ controllerServiceAccount:
 # toolchain. That is a KNOWN, DELIBERATE gap at this slice — a warm pool is
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
-# This set has its own physically separate 48 Gi Talos user volume. Local-path
-# does not enforce the advertised 44 Gi request, so maxRunners=1 prevents a
-# second claim from sharing that filesystem; no 4 Gi reserve is claimed.
-maxRunners: 1
+# Each admitted node has its own fixed 48 Gi Talos user volume at the same path.
+# Local-path does not enforce the advertised 44 Gi request, so required hostname
+# anti-affinity below permits at most one general runner per physical filesystem.
+# Rollout is fail-closed and evidence-gated: 0 -> 1 -> 2, never directly to 2.
+maxRunners: 2
 minRunners: 0
 listenerTemplate:
   metadata:
@@ -68,7 +69,14 @@ template:
     # that platform's buck2 cache namespace (action keys include cpu:/os:).
     nodeSelector:
       kubernetes.io/arch: arm64
-      kubernetes.io/hostname: oya-talos-worker-2
+      oya.io/ci-workspace: general
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                oya.io/ci-cell: general
+            topologyKey: kubernetes.io/hostname
     securityContext:
       fsGroup: 1001
       fsGroupChangePolicy: OnRootMismatch

@@ -945,6 +945,43 @@ fn required_workflow_cache_hit_report_is_binding() {
 }
 
 #[test]
+fn workflows_use_the_local_config_controller_and_keep_the_cold_canary_absent() {
+    let root = repo_root();
+    let required = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH)).unwrap();
+    assert!(
+        required.contains(" -- run --build-class \"${CACHE_BUILD_CLASS}\" --mode-out /tmp/cache-mode -- buck2 test //ci/..."),
+        "required CI must execute Buck2 as the controller child"
+    );
+    assert!(!required.contains("CACHE_MODE=bypass"));
+
+    let canary = std::fs::read_to_string(root.join(CANARY_WORKFLOW_PATH)).unwrap();
+    let cold = canary
+        .split("- name: Cold from-empty build of the pinned target set")
+        .nth(1)
+        .and_then(|tail| tail.split("- name: Prove zero cache participation").next())
+        .expect("cold canary step");
+    assert!(!cold.contains("run --warm-probe"));
+    assert!(!cold.contains(".buckconfig.local"));
+    assert!(canary.contains(" -- run --warm-probe --mode-out /tmp/canary-cache-mode -- buck2"));
+    assert!(!canary.contains("--config-file infra/ci/buckconfig"));
+    assert!(!canary.contains("--config \"buck2_re_client"));
+}
+
+#[test]
+fn live_postgres_coverage_is_one_combined_same_pod_job() {
+    let root = repo_root();
+    let required = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH)).unwrap();
+    assert_eq!(required.matches("  gate-live-postgres:").count(), 1);
+    assert!(!required.contains("gate-live-postgres-adapters:"));
+    assert!(!required.contains("gate-live-postgres-facades:"));
+    assert!(!required.contains("needs.gate-live-postgres-adapters"));
+    assert!(!required.contains("needs.gate-live-postgres-facades"));
+    assert!(required.contains("buck2 test — durable adapters"));
+    assert!(required.contains("buck2 test — durable facades"));
+    assert!(required.contains("      - gate-live-postgres # #901:"));
+}
+
+#[test]
 fn required_workflow_never_archives_buck_out() {
     let root = repo_root();
     let text = std::fs::read_to_string(root.join(REQUIRED_WORKFLOW_PATH))

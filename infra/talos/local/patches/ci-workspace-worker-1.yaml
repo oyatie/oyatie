@@ -1,0 +1,20 @@
+# #1504 general-runner capacity for oya-talos-worker-1. Apply only after
+# readback proves /dev/vdb is the blank non-system 150 GiB disk; this declaration
+# does not authorize or perform live-cluster mutation.
+machine:
+  kubelet:
+    nodeLabels:
+      oya.io/ci-capacity: re
+      oya.io/ci-workspace: general
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: ci-workspace-general
+provisioning:
+  diskSelector:
+    match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
+  minSize: 48GiB
+  maxSize: 48GiB
+filesystem:
+  type: xfs
+  projectQuotaSupport: true

@@ -13,7 +13,7 @@ spec:
     - name: oya-ci-workspace-capacity
       rules:
         - alert: OyaCiWorkspaceNodeDiskPressure
-          expr: kube_node_status_condition{node="oya-talos-worker-2",condition="DiskPressure",status="true"} == 1
+          expr: kube_node_status_condition{node=~"oya-talos-worker-[12]",condition="DiskPressure",status="true"} == 1
           for: 2m
           labels: { severity: critical }
           annotations:

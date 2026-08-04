@@ -107,7 +107,8 @@ cell deliberately carries neither label.
 
 The general scale set requests `cpu 2 / memory 4Gi / root ephemeral-storage 4Gi /
 workspace PVC 44Gi`, limits `memory 8Gi / root ephemeral-storage 8Gi`, and carries **no CPU
-limit**. It is temporarily capped at `maxRunners: 1`.
+limit**. It is capped at `maxRunners: 2`, admitted only through the measured
+`0 -> 1 -> 2` rollout contract.
 
 - `cpu 2` tracks the MEASURED buck2 scaling knee (j=2 87.19s, j=4 67.06s, j=8 71.29s,
   j=18 98.09s) — over-parallelism degrades, so a wider request buys nothing and crowds
@@ -116,11 +117,11 @@ limit**. It is temporarily capped at `maxRunners: 1`.
   worker for co-tenants.
 - The build tree is a generic ephemeral PVC mounted at `/home/runner/_work`, not a writable
   layer on Talos `EPHEMERAL`. Each scale set's 44Gi request uses its own StorageClass, path, and
-  fixed 48Gi Talos user-volume filesystem carved from worker-2's otherwise blank `/dev/vdb`.
+  fixed 48Gi Talos user-volume filesystem carved from each admitted worker's otherwise blank `/dev/vdb`.
   Local Path Provisioner does not enforce the advertised claim size, so **no 4Gi reserve is
-  claimed**. The enforceable boundary is one runner per scale set plus one separate 48Gi
-  filesystem per set: either runner can fill its own filesystem, but cannot consume the other's
-  workspace or the Talos system filesystem.
+  claimed**. Required Pod anti-affinity on hostname permits one general runner
+  per node-local 48Gi filesystem. Each can fill its own filesystem, but cannot
+  consume the sibling node's workspace, the PostgreSQL workspace, or Talos rootfs.
 - Root `ephemeral-storage` remains bounded at 4Gi/8Gi for image, tool installer, and writable
   layer pressure. A runaway installer is evicted rather than filling the Talos system filesystem.
 - **No CPU limit deliberately**: a throttled compile presents as a flaky slow test, which is
@@ -158,10 +159,10 @@ an unused CAS network capability would widen its blast radius without changing e
 test-fixture isolation, not a production data-plane dependency.
 
 The dedicated set is capped at `maxRunners: 1`, mounts a 44Gi generic-ephemeral workspace from
-its own StorageClass and 48Gi filesystem, and limits root ephemeral storage to 8Gi. Its cap
-serializes the adapter
-and facade jobs even though the workflow keeps them as separate required lanes. Combined with the
-general set's cap, at most one claim can consume each physically separate 48Gi workspace. This
+its own StorageClass and 48Gi filesystem, and limits root ephemeral storage to 8Gi. The workflow
+combines adapter and facade coverage in that one same-Pod database job, removing duplicate
+bootstrap while retaining sequential test execution. Combined with required general-runner
+hostname anti-affinity, at most one claim can consume each physically separate 48Gi workspace. This
 declaration is not rollout readiness: issue #1504 must verify the exact-head cold-concurrency
 envelope before closure.
 
@@ -196,9 +197,10 @@ The existing default `local-path` StorageClass and `rancher.io/local-path` contr
 own CNPG, registry, NativeLink, OpenBao, and other stateful data. CI workspaces use a
 second provisioner identity, `oyatie.io/ci-workspace-local-path`, and two StorageClasses,
 `oya-ci-workspace-general` and `oya-ci-workspace-live-postgres`. Its node-path map names only
-`oya-talos-worker-2` and the two distinct Talos mount paths; there is no default path for unlisted
-nodes. Each StorageClass selects exactly one mount path. Both runners select the exact worker
-hostname; `WaitForFirstConsumer` plus the provisioner's no-default node map makes an absent volume
+the exact admitted worker hostnames and paths; there is no default path for unlisted
+nodes. The general StorageClass maps the same path on each node, backed by distinct fixed user
+volumes; the PostgreSQL class exists only on its labeled node. `WaitForFirstConsumer`, required
+general-runner hostname anti-affinity, and the provisioner's no-default node map make an absent volume
 or wrong-node placement fail closed instead of spilling builds onto stateful storage.
 
 The repository declares alerts for DiskPressure, workspace free space, root writable-layer
@@ -272,7 +274,7 @@ This decision is the justification anchor for `infra/arc/OWNERS`, `infra/arc/BUC
 `infra/arc/live-postgres-runner-network-policy.yaml`,
 `infra/arc/live-postgres-admission-bootstrap.json`, `infra/arc/ci-workspace-storage.yaml`,
 `infra/arc/ci-workspace-alerts.yaml`, `infra/arc/tests/ci_workspace_capacity.rs`,
-`infra/talos/local/patches/ci-workspace-worker-2.yaml`, and the ARC registrations in
+`infra/talos/local/patches/ci-workspace-worker-{1,2}.yaml`, and the ARC registrations in
 `infra/gitops/values.yaml`.
 
 It is also the justification anchor for the baked runner image this fleet runs. One path per

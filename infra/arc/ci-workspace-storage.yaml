@@ -1,5 +1,5 @@
 # Dedicated local-path provisioner for disposable ARC workspaces (#1504).
-# It uses a distinct provisioner identity and two path-bound StorageClasses; the existing
+# It uses a distinct provisioner identity and exact per-node path maps; the existing
 # rancher.io/local-path class continues to own CNPG, registry, NativeLink,
 # OpenBao, and all other stateful data without any configuration change.
 apiVersion: v1
@@ -79,16 +79,29 @@ metadata:
   namespace: oya-ci-workspace-storage
 data:
   config.json: |-
-    {"nodePathMap":[{"node":"oya-talos-worker-2","paths":["/var/mnt/ci-workspace-general","/var/mnt/ci-workspace-live-postgres"]}]}
+    {"nodePathMap":[{"node":"oya-talos-worker-1","paths":["/var/mnt/ci-workspace-general"]},{"node":"oya-talos-worker-2","paths":["/var/mnt/ci-workspace-general","/var/mnt/ci-workspace-live-postgres"]}]}
   setup: |-
     #!/bin/sh
     set -eu
+    base="${VOL_DIR%/*}"
+    test -d "$base"
+    device="$(df -P "$base" | awk 'END { print $1 }')"
+    case "$device" in
+      /dev/vdb*) ;;
+      *) echo "refusing CI workspace outside the declared /dev/vdb user volume" >&2; exit 1 ;;
+    esac
     mkdir -p "$VOL_DIR"
     chown 1001:1001 "$VOL_DIR"
     chmod 0700 "$VOL_DIR"
   teardown: |-
     #!/bin/sh
     set -eu
+    base="${VOL_DIR%/*}"
+    device="$(df -P "$base" | awk 'END { print $1 }')"
+    case "$device" in
+      /dev/vdb*) ;;
+      *) echo "refusing teardown outside the declared /dev/vdb user volume" >&2; exit 1 ;;
+    esac
     rm -rf "$VOL_DIR"
   helperPod.yaml: |-
     apiVersion: v1

@@ -570,11 +570,11 @@ fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
             .contains(&format!("needs.{job}.result }}}}\" = \"success\""))
 }
 
-fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
+fn live_postgres_fan_in_is_complete(workflow: &str) -> bool {
     let block = fan_in_block(workflow);
-    fan_in_mentions_job(block, "gate-live-postgres-adapters")
-        && fan_in_mentions_job(block, "gate-live-postgres-facades")
-        && !block.contains("needs.gate-live-postgres.result")
+    fan_in_mentions_job(block, "gate-live-postgres")
+        && !block.contains("needs.gate-live-postgres-adapters.result")
+        && !block.contains("needs.gate-live-postgres-facades.result")
 }
 
 fn live_postgres_job_uses_isolated_arc_cell(job: &str) -> bool {
@@ -613,8 +613,10 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
         && values.contains("name: runner")
         && values.contains("medium: Memory")
         && values.contains("sizeLimit:")
-        && values.contains("ephemeral-storage: 32Gi")
-        && values.contains("ephemeral-storage: 34Gi")
+        && values.contains("oya.io/ci-capacity: pg")
+        && values.contains("ephemeral-storage: 4Gi")
+        && values.contains("ephemeral-storage: 8Gi")
+        && values.contains("storageClassName: oya-ci-workspace-live-postgres")
         && values.contains("/run/oya-ci-postgres")
         && !values.contains("secretKeyRef:")
         && !values.contains("oya.io/nativelink-cas-reader")
@@ -623,17 +625,18 @@ fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
 }
 
 fn live_postgres_network_policy_denies_cross_pod_ingress(policy: &str) -> bool {
-    policy.contains("kind: NetworkPolicy")
+    policy.contains("apiVersion: networking.k8s.io/v1")
+        && policy.matches("kind: NetworkPolicy").count() == 2
         && policy.contains("oya.io/ci-cell: live-postgres")
         && policy.contains("policyTypes:")
         && policy.contains("- Ingress")
         && policy.lines().any(|line| line.trim() == "ingress: []")
-        && policy.contains("kind: CiliumNetworkPolicy")
-        && policy.contains("name: ci-runners-deny-shared-data-egress")
+        && policy.contains("name: ci-runners-egress-allowlist")
         && policy.contains("values: [general, live-postgres]")
-        && policy.contains("egress: false")
-        && policy.contains("egressDeny:")
-        && policy.contains("k8s:io.kubernetes.pod.namespace: oya-data")
+        && policy.contains("policyTypes: [Egress]")
+        && policy.contains("cidr: 0.0.0.0/0")
+        && policy.contains("kubernetes.io/metadata.name: oya-kms")
+        && !policy.contains("kubernetes.io/metadata.name: oya-data")
 }
 
 fn gitops_registers_live_postgres_arc_cell(values: &str) -> bool {
@@ -888,8 +891,14 @@ jobs:
     // Pattern coverage semantics: recursive patterns recurse, exact patterns do not.
     assert!(pattern_covers_package("//ci/...", "ci/facade/x"));
     assert!(pattern_covers_package("//...", "ci/facade/x"));
-    assert!(pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/x"));
-    assert!(!pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/y"));
+    assert!(pattern_covers_package(
+        "//ci/facade/x:ci-x-gate",
+        "ci/facade/x"
+    ));
+    assert!(!pattern_covers_package(
+        "//ci/facade/x:ci-x-gate",
+        "ci/facade/y"
+    ));
     // Prefix matching must respect path segments: `//cider/...` must not cover `ci/facade/x`.
     assert!(!pattern_covers_package("//cider/...", "ci/facade/x"));
 
@@ -900,7 +909,9 @@ jobs:
         &root.join("ci/facade/baseline-ratchet/BUCK")
     ));
     assert!(!buck_declares_a_test_rule(&root.join("toolchains/BUCK")));
-    assert!(!buck_declares_a_test_rule(&root.join("does/not/exist/BUCK")));
+    assert!(!buck_declares_a_test_rule(
+        &root.join("does/not/exist/BUCK")
+    ));
 }
 
 /// RED proof for `fan_in_mentions_job`, and the reason this rework exists.
@@ -1544,14 +1555,14 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
             // collapse (2026-08-01) removed those lines; the gates are now executed by
             // `buck2 test //ci/...` in the `buck2` lane. Asserting execution rather than a matrix
             // line is also what this check always MEANT by "required workflow authority".
-            "producer-face" => ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(
-                |dir| {
+            "producer-face" => {
+                ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(|dir| {
                     let pkg = format!("ci/facade/{dir}");
                     executed
                         .iter()
                         .any(|pattern| pattern_covers_package(pattern, &pkg))
-                },
-            ),
+                })
+            }
             "raw-corpus-collector" => {
                 workflow.contains("producer-regen") && workflow.contains("gate-baseline-ratchet")
             }
@@ -1641,56 +1652,48 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
 }
 
 #[test]
-fn live_postgres_split_lanes_are_both_required_by_fan_in() {
+fn combined_live_postgres_lane_is_required_by_fan_in() {
     let root = repo_root();
     let wf = workflow_path(&root);
     let workflow =
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
     assert!(
-        live_postgres_split_fan_in_is_complete(&workflow),
-        "fan-in must require both split live-postgres jobs and must not keep the retired monolithic needs token"
+        live_postgres_fan_in_is_complete(&workflow),
+        "fan-in must require and check the combined same-Pod live-postgres job"
     );
 
-    let without_adapters =
-        workflow.replace("      - gate-live-postgres-adapters", "      # removed");
+    let without_lane = workflow.replace("      - gate-live-postgres", "      # removed");
     assert!(
-        !live_postgres_split_fan_in_is_complete(&without_adapters),
-        "missing adapter sublane must be detected as fan-in incomplete"
-    );
-
-    let without_facades = workflow.replace("      - gate-live-postgres-facades", "      # removed");
-    assert!(
-        !live_postgres_split_fan_in_is_complete(&without_facades),
-        "missing facade sublane must be detected as fan-in incomplete"
+        !live_postgres_fan_in_is_complete(&without_lane),
+        "missing combined lane must be detected as fan-in incomplete"
     );
 }
 
 #[test]
-fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
+fn live_postgres_lane_uses_a_dedicated_ephemeral_arc_sidecar_cell() {
     let root = repo_root();
     let wf = workflow_path(&root);
     let workflow =
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
-    for job_name in ["gate-live-postgres-adapters", "gate-live-postgres-facades"] {
-        let job = workflow_job(&workflow, job_name);
-        assert!(
-            live_postgres_job_uses_isolated_arc_cell(&job),
-            "{job_name} must run on the dedicated ARC PostgreSQL cell, remove GitHub services, and load masked per-pod credentials"
-        );
+    let job_name = "gate-live-postgres";
+    let job = workflow_job(&workflow, job_name);
+    assert!(
+        live_postgres_job_uses_isolated_arc_cell(&job),
+        "{job_name} must run on the dedicated ARC PostgreSQL cell, remove GitHub services, and load masked per-pod credentials"
+    );
 
-        let generic_runner = job.replace("runs-on: oya-live-postgres-arm64", "runs-on: oya-arm64");
-        assert!(
-            !live_postgres_job_uses_isolated_arc_cell(&generic_runner),
-            "the general-purpose ARC label must not satisfy the live-Postgres cell contract"
-        );
+    let generic_runner = job.replace("runs-on: oya-live-postgres-arm64", "runs-on: oya-arm64");
+    assert!(
+        !live_postgres_job_uses_isolated_arc_cell(&generic_runner),
+        "the general-purpose ARC label must not satisfy the live-Postgres cell contract"
+    );
 
-        let services_reintroduced = format!("{job}\n    services:\n      postgres: {{}}\n");
-        assert!(
-            !live_postgres_job_uses_isolated_arc_cell(&services_reintroduced),
-            "reintroducing workflow service containers must violate the ARC sidecar contract"
-        );
-    }
+    let services_reintroduced = format!("{job}\n    services:\n      postgres: {{}}\n");
+    assert!(
+        !live_postgres_job_uses_isolated_arc_cell(&services_reintroduced),
+        "reintroducing workflow service containers must violate the ARC sidecar contract"
+    );
 
     let general_values_path = general_arc_runner_values_path(&root);
     let general_values = fs::read_to_string(&general_values_path)
@@ -1746,16 +1749,18 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         .as_array()
         .expect("bootstrap rollback_json_patch must be an array");
     assert!(rollback.iter().any(|op| {
-        op["op"] == "replace"
-            && op["path"] == "/spec/source/targetRevision"
-            && op["value"] == "dev"
+        op["op"] == "replace" && op["path"] == "/spec/source/targetRevision" && op["value"] == "dev"
     }));
-    assert!(bootstrap["required_readback"]
-        .as_array()
-        .is_some_and(|items| items.len() >= 6));
-    assert!(bootstrap["rollback_readback"]
-        .as_array()
-        .is_some_and(|items| items.len() >= 4));
+    assert!(
+        bootstrap["required_readback"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 6)
+    );
+    assert!(
+        bootstrap["rollback_readback"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 4)
+    );
 }
 
 #[test]

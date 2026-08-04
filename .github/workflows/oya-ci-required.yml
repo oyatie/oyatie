@@ -501,6 +501,10 @@ jobs:
   #    here. This lane feeds the same fan-in as the targeted Buck2 gate matrix above.
   buck2:
     name: buck2 (hermetic build + affected gate tests)
+    env:
+      CACHE_BUILD_CLASS: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'postmerge-dev-trunk' || 'untrusted-author-presubmit' }}
+      OYA_CACHE_TLS_CLIENT_CERT: ${{ secrets.OYA_CACHE_WRITER_TLS_CLIENT_CERT_PATH }}
+      OYA_CACHE_TLS_CA_CERTS: ${{ secrets.OYA_CACHE_TLS_CA_CERTS_PATH }}
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so the barrier bought it nothing but a ~294s serial wait and a
     # skip-on-producer-failure edge.
@@ -582,7 +586,7 @@ jobs:
           # --unstable-write-invocation-record is additive observability only: it
           # writes buck2's structured run record (cache_hit_rate, run_* counters)
           # for the telemetry step below and changes nothing about the build.
-          buck2 test //ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run --build-class "${CACHE_BUILD_CLASS}" --mode-out /tmp/cache-mode -- buck2 test //ci/... --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
       # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
       # structured counters from buck2's invocation record — never log-grep — labeled with this
       # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode
@@ -593,10 +597,10 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
-          CACHE_MODE=bypass
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
+          CACHE_MODE="$(cat /tmp/cache-mode)"
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class "${CACHE_BUILD_CLASS}" --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
           cat /tmp/cache-hit-report.json
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class gate-fleet-shared-graph --mode "${CACHE_MODE}"
+          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class "${CACHE_BUILD_CLASS}" --mode "${CACHE_MODE}"
       - name: Upload cache-hit telemetry artifact
         continue-on-error: true
 # BEST-EFFORT (evidence, not verdict): an artifact-storage-quota failure on THIS step must
@@ -996,14 +1000,11 @@ jobs:
   #    CONTAINERIZED Postgres and GATES merge. Both adapter and facade groups block
   #    the single required `oya-ci-required` context.
   #
-  #    SPLIT SAFETY (#901): adapter and facade groups remain separate required jobs, and
-  #    each job owns an independent same-Pod PostgreSQL native sidecar plus deterministic
-  #    bootstrap. The dedicated scale set is capped at maxRunners=1, so the two jobs queue
-  #    and execute serially rather than competing for the disk-constrained runner cell.
-  #    Inside each group, `--num-threads 1` and sequential target invocations remain because
-  #    the harnesses in that group still share a local database.
-  gate-live-postgres-adapters:
-    name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
+  #    One combined job owns one same-Pod PostgreSQL sidecar and one deterministic
+  #    bootstrap. This removes the duplicate runner/toolchain/database setup while
+  #    preserving sequential `--num-threads 1` target execution against the shared fixture.
+  gate-live-postgres:
+    name: "gate-live-postgres (durable adapters + facades: RLS / CDC / SCIM, #901)"
     # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL
     # native sidecar. No Docker daemon, Service, shared CNPG hostname, or DB credential.
     runs-on: oya-live-postgres-arm64
@@ -1082,53 +1083,6 @@ jobs:
           buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
-  gate-live-postgres-facades:
-    name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
-    # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL
-    # native sidecar. No Docker daemon, Service, shared CNPG hostname, or DB credential.
-    runs-on: oya-live-postgres-arm64
-    timeout-minutes: 25
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-      - name: Install postgresql-client for the bootstrap
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends postgresql-client
-          psql --version
-      - name: Bootstrap app role + durable schemas/roles (admin, facades)
-        run: |
-          set -euo pipefail; admin_password="$(cat /run/oya-ci-postgres/admin-password)"; app_password="$(cat /run/oya-ci-postgres/app-password)"; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
-          ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', btrim(pg_read_file('/run/oya-ci-postgres/app-password'))); END IF; END \$\$;"
-          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
-          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
-          "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
-          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
-          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
-          "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
-          # Log-only role echo; see the adapters job above. The binding no-bypass proof is
-          # the fail-closed assert_rls_enforceable() boot guard the facades run below hit,
-          # not a retained artifact.
-          "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
       - name: buck2 test — durable facades (live test = app-role, non-live = in-memory)
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
@@ -1160,8 +1114,7 @@ jobs:
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests
       - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
-      - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
-      - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
+      - gate-live-postgres # #901: combined durable adapter + facade tests against isolated same-Pod Postgres
     steps:
       # TYPED TERMINAL STATE — the classifier that separates `fail` from `no-verdict` from
       # `blocked` (//ci/facade/baseline-ratchet:oya-cloud-ci-run-terminal-state-bin) is NOT invoked
@@ -1182,8 +1135,7 @@ jobs:
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
-          echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
-          echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
+          echo "  live-postgres     = ${{ needs.gate-live-postgres.result }}"
           # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
           # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
           if [ "${{ needs.gate.result }}" = "success" ] \
@@ -1193,8 +1145,7 @@ jobs:
             && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
             && [ "${{ needs.buck2.result }}" = "success" ] \
             && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
-            && [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] \
-            && [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ]; then
+            && [ "${{ needs.gate-live-postgres.result }}" = "success" ]; then
             echo "oya-ci-required: GREEN — every constituent gate lane passed."
             exit 0
           fi
