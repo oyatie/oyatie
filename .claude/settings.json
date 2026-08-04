@@ -3,42 +3,80 @@
   "_marker": "oya-bootstrap-v1",
   "_note": "Project-scoped Claude Code hooks (G011: recreated 2026-06-09 after deletion in #606 left Claude sessions without the cargo/local-authority enforcement that Codex sessions get via .codex/hooks.json). Mirrors the .codex/hooks.json hook set; keep the two files in sync via governance PR. The historical sandbox/permissions hardening from the 2026-05-29 security redesign (see git show b626818d1^:.claude/settings.json) is restorable in a separate security lane.",
   "hooks": {
-    "Stop": [
+    "PostToolUse": [
       {
         "hooks": [
-          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
-        ]
+          {
+            "command": "tools/hooks/spec-version-pin-suggester.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/adr-orphan-detect.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/vacuous-green-gate-detect.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|MultiEdit|Write"
+      },
+      {
+        "hooks": [
+          {
+            "command": "tools/hooks/injection-content-scanner.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|WebFetch|WebSearch"
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/local-authority-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
-        ]
+          {
+            "command": "tools/hooks/local-authority-enforcer.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/no-cargo-enforcer.sh",
+            "type": "command"
+          },
+          {
+            "command": "tools/hooks/stale-tool-suggester.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
       },
       {
-        "matcher": "Task",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh" }
-        ]
+          {
+            "command": "tools/hooks/pre-dispatch-guide.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Task"
       }
     ],
-    "PostToolUse": [
+    "SessionStart": [
       {
-        "matcher": "Edit|MultiEdit|Write",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh" },
-          { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh" },
-          { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh" }
-        ]
-      },
+          {
+            "command": "bd prime --hook-json",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "Stop": [
       {
-        "matcher": "Bash|WebFetch|WebSearch",
         "hooks": [
-          { "type": "command", "command": "tools/hooks/injection-content-scanner.sh" }
+          {
+            "command": "tools/hooks/stop-did-you-forget-suggester.sh",
+            "type": "command"
+          }
         ]
       }
     ]
