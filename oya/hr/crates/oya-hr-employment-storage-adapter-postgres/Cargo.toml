@@ -1,0 +1,17 @@
+[package]
+name = "oya-hr-employment-storage-adapter-postgres"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+
+[lib]
+name = "oya_hr_employment_storage_adapter_postgres"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

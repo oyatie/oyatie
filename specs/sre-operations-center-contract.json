@@ -1,0 +1,907 @@
+{
+  "$id": "https://docs.oyatie.com/specs/sre-operations-center-contract.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SreOperationsCenterContract",
+  "description": "Target/spec contract for Oyatie's SRE Operations Center slice: service health, on-call escalation, incident command, customer/status communication, error-budget release decisions, postmortem evidence, and retention boundaries. This contract intentionally does not claim live monitoring, paging, status-page operation, or production readiness.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-SRE-OPERATIONS-CENTER-CONTRACT",
+    "version": "0.1.1",
+    "status": "proposed-target",
+    "owner_team": "platform-sre + council-architecture + platform-security + support-ops",
+    "created_at": "2026-07-01T06:15:50Z",
+    "source_task": "t_9d403ad1",
+    "source_request": "SREOPS-001: on-call incident status operations center contract",
+    "non_goals": [
+      "Do not stand up production monitoring, paging, or status-page providers in this contract.",
+      "Do not promise live on-call coverage, production readiness, or hyperscaler-grade operations.",
+      "Do not duplicate OPS-001, DR-001, RELEASE-001, OBS-004, RESILIENCE-001, Trust Center, or support/advisory implementation slices; link to them as consumers or producers.",
+      "Do not expose tenant-specific, regulated, security-sensitive, or personal data through public status surfaces.",
+      "Do not add new legacy oya CLI authority or hand-edit generated faces."
+    ]
+  },
+  "claim_ceiling": {
+    "current_tier": "spec_ready_for_product_design_and_target_non_claim_for_runtime_operations",
+    "allowed_claims_now": [
+      "Oyatie has a proposed SRE Operations Center product/control-plane contract.",
+      "The contract defines records, workflows, UI surfaces, claim ceilings, and verification paths needed before implementation slices can claim operational readiness.",
+      "Existing OPS/DR/RELEASE/OBS/RESILIENCE Kanban cards are linked as implementation sub-slices rather than duplicated here."
+    ],
+    "forbidden_claims_until_evidence_exists": [
+      "live on-call coverage exists",
+      "paging or escalation is operational",
+      "customer status page or incident communications are live",
+      "incident/postmortem process is production-ready",
+      "SLO/error-budget release freezes are mechanically enforced",
+      "production-ready, hyperscaler-grade, secure, isolated, done, or fully automated operations"
+    ],
+    "promotion_requirements": [
+      "service inventory record for each claimed service",
+      "OpenTelemetry traces/metrics/log fixtures and measured SLO windows",
+      "high-severity alarm to runbook/on-call mapping",
+      "on-call and escalation schedule evidence",
+      "browser/user-story evidence for operator incident command and customer/status publication paths",
+      "security and privacy review for retained incident/customer-impact evidence",
+      "RED/GREEN fixtures for missing required records and unsafe public disclosure",
+      "cloud-ci or release-promotion gate evidence before any mechanically-enforced claim",
+      "IncidentPostmortemRecord and ActionItemLink ledger evidence for qualifying incidents, including DRI ownership, due dates, recurrence-prevention proof, customer-impact redaction, and closeout proof",
+      "30-day sustained green window or explicit new-service exception before production-ready claims"
+    ]
+  },
+  "source_authorities": [
+    {
+      "path": "/specs/root-hub-pointers.json",
+      "role": "entry-point and authority-discovery registry"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "role": "current agent operating contract and coordinator/worker split authority"
+    },
+    {
+      "path": "/specs/master-plan-sequencing.json#first_deliverable_ordering.architecture_exit_bar",
+      "role": "requires ops-dashboard/control-center, incident/deployment/tenant-policy/audit/recovery workflows, SLO error-budget gating, progressive delivery/rollback, and runbooks/incident response"
+    },
+    {
+      "path": "/specs/masterplan.json#planning_closure.first_deliverable",
+      "role": "requires ops-dashboard-control-center as a first deliverable surface and full-depth incident/deployment/recovery evidence"
+    },
+    {
+      "path": "/specs/cloud-observability-slo-target.json",
+      "role": "target observability/SLO model; explicitly no collector, SLO engine, dashboards, or measured evidence implemented"
+    },
+    {
+      "path": "docs/decisions/ADR-0168-public-status-page.md",
+      "role": "accepted public-status-page decision: routine SLO health is projector-derived, while incident narrative requires incident-response authored updates and tenant-safe subscriber surfaces"
+    },
+    {
+      "path": "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "role": "claim tiers and required evidence for SLO/error-budget, observability/operations, release safety, on-call escalation, and incident/postmortem process"
+    },
+    {
+      "path": "/specs/evidence-taxonomy.json",
+      "role": "quality-bar verification taxonomy for implementation, verification, documentation, operational, security, critic, and closeout evidence classes"
+    },
+    {
+      "path": "/specs/trust-center-compliance-evidence-portal.json",
+      "role": "tenant-scoped Trust Center / Compliance Evidence Portal contract consuming status, incident, SLO, DR, release, advisory, and audit-chain evidence without cross-tenant disclosure"
+    },
+    {
+      "path": "/registry/bounded-contexts.json#ops/workspace-planned-backlog",
+      "role": "ops/workspace includes reserved on-call and incident bounded contexts"
+    },
+    {
+      "path": "/registry/microservices.json#ops",
+      "role": "ops.oyatie.com surface inventory names on-call and incident as Wave 6 targets"
+    }
+  ],
+  "personas": [
+    {
+      "id": "on_call_sre",
+      "role": "Receives actionable pages, acknowledges incidents, executes runbooks, records mitigation evidence, and escalates when thresholds or expertise boundaries are crossed.",
+      "must_see": [
+        "service health summary",
+        "page reason and firing SLO/alert",
+        "runbook link",
+        "recent deploy/rollback context",
+        "current error-budget and freeze state",
+        "escalation policy"
+      ]
+    },
+    {
+      "id": "incident_commander",
+      "role": "Owns severity declaration, incident room coordination, role assignment, customer-impact classification, rollback/freeze decisions, and resolution handoff.",
+      "must_see": [
+        "timeline",
+        "roles",
+        "impacted services/regions/tenants",
+        "status communication draft/published state",
+        "decision log",
+        "postmortem due date"
+      ]
+    },
+    {
+      "id": "service_owner_dri",
+      "role": "Owns the service catalog record, SLOs, runbooks, dependencies, operational readiness, postmortem actions, and launch-readiness signoff for one service.",
+      "must_see": [
+        "service inventory record",
+        "owned SLOs",
+        "error budget",
+        "dependent services",
+        "open action items",
+        "quality-bar evidence gaps"
+      ]
+    },
+    {
+      "id": "release_captain",
+      "role": "Connects release/canary progress to SLO burn, freeze/throttle/rollback policy, and release exception evidence.",
+      "must_see": [
+        "current rollout wave",
+        "canary SLO state",
+        "rollback trigger state",
+        "feature flag cleanup state",
+        "freeze exceptions"
+      ]
+    },
+    {
+      "id": "customer_status_editor",
+      "role": "Publishes approved customer-visible incident updates without leaking tenant-confidential, regulated, security-sensitive, personal, or secret data.",
+      "must_see": [
+        "approved public summary",
+        "customer audience scope",
+        "redaction checks",
+        "publish/retract timeline",
+        "support handoff"
+      ]
+    },
+    {
+      "id": "security_privacy_reviewer",
+      "role": "Approves disclosures and evidence retention when an incident may involve security, regulated jurisdictions, tenant data, PII, PHI, financial data, or secrets.",
+      "must_see": [
+        "data classes involved",
+        "retention policy",
+        "redaction proof",
+        "break-glass history",
+        "regulatory notification candidate flag"
+      ]
+    },
+    {
+      "id": "customer_admin_or_support_agent",
+      "role": "Consumes scoped customer-impact status, support case links, trusted-advisor recommendations, and resolution evidence for affected tenants only.",
+      "must_see": [
+        "tenant-scoped impact",
+        "workaround",
+        "ETA or next-update time",
+        "case/advisory link",
+        "final resolution summary"
+      ]
+    }
+  ],
+  "domain_workflows": [
+    {
+      "id": "service_catalog_health",
+      "goal": "Every service that wants operational-readiness claims has an owner, SLOs, runbooks, dependencies, customer-impact model, and health/status projection.",
+      "minimum_flow": [
+        "register service and ownership",
+        "bind SLOs and golden signals",
+        "bind runbooks and alerts",
+        "declare customer/status projection rules",
+        "publish read-only health snapshot for operators"
+      ],
+      "claim_gate": "Cannot claim production-ready for a service until this record is complete and backed by measured evidence."
+    },
+    {
+      "id": "on_call_and_escalation",
+      "goal": "Route high-severity alarms to accountable humans or teams with bounded acknowledgement, escalation, and handoff evidence.",
+      "minimum_flow": [
+        "alert fires from SLO/burn-rate/high-severity rule",
+        "page created with service, severity, runbook, and dedupe key",
+        "on-call acknowledges or escalates",
+        "handoff records preserve continuity",
+        "paging-quality review classifies false positive, duplicate, unactionable, or useful page"
+      ],
+      "claim_gate": "On-call coverage remains a target until rotation, contact, acknowledgement, escalation, and paging-quality evidence exist."
+    },
+    {
+      "id": "incident_lifecycle",
+      "goal": "Turn alerts, user reports, or operator discoveries into structured incident command evidence with roles, timeline, severity, customer impact, mitigation, and closure.",
+      "states": [
+        "detected",
+        "triaged",
+        "declared",
+        "mitigating",
+        "monitoring",
+        "resolved",
+        "postmortem_required",
+        "action_items_tracking",
+        "closed"
+      ],
+      "terminal_states": [
+        "closed"
+      ],
+      "claim_gate": "Structured incident process remains target/spec until state transitions, audit events, and role assignments are implemented and tested."
+    },
+    {
+      "id": "status_and_customer_communication",
+      "goal": "Produce approved, audience-scoped incident communication for public status, tenant-specific customer notifications, support cases, and trust-center evidence without leaking protected data.",
+      "minimum_flow": [
+        "classify affected services, regions, tenants, and data classes",
+        "draft public/customer/internal updates separately",
+        "obtain incident commander approval",
+        "obtain security/privacy approval when data classes or security impact require it",
+        "publish/retract/update through the selected channel",
+        "retain immutable evidence of what was sent to whom and when"
+      ],
+      "claim_gate": "Customer communication remains target/spec until SREOPS-001A implements fixtures and browser/user-story evidence."
+    },
+    {
+      "id": "error_budget_release_policy",
+      "goal": "Bind SLO burn and incident severity to release freeze, throttling, rollback, brownout, and feature-flag cleanup decisions.",
+      "minimum_flow": [
+        "consume OpenSLO/error-budget state",
+        "calculate burn-rate decision tier",
+        "record freeze/throttle/rollback decision with owner and expiry",
+        "link to release/canary/feature-flag state",
+        "emit audit event for exception or override"
+      ],
+      "claim_gate": "Mechanically-enforced release freeze or rollback requires OBS-004/RELEASE-001 implementation plus protected gate evidence."
+    },
+    {
+      "id": "postmortem_and_action_items",
+      "goal": "Preserve blameless postmortem evidence, recurrence-prevention action items, DRI ownership, due dates, and closure proof for qualifying incidents.",
+      "minimum_flow": [
+        "decide whether postmortem is required from severity/customer-impact/data-class policy",
+        "record summary, contributing factors, timeline, detection gaps, and mitigation",
+        "link release, DR, SLO, support, and customer communication evidence",
+        "create action items with owner, due date, verification, and escalation",
+        "close only after evidence proves the recurrence-prevention action landed or an explicit risk acceptance exists"
+      ],
+      "claim_gate": "Postmortem process remains target/spec until SREOPS-001B implements fixture/gate coverage."
+    }
+  ],
+  "api_and_evidence_records": [
+    {
+      "record": "ServiceCatalogHealthRecord",
+      "purpose": "Read-only operational summary for one service/component/cell/region.",
+      "required_fields": [
+        { "name": "service_id", "data_class": "public" },
+        { "name": "owner_team", "data_class": "internal" },
+        { "name": "tier", "data_class": "internal" },
+        { "name": "region_cell", "data_class": "internal" },
+        { "name": "slos", "data_class": "public" },
+        { "name": "golden_signal_snapshot", "data_class": "internal" },
+        { "name": "error_budget_state", "data_class": "internal" },
+        { "name": "runbook_refs", "data_class": "internal" },
+        { "name": "customer_status_projection", "data_class": "public" },
+        { "name": "active_incident_refs", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "OnCallRotationRecord",
+      "purpose": "Defines accountable on-call coverage without exposing private contact details to broad viewers.",
+      "required_fields": [
+        { "name": "rotation_id", "data_class": "internal" },
+        { "name": "service_id", "data_class": "public" },
+        { "name": "primary_principal_ref", "data_class": "pii" },
+        { "name": "backup_principal_ref", "data_class": "pii" },
+        { "name": "escalation_policy_id", "data_class": "internal" },
+        { "name": "handoff_window", "data_class": "internal" },
+        { "name": "break_glass_contact_ref", "data_class": "secret" }
+      ]
+    },
+    {
+      "record": "IncidentRecord",
+      "purpose": "Durable incident command source of truth.",
+      "required_fields": [
+        { "name": "incident_id", "data_class": "public" },
+        { "name": "severity", "data_class": "public" },
+        { "name": "state", "data_class": "public" },
+        { "name": "commander_principal_ref", "data_class": "pii" },
+        { "name": "affected_service_ids", "data_class": "public" },
+        { "name": "affected_regions", "data_class": "public" },
+        { "name": "affected_tenant_scope", "data_class": "tenant-config" },
+        { "name": "data_classes_involved", "data_class": "regulated-jurisdiction" },
+        { "name": "timeline_ref", "data_class": "internal" },
+        { "name": "release_decision_refs", "data_class": "internal" },
+        { "name": "status_update_refs", "data_class": "public" },
+        { "name": "postmortem_ref", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "IncidentTimelineEvent",
+      "purpose": "Append-only timeline entry for detection, role assignment, mitigation, customer update, rollback, or closure.",
+      "required_fields": [
+        { "name": "event_id", "data_class": "internal" },
+        { "name": "incident_id", "data_class": "public" },
+        { "name": "occurred_at", "data_class": "public" },
+        { "name": "actor_principal_ref", "data_class": "pii" },
+        { "name": "event_kind", "data_class": "public" },
+        { "name": "redacted_summary", "data_class": "public" },
+        { "name": "internal_detail_ref", "data_class": "tenant-data" },
+        { "name": "audit_chain_id", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "CustomerImpactAudience",
+      "purpose": "Typed audience and routing contract for deciding which public, internal, support, Trust Center, or tenant-scoped viewers may receive which incident communication payload.",
+      "required_fields": [
+        { "name": "audience_id", "data_class": "internal" },
+        { "name": "audience_kind", "data_class": "public" },
+        { "name": "visibility_class", "data_class": "internal" },
+        { "name": "channel_set", "data_class": "internal" },
+        { "name": "affected_service_ids", "data_class": "public" },
+        { "name": "affected_regions", "data_class": "public" },
+        { "name": "affected_tenant_filter_ref", "data_class": "tenant-config" },
+        { "name": "allowed_data_classes", "data_class": "internal" },
+        { "name": "forbidden_data_classes", "data_class": "internal" },
+        { "name": "support_handoff_required", "data_class": "internal" },
+        { "name": "trust_center_evidence_allowed", "data_class": "internal" },
+        { "name": "routing_policy_ref", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "StatusCommunicationRecord",
+      "purpose": "Evidence for public status, tenant-scoped notifications, support/advisory updates, and retractions.",
+      "required_fields": [
+        { "name": "communication_id", "data_class": "public" },
+        { "name": "incident_id", "data_class": "public" },
+        { "name": "communication_kind", "data_class": "public" },
+        { "name": "audience", "data_class": "tenant-config" },
+        { "name": "audience_ref", "data_class": "internal" },
+        { "name": "impact_scope", "data_class": "tenant-config" },
+        { "name": "channel", "data_class": "internal" },
+        { "name": "approval_state", "data_class": "internal" },
+        { "name": "approved_by_incident_commander", "data_class": "pii" },
+        { "name": "security_privacy_approval_ref", "data_class": "internal" },
+        { "name": "redaction_check_id", "data_class": "internal" },
+        { "name": "published_text_redacted", "data_class": "public" },
+        { "name": "tenant_specific_payload_ref", "data_class": "tenant-data" },
+        { "name": "support_case_refs", "data_class": "tenant-data" },
+        { "name": "advisory_refs", "data_class": "tenant-config" },
+        { "name": "trust_center_evidence_refs", "data_class": "tenant-config" },
+        { "name": "next_update_due_at", "data_class": "public" },
+        { "name": "published_at", "data_class": "public" },
+        { "name": "retracted_at", "data_class": "public" },
+        { "name": "audit_chain_id", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "ErrorBudgetDecisionRecord",
+      "purpose": "Evidence for release freeze, throttle, rollback, brownout, or exception decisions.",
+      "required_fields": [
+        { "name": "decision_id", "data_class": "internal" },
+        { "name": "service_id", "data_class": "public" },
+        { "name": "slo_id", "data_class": "public" },
+        { "name": "burn_rate_window", "data_class": "internal" },
+        { "name": "decision", "data_class": "internal" },
+        { "name": "owner_principal_ref", "data_class": "pii" },
+        { "name": "release_ref", "data_class": "internal" },
+        { "name": "exception_expiry", "data_class": "internal" },
+        { "name": "audit_chain_id", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "IncidentPostmortemRecord",
+      "purpose": "Blameless incident review and recurrence-prevention evidence.",
+      "required_fields": [
+        { "name": "postmortem_id", "data_class": "internal" },
+        { "name": "incident_id", "data_class": "public" },
+        { "name": "required_by_policy", "data_class": "internal" },
+        { "name": "severity", "data_class": "public" },
+        { "name": "owner_dri_principal_ref", "data_class": "pii" },
+        { "name": "due_at", "data_class": "internal" },
+        { "name": "completed_at", "data_class": "internal" },
+        { "name": "summary_redacted", "data_class": "public" },
+        { "name": "customer_impact_redacted", "data_class": "public" },
+        { "name": "customer_impact_redaction_proof_ref", "data_class": "internal" },
+        { "name": "scoped_evidence_refs", "data_class": "internal" },
+        { "name": "security_privacy_review_ref", "data_class": "internal" },
+        { "name": "timeline_analysis_ref", "data_class": "internal" },
+        { "name": "mitigation_summary_redacted", "data_class": "public" },
+        { "name": "contributing_factors", "data_class": "internal" },
+        { "name": "detection_gaps", "data_class": "internal" },
+        { "name": "recurrence_prevention_summary", "data_class": "internal" },
+        { "name": "recurrence_prevention_evidence_refs", "data_class": "internal" },
+        { "name": "error_budget_decision_refs", "data_class": "internal" },
+        { "name": "release_freeze_rollback_decision_refs", "data_class": "internal" },
+        { "name": "quality_bar_verification_refs", "data_class": "internal" },
+        { "name": "action_item_refs", "data_class": "internal" },
+        { "name": "risk_acceptance_ref", "data_class": "internal" },
+        { "name": "overdue_escalation_policy_id", "data_class": "internal" },
+        { "name": "closeout_proof_ref", "data_class": "internal" },
+        { "name": "approved_by", "data_class": "pii" },
+        { "name": "retention_policy_id", "data_class": "regulated-jurisdiction" }
+      ]
+    },
+    {
+      "record": "ActionItemLink",
+      "purpose": "Durable recurrence-prevention action item linked to one postmortem with DRI, due-date, escalation, verification, and closeout evidence.",
+      "required_fields": [
+        { "name": "action_item_id", "data_class": "internal" },
+        { "name": "postmortem_id", "data_class": "internal" },
+        { "name": "incident_id", "data_class": "public" },
+        { "name": "title_redacted", "data_class": "internal" },
+        { "name": "owner_dri_principal_ref", "data_class": "pii" },
+        { "name": "owner_team", "data_class": "internal" },
+        { "name": "due_at", "data_class": "internal" },
+        { "name": "escalation_policy_id", "data_class": "internal" },
+        { "name": "status", "data_class": "internal" },
+        { "name": "recurrence_prevention_evidence_ref", "data_class": "internal" },
+        { "name": "verification_evidence_ref", "data_class": "internal" },
+        { "name": "closeout_proof_ref", "data_class": "internal" },
+        { "name": "risk_acceptance_ref", "data_class": "internal" },
+        { "name": "linked_release_or_rollback_ref", "data_class": "internal" },
+        { "name": "audit_chain_id", "data_class": "internal" }
+      ]
+    },
+    {
+      "record": "PagingQualityReviewRecord",
+      "purpose": "Feedback loop for alert quality, toil, false positives, duplicate pages, and actionability.",
+      "required_fields": [
+        { "name": "review_id", "data_class": "internal" },
+        { "name": "page_event_ref", "data_class": "internal" },
+        { "name": "classification", "data_class": "internal" },
+        { "name": "noise_owner_team", "data_class": "internal" },
+        { "name": "follow_up_action_ref", "data_class": "internal" },
+        { "name": "reviewed_by", "data_class": "pii" }
+      ]
+    }
+  ],
+  "api_surface_contract": {
+    "style": "typed API/evidence records first; UI and automation consume these records instead of CLI or shell scraping",
+    "candidate_endpoints": [
+      "GET /sreops/services",
+      "GET /sreops/services/{service_id}/health",
+      "GET /sreops/services/{service_id}/error-budget",
+      "GET /sreops/on-call/{service_id}",
+      "POST /sreops/incidents",
+      "PATCH /sreops/incidents/{incident_id}",
+      "POST /sreops/incidents/{incident_id}/timeline-events",
+      "GET /sreops/incidents/{incident_id}/customer-impact-audiences",
+      "POST /sreops/incidents/{incident_id}/customer-impact-audiences",
+      "POST /sreops/incidents/{incident_id}/status-communications",
+      "POST /sreops/incidents/{incident_id}/status-communications/{communication_id}/approve",
+      "POST /sreops/incidents/{incident_id}/status-communications/{communication_id}/publish",
+      "POST /sreops/incidents/{incident_id}/status-communications/{communication_id}/retract",
+      "POST /sreops/incidents/{incident_id}/support-handoffs",
+      "POST /sreops/incidents/{incident_id}/release-decisions",
+      "POST /sreops/incidents/{incident_id}/postmortems",
+      "POST /sreops/incidents/{incident_id}/postmortems/{postmortem_id}/action-items",
+      "PATCH /sreops/incidents/{incident_id}/postmortems/{postmortem_id}/action-items/{action_item_id}",
+      "GET /sreops/incidents/{incident_id}/evidence-bundle"
+    ],
+    "invariants": [
+      "Every mutating endpoint emits an audit-chain event.",
+      "Public status records must be derivable from internal incident records only through a redaction/approval step.",
+      "Tenant-scoped communications must prove tenant audience filtering and may not be exposed through public status APIs.",
+      "CustomerImpactAudience is the only routing source for customer-scoped status payloads; raw tenant lists stay behind tenant-config references.",
+      "StatusCommunicationRecord publish/retract operations require a prior approval_state that matches the incident impact data classes and audience kind.",
+      "Secret contact data and notification provider tokens are referenced through secret handles only and are never logged or returned to UI clients.",
+      "Qualifying Sev-1/Sev-2, customer-impacting, security/privacy, data-loss, or error-budget-exhaustion incidents cannot enter closed state until IncidentPostmortemRecord required fields are present or a risk_acceptance_ref is approved.",
+      "Postmortems with required action items cannot close until every ActionItemLink is closed with recurrence-prevention evidence, verification evidence, and closeout proof, or has explicit risk acceptance.",
+      "Release freeze, rollback, throttle, brownout, or exception decisions caused by incidents must be linked from postmortem evidence back to ErrorBudgetDecisionRecord and release/canary state.",
+      "Mechanically-enforced release decisions cannot be claimed until release/observability gates own the protected context."
+    ]
+  },
+  "customer_incident_communications_contract": {
+    "scope": "SREOPS-001A customer-facing incident communications contract; target/spec only and not a live status page, pager, or external notification provider.",
+    "data_class_policy": {
+      "public_status": "May include public incident id, severity/state, affected product/service names, broad public regions, redacted summary, next-update time, mitigation/resolution text, and public postmortem/trust-center links after approval.",
+      "internal_only": "May include operator timeline, owner teams, runbook refs, release decisions, audit ids, unreleased mitigation details, and redaction-review state for SRE/support/security viewers.",
+      "customer_scoped": "May include tenant-specific impact, workaround, support case refs, advisory refs, and trust-center evidence refs only after CustomerImpactAudience filtering proves the viewer is in scope.",
+      "regulated_or_security_sensitive": "Any security impact, regulated jurisdiction, tenant-data, pii, phi, financial, or secret-related incident requires security/privacy approval before publish and must keep raw detail out of public status surfaces."
+    },
+    "customer_impact_audience_fixtures": [
+      {
+        "audience_id": "public-status-all-tenants",
+        "audience_kind": "public_status_page",
+        "visibility_class": "public",
+        "channel_set": ["status_page", "rss", "webhook_summary"],
+        "affected_service_ids": ["mail-api"],
+        "affected_regions": ["us-east-public-rollup"],
+        "affected_tenant_filter_ref": null,
+        "allowed_data_classes": ["public"],
+        "forbidden_data_classes": ["tenant-config", "tenant-data", "pii", "phi", "financial", "secret", "regulated-jurisdiction"],
+        "support_handoff_required": false,
+        "trust_center_evidence_allowed": true,
+        "routing_policy_ref": "ADR-0168-public-status-page-redacted-rollup"
+      },
+      {
+        "audience_id": "affected-tenant-admins-cell-kr-1",
+        "audience_kind": "customer_scoped_tenant_admins",
+        "visibility_class": "customer_scoped",
+        "channel_set": ["tenant_console_advisory", "support_case", "trust_center_evidence_room"],
+        "affected_service_ids": ["workflow-runtime", "mail-api"],
+        "affected_regions": ["kr-central-cell-1"],
+        "affected_tenant_filter_ref": "tenant-filter:incident-2026-07-01-kr-cell-1-affected-admins",
+        "allowed_data_classes": ["public", "tenant-config", "tenant-data"],
+        "forbidden_data_classes": ["pii", "phi", "financial", "secret"],
+        "support_handoff_required": true,
+        "trust_center_evidence_allowed": true,
+        "routing_policy_ref": "tenant-scoped-customer-impact-filter-v1"
+      },
+      {
+        "audience_id": "support-ops-and-incident-reviewers",
+        "audience_kind": "internal_support_handoff",
+        "visibility_class": "internal_only",
+        "channel_set": ["support_console", "incident_room", "customer_success_handoff"],
+        "affected_service_ids": ["workflow-runtime", "mail-api"],
+        "affected_regions": ["kr-central-cell-1"],
+        "affected_tenant_filter_ref": "tenant-filter:incident-2026-07-01-kr-cell-1-affected-admins",
+        "allowed_data_classes": ["public", "internal", "tenant-config", "tenant-data"],
+        "forbidden_data_classes": ["secret"],
+        "support_handoff_required": true,
+        "trust_center_evidence_allowed": false,
+        "routing_policy_ref": "support-ops-break-glass-reviewed-v1"
+      }
+    ],
+    "status_communication_record_fixtures": [
+      {
+        "communication_id": "comm-public-mail-api-degraded-001",
+        "incident_id": "inc-2026-07-01-mail-api-degraded",
+        "communication_kind": "public_status_update",
+        "audience": "public-status-all-tenants",
+        "audience_ref": "CustomerImpactAudience:public-status-all-tenants",
+        "impact_scope": {"services": ["mail-api"], "regions": ["us-east-public-rollup"], "tenants": "not_disclosed_public_rollup"},
+        "channel": "status_page",
+        "approval_state": "incident_commander_approved",
+        "approved_by_incident_commander": "principal:sre-incident-commander-redacted",
+        "security_privacy_approval_ref": null,
+        "redaction_check_id": "redaction-check:public-mail-api-degraded-001",
+        "published_text_redacted": "We are investigating elevated latency for Mail API in one US region. Customer data remains protected. Next update by 15:00 UTC.",
+        "tenant_specific_payload_ref": null,
+        "support_case_refs": [],
+        "advisory_refs": [],
+        "trust_center_evidence_refs": ["trust-center:incident-summary:inc-2026-07-01-mail-api-degraded"],
+        "next_update_due_at": "2026-07-01T15:00:00Z",
+        "published_at": "2026-07-01T14:15:00Z",
+        "retracted_at": null,
+        "audit_chain_id": "EVT-SRE-STATUS-COMMUNICATION-PUBLISHED:comm-public-mail-api-degraded-001"
+      },
+      {
+        "communication_id": "comm-tenant-kr-workflow-impact-001",
+        "incident_id": "inc-2026-07-01-kr-cell-1-workflow",
+        "communication_kind": "customer_scoped_support_advisory",
+        "audience": "affected-tenant-admins-cell-kr-1",
+        "audience_ref": "CustomerImpactAudience:affected-tenant-admins-cell-kr-1",
+        "impact_scope": {"services": ["workflow-runtime", "mail-api"], "regions": ["kr-central-cell-1"], "tenants": "tenant-filter-ref-only"},
+        "channel": "tenant_console_advisory",
+        "approval_state": "incident_commander_and_security_privacy_approved",
+        "approved_by_incident_commander": "principal:sre-incident-commander-redacted",
+        "security_privacy_approval_ref": "privacy-security-review:inc-2026-07-01-kr-cell-1-workflow",
+        "redaction_check_id": "redaction-check:tenant-kr-workflow-impact-001",
+        "published_text_redacted": "A subset of tenants in KR cell 1 may see delayed workflow execution. Use manual approval fallback documented in the linked advisory until mitigation is confirmed.",
+        "tenant_specific_payload_ref": "tenant-payload:scoped:inc-2026-07-01-kr-cell-1-workflow",
+        "support_case_refs": ["support-case:scoped:inc-2026-07-01-kr-cell-1-workflow"],
+        "advisory_refs": ["advisory:workflow-runtime-kr-cell-1-fallback"],
+        "trust_center_evidence_refs": ["trust-center:evidence-room:inc-2026-07-01-kr-cell-1-workflow"],
+        "next_update_due_at": "2026-07-01T16:00:00Z",
+        "published_at": "2026-07-01T15:05:00Z",
+        "retracted_at": null,
+        "audit_chain_id": "EVT-SRE-STATUS-COMMUNICATION-PUBLISHED:comm-tenant-kr-workflow-impact-001"
+      },
+      {
+        "communication_id": "comm-public-mail-api-retraction-001",
+        "incident_id": "inc-2026-07-01-mail-api-degraded",
+        "communication_kind": "public_status_retraction_or_correction",
+        "audience": "public-status-all-tenants",
+        "audience_ref": "CustomerImpactAudience:public-status-all-tenants",
+        "impact_scope": {"services": ["mail-api"], "regions": ["us-east-public-rollup"], "tenants": "not_disclosed_public_rollup"},
+        "channel": "status_page",
+        "approval_state": "incident_commander_approved",
+        "approved_by_incident_commander": "principal:sre-incident-commander-redacted",
+        "security_privacy_approval_ref": null,
+        "redaction_check_id": "redaction-check:public-mail-api-retraction-001",
+        "published_text_redacted": "Correction: the earlier Mail API latency notice was scoped to webhook delivery, not inbound mail receipt. Historical status entry retained with this correction.",
+        "tenant_specific_payload_ref": null,
+        "support_case_refs": [],
+        "advisory_refs": [],
+        "trust_center_evidence_refs": ["trust-center:incident-summary:inc-2026-07-01-mail-api-degraded"],
+        "next_update_due_at": null,
+        "published_at": "2026-07-01T15:20:00Z",
+        "retracted_at": "2026-07-01T15:20:00Z",
+        "audit_chain_id": "EVT-SRE-STATUS-COMMUNICATION-RETRACTED:comm-public-mail-api-retraction-001"
+      }
+    ],
+    "approval_workflow": {
+      "states": ["draft", "redaction_checked", "incident_commander_approved", "security_privacy_review_required", "security_privacy_approved", "scheduled", "published", "corrected", "retracted"],
+      "incident_commander_required_for": ["public_status_update", "customer_scoped_support_advisory", "public_status_retraction_or_correction", "maintenance_incident_narrative"],
+      "security_privacy_required_when": ["security_impact_possible", "regulated_jurisdiction_involved", "tenant-data_involved", "pii_involved", "phi_involved", "financial_data_involved", "secret_exposure_possible", "customer_scoped_payload_contains_workaround_or_evidence"],
+      "publish_blockers": ["missing_customer_impact_audience", "missing_redaction_check", "missing_incident_commander_approval", "missing_security_privacy_approval_when_required", "public_payload_contains_tenant_specific_or_regulated_detail", "tenant_scoped_payload_without_tenant_filter_ref"],
+      "evidence_required": ["draft_diff", "redaction_check_id", "approval_principal_refs", "audience_ref", "channel", "publish_or_retract_timestamp", "audit_chain_id", "support_case_or_advisory_refs_when_customer_scoped"]
+    },
+    "surface_links": {
+      "public_status_page": "ADR-0168 status.oya.dev / Statuspage-compatible projector consumes only public redacted incident narrative and SLO health state.",
+      "tenant_console_advisory": "Customer-scoped console advisory renders tenant-specific workaround/status only after CustomerImpactAudience filtering.",
+      "support_handoff": "Support/customer-success receives scoped case/advisory refs, workaround, next update time, and final-resolution summary; raw incident details remain internal unless separately authorized.",
+      "trust_center": "/specs/trust-center-compliance-evidence-portal.json consumes approved incident/status evidence for tenant evidence rooms and public trust-center summaries without certification or cross-tenant claims."
+    },
+    "claim_ceiling": "Target/spec contract only until browser/user-story evidence proves publish, correction, and retraction flows; OTel/OpenSLO fixtures prove source incident/status state; RED/GREEN disclosure fixtures prove public vs tenant-scoped filtering; and support/trust-center handoff evidence exists."
+  },
+  "postmortem_action_item_ledger_contract": {
+    "scope": "Spec-ready evidence contract for the SREOPS-001B lane; no runtime incident review, ticketing system, or production-readiness claim is created by this spec.",
+    "required_records": [
+      "IncidentRecord",
+      "IncidentPostmortemRecord",
+      "ActionItemLink",
+      "ErrorBudgetDecisionRecord",
+      "StatusCommunicationRecord"
+    ],
+    "postmortem_required_policy": {
+      "required_for": [
+        "severity Sev-1 or Sev-2",
+        "customer-impacting incident",
+        "security/privacy/regulatory/data-loss candidate incident",
+        "SLO error-budget exhaustion or release freeze/rollback decision",
+        "incident commander or service owner DRI override"
+      ],
+      "not_required_requires": [
+        "incident_commander_approval_ref",
+        "service_owner_dri_approval_ref",
+        "redacted rationale retained in audit evidence"
+      ]
+    },
+    "closeout_state_machine": {
+      "states": [
+        "postmortem_due",
+        "drafting",
+        "review_pending",
+        "action_items_tracking",
+        "closed",
+        "risk_accepted"
+      ],
+      "terminal_states": [
+        "closed",
+        "risk_accepted"
+      ],
+      "closed_requires": [
+        "customer_impact_redacted and customer_impact_redaction_proof_ref",
+        "scoped_evidence_refs for retained postmortem/customer-impact evidence and security_privacy_review_ref when security, privacy, regulated, tenant-data, pii, phi, financial, or secret exposure is possible",
+        "owner_dri_principal_ref and approved_by",
+        "due_at and completed_at",
+        "timeline_analysis_ref, contributing_factors, detection_gaps, and mitigation_summary_redacted",
+        "recurrence_prevention_summary and recurrence_prevention_evidence_refs",
+        "error_budget_decision_refs when SLO burn, freeze, rollback, throttle, brownout, or exception affected the incident",
+        "quality_bar_verification_refs mapped to /specs/evidence-taxonomy.json",
+        "all ActionItemLink rows closed with verification_evidence_ref and closeout_proof_ref, or risk_acceptance_ref present"
+      ],
+      "overdue_escalation": "If due_at passes before closed/risk_accepted, emit EVT-SRE-ACTION-ITEM-OVERDUE-ESCALATED for each open ActionItemLink and page/escalate using overdue_escalation_policy_id."
+    },
+    "action_item_contract": {
+      "owner_model": "Every ActionItemLink has one owner_dri_principal_ref and one owner_team; group-only ownership is not enough for closeout.",
+      "due_date_model": "due_at is mandatory, extensions require an audit event and either DRI approval or risk_acceptance_ref.",
+      "recurrence_prevention_evidence": "Action item closeout must point at the landed fix, guard, test, runbook, gate, rollout, or explicit risk acceptance that reduces recurrence likelihood; narrative-only closure is insufficient.",
+      "verification_evidence": "verification_evidence_ref must map to the relevant /specs/evidence-taxonomy.json class and include command/lane/result or browser/API/operational proof proportional to the artifact type.",
+      "closeout_proof": "closeout_proof_ref records current-head evidence and reviewer/DRI approval; it must not contain raw secrets, raw tenant identifiers, or unredacted PII."
+    },
+    "error_budget_release_integration": {
+      "incident_to_release_links": [
+        "IncidentRecord.release_decision_refs",
+        "IncidentPostmortemRecord.error_budget_decision_refs",
+        "IncidentPostmortemRecord.release_freeze_rollback_decision_refs",
+        "ActionItemLink.linked_release_or_rollback_ref"
+      ],
+      "required_when": [
+        "incident triggered by burn-rate alert",
+        "release freeze/throttle/rollback/brownout decision occurred during mitigation",
+        "postmortem action changes release policy, canary policy, feature flag cleanup, or automatic rollback criteria"
+      ],
+      "claim_gate": "Error-budget release freeze/rollback remains target/spec until OBS-004 and RELEASE-001 implementation evidence owns the protected gate."
+    },
+    "quality_bar_taxonomy_mapping": {
+      "implementation": "record schemas/API/UI contract changed at cited paths",
+      "verification": "JSON parse, RED/GREEN fixture plan, API/contract replay, or gate output captured with current result",
+      "documentation": "operator postmortem/runbook/customer-impact documentation updated or explicitly N/A",
+      "operational": "incident/release/rollback/observability evidence exists for runtime claims; target/spec lanes must state the gap",
+      "security": "redaction, retention, tenant scope, regulated data, and secret-handle review completed before retained evidence is exposed",
+      "critic": "independent review of recurrence-prevention sufficiency and false-green risk",
+      "closeout": "board/PR/review/evidence handoff proves the action item closed at current head or risk was accepted"
+    },
+    "privacy_and_retention_rules": [
+      "Customer-impact summaries stored in public/status evidence must be redacted derivatives of internal incident detail.",
+      "Raw tenant data, raw PII/PHI/financial data, secrets, and security exploit detail are retained only by scoped evidence refs with data-class labels and retention_policy_id.",
+      "Security/privacy review is required before postmortem evidence is exported to Trust Center, support, auditor-room, or public status surfaces."
+    ]
+  },
+  "ui_components": [
+    {
+      "id": "sre_operations_overview",
+      "surface": "ops.oyatie.com SRE Operations Center",
+      "purpose": "Operator landing page with service health, current incidents, error-budget freezes, and on-call coverage gaps."
+    },
+    {
+      "id": "service_health_detail",
+      "surface": "service detail drawer/page",
+      "purpose": "Service owner view of SLOs, golden signals, dependencies, runbooks, release state, incidents, DR evidence, and quality-bar gaps."
+    },
+    {
+      "id": "incident_command_room",
+      "surface": "incident workspace",
+      "purpose": "Incident commander and responders coordinate roles, timeline, decisions, mitigation, customer impact, and follow-ups."
+    },
+    {
+      "id": "status_communication_publisher",
+      "surface": "status/customer communications panel",
+      "purpose": "Draft, approve, publish, retract, and retain public/customer-scoped incident updates with data-class redaction checks."
+    },
+    {
+      "id": "error_budget_release_guardrail",
+      "surface": "release safety panel",
+      "purpose": "Shows SLO burn, freeze/throttle/rollback decisions, release exceptions, and feature-flag cleanup state."
+    },
+    {
+      "id": "postmortem_action_ledger",
+      "surface": "post-incident review panel",
+      "purpose": "Tracks postmortem due dates, recurrence-prevention actions, owners, verification, escalation, and closure evidence."
+    },
+    {
+      "id": "paging_quality_review",
+      "surface": "operational excellence review panel",
+      "purpose": "Classifies pages by actionability/noise/toil and creates follow-up work for alert quality."
+    }
+  ],
+  "data_boundary_rules": [
+    "Use docs/standards/data-class.md taxonomy: public, internal, tenant-config, tenant-data, pii, phi, financial, secret, regulated-jurisdiction.",
+    "Incident records may reference PII, tenant-data, regulated-jurisdiction markers, or secrets only through scoped references and redacted evidence bundles.",
+    "Public status and customer communication records must be derived from approved redacted text, not raw incident detail.",
+    "Customer-scoped status/advisory payloads must carry a CustomerImpactAudience reference and tenant-filter reference; public status payloads must never carry raw tenant identifiers.",
+    "Security/privacy review is mandatory before publishing any update involving security impact, regulated jurisdictions, tenant-data, pii, phi, financial data, or possible secret exposure.",
+    "Retention policies must state jurisdiction, incident severity, customer-impact class, and erasure/redaction behavior."
+  ],
+  "audit_event_types": [
+    "EVT-SRE-SERVICE-HEALTH-SNAPSHOT",
+    "EVT-SRE-PAGE-CREATED",
+    "EVT-SRE-PAGE-ACKNOWLEDGED",
+    "EVT-SRE-INCIDENT-DECLARED",
+    "EVT-SRE-INCIDENT-ROLE-ASSIGNED",
+    "EVT-SRE-CUSTOMER-IMPACT-AUDIENCE-CLASSIFIED",
+    "EVT-SRE-STATUS-COMMUNICATION-APPROVED",
+    "EVT-SRE-STATUS-COMMUNICATION-PUBLISHED",
+    "EVT-SRE-STATUS-COMMUNICATION-RETRACTED",
+    "EVT-SRE-SUPPORT-HANDOFF-CREATED",
+    "EVT-SRE-TRUST-CENTER-EVIDENCE-LINKED",
+    "EVT-SRE-ERROR-BUDGET-DECISION",
+    "EVT-SRE-ROLLBACK-OR-FREEZE-DECISION",
+    "EVT-SRE-POSTMORTEM-OPENED",
+    "EVT-SRE-POSTMORTEM-CLOSED",
+    "EVT-SRE-ACTION-ITEM-OPENED",
+    "EVT-SRE-ACTION-ITEM-CLOSED",
+    "EVT-SRE-ACTION-ITEM-OVERDUE-ESCALATED",
+    "EVT-SRE-PAGING-QUALITY-REVIEWED"
+  ],
+  "dedupe_and_link_map": [
+    {
+      "card_id": "t_38500376",
+      "title": "OPS-001: ops deploy/status panel slice",
+      "covers": "typed deploy/cell health status panel and API adapter",
+      "sreops_relationship": "consumer of ServiceCatalogHealthRecord and ErrorBudgetDecisionRecord; not a replacement for incident command or on-call policy"
+    },
+    {
+      "card_id": "t_a7a9ed48",
+      "title": "DR-001: DR RTO/RPO matrix + compliance-pack floors slice",
+      "covers": "DR schema/gate, RTO/RPO resolution, runbook, drill freshness, dashboard fixture",
+      "sreops_relationship": "producer of DR evidence consumed by incident command, status communication, and postmortem records"
+    },
+    {
+      "card_id": "t_62cf60fe",
+      "title": "RELEASE-001: progressive delivery + SLO rollback + feature-flag safety slice",
+      "covers": "canary, brownout, flag rollout policy, OpenSLO burn-rate rollback, cleanup gate",
+      "sreops_relationship": "producer/consumer for ErrorBudgetDecisionRecord and release freeze/rollback UI"
+    },
+    {
+      "card_id": "t_cb12fdb1",
+      "title": "OBS-004: OpenSLO automatic rollback trigger slice",
+      "covers": "OpenSLO to burn-rate alert and rollback trigger fixture",
+      "sreops_relationship": "source of burn-rate/high-severity alerts that create pages and incidents"
+    },
+    {
+      "card_id": "t_c127bb35",
+      "title": "RESILIENCE-001: chaos/status/brownout/SLO runtime control loop",
+      "covers": "chaos catalog, brownout signal, SLO composition, tail-sampling, status-page projection, disaster-mode evidence",
+      "sreops_relationship": "runtime reliability producer; SREOPS consumes its status-page projection but owns incident/customer communication workflow boundaries"
+    },
+    {
+      "card_id": "t_7c6f5ca6",
+      "title": "QUALITY-BAR-MATRIX-001: operationalize artifact-type verification expectations",
+      "covers": "future worker-card/template verification expectations by artifact type",
+      "sreops_relationship": "quality-bar reference for future UI/API/gate evidence expectations; SREOPS explicitly requires browser/user-story, OTel/SLO fixtures, and security/privacy review before stronger claims"
+    }
+  ],
+  "new_follow_up_cards": [
+    {
+      "card_id": "t_7ebe4f7b",
+      "title": "SREOPS-001A: customer status page and incident communications contract",
+      "reason": "RESILIENCE-001 covers status-page projection but not the customer communication approval/audience/evidence workflow."
+    },
+    {
+      "card_id": "t_ef57b2f0",
+      "title": "SREOPS-001B: incident postmortem evidence and action-item ledger contract",
+      "reason": "Existing OPS/DR/RELEASE/OBS/RESILIENCE cards do not define durable postmortem/action-item evidence or closure gates."
+    }
+  ],
+  "verification_contract": {
+    "current_task_verification": [
+      "JSON syntax validation for /specs/sre-operations-center-contract.json",
+      "artifact-capabilities registry row exists for sre-operations-center-contract",
+      "Kanban links exist from SREOPS-001 to OPS-001, DR-001, RELEASE-001, OBS-004, and RESILIENCE-001",
+      "Kanban follow-up cards exist for customer communications and postmortem/action evidence",
+      "CustomerImpactAudience record and fixtures define public, internal-support, and tenant-scoped customer audiences with explicit data-class allow/deny boundaries",
+      "StatusCommunicationRecord fixtures cover public status publication, tenant-scoped support/advisory handoff, and public correction/retraction evidence",
+      "SREOPS-001A approval workflow requires incident commander approval and security/privacy approval for regulated, security-sensitive, tenant-data, pii, phi, financial, or secret-exposure incidents",
+      "IncidentPostmortemRecord defines DRI, due-date, recurrence-prevention, customer-impact redaction, error-budget/release decision links, quality-bar verification refs, and closeout proof fields",
+      "ActionItemLink defines DRI owner, due date, escalation policy, recurrence-prevention evidence, verification evidence, risk acceptance, release/rollback link, and closeout proof fields",
+      "SREOPS-001B RED/GREEN fixture plan covers missing required postmortem/action-item fields for a Sev-1 postmortem and action closure",
+      "No production-ready, hyperscaler-grade, live on-call, or live status-page claim is made"
+    ],
+    "sreops_001a_red_green_fixture_plan": {
+      "red_cases": [
+        {
+          "id": "public_payload_with_tenant_specific_detail_red",
+          "fixture_shape": "StatusCommunicationRecord communication_kind=public_status_update with tenant_specific_payload_ref or raw tenant identifier in published_text_redacted",
+          "expected_result": "contract/gate rejects public publication and requires redaction plus CustomerImpactAudience public allowlist compliance"
+        },
+        {
+          "id": "tenant_scoped_without_audience_filter_red",
+          "fixture_shape": "StatusCommunicationRecord communication_kind=customer_scoped_support_advisory without audience_ref or CustomerImpactAudience.affected_tenant_filter_ref",
+          "expected_result": "contract/gate rejects customer-scoped publication because tenant routing evidence is absent"
+        },
+        {
+          "id": "regulated_incident_missing_privacy_security_approval_red",
+          "fixture_shape": "IncidentRecord data_classes_involved includes regulated-jurisdiction or tenant-data and StatusCommunicationRecord lacks security_privacy_approval_ref",
+          "expected_result": "contract/gate blocks publish until security/privacy review approval is present"
+        }
+      ],
+      "green_cases": [
+        {
+          "id": "public_and_tenant_scoped_updates_green",
+          "fixture_shape": "Public StatusCommunicationRecord uses only public redacted text and public CustomerImpactAudience; tenant-scoped StatusCommunicationRecord uses CustomerImpactAudience with tenant-filter ref, support_case_refs, advisory_refs, trust_center_evidence_refs, incident commander approval, and security/privacy approval when required",
+          "expected_result": "contract/gate accepts target/spec evidence for publication, correction/retraction, support handoff, and trust-center linking without making runtime status-page claims"
+        }
+      ]
+    },
+    "sreops_001b_red_green_fixture_plan": {
+      "red_cases": [
+        {
+          "id": "sev1_postmortem_missing_owner_due_date_red",
+          "fixture_shape": "IncidentPostmortemRecord for Sev-1 with required_by_policy=true but no owner_dri_principal_ref or due_at",
+          "expected_result": "contract/gate rejects postmortem closeout and reports missing DRI and due-date fields"
+        },
+        {
+          "id": "customer_impact_without_redaction_proof_red",
+          "fixture_shape": "IncidentPostmortemRecord with customer_impact_redacted but no customer_impact_redaction_proof_ref",
+          "expected_result": "contract/gate rejects public/customer evidence export and requires redaction proof plus security/privacy review when regulated data classes are present"
+        },
+        {
+          "id": "regulated_postmortem_missing_security_privacy_review_red",
+          "fixture_shape": "IncidentPostmortemRecord for security/privacy/regulatory/customer-impact incident with scoped_evidence_refs but no security_privacy_review_ref",
+          "expected_result": "contract/gate rejects evidence export and closeout until scoped retained evidence has security/privacy review approval or explicit risk acceptance"
+        },
+        {
+          "id": "action_item_closed_without_evidence_red",
+          "fixture_shape": "ActionItemLink status=closed without recurrence_prevention_evidence_ref, verification_evidence_ref, or closeout_proof_ref",
+          "expected_result": "contract/gate rejects postmortem closeout because recurrence-prevention proof is narrative-only or absent"
+        },
+        {
+          "id": "release_freeze_unlinked_red",
+          "fixture_shape": "IncidentPostmortemRecord for burn-rate incident with no error_budget_decision_refs or release_freeze_rollback_decision_refs",
+          "expected_result": "contract/gate rejects closeout until ErrorBudgetDecisionRecord and release/canary/rollback state are linked or explicitly not applicable"
+        }
+      ],
+      "green_cases": [
+        {
+          "id": "sev1_postmortem_action_closure_green",
+          "fixture_shape": "IncidentPostmortemRecord with owner_dri_principal_ref, due_at, completed_at, customer_impact_redaction_proof_ref, scoped_evidence_refs, security_privacy_review_ref when required, timeline analysis, recurrence-prevention refs, error-budget/release decision refs, quality-bar verification refs, and all ActionItemLink rows closed with verification_evidence_ref and closeout_proof_ref",
+          "expected_result": "contract/gate accepts target/spec closeout evidence for SRE Ops postmortem ledger without making runtime production-readiness claims"
+        }
+      ]
+    },
+    "future_implementation_verification": [
+      "browser/user-story evidence for service health overview, incident command room, status update publish/retract, and postmortem/action closure",
+      "browser/user-story evidence for public status publication/correction/retraction and tenant-scoped support/advisory handoff with trust-center evidence links",
+      "OpenTelemetry and OpenSLO fixtures for high-severity alarms, burn-rate pages, and rollback/freeze decisions",
+      "RED/GREEN fixtures for missing required incident/status/postmortem fields and unsafe public disclosure",
+      "security/privacy review for data classes, retention, redaction, tenant audience filtering, and secret-handle behavior",
+      "API/contract replay proving UI consumes typed records and does not shell out or scrape CLI output",
+      "claim-ceiling check against /specs/hyperscaler-production-readiness-claim-contract.json before any production-ready wording"
+    ]
+  }
+}

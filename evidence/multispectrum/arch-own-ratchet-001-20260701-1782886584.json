@@ -1,0 +1,87 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "arch-own-ratchet-001-20260701",
+  "change_class_id": "CC-4_architecture_governance_contract",
+  "created_at": "2026-07-01T06:16:24Z",
+  "agent_id": "hermes-default-kanban",
+  "task_id": "t_610ebf70",
+  "branch": "preserve/hermes-w1-dirty-20260630",
+  "scope": {
+    "summary": "Define a portfolio-level own-when-proven/day-0 ownership budget contract, register it for root-hub discovery, and create founder-call follow-up cards only for human-only ownership rulings.",
+    "files_touched": [
+      "specs/portfolio-ownership-ratchet.json",
+      "specs/root-hub-pointers.json",
+      "registry/artifact-capabilities-registry.json",
+      "evidence/multispectrum/arch-own-ratchet-001-20260701-1782886584.json"
+    ],
+    "explicit_non_claims": [
+      "No product code, runtime service, or ADR implementation is changed.",
+      "The proposed ownership-ratchet gate is planned; it is not mechanically enforced until implemented as a branch-protected cloud-ci/Rust gate behind oya-ci-required.",
+      "The contract does not make production-ready or hyperscaler-grade claims; those remain governed by /specs/hyperscaler-production-readiness-claim-contract.json.",
+      "Founder-only ownership decisions remain blocked on human judgment through the created Kanban cards."
+    ]
+  },
+  "hyperscaler_lens": {
+    "north_star": "Oyatie should own differentiating infrastructure only when a named forcing function and capacity model justify it, instead of spawning too many simultaneous bespoke substrates on day 0.",
+    "scale_property": "A one-slot major OWN_DAY0 budget and trigger-based OWN_EARLY/DEFER_VENDORED defaults force portfolio sequencing across DB, Kubernetes, container build, workflow, DCIM, identity, clients, verticals, CI, policy, and node-OS decisions.",
+    "canonical_names": [
+      "PortfolioOwnershipRatchet",
+      "OWN_DAY0",
+      "OWN_EARLY",
+      "DEFER_VENDORED",
+      "PERMANENT_REUSE",
+      "oya-check-portfolio-ownership-ratchet",
+      "portfolio_ownership_ratchet"
+    ]
+  },
+  "facets": {
+    "F1_correctness": "The contract names one allowed major day-0 ownership slot, defines evidence required to exceed it, and maps BVB-02/03/04/06/07/08/10/11 plus specific-tech A4/C2/D2/F1/F2/F3/F4/F5 to dispositions.",
+    "F2_tests": "JSON syntax validation, custom required-mapping/root-hub/registry/card invariant checks, git diff --check, and Kanban card visibility checks passed.",
+    "F3_maintainability": "The contract is a single machine-readable spec with source authorities, unified rubric, budget, claim ceilings, decision mappings, gate proposal, and worker guidance.",
+    "F4_compatibility": "Root-hub and artifact registry additions are additive; no generated faces or product/runtime APIs are changed.",
+    "F5_security": "The gate proposal explicitly rejects unsupported ownership-escalation claims and preserves the existing cloud-ci/Rust gate authority boundary rather than adding legacy CLI authority.",
+    "F6_privacy": "The change contains architecture-governance metadata only and introduces no tenant, customer, or personal data processing.",
+    "F7_operability": "Three blocked founder-call cards make human-only decisions visible instead of leaving audit prose as an implicit blocker.",
+    "F8_performance": "No runtime path is affected; future gate cost is bounded to ownership-claim scans over docs/spec/registry paths.",
+    "F9_compliance": "Claim ceilings point back to the hyperscaler production-readiness claim contract and prevent false mechanically-enforced/production-ready claims.",
+    "F10_reversibility": "Rollback is limited to one new spec, one root-hub entry, one artifact-registry row, this evidence file, and Kanban follow-up cards/comments.",
+    "F11_observability": "The artifact-registry row defines a planned ownership-claims metric and the Kanban cards provide durable board evidence.",
+    "F13_migration": "The contract supports migration from per-ADR ownership prose to a portfolio-level cloud-ci/Rust gate without touching generated artifacts or retired oya CLI authority."
+  },
+  "verification_plan": [
+    "python3 -m json.tool specs/portfolio-ownership-ratchet.json >/dev/null",
+    "python3 -m json.tool specs/root-hub-pointers.json >/dev/null",
+    "python3 -m json.tool registry/artifact-capabilities-registry.json >/dev/null",
+    "custom Python invariant check for required BVB/specific-tech mappings, one-slot budget, root-hub entry, registry row, gate id, and three founder-call cards",
+    "git diff --check -- specs/portfolio-ownership-ratchet.json specs/root-hub-pointers.json registry/artifact-capabilities-registry.json",
+    "hermes kanban --board oyatie show t_d5c55c28/t_c335b434/t_1b9b3e63 --json"
+  ],
+  "created_kanban_cards": [
+    {
+      "task_id": "t_d5c55c28",
+      "title": "FOUNDER-CALL-OWN-BUDGET-001: choose portfolio day-0 crown-jewel slot",
+      "status": "blocked_external_human_only"
+    },
+    {
+      "task_id": "t_c335b434",
+      "title": "FOUNDER-CALL-OWN-SCOPE-001: decide vertical and native-client day-0 breadth",
+      "status": "blocked_external_human_only"
+    },
+    {
+      "task_id": "t_1b9b3e63",
+      "title": "FOUNDER-CALL-OWN-OPS-001: resolve workflow/DCIM/identity ownership exceptions",
+      "status": "blocked_external_human_only"
+    },
+    {
+      "task_id": "t_7211b798",
+      "title": "REVIEW-ARCH-OWN-RATCHET-001: independent review of portfolio ownership budget contract",
+      "status": "ready_review_followup"
+    }
+  ],
+  "known_gaps": [
+    "Reviewer approval remains pending; t_610ebf70 should block as review-required rather than auto-complete.",
+    "The workspace contains extensive pre-existing unrelated dirty changes; this slice should be reviewed/ported carefully before PR.",
+    "Root-hub and artifact-registry files already had pre-existing modifications; this task's intended additions are the portfolio_ownership_ratchet entry and portfolio-ownership-ratchet registry row.",
+    "The planned gate is not implemented in Rust/cloud-ci yet; a future worker should implement oya-check-portfolio-ownership-ratchet with RED/GREEN fixtures before any mechanically-enforced claim."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/anonymous-prd-replay-fixture.schema.json",
+  "allowed_successors": [],
+  "assertions_satisfied": [
+    "PRD-ANONYMOUS status Draft and implementation-ready for RED planning only",
+    "anonymous manifest-index row has no standalone manifest",
+    "parent inventory is oya/community/manifest.json",
+    "future Build home is oya/community/**",
+    "anonymous crate lives under oya/community/**",
+    "source authority remains specs/microservices/anonymous.json plus PLAN/SPEC and RED parents"
+  ],
+  "build_task": "t_956bcd9c",
+  "claim_boundary": "Build-slice contract replay and pure domain crate only; no standalone anonymous service root, no microservices/anonymous restoration, no generated JSON hand edits, no UI runtime, no deployment, no live SLO, no GA, and no production readiness claim.",
+  "fixture_id": "anonymous_prd_authority_source_lock_fixture",
+  "fixture_kind": "authority_source_lock",
+  "implementation_evidence": {
+    "crate": "oya-community-anonymous",
+    "library": "oya_community_anonymous",
+    "source": "oya/community/crates/oya-community-anonymous/src/lib.rs",
+    "tests": [
+      "anonymous_post_and_salary_store_token_only_without_identity_fields"
+    ],
+    "verification_commands": [
+      "rustc --edition=2024 --test oya/community/crates/oya-community-anonymous/src/lib.rs -o /tmp/oya-community-anonymous-test && /tmp/oya-community-anonymous-test --nocapture",
+      "python3 scripts/tests/anonymous_prd_red_fixture_contract_check.py"
+    ]
+  },
+  "implementation_home": "oya/community/crates/oya-community-anonymous",
+  "negative_cases": [
+    "standalone oya/anonymous service root",
+    "microservices/anonymous manifest restoration",
+    "runtime readiness from parent inventory",
+    "Build without parent PLAN/SPEC t_8da1d130 and RED gate t_fe98ab0a",
+    "standalone oya/anonymous service root remains absent",
+    "microservices/anonymous manifest restoration remains absent",
+    "generated JSON hand edits remain absent"
+  ],
+  "parent_plan_spec_task": "t_8da1d130",
+  "parent_red_task": "t_fe98ab0a",
+  "privacy_invariants": [
+    "anonymous posts and salary entries expose anonymous_author_token only",
+    "identity/user_id/employee_id/identity_fk inputs are rejected before persistence",
+    "verification vault token has no post foreign key and is one-time/24h bounded",
+    "HR/employer access returns aggregates only with k>=10 and individual attribution denied",
+    "moderators receive anonymous_author_token only; legal reveal is four-eyes/court-order/HSM/audit gated",
+    "work context is isolated from personal feeds/search/suggestions through Workflow/Ontology mediation"
+  ],
+  "replay_status": "green_after_build_slice_contract_replay",
+  "source_authority_refs": [
+    "specs/microservices/anonymous.json",
+    "specs/microservices/anonymous.json#implementation_source_lock",
+    "specs/microservices/manifests-index.json#microservices[name=anonymous]",
+    "oya/community/manifest.json",
+    "kanban:t_8da1d130#PLAN/SPEC-ANON-001",
+    "oya/community/crates/oya-community-anonymous/src/lib.rs",
+    "oya/community/crates/oya-community-anonymous/Cargo.toml",
+    "kanban:t_956bcd9c#BUILD-ANON-001",
+    "kanban:t_8da1d130"
+  ]
+}

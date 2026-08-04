@@ -1,0 +1,222 @@
+{
+  "schema_version": "0.1",
+  "snapshot_id": "CELL-001-contract-snapshot-20260701",
+  "kanban_task_id": "t_87f14dd2",
+  "created_at_utc": "2026-07-01T09:05:19Z",
+  "reviewed_at_utc": "2026-07-01T09:13:05Z",
+  "review_task_id": "t_e4f52e4a",
+  "claim_ceiling": "contract_snapshot_only",
+  "production_readiness_claim": false,
+  "runtime_cell001_unblocked": false,
+  "purpose": "Temporary CELL-001 topology assumption contract so downstream residency, pack, plane, cloud inventory, secrets, and sovereign spec/fixture lanes can proceed without claiming production readiness or unblocking runtime promotion/rebalancer work.",
+  "source_refs": [
+    {
+      "path": "cloud/cloud-iac/cell-topology/foundation.json",
+      "lines": "1-315",
+      "summary": "Local JSON cell-topology foundation: five contexts/cells, one cloud-iac service tenant fixture, local evidence refs, and explicit non-claims for runtime/provider/Kubernetes/OpenTofu/Argo integrations."
+    },
+    {
+      "path": "cloud/cell-lifecycle/manifest.json",
+      "lines": "82-120,178-187,188-239",
+      "summary": "Cell lifecycle local foundation declares OpenBao as future reference only, no raw secret material, no provisioning/runtime/DR/audit-chain claims, and local cell-binding/residency invariants only."
+    },
+    {
+      "path": "specs/multi-region-disposition-canonical.json",
+      "lines": "20-111,112-216",
+      "summary": "Accepted ADR-0158 canonical disposition enum, sovereign tenant pin overlay, global control-plane routing shape, and pack default topology matrix."
+    },
+    {
+      "path": "specs/csi-storage-class-canonical.json",
+      "lines": "20-80,81-178",
+      "summary": "Accepted ADR-0161 canonical StorageClass names, per-pack CSI matrix, topology-aware provisioning, encryption, and workload contract."
+    },
+    {
+      "path": "docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md",
+      "lines": "26-90,141-147",
+      "summary": "Proposed planning source for cell tiers, cell routing layers, per-cell HSM partition, quarterly isolation evidence, and open questions."
+    },
+    {
+      "path": "docs/decisions/ADR-0049-cross-region-replication-and-residency.md",
+      "lines": "26-151",
+      "summary": "Proposed planning source for residency classes, strict KR behavior, cross-region transfer governance, and failover semantics."
+    },
+    {
+      "path": "docs/decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md",
+      "lines": "112-171",
+      "summary": "Proposed planning source for local multi-node Talos pool topology, cell-boundary enforcement, and object-store substrate; not runtime evidence."
+    }
+  ],
+  "allowed_path_prefixes": [
+    "specs/",
+    "docs/",
+    "evidence/",
+    "cloud/cloud-iac/cell-topology/"
+  ],
+  "forbidden_shared_roots": [
+    "production cluster/cell runtime",
+    "live deployment manifests",
+    "*.generated.json hand edits",
+    ".github/",
+    "release/governance files"
+  ],
+  "topology_fixture_summary": {
+    "fixture_path": "cloud/cloud-iac/cell-topology/foundation.json",
+    "context_count": 5,
+    "cell_count": 5,
+    "service_tenant_fixture_count": 1,
+    "contexts": [
+      "aws-guest",
+      "colo",
+      "oci-guest",
+      "on-prem",
+      "oyatie-cloud-provider"
+    ],
+    "regions": [
+      "colo-nyc-1",
+      "kr-seoul-1",
+      "onprem-lab-1",
+      "us-ashburn-1",
+      "us-east-1"
+    ],
+    "module_refs_expected_on_each_cell": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "default_cross_cell_traffic_allowed": false
+  },
+  "service_tenant_fixture_contract": {
+    "microservice": "cloud-iac",
+    "tenant_id": "ten_cloud_iac_oyatie_cloud_provider",
+    "cell_id": "oyatie-cloud-provider-kr-seoul-1-a-001",
+    "cell_tier": "dedicated",
+    "residency_class": "strict_kr",
+    "region_disposition": "active_passive",
+    "storage_class": "oya-pg-hot",
+    "quarterly_isolation_evidence_ref_kinds": [
+      "network",
+      "storage",
+      "crypto",
+      "compute",
+      "audit"
+    ],
+    "quarterly_isolation_evidence_claim": "reference-shape only; this snapshot does not assert that evidence payloads exist or passed a runtime audit"
+  },
+  "contract_assumptions": {
+    "cell_identity_and_routing": [
+      "Cells are the planning blast-radius primitive for tenant/data-plane work; current local foundation has one cell per listed context/region and one cloud-iac service tenant fixture.",
+      "Cross-cell traffic is denied by default in the foundation fixture and must be represented by explicit future cross-cell contracts before any runtime route is allowed.",
+      "Edge, mesh, store, and event routing remain assumptions from ADR-0009 until a runtime CELL-001 reconciliation proves live routing, policy, and store bindings."
+    ],
+    "residency_and_region": [
+      "The service fixture is strict_kr and active_passive in kr-seoul-1; downstream residency/spec lanes may use it as a KR-pinned planning input.",
+      "Accepted multi-region disposition authority is specs/multi-region-disposition-canonical.json; proposed ADR-0049 residency details are planning context only unless elevated by a later card/root pointer."
+    ],
+    "storage": [
+      "The fixture uses canonical storage_class oya-pg-hot from specs/csi-storage-class-canonical.json.",
+      "Topology-aware provisioning and per-pack CSI bindings are assumed contract inputs only; this snapshot does not claim PVs, StorageClasses, or drivers exist in a live cluster."
+    ],
+    "secrets_and_hsm": [
+      "Each foundation cell includes kms and secrets-bootstrap module refs; this is sufficient for downstream secrets contract vocabulary.",
+      "OpenBao/HSM/KEK/DEK behavior remains contract/runbook-only for SECRETS-001; no raw secret material, kubeconfig, provider credential, or OpenBao runtime call is introduced or claimed here."
+    ],
+    "planes_and_cloud_inventory": [
+      "Data-plane behavior should be treated as cell-local; control/analytics/global-control-plane behavior must remain explicitly labelled and cannot infer runtime separation from this snapshot alone.",
+      "Cloud/DCIM inventory lanes may cite the five-context/five-cell local foundation as inventory scope, but must not claim provider resources, capacity telemetry, PUE/WUE, SLO, or live DCIM integration."
+    ],
+    "sovereign_and_airgap": [
+      "Sovereign/air-gap lanes may use the strict_kr active_passive fixture as a seed for pack overlays and no-external-egress reasoning.",
+      "Signed bundle, offline ownership, no-external-egress validation, and RTO/SLO evidence remain future artifacts; this snapshot only fixes the topology assumption."
+    ]
+  },
+  "non_claims": [
+    "no production-readiness, hyperscaler-grade, runtime-ready, or deployable-cell claim",
+    "no autosharding, auto-rebalance, dynamic sharding, tenant migration, promotion, drain, or decommission executor",
+    "no Argo CD API, Kubernetes API, OpenTofu CLI, provider API, or live mesh enforcement integration",
+    "no live capacity telemetry, measured SLO/SLI, active-active DR, failover drill, or runtime audit-chain persistence",
+    "no raw secret material, kubeconfig, provider token, credential, or OpenBao runtime access",
+    "no generated JSON hand edits and no changes to protected CI/release/governance roots"
+  ],
+  "reconciliation_points_after_runtime_cell001": [
+    "Reconcile proposed ADR-0009/ADR-0049 terminology with accepted specs before promoting any binding runtime gate; especially cell tier casing, residency class names, and cross-cell contract fields.",
+    "Prove whether foundation.json remains the source fixture or is replaced by a runtime-discovered topology source once CELL-001 lands.",
+    "Replace evidence:// quarterly isolation reference shapes with actual evidence records or explicit blocked placeholders per network/storage/crypto/compute/audit category.",
+    "Verify live route-table/API-gateway behavior for sovereign pins and 421 redirects before downstream residency/sovereign lanes claim enforcement.",
+    "Verify KMS/HSM/OpenBao partition binding with synthetic non-prod rotation evidence before SECRETS-001 claims rotation readiness.",
+    "Verify topology-aware storage provisioning and per-pack CSI binding in a non-prod cluster before storage_class assumptions become runtime claims.",
+    "Use cloud-ci/Rust gate packets for future enforcement; do not extend retired local oya CLI merge authority."
+  ],
+  "descendant_readiness": {
+    "t_bc655724": {
+      "title": "SECRETS-001: OpenBao/HSM SecretProvider rotation contract",
+      "snapshot_inputs_ready": true,
+      "ready_candidate_after_snapshot": true,
+      "safe_scope": "secrets contract/runbook vocabulary using cell_id, strict_kr, kms, secrets-bootstrap, and per-cell HSM assumptions; no runtime secret material or OpenBao calls",
+      "remaining_non_snapshot_parents_seen": "t_646248cb and t_68a87026 are done in current Kanban context",
+      "current_status_at_review": "running; the card was promoted and claimed after the snapshot parent cleared"
+    },
+    "t_4ee683ec": {
+      "title": "PACK-001: regional-pack manifest + canonical-base neutrality gate",
+      "snapshot_inputs_ready": true,
+      "ready_candidate_after_snapshot": false,
+      "safe_scope": "pack manifest/gate schema can consume strict_kr + active_passive + oya-pg-hot assumptions after its other privacy/data-boundary prerequisite clears",
+      "remaining_blockers_seen": [
+        "t_2fc04777"
+      ]
+    },
+    "t_215c8b00": {
+      "title": "RESIDENCY-001: per-tenant residency attestation + cross-border bar",
+      "snapshot_inputs_ready": true,
+      "ready_candidate_after_snapshot": false,
+      "safe_scope": "residency attestation may cite strict_kr, active_passive, and quarterly evidence ref kinds as planning inputs only",
+      "remaining_blockers_seen": [
+        "t_b70d22bd"
+      ]
+    },
+    "t_69f99449": {
+      "title": "PLANE-001: plane separation catalog + cross-plane gate slice",
+      "snapshot_inputs_ready": true,
+      "ready_candidate_after_snapshot": false,
+      "safe_scope": "plane catalog can use cell-local data-plane and explicit cross-cell contract assumptions; no runtime route enforcement claim",
+      "remaining_blockers_seen": [
+        "t_c2adf6cd"
+      ],
+      "completed_non_snapshot_parents_seen": [
+        "t_885677fc"
+      ]
+    },
+    "t_866b22c0": {
+      "title": "CLOUD-001: Cloud product + DCIM surface inventory slice",
+      "snapshot_inputs_ready": true,
+      "ready_candidate_after_snapshot": false,
+      "safe_scope": "cloud/DCIM inventory can use five contexts/cells and local module refs as inventory seed only; no provider/DCIM/SLO/PUE runtime claim",
+      "remaining_blockers_seen": [
+        "t_38500376"
+      ],
+      "completed_non_snapshot_parents_seen": [
+        "t_3d04862f",
+        "t_64af26ae",
+        "t_65b9fbbb",
+        "t_e4361b50",
+        "t_e5acfbd6",
+        "t_ea7641a6"
+      ]
+    },
+    "t_f630eada": {
+      "title": "SOV-001: sovereign/air-gapped deployment manifest slice",
+      "snapshot_inputs_ready": true,
+      "ready_candidate_after_snapshot": false,
+      "safe_scope": "sovereign/air-gap manifest can use strict_kr active_passive fixture as topology seed after PACK-001 and supply/decomp prerequisites clear; no signed bundle or no-egress runtime claim",
+      "remaining_blockers_seen": [
+        "t_4ee683ec"
+      ],
+      "completed_non_snapshot_parents_seen": [
+        "t_7d27ddbb",
+        "t_e4361b50"
+      ]
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "fixture_id": "REGID-004-FX-002",
+  "title": "Critical packet publication requires hardware-bound assurance and audit obligations",
+  "expected_decision": "allow",
+  "expected_obligations": [
+    "emit-audit-event",
+    "attach-evidence-ref",
+    "apply-retention-rule",
+    "enforce-residency-target",
+    "manual-review-required"
+  ],
+  "covered_invariants": [
+    "REGID-004-I03-CRITICAL-HARDWARE",
+    "REGID-004-I06-AUDIT-OBLIGATIONS"
+  ],
+  "context": {
+    "tenant_id": "tenant-regid004-demo",
+    "subject_ref": "subject-ref:demo-123",
+    "action_slug": "compliance.accreditation-packet.publish",
+    "requested_capability": "accreditation-packet-publication",
+    "auth_state": {
+      "passkey_auth_state": "authenticated",
+      "acr": "critical",
+      "acr_event_at": "2026-07-01T09:30:00Z",
+      "credential_type": "hardware_security_key",
+      "webauthn_level_floor": "WebAuthn-Level-3",
+      "authenticator_assurance": {
+        "attestation_level": "direct",
+        "fido_mds_level": "L2",
+        "aaguid_ref": "aaguid:yubikey-l2-demo",
+        "backup_eligible": false,
+        "backup_state": false,
+        "device_binding": "hardware_bound",
+        "phishing_resistant": true
+      },
+      "syncable_passkey_aal_ceiling": "not_applicable",
+      "critical_operation_approval": {
+        "required": true,
+        "approval_ref": "approval:jit-critical:demo",
+        "approval_window_state": "approved_in_window",
+        "approved_at": "2026-07-01T09:29:00Z"
+      }
+    },
+    "proofing_state": {
+      "tenant_kyc_status": "verified_enhanced",
+      "proofing_status": "approved",
+      "proofing_tier": "regulated_accreditation",
+      "evidence_refs": [
+        "evidence:proofing-case:demo"
+      ],
+      "source_control_row_ids": [
+        "REGID-CB-001",
+        "REGID-CB-008",
+        "REGID-CB-009"
+      ],
+      "freshness_state": "fresh"
+    },
+    "due_diligence_state": {
+      "cdd_state": "satisfied",
+      "edd_state": "satisfied",
+      "manual_review_required": true
+    },
+    "screening_state": {
+      "sanctions_result": "clear",
+      "pep_result": "clear",
+      "adverse_media_result": "clear",
+      "freshness_state": "fresh",
+      "last_screened_at": "2026-07-01T09:20:00Z",
+      "expires_at": "2026-10-01T09:20:00Z"
+    },
+    "consent_state": {
+      "consent_refs": [
+        "consent:kyc:demo"
+      ],
+      "lawful_basis_refs": [
+        "lawful-basis:contract:demo"
+      ],
+      "purpose_refs": [
+        "purpose:proofing-decision"
+      ],
+      "revoked": false
+    },
+    "residency_state": {
+      "jurisdiction_primary": "US",
+      "data_residency_target": "us-east-compliance",
+      "allowed_regions": [
+        "us-east-compliance",
+        "us-west-compliance"
+      ],
+      "egress_permitted": true
+    },
+    "retention_state": {
+      "retention_rule_ids": [
+        "retention:kyc-standard-cdd"
+      ],
+      "expires_at_or_review_due_at": "2031-07-01T00:00:00Z",
+      "deletion_hold": false
+    },
+    "purpose_state": {
+      "purpose": "accreditation_packet_publish",
+      "purpose_bound": true,
+      "data_classes": [
+        "KYC_IDENTITY_CORE",
+        "KYC_SCREENING_RESULT"
+      ]
+    },
+    "risk_state": {
+      "risk_score": 81,
+      "risk_band": "high",
+      "risk_model_ref": "risk-model:regid004-demo:v1",
+      "risk_freshness_state": "fresh"
+    },
+    "pdp_audit_state": {
+      "decision_id": "decision:regid004:demo",
+      "policy_bundle_version": "policy-bundle:regid004:v0.1.0",
+      "determining_policy_ids": [
+        "REGID-004-I01-PASSKEY-NOT-KYC"
+      ],
+      "obligations_required": [
+        "emit-audit-event",
+        "attach-evidence-ref",
+        "apply-retention-rule",
+        "enforce-residency-target",
+        "manual-review-required"
+      ],
+      "audit_chain_required": true
+    }
+  }
+}

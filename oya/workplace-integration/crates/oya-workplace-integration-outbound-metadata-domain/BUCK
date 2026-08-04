@@ -1,0 +1,26 @@
+rust_library(
+    name = "oya-workplace-integration-outbound-metadata-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workplace_integration_outbound_metadata_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "oya-workplace-integration-outbound-metadata-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_workplace_integration_outbound_metadata_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "oya-workplace-integration-outbound-metadata-domain-env-tier-outbound-metadata",
+    srcs = ["tests/env_tier_outbound_metadata.rs"],
+    crate = "oya_workplace_integration_outbound_metadata_domain_env_tier_outbound_metadata",
+    crate_root = "tests/env_tier_outbound_metadata.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-workplace-integration-outbound-metadata-domain",
+    ],
+)

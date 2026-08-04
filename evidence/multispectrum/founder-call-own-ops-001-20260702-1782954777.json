@@ -1,0 +1,102 @@
+{
+  "schema_version": "2.4.0",
+  "change_id": "founder-call-own-ops-001-20260702",
+  "change_class_id": "CC-4_architecture_governance_contract",
+  "created_at": "2026-07-02T01:12:57Z",
+  "agent_id": "hermes-default-kanban",
+  "task_id": "t_1b9b3e63",
+  "branch": "preserve/hermes-w1-dirty-20260630",
+  "scope": {
+    "summary": "Resolve the operations/identity/workflow founder-call gate by reconciling BVB-06/BVB-07/BVB-08 to current accepted founder/current authorities and queueing ADR prose follow-up work.",
+    "files_touched": [
+      "specs/portfolio-ownership-ratchet.json",
+      "evidence/multispectrum/founder-call-own-ops-001-20260702-1782954777.json"
+    ],
+    "explicit_non_claims": [
+      "No product code, runtime service, OIDC provider, Workflow engine, DCIM, or silicon implementation is changed.",
+      "The portfolio ownership-ratchet gate remains planned; this change does not claim mechanical enforcement behind oya-ci-required.",
+      "The source ADR prose still needs a separate docs amendment lane where older wording conflicts; this task queues that follow-up rather than silently editing every ADR.",
+      "No OWN_DAY0 developer-portal claim is introduced by this reconciliation; the resolution only separates Internal Developer Platform portal/BFF wording from OIDC identity-provider authority.",
+      "The reconciled identity outcome is a founder-accepted bridge-plus-bespoke roadmap, not an implication of the Internal Developer Platform naming collision."
+    ]
+  },
+  "hyperscaler_lens": {
+    "north_star": "Own differentiating substrates with explicit bridge discipline, parity gates, and founder authority instead of letting old day-0 ownership language create unbounded simultaneous substrate programs.",
+    "scale_property": "Workflow stays behind a Temporal-class bridge until Tier-3 durable-execution parity, DCIM waits for physical/colo DC capacity and silicon founder-ratification, while identity follows the explicit ADR-0476/ADR-0482 bridge-plus-bespoke roadmap.",
+    "canonical_names": [
+      "PortfolioOwnershipRatchet",
+      "BVB-06",
+      "BVB-07",
+      "BVB-08",
+      "ADR-0482",
+      "ADR-0476",
+      "oya-workflow",
+      "oya-identity"
+    ]
+  },
+  "facets": {
+    "F1_correctness": "BVB-06, BVB-07, and BVB-08 now have explicit resolved default buckets, resolution authorities, and founder_call_required=false in the ratchet mapping.",
+    "F2_tests": "JSON syntax validation, custom BVB invariant validation, git diff --check, and Kanban follow-up creation are required verification evidence for this slice.",
+    "F3_maintainability": "The decisions are kept in one machine-readable mapping with separate ADR amendment work queued for older prose conflicts.",
+    "F4_compatibility": "The change is additive to metadata fields on an existing proposed architecture-governance spec and does not touch generated faces or runtime APIs.",
+    "F5_security": "Identity-provider ownership is tied to ADR-0476 feature parity and security/privacy review evidence instead of being inferred from portal wording.",
+    "F6_privacy": "No tenant, customer, employee, or credential data is introduced; the artifact contains architecture metadata only.",
+    "F7_operability": "The blocked human-only card can close because accepted source authority now records the decision buckets; follow-up ADR amendments are visible as t_ec29b160.",
+    "F8_performance": "No runtime path is affected; future engines remain behind parity/bridge gates before any performance claim.",
+    "F9_compliance": "DCIM and silicon wording preserves founder-ratified high-blast-radius gates and avoids unsupported regulated-operations ownership claims.",
+    "F10_reversibility": "Rollback is limited to the ratchet JSON diff, this evidence file, and the Kanban follow-up card/comment.",
+    "F11_observability": "The Kanban board records the resolution and the follow-up docs amendment card for traceability.",
+    "F13_migration": "The follow-up lane migrates ADR prose from older day-0/vendor defaults to the accepted bridge-plus-bespoke roadmap without mixing it into this decision gate."
+  },
+  "decision_resolutions": [
+    {
+      "source_id": "BVB-06",
+      "resolution": "Temporal-class bridge and owned overlay now; oya-workflow Tier-3 bespoke after durable-execution parity.",
+      "authorities": [
+        "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:35-46",
+        "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:79-86"
+      ]
+    },
+    {
+      "source_id": "BVB-07",
+      "resolution": "DCIM deferred until owned physical/colo DC capacity; custom data-center silicon default anti-scope with Phase-3+ forcing function plus founder-ratification escape hatch.",
+      "authorities": [
+        "docs/PRD.md:53-54",
+        "docs/PRD.md:111",
+        "docs/DESIGN.md:232-240",
+        "docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md:136-145"
+      ]
+    },
+    {
+      "source_id": "BVB-08",
+      "resolution": "Developer portal IDP remains separate from OIDC IdP; OIDC follows ADR-0476/ADR-0482 with Keycloak bridge and oya-identity bespoke target, not the superseded Zitadel default.",
+      "authorities": [
+        "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md:29-37",
+        "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md:66-78",
+        "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:52-60",
+        "docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md:1-9",
+        "docs/audit/initial-sweep-2026-06-06/hyperscaler/build-vs-buy-scope-breadth.md:99-104"
+      ]
+    }
+  ],
+  "created_kanban_cards": [
+    {
+      "task_id": "t_ec29b160",
+      "title": "DOCS-AMEND-OWN-OPS-001: amend ADR prose for resolved workflow/DCIM/identity ownership exceptions",
+      "status": "todo",
+      "waits_for_review_child": "t_5b999576"
+    },
+    {
+      "task_id": "t_5b999576",
+      "title": "Review/fix: FOUNDER-CALL-OWN-OPS-001 ownership-ratchet reconciliation",
+      "status": "todo"
+    }
+  ],
+  "verification_plan": [
+    "python3 -m json.tool specs/portfolio-ownership-ratchet.json >/dev/null",
+    "python3 -m json.tool evidence/multispectrum/founder-call-own-ops-001-20260702-1782954777.json >/dev/null",
+    "custom Python invariant check that BVB-06/BVB-07/BVB-08 have founder_call_required=false plus founder_call_resolution/resolution_authorities",
+    "git diff --check -- specs/portfolio-ownership-ratchet.json evidence/multispectrum/founder-call-own-ops-001-20260702-1782954777.json",
+    "kanban_show t_1b9b3e63 and created child t_ec29b160 evidence"
+  ]
+}

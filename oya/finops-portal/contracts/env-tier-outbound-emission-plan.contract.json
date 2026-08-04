@@ -1,0 +1,199 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "finops-portal-env-tier-outbound-emission-plan-v1",
+  "status": "metadata_only_plan_spec_red_guardrail",
+  "doc_class": "Machine-Readable-Contract",
+  "kanban_task": "t_490d38b0",
+  "parent_plan_spec_task": "t_cf19286a",
+  "related_task_refs": [
+    "t_cf19286a",
+    "t_732855bf",
+    "t_86da510f"
+  ],
+  "source_authority_refs": [
+    "specs/root-hub-pointers.json#entry_points.agent_operating_contract",
+    "specs/tenant-environment-tiers-canonical.json#tier_definitions",
+    "kanban:t_cf19286a#billing-payment-webhook-env-tier-contract",
+    "kanban:t_732855bf#tenancy-api-cedar-env-tier-contract",
+    "kanban:t_86da510f#env-tier-hook-readiness-contract",
+    "oya/finops-portal/manifest.json#contracts",
+    "oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+    "oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+    "oya/finops-portal/contracts/cost-allocation-policy-internal.proto"
+  ],
+  "claim_boundary": [
+    "metadata-only contract and RED fixture guardrail",
+    "no live portal UI",
+    "no invoice PDF delivery",
+    "no FOCUS export runtime",
+    "no OpenCost ingest",
+    "no regulator submission",
+    "no database",
+    "no audit-chain runtime",
+    "no outbound delivery worker",
+    "no production delivery",
+    "no hyperscaler maturity claim",
+    "no generated JSON hand edits"
+  ],
+  "canonical_tier_mapping": {
+    "test": {
+      "env_tier": "test",
+      "derived_outbound_mode": "intercept",
+      "allowed_destination_binding_ref": null,
+      "required_behavior": "intercept/log-only metadata capture; no external invoice, report, export, regulator evidence, URL, email, webhook, object-store, or signed-download delivery",
+      "audit_chain_tag": "env_tier=test"
+    },
+    "staging": {
+      "env_tier": "staging",
+      "derived_outbound_mode": "test_recipients",
+      "allowed_destination_binding_ref_prefixes": [
+        "finops-destination/{tenant_id}/{region}/qa/",
+        "finops-destination/{tenant_id}/{region}/test/"
+      ],
+      "required_behavior": "tenant-configured QA/test invoice recipient, report mailbox, export endpoint, or regulator-evidence sandbox endpoint only; absence of that binding fails closed",
+      "audit_chain_tag": "env_tier=staging"
+    },
+    "prod": {
+      "env_tier": "prod",
+      "derived_outbound_mode": "live",
+      "allowed_destination_binding_ref_prefixes": [
+        "finops-destination/{tenant_id}/{region}/live/"
+      ],
+      "required_behavior": "live metadata plan is admissible only with tenancy/env-tier policy evidence and destination ownership evidence; runtime delivery remains out of scope",
+      "audit_chain_tag": "env_tier=prod"
+    }
+  },
+  "emission_plan_metadata_contract": {
+    "required_fields": [
+      "tenant_id",
+      "recipient_tenant_id",
+      "region",
+      "env_tier",
+      "outbound_mode",
+      "action_class",
+      "destination_binding_ref",
+      "report_export_invoice_evidence_ref",
+      "policy_evidence_ref",
+      "requested_external_delivery",
+      "runtime_delivery_authorized",
+      "claim_boundary"
+    ],
+    "env_tier_enum": [
+      "test",
+      "staging",
+      "prod"
+    ],
+    "action_class_enum": [
+      "invoice_emission_plan",
+      "tenant_report_export_plan",
+      "focus_export_metadata_plan",
+      "regulator_evidence_emission_plan"
+    ],
+    "outbound_mode_is_derived_from_env_tier": true,
+    "destination_binding_ref_field_required_for_all_plans": true,
+    "destination_binding_ref_value_rule": "null only for test/intercept plans; staging and prod require tenant-scoped metadata references matching their tier-specific prefixes",
+    "report_export_invoice_evidence_ref_prefix": "evidence/finops-portal/{tenant_id}/{region}/{action_class}/",
+    "policy_evidence_ref_prefix": "policy-evidence/{tenant_id}/{env_tier}/env-tier/",
+    "metadata_only_ref_rules": [
+      "references must be stable metadata handles, not URLs, credentials, tokens, API keys, headers, secret names, or inline payloads",
+      "references must bind the same tenant_id as the emission plan unless an explicit reviewed cross-tenant policy evidence ref is added by a future card",
+      "fixtures must never contain real recipient addresses, live endpoints, signed URLs, object-store credentials, bearer tokens, OpenBao paths, or provider secrets"
+    ]
+  },
+  "secret_like_markers_forbidden_in_fixtures": [
+    "secret",
+    "token",
+    "api_key",
+    "apikey",
+    "bearer",
+    "authorization",
+    "password",
+    "credential",
+    "private_key",
+    "client_secret",
+    "sk_test_",
+    "sk_stage_",
+    "sk_live_"
+  ],
+  "fail_closed_validation_rules": [
+    {
+      "rule_id": "FINOPS-ENV-TIER-REQUIRED",
+      "denial_reason": "missing_env_tier",
+      "must_block_before": "invoice/report/export/regulator-evidence emission plan admission"
+    },
+    {
+      "rule_id": "FINOPS-OUTBOUND-MODE-DERIVED",
+      "denial_reason": "outbound_mode_not_derived_from_env_tier",
+      "must_block_before": "any destination binding or runtime adapter selection"
+    },
+    {
+      "rule_id": "FINOPS-TEST-INTERCEPT-ONLY",
+      "denial_reason": "test_tier_external_delivery_forbidden",
+      "must_block_before": "external invoice, report, export, regulator-evidence, email, URL, webhook, or object-store delivery"
+    },
+    {
+      "rule_id": "FINOPS-STAGING-QA-DESTINATION-REQUIRED",
+      "denial_reason": "staging_qa_destination_required",
+      "must_block_before": "staging report/export/invoice/regulator-evidence metadata admission"
+    },
+    {
+      "rule_id": "FINOPS-STAGING-NO-LIVE-DESTINATION",
+      "denial_reason": "staging_destination_must_be_qa_or_test",
+      "must_block_before": "staging destination binding admission"
+    },
+    {
+      "rule_id": "FINOPS-PROD-POLICY-EVIDENCE-REQUIRED",
+      "denial_reason": "prod_policy_evidence_required",
+      "must_block_before": "prod live invoice/report/export/regulator-evidence metadata admission"
+    },
+    {
+      "rule_id": "FINOPS-CROSS-TENANT-DESTINATION-DENIED",
+      "denial_reason": "cross_tenant_destination_forbidden",
+      "must_block_before": "destination binding admission"
+    },
+    {
+      "rule_id": "FINOPS-SECRET-LIKE-REF-DENIED",
+      "denial_reason": "secret_like_destination_or_evidence_ref_forbidden",
+      "must_block_before": "fixture or metadata reference acceptance"
+    },
+    {
+      "rule_id": "FINOPS-RUNTIME-CLAIM-FORBIDDEN",
+      "denial_reason": "runtime_delivery_claim_forbidden_in_metadata_lane",
+      "must_block_before": "runtime delivery, invoice PDF, FOCUS export, regulator submission, database, audit-chain writer, or hyperscaler claim"
+    }
+  ],
+  "red_fixture_contract": {
+    "fixture_file": "oya/finops-portal/contracts/fixtures/env-tier-outbound-emission-plan/red-fixtures.json",
+    "required_negative_cases": [
+      "missing_env_tier_denied",
+      "derived_outbound_mode_mismatch_denied",
+      "test_intercept_external_delivery_denied",
+      "staging_without_qa_destination_denied",
+      "staging_live_destination_denied",
+      "prod_without_policy_evidence_denied",
+      "cross_tenant_destination_denied",
+      "secret_like_destination_or_evidence_ref_denied",
+      "runtime_delivery_claim_denied"
+    ],
+    "required_positive_cases": [
+      "test_intercept_log_only_metadata_preserved",
+      "staging_test_recipients_qa_destination_preserved",
+      "prod_live_with_policy_evidence_metadata_preserved"
+    ],
+    "future_green_owner": "a later Build card may convert these metadata fixtures into Rust/domain/schema tests after this RED guardrail is independently reviewed"
+  },
+  "serialization_requirements": [
+    "shared env-tier schemas and API gateway routing remain outside this lane",
+    "tenancy API/Cedar/env-tier policy surfaces from t_732855bf remain upstream dependencies",
+    "runtime invoice/report/export/regulator delivery workers remain separate implementation lanes",
+    "OpenCost ingest, FOCUS export runtime, invoice PDF rendering, database persistence, and audit-chain emission remain non-claims",
+    "generated *.generated.json materialization remains producer/materializer-owned and must not be hand-edited"
+  ],
+  "verification_plan": [
+    "json-parse this contract and the RED fixture suite",
+    "run the child-workspace fixture guardrail checker that evaluates expected DENY/PASS outcomes against this contract",
+    "re-run exact env_tier/outbound_mode/test_recipients/sk_* search before and after across oya/finops-portal/**",
+    "run scoped YAML/proto parsing checks for oya/finops-portal/contracts/** where available",
+    "confirm no Cargo.toml or BUCK owner exists under oya/finops-portal/** before declaring Cargo/Buck N/A"
+  ]
+}

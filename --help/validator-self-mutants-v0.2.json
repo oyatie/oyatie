@@ -1,0 +1,322 @@
+{
+  "accounting": {
+    "declared_atomic_cases": "21",
+    "declared_families": "10",
+    "unique_family_ids": "10"
+  },
+  "artifact_id": "stage1-phase-b-v06-validator-self-mutants-v0.2",
+  "canonicalization_profile_registry": {
+    "schema_documents": "SCHEMA_DOCUMENT_JCS_SAFE_INTEGER_V1",
+    "semantic_data": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1"
+  },
+  "claim_ceiling": "I1_LOCAL_HARNESS_CONFORMANCE_DESIGN_ONLY_NO_SELF_MUTANT_EXECUTION_CLAIM",
+  "effects": "NONE_AT_VALIDATION_DESIGN_TIME",
+  "integrity": {
+    "algorithm": "SHA256_SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1_AFTER_BLANKING_SELF_FIELD",
+    "canonicalization_profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+    "self_sha256_without_self_digest": "9066af0d62dc4d9a8d93592af3dd59ad87a5c98ff051e9b981b96b8491aadc41"
+  },
+  "mutants": [
+    {
+      "cases": [
+        {
+          "case_id": "RAW_SHORTCUT",
+          "expected_errors_ordered": [
+            "V06_HARNESS_FORBIDDEN_KILL_SOURCE"
+          ],
+          "expected_primary_error": "V06_HARNESS_FORBIDDEN_KILL_SOURCE",
+          "mutation": "inject stale raw and self metadata into a semantic mutant",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H01"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "REACHABILITY_CONTRACT",
+          "expected_errors_ordered": [
+            "V06_REACHABILITY_CONTRACT"
+          ],
+          "expected_primary_error": "V06_REACHABILITY_CONTRACT",
+          "fixtures": [
+            {
+              "expected_errors_ordered": [
+                "V06_MUTANT_TARGET_ZERO"
+              ],
+              "fixture_id": "ZERO_TARGET",
+              "mutation": "use a semantic selector that resolves zero targets"
+            },
+            {
+              "expected_errors_ordered": [
+                "V06_MUTANT_TARGET_MULTIPLE"
+              ],
+              "fixture_id": "MULTIPLE_TARGETS",
+              "mutation": "use a semantic selector that resolves multiple targets"
+            },
+            {
+              "expected_errors_ordered": [
+                "V06_MUTANT_NOOP"
+              ],
+              "fixture_id": "NOOP",
+              "mutation": "set an exact target to its existing value"
+            }
+          ],
+          "mutation": "violate exact-one-target and non-noop reachability",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H02"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "CANDIDATE_ORACLE",
+          "expected_errors_ordered": [
+            "V06_VALIDATOR_ORACLE_INDEPENDENCE"
+          ],
+          "expected_primary_error": "V06_VALIDATOR_ORACLE_INDEPENDENCE",
+          "mutation": "inject candidate-supplied target preimage and expected-error oracle fields",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H03"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "DUPLICATE_KEY",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_DUPLICATE_KEY"
+          ],
+          "expected_primary_error": "V06_CANONICAL_DUPLICATE_KEY",
+          "mutation": "admit a duplicate JSON object key",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "SEMANTIC_JSON_INTEGER",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_JSON_NUMBER_FORBIDDEN"
+          ],
+          "expected_primary_error": "V06_CANONICAL_JSON_NUMBER_FORBIDDEN",
+          "mutation": "admit a JSON integer into semantic data instead of a canonical decimal string",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "NON_ASCII_OBJECT_KEY",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_KEY_NON_ASCII"
+          ],
+          "expected_primary_error": "V06_CANONICAL_KEY_NON_ASCII",
+          "mutation": "admit a non-ASCII object key into a hashed mutation record",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "DECOMPOSED_NON_NFC_STRING",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_STRING_NOT_NFC"
+          ],
+          "expected_primary_error": "V06_CANONICAL_STRING_NOT_NFC",
+          "mutation": "admit a decomposed Unicode string into a hashed mutation record",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "LONE_SURROGATE",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_LONE_SURROGATE"
+          ],
+          "expected_primary_error": "V06_CANONICAL_LONE_SURROGATE",
+          "mutation": "admit a lone Unicode surrogate into a hashed mutation record",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "NEGATIVE_ZERO",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_NEGATIVE_ZERO_FORBIDDEN"
+          ],
+          "expected_primary_error": "V06_CANONICAL_NEGATIVE_ZERO_FORBIDDEN",
+          "mutation": "admit JSON negative zero into a hashed mutation record",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "FLOAT",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_FLOAT_FORBIDDEN"
+          ],
+          "expected_primary_error": "V06_CANONICAL_FLOAT_FORBIDDEN",
+          "mutation": "admit JSON floating point into a hashed mutation record",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "JSON_DOCUMENT_BOUNDARY",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_DOCUMENT_BOUNDARY"
+          ],
+          "expected_primary_error": "V06_CANONICAL_DOCUMENT_BOUNDARY",
+          "fixtures": [
+            {
+              "expected_errors_ordered": [
+                "V06_CANONICAL_TRAILING_BYTES"
+              ],
+              "fixture_id": "TRAILING_BYTES"
+            },
+            {
+              "expected_errors_ordered": [
+                "V06_CANONICAL_MULTIPLE_DOCUMENTS"
+              ],
+              "fixture_id": "MULTIPLE_DOCUMENTS"
+            }
+          ],
+          "mutation": "admit trailing bytes or multiple JSON documents",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "UNKNOWN_RECURSIVE_NODE",
+          "expected_errors_ordered": [
+            "V06_CANONICAL_RECURSIVE_NODE"
+          ],
+          "expected_primary_error": "V06_CANONICAL_RECURSIVE_NODE",
+          "mutation": "admit a recursive in-memory node into a hashed mutation record",
+          "profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "SCHEMA_INTEGER_GREATER_THAN_2POW53_MINUS1",
+          "expected_errors_ordered": [
+            "V06_SCHEMA_INTEGER_OUT_OF_SAFE_RANGE"
+          ],
+          "expected_primary_error": "V06_SCHEMA_INTEGER_OUT_OF_SAFE_RANGE",
+          "mutation": "admit 9007199254740992 at a closed JSON Schema integer vocabulary field",
+          "profile_id": "SCHEMA_DOCUMENT_JCS_SAFE_INTEGER_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "SCHEMA_INTEGER_OUTSIDE_VOCABULARY_FIELD",
+          "expected_errors_ordered": [
+            "V06_SCHEMA_INTEGER_OUTSIDE_CLOSED_VOCABULARY"
+          ],
+          "expected_primary_error": "V06_SCHEMA_INTEGER_OUTSIDE_CLOSED_VOCABULARY",
+          "mutation": "admit a safe integer outside the closed JSON Schema integer vocabulary fields",
+          "profile_id": "SCHEMA_DOCUMENT_JCS_SAFE_INTEGER_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        },
+        {
+          "case_id": "SCHEMA_NEGATIVE_INTEGER",
+          "expected_errors_ordered": [
+            "V06_SCHEMA_NEGATIVE_INTEGER_FORBIDDEN"
+          ],
+          "expected_primary_error": "V06_SCHEMA_NEGATIVE_INTEGER_FORBIDDEN",
+          "mutation": "admit a negative integer at a closed JSON Schema integer vocabulary field",
+          "profile_id": "SCHEMA_DOCUMENT_JCS_SAFE_INTEGER_V1",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H04"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "JOINT_OMISSION",
+          "expected_errors_ordered": [
+            "V06_EXTERNAL_SOURCE_MEMBERSHIP"
+          ],
+          "expected_primary_error": "V06_EXTERNAL_SOURCE_MEMBERSHIP",
+          "mutation": "jointly omit one source-required row and every derived projection of that row",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H05"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "ID_COLLISION",
+          "expected_errors_ordered": [
+            "V06_MUTANT_ID_UNIQUENESS"
+          ],
+          "expected_primary_error": "V06_MUTANT_ID_UNIQUENESS",
+          "mutation": "inject a duplicate generated mutation id or mutation fingerprint",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H06"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "WRONG_AST_MATCHING_RENDER",
+          "expected_errors_ordered": [
+            "V06_EXTERNAL_INVARIANT_FORMALIZATION"
+          ],
+          "expected_primary_error": "V06_EXTERNAL_INVARIANT_FORMALIZATION",
+          "mutation": "replace an invariant AST and its prose with a matching but wrong pair",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H07"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "FALSE_IMMUTABILITY",
+          "expected_errors_ordered": [
+            "V06_CLAIM_PROTECTED_IMMUTABILITY_FORBIDDEN"
+          ],
+          "expected_primary_error": "V06_CLAIM_PROTECTED_IMMUTABILITY_FORBIDDEN",
+          "mutation": "claim protected immutability from private-tmp mode 0444 and nlink one",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H08"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "FALSE_INDEPENDENCE",
+          "expected_errors_ordered": [
+            "V06_CLAIM_INDEPENDENT_APPROVAL_FORBIDDEN"
+          ],
+          "expected_primary_error": "V06_CLAIM_INDEPENDENT_APPROVAL_FORBIDDEN",
+          "mutation": "claim native-subagent independent approval",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H09"
+    },
+    {
+      "cases": [
+        {
+          "case_id": "MEMBERSHIP_ONLY_ERROR_CHECK",
+          "expected_errors_ordered": [
+            "V06_EXPECTED_ERROR_VECTOR_EXACT"
+          ],
+          "expected_primary_error": "V06_EXPECTED_ERROR_VECTOR_EXACT",
+          "mutation": "accept a result when the expected code is present but the ordered error vector differs",
+          "status": "PREREGISTERED_NOT_EXECUTED"
+        }
+      ],
+      "id": "VSELF-H10"
+    }
+  ],
+  "normative_identity": {
+    "approval_state": "DENIED",
+    "authority_level": "I1_NONAUTHORITY",
+    "canonicalization_profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+    "freeze_state": "DENIED",
+    "identity_kind": "NORMATIVE_MODULE",
+    "integration_state": "DENIED",
+    "module_id": "stage1-phase-b-v06-validator-self-mutants",
+    "module_version": "0.2.0"
+  },
+  "planning_state": "HOLD(Planning)",
+  "record_class": "I1_LOCAL_VALIDATOR_CONFORMANCE_SELF_MUTANTS",
+  "schema_version": "0.2.0"
+}

@@ -1,0 +1,526 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/microservices/tasks.json",
+  "title": "MicroservicePrd:Tasks",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-TASKS",
+    "version": "0.1.0",
+    "status": "Accepted",
+    "owner_team": "axis-tasks",
+    "created_at": "2026-07-01T13:48:19Z",
+    "authority_lock_task": "t_516944f9",
+    "purpose": "Tasks workplace app source-authority lock and source map: authorizes source-backed Plan/Spec and RED fixture decomposition for tenant-scoped tasks, projects/lists/boards, dependency graph, recurrence, search, bulk updates, importers, webhooks/events, and bounded AI assistance. This artifact resolves the prior missing specs/microservices/tasks.json gap and does not authorize runtime implementation or production-readiness claims."
+  },
+  "authority_resolution": {
+    "current_authority": "/specs/microservices/tasks.json",
+    "manifest_index_ref": "/specs/microservices/manifests-index.json#microservices[name=tasks]",
+    "manifest_inventory_ref": "/oya/tasks/manifest.json",
+    "manifest_index_fd001_material": false,
+    "manifest_index_boundary": "The manifests-index tasks row marks oya/tasks/manifest.json as tracked service inventory/provenance only and says no specs/microservices/tasks.json PRD/source-authority file existed before this task. This artifact is the source lock for later planning; the manifest alone remains insufficient for RED/Build or readiness claims.",
+    "layout_authority": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-24-28",
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-60-63",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-24-27",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-53-62"
+    ],
+    "canonical_service_root": "/oya/tasks/",
+    "legacy_root_disposition": "Paths beginning microservices/tasks/ that appear inside oya/tasks/manifest.json are legacy provenance/path-discovery inputs only. Future cards must use current oya/tasks/** paths when verified to exist, or quarantine the legacy reference as unresolved rather than recreating the legacy root.",
+    "source_lock_disposition": "resolved_by_this_artifact",
+    "claim_boundary": "Source authority for planning, source-map validation, and future RED-contract decomposition only. No handler, storage adapter, UI, deployment, live SLO, production readiness, hyperscaler maturity, GA, external availability, or customer-facing readiness claim is made by this artifact."
+  },
+  "identity": {
+    "product_id": "tasks",
+    "owning_axis": "workspace-productivity",
+    "product_class": "service",
+    "fd001_material": false,
+    "user_facing_surface": true,
+    "context_model": [
+      "work"
+    ],
+    "service_boundary": "Tenant-scoped workplace task and project service for task lifecycle, project/list/board organization, dependency graph and cycle prevention, recurrence materialisation, search/filter projections, bulk update semantics, importer handoff, webhook/event fanout, and bounded AI assistance for suggestions/categorisation/assignment. Calendar, messenger, mail, workflow-engine, identity, tenancy, audit-chain, ontology, observability, intelligence, drive, and cloud substrate remain separate service boundaries connected by explicit contracts.",
+    "inventory_owner": "axis-tasks",
+    "bounded_contexts_from_inventory": [
+      "task-store",
+      "project-list",
+      "dependency-graph",
+      "recurrence",
+      "search-index",
+      "view-engine",
+      "importers"
+    ],
+    "crate_refs_planned_or_inventory": [
+      "oya-tasks-domain",
+      "oya-tasks-task-store",
+      "oya-tasks-project-list",
+      "oya-tasks-dependency-graph",
+      "oya-tasks-recurrence",
+      "oya-tasks-search-index",
+      "oya-tasks-view-engine",
+      "oya-tasks-importers"
+    ],
+    "crate_claim_boundary": "Catalog and crate names are inventory/source-map candidates only until a RED/Build card verifies current files, package metadata, Cargo/Buck graph membership, and compile/test evidence. ADR-0512 prefers crate=bounded-context; older layer-per-crate catalog rows remain provenance until Plan/Spec locks the build shape."
+  },
+  "inherits": {
+    "oyatie_specs": [
+      "$ref:specs/root-hub-pointers.json#entry_points.agent_operating_contract",
+      "$ref:specs/masterplan.json",
+      "$ref:specs/microservices/manifests-index.json#microservices[name=tasks]",
+      "$ref:specs/microservices/calendar.json",
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "adrs": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "$ref:docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md",
+      "$ref:docs/decisions/ADR-0248-cellular-architecture-criticality-classes.md",
+      "$ref:docs/decisions/ADR-0251-compliance-pack-primitive.md",
+      "$ref:docs/decisions/ADR-0263-observability-emission-contract.md",
+      "$ref:docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "$ref:docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    ],
+    "inventory_context_not_fanout_authority": [
+      "$ref:oya/tasks/manifest.json",
+      "$ref:oya/tasks/README.md",
+      "$ref:oya/tasks/dpia/dpia.md",
+      "$ref:oya/tasks/catalog/*.yaml",
+      "$ref:oya/tasks/contracts/openapi/tasks.yaml",
+      "$ref:oya/tasks/contracts/asyncapi/tasks-events.yaml",
+      "$ref:oya/tasks/contracts/proto/tasks.proto",
+      "$ref:oya/tasks/policy/*.cedar",
+      "$ref:oya/tasks/slos/*.openslo.yaml"
+    ]
+  },
+  "source_reference_map": {
+    "verified_current_paths": [
+      {
+        "category": "service_root",
+        "current_path": "oya/tasks/",
+        "authority_use": "canonical service-local source/inventory root under ADR-0131 as amended by ADR-0512",
+        "fanout_boundary": "inspectable source/provenance; not a readiness claim without RED/Build/review evidence"
+      },
+      {
+        "category": "rest_contract",
+        "current_path": "oya/tasks/contracts/openapi/tasks.yaml",
+        "authority_use": "service-local tasks REST source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate OpenAPI shape and replay expected endpoints before handlers depend on it"
+      },
+      {
+        "category": "async_contract",
+        "current_path": "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+        "authority_use": "service-local tasks async/event source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate event schemas, idempotency, webhook fanout, and audit envelopes"
+      },
+      {
+        "category": "proto_contract",
+        "current_path": "oya/tasks/contracts/proto/tasks.proto",
+        "authority_use": "service-local tasks proto source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate proto compatibility and generated projection boundaries"
+      },
+      {
+        "category": "domain_crate_inventory",
+        "current_path": "oya/tasks/crates/oya-tasks-domain/",
+        "authority_use": "current code inventory candidate for task domain invariants",
+        "fanout_boundary": "must be verified by Build/Review commands before any runtime or completeness claim"
+      },
+      {
+        "category": "policy",
+        "current_path": "oya/tasks/policy/*.cedar",
+        "authority_use": "service-local Cedar policy inventory candidate for tenant scope, dual-context isolation, auditor scope, and auto-assign employment context",
+        "fanout_boundary": "policy files require Plan/Spec and RED negative cases before implementation claims"
+      },
+      {
+        "category": "privacy_security",
+        "current_path": "oya/tasks/dpia/dpia.md",
+        "authority_use": "DPIA/procedure context for task data, automation evidence, and tenant-scoped identifiers",
+        "fanout_boundary": "wave doctrine-propagation DPIA only; product data-flow/privacy plan must be expanded in Plan/Spec before implementation"
+      }
+    ],
+    "legacy_manifest_reference_disposition": [
+      {
+        "legacy_pattern": "microservices/tasks/contracts/openapi/tasks.yaml",
+        "current_path": "oya/tasks/contracts/openapi/tasks.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/contracts/asyncapi/tasks-events.yaml",
+        "current_path": "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/contracts/proto/tasks.proto",
+        "current_path": "oya/tasks/contracts/proto/tasks.proto",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/capabilities/T0-suggest.yaml",
+        "current_path": "oya/tasks/capabilities/T0-suggest.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/capabilities/T1-assist.yaml",
+        "current_path": "oya/tasks/capabilities/T1-assist.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/capabilities/T2-auto.yaml",
+        "current_path": "oya/tasks/capabilities/T2-auto.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/slos/*.openslo.yaml",
+        "current_path": "oya/tasks/slos/*.openslo.yaml",
+        "disposition": "mapped_to_current_service_root; individual SLOs must be verified by future Plan/Spec/RED cards before becoming gate evidence"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/IP-001..IP-015*.md",
+        "current_path": null,
+        "disposition": "quarantined_unresolved_legacy_ip_references; future workers must not recreate microservices/tasks and must instead author current Plan/Spec cards under accepted allowed paths after review approval"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/PRD.md",
+        "current_path": null,
+        "disposition": "quarantined_unresolved_legacy_prd_reference; superseded for source-lock purposes by specs/microservices/tasks.json"
+      },
+      {
+        "legacy_pattern": "microservices/tasks/ARCHITECTURE.md",
+        "current_path": null,
+        "disposition": "quarantined_unresolved_legacy_architecture_reference; future Plan/Spec must author or locate a current architecture surface rather than recreating the legacy root"
+      },
+      {
+        "legacy_pattern": "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml",
+        "current_path": null,
+        "disposition": "cross-service legacy provenance from manifest hyperscaler coverage; not a tasks-owned source path and not a live tasks readiness claim"
+      }
+    ]
+  },
+  "functional_scope": {
+    "in_scope_for_future_plan_spec": [
+      "task create/read/update/archive/delete lifecycle with tenant, project, assignee, status, priority, due date, labels, and custom fields",
+      "project/list/board/sprint/milestone organization and task-list rendering semantics",
+      "dependency graph edges, blocker relationships, ordering, and cycle-prevention at write time",
+      "recurring task materialisation with bounded RRULE support, idempotency, timezone, and backfill controls",
+      "search and filter projections with rebuildable search index and authorization-aware query results",
+      "bulk update pipeline with atomicity, partial-failure reporting, cycle-aware refusal, and throttling/backpressure",
+      "importer handoffs for external task sources such as Jira-like systems without adopting third-party systems as source of truth",
+      "webhook/event fanout with idempotency, replay, audit-chain, and dead-letter behavior",
+      "view-engine and board realtime/collaboration behavior, including drag-and-drop semantics and conflict/error states",
+      "bounded AI assistance for T0 suggestions, T1 categorisation/priority assistance, and T2 auto-assign only when fairness, human override, and EU AI Act/employment-context refusal controls are present",
+      "browser/user-story and accessibility semantics for task creation, list/board view, dependency editing, recurrence, bulk update, search/filter, importer review, and AI-assist disclosure"
+    ],
+    "out_of_scope_for_this_lock": [
+      "runtime handlers, storage adapters, or UI implementation",
+      "RED fixture code before the source lock is complete and downstream Plan/Spec selects seams",
+      "cloud deployment, production SLO assertions, or live autoscaling claims",
+      "generated JSON edits or materialized generated-face changes",
+      "Release Please metadata",
+      "legacy CLI or merge-authority changes",
+      "claiming oya/tasks/manifest.json, catalog rows, contract files, SLOs, or runbooks as runtime/product-ready evidence"
+    ]
+  },
+  "dependency_boundaries": {
+    "consumes": [
+      {
+        "service": "identity",
+        "contract": "OIDC principal, actor, and tenant-scoped authorization context",
+        "boundary": "no direct identity data model coupling; use token/policy claims"
+      },
+      {
+        "service": "tenancy",
+        "contract": "tenant, region, cell, residency, compliance-pack scope, and quota class",
+        "boundary": "tenant and cell metadata remain authoritative upstream"
+      },
+      {
+        "service": "workflow-engine",
+        "contract": "workflow handoff for task-triggered automations and approvals",
+        "boundary": "Tasks emits explicit task events; durable workflow execution state remains workflow-engine owned"
+      },
+      {
+        "service": "calendar",
+        "contract": "due-date/schedule/calendar-event linkage",
+        "boundary": "calendar remains source of calendar event state; tasks owns task reminders and task-specific due-date semantics"
+      },
+      {
+        "service": "messenger",
+        "contract": "notification/thread reference handoff",
+        "boundary": "messenger remains source of conversation state; tasks stores references and auditable notification intents only"
+      },
+      {
+        "service": "intelligence",
+        "contract": "bounded suggestion, categorisation, priority, and assignment assistance",
+        "boundary": "AI assistance requires explicit disclosure, human override, fairness evidence, and employment-context refusal before implementation"
+      },
+      {
+        "service": "observability",
+        "contract": "SLO, trace, metric, audit, and dashboard signal consumption",
+        "boundary": "observability evidence is proof only after concrete emitters and dashboards are implemented and replayed"
+      }
+    ],
+    "produces": [
+      {
+        "contract": "tasks.task.v1",
+        "description": "task aggregate lifecycle, assignment, status, priority, due dates, labels, custom fields, and audit metadata"
+      },
+      {
+        "contract": "tasks.project.v1",
+        "description": "project/list/board/sprint/milestone organization state"
+      },
+      {
+        "contract": "tasks.dependency_edge.v1",
+        "description": "dependency/blocker relationships with cycle-prevention and audit semantics"
+      },
+      {
+        "contract": "tasks.recurrence.v1",
+        "description": "recurrence rules, materialisation events, and backfill status"
+      },
+      {
+        "contract": "tasks.bulk_update.v1",
+        "description": "atomic batch patch requests, refusal reasons, and partial-failure reports where allowed"
+      },
+      {
+        "contract": "tasks.webhook_event.v1",
+        "description": "task/project/dependency/search/importer/webhook events with idempotency and replay metadata"
+      }
+    ],
+    "separate_services_not_covered": [
+      "calendar",
+      "messenger",
+      "mail",
+      "workflow-engine",
+      "ontology",
+      "intelligence",
+      "drive",
+      "identity",
+      "tenancy",
+      "observability",
+      "audit-chain",
+      "application"
+    ]
+  },
+  "data_privacy_security_notes": {
+    "data_classes_planning_floor": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_IDENTIFYING where assignee/requester identity or notification references are present",
+      "PII_QUASI_IDENTIFYING where task metadata, due dates, labels, comments, or search patterns identify people or teams",
+      "CONFIDENTIAL_BUSINESS where task content references customer, finance, legal, HR, healthcare, or regulated work",
+      "SENSITIVE_PIPA_ART23 or PHI only when vertical packs explicitly scope healthcare or sensitive workplace data"
+    ],
+    "sensitive_artifacts": [
+      "task titles and descriptions",
+      "comments, attachments, links, and importer payload excerpts",
+      "assignee, requester, watcher, project, sprint, milestone, and legal-hold metadata",
+      "dependency graph and blocker relationships that reveal team plans or incidents",
+      "search queries, filters, saved views, and board activity",
+      "AI-assist suggestions, confidence, fairness inputs, override reasons, and refusal decisions",
+      "webhook payloads and external importer correlation identifiers"
+    ],
+    "required_controls_before_build": [
+      "tenant/RBAC and Cedar deny-by-default for task, project, board, bulk update, importer, webhook, auditor, and AI-assist actions",
+      "RLS/tenant-DEK/data-class handling for task content, comments, attachments, importer payloads, and search projections",
+      "retention and legal-hold plan for tasks, comments, attachments, audit rows, search projections, and webhook/event logs",
+      "dependency-cycle refusal and bulk-update transactional semantics that cannot silently corrupt project state",
+      "AI auto-assignment fairness, employment-context refusal, protected-class non-use, human override, and audit evidence before any T2 automation",
+      "search-index rebuild and authorization-aware result filtering so stale or cross-tenant data cannot surface",
+      "idempotent webhook/importer and recurrence materialisation paths with dead-letter and replay evidence"
+    ],
+    "security_risks_to_fixture": [
+      {
+        "id": "R-TASKS-01",
+        "risk": "dependency cycle or bulk update corrupts task graph state",
+        "future_fixture": "RED contract should reject cyclic edges and prove atomic/refusal behavior for batch updates"
+      },
+      {
+        "id": "R-TASKS-02",
+        "risk": "search/index projections leak tasks across tenant, project, role, or legal-hold boundaries",
+        "future_fixture": "RED contract should replay denied reads and stale-index rebuild behavior with tenant/RBAC filters"
+      },
+      {
+        "id": "R-TASKS-03",
+        "risk": "T2 auto-assign creates discriminatory or opaque employment-impacting automation",
+        "future_fixture": "RED contract should require fairness evidence, protected-class exclusion, human override, explicit disclosure, and EU AI Act/employment-context refusal"
+      },
+      {
+        "id": "R-TASKS-04",
+        "risk": "recurring task materialisation creates duplicate, backdated, timezone-wrong, or unbounded workload",
+        "future_fixture": "RED contract should prove idempotency, bounded expansion, timezone handling, and backpressure"
+      },
+      {
+        "id": "R-TASKS-05",
+        "risk": "legacy inventory paths are treated as implementation readiness",
+        "future_fixture": "RED source-map guard should fail any fanout that cites microservices/tasks/** as a live destination"
+      }
+    ]
+  },
+  "plan_spec_requirements_before_build": [
+    "service-boundary Plan/Spec that cites this artifact, manifests-index, oya/tasks/manifest.json, ADR-0131, and ADR-0512",
+    "source-map validation that rejects unresolved legacy microservices/tasks/** references as live fanout authority",
+    "API-first contract source-of-truth decision for service-local OpenAPI/AsyncAPI/proto and any workspace/application shell projections",
+    "bounded-context decomposition for task-store, project-list, dependency-graph, recurrence, search-index, view-engine, importers, and AI-assist policy seams",
+    "tenant/RBAC/Cedar policy model for task/project/board/bulk update/importer/webhook/auditor/AI-assist actions",
+    "data/privacy/security model for task content, comments, attachments, legal hold, search projections, webhook payloads, importer state, and AI-assist evidence",
+    "SLO/observability plan covering task create/update latency, task-list render latency, search latency, bulk-update latency, recurrence materialisation latency, dependency-cycle refusal correctness, webhook fire latency, and auto-assign fairness correctness",
+    "browser/user-story and accessibility evidence plan before any user-facing UI change claims completion",
+    "single-writer allowed paths, conflict class, generated-face no-hand-edit policy, and review lenses for each future slice"
+  ],
+  "red_fixture_strategy": {
+    "fixture_classes": [
+      {
+        "id": "RED-TASKS-SOURCE-MAP-01",
+        "purpose": "Assert specs/microservices/tasks.json is the required source authority before tasks Plan/Spec, RED, or Build cards can fan out",
+        "expected_first_failure": "fanout attempt missing this source-authority citation is rejected"
+      },
+      {
+        "id": "RED-TASKS-LEGACY-PATH-01",
+        "purpose": "Reject live destination claims from microservices/tasks/** paths while allowing explicit stale-reference quarantine rows",
+        "expected_first_failure": "legacy path cited as live implementation source fails the source-map check"
+      },
+      {
+        "id": "RED-TASKS-CONTRACT-01",
+        "purpose": "Replay task/project/dependency/recurrence/search/bulk-update/webhook contract expectations from verified OpenAPI/AsyncAPI/proto surfaces",
+        "expected_first_failure": "handler/storage implementation absent or contract mismatch fails before build"
+      },
+      {
+        "id": "RED-TASKS-CYCLE-01",
+        "purpose": "Prove dependency cycle prevention and bulk-update graph mutation refusal are enforced before implementation",
+        "expected_first_failure": "cycle-creating edge or batch patch is accepted, partially applied, or lacks an auditable refusal"
+      },
+      {
+        "id": "RED-TASKS-RECURRENCE-01",
+        "purpose": "Prove recurring task materialisation is idempotent, bounded, timezone-aware, and backpressure-aware",
+        "expected_first_failure": "duplicate or unbounded materialisation succeeds without refusal/backpressure evidence"
+      },
+      {
+        "id": "RED-TASKS-SEARCH-AUTH-01",
+        "purpose": "Prove search/list/view projections honor tenant/RBAC/legal-hold filtering and rebuild safety",
+        "expected_first_failure": "unauthorized or stale projection appears in search/list output"
+      },
+      {
+        "id": "RED-TASKS-AI-AUTO-ASSIGN-01",
+        "purpose": "Prove T2 auto-assign requires fairness evidence, human override, policy disclosure, and refusal in employment-impacting contexts",
+        "expected_first_failure": "auto-assignment proceeds without fairness/override/disclosure evidence or with protected-class input"
+      },
+      {
+        "id": "RED-TASKS-A11Y-01",
+        "purpose": "Prove user-facing task create/list/board/dependency/recurrence/bulk-update/search/importer/AI-assist flows have keyboard and screen-reader acceptance criteria before UI build",
+        "expected_first_failure": "UI story missing accessibility evidence cannot pass review"
+      }
+    ],
+    "future_validation_commands": [
+      "python3 -m json.tool specs/microservices/tasks.json",
+      "python3 ~/.hermes/skills/productivity/doc-grounded-kanban-population/scripts/retired_authority_guard.py --repo <repo-root> --candidate-json <future-candidates.json> --fail-on-blocked",
+      "OpenAPI/AsyncAPI/proto validation command to be selected by the RED card after checking project tooling availability",
+      "cargo nextest or equivalent Rust/cloud-ci gate packet only after implementation crates and fixtures exist"
+    ]
+  },
+  "api_contract_replay_expectations": {
+    "required_surfaces": [
+      "oya/tasks/contracts/openapi/tasks.yaml",
+      "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+      "oya/tasks/contracts/proto/tasks.proto"
+    ],
+    "must_cover": [
+      "task create/read/update/archive/delete lifecycle and idempotency",
+      "project/list/board/sprint/milestone organization and task-list rendering",
+      "dependency edge create/delete, cycle refusal, blocker traversal, and audit semantics",
+      "recurrence rule creation, materialisation, timezone, backfill, and idempotency",
+      "search/filter/saved-view results with authorization-aware projection and rebuild behavior",
+      "bulk update patch requests with atomicity/refusal/partial-failure semantics as selected by Plan/Spec",
+      "importer handoff and webhook/event fire with idempotency, retry, dead-letter, and replay metadata",
+      "AI-assist suggestions, categorisation, priority, and auto-assign denial/override/audit paths",
+      "authorization and negative cases for tenant mismatch, Cedar deny, idempotency conflict, legal hold, stale source-map paths, protected-class/fairness violations, and dependency cycles"
+    ],
+    "non_claim": "No contract replay has passed yet; this section defines expectations for future RED/Build cards."
+  },
+  "browser_user_story_accessibility_expectations": {
+    "critical_user_stories": [
+      "employee creates a task from a project/list context, assigns it, sets due date/priority, and sees policy/audit state",
+      "manager views a board, drags task status, resolves dependency blockers, and receives cycle-refusal feedback when applicable",
+      "team member creates recurring tasks and verifies materialisation/backfill/disclosure states",
+      "power user performs bulk updates, sees atomic/refusal/partial-failure reporting, and can undo or inspect audit evidence where allowed",
+      "user searches/filters tasks and saved views without seeing unauthorized, held, stale, or cross-tenant results",
+      "integrator imports tasks from an external system and reviews duplicates, mappings, and dead-letter/error rows",
+      "assignee receives T0/T1/T2 AI-assist recommendation with explanation, human override, fairness/disclosure state, and refusal/error visibility"
+    ],
+    "accessibility_acceptance_floor": [
+      "WCAG 2.2 AA minimum for any user-facing tasks surface",
+      "keyboard-only operation for create/edit/assign/status/priority/due-date/search/filter/board-drag/dependency/recurrence/bulk-update/importer-review/AI-assist controls",
+      "screen-reader labels and live-region updates for task mutations, board movements, dependency warnings, recurrence materialisation, search result counts, bulk update progress, import errors, and AI-assist disclosures",
+      "visible focus order and no spinner-only waiting state for search, board updates, recurrence backfill, importer review, or bulk update",
+      "reduced motion, high contrast, localization, and clear policy disclosure for automation, legal hold, assignment, and bulk-change flows"
+    ],
+    "evidence_required_before_merge": "Browser or user-story replay evidence is required for UI-facing Build slices; if no UI is touched, the review must record an explicit N/A rationale and still replay API/contract paths."
+  },
+  "downstream_lifecycle_gates": {
+    "plan_spec_gate": "Plan/Spec decomposition must cite this source lock before any broader Plan/Spec or RED/Build descendants proceed.",
+    "red_fixture_gate": "RED cards must create failing source-map, contract replay, dependency-cycle, recurrence, search/auth, AI fairness/refusal, and accessibility/user-story checks before implementation begins where those seams are selected.",
+    "build_gate": "Build cards may only begin after RED fixtures exist, have allowed path prefixes, declare conflict classes, and preserve generated-face policy.",
+    "review_fix_gate": "Architecture, authority, security/privacy, API/schema, data/audit-chain, observability/SLO, accessibility/UX, performance, localization, AI/fairness/no-overclaim, and lifecycle lenses are required.",
+    "merge_rollout_gate": "Protected PR to dev, reviewer APPROVE, oya-ci-required green, API/contract replay, rollback/observability evidence, browser/user-story evidence where applicable, release-governance/release-note impact, and learning/observation harvest."
+  },
+  "conflict_and_path_policy": {
+    "conflict_class": "product-spec-authority-tasks-workplace-source-lock",
+    "allowed_authority_paths_for_this_lock": [
+      "specs/microservices/tasks.json"
+    ],
+    "future_plan_spec_allowed_prefixes_after_review": [
+      "specs/microservices/tasks.json",
+      "plan/tasks/",
+      "oya/tasks/specs/",
+      "oya/tasks/PRD.md",
+      "oya/tasks/decisions/",
+      "oya/tasks/contracts/",
+      "oya/tasks/policy/",
+      "evidence/tasks/"
+    ],
+    "future_red_allowed_prefixes_after_plan_spec": [
+      "specs/fixtures/tasks/",
+      "scripts/tests/tasks_*.py",
+      "oya/tasks/crates/**/tests/",
+      "oya/tasks/contracts/ only if contract replay/reconciliation is explicitly in scope"
+    ],
+    "generated_faces_policy": "Never hand-edit *.generated.json; materializers own generated faces.",
+    "serialization_notes": "Do not combine source-authority edits with runtime/cloud/generated/Release Please/CLI authority changes. Shared manifests-index edits, contract projection reconciliation, and service-local source-of-truth work must be serialized through an explicit Plan/Spec or integrator card if they touch shared roots."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-TASKS-AUTH-01",
+      "given": "a worker decomposes tasks work",
+      "when": "it creates Plan/Spec, RED, Build, Merge/Rollout, or Learning cards",
+      "then": "each card cites this artifact, manifests-index, oya/tasks/manifest.json as provenance only, and ADR-0131/ADR-0512 canonical-root authority"
+    },
+    {
+      "id": "AC-TASKS-AUTH-02",
+      "given": "a worker encounters microservices/tasks/** references in oya/tasks/manifest.json",
+      "when": "it needs current source paths",
+      "then": "the reference is mapped to oya/tasks/** when verified to exist or quarantined as unresolved legacy provenance; no legacy service root is recreated or treated as live destination authority"
+    },
+    {
+      "id": "AC-TASKS-AUTH-03",
+      "given": "a worker encounters tasks catalog, README, DPIA, contract, SLO, runbook, policy, dashboard, or crate sources",
+      "when": "it wants runtime/product readiness evidence",
+      "then": "the source remains inventory/provenance until RED/Build/review evidence validates the specific claim"
+    },
+    {
+      "id": "AC-TASKS-AUTH-04",
+      "given": "a future implementation touches user-facing tasks flows",
+      "when": "it seeks review or merge",
+      "then": "browser/user-story/accessibility evidence is present, or a reviewer records a scoped N/A rationale for non-UI-only work"
+    },
+    {
+      "id": "AC-TASKS-AUTH-05",
+      "given": "a future implementation touches AI-assisted assignment, priority, categorisation, or suggestion flows",
+      "when": "it seeks review or merge",
+      "then": "fairness, disclosure, human override, protected-class non-use, EU AI Act/employment-context refusal, and audit evidence are present or the automation is explicitly out of scope"
+    }
+  ],
+  "non_claims": [
+    "No tasks runtime implementation is created or approved by this source lock.",
+    "No task-store, project-list, dependency-graph, recurrence, search-index, view-engine, importer, webhook, AI-assist, UI, storage, queue, workflow, ontology projection, cloud deployment, live SLO, production readiness, hyperscaler maturity, or GA/customer-availability claim is made.",
+    "No implementation fanout may use oya/tasks inventory, catalog rows, contract files, SLOs, dashboards, runbooks, policy files, or manifest references as live readiness evidence without source-backed Plan/Spec and RED fixture gates.",
+    "No legacy microservices/tasks/** destination authority is authorized.",
+    "No generated JSON hand edits are authorized."
+  ]
+}

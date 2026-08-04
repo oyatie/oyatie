@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "task_id": "t_f60cb75d",
+  "service": "tenancy",
+  "claim_ceiling": "ADR-0344 Proposed/advisory manifest declaration only; no runtime instrumentation of tenancy paths, measured emissions, live billing, OpenCost/FOCUS export, generated JSON, or production FinOps readiness claim.",
+  "manifest": "cloud/tenancy/manifest.json",
+  "included_by_inventory_gate": "specs/microservices/manifests-index.json#tenancy",
+  "source_refs": [
+    "cloud/tenancy/manifest.json#capacity_model",
+    "cloud/tenancy/manifest.json#slos.tenancy-correctness-rls-probe",
+    "cloud/tenancy/manifest.json#audit_chain.seal_events.oya.tenancy.tenant-resolve",
+    "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-2"
+  ],
+  "workload_signal_source": {
+    "signal_family": "per_request",
+    "source_ref": "tenant resolve, isolation policy emit, DSR cascade execute, cell assignment, and RLS drift validation requests",
+    "audit_event_refs": [
+      "oya.tenancy.tenant-resolve",
+      "oya.tenancy.isolation-policy-emit",
+      "oya.tenancy.dsr-cascade-execute"
+    ],
+    "slo_refs": [
+      "tenancy-latency",
+      "tenancy-correctness-rls-probe",
+      "tenancy-freshness-rls-drift"
+    ]
+  },
+  "resource_accounting_fixture": {
+    "cpu_seconds": 0.3,
+    "memory_gib_seconds": 0.16,
+    "storage_gib_hours": 0.0012,
+    "network_gib": 0.0025,
+    "provider": "provider_sku_pricing",
+    "region": "fixture-region",
+    "carbon_intensity_source": "fixture_grid_400gco2_per_kwh"
+  },
+  "power_model": {
+    "cpu_watts_per_vcpu_second": 0.39,
+    "memory_watts_per_gib_second": 0.002,
+    "storage_watts_per_gib_hour": 0.00075,
+    "network_watts_per_gib": 0.061,
+    "tier_overhead_factor_applied": 1.4,
+    "derivation_note": "Values reflect lightweight tenant metadata lookups with RLS/cell-placement correctness work and small Postgres/Valkey state; this is distinct from identity's cryptographic request mix."
+  },
+  "price_model": {
+    "source": "provider_sku_pricing",
+    "binding": "cloud/cloud-billing/README.md#per-usage-meter:tenancy.per_request",
+    "pin_window_hours": 1,
+    "non_claim": "Fixture binds tenancy request SKU attribution only; DSR, tenant activation, and isolation policy operations do not mutate billing here."
+  },
+  "validation_baseline": {
+    "formula_ref": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-6.4",
+    "expected_watt_hours_per_request_p50_mwh": 0.045684,
+    "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.000018274,
+    "tolerance_pct": 20
+  },
+  "review_notes": {
+    "no_carbon_deferral": "Tier 1 tenant isolation, cell assignment, and policy routing requests cannot be delayed for carbon optimization.",
+    "security_tenant_data_plane": "Tenancy controls tenant metadata, jurisdiction, and isolation policy state.",
+    "audit_chain": "Tenant-resolve and isolation-policy audit events are the future five-field attribution source."
+  },
+  "failure_cases": [
+    "tenant-resolve row missing one ADR-0344 field",
+    "RLS drift validation treated as non-workload despite SLO evidence",
+    "DSR cascade reuses lightweight tenant-resolve baseline",
+    "carbon-aware deferral delays tenant isolation policy emission"
+  ],
+  "recalibration": {
+    "cadence": "quarterly",
+    "owner_team": "axis-tenancy",
+    "evidence_floor": "separate samples for tenant resolve, isolation policy emit, DSR cascade, and cell assignment requests"
+  }
+}

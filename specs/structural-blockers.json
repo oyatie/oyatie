@@ -1,0 +1,469 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/structural-blockers.schema.json",
+  "$id": "https://docs.oyatie.com/specs/structural-blockers.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Registry",
+    "spec_id": "STRUCTURAL-BLOCKERS",
+    "version": "0.1.0",
+    "status": "seed-slice",
+    "owner_team": "platform-governance",
+    "lane": "governance/status",
+    "created_from": [
+      ".omc/ultragoal/milestone-view-build-artifact-design.md#S7",
+      ".omc/ultragoal/pipeline-product-program-plan-2026-06-24.md#4-the-friction-closing-pipeline-as-product-loop"
+    ],
+    "purpose": "Canonical seed for structural blockers consumed by the milestone view. Blockers must cite a machine-derivable signal and an auto-clear condition so the dashboard never hardcodes blocker prose, counts, or PR state."
+  },
+  "schema_version": "1.0.0",
+  "registry_kind": "structural_blockers",
+  "population_mode": "seed_slice",
+  "claim_boundary": {
+    "forbids_clock_dependencies": true,
+    "forbids_network_dependencies": true,
+    "forbids_pr_api_dependencies": true,
+    "forbids_in_flight_state": true,
+    "rendering_rule": "Render only blockers present in this registry. A blocker magnitude is derived from committed-tree signals; do not fetch PR state, CI state, clocks, or network APIs while building the committed milestone view.",
+    "seed_slice_not_full_coverage": true
+  },
+  "status_lifecycle": [
+    {
+      "status": "open",
+      "meaning": "The blocker is present and its measured signal has not crossed the auto-clear condition."
+    },
+    {
+      "status": "clearing_ready",
+      "meaning": "The measured signal crossed the auto-clear condition, but the registry row has not yet been mechanically settled to resolved=true."
+    },
+    {
+      "status": "resolved",
+      "meaning": "The blocker row is retained for provenance and resolved=true is backed by gate-resolvable auto-clear evidence."
+    }
+  ],
+  "row_json_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "title",
+      "severity",
+      "status",
+      "source_refs",
+      "measured_signal_source",
+      "supporting_signal_sources",
+      "auto_clear_signal",
+      "fix_plan_ref",
+      "resolved",
+      "resolution_evidence_refs"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^SB-[0-9]{3}-[a-z0-9-]+$"
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1
+      },
+      "severity": {
+        "type": "string",
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "open",
+          "clearing_ready",
+          "resolved"
+        ]
+      },
+      "source_refs": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ref",
+            "claim_role"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "design_finding",
+                "program_plan",
+                "committed_tree_signal"
+              ]
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "claim_role": {
+              "type": "string",
+              "enum": [
+                "blocker_identification",
+                "fix_strategy",
+                "measurement_source"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "measured_signal_source": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "path",
+          "metric",
+          "json_pointer",
+          "fallback_rule",
+          "current_value",
+          "unit",
+          "measured_from_candidate_tree",
+          "uses_clock_net_or_pr_api"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "committed_json_path"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "row_count",
+              "byte_size",
+              "path_presence"
+            ]
+          },
+          "json_pointer": {
+            "type": "string"
+          },
+          "fallback_rule": {
+            "type": "string"
+          },
+          "current_value": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "rows",
+              "bytes",
+              "boolean"
+            ]
+          },
+          "measured_from_candidate_tree": {
+            "type": "boolean",
+            "const": true
+          },
+          "uses_clock_net_or_pr_api": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "supporting_signal_sources": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "path",
+            "metric",
+            "current_value",
+            "unit",
+            "derivation"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "committed_json_path",
+                "committed_file_metadata"
+              ]
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "metric": {
+              "type": "string",
+              "enum": [
+                "row_count",
+                "byte_size",
+                "path_presence"
+              ]
+            },
+            "json_pointer": {
+              "type": "string"
+            },
+            "current_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "rows",
+                "bytes",
+                "boolean"
+              ]
+            },
+            "derivation": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      },
+      "auto_clear_signal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "description",
+          "conditions",
+          "gate_behavior"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "any_condition"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "conditions": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "path",
+                "metric",
+                "operator",
+                "clear_value",
+                "unit",
+                "uses_clock_net_or_pr_api"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "metric": {
+                  "type": "string",
+                  "enum": [
+                    "row_count",
+                    "byte_size",
+                    "path_presence"
+                  ]
+                },
+                "json_pointer": {
+                  "type": "string"
+                },
+                "operator": {
+                  "type": "string",
+                  "enum": [
+                    "<=",
+                    "=="
+                  ]
+                },
+                "clear_value": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": [
+                    "rows",
+                    "bytes",
+                    "boolean"
+                  ]
+                },
+                "uses_clock_net_or_pr_api": {
+                  "type": "boolean",
+                  "const": false
+                }
+              }
+            }
+          },
+          "gate_behavior": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "fix_plan_ref": {
+        "type": "string",
+        "minLength": 1
+      },
+      "resolved": {
+        "type": "boolean"
+      },
+      "resolution_evidence_refs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ref"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "gate_id",
+                "spec_path",
+                "registry_path",
+                "committed_tree_signal"
+              ]
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "gate_expectations": [
+    {
+      "id": "structural-blockers-canonical-json",
+      "severity": "error",
+      "expectation": "Parse specs/structural-blockers.json as canonical JSON, validate every blocker row against row_json_schema, and reject duplicate ids or unsorted ids."
+    },
+    {
+      "id": "structural-blockers-hermetic-signals-only",
+      "severity": "error",
+      "expectation": "Reject any measured_signal_source or auto_clear_signal condition that requires clocks, network calls, PR APIs, live CI state, or in-flight branch state."
+    },
+    {
+      "id": "structural-blockers-auto-clear-proof",
+      "severity": "error",
+      "expectation": "For resolved=true, recompute the auto_clear_signal from the candidate tree and require at least one condition to be true. If the condition is true while resolved=false, report clearing_ready so a settler can flip the row without human blocker prose."
+    },
+    {
+      "id": "structural-blockers-renderer-fallback-refusal",
+      "severity": "error",
+      "expectation": "A milestone-view generator must render blockers only from this registry and must not import blocker lists, counts, open PRs, CI statuses, or timestamps from the reference HTML or GitHub APIs."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "SB-001-global-merge-serialization",
+      "title": "Committed whole-tree accounting registry serializes otherwise independent PRs",
+      "severity": "high",
+      "status": "open",
+      "source_refs": [
+        {
+          "kind": "design_finding",
+          "ref": ".omc/ultragoal/milestone-view-build-artifact-design.md#S7-FINDING-1-blockers",
+          "claim_role": "blocker_identification",
+          "notes": "The milestone-view design identifies the missing structural-blocker registry and names accounting-registry row count/byte size as the derivable magnitude signal."
+        },
+        {
+          "kind": "program_plan",
+          "ref": ".omc/ultragoal/pipeline-product-program-plan-2026-06-24.md#2-merge-conflict-elimination--parallelization-by-design",
+          "claim_role": "fix_strategy",
+          "notes": "The program plan classifies whole-tree generated faces as a merge-serialization design bug whose structural fix is de-commit/derive-on-demand plus materializer coverage."
+        },
+        {
+          "kind": "program_plan",
+          "ref": ".omc/ultragoal/pipeline-product-program-plan-2026-06-24.md#4-the-friction-closing-pipeline-as-product-loop",
+          "claim_role": "fix_strategy",
+          "notes": "The pipeline-as-product loop requires process-defect classes to carry a hermetic gate condition and verify-closed only when the defining condition is falsified."
+        },
+        {
+          "kind": "committed_tree_signal",
+          "ref": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json#/_provenance/row_count",
+          "claim_role": "measurement_source",
+          "notes": "Committed-tree JSON signal; gate evaluation recomputes it from the candidate tree without clocks, network, live CI, or PR APIs."
+        }
+      ],
+      "measured_signal_source": {
+        "kind": "committed_json_path",
+        "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "metric": "row_count",
+        "json_pointer": "/_provenance/row_count",
+        "fallback_rule": "If /_provenance/row_count is absent, parse /rows and use its array length; fail closed if neither exists.",
+        "current_value": 18226,
+        "unit": "rows",
+        "measured_from_candidate_tree": true,
+        "uses_clock_net_or_pr_api": false
+      },
+      "supporting_signal_sources": [
+        {
+          "kind": "committed_file_metadata",
+          "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+          "metric": "byte_size",
+          "current_value": 12637746,
+          "unit": "bytes",
+          "derivation": "Read the committed file's byte length from the candidate tree."
+        }
+      ],
+      "auto_clear_signal": {
+        "mode": "any_condition",
+        "description": "The blocker clears when the full-tree accounting face no longer exists as a committed merge-conflict surface, or when the committed face remains only as an empty/tombstone source with no row-bearing merge serialization effect.",
+        "conditions": [
+          {
+            "id": "accounting-registry-face-decommitted",
+            "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+            "metric": "path_presence",
+            "operator": "==",
+            "clear_value": 0,
+            "unit": "boolean",
+            "uses_clock_net_or_pr_api": false
+          },
+          {
+            "id": "accounting-registry-row-count-empty",
+            "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+            "metric": "row_count",
+            "json_pointer": "/_provenance/row_count",
+            "operator": "<=",
+            "clear_value": 0,
+            "unit": "rows",
+            "uses_clock_net_or_pr_api": false
+          }
+        ],
+        "gate_behavior": "Evaluate the conditions against the candidate tree. If any condition is true, emit clearing_ready until resolved=true is updated with committed-tree evidence; otherwise keep the blocker open."
+      },
+      "fix_plan_ref": ".omc/ultragoal/pipeline-product-program-plan-2026-06-24.md#2-merge-conflict-elimination--parallelization-by-design",
+      "resolved": false,
+      "resolution_evidence_refs": []
+    }
+  ]
+}

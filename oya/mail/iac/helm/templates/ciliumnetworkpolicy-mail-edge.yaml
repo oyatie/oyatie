@@ -1,0 +1,34 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ include "oya-mail.fullname" . }}-{{ .Values.bc }}-{{ .Values.layer }}-edge-allowlist
+  namespace: {{ .Release.Namespace }}
+  labels:
+    oyatie/microservice: mail
+    oyatie.com/protocol-edge-authority: adr-0182
+spec:
+  endpointSelector:
+    matchLabels:
+      oyatie/bc: {{ .Values.bc }}
+      oyatie/layer: {{ .Values.layer }}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: api-gateway
+            oyatie.com/protocol-edge: mail
+      authentication:
+        mode: required
+      toPorts:
+        - ports:
+{{- if eq .Values.bc "inbound-smtp" }}
+            - {port: "25", protocol: TCP}
+            - {port: "465", protocol: TCP}
+{{- end }}
+{{- if eq .Values.bc "outbound-smtp" }}
+            - {port: "587", protocol: TCP}
+{{- end }}
+{{- if eq .Values.bc "imap-frontend" }}
+            - {port: "143", protocol: TCP}
+            - {port: "993", protocol: TCP}
+            - {port: "4190", protocol: TCP}
+{{- end }}

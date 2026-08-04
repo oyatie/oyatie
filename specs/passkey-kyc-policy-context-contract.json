@@ -1,0 +1,632 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/passkey-kyc-policy-context-contract.schema.json",
+  "title": "Passkey KYC Policy Context Contract",
+  "version": "0.1.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "REGID-004-PASSKEY-KYC-POLICY-CONTEXT-CONTRACT",
+    "status": "Draft-Contract-Plan",
+    "enforcement_status": "planning-contract-only-no-serving-code",
+    "owner_team": "axis-identity + axis-policy-engine + ops-compliance + council-privacy + axis-audit-chain",
+    "created_at": "2026-07-01T09:32:00Z",
+    "created_by": "hermes-agent",
+    "kanban_task": "t_0d6973c9",
+    "lane": "regulatory-identity/policy-context",
+    "purpose": "Define the typed policy-context projection that PEP/PDP integrations must use for passkey-first authentication plus KYC/CDD/EDD proofing, screening, consent, residency, retention, purpose, risk, and audit obligations. This artifact is contract/schema only and does not implement a PDP, API route, service handler, CLI, accreditation packet, or readiness claim.",
+    "source_contracts": [
+      {
+        "path": "docs/decisions/ADR-0188-passkey-webauthn-substrate.md",
+        "contract": "WebAuthn Level 3/passkeys are the primary phishing-resistant authentication credential; regulated packs require attestation/AAGUID posture; SMS and weak recovery factors are forbidden."
+      },
+      {
+        "path": "docs/decisions/ADR-0189-step-up-authentication-acr-classes.md",
+        "contract": "ACR classes routine/elevated/sensitive/critical govern step-up decisions and every ACR grant emits audit evidence."
+      },
+      {
+        "path": "specs/regulatory-identity-source-of-truth.json",
+        "contract": "Source rows and source blockers define KYC/CDD/EDD, NIST, KR, US, EU, PCI, and PQC/WebAuthn claim ceilings."
+      },
+      {
+        "path": "specs/regulatory-identity-kyc-policy-evidence-architecture.json",
+        "contract": "REGID-002 separates authentication, statutory proofing, Cedar policy decisions, tenant state, evidence packets, consent, retention, residency, and accreditation evidence."
+      }
+    ],
+    "non_claims": [
+      "WebAuthn/passkeys do not by themselves satisfy statutory KYC, CDD, EDD, KISA/KMCC designation, PCI, US CIP/CDD, EU AMLR/eIDAS/GDPR, or regulator/auditor acceptance requirements.",
+      "Syncable multi-device passkeys are capped at AAL2-equivalent authentication assurance unless a later reviewed source proves a higher posture; AAL3/critical requires hardware-bound/phishing-resistant authenticator posture plus policy-specific approval evidence.",
+      "WebAuthn Level 4, browser/vendor PQC timelines, and PQC authenticator support remain watchlist-only via REGGOV-SB-007 and are not implementation floors or readiness claims.",
+      "No serving code, runtime PDP/service mutation, CLI, API handler, generated artifact, production policy bundle, or certification/readiness assertion is created by this artifact."
+    ]
+  },
+  "claim_ceiling": {
+    "claim_status": "planning_contract_only_no_kyc_or_runtime_readiness_claim",
+    "allowed_claims": [
+      "The contract names the policy-context keys and invariants that downstream KYC/PDP implementations must preserve.",
+      "Representative fixtures illustrate allow/deny expectations for future validators and reviews."
+    ],
+    "forbidden_claims": [
+      "Passkey/WebAuthn alone satisfies KYC, CDD, EDD, or statutory proofing.",
+      "Syncable passkey equals AAL3 or critical authentication assurance without hardware-bound/FIDO-MDS3-L2+ evidence.",
+      "This contract implements Cedar policies, proofing services, runtime enforcement, accreditation packet completeness, production readiness, or regulator acceptance."
+    ],
+    "open_source_blockers_ref": [
+      "REGGOV-SB-001",
+      "REGGOV-SB-002",
+      "REGGOV-SB-003",
+      "REGGOV-SB-004",
+      "REGGOV-SB-005",
+      "REGGOV-SB-006",
+      "REGGOV-SB-007"
+    ]
+  },
+  "contract_surface": {
+    "canonical_projection": "AuthorizationRequest.context.regulatory_identity_policy_context",
+    "pdp_boundary": "Use the existing PDP AuthorizationRequest context map and AuthorizationResponse obligations; do not create a parallel PDP contract.",
+    "raw_data_boundary": "Policy context carries handles, ids, states, timestamps, and freshness; it must not carry raw government documents, biometrics, full identifiers, raw sanctions payloads, or secrets.",
+    "freshness_rule": "Regulated allow decisions fail closed when proofing, screening, consent, residency, retention, policy bundle, or source rows are absent, stale, revoked, unresolved, or beyond expiry."
+  },
+  "context_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "tenant_id",
+      "subject_ref",
+      "action_slug",
+      "requested_capability",
+      "auth_state",
+      "proofing_state",
+      "due_diligence_state",
+      "screening_state",
+      "consent_state",
+      "residency_state",
+      "retention_state",
+      "purpose_state",
+      "risk_state",
+      "pdp_audit_state"
+    ],
+    "properties": {
+      "tenant_id": {
+        "type": "string"
+      },
+      "subject_ref": {
+        "type": "string",
+        "description": "Opaque tenant-scoped subject or proofing-case handle; never a raw national id."
+      },
+      "action_slug": {
+        "type": "string"
+      },
+      "requested_capability": {
+        "type": "string"
+      },
+      "auth_state": {
+        "type": "object",
+        "required": [
+          "passkey_auth_state",
+          "acr",
+          "acr_event_at",
+          "credential_type",
+          "webauthn_level_floor",
+          "authenticator_assurance",
+          "syncable_passkey_aal_ceiling",
+          "critical_operation_approval"
+        ],
+        "properties": {
+          "passkey_auth_state": {
+            "enum": [
+              "not_present",
+              "authenticated",
+              "step_up_required",
+              "failed",
+              "recovery_fallback"
+            ]
+          },
+          "acr": {
+            "enum": [
+              "routine",
+              "elevated",
+              "sensitive",
+              "critical"
+            ]
+          },
+          "acr_event_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "credential_type": {
+            "enum": [
+              "syncable_passkey",
+              "device_bound_passkey",
+              "hardware_security_key",
+              "password_totp_recovery_only"
+            ]
+          },
+          "webauthn_level_floor": {
+            "const": "WebAuthn-Level-3"
+          },
+          "authenticator_assurance": {
+            "type": "object",
+            "required": [
+              "attestation_level",
+              "fido_mds_level",
+              "aaguid_ref",
+              "backup_eligible",
+              "backup_state",
+              "device_binding",
+              "phishing_resistant"
+            ],
+            "properties": {
+              "attestation_level": {
+                "enum": [
+                  "none",
+                  "indirect",
+                  "direct"
+                ]
+              },
+              "fido_mds_level": {
+                "enum": [
+                  "unknown",
+                  "L1",
+                  "L2",
+                  "L3"
+                ]
+              },
+              "aaguid_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "backup_eligible": {
+                "type": "boolean"
+              },
+              "backup_state": {
+                "type": "boolean"
+              },
+              "device_binding": {
+                "enum": [
+                  "syncable_multi_device",
+                  "device_bound",
+                  "hardware_bound"
+                ]
+              },
+              "phishing_resistant": {
+                "type": "boolean"
+              }
+            }
+          },
+          "syncable_passkey_aal_ceiling": {
+            "enum": [
+              "AAL2",
+              "not_applicable"
+            ]
+          },
+          "critical_operation_approval": {
+            "type": "object",
+            "description": "Explicit JIT/manual approval evidence required by ADR-0189 for critical actions; not a substitute for hardware-bound/FIDO-MDS3-L2+ authenticator posture.",
+            "required": [
+              "required",
+              "approval_ref",
+              "approval_window_state",
+              "approved_at"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "approval_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Opaque JIT IT/compliance approval token or audit handle; never raw approver PII."
+              },
+              "approval_window_state": {
+                "enum": [
+                  "not_required",
+                  "approved_in_window",
+                  "missing",
+                  "expired",
+                  "denied"
+                ]
+              },
+              "approved_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "proofing_state": {
+        "type": "object",
+        "required": [
+          "tenant_kyc_status",
+          "proofing_status",
+          "proofing_tier",
+          "evidence_refs",
+          "source_control_row_ids",
+          "freshness_state"
+        ],
+        "properties": {
+          "tenant_kyc_status": {
+            "enum": [
+              "not_required",
+              "pending_documents",
+              "in_review",
+              "verified",
+              "verified_enhanced",
+              "rejected",
+              "expired",
+              "suspended"
+            ]
+          },
+          "proofing_status": {
+            "enum": [
+              "not_started",
+              "pending",
+              "in_review",
+              "approved",
+              "declined",
+              "expired",
+              "suspended"
+            ]
+          },
+          "proofing_tier": {
+            "enum": [
+              "none_or_not_required",
+              "standard_cdd",
+              "enhanced_due_diligence",
+              "regulated_accreditation"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source_control_row_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "freshness_state": {
+            "enum": [
+              "fresh",
+              "stale",
+              "expired",
+              "missing",
+              "unknown_allowed",
+              "blocked_source"
+            ]
+          }
+        }
+      },
+      "due_diligence_state": {
+        "type": "object",
+        "required": [
+          "cdd_state",
+          "edd_state",
+          "manual_review_required"
+        ],
+        "properties": {
+          "cdd_state": {
+            "enum": [
+              "not_required",
+              "pending",
+              "satisfied",
+              "stale",
+              "failed"
+            ]
+          },
+          "edd_state": {
+            "enum": [
+              "not_required",
+              "pending",
+              "satisfied",
+              "stale",
+              "failed"
+            ]
+          },
+          "manual_review_required": {
+            "type": "boolean"
+          }
+        }
+      },
+      "screening_state": {
+        "type": "object",
+        "required": [
+          "sanctions_result",
+          "pep_result",
+          "adverse_media_result",
+          "freshness_state",
+          "last_screened_at",
+          "expires_at"
+        ],
+        "properties": {
+          "sanctions_result": {
+            "enum": [
+              "clear",
+              "hit",
+              "unresolved",
+              "not_required"
+            ]
+          },
+          "pep_result": {
+            "enum": [
+              "clear",
+              "hit",
+              "unresolved",
+              "not_required"
+            ]
+          },
+          "adverse_media_result": {
+            "enum": [
+              "clear",
+              "hit",
+              "unresolved",
+              "not_required"
+            ]
+          },
+          "freshness_state": {
+            "enum": [
+              "fresh",
+              "stale",
+              "expired",
+              "missing"
+            ]
+          },
+          "last_screened_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "consent_state": {
+        "type": "object",
+        "required": [
+          "consent_refs",
+          "lawful_basis_refs",
+          "purpose_refs",
+          "revoked"
+        ],
+        "properties": {
+          "consent_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lawful_basis_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "purpose_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "revoked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "residency_state": {
+        "type": "object",
+        "required": [
+          "jurisdiction_primary",
+          "data_residency_target",
+          "allowed_regions",
+          "egress_permitted"
+        ],
+        "properties": {
+          "jurisdiction_primary": {
+            "type": "string"
+          },
+          "data_residency_target": {
+            "type": "string"
+          },
+          "allowed_regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "egress_permitted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "retention_state": {
+        "type": "object",
+        "required": [
+          "retention_rule_ids",
+          "expires_at_or_review_due_at",
+          "deletion_hold"
+        ],
+        "properties": {
+          "retention_rule_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expires_at_or_review_due_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletion_hold": {
+            "type": "boolean"
+          }
+        }
+      },
+      "purpose_state": {
+        "type": "object",
+        "required": [
+          "purpose",
+          "purpose_bound",
+          "data_classes"
+        ],
+        "properties": {
+          "purpose": {
+            "enum": [
+              "proofing_case_start",
+              "document_submit",
+              "screening_record",
+              "proofing_decision",
+              "pack_activation",
+              "accreditation_packet_publish",
+              "regulator_export"
+            ]
+          },
+          "purpose_bound": {
+            "type": "boolean"
+          },
+          "data_classes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "risk_state": {
+        "type": "object",
+        "required": [
+          "risk_score",
+          "risk_band",
+          "risk_model_ref",
+          "risk_freshness_state"
+        ],
+        "properties": {
+          "risk_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "risk_band": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ]
+          },
+          "risk_model_ref": {
+            "type": "string"
+          },
+          "risk_freshness_state": {
+            "enum": [
+              "fresh",
+              "stale",
+              "missing"
+            ]
+          }
+        }
+      },
+      "pdp_audit_state": {
+        "type": "object",
+        "required": [
+          "decision_id",
+          "policy_bundle_version",
+          "determining_policy_ids",
+          "obligations_required",
+          "audit_chain_required"
+        ],
+        "properties": {
+          "decision_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "policy_bundle_version": {
+            "type": "string"
+          },
+          "determining_policy_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "obligations_required": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "emit-audit-event",
+                "step-up-required",
+                "attach-evidence-ref",
+                "apply-retention-rule",
+                "enforce-residency-target",
+                "require-consent-ref",
+                "manual-review-required",
+                "deny-with-source-blocker"
+              ]
+            }
+          },
+          "audit_chain_required": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "decision_invariants": [
+    {
+      "id": "REGID-004-I01-PASSKEY-NOT-KYC",
+      "rule": "passkey_auth_state=authenticated is never sufficient for a regulated allow decision unless proofing_state, due_diligence_state, screening_state, consent_state, residency_state, retention_state, purpose_state, risk_state, and pdp_audit_state also satisfy their action-specific floor."
+    },
+    {
+      "id": "REGID-004-I02-SYNCABLE-AAL-CEILING",
+      "rule": "credential_type=syncable_passkey with device_binding=syncable_multi_device must expose syncable_passkey_aal_ceiling=AAL2 and cannot satisfy critical/AAL3-like decisions without additional hardware-bound or approval evidence."
+    },
+    {
+      "id": "REGID-004-I03-CRITICAL-HARDWARE",
+      "rule": "critical actions require hardware_bound or FIDO-MDS3-L2+ authenticator assurance plus critical_operation_approval.required=true with approval_window_state=approved_in_window and an approval_ref, not merely a synced passkey."
+    },
+    {
+      "id": "REGID-004-I04-SCREENING-FRESHNESS",
+      "rule": "sanctions/PEP/adverse-media hit, unresolved, missing, stale, or expired states fail closed for proofing approval, pack activation, packet publication, and regulator export."
+    },
+    {
+      "id": "REGID-004-I05-CONSENT-RESIDENCY-RETENTION",
+      "rule": "missing/revoked consent, invalid lawful basis, forbidden residency target, unbound purpose, or missing retention rule produces deny obligations even when auth and proofing are otherwise strong."
+    },
+    {
+      "id": "REGID-004-I06-AUDIT-OBLIGATIONS",
+      "rule": "Every allow and deny on regulated KYC actions requires an audit-chain decision, determining policy ids, and obligations sufficient for evidence attachment, retention, residency, consent, and step-up when applicable."
+    }
+  ],
+  "representative_fixtures": [
+    "specs/fixtures/passkey-kyc-policy-context/syncable-passkey-aal2-ceiling.json",
+    "specs/fixtures/passkey-kyc-policy-context/hardware-bound-aal3-critical.json",
+    "specs/fixtures/passkey-kyc-policy-context/proofing-incomplete-deny.json",
+    "specs/fixtures/passkey-kyc-policy-context/stale-sanctions-pep-deny.json",
+    "specs/fixtures/passkey-kyc-policy-context/consent-residency-missing-deny.json"
+  ],
+  "validation_plan": [
+    "The contract and every representative fixture must parse as JSON.",
+    "Each fixture must include every top-level context_schema.required key and each nested required key named by the contract.",
+    "Fixture-specific invariants must match expected_decision and expected_obligations; expected_obligations must match pdp_audit_state.obligations_required; negative fixtures must fail closed for the named reason.",
+    "Critical allow fixtures must include hardware-bound/FIDO-MDS3-L2+ assurance and approved-in-window critical_operation_approval evidence.",
+    "No runtime/API/CLI/product source code or generated JSON is changed by REGID-004."
+  ]
+}

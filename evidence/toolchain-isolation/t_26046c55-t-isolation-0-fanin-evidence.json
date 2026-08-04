@@ -1,0 +1,603 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/toolchain-isolation-t0-fanin-evidence.schema.json",
+  "assertion_issues": [],
+  "authority_sources_read": [
+    "/specs/root-hub-pointers.json#entry_points.bespoke_cloud_toolchain_services",
+    "/specs/bespoke-cloud-toolchain-services.json#tenant_isolation_contract",
+    "/specs/masterplan.json:419-435",
+    "kanban:t_a904f657 Plan/Spec artifact",
+    "kanban:t_bef50749 RED fixture contract handoff",
+    "kanban:t_e7eed0bf RED review/fix APPROVE handoff",
+    "kanban:t_915b9a62 cutover/non-claim checklist",
+    "kanban:t_7d6670d5/t_893be27f SCM fixture and review",
+    "kanban:t_f3120bb9/t_5a1625df CI fixture and review",
+    "kanban:t_feff66eb/t_10fb18b6 CD fixture and review",
+    "kanban:t_688c8b9b/t_f0bda6c1 shared identity/secret/audit fixture and review"
+  ],
+  "coverage_summary": {
+    "cd_fixture_surfaces_static_asserted": [
+      "argo_adapter_boundary",
+      "breakglass_records",
+      "deployment_manifests",
+      "desired_live_reconciliation",
+      "progressive_delivery_status",
+      "release_ledgers",
+      "rollback_handles",
+      "status_evidence_callbacks",
+      "tenant_cell_region_policy"
+    ],
+    "ci_fixture_surfaces_static_asserted": [
+      "artifacts",
+      "audit_event_partition",
+      "caches",
+      "ci_runs",
+      "evidence",
+      "gate_definition_integrity",
+      "logs",
+      "runner_identity_quota",
+      "status_callbacks",
+      "workspace_volumes"
+    ],
+    "cutover_nonclaim_gate_ids": [
+      "current_authority_anchor",
+      "protected_context_continuity",
+      "bridge_parity_deletion",
+      "tenant_isolation",
+      "reliability_surface_all",
+      "explicit_cutover_approval",
+      "progressive_delivery",
+      "observability_rollback_audit",
+      "artifact_log_cache_partitioning",
+      "claim_ceiling"
+    ],
+    "object_level_surfaces_static_asserted": [
+      "artifacts",
+      "audit_chain_events",
+      "caches",
+      "changesets",
+      "ci_runs",
+      "deployment_manifests",
+      "evidence",
+      "logs",
+      "release_ledgers",
+      "repositories",
+      "secret_leases",
+      "status_callbacks"
+    ],
+    "scm_fixture_surfaces_static_asserted": [
+      "changeset_change_graph",
+      "repository_namespace",
+      "scm_audit_evidence",
+      "status_callback_identity",
+      "tenant_internal_no_bypass",
+      "work_area_hash_scm_change_id_ownership"
+    ],
+    "shared_evidence_record_contract_required_fields": [
+      "task_id",
+      "service_build_task_id",
+      "service_owner",
+      "fixture_id",
+      "tenant_id",
+      "actor",
+      "actor_tenant_id",
+      "target_tenant_id",
+      "object_id",
+      "workload_identity",
+      "identity_provider",
+      "oidc_audience",
+      "secret_scope",
+      "lease_id",
+      "credential_ttl_seconds",
+      "expires_at",
+      "breakglass_id",
+      "reviewer_id",
+      "reviewer_acknowledged_at",
+      "source_revision",
+      "artifact_digest",
+      "policy_verdict=DENY",
+      "reason_code=TENANT_BOUNDARY",
+      "rollback_pointer",
+      "audit_chain_ref",
+      "bridge_current_state",
+      "destination_product_surface",
+      "claim_boundary"
+    ],
+    "shared_fixture_surfaces_static_asserted": [
+      "audited_breakglass_ttl_reviewer_approval",
+      "openbao_kms_secret_scope",
+      "per_tenant_oidc_workload_identity",
+      "tenant_scoped_audit_chain_event",
+      "time_bound_job_credentials"
+    ]
+  },
+  "created_at": "2026-07-01T22:05:08Z",
+  "exposure_decision": {
+    "cloud_cd": "preview-only/blocked for live exposure; CD fixture and review are approved but no live oya-cd/Argo cutover/production rollout claim is made",
+    "cloud_ci": "preview-only/blocked for live exposure; CI fixture and review are approved but no owned-runner/live oya-ci exposure claim is made",
+    "cloud_scm": "preview-only/blocked for live exposure; SCM fixture and review are approved but no live cloud-scm exposure claim is made",
+    "shared_identity_secret_audit": "preview-only/blocked for live exposure; identity/secret/audit fixture and review are approved but no live OIDC/OpenBao/KMS/account/cluster mutation claim is made",
+    "t_isolation_0_fanin": "PASS at fixture-contract/evidence fan-in level after all review gates completed",
+    "tenant_facing_scm_ci_cd_exposure": "BLOCKED/PREVIEW_ONLY; ready only for a later protected PR/governance/runtime implementation lane that must preserve this evidence and still satisfy branch protection, rollback, observability, and cutover approvals."
+  },
+  "git": {
+    "branch": "preserve/hermes-w1-dirty-20260630",
+    "head": "c52bdb09ea337de103b05317de0c120f2b7a3e45"
+  },
+  "overall_verdict": "PASS_FANIN_CONTRACT_EVIDENCE_COMPLETE_PREVIEW_ONLY_NO_LIVE_EXPOSURE_CLAIM",
+  "review_gates": {
+    "cd_review": {
+      "fix_summary": "added t_e7eed0bf authority handoff and two-path diff-check evidence; static checks passed",
+      "source_task": "t_feff66eb",
+      "status": "done",
+      "task_id": "t_10fb18b6",
+      "verdict": "APPROVE"
+    },
+    "ci_review": {
+      "fix_summary": "added CI non_mutation_rule and metadata 0.5.1; static checks passed",
+      "source_task": "t_f3120bb9",
+      "status": "done",
+      "task_id": "t_5a1625df",
+      "verdict": "APPROVE_after_fix"
+    },
+    "red_contract_review": {
+      "source_task": "t_bef50749",
+      "status": "done",
+      "task_id": "t_e7eed0bf",
+      "verdict": "APPROVE"
+    },
+    "scm_review": {
+      "source_task": "t_7d6670d5",
+      "status": "done",
+      "task_id": "t_893be27f",
+      "verdict": "APPROVE_after_patch"
+    },
+    "shared_identity_secret_audit_review": {
+      "fix_summary": "added reviewer_acknowledged_at to breakglass denial evidence; static checks passed",
+      "source_task": "t_688c8b9b",
+      "status": "done",
+      "task_id": "t_f0bda6c1",
+      "verdict": "FIX\u2192APPROVE"
+    }
+  },
+  "review_fix_addendum": {
+    "task_id": "t_be399d69",
+    "verdict": "APPROVE_AFTER_REVIEW_FIX",
+    "finding": "The implementation packet's git diff --check command exited 0, but the new evidence files are currently untracked, so that command alone does not prove whitespace hygiene for those files until they are staged or otherwise compared explicitly.",
+    "fix": "Added this review addendum and reran an explicit reviewer Python check for JSON structure, surface/audit-field coverage, review-gate verdicts, cutover gate coverage, forbidden-secret literals, trailing whitespace, and final newlines across the fan-in and parent evidence files.",
+    "rollback_note": "No runtime/product mutation exists in this evidence-only packet; rollback is removal or reversion of the two t_26046c55 fan-in artifacts before any later protected PR/cutover lane consumes them.",
+    "observability_impact": "No live observability pipeline changed; the packet records audit/evidence/log/rollback requirements and keeps live observability/rollback proof blocked for a later protected runtime/governance lane.",
+    "rerun_evidence": [
+      "python3 -m json.tool passed for fixture spec, Plan/Spec, cutover checklist, SCM/CD/shared parent evidence, and fan-in evidence JSON.",
+      "Independent reviewer Python assertions passed for 12 object-level surfaces, exact audit-field parity with specs/toolchain-tenant-isolation-fixtures.json, review-gate statuses/verdicts, cutover gate IDs, parent evidence coverage, forbidden-secret literal scan, trailing whitespace, and final-newline checks.",
+      "git diff --check still exits 0 for the tracked diff; the explicit reviewer whitespace check is the authoritative coverage for currently untracked evidence files."
+    ]
+  },
+  "scope": "Evaluation/fan-in evidence only; no product/runtime implementation, branch-protection, secret, cluster, deploy, generated-face, or live exposure mutation.",
+  "source_artifacts_read": [
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_a904f657/toolchain-isolation-evidence-plan.json",
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_915b9a62/toolchain-cutover-nonclaim-checklist.json",
+    "/Users/jasonlee/Developer/oyatie/specs/toolchain-tenant-isolation-fixtures.json",
+    "/Users/jasonlee/Developer/oyatie/evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json",
+    "/Users/jasonlee/Developer/oyatie/evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+    "/Users/jasonlee/Developer/oyatie/evidence/toolchain-isolation/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.json"
+  ],
+  "surface_map": [
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "repo_id",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "GitHub repository metadata is bridge/current-state only; no destination cloud-scm tenant exposure claim.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b repository refs or metadata",
+        "tenant-a write tenant-b repository refs or metadata"
+      ],
+      "destination_product_surface": "cloud-scm repository namespace",
+      "evidence_artifact": "evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer repository objects without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "APPROVE_after_patch",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/scm_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-scm",
+      "surface": "repositories"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "changeset_id",
+        "scm_change_id",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "GitHub pull request/change metadata is bridge/current-state only; no destination cloud-scm tenant exposure claim.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b ChangeSet or change graph edge",
+        "tenant-a write tenant-b ChangeSet or change graph edge",
+        "tenant-a status-update tenant-b ChangeSet"
+      ],
+      "destination_product_surface": "cloud-scm ChangeSet/change graph",
+      "evidence_artifact": "evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot observe, mutate, or status-update customer ChangeSets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "APPROVE_after_patch",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/scm_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-scm",
+      "surface": "changesets"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "pipeline_id",
+        "ci_run_id",
+        "runner_identity",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "GitHub Actions runs are current protected-context producers, not destination oya-ci tenant-service exposure.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b CI run or job",
+        "tenant-a write/cancel/retry tenant-b CI run or job",
+        "tenant-a status-update tenant-b CI run"
+      ],
+      "destination_product_surface": "oya-ci run/job controller",
+      "evidence_artifact": "specs/toolchain-tenant-isolation-fixtures.json#ci_side_t_isolation_0_fixture_harness",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, cancel, retry, or status-update customer CI runs without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "APPROVE_after_fix",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/ci_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-ci",
+      "surface": "ci_runs"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "artifact_digest",
+        "artifact_namespace",
+        "policy_label",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "GitHub Actions artifacts are bridge/current-state evidence only; they are not destination artifact-service tenant exposure.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b artifact",
+        "tenant-a write into tenant-b artifact namespace",
+        "tenant-a fetch/use tenant-b SBOM or provenance"
+      ],
+      "destination_product_surface": "tenant-scoped artifact/CAS/SBOM/provenance namespace",
+      "evidence_artifact": "spec CI section plus evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, write, or fetch customer artifacts/SBOM/provenance without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "CI=APPROVE_after_fix; CD=APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/ci_side_t_isolation_0_fixture_harness + cd_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-ci + cloud-cd",
+      "surface": "artifacts"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "cache_namespace",
+        "work_area_hash",
+        "toolchain_digest",
+        "policy_label",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "Existing remote-cache patterns are bridge/reference only until tenant cache-key partition evidence is green.",
+      "denied_cross_tenant_actions": [
+        "tenant-a cache-hit tenant-b cache entry",
+        "tenant-a read tenant-b cache entry",
+        "tenant-a write tenant-b cache namespace"
+      ],
+      "destination_product_surface": "tenant-scoped cache namespace and cache-key policy",
+      "evidence_artifact": "specs/toolchain-tenant-isolation-fixtures.json#ci_side_t_isolation_0_fixture_harness",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot receive a cache hit from customer data or write customer cache namespaces without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "APPROVE_after_fix",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/ci_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-ci",
+      "surface": "caches"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "log_id",
+        "log_namespace",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "GitHub/Argo logs are bridge/current-state evidence only; they are not destination log-service tenant exposure.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b log stream",
+        "tenant-a fetch tenant-b logs",
+        "tenant-a write tenant-b log namespace"
+      ],
+      "destination_product_surface": "tenant-scoped log namespace",
+      "evidence_artifact": "spec CI section plus evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot fetch customer logs or see tenant evidence details beyond aggregate health without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "CI=APPROVE_after_fix; CD=APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/ci_side_t_isolation_0_fixture_harness + cd_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-ci + cloud-cd",
+      "surface": "logs"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "evidence_id",
+        "evidence_namespace",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "Current required-context evidence is bridge/current-state only until destination read models and tenant partitions are proven.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b evidence record",
+        "tenant-a fetch tenant-b evidence bundle",
+        "tenant-a write/status-update tenant-b evidence record"
+      ],
+      "destination_product_surface": "tenant-scoped evidence read model",
+      "evidence_artifact": "spec CI section plus evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot fetch or mutate customer evidence records without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "CI=APPROVE_after_fix; CD=APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/ci_side_t_isolation_0_fixture_harness + cd_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-ci + cloud-cd",
+      "surface": "evidence"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "callback_identity",
+        "pipeline_id",
+        "changeset_id",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "GitHub commit statuses and checks are bridge/current-state only; destination status callbacks require scoped identities.",
+      "denied_cross_tenant_actions": [
+        "tenant-a status-update tenant-b ChangeSet or pipeline",
+        "tenant-a read tenant-b callback payload",
+        "tenant-a write tenant-b callback identity"
+      ],
+      "destination_product_surface": "tenant-scoped status callback identity",
+      "evidence_artifact": "specs/toolchain-tenant-isolation-fixtures.json#ci_side_t_isolation_0_fixture_harness",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot post or consume customer status callbacks without scoped identity, approved TTL breakglass, reviewer acknowledgment, and audit-chain event.",
+      "review_status": "SCM=APPROVE_after_patch; CI=APPROVE_after_fix",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/ci_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-scm + cloud-ci",
+      "surface": "status_callbacks"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "deploy_target_id",
+        "manifest_digest",
+        "region_cell",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "Argo Application/Rollout manifests are bridge/reference shapes only until oya-cd parity and isolation evidence are green.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b deployment manifest",
+        "tenant-a write tenant-b deployment manifest",
+        "tenant-a deploy to tenant-b deploy target"
+      ],
+      "destination_product_surface": "oya-cd tenant deployment manifest and deploy target",
+      "evidence_artifact": "evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer manifests or deploy to customer targets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/cd_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-cd",
+      "surface": "deployment_manifests"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "release_id",
+        "rollback_pointer",
+        "artifact_digest",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "Argo/Rollouts release observations are bridge/reference evidence only; destination release ledgers are oya-cd-owned.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b release ledger",
+        "tenant-a write tenant-b release ledger",
+        "tenant-a fetch tenant-b rollback handle"
+      ],
+      "destination_product_surface": "oya-cd release ledger and rollback handle",
+      "evidence_artifact": "evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer release ledgers or fetch rollback handles without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/cd_side_t_isolation_0_fixture_harness",
+      "service_owner": "cloud-cd",
+      "surface": "release_ledgers"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "workload_identity",
+        "secret_scope",
+        "lease_id",
+        "ttl",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "Any existing CI/CD secret handling is bridge/current-state only; destination secret access requires per-tenant workload identity and leases.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b secret lease",
+        "tenant-a write/renew tenant-b secret lease",
+        "tenant-a fetch/use tenant-b secret material"
+      ],
+      "destination_product_surface": "tenant-scoped workload identity and OpenBao/KMS secret lease",
+      "evidence_artifact": "evidence/toolchain-isolation/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot assume a customer workload identity or fetch customer secrets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "FIX\u2192APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/shared_identity_secret_audit_fixture_harness",
+      "service_owner": "shared identity/secrets",
+      "surface": "secret_leases"
+    },
+    {
+      "audit_evidence_must_include": [
+        "tenant_id",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "actor",
+        "workload_identity",
+        "source_revision",
+        "action",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "audit_chain_ref"
+      ],
+      "bridge_current_state": "Current repository and workflow audit trails are bridge/current-state evidence only until destination audit-chain partitions are proven.",
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b audit-chain event",
+        "tenant-a write tenant-b audit-chain event",
+        "tenant-a emit event missing tenant_id or object identity"
+      ],
+      "destination_product_surface": "tenant-scoped SCM/CI/CD audit-chain event stream",
+      "evidence_artifact": "evidence/toolchain-isolation/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.json",
+      "expected_verdict": "DENY",
+      "non_claim_cutover_status": "fixture-contract/evidence complete; still no secure/live isolation, tenant-facing exposure, production readiness, or cutover claim without later protected PR/governance/runtime lane",
+      "object_level_fixture_ref": "specs/toolchain-tenant-isolation-fixtures.json#/object_level_t_isolation_0_matrix",
+      "object_level_fixture_status": "present_current_head_static_asserted",
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer audit-chain events or omit tenant/object identity without approved TTL breakglass plus reviewer acknowledgment and audit-chain event.",
+      "review_status": "FIX\u2192APPROVE",
+      "service_harness_ref": "specs/toolchain-tenant-isolation-fixtures.json#/shared_identity_secret_audit_fixture_harness",
+      "service_owner": "shared evidence/audit",
+      "surface": "audit_chain_events"
+    }
+  ],
+  "task_id": "t_26046c55",
+  "typed_gaps": [],
+  "verification": [
+    {
+      "command": "python3 -m json.tool specs/toolchain-tenant-isolation-fixtures.json >/tmp/toolchain-tenant-isolation-fixtures.pretty.json",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "python3 -m json.tool /Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_a904f657/toolchain-isolation-evidence-plan.json >/tmp/toolchain-isolation-evidence-plan.pretty.json",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "python3 -m json.tool /Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_915b9a62/toolchain-cutover-nonclaim-checklist.json >/tmp/toolchain-cutover-nonclaim-checklist.pretty.json",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "python3 -m json.tool evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json >/tmp/t_7d6670d5-scm-fixture-harness-evidence.pretty.json",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "python3 -m json.tool evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json >/tmp/t_feff66eb-cd-fixture-harness-evidence.pretty.json",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "python3 -m json.tool evidence/toolchain-isolation/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.json >/tmp/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.pretty.json",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "inline Python fan-in assertions over current-head object/SCM/CI/CD/shared fixture contracts, review-patched boundaries, evidence JSON consistency, and secret-pattern scan",
+      "exit_code": 0,
+      "output": "passed"
+    },
+    {
+      "command": "git diff --check -- specs/toolchain-tenant-isolation-fixtures.json evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json evidence/toolchain-isolation/t_688c8b9b-identity-secret-audit-fixture-harness-evidence.json evidence/toolchain-isolation/t_26046c55-t-isolation-0-fanin-evidence.json evidence/toolchain-isolation/t_26046c55-t-isolation-0-fanin-evidence.md",
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "command": "reviewer t_be399d69 inline Python assertions over fan-in artifact, source spec, parent evidence, review gates, cutover gates, forbidden-secret scan, trailing whitespace, and final-newline checks",
+      "exit_code": 0,
+      "output": "passed; explicit whitespace/final-newline coverage included currently untracked evidence files that git diff --check does not cover until staged"
+    }
+  ]
+}

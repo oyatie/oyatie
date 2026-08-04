@@ -1,0 +1,59 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/sheets-source-map-replay-artifact.schema.json",
+  "artifact_id": "sheets-workbook-session-open.fixture",
+  "replay_artifact_path": "specs/fixtures/sheets/source-map/replay/openapi/sheets-workbook-session-open.fixture.json",
+  "parent_fixture_id": "sheets_workbook_session_contract_fixture",
+  "fixture_kind": "api_contract_replay",
+  "source_map_ref": "specs/microservices/sheets.json",
+  "red_gate_task": "t_48991095",
+  "build_task": "t_10bf9a15",
+  "status": "SOURCE_BACKED_REPLAY_PASS",
+  "red_status_closed": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS",
+  "replay_family": "sheets-openapi-v1",
+  "contract_surface": "REST OpenAPI workbook/session/cell/import-export surface",
+  "source_authority_refs": [
+    "specs/microservices/sheets.json#evidence_expectations.api_contract_replay",
+    "oya/sheets/contracts/openapi/sheets.yaml#/paths/~1workbook-sessions",
+    "oya/sheets/contracts/proto/sheets.proto#OpenWorkbookSession"
+  ],
+  "source_paths": [
+    "specs/microservices/sheets.json",
+    "oya/sheets/contracts/openapi/sheets.yaml",
+    "oya/sheets/contracts/proto/sheets.proto"
+  ],
+  "assertions_covered": [
+    "open workbook session",
+    "tenant/RBAC header",
+    "license decision",
+    "workbook load/save",
+    "audit_chain_seal"
+  ],
+  "rejections_covered": [
+    "session opened without X-Scope-OrgID",
+    "license gate bypass",
+    "workbook load without tenant scope",
+    "save without audit seal"
+  ],
+  "replay_steps": [
+    "Replay operation/source-path coverage against oya/sheets/contracts/openapi/sheets.yaml.",
+    "Confirm X-Scope-OrgID tenant/RBAC boundary and Cedar refusal responses are contract-visible.",
+    "Confirm workbook session, cell/range, formula, and import/export schemas expose the source-lock assertions."
+  ],
+  "api_contract_replay_evidence": {
+    "openapi": true,
+    "asyncapi": false,
+    "proto": true,
+    "notes": "Source-backed static contract replay artifact; no handler/runtime or generated face is created by this slice."
+  },
+  "browser_user_story_accessibility_evidence": {
+    "applicable": false,
+    "runtime_ui_changed": false,
+    "n_a_rationale": "No browser/UI runtime path changes in t_10bf9a15; future user-visible slices must supply keyboard, screen-reader, grid, formula-error, collaboration-conflict, protected-range, and import/export evidence."
+  },
+  "non_claims": [
+    "No runtime readiness, product readiness, production readiness, GA, customer availability, live SLO, or hyperscaler maturity claim is made.",
+    "No generated JSON hand edits are made.",
+    "No legacy microservices/sheets/manifest.json restoration is authorized.",
+    "Green CI alone is not UI readiness evidence."
+  ]
+}

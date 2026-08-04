@@ -1,0 +1,394 @@
+{
+  "$id": "https://docs.oyatie.com/specs/portfolio-ownership-ratchet.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PortfolioOwnershipRatchet",
+  "description": "Machine-readable portfolio own-when-proven / day-0 ownership budget contract. This reconciles SOURCE Class A/B/C and LINUX OWN_DAY0/OWN_EARLY/DEFER_VENDORED/PERMANENT_REUSE rubrics into one capacity gate so Oyatie cannot silently turn per-component own-when-proven doctrine into an unbounded simultaneous from-scratch substrate program.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-PORTFOLIO-OWNERSHIP-RATCHET",
+    "version": "0.1.0",
+    "status": "proposed-for-architecture-governance-review",
+    "owner_team": "council-architecture + platform-governance + founder",
+    "created_at": "2026-07-01T00:00:00Z",
+    "source_task": "t_610ebf70",
+    "source_request": "ARCH-OWN-RATCHET-001: author a portfolio ownership ratchet / day-0 budget contract from the hyperscaler build-vs-buy audits.",
+    "non_goals": [
+      "Do not re-litigate every ADR in this contract.",
+      "Do not block narrow implementation lanes that do not introduce a new ownership claim.",
+      "Do not add or modify generated faces; generated JSON remains materialized by the existing cloud-ci/generated-face pipeline.",
+      "Do not create new legacy oya CLI merge authority; enforcement must land through cloud-ci/Rust gate packets behind oya-ci-required when implemented."
+    ]
+  },
+  "source_authorities": [
+    {
+      "path": "/specs/root-hub-pointers.json",
+      "role": "discoverability hub; this contract must be reachable from entry_points"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "role": "operating contract until explicit PHASE-5 promotion evidence promotes /specs/agent-operating-contract.json"
+    },
+    {
+      "path": "/specs/master-plan-sequencing.json",
+      "role": "sequencing, plain-git/cloud-ci authority, and first-deliverable guardrails"
+    },
+    {
+      "path": "/specs/masterplan.json#first_deliverable.parallelization_policy.claim_alignment_lock",
+      "role": "shared claim alignment lock and serialization policy"
+    },
+    {
+      "path": "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "role": "readiness/mechanical-enforcement claim ceilings and evidence vocabulary"
+    },
+    {
+      "path": "docs/audit/initial-sweep-2026-06-06/hyperscaler/build-vs-buy-scope-breadth.md#3-is-the-own-when-proven-ratchet-honored-or-is-it-own-everything-day-1",
+      "role": "primary audit evidence for the missing portfolio-level day-0 ownership budget"
+    },
+    {
+      "path": "docs/audit/initial-sweep-2026-06-06/hyperscaler/specific-tech-choices.md#j-cross-cutting-observation-for-the-founder-mandate",
+      "role": "primary audit evidence that questionable decisions share an own-day-0 vs own-when-proven trigger-threshold pattern"
+    }
+  ],
+  "unified_rubric": {
+    "OWN_DAY0": {
+      "source_equivalent": "Class A / in-house obligatory only when the owned surface is the narrow differentiator and cannot be safely isolated behind a port",
+      "meaning": "Oyatie builds and carries the owned implementation from the first committed delivery window.",
+      "required_evidence_before_claim": [
+        "portfolio_budget_slot_allocated",
+        "named_differentiator_and_port_boundary",
+        "forcing_function_or_founder_exception",
+        "capacity_model_with_named_team",
+        "opportunity_cost_list_of_deferred_ownership_bets",
+        "RED_GREEN_gate_or_gate_plan",
+        "rollback_to_vendored_or_ported_fallback"
+      ],
+      "claim_ceiling_until_gate_lands": "spec_ready; not mechanically_enforced and not production_ready"
+    },
+    "OWN_EARLY": {
+      "source_equivalent": "Class B / value-anchored trigger with owned port or overlay now and engine/control-plane ownership after proof",
+      "meaning": "Oyatie owns the seam, adapter, policy overlay, or differentiating slice now; the commodity engine remains vendored until numeric triggers fire.",
+      "required_evidence_before_escalation": [
+        "numeric_trigger",
+        "sustained_measurement_window",
+        "vendor_or_OSS_limit_evidence",
+        "replacement_parity_plan",
+        "negative_tests_show_port_preserves_exit"
+      ],
+      "claim_ceiling_until_trigger_fires": "target_non_claim or spec_ready for destination ownership; implementation may claim port/overlay ownership only"
+    },
+    "DEFER_VENDORED": {
+      "source_equivalent": "Class B vendored-now / adopt proven OSS behind a port",
+      "meaning": "A proven OSS or managed substrate is the day-0 implementation. Oyatie owns the port, contract, and exit path, not the engine.",
+      "required_evidence": [
+        "selected_substrate",
+        "port_contract",
+        "exit_trigger",
+        "license_and_supply_chain_clearance",
+        "fallback_or_migration_plan"
+      ],
+      "claim_ceiling": "may claim reusable substrate, portability, and exit-readiness; may not claim owned engine/control-plane"
+    },
+    "PERMANENT_REUSE": {
+      "source_equivalent": "Class C / no differentiation upside or external standard must remain canonical",
+      "meaning": "The external standard or OSS dependency is a durable platform choice. Oyatie owns configuration, policy, support, and upgrade discipline, not a replacement program.",
+      "required_evidence": [
+        "why_ownership_is_not_a_differentiator",
+        "standard_or_ecosystem_lock_reason",
+        "support_and_upgrade_owner",
+        "license_and_security_monitoring"
+      ],
+      "claim_ceiling": "reuse/support claim only; replacement claims require a new ratchet amendment"
+    }
+  },
+  "portfolio_day0_budget": {
+    "major_ownership_bet_definition": "A from-scratch or first-party replacement of a proven substrate/control plane/engine that is expected to consume more than 12 engineer-months, creates a new public or internal platform surface, or must carry hyperscaler-grade correctness, durability, security, scheduling, identity, workflow, data, networking, or operations semantics.",
+    "allowed_major_OWN_DAY0_slots": 1,
+    "preauthorized_small_OWN_DAY0_scope": [
+      {
+        "scope": "Cedar policy semantics and app-authz contract surface",
+        "source": "LINUX ADR-0020 / SOURCE ADR-0007, ADR-0243, ADR-0211 as cited by the audits",
+        "limit": "The Cedar contract may be day-0; a compile-to-Rust engine replacement still consumes the major slot unless explicitly reclassified by founder decision."
+      },
+      {
+        "scope": "core kernel crates that are purely Oyatie domain boundaries, ports, schemas, or policy wrappers",
+        "source": "LINUX ADR-0020 small day-0 set referenced by build-vs-buy audit line 21",
+        "limit": "This exception does not cover replacing commodity engines such as databases, Kubernetes control-plane components, workflow engines, DCIM, native client fleets, or build engines."
+      }
+    ],
+    "budget_exceedance_requires": [
+      "founder_recorded_exception_or_accepted_ADR_amendment",
+      "named numeric forcing function that has already fired or an explicit founder override",
+      "headcount and runway capacity model for every active major slot",
+      "portfolio opportunity-cost table naming which other OWN_DAY0 candidates move to OWN_EARLY or DEFER_VENDORED",
+      "independent architecture/security/reliability review approval",
+      "cloud-ci/Rust gate proposal with known-BAD and known-GOOD fixtures",
+      "rollback or vendored fallback plan for every exceeded slot"
+    ],
+    "default_when_evidence_is_missing": "DEFER_VENDORED behind a port, or OWN_EARLY for the narrow differentiating overlay only."
+  },
+  "claim_ceilings": {
+    "new_OWN_DAY0_claim_without_budget_slot": "forbidden; candidate change must downgrade to target_non_claim or DEFER_VENDORED until a budget slot and founder/risk evidence exist",
+    "own_when_proven_destination_claim": "allowed only as target_non_claim unless the trigger has fired and replacement parity evidence is present",
+    "mechanically_enforced_claim": "forbidden until a branch-protected cloud-ci/Rust gate with RED/GREEN fixtures is wired into oya-ci-required per /specs/hyperscaler-production-readiness-claim-contract.json",
+    "production_or_hyperscaler_grade_claim": "not granted by this contract; use /specs/hyperscaler-production-readiness-claim-contract.json evidence domains"
+  },
+  "decision_mappings": [
+    {
+      "source_id": "BVB-02",
+      "specific_tech_ids": ["D2"],
+      "surface": "distributed SQL / cloud-data from-scratch engine",
+      "current_risk": "legitimate differentiator but too large to run alongside multiple other from-scratch substrates",
+      "default_bucket": "OWN_EARLY unless founder allocates the single major OWN_DAY0 slot",
+      "disposition": "KEEP_AMEND_RESEQUENCE",
+      "budget_effect": "Consumes the one major OWN_DAY0 slot if selected as crown jewel; otherwise own datastore/differentiator seams behind retained Postgres+Citus and other workload stores.",
+      "founder_call_required": true,
+      "founder_call_question": "Is cloud-data the single crown-jewel day-0 substrate, with Kubernetes/control-plane/container/workflow/DCIM/node-OS/client breadth re-sequenced behind it?",
+      "required_trigger_or_evidence": ["measured Postgres/Citus/etcd-v3/OSS workload limit", "dedicated database team capacity", "fallback OLTP posture retained"]
+    },
+    {
+      "source_id": "BVB-03",
+      "specific_tech_ids": [],
+      "surface": "Kubernetes control-plane rewrite",
+      "current_risk": "rewriting apiserver/scheduler/controller-manager day-0 overreaches the AWS/Azure EKS/AKS pattern",
+      "default_bucket": "OWN_EARLY for cellular + owned datastore seam; DEFER_VENDORED for upstream Kubernetes control-plane components",
+      "disposition": "AMEND_RESEQUENCE",
+      "budget_effect": "Full Rust control-plane rewrite consumes the major OWN_DAY0 slot if founder insists; cellular/datastore seam alone does not.",
+      "founder_call_required": true,
+      "founder_call_question": "Is the moat the cellular/owned-datastore substrate under a Kubernetes-compatible port, or a full Rust apiserver/scheduler/controller rewrite?",
+      "required_trigger_or_evidence": ["upstream k8s control plane cannot meet declared cell scale", "etcd-v3 adapter parity", "scheduler/watch pressure metrics"]
+    },
+    {
+      "source_id": "BVB-04",
+      "specific_tech_ids": [],
+      "surface": "L0-L8 container platform and L7 build engine",
+      "current_risk": "L7 BuildKit-class build engine is a separable second mountain",
+      "default_bucket": "OWN_EARLY for isolation/runtime/content-store spine; DEFER_VENDORED for L7 build engine behind BuildKit/Buildah port",
+      "disposition": "AMEND",
+      "budget_effect": "Owning L7 day-0 consumes or competes for the major slot; keeping L7 vendored preserves budget for a crown-jewel substrate.",
+      "founder_call_required": true,
+      "founder_call_question": "Does the founder explicitly allocate day-0 ownership to the L7 build engine, or defer it behind a BuildKit/Buildah port?",
+      "required_trigger_or_evidence": ["BuildKit/Buildah fails a named supply-chain/performance/isolation requirement", "port contract and migration path", "RED/GREEN fixture for L7 claim"]
+    },
+    {
+      "source_id": "BVB-06",
+      "specific_tech_ids": ["F2"],
+      "surface": "bespoke workflow engine",
+      "current_risk": "day-0 durable-execution engine ownership skips the Temporal-class proof gate unless the Temporal bridge and parity gate stay explicit",
+      "default_bucket": "DEFER_VENDORED Temporal-class durable-execution substrate during the bridge period; OWN_EARLY per-tenant versioning, jurisdiction overlay, autonomy-ceiling layer, and SDK/port shim; destination oya-workflow engine is Tier-3 bespoke after durable-execution parity",
+      "disposition": "AMEND_RESEQUENCE_RESOLVED",
+      "budget_effect": "No day-0 major slot is allocated to the workflow engine. ADR-0482 founder authority places oya-workflow in the Tier-3 bespoke substrate roadmap with Temporal parallel-run and an SDK shim until durable-execution parity is proven.",
+      "founder_call_required": false,
+      "founder_call_resolution": "Resolved by ADR-0482: keep the Temporal-class bridge and own the differentiating workflow overlays now; build/cut over oya-workflow only behind the Tier-3 durable-execution parity gate.",
+      "resolution_authorities": [
+        "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:35-46",
+        "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:79-86",
+        "docs/audit/initial-sweep-2026-06-06/hyperscaler/build-vs-buy-scope-breadth.md:85-90"
+      ],
+      "required_trigger_or_evidence": ["Temporal bridge or equivalent durable-execution substrate selected", "workflow port/SDK shim contract", "durable-execution parity evidence", "migration and replay parity evidence"]
+    },
+    {
+      "source_id": "BVB-07",
+      "specific_tech_ids": ["F1"],
+      "surface": "DCIM and custom-silicon anti-scope",
+      "current_risk": "DCIM day-0 precedes physical data-center ownership; permanent no-silicon language overstates the correct Phase-3 founder-ratification escape hatch",
+      "default_bucket": "DEFER_VENDORED or OSS DCIM behind cohesion ports until owned colo/physical DC Phase-2; own DCIM at W-DataCenter-Operations when physical capacity exists at scale; commercial silicon remains the default and custom data-center silicon is prohibited unless a Phase-3+ forcing function plus founder ratification reopens it",
+      "disposition": "AMEND_RESEQUENCE_RESOLVED",
+      "budget_effect": "No day-0 major slot is allocated to DCIM. Future in-house DCIM waits for owned physical or colocated DC capacity; custom silicon remains anti-scope by default with only a Phase-3+ founder-ratified revisit if commercial silicon/RFP options fail.",
+      "founder_call_required": false,
+      "founder_call_resolution": "Resolved by the long-horizon DC operations authority already in PRD/DESIGN plus ADR-0032's founder-ratification escape hatch: do not build DCIM day-0; do not treat no-custom-silicon as an unchangeable eternal law, but require a Phase-3+ forcing function and founder ratification before any silicon exception.",
+      "resolution_authorities": [
+        "docs/PRD.md:53-54",
+        "docs/PRD.md:111",
+        "docs/DESIGN.md:232-240",
+        "docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md:136-145",
+        "docs/audit/initial-sweep-2026-06-06/hyperscaler/build-vs-buy-scope-breadth.md:92-97"
+      ],
+      "required_trigger_or_evidence": ["owned physical or colocated DC capacity", "OSS/commercial DCIM gap evidence", "facility operations team capacity", "Phase-3+ silicon forcing function plus founder ratification if commercial silicon fails"]
+    },
+    {
+      "source_id": "BVB-08",
+      "specific_tech_ids": [],
+      "surface": "developer portal IDP vs OIDC identity provider IdP",
+      "current_risk": "naming collision can smuggle identity-provider ownership through developer-portal wording unless Internal Developer Platform portal/BFF scope and ADR-0476 OIDC identity-provider authority stay explicitly separated",
+      "default_bucket": "Internal Developer Platform portal/BFF aggregation stays separate from OIDC identity-provider authority and does not allocate or imply OIDC identity-provider ownership here; OIDC identity provider follows ADR-0476 with a Phase-1 Keycloak bridge and a founder-accepted oya-identity bespoke Rust target after feature parity; Zitadel is superseded by current identity authority",
+      "disposition": "AMEND_DISAMBIGUATE_RESOLVED",
+      "budget_effect": "Bespoke OIDC issuer ownership is an explicit founder-accepted identity roadmap item, not an implication of the developer-portal IDP naming collision. The bridge remains Keycloak until oya-identity feature parity and integration gates pass.",
+      "founder_call_required": false,
+      "founder_call_resolution": "Resolved for OIDC identity authority by ADR-0476 and ADR-0482: Internal Developer Platform portal/BFF wording and OIDC identity-provider authority are separate; the OIDC provider does not stay on Zitadel until the old ADR-0211 ≥50K-tenant trigger, because ADR-0476 founder-locks oya-identity with Keycloak as the Phase-1 bridge.",
+      "resolution_authorities": [
+        "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md:29-37",
+        "docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md:66-78",
+        "docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:52-60",
+        "docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md:1-9",
+        "docs/audit/initial-sweep-2026-06-06/hyperscaler/build-vs-buy-scope-breadth.md:99-104"
+      ],
+      "required_trigger_or_evidence": ["Keycloak Phase-1 bridge and traffic shadowing", "oya-identity feature parity", "OIDC/OAuth2/WebAuthn/tenant IdP federation/MFA integration suite", "security/privacy review"]
+    },
+    {
+      "source_id": "BVB-10",
+      "specific_tech_ids": ["F4"],
+      "surface": "flat vertical catalog as owned first-party microservices",
+      "current_risk": "architecture structure is sound but day-0 breadth resembles many vertical SaaS companies at once",
+      "default_bucket": "OWN_EARLY substrate + cohesion layer; DEFER_VENDORED/PARTNER for vertical product breadth until selected by product/market forcing function",
+      "disposition": "KEEP_ARCHITECTURE_FOUNDATION_WITH_SCOPE_RULING",
+      "budget_effect": "Each first-party vertical does not consume the substrate slot individually, but unbounded day-0 breadth violates portfolio capacity and must serialize behind FD-001 exit evidence.",
+      "founder_call_required": true,
+      "founder_call_question": "Is day-0 scope the substrate/cohesion layer with incremental or partner verticals, or are medical/pharmacy/banking/insurance/manufacturing/logistics first-party day-0 product builds?",
+      "required_trigger_or_evidence": ["selected vertical market proof", "dedicated vertical owner/team", "FD-001 exit evidence", "partner/ISV alternative evaluation"]
+    },
+    {
+      "source_id": "BVB-11",
+      "specific_tech_ids": ["F3"],
+      "surface": "five fully-native client stacks per product",
+      "current_risk": "five native stacks multiplies parity and team load before product proof",
+      "default_bucket": "DEFER_VENDORED or staged native expansion; day-0 web plus one strategic native client unless founder allocates explicit scope",
+      "disposition": "AMEND_STAGE_CLIENTS",
+      "budget_effect": "Client-stack breadth is a portfolio capacity slot, not the substrate OWN_DAY0 slot; it still requires founder scope ruling before day-0 commitment.",
+      "founder_call_required": true,
+      "founder_call_question": "Commit to five fully-native clients day-0, or web + one native day-0 with other clients deferred behind OpenAPI contracts?",
+      "required_trigger_or_evidence": ["platform-specific revenue/user-path trigger", "parity automation evidence", "native-team capacity"]
+    },
+    {
+      "source_id": "SPECIFIC-A4",
+      "specific_tech_ids": ["A4"],
+      "surface": "bespoke Rust oya-ci / Prow-shaped CI platform",
+      "current_risk": "direction is hyperscaler-aligned but day-0 ownership may precede Argo Workflows/cloud-ci bridge insufficiency evidence",
+      "default_bucket": "OWN_EARLY destination; DEFER_VENDORED/bridge for orchestration pieces until lane-count, latency, isolation, or vendor-quota triggers fire",
+      "disposition": "AMEND_TO_NUMERIC_TRIGGER_OR_EXPLICIT_FOUNDER_EXCEPTION",
+      "budget_effect": "Full bespoke CI control-plane day-0 competes for the major slot unless treated as an accepted founder exception with its own capacity model.",
+      "founder_call_required": true,
+      "founder_call_question": "Is oya-ci a day-0 founder-locked exception, or gated behind lane count / gate latency / Argo Workflows insufficiency evidence?",
+      "required_trigger_or_evidence": ["lane-count or gate-latency threshold", "Argo/bridge insufficiency evidence", "branch-protected oya-ci-required RED/GREEN proof"]
+    },
+    {
+      "source_id": "SPECIFIC-C2",
+      "specific_tech_ids": ["C2"],
+      "surface": "compile-to-Rust Cedar-compatible policy engine",
+      "current_risk": "Cedar contract is aligned; owned compiler/evaluator day-0 is a trigger-threshold question",
+      "default_bucket": "OWN_EARLY compiler/evaluator behind adopted Cedar contract; OWN_DAY0 only for policy semantics/contract surface unless founder exception",
+      "disposition": "KEEP_CONTRACT_AMEND_ENGINE_TIMING",
+      "budget_effect": "Owned compiler/evaluator day-0 consumes the major slot if it replaces the adopted Cedar engine immediately.",
+      "founder_call_required": true,
+      "founder_call_question": "Is Cedar the long-term engine with Oyatie overlays, or a vendored adapter pending a day-0 compile-to-Rust owned engine?",
+      "required_trigger_or_evidence": ["Cedar engine limit evidence", "autonomy-tier compiler proof", "formal/soundness and security review"]
+    },
+    {
+      "source_id": "SPECIFIC-F5",
+      "specific_tech_ids": ["F5"],
+      "surface": "Rust Talos node-OS",
+      "current_risk": "the staged ladder is healthy, but SOURCE Talos adoption and LINUX Rust node-OS cannot both be day-0 canonical implementations",
+      "default_bucket": "DEFER_VENDORED actual Talos day-0; OWN_EARLY Rust node-OS behind beat-or-parity scorecard",
+      "disposition": "KEEP_STAGED_RECONCILE_DAY0_IMPLEMENTATION",
+      "budget_effect": "Rust node-OS as immediate replacement consumes a major slot; Talos-compatible port/scorecard does not.",
+      "founder_call_required": true,
+      "founder_call_question": "Adopt actual Talos day-0 and treat Rust node-OS as OWN_EARLY, or allocate day-0 ownership to Rust node-OS as the canonical node implementation?",
+      "required_trigger_or_evidence": ["beat-or-parity security/reliability scorecard", "Talos compatibility", "host bootstrap evidence"]
+    }
+  ],
+  "gate_proposal": {
+    "gate_id": "oya-check-portfolio-ownership-ratchet",
+    "status": "planned_cloud_ci_rust_gate",
+    "required_context": "oya-ci-required once implemented and branch-protected",
+    "trigger": "Any candidate PR that adds or amends ADR/spec/masterplan language containing OWN_DAY0, own day-0, own from scratch, bespoke engine, replace proven substrate, or equivalent ownership-escalation claims.",
+    "scan_paths": [
+      "docs/decisions/**/*.md",
+      "docs/MASTERPLAN.md",
+      "specs/**/*.json",
+      "registry/**/*.json",
+      "docs/audit/**/*.md"
+    ],
+    "checks": [
+      {
+        "id": "POR-001-budget-slot-required",
+        "rule": "A new major OWN_DAY0 claim must reference an allocated portfolio_day0_budget slot or an explicit founder exception record."
+      },
+      {
+        "id": "POR-002-trigger-evidence-required",
+        "rule": "OWN_EARLY escalation must cite a numeric trigger, sustained measurement window, and replacement parity evidence."
+      },
+      {
+        "id": "POR-003-claim-ceiling",
+        "rule": "A planned gate or local check may not claim mechanically_enforced until the cloud-ci/Rust gate is branch-protected and RED/GREEN fixtures are proven."
+      },
+      {
+        "id": "POR-004-defer-default",
+        "rule": "If budget or trigger evidence is absent, the candidate language must say DEFER_VENDORED or target_non_claim rather than OWN_DAY0."
+      },
+      {
+        "id": "POR-005-no-generated-face-hand-edit",
+        "rule": "The gate must fail closed if the ownership-ratchet change hand-edits any *.generated.json."
+      }
+    ],
+    "fixtures_required_before_enforcement_claim": [
+      {
+        "fixture": "known_bad_new_own_day0_without_budget_slot",
+        "expected": "RED"
+      },
+      {
+        "fixture": "known_bad_own_early_without_numeric_trigger",
+        "expected": "RED"
+      },
+      {
+        "fixture": "known_good_defer_vendored_with_port_and_trigger",
+        "expected": "GREEN"
+      },
+      {
+        "fixture": "known_good_single_founder_exception_with_capacity_model",
+        "expected": "GREEN"
+      }
+    ]
+  },
+  "founder_call_followups": {
+    "policy": "Create blocked, human-only Kanban cards only for decision groups where founder judgment changes the allowed day-0 scope. Implementation workers should not infer these choices from audit prose.",
+    "created_cards": [
+      {
+        "task_id": "t_d5c55c28",
+        "group": "crown_jewel_substrate_slot",
+        "status": "blocked_external_human_only"
+      },
+      {
+        "task_id": "t_c335b434",
+        "group": "portfolio_product_breadth",
+        "status": "blocked_external_human_only"
+      },
+      {
+        "task_id": "t_1b9b3e63",
+        "group": "operations_identity_workflow_exceptions",
+        "status": "resolved_by_founder_authority_reconciled"
+      }
+    ],
+    "groups": [
+      {
+        "id": "crown_jewel_substrate_slot",
+        "covers_source_ids": ["BVB-02", "BVB-03", "BVB-04", "SPECIFIC-A4", "SPECIFIC-C2", "SPECIFIC-F5"],
+        "reason": "Only the founder can choose or override the single major day-0 ownership slot when several legitimate but mutually competing infrastructure moats exist."
+      },
+      {
+        "id": "portfolio_product_breadth",
+        "covers_source_ids": ["BVB-10", "BVB-11"],
+        "reason": "Vertical breadth and native-client breadth are product/portfolio scope decisions, not architecture-only conclusions."
+      },
+      {
+        "id": "operations_identity_workflow_exceptions",
+        "covers_source_ids": ["BVB-06", "BVB-07", "BVB-08"],
+        "reason": "Workflow-engine, DCIM, silicon anti-scope, and identity-provider timing needed founder judgment because they set long-lived ownership commitments across regulated/runtime operations surfaces.",
+        "resolution": "Resolved for t_1b9b3e63 by reconciling BVB-06/BVB-07/BVB-08 decision_mappings to ADR-0482, ADR-0476, and the long-horizon DC operations authority. Source ADR/doc amendment work remains queued separately where older prose still conflicts."
+      }
+    ]
+  },
+  "worker_guidance": {
+    "default_action_for_new_questionable_ownership_claim": "Downgrade to DEFER_VENDORED behind a port or OWN_EARLY overlay until a founder card resolves the budget/trigger question.",
+    "safe_to_continue_without_founder_call": [
+      "Adding a port/adapter around an already selected OSS substrate",
+      "Documenting trigger evidence without escalating ownership",
+      "Narrow implementation that does not introduce a new ownership claim",
+      "Vocabulary amendments that align retired terms without changing build-vs-buy posture"
+    ],
+    "must_block_or_create_founder_call_card": [
+      "Allocating a new major OWN_DAY0 slot",
+      "Exceeding the one-slot budget",
+      "Changing a DEFER_VENDORED engine into a day-0 owned engine",
+      "Committing all listed verticals or all native clients as day-0 first-party scope"
+    ]
+  }
+}

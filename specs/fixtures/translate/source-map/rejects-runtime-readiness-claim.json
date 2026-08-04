@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/translate-source-map-red-case.schema.json",
+  "fixture_id": "rejects_runtime_readiness_claim_fixture",
+  "fixture_kind": "runtime_readiness_negative_control",
+  "source_map_ref": "specs/microservices/translate.json",
+  "kanban_task": "t_a966bab0",
+  "expected_checker_decision": "REJECT",
+  "must_reject": [
+    "runtime readiness",
+    "product readiness",
+    "production readiness",
+    "live SLO",
+    "GA/customer availability",
+    "green CI alone",
+    "dirty oya/translate/** inventory as Build approval"
+  ]
+}

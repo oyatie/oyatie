@@ -4,7 +4,7 @@ contact_links:
     url: https://github.com/jason931225/oyatie/security/advisories/new
     about: >-
       Do not open a public issue for security problems. Report privately via a
-      GitHub security advisory (see docs/security-program/security-program.json).
+      GitHub security advisory (see docs/SECURITY-PROGRAM.md).
   - name: Operating contract (docs/AGENTS.md)
     url: https://github.com/jason931225/oyatie/blob/dev/docs/AGENTS.md
     about: Read the canonical operating contract before filing or fixing.

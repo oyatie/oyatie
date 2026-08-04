@@ -1,0 +1,68 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/toolchain-isolation-cd-fixture-harness-evidence.schema.json",
+  "evidence_id": "toolchain-isolation-cd-t_feff66eb-20260701T142444Z",
+  "task_id": "t_feff66eb",
+  "created_at": "2026-07-01T14:24:44Z",
+  "scope": "CD-side T-ISOLATION-0 fixture harness only; no runtime deploy/reconciler, production rollout, Argo/controller mutation, branch-protection, secret, generated JSON, or release-governance mutation.",
+  "repo_files": [
+    "specs/toolchain-tenant-isolation-fixtures.json"
+  ],
+  "evidence_files": [
+    "evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json"
+  ],
+  "authority_sources": [
+    "/specs/bespoke-cloud-toolchain-services.json:195-221",
+    "/specs/bespoke-cloud-toolchain-services.json:224-249",
+    "/specs/bespoke-cloud-toolchain-services.json:296-303",
+    "/specs/masterplan.json:419-435",
+    "t_f4b671ca Oya CD release-ledger/progressive-delivery Plan/Spec artifact",
+    "t_bef50749 RED fixture contract and t_e7eed0bf APPROVE review/fix handoff"
+  ],
+  "claim_boundary": {
+    "bridge_current_state_only": [
+      "Argo CD Applications, Argo Rollouts, AnalysisTemplates, Events/Workflows, and service-account identities are bridge/reference adapter shapes only.",
+      "The fixture harness does not assert a live oya-cd service, production rollout, tenant-facing CD exposure, Argo cutover, or hyperscaler-grade isolation."
+    ],
+    "destination_claim_status": "blocked until T-ISOLATION-0 fan-in validates SCM, CI, CD, identity, secret, evidence, and audit fixture evidence together."
+  },
+  "covered_cd_surfaces": [
+    "deployment_manifests",
+    "release_ledgers",
+    "rollback_handles",
+    "desired_live_reconciliation",
+    "progressive_delivery_status",
+    "status_evidence_callbacks",
+    "breakglass_records",
+    "tenant_cell_region_policy",
+    "argo_adapter_boundary"
+  ],
+  "known_bad_fixture_ids": [
+    "T-ISOLATION-0-CD-DENY-deployment-manifest-tenant-ownership",
+    "T-ISOLATION-0-CD-DENY-release-ledger-partition",
+    "T-ISOLATION-0-CD-DENY-rollback-handle-isolation",
+    "T-ISOLATION-0-CD-DENY-desired-live-reconciliation-evidence",
+    "T-ISOLATION-0-CD-DENY-progressive-delivery-status",
+    "T-ISOLATION-0-CD-DENY-status-evidence-callback-identity",
+    "T-ISOLATION-0-CD-DENY-breakglass-record-ttl-reviewer-audit",
+    "T-ISOLATION-0-CD-DENY-tenant-cell-region-policy",
+    "T-ISOLATION-0-CD-DENY-argo-adapter-boundary"
+  ],
+  "assertions": {
+    "deployment_manifests": "tenant-a cannot read/write tenant-b manifests, deploy to tenant-b deploy targets, or bind tenant-b desired state to its release.",
+    "release_ledgers": "tenant-a cannot read/write/append tenant-b release-ledger transitions or reuse tenant-b CI evidence as release proof.",
+    "rollback_handles": "tenant-a cannot fetch, execute, bind, or mutate tenant-b rollback handles or rollback evidence.",
+    "desired_live_reconciliation": "tenant-a cannot inspect tenant-b live snapshots, mutate tenant-b desired state, attach tenant-b drift evidence, or reconcile against tenant-b cells.",
+    "progressive_delivery_status": "tenant-a cannot read, promote, override, or attach SLO evidence for tenant-b rollout stages.",
+    "status_evidence_callbacks": "tenant-a cannot post, consume, write, or fan out customer CD status/evidence callbacks using tenant-b identities or bundles.",
+    "breakglass_records": "CD breakglass must be TTL-bound, reviewer-acked, single-scope, reasoned, and audit-chain evidenced; tenant=oyatie-internal has no implicit bypass.",
+    "tenant_cell_region_policy": "tenant-a cannot bypass tenant-b cell, region, data-residency, compliance-pack, quota, deploy-target, or secret-scope policy.",
+    "argo_adapter_boundary": "tenant-a cannot invoke the Argo adapter against tenant-b Argo objects, reuse tenant-b Argo service accounts, or treat Argo status as sole release authority."
+  },
+  "verification_commands": [
+    "python3 -m json.tool specs/toolchain-tenant-isolation-fixtures.json >/tmp/toolchain-tenant-isolation-fixtures.pretty.json",
+    "inline Python structural assertions over object_level_t_isolation_0_matrix and cd_side_t_isolation_0_fixture_harness",
+    "git diff --check -- specs/toolchain-tenant-isolation-fixtures.json evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json",
+    "python3 -m json.tool evidence/toolchain-isolation/t_feff66eb-cd-fixture-harness-evidence.json >/tmp/t_feff66eb-cd-fixture-harness-evidence.pretty.json"
+  ],
+  "verification_result": "passed: object-level T-ISOLATION-0 preserved and CD fixture harness validated across 9 CD surfaces."
+}

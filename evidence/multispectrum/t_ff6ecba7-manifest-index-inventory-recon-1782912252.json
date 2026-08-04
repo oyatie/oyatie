@@ -1,0 +1,28 @@
+{
+  "artifacts": [
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_ff6ecba7/manifest-index-inventory-reconciliation.json",
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_ff6ecba7/manifest-index-inventory-reconciliation.md"
+  ],
+  "change_class_id": "CC-6",
+  "change_id": "t_ff6ecba7-manifest-index-inventory-recon",
+  "changed_files": [
+    "specs/microservices/manifests-index.json"
+  ],
+  "facets": {
+    "F1_traceability": [
+      "t_ff6ecba7",
+      "t_35c95bce",
+      "ADR-0344",
+      "specs/finops-dimensional-model.json"
+    ],
+    "F2_correctness": "all active index manifest paths now either resolve or are explicitly no-standalone (anonymous)",
+    "F3_security": "no secret, runtime, billing, provider, or generated-output edits",
+    "F4_data_boundary": "inventory/provenance only; no live emission/cost data introduced",
+    "F5_testing": "json validation and inventory script evidence required in Kanban closeout",
+    "F6_rollback": "revert specs/microservices/manifests-index.json path updates if a newer source authority supersedes this reconciliation"
+  },
+  "generated_at": "2026-07-01T13:24:12.280429Z",
+  "schema_version": "2.4.0-advisory-local",
+  "scope": "manifest-index source-authority inventory reconciliation; no runtime or billing claim",
+  "task_id": "t_ff6ecba7"
+}
