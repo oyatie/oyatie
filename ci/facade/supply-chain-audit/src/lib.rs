@@ -101,6 +101,34 @@ pub const VIOLATION_CODES: [&str; 8] = [
 const MIRROR_KEY: &str = "<mirror>";
 const POLICY_KEY: &str = "<policy>";
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct LockfilePackageRow {
+    source: String,
+    name: String,
+    version: String,
+}
+
+impl LockfilePackageRow {
+    fn as_legacy_record(&self) -> Value {
+        json!({
+            "name": self.name,
+            "version": self.version,
+        })
+    }
+
+    fn as_provenance_record(&self) -> Value {
+        json!({
+            "name": self.name,
+            "version": self.version,
+            "lockfile": self.source,
+        })
+    }
+
+    fn finding_key(&self, advisory_id: &str) -> String {
+        format!("{advisory_id}::{}/{}", self.source, self.version)
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Collection (the only I/O; read-only)
 // ---------------------------------------------------------------------------
@@ -301,7 +329,9 @@ fn minimum_lockfiles(policy: &Value, structured: bool) -> Result<usize, CollectE
 /// sibling manifests needed to project workspace ownership. Then reads the configured
 /// lockfiles/manifests (TOML) and `policy.mirror_dir/{advisories.json,mirror-manifest.json}` (JSON).
 /// Emits the backward-compatible
-/// `{ "locked": [ { "name", "version" }, .. ], "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
+/// `{ "locked": [ { "name", "version" }, .. ],
+///   "locked_by_source": [ { "name", "version", "lockfile" }, .. ],
+///   "advisories": [ <Advisory>, .. ], "manifest": {..} }`.
 /// No directory walk occurs.
 pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> {
     validate_repo_root(repo_root)?;
@@ -315,7 +345,7 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         .ok_or_else(|| CollectError::Parse("policy.mirror_dir is required".to_owned()))?;
     let mirror_dir = validate_relative_directory(mirror_dir)?;
 
-    let mut locked = Vec::new();
+    let mut locked = Vec::<LockfilePackageRow>::new();
     for source in &sources {
         let manifest_path = Path::new(&source.manifest_path);
         let manifest_text = read_repo_file(repo_root, manifest_path)?;
@@ -323,8 +353,20 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         let lock_text = read_repo_file(repo_root, Path::new(&source.lockfile_path))?;
         locked.extend(parse_locked(&lock_text, &source.lockfile_path)?);
     }
+    let mut locked_by_source = locked.clone();
+    locked_by_source.sort();
+    let locked_by_source = locked_by_source
+        .into_iter()
+        .map(|row| row.as_provenance_record())
+        .collect::<Vec<_>>();
+
+    let mut locked = locked;
     locked.sort_by_key(locked_sort_key);
-    locked.dedup();
+    locked.dedup_by_key(|row| (row.name.clone(), row.version.clone()));
+    let locked = locked
+        .into_iter()
+        .map(|row| row.as_legacy_record())
+        .collect::<Vec<_>>();
 
     let advisories_path = mirror_dir.join("advisories.json");
     let advisories_text = read_repo_file(repo_root, &advisories_path)?;
@@ -338,6 +380,7 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
 
     Ok(json!({
         "locked": locked,
+        "locked_by_source": locked_by_source,
         "advisories": advisories,
         "manifest": manifest,
     }))
@@ -574,7 +617,10 @@ fn validate_workspace_manifest(text: &str, source: &str) -> Result<(), CollectEr
 }
 
 /// Parse one `Cargo.lock`'s `[[package]]` tables; [`collect`] sorts and deduplicates the union.
-fn parse_locked(lock_text: &str, source: &str) -> Result<Vec<Value>, CollectError> {
+fn parse_locked(
+    lock_text: &str,
+    source: &str,
+) -> Result<Vec<LockfilePackageRow>, CollectError> {
     let doc: toml::Value =
         toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{source}: {e}")))?;
     let packages = doc
@@ -586,7 +632,7 @@ fn parse_locked(lock_text: &str, source: &str) -> Result<Vec<Value>, CollectErro
             "{source} contains zero [[package]] rows"
         )));
     }
-    let mut locked: Vec<Value> = Vec::with_capacity(packages.len());
+    let mut locked: Vec<LockfilePackageRow> = Vec::with_capacity(packages.len());
     for (index, pkg) in packages.iter().enumerate() {
         let package = pkg.as_table().ok_or_else(|| {
             CollectError::Parse(format!("{source} package[{index}] must be a table"))
@@ -609,22 +655,81 @@ fn parse_locked(lock_text: &str, source: &str) -> Result<Vec<Value>, CollectErro
                     "{source} package[{index}].version must be a non-empty string"
                 ))
             })?;
-        locked.push(json!({ "name": name, "version": version }));
+        locked.push(LockfilePackageRow {
+            source: source.to_owned(),
+            name: name.to_owned(),
+            version: version.to_owned(),
+        });
     }
     Ok(locked)
 }
 
-fn locked_sort_key(v: &Value) -> (String, String) {
-    (
-        v.get("name")
-            .and_then(Value::as_str)
-            .unwrap_or("")
-            .to_owned(),
-        v.get("version")
-            .and_then(Value::as_str)
-            .unwrap_or("")
-            .to_owned(),
-    )
+fn locked_sort_key(row: &LockfilePackageRow) -> (String, String) {
+    (row.name.clone(), row.version.clone())
+}
+
+fn observed_locked_rows(policy: &Value, observed: &Value) -> (Vec<LockfilePackageRow>, bool) {
+    if let Some(rows) = observed.get("locked_by_source").and_then(Value::as_array) {
+        let mut observed_rows = Vec::with_capacity(rows.len());
+        let mut sources = BTreeSet::new();
+        for row in rows {
+            let Some(row) = row.as_object() else {
+                continue;
+            };
+            let name = row.get("name").and_then(Value::as_str).unwrap_or("");
+            let version = row.get("version").and_then(Value::as_str).unwrap_or("");
+            let source = row.get("lockfile").and_then(Value::as_str).unwrap_or("");
+            if name.is_empty() || version.is_empty() || source.is_empty() {
+                continue;
+            }
+            sources.insert(source.to_owned());
+            observed_rows.push(LockfilePackageRow {
+                source: source.to_owned(),
+                name: name.to_owned(),
+                version: version.to_owned(),
+            });
+        }
+        if !observed_rows.is_empty() {
+            return (
+                observed_rows,
+                if policy.get("lockfile_corpus").and_then(Value::as_array).is_some() {
+                    sources.len() > 1
+                } else if policy
+                    .get("lockfile_path")
+                    .and_then(Value::as_str)
+                    .is_none_or(|value| value != "Cargo.lock")
+                {
+                    // Explicit legacy override means the configured file is authoritative and
+                    // historically keyed by advisory id only.
+                    false
+                } else {
+                    sources.len() > 1
+                },
+            );
+        }
+    }
+
+    let source = policy
+        .get("lockfile_path")
+        .and_then(Value::as_str)
+        .unwrap_or("Cargo.lock");
+    let observed_rows = observed
+        .get("locked")
+        .and_then(Value::as_array)
+        .map(|rows| {
+            rows.iter()
+                .filter_map(|row| {
+                    Some(LockfilePackageRow {
+                        source: source.to_owned(),
+                        name: row.get("name")?.as_str()?.to_owned(),
+                        version: row.get("version")?.as_str()?.to_owned(),
+                    })
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+
+    (observed_rows, false)
 }
 
 // ---------------------------------------------------------------------------
@@ -836,60 +941,78 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     }
 
     // The locked crate (name -> versions) corpus.
-    let locked = observed
-        .get("locked")
-        .and_then(Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let (locked, uses_provenance) = observed_locked_rows(policy, observed);
     let unmaintained_all = policy.get("unmaintained_policy").and_then(Value::as_str) == Some("all");
 
     // The set of ignore ids that actually suppressed a LIVE affected advisory (for stale detection).
     let mut live_affected_ids: BTreeSet<String> = BTreeSet::new();
 
     for advisory in &advisories {
-        let affected = locked.iter().any(|pkg| {
-            pkg.get("name").and_then(Value::as_str) == Some(advisory.package.as_str())
-                && pkg
-                    .get("version")
-                    .and_then(Value::as_str)
-                    .is_some_and(|v| version_affected(v, advisory))
-        });
-        if !affected {
+        let mut affected_rows = Vec::new();
+        for pkg in &locked {
+            if pkg.name != advisory.package {
+                continue;
+            }
+            if !version_affected(&pkg.version, advisory) {
+                continue;
+            }
+            affected_rows.push(pkg);
+        }
+        if affected_rows.is_empty() {
             continue;
         }
 
-        match advisory.informational.as_deref() {
-            None => {
-                // A security vulnerability.
-                live_affected_ids.insert(advisory.id.clone());
-                if !ignore_ids.contains(advisory.id.as_str()) {
+        live_affected_ids.insert(advisory.id.clone());
+
+        let mut emitted: BTreeSet<(String, String, String)> = BTreeSet::new();
+        for pkg in affected_rows {
+            let key = if uses_provenance {
+                pkg.finding_key(&advisory.id)
+            } else {
+                advisory.id.clone()
+            };
+            if !emitted.insert((key.clone(), pkg.source.clone(), pkg.version.clone())) {
+                continue;
+            }
+            if ignore_ids.contains(advisory.id.as_str()) {
+                continue;
+            }
+
+            match advisory.informational.as_deref() {
+                None => {
+                    // A security vulnerability.
                     findings.insert(Finding::new(
                         "SCA-VULN",
-                        &advisory.id,
+                        &key,
                         format!(
-                            "security advisory {} affects locked crate `{}` (no installed version satisfies patched {:?} / unaffected {:?}). {REMEDIATION_DOCTRINE}.",
-                            advisory.id, advisory.package, advisory.patched, advisory.unaffected
+                            "security advisory {} affects locked crate `{}` version `{}` in lockfile `{}` (no installed version satisfies patched {:?} / unaffected {:?}). {}",
+                            advisory.id,
+                            advisory.package,
+                            pkg.version,
+                            pkg.source,
+                            advisory.patched,
+                            advisory.unaffected,
+                            REMEDIATION_DOCTRINE
                         ),
                     ));
                 }
-            }
-            Some("unmaintained") => {
-                if unmaintained_all {
-                    live_affected_ids.insert(advisory.id.clone());
-                    if !ignore_ids.contains(advisory.id.as_str()) {
-                        findings.insert(Finding::new(
-                            "SCA-UNMAINTAINED",
-                            &advisory.id,
-                            format!(
-                                "unmaintained advisory {} affects locked crate `{}` (unmaintained_policy=all). Migrate off the crate, or {REMEDIATION_DOCTRINE}.",
-                                advisory.id, advisory.package
-                            ),
-                        ));
-                    }
+                Some("unmaintained") if unmaintained_all => {
+                    findings.insert(Finding::new(
+                        "SCA-UNMAINTAINED",
+                        &key,
+                        format!(
+                            "unmaintained advisory {} affects locked crate `{}` version `{}` in lockfile `{}` (unmaintained_policy=all). Migrate off the crate, or {}.",
+                            advisory.id,
+                            advisory.package,
+                            pkg.version,
+                            pkg.source,
+                            REMEDIATION_DOCTRINE
+                        ),
+                    ));
                 }
-            }
-            Some(_other) => {
-                // `unsound` / `notice`: tracked but out of this gate's blocking scope (documented).
+                Some(_other) => {
+                    // `unsound` / `notice`: tracked but out of this gate's blocking scope (documented).
+                }
             }
         }
     }
