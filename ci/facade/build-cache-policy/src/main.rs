@@ -221,6 +221,8 @@ struct GetCapabilitiesRequest {
 struct ServerCapabilities {
     #[prost(message, optional, tag = "1")]
     cache_capabilities: Option<CacheCapabilities>,
+    #[prost(message, optional, tag = "2")]
+    execution_capabilities: Option<ExecutionCapabilities>,
     #[prost(message, optional, tag = "4")]
     low_api_version: Option<SemVer>,
     #[prost(message, optional, tag = "5")]
@@ -231,15 +233,10 @@ struct ServerCapabilities {
 struct CacheCapabilities {
     #[prost(int32, repeated, packed = "true", tag = "1")]
     digest_functions: Vec<i32>,
-    #[prost(message, optional, tag = "2")]
-    action_cache_update_capabilities: Option<ActionCacheUpdateCapabilities>,
 }
 
 #[derive(Clone, PartialEq, Message)]
-struct ActionCacheUpdateCapabilities {
-    #[prost(bool, tag = "1")]
-    update_enabled: bool,
-}
+struct ExecutionCapabilities {}
 
 #[derive(Clone, PartialEq, Message)]
 struct SemVer {
@@ -307,8 +304,10 @@ fn validate_server_capabilities(message: &[u8]) -> Result<(), String> {
     if !cache.digest_functions.contains(&1) {
         return Err("cache_capabilities did not advertise SHA256 digest function".to_string());
     }
-    if cache.action_cache_update_capabilities.is_none() {
-        return Err("cache_capabilities omitted action_cache_update_capabilities".to_string());
+    if capabilities.execution_capabilities.is_some() {
+        return Err(
+            "cache-only endpoint unexpectedly advertised execution_capabilities".to_string(),
+        );
     }
     let low = capabilities
         .low_api_version
@@ -330,6 +329,39 @@ fn validate_server_capabilities(message: &[u8]) -> Result<(), String> {
     }
     if (low.major, low.minor, low.patch) > (high.major, high.minor, high.patch) {
         return Err("REAPI low_api_version exceeded high_api_version".to_string());
+    }
+    Ok(())
+}
+
+fn github_green_provenance_from(
+    status: app::CanaryStatus,
+    env: impl Fn(&str) -> Option<String>,
+) -> Result<Option<Value>, String> {
+    if status != app::CanaryStatus::Green || env("GITHUB_ACTIONS").as_deref() != Some("true") {
+        return Ok(None);
+    }
+    let required = |name| {
+        env(name)
+            .filter(|value| !value.trim().is_empty())
+            .ok_or_else(|| {
+                format!("GREEN GitHub Actions verdict requires non-empty {name} provenance")
+            })
+    };
+    Ok(Some(serde_json::json!({
+        "github_sha": required("GITHUB_SHA")?,
+        "github_run_id": required("GITHUB_RUN_ID")?,
+        "github_job": required("GITHUB_JOB")?,
+        "github_run_attempt": required("GITHUB_RUN_ATTEMPT")?,
+    })))
+}
+
+fn bind_github_green_provenance(
+    status: app::CanaryStatus,
+    verdict: &mut Value,
+) -> Result<(), String> {
+    if let Some(provenance) = github_green_provenance_from(status, |name| std::env::var(name).ok())?
+    {
+        verdict["provenance"] = provenance;
     }
     Ok(())
 }
@@ -474,6 +506,8 @@ fn curl_capabilities(endpoint: &str) -> Result<(), String> {
             "--show-error",
             "--http2",
             "--tlsv1.3",
+            "--tls-max",
+            "1.3",
             "--connect-timeout",
             "5",
             "--max-time",
@@ -568,9 +602,9 @@ fn invocation_record_path(child: &[String]) -> Result<&str, String> {
             (pair[0] == "--unstable-write-invocation-record").then_some(pair[1].as_str())
         })
         .or_else(|| {
-            child.iter().find_map(|argument| {
-                argument.strip_prefix("--unstable-write-invocation-record=")
-            })
+            child
+                .iter()
+                .find_map(|argument| argument.strip_prefix("--unstable-write-invocation-record="))
         })
         .ok_or_else(|| {
             "workflow cache proof requires --unstable-write-invocation-record".to_string()
@@ -1038,7 +1072,8 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                     ));
                 }
             }
-            let (status, verdict) = app::canary_verdict(&cold, warm.as_ref());
+            let (status, mut verdict) = app::canary_verdict(&cold, warm.as_ref());
+            bind_github_green_provenance(status, &mut verdict)?;
             let payload = serde_json::to_string_pretty(&verdict)
                 .map_err(|e| format!("serialize verdict: {e}"))?;
             write_out(flag_value(rest, "--out"), &payload)?;
@@ -1079,6 +1114,52 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    #[derive(Debug)]
+    struct RejectEveryClientCertificate;
+
+    impl rustls::server::danger::ClientCertVerifier for RejectEveryClientCertificate {
+        fn root_hint_subjects(&self) -> &[rustls::DistinguishedName] {
+            &[]
+        }
+
+        fn verify_client_cert(
+            &self,
+            _end_entity: &rustls::pki_types::CertificateDer<'_>,
+            _intermediates: &[rustls::pki_types::CertificateDer<'_>],
+            _now: rustls::pki_types::UnixTime,
+        ) -> Result<rustls::server::danger::ClientCertVerified, rustls::Error> {
+            Err(rustls::Error::InvalidCertificate(
+                rustls::CertificateError::UnknownIssuer,
+            ))
+        }
+
+        fn verify_tls12_signature(
+            &self,
+            _message: &[u8],
+            _cert: &rustls::pki_types::CertificateDer<'_>,
+            _dss: &rustls::DigitallySignedStruct,
+        ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+            Err(rustls::Error::General(
+                "unreachable TLS 1.2 verifier".to_string(),
+            ))
+        }
+
+        fn verify_tls13_signature(
+            &self,
+            _message: &[u8],
+            _cert: &rustls::pki_types::CertificateDer<'_>,
+            _dss: &rustls::DigitallySignedStruct,
+        ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+            Err(rustls::Error::General(
+                "unreachable after certificate rejection".to_string(),
+            ))
+        }
+
+        fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+            vec![rustls::SignatureScheme::ECDSA_NISTP256_SHA256]
+        }
+    }
+
     #[test]
     fn workflow_boolean_flags_are_explicit_and_fail_closed() {
         let true_value = vec!["--prelicense-probe".into(), "true".into()];
@@ -1112,6 +1193,80 @@ mod tests {
     }
 
     #[test]
+    fn reader_observes_real_server_client_auth_rejection() {
+        use rustls::pki_types::{PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
+        use std::net::TcpListener;
+
+        let rcgen::CertifiedKey {
+            cert: server_cert,
+            signing_key: server_key,
+        } = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
+        let rcgen::CertifiedKey {
+            cert: client_cert,
+            signing_key: client_key,
+        } = rcgen::generate_simple_self_signed(vec!["client".to_string()]).unwrap();
+
+        let mut server_config =
+            rustls::ServerConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
+                .with_client_cert_verifier(Arc::new(RejectEveryClientCertificate))
+                .with_single_cert(
+                    vec![server_cert.der().clone()],
+                    PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(server_key.serialize_der())),
+                )
+                .unwrap();
+        server_config.alpn_protocols = vec![b"h2".to_vec()];
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = std::thread::spawn(move || {
+            let (mut socket, _) = listener.accept().unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            socket
+                .set_write_timeout(Some(Duration::from_secs(5)))
+                .unwrap();
+            let mut connection = rustls::ServerConnection::new(Arc::new(server_config)).unwrap();
+            connection.complete_io(&mut socket).unwrap_err()
+        });
+
+        let mut roots = rustls::RootCertStore::empty();
+        roots.add(server_cert.der().clone()).unwrap();
+        let mut client_config =
+            rustls::ClientConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
+                .with_root_certificates(roots)
+                .with_client_auth_cert(
+                    vec![client_cert.der().clone()],
+                    PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(client_key.serialize_der())),
+                )
+                .unwrap();
+        client_config.alpn_protocols = vec![b"h2".to_vec()];
+        let mut socket = TcpStream::connect(address).unwrap();
+        socket
+            .set_read_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        socket
+            .set_write_timeout(Some(Duration::from_secs(5)))
+            .unwrap();
+        let mut connection = rustls::ClientConnection::new(
+            Arc::new(client_config),
+            ServerName::try_from("localhost").unwrap(),
+        )
+        .unwrap();
+
+        let alert = read_client_auth_rejection(&mut connection, &mut socket).unwrap();
+        assert!(matches!(
+            alert.as_str(),
+            "access_denied"
+                | "bad_certificate"
+                | "certificate_required"
+                | "certificate_unknown"
+                | "unknown_ca"
+        ));
+        server.join().unwrap();
+    }
+
+    #[test]
     fn reader_writer_denial_accepts_only_named_peer_tls_alerts() {
         let alert = std::io::Error::new(
             std::io::ErrorKind::InvalidData,
@@ -1141,6 +1296,62 @@ mod tests {
         assert!(grpc_status("HTTP/2 200\r\n").is_err());
         assert_eq!(curl_metadata(b"2\n200").unwrap(), ("2", "200"));
         assert!(curl_metadata(b"1.1\n200\nextra").is_err());
+
+        let request = GetCapabilitiesRequest {
+            instance_name: "main".to_string(),
+        }
+        .encode_to_vec();
+        assert_eq!(request, [0x0a, 0x04, b'm', b'a', b'i', b'n']);
+        assert_eq!(
+            grpc_message(&request).unwrap(),
+            [0, 0, 0, 0, 6, 0x0a, 4, b'm', b'a', b'i', b'n']
+        );
+
+        let cache_only = ServerCapabilities {
+            cache_capabilities: Some(CacheCapabilities {
+                digest_functions: vec![1],
+            }),
+            execution_capabilities: None,
+            low_api_version: Some(SemVer {
+                major: 2,
+                minor: 0,
+                patch: 0,
+                prerelease: String::new(),
+            }),
+            high_api_version: Some(SemVer {
+                major: 2,
+                minor: 3,
+                patch: 0,
+                prerelease: String::new(),
+            }),
+        };
+        assert!(validate_server_capabilities(&cache_only.encode_to_vec()).is_ok());
+        let mut execution_endpoint = cache_only;
+        execution_endpoint.execution_capabilities = Some(ExecutionCapabilities {});
+        assert!(validate_server_capabilities(&execution_endpoint.encode_to_vec()).is_err());
+    }
+
+    #[test]
+    fn green_github_verdict_requires_and_binds_run_provenance() {
+        let lookup = |name: &str| match name {
+            "GITHUB_ACTIONS" => Some("true".to_string()),
+            "GITHUB_SHA" => Some("abc123".to_string()),
+            "GITHUB_RUN_ID" => Some("42".to_string()),
+            "GITHUB_JOB" => Some("cache-integrity".to_string()),
+            "GITHUB_RUN_ATTEMPT" => Some("2".to_string()),
+            _ => None,
+        };
+        let provenance = github_green_provenance_from(app::CanaryStatus::Green, lookup)
+            .unwrap()
+            .unwrap();
+        assert_eq!(provenance["github_sha"], "abc123");
+        assert_eq!(provenance["github_run_attempt"], "2");
+        assert!(
+            github_green_provenance_from(app::CanaryStatus::Green, |name| {
+                (name == "GITHUB_ACTIONS").then(|| "true".to_string())
+            })
+            .is_err()
+        );
     }
 
     #[test]

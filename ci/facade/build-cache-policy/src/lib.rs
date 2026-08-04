@@ -508,6 +508,7 @@ pub fn assert_complete_warm_cache_coverage(record: &Value) -> Result<(), Vec<Str
         }
     }
     for key in [
+        "re_upload_bytes",
         "re_uploads_started",
         "re_uploads_finished_successfully",
         "re_uploads_finished_with_error",
@@ -557,8 +558,11 @@ pub fn assert_writer_seed_record(record: &Value) -> Result<(), Vec<String>> {
     let mut findings = Vec::new();
     match record.get("exit_result_name").and_then(Value::as_str) {
         Some("SUCCESS") => {}
-        Some(value) => findings.push(format!("writer seed had non-success exit_result_name={value}")),
-        None => findings.push("record-shape violation: exit_result_name missing (fail closed)".to_string()),
+        Some(value) => findings.push(format!(
+            "writer seed had non-success exit_result_name={value}"
+        )),
+        None => findings
+            .push("record-shape violation: exit_result_name missing (fail closed)".to_string()),
     }
     for (key, expected_positive) in [
         ("run_local_count", true),
@@ -602,7 +606,11 @@ pub fn assert_writer_seed_record(record: &Value) -> Result<(), Vec<String>> {
             )),
         }
     }
-    if findings.is_empty() { Ok(()) } else { Err(findings) }
+    if findings.is_empty() {
+        Ok(())
+    } else {
+        Err(findings)
+    }
 }
 
 /// Assert a build had ZERO cache participation (the canary's from-empty proof):
@@ -1101,6 +1109,22 @@ mod tests {
         assert_eq!(report["run_action_cache_count"], 3);
         assert_eq!(report["cache_upload_count"], 2);
         assert_eq!(report["build_class"], "dev-agentic-iteration");
+    }
+
+    #[test]
+    fn writer_seed_requires_local_execution_and_successful_uploads() {
+        let document = record_fixture(0, 0, 2);
+        let record = invocation_record(&document).unwrap();
+        assert!(assert_writer_seed_record(record).is_ok());
+
+        let mut no_bytes = record.clone();
+        no_bytes["last_snapshot"]["re_upload_bytes"] = json!(0);
+        let findings = assert_writer_seed_record(&no_bytes).unwrap_err();
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.contains("re_upload_bytes=0"))
+        );
     }
 
     #[test]
