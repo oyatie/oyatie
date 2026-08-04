@@ -323,7 +323,7 @@ jobs:
       - name: buck2 test ${{ matrix.crate }}
         shell: pwsh
         # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
-        run: '$targets = "${{ format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }'
+        run: '$targets = "${{ format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; if ("${{ matrix.crate }}" -eq "scm-facts-snapshot") { & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }'
 
   # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
@@ -546,7 +546,7 @@ jobs:
       - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
         run: |
           set -euo pipefail
-          rustup toolchain install
+          rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')"
           rustc --version
       # Buck2 runner state is deliberately cold and ephemeral (ADR-0554 D10). The 2026-08-01
       # incident proved a 6.37 GB whole-tree actions/cache archive can cross the owned node's
@@ -581,8 +581,7 @@ jobs:
           # --unstable-write-invocation-record is additive observability only: it
           # writes buck2's structured run record (cache_hit_rate, run_* counters)
           # for the telemetry step below and changes nothing about the build.
-          buck2 test \
-            //ci/... \
+          buck2 test //ci/... \
             //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential \
             --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json
       # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
