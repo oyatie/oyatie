@@ -1,0 +1,1952 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "authority": "archive-only; non-authoritative; masterplan_v2 and live Git/GitHub remain current truth",
+  "file_count": 271,
+  "files": [
+    {
+      "bytes": 21339,
+      "classification": "team-hygiene-receipt",
+      "path": ".omx/reports/team-commit-hygiene/execute-the-three-dis-023e60eb.context.json",
+      "scope": "resume",
+      "sha256": "09ac107216ab65ca331a93a5ef33022f5963c9e632aa228790bf00140957bbec"
+    },
+    {
+      "bytes": 11098,
+      "classification": "team-hygiene-receipt",
+      "path": ".omx/reports/team-commit-hygiene/execute-the-three-dis-023e60eb.ledger.json",
+      "scope": "resume",
+      "sha256": "87c56a4df5b793aaee31ef527d6bbad628c65e3b1f31499a1330e443c8ac85b8"
+    },
+    {
+      "bytes": 15739,
+      "classification": "team-hygiene-receipt",
+      "path": ".omx/reports/team-commit-hygiene/execute-the-three-dis-023e60eb.md",
+      "scope": "resume",
+      "sha256": "028172be82f009f4a9bcbdb75d4face304e56cc788cf283da3260247b8f9fa5b"
+    },
+    {
+      "bytes": 21339,
+      "classification": "team-hygiene-receipt",
+      "path": ".omx/reports/team-commit-hygiene/execute-the-three-disjoint-suc.context.json",
+      "scope": "resume",
+      "sha256": "cd0546257df08fd12a862fd5e89f13ecb76d0f2fb990461b8be43ed6f32435f4"
+    },
+    {
+      "bytes": 11098,
+      "classification": "team-hygiene-receipt",
+      "path": ".omx/reports/team-commit-hygiene/execute-the-three-disjoint-suc.ledger.json",
+      "scope": "resume",
+      "sha256": "4a46f459325a979cb63b661825feddbb16071bfbdab6e5280b18c80732771e02"
+    },
+    {
+      "bytes": 15739,
+      "classification": "team-hygiene-receipt",
+      "path": ".omx/reports/team-commit-hygiene/execute-the-three-disjoint-suc.md",
+      "scope": "resume",
+      "sha256": "91cf070181139f65cb79660b4579cca954113be2f28329cc95dedabc058d7b4d"
+    },
+    {
+      "bytes": 30774,
+      "classification": "disposition-receipt",
+      "path": ".omx/tmp/receipts/root-dot-disposition-20260804.json",
+      "scope": "resume",
+      "sha256": "05cfd9e55d236b6c552741458540aa2ac07327e39ed67c0978dffba41195803c"
+    },
+    {
+      "bytes": 180674,
+      "classification": "disposition-receipt",
+      "path": ".omx/tmp/receipts/ultragoal-disposition-20260804.json",
+      "scope": "resume",
+      "sha256": "41340883bbd2fe8eee1baad7f00adb28278b15e16ff41c309b4916a02dca2ca0"
+    },
+    {
+      "bytes": 2245,
+      "classification": "notepad",
+      "path": ".omc/notepad.md",
+      "scope": "root",
+      "sha256": "3ee9a04f0371d3cee6aa41e88a7e235b4e4cbb258da7dd753b443f7bc398310a"
+    },
+    {
+      "bytes": 17345,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/arc-runner-pilot-nativelink-reachability.md",
+      "scope": "root",
+      "sha256": "4f2b3818354b1231093f52ceed3858b4894a04ad0cae95422031ad37156a1bd7"
+    },
+    {
+      "bytes": 9085,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/ci-budget-and-gate-ledger.md",
+      "scope": "root",
+      "sha256": "0b365fe474a74c2e2e01fe411fd52c0ae8a83f9d1b0442dfbc4ee476bc8c842f"
+    },
+    {
+      "bytes": 4797,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/ci-duration-root-cause-and-fix.md",
+      "scope": "root",
+      "sha256": "0e53853b58074a58fdaee1a1be8d42b8b02fd9af38a743ca4f929264955c376e"
+    },
+    {
+      "bytes": 18797,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/ci-gate-matrix-contention-durable-fix.md",
+      "scope": "root",
+      "sha256": "d29ce3e2c6418670fd49ed1e4a2efb8bca3bd369c12c780ee1db8d4cde8795a7"
+    },
+    {
+      "bytes": 11234,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/ci-portfolio-rebalance-plan.md",
+      "scope": "root",
+      "sha256": "f2a090e376419ac607c6bc3e2cae38e37ca05ae5f882c1464133b6e6273eea7b"
+    },
+    {
+      "bytes": 11686,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/delivery-harness-synthesis-2026-07-28.md",
+      "scope": "root",
+      "sha256": "2732d13e2889c90ea6766abde3654fa9836c0eba440602782afec6a18f7bf087"
+    },
+    {
+      "bytes": 11787,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/dependency-automation-ban-sunset-plan.md",
+      "scope": "root",
+      "sha256": "3cd8cb83cae8e87c230821cd52a0962977ef5940ed7ae5c8eec2f2abb9a5cca7"
+    },
+    {
+      "bytes": 16212,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/design-language-refinement-plan.md",
+      "scope": "root",
+      "sha256": "fc0f2dfc520e08b51f3ff27bdd2ff6093197669919723b76dc95694bb0c70b19"
+    },
+    {
+      "bytes": 2274,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/dispatch-protocol-architect-verdict.md",
+      "scope": "root",
+      "sha256": "439180b137c30f31cebbe2e77614774d64feff5b1ec03fd1ccf6a5931a45407d"
+    },
+    {
+      "bytes": 6362,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/dispatch-protocol-ralplan.md",
+      "scope": "root",
+      "sha256": "df5e1a2f56b281c2ba25b63e38e3703899798c5a582211c846ce80d480a563cc"
+    },
+    {
+      "bytes": 5446,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/gate-hermeticity-and-cache-safety.md",
+      "scope": "root",
+      "sha256": "963d9c63a4dc6969dfe1ec8b96fbb174bec19c704a0ed02dc4e1ea0304ad3f47"
+    },
+    {
+      "bytes": 5433,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/idea-derived-not-committed-2026-07-28.md",
+      "scope": "root",
+      "sha256": "9902eeb22ada8e3a9805c3c900e22f62426643fad70035656955d72c01a5c26f"
+    },
+    {
+      "bytes": 23722,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/kernel-os-reorg-plan.md",
+      "scope": "root",
+      "sha256": "99909ee2cc1fe2f52661f5c224fd75d7f6dfee8ff1a0cbc8095c89e43af096e2"
+    },
+    {
+      "bytes": 2935,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/open-questions.md",
+      "scope": "root",
+      "sha256": "fe4922a57aa5a6ed9860d72e9bfc6dea718d437fd365c2b8ae39fd3a8b59f57f"
+    },
+    {
+      "bytes": 5863,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/owned-ci-on-colima-talos.md",
+      "scope": "root",
+      "sha256": "6da11c98cfc2b6b2b998492f6c1aef71c5231ed79687f2aeb16c322ee84940ad"
+    },
+    {
+      "bytes": 7365,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/ralplan-inputs-delivery-harness-2026-07-28.md",
+      "scope": "root",
+      "sha256": "fcec1f62a3d2af46ffca04d15e2a607c553d9e617436ee1f23ae5bf060804afc"
+    },
+    {
+      "bytes": 33422,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/ralplan-reorg-fleet-migration.md",
+      "scope": "root",
+      "sha256": "6660347f4ee5fa7b472030fb7a480ffea7d5bd56d0837c710a9db72b073bbdb2"
+    },
+    {
+      "bytes": 6207,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/remaining-work-plan.md",
+      "scope": "root",
+      "sha256": "837d444c4d21f068ac6741ed5151970b2a256e3f5bc5d3caf232b8198d0e4990"
+    },
+    {
+      "bytes": 7101,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/reorg-completion-plan.md",
+      "scope": "root",
+      "sha256": "2a664e2d27f423e59ba530c27cfc04e7a055097f93f575b258a1bb01d5a14369"
+    },
+    {
+      "bytes": 10519,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/reorg-pipeline-consensus-plan.md",
+      "scope": "root",
+      "sha256": "e03568d2419f2453311a88e74263925d426fe120cf445036a372b6929a4fc9c8"
+    },
+    {
+      "bytes": 15959,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/reorg-state-and-next-moves.md",
+      "scope": "root",
+      "sha256": "bbcb1386444a90739c0ba0160345f6aba92fb15d13de2f660b6e997b0ee2b62b"
+    },
+    {
+      "bytes": 13001,
+      "classification": "read-only-plan",
+      "path": ".omc/plans/visibility-as-structural-enforcement.md",
+      "scope": "root",
+      "sha256": "d5182f76725852659f003b01459a510b15e35d7b5b2451118240a6cb59428e27"
+    },
+    {
+      "bytes": 5420,
+      "classification": "playbook-draft",
+      "path": ".omc/playbooks/pr-drain-playbook.md",
+      "scope": "root",
+      "sha256": "d08ef601182332509bdb458a577fd88d0442cb6029749fa28d8de4ca6858d7d1"
+    },
+    {
+      "bytes": 9795,
+      "classification": "project-memory",
+      "path": ".omc/project-memory.json",
+      "scope": "root",
+      "sha256": "cd636b31c48460f77f124f2bc1a8b8f880fbe6b8c10ee960e5cd247243ef24a8"
+    },
+    {
+      "bytes": 28188,
+      "classification": "research",
+      "path": ".omc/research/corpus-liveness-precedents-20260610.json",
+      "scope": "root",
+      "sha256": "c31de4f2dd6ecbea9f18008db721dcc1f0dbfde3c7bd95df9d7bc78f7666ad91"
+    },
+    {
+      "bytes": 231399,
+      "classification": "research",
+      "path": ".omc/research/hyperscaler-research-wave1-20260609.json",
+      "scope": "root",
+      "sha256": "527b9595b1443bbdd5c6e66b0d5997a43fb5204726983188cb11c1487516f9c2"
+    },
+    {
+      "bytes": 294259,
+      "classification": "research",
+      "path": ".omc/research/hyperscaler-research-wave2-20260609.json",
+      "scope": "root",
+      "sha256": "d953ed9c820be5fc704cf556beb2fa2e1e23e9bc382895fb9641111a752bd667"
+    },
+    {
+      "bytes": 129433,
+      "classification": "research",
+      "path": ".omc/research/repo-survey-synthesis-20260609.json",
+      "scope": "root",
+      "sha256": "bfde894480398e5c01d8feab5e5c747cab96eb4af7fbc8fd39e9872fcb079a06"
+    },
+    {
+      "bytes": 93677,
+      "classification": "research",
+      "path": ".omc/research/tree-sitter-evaluation-20260610.json",
+      "scope": "root",
+      "sha256": "6b2b8f3e9b7895d9142abc9edbe3d97600bfb542dab39aaea99a01457885b070"
+    },
+    {
+      "bytes": 33589,
+      "classification": "spec-draft",
+      "path": ".omc/specs/byname-coupling-inventory.md",
+      "scope": "root",
+      "sha256": "a79fe292f7a9b2af7e4a876832d8cf6db30be327ef51f820f20315e036a77816"
+    },
+    {
+      "bytes": 25719,
+      "classification": "spec-draft",
+      "path": ".omc/specs/deep-dive-trace-bun-fleet-delivery-benchmark.md",
+      "scope": "root",
+      "sha256": "d4a78be1abde9343cf541a9f0e1f91fe3b0a4c8e864dfcdd3a69d9d43796e8ee"
+    },
+    {
+      "bytes": 15945,
+      "classification": "spec-draft",
+      "path": ".omc/specs/deep-interview-pipeline-optimization-program.md",
+      "scope": "root",
+      "sha256": "05673892aba5dfdb68ff512c7320564571bf1b4c9e2ea66ef861259a98edc238"
+    },
+    {
+      "bytes": 22585,
+      "classification": "spec-draft",
+      "path": ".omc/specs/gate-fleet-reorg-disposition.md",
+      "scope": "root",
+      "sha256": "d3572fc5f190f4782743af59c663fd6fd0e3c9d2e856edffd19823856f50f2d6"
+    },
+    {
+      "bytes": 7623,
+      "classification": "team-brief-provenance",
+      "path": ".omc/team-briefs/g0x-substrate-lanes.md",
+      "scope": "root",
+      "sha256": "e65189f294b7da02ae3e89b87ae8ff53155ccb7b914bf460b6d7864c4ecfd072"
+    },
+    {
+      "bytes": 2789,
+      "classification": "team-brief-provenance",
+      "path": ".omc/team-briefs/g12-consolidation-lanes.md",
+      "scope": "root",
+      "sha256": "605ab9363a9ec46f9d44e2030c77ec5c614e65a33d6d6bc9d725e80ae8112541"
+    },
+    {
+      "bytes": 50,
+      "classification": "team-brief-provenance",
+      "path": ".omc/team-briefs/lane-claims/LANE-G07/claim.txt",
+      "scope": "root",
+      "sha256": "03ad266dc996b59290ef266f42adc3fcdc881b3271f09f800d98ebe647fcff75"
+    },
+    {
+      "bytes": 60,
+      "classification": "team-brief-provenance",
+      "path": ".omc/team-briefs/lane-claims/LANE-G09.claim",
+      "scope": "root",
+      "sha256": "db517d8edff42d98d315bec2b5392d64c0c0645dc0b35f85e1db1a647e6ecf88"
+    },
+    {
+      "bytes": 9779,
+      "classification": "ultragoal-brief",
+      "path": ".omc/ultragoal-brief-fd001-fabric-20260609.md",
+      "scope": "root",
+      "sha256": "aeee54ffdf0f634a4f3904dbc7d196bb08eb6dc47d2959468d7673d3c9aa6019"
+    },
+    {
+      "bytes": 531,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/environment.md",
+      "scope": "root",
+      "sha256": "069129334191853da780f3ba7e611d3f6944481674a2203494023dcf10726298"
+    },
+    {
+      "bytes": 2971,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/fd-001-ultragoal-session-2026-06-09-10-durable-record.md",
+      "scope": "root",
+      "sha256": "b399bf648d23b298af2a6fa0f693bb2a6be8901c902d60f03dcf6fd381fe54af"
+    },
+    {
+      "bytes": 3353,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/g011-glob-members-lane-shipped-session-2026-06-10-prs-661-662.md",
+      "scope": "root",
+      "sha256": "e04a445f51c1f19bbf39566b5c2ca4fa1884d4bb616b388b5560ae28d9296886"
+    },
+    {
+      "bytes": 2849,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/g011-ratchet-items-2-3-shipped-freshness-gate-664-target-parity-.md",
+      "scope": "root",
+      "sha256": "8871b22b50a67e6a53c57df8e734eecb107375d967ee14a99c20b42a1cdcc3f4"
+    },
+    {
+      "bytes": 13495,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/index.md",
+      "scope": "root",
+      "sha256": "0291bc8715f775c29f38b713180925a4281e7294a3e3796403b2603c22d0c463"
+    },
+    {
+      "bytes": 26452,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/log.md",
+      "scope": "root",
+      "sha256": "d6515e69d78aaf0dc4f4972c9beb6ae705f8f4e2a82d7e1b56f205e1b74541c9"
+    },
+    {
+      "bytes": 2852,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-2026-06-10-final-7-prs-merged-g011-ratchet-items-1-3-adr.md",
+      "scope": "root",
+      "sha256": "cf3af20684009276f6764a7ec2a8f855e447b81650efff09b93e31775a075a24"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-07fbfded.md",
+      "scope": "root",
+      "sha256": "997f28326d4bd0a4599ea1c00bc9db8a0375b2e85b3b9b1cac79f2a43c5ecb68"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-12937a7a.md",
+      "scope": "root",
+      "sha256": "6ba831a98c7dba829f8a5fed40b71c71329ce00875115cb253e6d4f0ee636ed6"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-13de84ce.md",
+      "scope": "root",
+      "sha256": "8e34fc73c5ec249fee1b7b61a785a0b08a0f9797b1b4187666ac3378a751b24c"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-163785a8.md",
+      "scope": "root",
+      "sha256": "f20e176d4729f4521657978f61e3ce63f6f744e134e5970d965f9d30b8582776"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-20662946.md",
+      "scope": "root",
+      "sha256": "5b68cb655a4cf2a9d64312f517067de79c2968f4d305cdef7b3e1fff717c0a51"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-2852b0f3.md",
+      "scope": "root",
+      "sha256": "7d4ea01d865acf717528cb7470bd5d813e49db2c939bcd6e0ce2c859bf67388a"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-3692fa3a.md",
+      "scope": "root",
+      "sha256": "8d7ed08ce93bb16f752315b160acb6b65fca8a02d3b4635884d4e3a4758484b2"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-41c0c67f.md",
+      "scope": "root",
+      "sha256": "ab0ecff7935bf61f1fb1fb41eadec3cb574fd712f351c7f6af9a4994be01f668"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-562f5df5.md",
+      "scope": "root",
+      "sha256": "bc548868116e359db0aff6cdc72a68036f42a0d118126b32a333c4e49834761f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-5e63d744.md",
+      "scope": "root",
+      "sha256": "bd4a1b9ed0338518ef8a76919f7cea409063d5c68e8e56ae2805fd821fe97b91"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-77b9a45f.md",
+      "scope": "root",
+      "sha256": "f332cb5fc28e678afa3aec9acee43b5dca8e0419028c9351f384cbc95a8cbefb"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-9a42e5c8.md",
+      "scope": "root",
+      "sha256": "b9e4c587cd21b2dc6ef1be80e7d36dee241c3490346a7189146c68d43d4deb76"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-a4bfb7d2.md",
+      "scope": "root",
+      "sha256": "d49d3066e4f58b0ce71e46266d27b2078a89b61b64b213414402597e0cfcea9d"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-b9282e2c.md",
+      "scope": "root",
+      "sha256": "8a7e7883e6f47b8e60e41b842ba2d3b44f16b2300d98e75790dac217fa481568"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-c1dc337c.md",
+      "scope": "root",
+      "sha256": "884a854e6afbdd3585cd48b5d9796c7ea93bbc4fa2fefcea1497992a4376651f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-cbd8ed7a.md",
+      "scope": "root",
+      "sha256": "b964e6f46a417db9f08024a1f570abed213475ff768275c903aac0744709fdb3"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-cd4257f6.md",
+      "scope": "root",
+      "sha256": "0f87ccff29fc132ad5d2aa2fae458c0e96f69bdc372ed9d93b056b175cf79477"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-d0dee2ee.md",
+      "scope": "root",
+      "sha256": "af937837710e107bd4362d7a419d9577c0edb508622f8dcaa5c801ae7c722af5"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-da062f20.md",
+      "scope": "root",
+      "sha256": "9c428ea9f2433b9669161ed5dbc1867a64aa8f12b685aefc22dbc1e48e1c0c04"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-e5c92b56.md",
+      "scope": "root",
+      "sha256": "1511e77a78841a1885acef03caf9049aa01ff2604bf654e87d2ada329632e198"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-10-f47baf20.md",
+      "scope": "root",
+      "sha256": "0ec23059c0a56c608c8e906f2c81006ad8796b57a53c0fdabf1a693e5d603922"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-11-708fa51f.md",
+      "scope": "root",
+      "sha256": "cffeb9d280eb4530b5c7471a62b1aa5be347948cf1cf65c1ed02d41473923c18"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-11-89ceceb5.md",
+      "scope": "root",
+      "sha256": "bcd06ee20daf4816f333e9d0507286693d022bba875d362fff2637be8394f57c"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-13-26df558c.md",
+      "scope": "root",
+      "sha256": "48e1540e2b9ce2c664eea5a89a52d5552487a4add5f2b11a5f9dfd575ba78dad"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-13-4b217cfe.md",
+      "scope": "root",
+      "sha256": "2158b2baca3ded483f5458d23056b5809d9a631dc965abaee78cc778198c6f2a"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-17-05d968f7.md",
+      "scope": "root",
+      "sha256": "6596efbdf4c36828605d87ea79c66322a3d963f3bbf33a8ab93d75f190573eb1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-17-3aa370d6.md",
+      "scope": "root",
+      "sha256": "972605401dd5382ab3bbca8284befc9fe8cf705a574515fa73a41e9c426091ba"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-17-b1001082.md",
+      "scope": "root",
+      "sha256": "d5cfaefd5b9db07559926c25ccbb1df2c393c5f45c4a53809c7777ec92848900"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-20-f7f5b902.md",
+      "scope": "root",
+      "sha256": "79030d02dc57af907e5516c2980ebcbfe3325df78a2e74c75e94946238693d8f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-24-3f6c61e6.md",
+      "scope": "root",
+      "sha256": "b49734cc1a12d1f17ae439efd54209909e539dd50b6f94de9c1445bfbb9ddf61"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-24-57cadb80.md",
+      "scope": "root",
+      "sha256": "685da431659e5adf13761e0f091b3932b0d69c7257c52d268a78ec6e7ac1dc1f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-3015d5e9.md",
+      "scope": "root",
+      "sha256": "86390291b8feaf55995dcc8c18346f8971a2c631c2069438ef3e986e4fb3f75e"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-43705d0e.md",
+      "scope": "root",
+      "sha256": "e960904274b10ea9c526cb705bd0a287b750b2ae2699100aaf5078a37608a071"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-4b217cfe.md",
+      "scope": "root",
+      "sha256": "ceecec3aef53c264e0684e734c5c6c822a27ec92e177a7435d6b4e42c31bfaca"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-4b4b18a3.md",
+      "scope": "root",
+      "sha256": "266c2e1a3516177a93cce733a7ed9a5e8e731e67c076610224d06ea5a3775be3"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-4dd9cc7f.md",
+      "scope": "root",
+      "sha256": "870b09cff3dff5eee043af99285cf9d7ae9b8aa8b5c5196655c531304d09b602"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-5d220986.md",
+      "scope": "root",
+      "sha256": "1a5eaf3e9423517e0aeb056459248a4250921522529ada3dee186f4aa2851613"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-7b4b7638.md",
+      "scope": "root",
+      "sha256": "16a69cc2009da7046fb76fce96c6ae864a7bc9bd4ca4193528c92b1210c5f419"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-a460fe27.md",
+      "scope": "root",
+      "sha256": "d9d0f63fb07339159b5848bc4526ce5c2e91f70d091f7bdfd9881d9349db638c"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-af619cf3.md",
+      "scope": "root",
+      "sha256": "833ef56a31c567a3e3dc669b85447a273fc9e57ae80f0184a3eccb62df22e0df"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-ebd8a815.md",
+      "scope": "root",
+      "sha256": "e395a01c0659490f41f931f95bb72a98b9c7c623857cc0e4bc5f5355767673f8"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-25-f948c701.md",
+      "scope": "root",
+      "sha256": "4d409357ed5489d622da6e6981080a84e149202ba70def37b48dd7e8435730bc"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-00f6ba31.md",
+      "scope": "root",
+      "sha256": "e8587fcd0328ce4ee6606c99109cabb2bc0bc427e5abbaa83a71ed15bc6e608f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-1822564a.md",
+      "scope": "root",
+      "sha256": "b225e605ab039635f86952d42a46e8ca06317337c5dc2757f0d7273a072167c0"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-19721476.md",
+      "scope": "root",
+      "sha256": "fae6ea359357fad41b876dd9d996714ba598cc35cab5c68fcc8147d77fb7d499"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-3af31947.md",
+      "scope": "root",
+      "sha256": "b08c618d2186b6e8886213e80fac610261c625b80babaf450787468d8d06e1d9"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-41fccb7a.md",
+      "scope": "root",
+      "sha256": "7ce085dc35620cb60a579c9e7899fdf89ac05ea80d81b2cd3652bd82ae200a7e"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-5a3931a5.md",
+      "scope": "root",
+      "sha256": "d899b13207e1da714102b4655ad850f7600e84c2fa49df86527e598534de92e2"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-6b8d01de.md",
+      "scope": "root",
+      "sha256": "018e9d1965e5f4612bf98dda31b2793f41a63c1e2d9f3f9317f62a51337eb3b1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-7bf9fe51.md",
+      "scope": "root",
+      "sha256": "1e119f98b599e85f000a3f4ae37c363bd87c1b5a0d0de66ed83964f13b4b86e0"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-7dbdbb15.md",
+      "scope": "root",
+      "sha256": "53f304b38e14a62a8d520db4e107d9cb699d97b663210223ad445d17de8d14ed"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-84e0820e.md",
+      "scope": "root",
+      "sha256": "70c92b2ab39a1475f93d13aed4e5a9e178f0d7e3bc97076b8370d28bda1ce53f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-9adb6997.md",
+      "scope": "root",
+      "sha256": "7ded88d7d21a00ab2c552a4232b45da7c30863178c90ca0987f6836c48eb49b1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-a24e57cb.md",
+      "scope": "root",
+      "sha256": "0526bf9b3855fee4f09657268426cb30c69ddd7472191c8f0fa65974dc9e9d6e"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-a80f2dcb.md",
+      "scope": "root",
+      "sha256": "6a40147f279b946ebcbd743bb8e804f7cd26f1fdb1bb50579608a4e38a50a9a9"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-c042e2fe.md",
+      "scope": "root",
+      "sha256": "dbc2f3bc29edf87431d295473e32fa4d6cc2e338f7688850fb5b243a8afbb06a"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-f81689b9.md",
+      "scope": "root",
+      "sha256": "4678c49f395f09cb962f3d4ffed091f7101ccb8405a3dd55f2dc04b4862a96bb"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-f9e5c422.md",
+      "scope": "root",
+      "sha256": "4b941b995f0638e2d8ecd848531400e93b2cf597cbc06ae2c0cd2be7b47a1941"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-26-fb1bf461.md",
+      "scope": "root",
+      "sha256": "dd9a7ebf248ac5f12e9ad1d2538b2e91dc3fafed2e97ae116630ef6fdf5b677d"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-27-ab7dd8a8.md",
+      "scope": "root",
+      "sha256": "760b21eb544fedca6a3db745366b17f5fd9e6d091dd64204153cbc069b24dc2c"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-28-2eeb1e68.md",
+      "scope": "root",
+      "sha256": "30b4a0346e32e3f8099f3bf376216ae8d987c578ec9dc7e8ba062ab3183c5dba"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-28-3788512a.md",
+      "scope": "root",
+      "sha256": "17badffffd705ddb434515df5dc6beeb035bbcad212b2b016287bc8a8112bf48"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-28-40991f18.md",
+      "scope": "root",
+      "sha256": "3b3f15faab47a12ea88eb90c26b0986d355bac606a46539205b2ed27cc1d7227"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-28-7de3b839.md",
+      "scope": "root",
+      "sha256": "0c8e378636fa265147d73aa6acd001f043d919fcb9502ea094efab6112cb4f0b"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-28-83e10a57.md",
+      "scope": "root",
+      "sha256": "2a4cc1bd1573c64f4df3063c1a7514b44a08c8e68294d4ef33398c60671f369d"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-28-ce0c4cea.md",
+      "scope": "root",
+      "sha256": "ec15907f324a1da287efb77a3f08f3016aec50bc085cd082ed51b33b54dd860e"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-06-29-3788512a.md",
+      "scope": "root",
+      "sha256": "ee70b7a918009de8b2097c14697f35125dc0f6e5b90cb0f4e251a513020bf3bd"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-01-2a590d26.md",
+      "scope": "root",
+      "sha256": "b67e86506a40dd6f8ec8d69655a8ca3f9ec140f502ccde02ae57ffab5b615090"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-01-4c99cb40.md",
+      "scope": "root",
+      "sha256": "60ac020846f26e784687a25dc2dc713645d84eb1ad53502f055bae9796b9b8db"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-01-763a74f6.md",
+      "scope": "root",
+      "sha256": "ae6d3c5f8f72683629033150d32e64c4dd050a56b2dec2bdf014230c0ac8f5d6"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-01-cc07f440.md",
+      "scope": "root",
+      "sha256": "7e6420db400cd330a7e2cb718513b867351bda06352406a96bd307f307ef3bb4"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-01-cf7a7a76.md",
+      "scope": "root",
+      "sha256": "d1d435fe060a9bb25888436588568fdeaf7daad96d036cb87a9cf22cbac907f7"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-01-d14992bb.md",
+      "scope": "root",
+      "sha256": "0a5346324b62eab2742ef44bb542188ab7cb24197cb60751682b0dbb2025cb27"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-2c3903ce.md",
+      "scope": "root",
+      "sha256": "07d2bf8bc1023a20e13a0957bb14638274f2b4a8386f4708dd061a14891da76a"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-3a6771e9.md",
+      "scope": "root",
+      "sha256": "5e4c377394f6b1a752ccaec10895a31f66e007f571bfa4bf827f8f3531d371ee"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-486c7b6e.md",
+      "scope": "root",
+      "sha256": "53e751f8301e26f24aea065bea6b5cba2e215e70528bb8033bc791a5a76b02ba"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-60b8af42.md",
+      "scope": "root",
+      "sha256": "b4bb1f1977c360c8141b81a56539b3b1b5298f80c55fb4a30f1bd7f5ada3bb9c"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-69a3d629.md",
+      "scope": "root",
+      "sha256": "d3b7116361d4c320c07c5f97d0538c7a244f8a85814fac938cd00fdee5c722f9"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-74a00b41.md",
+      "scope": "root",
+      "sha256": "4561e060ea10aced29befac5b155d9815ad8a2802d76a3b3d3e264b9b4909f06"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-9f4c0706.md",
+      "scope": "root",
+      "sha256": "134afc2ce150b9a7ec0e73b8aeec37f0c17a427faa8aced219931bf5109b9f51"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-9f7dd04f.md",
+      "scope": "root",
+      "sha256": "2f4b1545495b7f0cf836e2621b652d82004b4a995204f975ca4669be3d77acab"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-aec0e510.md",
+      "scope": "root",
+      "sha256": "17c6f2e34acc8b2fa37da01d8a6b992b723d367e45559abfffd55bcb3449179f"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-c8a17e3e.md",
+      "scope": "root",
+      "sha256": "ccd8cb085765deaa92f0e8094f7c0cb59f874343d294b3c5b344b4e93d6ef9cc"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-02-d78a9038.md",
+      "scope": "root",
+      "sha256": "8f82a259dc92f27c50d01e8497b4739425583e645b059e04a8b6a024fee2ceb1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-03-47f5664c.md",
+      "scope": "root",
+      "sha256": "81271171727a301efd48155e793eb6282d1ff70baca8f877fc8c8dc6bc294552"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-03-c80bd265.md",
+      "scope": "root",
+      "sha256": "1e9d4ffef787e2f87414fd2b6bc98ef4b477d58843db45439feb1e6a6609131a"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-03-d798391f.md",
+      "scope": "root",
+      "sha256": "fcf5d207d547e52a73e76b6d2e22bb4d9a5da978e3e7535fb08471f7a892eae1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-03-f17dfcf1.md",
+      "scope": "root",
+      "sha256": "72e4da9aaa3f7b01d31e28e22cfdfb1d097b5c5d22cd7c351d29387e1610c65b"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-04-1dc384cc.md",
+      "scope": "root",
+      "sha256": "5d307e2079b18e397d651319a25e4c1790761795acf5f4150123d8c336c01a8b"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-04-47f5664c.md",
+      "scope": "root",
+      "sha256": "c99b06c268bcad84212574bc94895594b11a8af21c11b3723417c8306dca38ad"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-04-9f186f9f.md",
+      "scope": "root",
+      "sha256": "be1dd1a62174700bfb10698c25b5e0a4ab2c1f95da35ed5f3ba264c33ec1b197"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-0169ac38.md",
+      "scope": "root",
+      "sha256": "f8e08107a9293a95d25c96e83f2c19bd206997c4feb8d26af2e4009794840ad3"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-146892d9.md",
+      "scope": "root",
+      "sha256": "7480552ea5e2bfdaba005ac5ca312aa041d1c184e851b1fc709d9e6d103af977"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-60830ae7.md",
+      "scope": "root",
+      "sha256": "4e7745f11be91d29f90db0958c6c1ba40b8cc67ed5e3e7936ae96363e67869ab"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-c26514fe.md",
+      "scope": "root",
+      "sha256": "5d07d65c8a4fbd70fd65213c8c1ad5dac98bb8c831b14ca3f10deab7af09dc61"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-c8a7ee86.md",
+      "scope": "root",
+      "sha256": "fa87aad0a50d54a91158280a1e909b1f4fc707a1c9d51a9863e47530da8b0d34"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-e0c66d02.md",
+      "scope": "root",
+      "sha256": "255cc5393b825ad100d9c50a7f70c38e880420b11feb00dd825fd6df46a82ee6"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-09-f67e5f2f.md",
+      "scope": "root",
+      "sha256": "b2531bebfde54b5426516a138a79973a199c6d223e1eeffdd044009af34837ed"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-004649f1.md",
+      "scope": "root",
+      "sha256": "eec0ba57aed60ea9b11c6aaa384dc6723b2571c9c25bf8a1f76d16e16a59be29"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-0e32645e.md",
+      "scope": "root",
+      "sha256": "0c97ebc6b6218005e97b7f84d066d767b00aaf07f6b6163a3b02440572444c84"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-10434e89.md",
+      "scope": "root",
+      "sha256": "1767dc03841b80ce5356605c71e53f1a35a7faeabda039120ef45e286ff6bbef"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-194ebe86.md",
+      "scope": "root",
+      "sha256": "274a79bbd65ff0b88c0588533998ab594e85e0ece8b1d1ece690e6e3629640a7"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-1fbbe0f7.md",
+      "scope": "root",
+      "sha256": "4f9251a751a9aec5eeaaf2a5e78e58437f0114694939fc5c9a02a206a38f6ef9"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-2bd73cf9.md",
+      "scope": "root",
+      "sha256": "587c27d9326995f09fe82b8378310d1910d1fb9ff7bb50858b0c9b72a432d0b3"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-3aa86b8c.md",
+      "scope": "root",
+      "sha256": "e051e2266c07545794cb445eeb5ea3b78175dc9c4a9b65860daf396c7eeb48cf"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-4cfd2c29.md",
+      "scope": "root",
+      "sha256": "37a97c43181b02a02ae789c681a95d90a376d5c1e35cdbdd24f136145df19778"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-5623744c.md",
+      "scope": "root",
+      "sha256": "83afffcafd1f92a464bf8af9675ce8d713199dbfd84f7d4029a87fdf860842d1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-5ca8b26d.md",
+      "scope": "root",
+      "sha256": "847a077f4011fefec165781f74e177ecdaaddb96a60303709af52b776ebd4426"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-69603190.md",
+      "scope": "root",
+      "sha256": "4c95d07419297f0e0e958e4a748bb72bbacd43c4f826a1f3aded042c32173a53"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-6d124a6e.md",
+      "scope": "root",
+      "sha256": "80f9bc1682dd4c7ad529689b2a2dd0de5c63cc6db771d9062a932eab8eadabe1"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-71587357.md",
+      "scope": "root",
+      "sha256": "8b73a183ee6507c1360cf312ee2e75ceb1fee914a363bc5138a38aa988e582e2"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-759bf1ff.md",
+      "scope": "root",
+      "sha256": "dc9f6abacf77271be7777cf2ac15c3457c63f108ef46127703769ec9026394b9"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-781e6d2e.md",
+      "scope": "root",
+      "sha256": "9b7b17e7d7cdd0bc2ef28b409a2d9869a45d53a0e4dbf59c626cc0a730598db5"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-a15a3f69.md",
+      "scope": "root",
+      "sha256": "9ba4a5e8f395c6946c722c44510d8563187fedc20578dd33270d799269f7819c"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-a42c70fa.md",
+      "scope": "root",
+      "sha256": "1539aa75345d28abb9c88d577c23e2710feb1863340aa910cc53676072033ea5"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-a858aa25.md",
+      "scope": "root",
+      "sha256": "2ed7c923217506d8c966e8c52d94c8f0166b7a7ee859ba00434c94922dd3e913"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-b984df94.md",
+      "scope": "root",
+      "sha256": "7beba3a0237771ad74166c01d46974301d3e9de400cc72258ed954752e89470d"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-d322be92.md",
+      "scope": "root",
+      "sha256": "401d68243e8546a55153392b2242875ed887ce2bdfcf9f009f38132d96bc0c7b"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-10-e4675d32.md",
+      "scope": "root",
+      "sha256": "de893ba750820c6aa5e7b966cf3a03605a8ad856c4b8738bfe3ff1ebe2d3cdae"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-11-0d0b42f7.md",
+      "scope": "root",
+      "sha256": "aee84ddb3625e38a61a62714f392040c8660425cbf343f098142e1a8ad35cb98"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-11-79032724.md",
+      "scope": "root",
+      "sha256": "da62f072d2ab46b2be3ffac858d2f71d524a714575ce6aa2aad9bfed0235f43b"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-11-d0c5d835.md",
+      "scope": "root",
+      "sha256": "6cad4ef0b41b6e391322adf832ac731b0fc924d76c3da363a2f1e83c9833822b"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-12-a3673159.md",
+      "scope": "root",
+      "sha256": "9f36609f2bdce7dd00cee72165980108d9b806845d9ae822eefeafc0fb5388c4"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-12-ef470daa.md",
+      "scope": "root",
+      "sha256": "e37193a9c2757096e55af6fc7c20427322ec92b1ae60e46dc01cd738d6dddf71"
+    },
+    {
+      "bytes": 455,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-14-d6c5c659.md",
+      "scope": "root",
+      "sha256": "def8a478cf7645c1e4ee4b15beba6e236a6eb9bbf85385ed53095df81a8c0126"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-20-7c94f608.md",
+      "scope": "root",
+      "sha256": "c78ac23cf2e0cfa3ac2bb0019c40e768e51a98ad9579561349e7a649b42e20fc"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-26-6ca8d769.md",
+      "scope": "root",
+      "sha256": "f24cc6dde3666b78a4fcfe425f5281e57aa381a7db45310e96263bce3dbfe4b9"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-27-41362741.md",
+      "scope": "root",
+      "sha256": "d5321ba2056e6b47e533cd7497f705f9cd00beeb8ef3a0f6bdba4f1fd77dd64f"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-07-27-763e2260.md",
+      "scope": "root",
+      "sha256": "a222f9a949485df5cb960b255a2448c853ce7fbc9895ae664956543cc06f5970"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-02-1cfa5064.md",
+      "scope": "root",
+      "sha256": "a29f962c0a5652b9593bf498fe4c051d7bab840ec913843e838685cca8c1f5e5"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-02-49b245a4.md",
+      "scope": "root",
+      "sha256": "fad31e0b501e9577edae629a6d64c5ac227bbe1fe85a73fd7d1f1d10086afb14"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-02-61c91f04.md",
+      "scope": "root",
+      "sha256": "952a801607304c29be29e9c9e1ba6bfa2b3ff88716e94817334ca38a4968152a"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-03-097cda0a.md",
+      "scope": "root",
+      "sha256": "e5b63ab566e80af31baf44650d64bd11b1580a84c99fe5fc91dc7f1887930654"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-03-3a48ef47.md",
+      "scope": "root",
+      "sha256": "d0264ecb09edf1199a4c74748f4a4a4263d0bee5f1ee043fac589bb58f842617"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-03-3e029482.md",
+      "scope": "root",
+      "sha256": "12852cdb0c9e260a953fcec503d3300c4b47e11df5d58bf6ba51c5ae783e2008"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-03-50be8789.md",
+      "scope": "root",
+      "sha256": "9782420065efe4527d92fe6b69bd1a15f56860a42eab1e46b1eafd0ac0d918f7"
+    },
+    {
+      "bytes": 546,
+      "classification": "wiki-provenance",
+      "path": ".omc/wiki/session-log-2026-08-03-6a3313a5.md",
+      "scope": "root",
+      "sha256": "4c8575681418fe7f1acd56c0f5e075d78e9f204aa613ff266ab61a2452470b51"
+    },
+    {
+      "bytes": 860,
+      "classification": "advisory-artifact",
+      "path": ".omx/artifacts/ask-claude-b0-fresh-dissent-20260713T193439Z.md",
+      "scope": "root",
+      "sha256": "9a0384b1f2c03cea3fe9a3ea191da8a2a89811d78df647330dcb894a8951ab6f"
+    },
+    {
+      "bytes": 793,
+      "classification": "advisory-artifact",
+      "path": ".omx/artifacts/ask-gemini-b0-fresh-dissent-20260713T193439Z.md",
+      "scope": "root",
+      "sha256": "15ac12d8ff75665744ca8f9e31575e31f9608c5279ec6f018513efdb3a84c246"
+    },
+    {
+      "bytes": 1288,
+      "classification": "advisory-artifact",
+      "path": ".omx/artifacts/preplanning-founder-decision-ledger-20260713.json",
+      "scope": "root",
+      "sha256": "39a27562315abd9e1a3bfc24a260be1ee401bda6bb664d745eef131f059fc9b6"
+    },
+    {
+      "bytes": 2541,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-blockers-and-defer-decisions.md",
+      "scope": "root",
+      "sha256": "30a3a981517d81817c31b27e2a5dd013502ebe926eabe513ac63a71f21d46d21"
+    },
+    {
+      "bytes": 12566,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-intake-collision-map.md",
+      "scope": "root",
+      "sha256": "3b0e5d9744a26aad59108ca49ba2de7a25041f669be06e68b97c6beb3abddff6"
+    },
+    {
+      "bytes": 1658,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-post-prune-summary.md",
+      "scope": "root",
+      "sha256": "9bfec810921e0074996bd0f95b236fcd157f52f94c83ff2a62c4a2953b0d9dbb"
+    },
+    {
+      "bytes": 4982,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-prune-candidates.sh",
+      "scope": "root",
+      "sha256": "447507f852bbfdde2eb47da4480d24bd0d374cb5b5219c1d2487aacaa32e8587"
+    },
+    {
+      "bytes": 4151,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-prune-clean-branch-no-pr-worktrees.sh",
+      "scope": "root",
+      "sha256": "5d589e31207583c95c917e9f307fb7eb7d32304cf570a52cc3e2ce32cf1ab6ac"
+    },
+    {
+      "bytes": 2814,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-root-dirt-classification.md",
+      "scope": "root",
+      "sha256": "fdcc90e158e26cfbc3e4e807afb67844b79708538aae1c015bf368cda6ca561d"
+    },
+    {
+      "bytes": 14185,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g002-worktree-prune-preserve-plan.md",
+      "scope": "root",
+      "sha256": "b17f88891d715276298be02972feacbc7cb7b01799b2141b0b925382f44c879e"
+    },
+    {
+      "bytes": 4353,
+      "classification": "team-ledger-provenance",
+      "path": ".omx/team-ledgers/g015-wave-a-team-ledger.md",
+      "scope": "root",
+      "sha256": "efbdb5c2df6d0fa7e15707e996f4cdc4fb5a594a93860a14eaf44ac5f0c5f515"
+    },
+    {
+      "bytes": 16374,
+      "classification": "talos-preservation-verification",
+      "path": ".omx/tmp/reports/talos-preservation-method-verification-20260804.md",
+      "scope": "root",
+      "sha256": "7fe31647f647abda8d41544dfc645095528d6491ce6a7bef22be124309f46134"
+    },
+    {
+      "bytes": 9319,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G026-APPLICATION-CONE-OWNER-SPLIT-2026-08-02.md",
+      "scope": "root",
+      "sha256": "c4554f135e2819dc77a601f7e150edaeec32d7c801da48ca71b748d0cdf2f0b8"
+    },
+    {
+      "bytes": 4684,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G026-APPLICATION-UNRESOLVED-OWNER-PACKET-2026-08-02.md",
+      "scope": "root",
+      "sha256": "f51b77d44d33b8b0fc17d09c7b5e157d948066c17b48a79f1f94b6d99bd2d217"
+    },
+    {
+      "bytes": 6011,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G026-CONSOLE-SHELL-MARKETPLACE-PLUGIN-PLACEMENT-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "321d945e702f64199ba271a808798540ccdc88ff90db2a673b89bcd95f052a3c"
+    },
+    {
+      "bytes": 6728,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G026-WORKSPACE-API-FACADE-COLLISION-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "c446d0ece697ca6f7e9d594711c2b7204f3ee4c49c7f830f172bfedaf24e6fec"
+    },
+    {
+      "bytes": 3954,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-ARC-ADOPTION-REPOSITORY-FACTS-2026-08-02.md",
+      "scope": "root",
+      "sha256": "bafa45cda6eba43b4a27784de006889294ee2aaf80296ce5fc27ecdfcdf41f10"
+    },
+    {
+      "bytes": 4612,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-BOOTSTRAP-REPOSITORY-FACTS-2026-08-02.md",
+      "scope": "root",
+      "sha256": "89fba8dc625ef01f8319a1c99404023a6f783682ec8d04e49b538e4b6ee112c3"
+    },
+    {
+      "bytes": 5425,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-CLASS-B-INDEPENDENT-REVIEW-2026-08-02.md",
+      "scope": "root",
+      "sha256": "988060b87389ec2e713ca26477c7d14b05a6d156922595da69fa3d128065729f"
+    },
+    {
+      "bytes": 13484,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-CLASS-B-PERMANENT-LAB-GITOPS-DESIGN-2026-08-02.md",
+      "scope": "root",
+      "sha256": "91edc0c93658d6bb0d9ab9897fb040b38a1da9f4a8bb26ffddba0a14fb34ffd4"
+    },
+    {
+      "bytes": 12131,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-CLASS-B-V2-STAGED-ARC-ADOPTION-DESIGN-2026-08-02.md",
+      "scope": "root",
+      "sha256": "291f1d6c4478bffaaace00a1b4be147f0491fa8aa0b9763e53eb7d702a026dbe"
+    },
+    {
+      "bytes": 11287,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-GITOPS-BOOTSTRAP-GAP-2026-08-02.md",
+      "scope": "root",
+      "sha256": "c592acd44a840296bb3b53c5f8234e020447fc8be271103d0845aff86bd046ac"
+    },
+    {
+      "bytes": 3598,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-PR-PACKAGE-2026-08-02.md",
+      "scope": "root",
+      "sha256": "10018dc1617a54d90d7da2c664d687694be3fab1540f0a56db1ebf9e7fcbbffa"
+    },
+    {
+      "bytes": 5478,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G028-TIP-FULL-CORPUS-YAML-FACTS-FORENSICS-2026-08-02.md",
+      "scope": "root",
+      "sha256": "41f35a80c86c64832d9b6be8a8a48bfff6214c3f8c61ef725afac31784d0347c"
+    },
+    {
+      "bytes": 7933,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-F-FIXTURE-CONTRACT-EXPANSION-2026-08-02.md",
+      "scope": "root",
+      "sha256": "bb793ffc16f97df7fbbddc8a4a9b83b8aed9788f7a584531b924e924ba15d039"
+    },
+    {
+      "bytes": 5971,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-G-RECONCILED-SEMANTIC-CENSUS-2026-08-02.md",
+      "scope": "root",
+      "sha256": "6c7105e6bde1aa98276afd59391ec8e790a5b9b846244396617a2601315a619e"
+    },
+    {
+      "bytes": 8855,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-H-REORG-PLAN-CONSUMER-LANDED-RETENTION-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "08c3ac38a1a1cceea6d61ca43f40473bceea5ea821a045bc74fc8426b6643cf3"
+    },
+    {
+      "bytes": 7143,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-I-LOOP-RECOVERY-PATTERN-EMPIRICAL-CONSUMER-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "11f7b638a258e02a0492e966ee756f2b0d22d9938866d1f58d9dacd9360a75e9"
+    },
+    {
+      "bytes": 6987,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-J-ACCOUNTS-REGISTRY-CONSUMER-CONTRACT-DIVERGENCE-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "936e44f0acc77bf411f975f474d9f8b91793bdb988d1153bdc764dec616bf5a6"
+    },
+    {
+      "bytes": 8683,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-K-DESIGN-SYSTEM-RESIDUAL-CONSUMER-CATALOG-GAP-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "a537a304b2b24c95f42467d0e004a80fdc4ca688a2d1108eea5d8b34fe9060d5"
+    },
+    {
+      "bytes": 7842,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-L-VCS-REGISTRY-LIVE-READER-FROZEN-COMPANION-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "801ee981b04958513de7dd075bf0a7bf6acf111c053680ef9b5939fcc05eab64"
+    },
+    {
+      "bytes": 9023,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-M-FOUNDATION-BYPASS-AND-CAPABILITY-TEMPLATE-CONSUMER-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "73143e2c8201f0267c49f4768341194f3b6bf917dc0588b56cc6bf125136b9bf"
+    },
+    {
+      "bytes": 8948,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-N-CAPABILITIES-AND-RELEASE-REGISTRY-CONSUMER-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "aa0db907e50b6353bde13c9d81142cc10f374cc7afe6fc0ae039e97157b7133d"
+    },
+    {
+      "bytes": 6218,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-O-CHECK-EMPIRICAL-EVIDENCE-EXISTENCE-CONTRACT-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "eb78a9e47c5574a08afc5bb460fe41c8701e2c7006f2306ca0277eb9f73d16fe"
+    },
+    {
+      "bytes": 10259,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-P-SINGLETON-REGISTRY-RESIDUAL-CONSUMER-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "a869fdb193b33754402b306c86e2a1c54cd639748813952629eaed97da9f188b"
+    },
+    {
+      "bytes": 6611,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-Q-LIFECYCLE-CONFIG-ALL-CONSUMER-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "ab22b98cbb8676b9126b612161e07bb7a9da7b23e34b9ad5bd769e2ad4e60623"
+    },
+    {
+      "bytes": 6899,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-R-RESIDUAL28-CONSUMER-PROOF-2026-08-02.md",
+      "scope": "root",
+      "sha256": "f7a813e4bcc9f597387bcb09385565e1cf297f04efa9e44159f5f6d35928c4b0"
+    },
+    {
+      "bytes": 4250,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-S-EARLIER-RETAINED-SPECS-JSON-CANONICAL-GATE-CORRECTION-2026-08-02.md",
+      "scope": "root",
+      "sha256": "c8a488d7f22ca79a76143143d171d6800409e564e670fa188aa6a7f48b040358"
+    },
+    {
+      "bytes": 5070,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-T-REMAINING-PROTECTED-QUEUE-INVENTORY-2026-08-02.md",
+      "scope": "root",
+      "sha256": "8ff9498750995d75148161e0291727386ec82f2bc5ba874b43d6b6d76d79fc61"
+    },
+    {
+      "bytes": 5164,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-U-EXACT-RESIDUAL-FIXTURE-INVENTORY-2026-08-02.md",
+      "scope": "root",
+      "sha256": "5a48d3629040c924e154cad833ff8983c2bf20acbeed07a7c796bebfff7db402"
+    },
+    {
+      "bytes": 7553,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G030-V-RESIDUAL13-OWNER-RULING-QUEUE-2026-08-02.md",
+      "scope": "root",
+      "sha256": "40558ee1728104038361e48e7f5b3962916f728feb01cfbaf9f5e2c3a52acb46"
+    },
+    {
+      "bytes": 6065,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G036-EXACT-48-KERNEL-PROTECTED-CONTEXT-GAP-2026-08-02.md",
+      "scope": "root",
+      "sha256": "d5aae638c7844a911c6f1c03dfe459fd55101bfc29a0ec304a1fb1f89224645a"
+    },
+    {
+      "bytes": 11135,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G036-MULTI-ROOT-SELF-CONFORMANCE-DESIGN-2026-08-02.md",
+      "scope": "root",
+      "sha256": "70361f7f8480733059fd54101d0656a5d02b791476f965b437cfcf3e75d5679b"
+    },
+    {
+      "bytes": 7191,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/G037-B-HATCH-OWNER-DISPOSITION-PACKET-2026-08-02.md",
+      "scope": "root",
+      "sha256": "549daa271d5f451df65aecd355272d8f7469856e1d1948cd888b310ff3c4454a"
+    },
+    {
+      "bytes": 4915,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/OWNER-DECISION-G028-ABC-LIVE-22GI-2026-08-02.md",
+      "scope": "root",
+      "sha256": "68ef1267e14fda544d74bf9bf42771734c73dae70c21cf492d1f364854a62cc8"
+    },
+    {
+      "bytes": 31452,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/STATUS-2026-08-02-RESUME.md",
+      "scope": "root",
+      "sha256": "625c609f990b28cd54f0308a9ecdf0d238f3a8ebceb061c2292626a078f56b1c"
+    },
+    {
+      "bytes": 894,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/brief.md",
+      "scope": "root",
+      "sha256": "dac138e95e12604dc4245fa9324587fd1395cd660d171c183d02743f0bc39df7"
+    },
+    {
+      "bytes": 1365,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/checkpoint-rejected-paused-pr967-pr968-20260628T100540Z.json",
+      "scope": "root",
+      "sha256": "689f17368ff3d0a693d25fceb1782be7e5d4bb67c4123fd9351bbfb0318a6bc0"
+    },
+    {
+      "bytes": 1173,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/checkpoint-rejected-paused-retry-20260628T100655Z.json",
+      "scope": "root",
+      "sha256": "b71a89fe74c7f29baa79b1f7bde293a2bdd27591fd717e29aab4fe24ab1490c1"
+    },
+    {
+      "bytes": 1200,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/checkpoint-result-paused-retry-20260628T100759Z.json",
+      "scope": "root",
+      "sha256": "1aebd309bc8c3035e1c392b4d1b493e1fe39be0203b6cc406776d81a1dacd085"
+    },
+    {
+      "bytes": 67,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-20260626T224439Z.json",
+      "scope": "root",
+      "sha256": "cd576cf3447f1ac82ebc973d92664e3f3cfdf76cc39e26eeb5e5e3f902e545b9"
+    },
+    {
+      "bytes": 67,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-20260626T2305Z.json",
+      "scope": "root",
+      "sha256": "cd576cf3447f1ac82ebc973d92664e3f3cfdf76cc39e26eeb5e5e3f902e545b9"
+    },
+    {
+      "bytes": 430,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260626T2246Z.json",
+      "scope": "root",
+      "sha256": "4805b9c76824293c222c15a9d98fd09fe80f698e58f6648dead529a834c529bc"
+    },
+    {
+      "bytes": 432,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260626T2258Z.json",
+      "scope": "root",
+      "sha256": "574a8ad5230fe24c781f17144a736d153c4fd3de5a47bf4d39498a19e2f740f8"
+    },
+    {
+      "bytes": 432,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260626T2300Z.json",
+      "scope": "root",
+      "sha256": "61fd98d74aa625c86b9c1e1c623b3fb6e7084685badfac461ad5d1fc8985c910"
+    },
+    {
+      "bytes": 432,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260626T2306Z.json",
+      "scope": "root",
+      "sha256": "af524c4d8ec9074fa69e72a8c91cc712c1670c629bd6f1077edbb13a9770d595"
+    },
+    {
+      "bytes": 433,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260626T2310Z.json",
+      "scope": "root",
+      "sha256": "9a62f4f34124178efa9e8eb55132bbe91a1d790a44c965d04b2c4e486c34e93f"
+    },
+    {
+      "bytes": 434,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260626T2324Z.json",
+      "scope": "root",
+      "sha256": "202361b26a8154eb0a722e4a89cb7275cae01581839291d00ecb572083d0601f"
+    },
+    {
+      "bytes": 529,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260627T0037Z.json",
+      "scope": "root",
+      "sha256": "d167cd4ee14b315bc41bf440866d42fa8837405f92d0d3cdd238810b9e44d906"
+    },
+    {
+      "bytes": 493,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260627T0111Z.json",
+      "scope": "root",
+      "sha256": "1409b66aa82f5def9669b3f09bb113085b05e9a37276805698b3cee68e4bd32e"
+    },
+    {
+      "bytes": 436,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260627T2056Z.json",
+      "scope": "root",
+      "sha256": "134d335def2d1501369aafa6b3fee3d418872e2cf924a29c079399d3e9ed8cd5"
+    },
+    {
+      "bytes": 494,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-20260627T2211Z.json",
+      "scope": "root",
+      "sha256": "1843b9c1952ad4efad5e6c2cedb000d227a67e23440ee00f11ef9f1972a023c9"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-pr943-20260627T1150Z.json",
+      "scope": "root",
+      "sha256": "f2c5264528055651885d1524f524b0720e5dcd4d977fe2523aea9ec2ecf5396a"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-pr944-20260627T123036Z.json",
+      "scope": "root",
+      "sha256": "8eaef492819068e0fcfb543aa4188f07a2927f3a124663a71ad8b4cd4da68193"
+    },
+    {
+      "bytes": 553,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-pr956-20260627T224305Z.json",
+      "scope": "root",
+      "sha256": "8462a56c10c568e29b87d17baf1c95451b33d9e1c31bfda442b5cf738f03b251"
+    },
+    {
+      "bytes": 494,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-pr961-20260628T032940Z.json",
+      "scope": "root",
+      "sha256": "b012eb8e80089e1c492f268f012f47c3d30c4dd3ac5e6e2a03444123fbd6e942"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-pr962-pr963-20260628T045616Z.json",
+      "scope": "root",
+      "sha256": "a83838b81d4943aa8b6410e7887b4980a40eee3160421e59f61b3d6a468c3b5b"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T1152Z.json",
+      "scope": "root",
+      "sha256": "8585c1e9faf00614b22963402e6dce0bfd9f6684f5b4f8a4be87dffb7f8e34cb"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T1154Z.json",
+      "scope": "root",
+      "sha256": "cf5483bc350765527c10b945a887c4fabae6104b776388e77b4aef6cb883bd91"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T115545Z.json",
+      "scope": "root",
+      "sha256": "04a6ada0c1c1858e70e44fe40f33bc67868d4aa00302ef7d8da281aafca42909"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T1155Z.json",
+      "scope": "root",
+      "sha256": "8a79033e33031c8150c8bca6df357badf4882076ab3951a4df7bd25eb630c3fe"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T115938Z.json",
+      "scope": "root",
+      "sha256": "7190a6fdf290bb59357583b75df36569b343307204993d3e99551895d19bb041"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T120020Z.json",
+      "scope": "root",
+      "sha256": "da64836b1a9bdfc851b24bd2b47d041fc521c299477e0e9ea12a3c4211d76592"
+    },
+    {
+      "bytes": 495,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-active-repeat-20260627T120126Z.json",
+      "scope": "root",
+      "sha256": "018b8f60833dcb7a3fdd799643fee7166a3c116a78eda5c2e3c694df1f6087dc"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-paused-pr967-pr968-20260628T100540Z.json",
+      "scope": "root",
+      "sha256": "6a735b532a571a8bf0e302abc28a096ebd21cab37ae20017a3d103778fab24f1"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-paused-retry-20260628T100655Z.json",
+      "scope": "root",
+      "sha256": "6a735b532a571a8bf0e302abc28a096ebd21cab37ae20017a3d103778fab24f1"
+    },
+    {
+      "bytes": 437,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/checkpoints/get-goal-paused-retry-20260628T100759Z.json",
+      "scope": "root",
+      "sha256": "6a735b532a571a8bf0e302abc28a096ebd21cab37ae20017a3d103778fab24f1"
+    },
+    {
+      "bytes": 54420,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/goals.json",
+      "scope": "root",
+      "sha256": "9e81318944dd19ddf6a11eb9ab95dfdfbe769b7e2f41563285053847c766a0ee"
+    },
+    {
+      "bytes": 35108,
+      "classification": "ultragoal-provenance",
+      "path": ".omx/ultragoal/ledger.jsonl",
+      "scope": "root",
+      "sha256": "bd0838837a508be6a54fe07805ee0621b04f42f2bbf15d59698a2c6c5bbf29d4"
+    },
+    {
+      "bytes": 21492,
+      "classification": "worktree-cleanup-provenance",
+      "path": ".omx/worktree-cleanup/manifest-20260625T120933Z.json",
+      "scope": "root",
+      "sha256": "ac1af664e114074cd2d81f85278ec705399cb2ca7e690a99e7e9d10a800b96cb"
+    }
+  ],
+  "record_class": "prewipe-curated-agent-context-archive",
+  "record_id": "prewipe-curated-agent-context-20260804",
+  "recorded_at": "2026-08-04T03:38:59.479621Z",
+  "security_scan": {
+    "claim_ceiling": "Files with any strong-signature finding were omitted. This is a bounded scan, not proof that arbitrary prose contains no sensitive data.",
+    "matched_file_count": 2,
+    "matched_files": [
+      {
+        "findings": [
+          {
+            "category": "exposed_commit_short",
+            "line": 19
+          }
+        ],
+        "path": ".omx/context/prewipe-consolidation-20260804T022812Z.md",
+        "source_scope": "root"
+      },
+      {
+        "findings": [
+          {
+            "category": "exposed_commit_short",
+            "line": 16
+          }
+        ],
+        "path": ".omx/context/prewipe-consolidation-resume-20260804T024330Z.md",
+        "source_scope": "resume"
+      }
+    ],
+    "scanner": "bounded strong-signature pre-copy scanner v1",
+    "secret_values_emitted": false
+  },
+  "selection_contract": {
+    "excluded": [
+      "runtime state and sessions",
+      "logs and caches",
+      "build outputs",
+      "generated JSON",
+      "Talos machine configuration and installation-media secrets",
+      "files matching strong secret signatures or exposed-commit literals"
+    ],
+    "included": [
+      "current research/design/plan/spec/playbook/team-brief/wiki context",
+      "selected OMX ultragoal/team-ledger/advisory/worktree-cleanup context",
+      "current prewipe contexts, team hygiene reports, and disposition receipts"
+    ]
+  },
+  "source_baseline": "origin/dev@ee389362f76681a2ab45a2f531f09180a1993460",
+  "total_bytes": 2047397
+}

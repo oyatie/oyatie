@@ -1,0 +1,14 @@
+{
+  "goal": {
+    "threadId": "019f05f4-5804-7583-a799-8eae34146ad4",
+    "objective": "Complete the durable ultragoal plan in .omx/ultragoal/goals.json, including later accepted/appended stories, under the original brief constraints; use .omx/ultragoal/ledger.jsonl as the audit trail.",
+    "status": "active",
+    "tokensUsed": 5279700,
+    "timeUsedSeconds": 22790,
+    "createdAt": 1782577147,
+    "updatedAt": 1782599938
+  },
+  "remainingTokens": null,
+  "completionBudgetReport": null,
+  "capturedFor": "PR #956 merged non-terminal G004 slice"
+}

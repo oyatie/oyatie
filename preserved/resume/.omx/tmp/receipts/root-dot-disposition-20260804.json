@@ -1,0 +1,810 @@
+{
+  "schema_version": "1.0.0",
+  "receipt_id": "root-dot-disposition-20260804",
+  "task_id": "6",
+  "observed_at": "2026-08-04T02:59:18Z",
+  "scope": {
+    "mode": "read-only-independent-census",
+    "baseline_ref": "origin/dev",
+    "baseline_sha": "ee389362f76681a2ab45a2f531f09180a1993460",
+    "canonical_checkout": "/Users/jasonlee/Developer/oyatie-team-resume-20260804",
+    "canonical_snapshot_sha": "3957c65522434e3ca49b0df9c39929914ceeda85",
+    "canonical_snapshot_tree": "68ae2cfd0c52be180ad184cebb1c9881df251b22",
+    "canonical_worktree_clean": true,
+    "canonical_ahead_of_origin_dev": 5,
+    "remote_refs_containing_canonical_head": 0,
+    "remote_refs_observed": 102,
+    "tracked_edits_by_worker_3": 0,
+    "infrastructure_mutations": 0
+  },
+  "definitions": {
+    "retain": "keep at the current path until a separately authorized migration exists",
+    "move": "preserve content but relocate through the accepted capability-first reorg",
+    "quarantine": "preserve without treating as active authority until ownership, consumer, safety, or provenance gaps close",
+    "retire": "replace/remove through an authorized lane after preservation and consumer proof",
+    "discard": "generated, absent, or reproducible local material with no unique source value",
+    "remote_reachability": "true only when the exact observed content/commit is reachable from an observed remote-tracking ref"
+  },
+  "root_families": [
+    {
+      "path": "cloud-*",
+      "origin_dev_tracked_files": 0,
+      "canonical_tracked_files": 0,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "absent",
+      "authority_consumers": [],
+      "generated_local": "none",
+      "secrets_risk": "none",
+      "classification": "discard",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "No matching top-level surface exists at the baseline or canonical snapshot."
+    },
+    {
+      "path": "cloud/**",
+      "origin_dev_tracked_files": 1478,
+      "canonical_tracked_files": 1478,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked migration inventory",
+      "authority_consumers": [
+        "specs/capability-registry.json",
+        "ADR-0562",
+        "ADR-0615",
+        "Buck2 graph"
+      ],
+      "generated_local": "source plus generated/projection artifacts",
+      "secrets_risk": "high: IaC, identity, secret-reference and deployment surfaces; filenames only were censused",
+      "classification": "move",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Preserve all bytes; migrate by capability/face rather than deleting the cloud runner/seller axis."
+    },
+    {
+      "path": "oya/**",
+      "origin_dev_tracked_files": 8216,
+      "canonical_tracked_files": 8216,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked migration inventory",
+      "authority_consumers": [
+        "specs/capability-registry.json",
+        "ADR-0562",
+        "ADR-0615",
+        "Buck2 graph"
+      ],
+      "generated_local": "source plus many declarative/generated projections",
+      "secrets_risk": "high: product IaC and secret-binding templates; no secret values inspected",
+      "classification": "move",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Preserve and decompose into registered capability faces/app compositions."
+    },
+    {
+      "path": "oya-*",
+      "origin_dev_tracked_files": 2,
+      "canonical_tracked_files": 2,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "root configuration files oya-ci.toml and oya-deps.toml",
+      "authority_consumers": [
+        "cloud-ci policy",
+        "dependency policy"
+      ],
+      "generated_local": "declarative config",
+      "secrets_risk": "low",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Active root configuration; relocate only with consumer updates."
+    },
+    {
+      "path": "infra/**",
+      "origin_dev_tracked_files": 83,
+      "canonical_tracked_files": 83,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked suspect migration inventory",
+      "authority_consumers": [
+        "ADR-0370/0371/0374/0375/0378/0379/0380",
+        "ADR-0515",
+        "contract-slice and automation-language gates"
+      ],
+      "generated_local": "declarative manifests plus nine frozen non-Rust automation files",
+      "secrets_risk": "critical: cluster, KMS, ExternalSecret, ARC and Cloudflare surfaces; no live mutation or secret content read",
+      "classification": "quarantine",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Task-3 matrix proves no long-term infra destination; retain only as quarantined bridge pending per-capability move/retire evidence."
+    },
+    {
+      "path": "tools/**",
+      "origin_dev_tracked_files": 137,
+      "canonical_tracked_files": 137,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "mixed Rust apps, hooks and vendored bridge",
+      "authority_consumers": [
+        "agent hooks",
+        "cloud-ci gates",
+        "Buck2"
+      ],
+      "generated_local": "mixed source and shell hook bridges",
+      "secrets_risk": "medium: hooks process prompts/commands",
+      "classification": "quarantine",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Keep functional Rust apps; separately retire shell/CLI hooks and move capability-owned apps."
+    },
+    {
+      "path": "bin/**",
+      "origin_dev_tracked_files": 0,
+      "canonical_tracked_files": 0,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "absent; tracked bin/oya is retired",
+      "authority_consumers": [],
+      "generated_local": "none",
+      "secrets_risk": "none",
+      "classification": "discard",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "No current bytes; do not recreate retired CLI shim."
+    },
+    {
+      "path": "buck-out/**",
+      "origin_dev_tracked_files": 0,
+      "canonical_tracked_files": 0,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "absent at canonical root; present only inside team worktrees as generated Buck2 output",
+      "authority_consumers": [
+        "Buck2 local cache only"
+      ],
+      "generated_local": "fully generated",
+      "secrets_risk": "medium: build diagnostics may echo paths/arguments; no content scan",
+      "classification": "discard",
+      "unique_useful_content_remotely_reachable": false,
+      "rationale": "Reproducible output, never source or merge evidence."
+    },
+    {
+      "path": "contracts/**",
+      "origin_dev_tracked_files": 89,
+      "canonical_tracked_files": 89,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked public/internal contract corpus",
+      "authority_consumers": [
+        "API contract SSOT gates",
+        "code generators",
+        "service consumers"
+      ],
+      "generated_local": "source/meta pairs",
+      "secrets_risk": "low",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Authoritative contract inputs; move only through contract-SSOT migration."
+    },
+    {
+      "path": "packs/**",
+      "origin_dev_tracked_files": 66,
+      "canonical_tracked_files": 66,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked localization/compliance packs",
+      "authority_consumers": [
+        "regional/localization policy",
+        "compliance gates"
+      ],
+      "generated_local": "declarative pack content",
+      "secrets_risk": "low",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Unique jurisdiction content; later home by compliance/app authority, never discard."
+    },
+    {
+      "path": "evidence/**",
+      "origin_dev_tracked_files": 204,
+      "canonical_tracked_files": 204,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked evidence/provenance corpus",
+      "authority_consumers": [
+        "audit and completion gates"
+      ],
+      "generated_local": "mixed immutable evidence and historical artifacts",
+      "secrets_risk": "high: logs/transcripts may contain operational context; content was not printed or secret-scanned",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Preserve per retention policy; archive/expire only through evidence authority."
+    },
+    {
+      "path": "libs/**",
+      "origin_dev_tracked_files": 506,
+      "canonical_tracked_files": 506,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked legacy shared-code axis",
+      "authority_consumers": [
+        "Buck2 and Rust crates",
+        "ADR-0562 reorg"
+      ],
+      "generated_local": "source",
+      "secrets_risk": "low",
+      "classification": "move",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "ADR-0562 dissolves libs into capability homes/base; preserve all code during moves."
+    },
+    {
+      "path": "plan/**",
+      "origin_dev_tracked_files": 15,
+      "canonical_tracked_files": 15,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "mixed planning prose and fabric-loop projections",
+      "authority_consumers": [
+        "specs/masterplan.json#masterplan_v2 is sole work-status authority"
+      ],
+      "generated_local": "some controller-produced cards/metrics",
+      "secrets_risk": "low",
+      "classification": "quarantine",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Do not treat as competing status ledger; reconcile unique rationale into masterplan/issues/evidence then retire projections as authorized."
+    },
+    {
+      "path": "registry/**",
+      "origin_dev_tracked_files": 839,
+      "canonical_tracked_files": 839,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked machine-readable registries",
+      "authority_consumers": [
+        "root hub",
+        "cloud-ci gates",
+        "masterplan"
+      ],
+      "generated_local": "mixed source and controlled projections",
+      "secrets_risk": "medium: account examples and operational findings; no live credentials observed by filename",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Core control-plane data; generated rows must be regenerated, never hand-edited."
+    },
+    {
+      "path": "scripts/**",
+      "origin_dev_tracked_files": 5,
+      "canonical_tracked_files": 5,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "one shell and three Python automation files plus OWNERS",
+      "authority_consumers": [
+        "legacy tests/regeneration only"
+      ],
+      "generated_local": "non-Rust automation",
+      "secrets_risk": "low",
+      "classification": "retire",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Rust-first automation policy requires owned Rust successors; retain remotely until successor and deletion evidence land."
+    },
+    {
+      "path": "specs/**",
+      "origin_dev_tracked_files": 375,
+      "canonical_tracked_files": 375,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked machine-readable authority/projections",
+      "authority_consumers": [
+        "root hub",
+        "masterplan_v2",
+        "cloud-ci gates"
+      ],
+      "generated_local": "mixed authority and generated faces",
+      "secrets_risk": "medium: policy/fixture content, not live credentials",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Primary machine-readable authority; generated faces only via materializer."
+    },
+    {
+      "path": "target/**",
+      "origin_dev_tracked_files": 0,
+      "canonical_tracked_files": 0,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "absent",
+      "authority_consumers": [],
+      "generated_local": "Cargo output is retired/non-authoritative",
+      "secrets_risk": "medium if locally present due build logs",
+      "classification": "discard",
+      "unique_useful_content_remotely_reachable": false,
+      "rationale": "Reproducible local output; Buck2 is canonical."
+    },
+    {
+      "path": "tasks/**",
+      "origin_dev_tracked_files": 120,
+      "canonical_tracked_files": 120,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked plan/todo corpus",
+      "authority_consumers": [
+        "historical task references; not work-status authority"
+      ],
+      "generated_local": "planning prose/data",
+      "secrets_risk": "low",
+      "classification": "quarantine",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Map unique work to masterplan_v2/issues/evidence before retirement; never use as competing ledger."
+    },
+    {
+      "path": "templates/**",
+      "origin_dev_tracked_files": 28,
+      "canonical_tracked_files": 28,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked authoring templates",
+      "authority_consumers": [
+        "artifact and workflow authoring"
+      ],
+      "generated_local": "source templates",
+      "secrets_risk": "low",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Reusable inputs with active consumers."
+    },
+    {
+      "path": "third-party/**",
+      "origin_dev_tracked_files": 70,
+      "canonical_tracked_files": 70,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked Buck2/reindeer third-party cell",
+      "authority_consumers": [
+        "Buck2 dependency graph",
+        "ADR-0615 top-level third-party ruling"
+      ],
+      "generated_local": "vendored/build metadata",
+      "secrets_risk": "low",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Canonical dependency cell; regenerate only through sanctioned dependency flow."
+    },
+    {
+      "path": "toolchains/**",
+      "origin_dev_tracked_files": 4,
+      "canonical_tracked_files": 4,
+      "canonical_untracked_files": 0,
+      "canonical_ignored_files": 0,
+      "status": "tracked hermetic toolchain definitions",
+      "authority_consumers": [
+        "Buck2"
+      ],
+      "generated_local": "source configuration",
+      "secrets_risk": "low",
+      "classification": "retain",
+      "unique_useful_content_remotely_reachable": true,
+      "rationale": "Required for clean-checkout hermetic build."
+    }
+  ],
+  "dot_surfaces": {
+    "top_level": [
+      {
+        "path": ".buckconfig",
+        "tracked_files": 1,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "low",
+        "role": "Buck2 config"
+      },
+      {
+        "path": ".buckroot",
+        "tracked_files": 1,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "none",
+        "role": "Buck2 root marker"
+      },
+      {
+        "path": ".cargo",
+        "tracked_files": 1,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "low",
+        "role": "Rust/Buck interoperability config; Cargo execution remains retired"
+      },
+      {
+        "path": ".claude",
+        "tracked_files": 3,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "medium",
+        "role": "tracked agent adapter config with OWNERS"
+      },
+      {
+        "path": ".codex",
+        "tracked_files": 3,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "medium",
+        "role": "tracked Codex hook config with OWNERS"
+      },
+      {
+        "path": ".config",
+        "tracked_files": 1,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "low",
+        "role": "test runner config"
+      },
+      {
+        "path": ".gitattributes",
+        "tracked_files": 1,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "low",
+        "role": "Git behavior"
+      },
+      {
+        "path": ".github",
+        "tracked_files": 14,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "high",
+        "role": "live GitHub Actions, branch policy and templates; workflow secret names only, no values"
+      },
+      {
+        "path": ".gitignore",
+        "tracked_files": 1,
+        "classification": "retain",
+        "remote_reachable": true,
+        "secrets_risk": "low",
+        "role": "ignore policy"
+      },
+      {
+        "path": ".omc",
+        "tracked_files": 4,
+        "classification": "quarantine",
+        "remote_reachable": true,
+        "secrets_risk": "medium",
+        "role": "tracked Ultragoal bridge/provenance; not plan authority"
+      },
+      {
+        "path": ".git",
+        "tracked_files": 0,
+        "filesystem_files_observed": 1,
+        "classification": "quarantine",
+        "remote_reachable": false,
+        "secrets_risk": "high",
+        "role": "local worktree metadata; rebuildable only after all local commits/refs are remote"
+      },
+      {
+        "path": ".omx",
+        "tracked_files": 0,
+        "git_ignored_match_entries": 12,
+        "filesystem_files_before_this_receipt": 93497,
+        "filesystem_bytes_observed": 2378452992,
+        "classification": "quarantine",
+        "remote_reachable": false,
+        "secrets_risk": "high",
+        "role": "local team/runtime/cache/context/receipts; mixed unique evidence and generated worktree/build copies"
+      }
+    ],
+    "nested_tracked_groups": [
+      {
+        "surface": "cloud/.cargo",
+        "files": 13,
+        "classification": "move"
+      },
+      {
+        "surface": "cloud/.gitignore",
+        "files": 1,
+        "classification": "move"
+      },
+      {
+        "surface": "cloud/.gitkeep",
+        "files": 2,
+        "classification": "retire"
+      },
+      {
+        "surface": "cloud/.terraform.lock.hcl",
+        "files": 1,
+        "classification": "move"
+      },
+      {
+        "surface": "docs/.omc",
+        "files": 13,
+        "classification": "quarantine"
+      },
+      {
+        "surface": "governance/.gitkeep",
+        "files": 2,
+        "classification": "retire"
+      },
+      {
+        "surface": "infra/.gitignore",
+        "files": 2,
+        "classification": "quarantine"
+      },
+      {
+        "surface": "infra/.schematic-id",
+        "files": 1,
+        "classification": "quarantine"
+      },
+      {
+        "surface": "infra/.terraform.lock.hcl",
+        "files": 1,
+        "classification": "quarantine"
+      },
+      {
+        "surface": "oya/.gitignore",
+        "files": 2,
+        "classification": "move"
+      },
+      {
+        "surface": "oya/.terraform.lock.hcl",
+        "files": 7,
+        "classification": "move"
+      },
+      {
+        "surface": "third-party/.buckroot",
+        "files": 1,
+        "classification": "retain"
+      },
+      {
+        "surface": "tools/.gitignore",
+        "files": 1,
+        "classification": "quarantine"
+      }
+    ],
+    "exact_tracked_dot_paths_origin_dev": [
+      ".buckconfig",
+      ".buckroot",
+      ".cargo/config.toml",
+      ".claude/BUCK",
+      ".claude/OWNERS",
+      ".claude/settings.json",
+      ".codex/BUCK",
+      ".codex/OWNERS",
+      ".codex/hooks.json",
+      ".config/nextest.toml",
+      ".gitattributes",
+      ".github/CODEOWNERS",
+      ".github/CODE_OF_CONDUCT.md",
+      ".github/CONTRIBUTING.md",
+      ".github/ISSUE_TEMPLATE/blocker-resolution-card.yml",
+      ".github/ISSUE_TEMPLATE/bug-report.yml",
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/ISSUE_TEMPLATE/feature-request.yml",
+      ".github/OWNERS",
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      ".github/branch-protection.yaml",
+      ".github/workflows/OWNERS",
+      ".github/workflows/cache-integrity-canary.yml",
+      ".github/workflows/docs-graph-drift.yml",
+      ".github/workflows/oya-ci-required.yml",
+      ".gitignore",
+      ".omc/ultragoal/OWNERS",
+      ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+      ".omc/ultragoal/friction-ledger.jsonl",
+      ".omc/ultragoal/premise.txt",
+      "cloud/cloud-iac/iac/helm/argocd/templates/.gitkeep",
+      "cloud/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
+      "cloud/cloud-kernel/.cargo/config.toml",
+      "cloud/cloud-kernel/.gitignore",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/user-procinfo-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/user-smpdemo-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-clock-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-exec-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-fsbase-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-init-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-procinfo-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-signal-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-smpdemo-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-spawn-src/.cargo/config.toml",
+      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-src/.cargo/config.toml",
+      "cloud/cloud-kernel/out/.gitkeep",
+      "docs/audit/initial-sweep-2026-06-06/.omc/state/agent-replay-6725dbb8-176b-4af1-9005-c54fda63ceb1.jsonl",
+      "docs/audit/initial-sweep-2026-06-06/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/last-tool-error-state.json",
+      "docs/audit/initial-sweep-2026-06-06/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/mission-state.json",
+      "docs/audit/initial-sweep-2026-06-06/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/pre-tool-advisory-throttle.json",
+      "docs/audit/initial-sweep-2026-06-06/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/subagent-tracking-state.json",
+      "docs/audit/initial-sweep-2026-06-06/architecture/.omc/state/agent-replay-6725dbb8-176b-4af1-9005-c54fda63ceb1.jsonl",
+      "docs/audit/initial-sweep-2026-06-06/architecture/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/last-tool-error-state.json",
+      "docs/audit/initial-sweep-2026-06-06/architecture/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/mission-state.json",
+      "docs/audit/initial-sweep-2026-06-06/architecture/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/pre-tool-advisory-throttle.json",
+      "docs/audit/initial-sweep-2026-06-06/architecture/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/subagent-tracking-state.json",
+      "docs/audit/initial-sweep-2026-06-06/synthesis/.omc/state/sessions/6725dbb8-176b-4af1-9005-c54fda63ceb1/pre-tool-advisory-throttle.json",
+      "docs/decisions/.omc/state/last-tool-error.json",
+      "docs/decisions/.omc/state/sessions/8f603fc7-eb0e-4752-ab03-f8ab63ce113d/session-started.json",
+      "governance/check/client-stack-discipline/tests/.gitkeep",
+      "governance/check/layered-architecture-discipline/tests/.gitkeep",
+      "infra/cloudflare/.gitignore",
+      "infra/cloudflare/.terraform.lock.hcl",
+      "infra/talos/.schematic-id",
+      "infra/talos/installation-media/.gitignore",
+      "oya/ci-webhook-gateway/.gitignore",
+      "oya/identity/iac/colo/.terraform.lock.hcl",
+      "oya/identity/iac/guest-on-aws/.terraform.lock.hcl",
+      "oya/identity/iac/guest-on-oci/.terraform.lock.hcl",
+      "oya/identity/iac/oci-guest/always-free/.terraform.lock.hcl",
+      "oya/identity/iac/on-prem/.terraform.lock.hcl",
+      "oya/identity/iac/oyatie-as-cloud-provider/.terraform.lock.hcl",
+      "oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl",
+      "oya/observability/iac/k8s/helm/charts/.gitignore",
+      "third-party/.buckroot",
+      "tools/hooks/bin/.gitignore"
+    ],
+    "canonical_untracked_dot_surfaces": [],
+    "canonical_ignored_dot_surfaces": [
+      ".omx/"
+    ],
+    "omx_breakdown_before_receipt": [
+      {
+        "path": ".omx/cache",
+        "files": 3,
+        "bytes": 12288,
+        "classification": "discard",
+        "remote_reachable": false
+      },
+      {
+        "path": ".omx/context",
+        "files": 1,
+        "bytes": 4096,
+        "classification": "quarantine",
+        "remote_reachable": false
+      },
+      {
+        "path": ".omx/reports",
+        "files": 1,
+        "bytes": 12288,
+        "classification": "quarantine",
+        "remote_reachable": false
+      },
+      {
+        "path": ".omx/state",
+        "files": 2,
+        "bytes": 8192,
+        "classification": "discard",
+        "remote_reachable": false
+      },
+      {
+        "path": ".omx/tmp",
+        "files": 2,
+        "bytes": 188416,
+        "classification": "quarantine",
+        "remote_reachable": false
+      },
+      {
+        "path": ".omx/team",
+        "files": 93488,
+        "bytes": 2378248192,
+        "classification": "quarantine",
+        "remote_reachable": false,
+        "notes": "Worktree source copies are mostly reproducible; Buck2 outputs are discardable; worker-2/3 snapshot head was not remote-reachable."
+      }
+    ],
+    "local_non_team_unique_files": [
+      {
+        "path": ".omx/context/prewipe-consolidation-resume-20260804T024330Z.md",
+        "blob": "f5687f45974375cf53e179990466dc5790908950",
+        "remote_reachable": false,
+        "classification": "quarantine"
+      },
+      {
+        "path": ".omx/reports/team-commit-hygiene/execute-the-three-dis-023e60eb.ledger.json",
+        "blob": "41cb3bf3d065c402da7d445fbef2595a84971672",
+        "remote_reachable": false,
+        "classification": "quarantine"
+      },
+      {
+        "path": ".omx/tmp/receipts/ultragoal-disposition-20260804.json",
+        "blob": "fe4c46d1404e0d0bf127b8dc6593b6d3115cff16",
+        "remote_reachable": false,
+        "classification": "quarantine"
+      },
+      {
+        "path": ".omx/tmp/launch-resume-team.sh",
+        "blob": "c038b6623e1c198b4e1264223d5b4bd201d8ccd9",
+        "remote_reachable": false,
+        "classification": "retire"
+      }
+    ]
+  },
+  "remote_preservation": {
+    "refs": [
+      {
+        "ref": "origin/archive/prewipe-20260803/dirty-tracked-manifest",
+        "sha": "53af621f99707ee1b4b94d1b73bd36f752e811fa",
+        "manifest_lines": 462,
+        "purpose": "octopus preservation of dirty worktree commits"
+      },
+      {
+        "ref": "origin/archive/prewipe-20260803/local-ref-manifest",
+        "sha": "18e0bbb9a5d47fc36b4b94d1b73b8f88b73b8db04b",
+        "manifest_lines": 703,
+        "purpose": "octopus preservation of local refs"
+      },
+      {
+        "ref": "origin/archive/prewipe-20260803/curated-ignored-context",
+        "sha": "df06206aacbcfb8128a82e2054dfe5b78ffb857a",
+        "omc_files": 218,
+        "omx_files": 118,
+        "purpose": "curated ignored planning/runtime snapshot"
+      },
+      {
+        "ref": "origin/archive/prewipe-20260804/nested-dot-worktree-unique",
+        "sha": "81de3305cb521c338d4868b36cc1430572799a64",
+        "preserved_files": 40,
+        "purpose": "nested dot-worktree unique content"
+      },
+      {
+        "ref": "origin/archive/prewipe-20260804/untracked-content-sanitized",
+        "sha": "9f8e7b8ae29eaafb0df9247da955d1050fe38a36",
+        "tree_files": 19222,
+        "purpose": "sanitized untracked preservation tree"
+      }
+    ],
+    "current_canonical_head": "3957c65522434e3ca49b0df9c39929914ceeda85",
+    "current_head_remote_reachable": false,
+    "current_head_patch_scope": [
+      "ci/facade/supply-chain-audit/BUCK",
+      "ci/facade/supply-chain-audit/Cargo.toml",
+      "ci/facade/supply-chain-audit/src/lib.rs",
+      "ci/facade/supply-chain-audit/src/main.rs",
+      "ci/facade/supply-chain-audit/supply-chain-audit-policy.json",
+      "ci/facade/supply-chain-audit/tests/supply_chain_audit.rs",
+      "docs/CHANGELOG.md",
+      "docs/decisions/ADR-0605-supply-chain-audit-gate.md",
+      "docs/oya-ci/gate-catalog.md"
+    ],
+    "wipe_safe": false,
+    "blockers": [
+      "Canonical HEAD has local integration commits and no remote-tracking ref contains the exact HEAD.",
+      "Current ignored .omx context/reports/receipts are not remotely reachable; earlier archive refs do not contain these exact current blobs.",
+      "The allowed root-dot receipt itself must be harvested before wipe.",
+      "No content-level secret scan was performed; secret-risk classifications are path/authority based and fail closed."
+    ]
+  },
+  "decision_summary": {
+    "retain": [
+      "oya-*",
+      "contracts/**",
+      "packs/**",
+      "evidence/**",
+      "registry/**",
+      "specs/**",
+      "templates/**",
+      "third-party/**",
+      "toolchains/**",
+      "tracked build/governance dotfiles"
+    ],
+    "move": [
+      "cloud/**",
+      "oya/**",
+      "libs/**",
+      "nested cloud/oya toolchain and provider-lock dotfiles"
+    ],
+    "quarantine": [
+      "infra/**",
+      "tools/**",
+      "plan/**",
+      "tasks/**",
+      ".omc",
+      "docs/.omc",
+      ".git",
+      ".omx"
+    ],
+    "retire": [
+      "scripts/**",
+      "retired CLI/shell/Python bridges",
+      "placeholder .gitkeep files after destination materialization",
+      ".omx/tmp/launch-resume-team.sh after run"
+    ],
+    "discard": [
+      "cloud-* absent",
+      "bin/** absent",
+      "buck-out/** generated",
+      "target/** generated",
+      ".omx/cache and Buck2 worktree outputs after unique sources/evidence are preserved"
+    ]
+  },
+  "validation": {
+    "required_root_family_rows": 21,
+    "actual_root_family_rows": 21,
+    "origin_dev_requested_tracked_total_nonoverlap_note": "cloud-* and oya-* are separate top-level wildcard rows; cloud/** and oya/** are directory rows",
+    "no_tracked_file_writes": true,
+    "json_parser": "jq"
+  }
+}

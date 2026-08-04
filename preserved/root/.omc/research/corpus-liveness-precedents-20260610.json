@@ -1,0 +1,276 @@
+{
+ "question": "Precedents for treating an entire software corpus (code + docs + architecture decisions + directives) as ONE content-addressed, AST-derived dependency graph with fail-closed CI invariants over decay classes (orphan/dead code at file-symbol-statement granularity, stale doc references, format/template conformance, freshness budgets, directive-compliance edges). Validate or refute: (1) build-system dirty-tracking applied to docs/directives as build artifacts \u2014 Bazel/Buck2 content-addressing precedents, Google g3doc freshness/\"docs as tested artifacts\", docs-tested-in-CI practice; (2) corpus-scale code knowledge graphs \u2014 Google Kythe, Meta Glean, SCIP/LSIF, semantic indexes used for dead-code GC and reference integrity at hyperscalers; (3) automated large-scale-change + static-analysis-at-review precedents \u2014 Google Tricorder, Rosie LSCs, Meta SapFix/Infer deployment patterns; (4) content-addressed AST/code identity \u2014 Unison language hashes, incremental query engines (Salsa/rust-analyzer, Skyframe), tree-sitter incremental parsing at scale; (5) policy/directive compliance compiled to machine-checkable rules \u2014 policy-as-code precedents (OPA/Cedar in CI), architectural fitness functions, ArchUnit-class enforcement. For each: what shipped in production, at what scale, what failed or was abandoned and why, and what the minimal-viable slice looked like. Output: cited findings per family + an honest assessment of which parts of the corpus-liveness-graph idea have NO production precedent (novel risk) vs strong precedent.",
+ "summary": "The corpus-liveness-graph idea decomposes into components with strong production precedent and components with none. Strongly precedented: corpus-scale semantic code graphs (Google Kythe, Meta Glean, Sourcegraph SCIP/LSIF), graph-driven automated dead-code GC at hyperscale (Google Sensenmann ~5% of all C++ deleted; Meta SCARF 100M+ LOC via a unified typed dependency graph with continuously re-evaluated fail-closed deletion invariants), and docs colocated in the monorepo with ownership, review gating, and mechanical freshness reminders (Google g3doc). Critically, every production system that achieves safe deletion does so by mixing static graph reachability with dynamic runtime telemetry plus hundreds of hand-written detectors \u2014 pure AST/static liveness was explicitly insufficient and caused live-code deletions at Meta \u2014 and uses staged quarantine with revert paths rather than one-shot CI gates. The genuinely novel (unprecedented) parts are: extending the dependency graph to docs and directives as first-class nodes with fail-closed CI invariants (Google enforces doc freshness via email reminders and review culture, never via merge-blocking checks), directive-compliance edges, and fail-closed semantics over the index itself (Kythe's core design principle is the opposite: fail-open graceful degradation on incomplete data). The incremental-indexing cost floor is O(fanout) not O(changes) (Glean), and the SCIP-vs-LSIF experience says content identity should be human-readable stable symbol IDs, not opaque graph-ordered numeric IDs.",
+ "findings": [
+  {
+   "claim": "Google g3doc is production precedent for docs as first-class, version-controlled, review-gated artifacts in the code repository: Markdown sources live side-by-side with code in the google3 monorepo, get owners and canonical source-tree locations, render to HTML at predictable URLs, and change through the same changelist/review pipeline as code. The explicit design thesis was that documentation cannot become part of engineering culture until integrated into the codebase and developer workflow.",
+   "confidence": "high",
+   "vote": "3-0 (x3 merged claims)",
+   "sources": [
+    "https://abseil.io/resources/swe-book/html/ch10.html",
+    "https://www.usenix.org/sites/default/files/conference/protected-files/srecon16europe_slides_macnamara.pdf"
+   ],
+   "evidence": "SWE-at-Google ch.10: 'Google eventually introduced its own framework for embedding documentation within code: g3doc... documents existed side by side with the source code'; docs 'placed... directly under source control and alongside the source code itself' with owners and review. MacNamara SREcon16 slide 24: 'Documentation will never be part of engineering culture until it is integrated into the codebase and workflow'; slide 27: 'Store Markdown source in google3 codebase; Serve docs as webpages at a predictable URL.' Both primary first-party sources, mutually corroborating, verified verbatim."
+  },
+  {
+   "claim": "Google operationalizes documentation freshness budgets in production, but the enforcement mechanism is soft: docs carry 'freshness dates' recording last review, and metadata tooling sends automated email reminders to owners when a doc hasn't been touched within a window (e.g., three months). This is direct precedent for mechanical staleness detection on docs \u2014 but as nag, not gate.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://abseil.io/resources/swe-book/html/ch10.html"
+   ],
+   "evidence": "Verbatim: 'At Google, we often attach \"freshness dates\" to documentation... metadata in the documentation set will send email reminders when the document hasn't been touched in, for example, three months.' Updating the date requires a code review when the doc is in source control, so it is operationalized tooling. Note: 'we often attach' = common practice, not universal mandate; 'freshness budgets' is the researcher's framing term, not Google's."
+  },
+  {
+   "claim": "Colocating docs in the monorepo correlates with docs co-evolving with code in the same atomic change: 30% of g3doc documentation changelists also contained code changes (200K+ doc changelists, ~3 CLs/file/month). This supports the weaker form of the doc-to-code coupling thesis; it is co-occurrence evidence, not proof of reference-integrity-as-graph-property.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://www.usenix.org/sites/default/files/conference/protected-files/srecon16europe_slides_macnamara.pdf"
+   ],
+   "evidence": "Slide text verbatim: '30% doc changelists contain code' under 'g3doc today > Maintenance', followed by '200K+ doc changelists, 200K files, 3 CLs/file/month'. Verifier caveat: bare statistic with no pre-g3doc baseline, so causal language ('colocation causes co-evolution') overstates; 70% of doc CLs were doc-only; the dependency-graph gloss is extrapolation beyond the source."
+  },
+  {
+   "claim": "NO production precedent exists in the surveyed Google sources for fail-closed CI invariants over documentation: the SWE-at-Google documentation chapter describes only review-based and email-reminder enforcement, contains zero mention of presubmit/CI/broken-link/lint checks on docs, and itself admits 'tools have still not caught up here' for measuring doc accuracy and freshness. The fail-closed-docs-gating part of the corpus-liveness-graph idea is novel relative to this precedent family.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://abseil.io/resources/swe-book/html/ch10.html"
+   ],
+   "evidence": "Full-text scan of ch.10 found zero occurrences of presubmit, CI checks, broken-link checking, or lint applied to docs. The chapter concedes: 'If possible, be measured for aspects such as accuracy, freshness, etc. (tools have still not caught up here)' and 'Tests can be automated, and schemes to automate documentation are often lacking.' Properly scoped: this proves absence in this authoritative source, not absence everywhere."
+  },
+  {
+   "claim": "Google runs production automated dead-code GC (Sensenmann) at build-TARGET granularity, not file-symbol-statement granularity: it builds a dependency graph from Blaze/Bazel over binary targets/libraries/tests/source files, proposes deletion of libraries not linked into any binary, submits 1000+ deletion changelists per week (human-reviewed), and has deleted nearly 5% of all C++ in the multi-billion-line monorepo. Static graph reachability alone was insufficient \u2014 binary liveness comes from runtime execution logs (a log entry per program run, aggregated and propagated through the build tree via Tarjan SCC).",
+   "confidence": "high",
+   "vote": "3-0 (x3 merged claims)",
+   "sources": [
+    "https://testing.googleblog.com/2023/04/sensenmann-code-deletion-at-scale.html"
+   ],
+   "evidence": "Verbatim: 'It submits over 1000 deletion changelists per week, and has so far deleted nearly 5% of all C++ at Google'; 'we're able to construct a dependency graph... find libraries that are not linked into any binary, and propose their deletion'; 'a log entry is written when a program runs... By aggregating this, we get a liveness signal for every binary.' No symbol/statement-level analysis appears anywhere in the article; even test-coverage signals are noted as unexplored. Deletions pass human code review with a blocklist for exceptions \u2014 not review-free."
+  },
+  {
+   "claim": "Meta SCARF is the strongest single precedent for the corpus-liveness-graph: a unified directed dependency graph spanning heterogeneous asset types (code symbols, classes, methods, ORM schemas, database tables) with typed edges (deprecation-blocker / transitive-deprecation / no-op), built from compiler-extracted facts via Glean plus runtime usage instrumentation, standardized into one graph database with cross-implementation asset identifiers. It operates at SYMBOL granularity (e.g., individual unused variables), and over five years deleted 100M+ lines of code in 370K+ change requests plus petabytes of data across 12.8M assets, including autonomously committing code and dropping tables. Coverage is code+data only \u2014 NOT docs or directives.",
+   "confidence": "high",
+   "vote": "3-0 (x5 merged claims)",
+   "sources": [
+    "https://engineering.fb.com/2023/10/24/data-infrastructure/automating-dead-code-cleanup/",
+    "https://dl.acm.org/doi/10.1145/3611643.3613871"
+   ],
+   "evidence": "Blog verbatim: 'SCARF operates at a symbol level as opposed to a file level'; 'a code dependency graph for each language is extracted from our compilers via Glean'; '100 million lines of code in over 370,000 change requests.' Peer-reviewed FSE 2023 paper verbatim: 'The edges have one of three semantic flags: a deprecation blocker, a transitive deprecation, or no-op'; 'removed petabytes of data across 12.8 million distinct assets.' Qualifications: the 104M LOC is cumulative ~5 years (46M in 2022); 'fully automated' is qualified \u2014 auto-merge without human review only in high-confidence languages, most diffs reviewed via CodemodService; operationally 50+ SCARF instances unified post-standardization; BigGrep textual search supplements Glean."
+  },
+  {
+   "claim": "Pure static/AST-level liveness analysis is UNSOUND for deletion under dynamic references \u2014 a documented production failure mode: SCARF has incorrectly deleted live code that reached production (reflection, string-concatenated table names, factory registration, uncommitted compilation artefacts defeat the static graph). Meta's mitigation was runtime usage telemetry + 300+ hand-written pattern detectors + deliberately conservative false-positive edges from textual search (BigGrep), explicitly trading precision for production safety. Any naive fail-closed deletion gate built on AST reachability alone repeats a failure Meta already hit.",
+   "confidence": "high",
+   "vote": "3-0 (x2 merged claims)",
+   "sources": [
+    "https://engineering.fb.com/2023/10/24/data-infrastructure/automating-dead-code-cleanup/",
+    "https://dl.acm.org/doi/10.1145/3611643.3613871"
+   ],
+   "evidence": "Blog verbatim (admission against interest): 'Sometimes these misunderstood dynamic references can lead to incorrect deletion of code, and these deletions can make it to production.' Paper \u00a73.2: 'relying on Glean's static information to provide sufficient coverage... is difficult'; 'There are over three hundred of these pattern detectors in the largest instance of SCARF'; textual search 'increases the rate of incorrect edges... we found that the overall benefits in production safety outweighed any costs.' Backups exist as 'final safeguard to protect against erroneous deletions.'"
+  },
+  {
+   "claim": "Fail-closed liveness invariants over decay classes DO have production precedent \u2014 but enforced as continuously re-evaluated graph invariants with staged quarantine, not one-shot CI gating: a SCARF subgraph is deletable only if it has no inbound deprecation-blocking edges, no runtime usage, and homogeneous node type; the invariant must keep holding at every system run during the waiting window or removal is aborted; quarantine (ACL revocation / code-removal commit) precedes permanent enactment, with an engineer revert path.",
+   "confidence": "high",
+   "vote": "3-0",
+   "sources": [
+    "https://dl.acm.org/doi/10.1145/3611643.3613871"
+   ],
+   "evidence": "Paper verbatim (\u00a74.2.1, \u00a75): 'Candidate subgraphs must: (1) have no inbound deprecation-blocking edges... (2) have no runtime usage...'; 'the properties of the candidate subgraph that led to safe removal initiation must continue to hold true at every run of the system: if the subgraph stops being a candidate, then safe removal is aborted.' 7000+ complex subgraph removals in production. Nuance: automated abort applies to the pre-quarantine window; post-quarantine relies on error detection + engineer revert."
+  },
+  {
+   "claim": "Meta Glean validates corpus-scale semantic indexing as the substrate for dead-code detection at statement/symbol granularity: open-sourced August 2021, in production across C++, Python, PHP, JavaScript, Rust, Erlang, Thrift, Haskell at monorepo scale, and used to detect dead code such as unused #include or using statements (requiring per-symbol-reference resolution data). However, its self-reported scaling limit applies to any incremental AST-derived corpus graph: indexing cost cannot reach O(changes) in general \u2014 the practical bound is O(fanout), because dependents of a changed unit (e.g., every C++ source depending on a modified header) must be reprocessed.",
+   "confidence": "high",
+   "vote": "3-0 (x3 merged claims)",
+   "sources": [
+    "https://engineering.fb.com/2024/12/19/developer-tools/glean-open-source-code-indexing/"
+   ],
+   "evidence": "Verbatim: 'In August 2021 we open-sourced our code indexing system Glean'; 'in C++ we use the detailed data to detect dead code such as unused #include or using statements'; 'in C++ if a header file is modified, we have to reprocess every source file that depends on it... in practice the best we can do is O(fanout).' First-party self-reported limitation (strengthens credibility); Dec 2024, current. Dead-code use case existence is verified, its measured impact is not quantified in the source."
+  },
+  {
+   "claim": "Google Kythe is production precedent for ONE language-agnostic semantic graph over a hyperscaler monorepo, unifying build-system metadata, compiler metadata, and semantic cross-references (definitions/usages, types, cross-language associations) in an extensible schema \u2014 but its core design principle is fail-OPEN: tools must 'adjust gracefully to missing or incomplete data' because 'some information is almost always better than none.' Kythe is precedent for the corpus graph, and explicitly NOT precedent for fail-closed enforcement over it; no evidence was found of Kythe used as a blocking presubmit gate.",
+   "confidence": "high",
+   "vote": "3-0 (x3 merged claims)",
+   "sources": [
+    "https://kythe.io/docs/kythe-overview.html",
+    "https://abseil.io/resources/swe-book/html/ch17.html"
+   ],
+   "evidence": "Verbatim: 'Kythe grew out of our experience creating a large-scale semantic index of cross-references for the enormous, multi-lingual internal codebase at Google'; 'interoperability should not be \"all-or-nothing\": Tools should adjust gracefully to missing or incomplete data.' SWE-at-Google ch.17 corroborates production scale: partial graphs 'merged into one global graph,' ~1.5TB index, >1M developer queries/day, cross-reference index recomputed roughly daily. Caveats: batch (~daily) recomputation, not CI-time; build metadata lives largely in extracted CompilationUnits rather than first-class serving-graph edges; open-source project moved to minimal maintenance (US team laid off April 2024) \u2014 adoption-risk signal, not design refutation."
+  },
+  {
+   "claim": "Cross-repository precise (compiler-accurate) code-graph indexing is shipped commodity practice, and the LSIF\u2192SCIP transition is direct design evidence on code-identity schemes for incremental corpus graphs: Sourcegraph ran precise navigation over 45K+ repositories processing 4K+ LSIF uploads/day (June 2022); LSIF's opaque numeric graph IDs were identified as a concrete design failure (ordering constraints, awkward cyclic dependencies, blocked incremental/partial index updates), and SCIP replaced them with human-readable string symbol IDs specifically to unblock incrementality.",
+   "confidence": "high",
+   "vote": "3-0 (x2 merged claims)",
+   "sources": [
+    "https://sourcegraph.com/blog/announcing-scip"
+   ],
+   "evidence": "Verbatim: 'over 45k repositories on sourcegraph.com have precise code navigation enabled and we process, on average, more than 4k LSIF uploads per day'; 'The heavy usage of opaque global IDs imposes an ordering constraint... making it tricky to deal with cyclic dependencies'; 'Globally incrementing IDs also make it difficult to update an existing index with new information for only a subset of the documents'; SCIP 'unblocks... Incremental indexing.' Caveats: self-reported vendor numbers, time-bounded to 2022; SCIP 'enabled' incrementality at announcement but had not yet shipped it; the index powered navigation, not fail-closed reference-integrity CI gates."
+  },
+  {
+   "claim": "Novelty assessment \u2014 which parts of the corpus-liveness-graph have NO production precedent in the verified evidence: (a) docs and directives as first-class NODES in the same dependency graph as code (every verified graph \u2014 Sensenmann, SCARF, Kythe, Glean, SCIP \u2014 spans only code and/or data assets); (b) fail-closed merge-blocking CI invariants over doc staleness or doc-to-code reference integrity (Google's strongest doc practice is review culture + email reminders, and its own book admits tooling 'has still not caught up'); (c) directive-compliance edges (architecture decisions/directives compiled into graph edges); (d) fail-closed semantics over the index itself (Kythe deliberately chose the opposite). Conversely, strong precedent exists for: corpus-scale semantic graphs, symbol-level dead-code GC, typed heterogeneous-asset dependency edges, continuously-evaluated deletion invariants with quarantine, and mechanical doc-freshness detection.",
+   "confidence": "medium",
+   "vote": "synthesis across all 25 claims",
+   "sources": [
+    "https://abseil.io/resources/swe-book/html/ch10.html",
+    "https://dl.acm.org/doi/10.1145/3611643.3613871",
+    "https://kythe.io/docs/kythe-overview.html",
+    "https://engineering.fb.com/2024/12/19/developer-tools/glean-open-source-code-indexing/",
+    "https://testing.googleblog.com/2023/04/sensenmann-code-deletion-at-scale.html"
+   ],
+   "evidence": "Negative-space synthesis: the SCARF paper's verified scope is explicitly code+data ('Each node... can be a symbol of code... or a logical type of data in a database'); the SWE-at-Google docs chapter was full-text scanned with zero hits for presubmit/CI/lint on docs; Kythe's fail-open principle is verbatim. Confidence is medium rather than high because this is absence-of-evidence within the surveyed corpus: research families 3 (Tricorder/Rosie/SapFix), 4 (Unison/Salsa/tree-sitter), and 5 (OPA/Cedar/ArchUnit fitness functions) produced no surviving verified claims, so docs-tested-in-CI practice (e.g., compiled doc snippets, link checkers at smaller shops) and policy-as-code-in-CI precedents may exist outside the verified set."
+  }
+ ],
+ "caveats": "Coverage gaps dominate the uncertainty: of the five families in the research question, only families 1 (docs as build artifacts), 2 (corpus-scale knowledge graphs), and the dead-code-GC half of family 3 produced claims that survived 3-vote verification. Family 3's static-analysis-at-review half (Google Tricorder, Rosie LSCs, Meta SapFix/Infer), family 4 (Unison content-addressed hashes, Salsa/rust-analyzer, Skyframe, tree-sitter incremental parsing, Bazel/Buck2 content-addressing itself), and family 5 (OPA/Cedar in CI, ArchUnit, fitness functions) have NO verified claims here \u2014 their absence reflects verification attrition, not refutation, so the novelty assessment (finding 12) should be read as 'unprecedented within this verified evidence set.' Scale metrics (5% of Google C++, 100M+ LOC at Meta, 45K Sourcegraph repos) are self-reported by the operating organizations; the SCARF figures are partially corroborated by a peer-reviewed FSE 2023 industry paper, but none are externally audited. Time-sensitivity: Sourcegraph numbers are a June 2022 snapshot and LSIF has since been deprecated in favor of SCIP; Kythe open-source is in minimal-maintenance mode post-April-2024; g3doc evidence spans 2016-2020 and current internal Google practice may have evolved. The '30% doc CLs contain code' statistic is co-occurrence without a baseline \u2014 causal claims about colocation should be softened. 'Freshness budgets' and 'corpus liveness' are the researcher's framing terms, not terminology used by any source. Finally, 'fully automated' deletion at both Google and Meta is human-reviewed by default with auto-merge only in high-confidence languages \u2014 the precedents argue for advisory-then-quarantine ratchets, not immediate fail-closed merge blocks, on deletion-class invariants.",
+ "openQuestions": [
+  "Does anyone run docs-reference-integrity or doc-freshness as a fail-closed, merge-blocking CI gate in production (e.g., compiled/tested doc code snippets at scale, Rust's doctests as corpus policy, Stripe/Twilio docs pipelines, or Google presubmits not covered in the SWE book)? No verified evidence either way \u2014 this is the single most load-bearing unknown for the corpus-liveness-graph design.",
+  "What is the production track record of content-addressed code identity at semantic (not file/target) granularity \u2014 Unison's per-definition hashes, Salsa/rust-analyzer durability layers, Buck2/Bazel action digests \u2014 and does any system use semantic content-addressing to skip the O(fanout) reindexing floor that Glean reports via early cutoff on unchanged interfaces?",
+  "Have policy-as-code engines (OPA/Cedar) or ArchUnit-class fitness functions been compiled against a semantic code graph (rather than file paths/package names) as blocking CI checks at scale \u2014 i.e., is there any production precedent for 'directive-compliance edges' specifically?",
+  "What did Google Tricorder/Rosie learn about false-positive budgets and analyzer dis-enrollment that bounds how aggressive fail-closed decay-class invariants can be before developers route around them (Tricorder's published <10% effective-false-positive threshold was not verified in this evidence set)?"
+ ],
+ "refuted": [],
+ "sources": [
+  {
+   "url": "https://abseil.io/resources/swe-book/html/ch10.html",
+   "quality": "primary",
+   "angle": "Docs-as-tested-build-artifacts / freshness precedent",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.usenix.org/sites/default/files/conference/protected-files/srecon16europe_slides_macnamara.pdf",
+   "quality": "primary",
+   "angle": "Docs-as-tested-build-artifacts / freshness precedent",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.chainguard.dev/unchained/conquering-your-build-horizon",
+   "quality": "blog",
+   "angle": "Docs-as-tested-build-artifacts / freshness precedent",
+   "claimCount": 5
+  },
+  {
+   "url": "https://testing.googleblog.com/2023/04/sensenmann-code-deletion-at-scale.html",
+   "quality": "primary",
+   "angle": "Corpus-scale code knowledge graphs at hyperscalers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://engineering.fb.com/2023/10/24/data-infrastructure/automating-dead-code-cleanup/",
+   "quality": "primary",
+   "angle": "Corpus-scale code knowledge graphs at hyperscalers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://dl.acm.org/doi/10.1145/3611643.3613871",
+   "quality": "primary",
+   "angle": "Corpus-scale code knowledge graphs at hyperscalers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://engineering.fb.com/2024/12/19/developer-tools/glean-open-source-code-indexing/",
+   "quality": "primary",
+   "angle": "Corpus-scale code knowledge graphs at hyperscalers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://kythe.io/docs/kythe-overview.html",
+   "quality": "primary",
+   "angle": "Corpus-scale code knowledge graphs at hyperscalers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://sourcegraph.com/blog/announcing-scip",
+   "quality": "primary",
+   "angle": "Corpus-scale code knowledge graphs at hyperscalers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://cacm.acm.org/research/lessons-from-building-static-analysis-tools-at-google/",
+   "quality": "primary",
+   "angle": "Automated large-scale change + analysis-at-review deployment papers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://cacm.acm.org/research/scaling-static-analyses-at-facebook/",
+   "quality": "primary",
+   "angle": "Automated large-scale change + analysis-at-review deployment papers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://abseil.io/resources/swe-book/html/ch22.html",
+   "quality": "primary",
+   "angle": "Automated large-scale change + analysis-at-review deployment papers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://web.eecs.umich.edu/~weimerw/2025-481F/readings/SapFix-Automated-End-to-End-Repair-at-Scale-v2.pdf",
+   "quality": "primary",
+   "angle": "Automated large-scale change + analysis-at-review deployment papers",
+   "claimCount": 5
+  },
+  {
+   "url": "https://www.unison-lang.org/docs/the-big-idea/",
+   "quality": "primary",
+   "angle": "Content-addressed code identity and incremental query engines",
+   "claimCount": 5
+  },
+  {
+   "url": "https://rust-analyzer.github.io/blog/2023/07/24/durable-incrementality.html",
+   "quality": "primary",
+   "angle": "Content-addressed code identity and incremental query engines",
+   "claimCount": 5
+  },
+  {
+   "url": "https://bazel.build/versions/7.0.0/reference/skyframe",
+   "quality": "primary",
+   "angle": "Content-addressed code identity and incremental query engines",
+   "claimCount": 5
+  },
+  {
+   "url": "https://github.blog/open-source/introducing-stack-graphs/",
+   "quality": "primary",
+   "angle": "Content-addressed code identity and incremental query engines",
+   "claimCount": 5
+  },
+  {
+   "url": "https://medium.com/@eliah.lakhin/salsa-algorithm-explained-c5d6df1dd291",
+   "quality": "blog",
+   "angle": "Content-addressed code identity and incremental query engines",
+   "claimCount": 5
+  },
+  {
+   "url": "https://lwn.net/Articles/978955/",
+   "quality": "secondary",
+   "angle": "Content-addressed code identity and incremental query engines",
+   "claimCount": 5
+  },
+  {
+   "url": "https://research.google.com/pubs/archive/43322.pdf",
+   "quality": "primary",
+   "angle": "Policy-as-code and architecture conformance enforcement in CI \u2014 adoption and failure modes",
+   "claimCount": 5
+  },
+  {
+   "url": "https://onlinelibrary.wiley.com/doi/full/10.1002/spe.2421",
+   "quality": "primary",
+   "angle": "Policy-as-code and architecture conformance enforcement in CI \u2014 adoption and failure modes",
+   "claimCount": 4
+  },
+  {
+   "url": "https://www.permit.io/blog/no-one-wants-to-write-rego",
+   "quality": "blog",
+   "angle": "Policy-as-code and architecture conformance enforcement in CI \u2014 adoption and failure modes",
+   "claimCount": 4
+  }
+ ],
+ "stats": {
+  "angles": 5,
+  "sourcesFetched": 22,
+  "claimsExtracted": 108,
+  "claimsVerified": 25,
+  "confirmed": 25,
+  "killed": 0,
+  "afterSynthesis": 12,
+  "urlDupes": 1,
+  "budgetDropped": 7,
+  "agentCalls": 104
+ }
+}

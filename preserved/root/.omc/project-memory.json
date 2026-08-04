@@ -1,0 +1,319 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1785745427454,
+  "projectRoot": "/Users/jasonlee/Developer/oyatie",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Rust",
+        "version": "1.95.0",
+        "confidence": "high",
+        "markers": [
+          "Cargo.toml"
+        ]
+      },
+      {
+        "name": "C/C++",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Makefile"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "axum",
+        "version": null,
+        "category": "backend"
+      }
+    ],
+    "packageManager": "cargo",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "cargo build",
+    "testCommand": "cargo test",
+    "lintCommand": "cargo clippy",
+    "devCommand": "cargo run",
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "bin",
+      "docs",
+      "scripts"
+    ],
+    "gitBranches": {
+      "defaultBranch": "dev",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [
+    {
+      "timestamp": 1781481865637,
+      "source": "manual"
+    },
+    {
+      "timestamp": 1781481869867,
+      "source": "manual"
+    },
+    {
+      "timestamp": 1781482638460,
+      "source": "manual"
+    },
+    {
+      "timestamp": 1782230931175,
+      "source": "manual",
+      "category": "architecture",
+      "content": "gate-baseline is a FROZEN-REFERENCE, not a pure view (de-commit regression #828→fix #830). The cloud-ci firewall ratchet's frozen baseline is materialized by oya-cloud-ci-scm-facts-emitter-app via `git show <merge-base>:cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json` (git_show_file → git cat-file -e). That merge-base extraction REQUIRES the face to be a committed git blob on the main branch (dev). #828/ADR-0595 de-committed it as a \"pure view\" (set materialization_mode: not-tracked-in-git) on the false premise \"the firewall never reads a committed accounting face\" — it does NOT read the working-tree copy but it DOES read the committed blob AT THE MERGE-BASE. Result: git cat-file -e <merge-base>:<path> failed → missing_at_merge_base=true → empty frozen baseline → baseline=0 for every gate code → every pre-existing repo-wide debt item (manifest_missing_version_workspace=55, member_test_code_without_rust_test_target=28, forbidden_foundry=2877, unowned=14253, unjustified=17136, unreachable=12532, ...) reported as a NEW regression on every broad-affected-set PR; PR #829 went RED on buck2 + cloud-ci-firewall. Fix #830: flip materialization_mode back to merge-candidate-regenerated, negate the **/*.generated.json ignore for this one path, re-commit the regenerated face (must include its own scm-facts/unjustified self-row), add the gate-baseline path back to committed scm-facts tracked_paths. The OTHER 5 ADR-0595 faces (accounting-registry, decision-crosswalk, enforcement-inventory, enforcement-liveness, ttl-policy) ARE genuine pure views — their gates re-derive content from the candidate tree, none is pointed at by ratchet-policy.json frozen_reference.face_path — so they correctly STAY de-committed. UNIVERSAL LESSON: the de-commit policy class must distinguish \"frozen-reference baseline (merge-base git-blob materialized)\" from \"pure view (candidate re-derived)\". The tell for frozen-reference: any consumer that reads it via `git show <merge-base>:` — such an artifact MUST stay committed on main. Local buck2 firewall test has a hermetic-sandbox git-state staleness artifact (resolves merge-base to a stale pre-amend ref); the authoritative proof is byte-identity of committed face vs fresh candidate regeneration (current==baseline for every code)."
+    }
+  ],
+  "directoryMap": {
+    "--help": {
+      "path": "--help",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1785745427449,
+      "keyFiles": [
+        "build-receipt-v0.2.json",
+        "fixed-mutation-plan-v0.2.json",
+        "generated-mutation-protocol-v0.2.json",
+        "mutation-normalization-oracle-v0.2.json",
+        "validator-self-mutants-v0.2.json"
+      ]
+    },
+    "benchmarks": {
+      "path": "benchmarks",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427449,
+      "keyFiles": [
+        "PERFORMANCE-BASELINES.md"
+      ]
+    },
+    "bin": {
+      "path": "bin",
+      "purpose": "Executable scripts",
+      "fileCount": 1,
+      "lastAccessed": 1785745427449,
+      "keyFiles": [
+        "oya"
+      ]
+    },
+    "buck-out": {
+      "path": "buck-out",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1785745427450,
+      "keyFiles": []
+    },
+    "ci": {
+      "path": "ci",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1785745427450,
+      "keyFiles": []
+    },
+    "cloud": {
+      "path": "cloud",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427450,
+      "keyFiles": []
+    },
+    "contracts": {
+      "path": "contracts",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1785745427450,
+      "keyFiles": [
+        "ontology_action-v1.proto",
+        "ops-docs-v1.openapi.yaml",
+        "ops-workspace-shell-v1.openapi.yaml",
+        "workflow_spec.v1.json"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 43,
+      "lastAccessed": 1785745427450,
+      "keyFiles": [
+        "ADR-CONSOLIDATION-PLAN.md",
+        "ADR-INDEX.md",
+        "ADR-LEGACY-REGRESSION-MAPPING.md",
+        "AGENT-INSTRUCTION-SOURCES.md",
+        "AGENTS-OPERATING-CONTRACT.md"
+      ]
+    },
+    "evidence": {
+      "path": "evidence",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1785745427450,
+      "keyFiles": [
+        "audit-chain.jsonl"
+      ]
+    },
+    "infra": {
+      "path": "infra",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1785745427450,
+      "keyFiles": [
+        "TOPOLOGY-2026-05-16.md"
+      ]
+    },
+    "libs": {
+      "path": "libs",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427451,
+      "keyFiles": []
+    },
+    "oya": {
+      "path": "oya",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427451,
+      "keyFiles": []
+    },
+    "packs": {
+      "path": "packs",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427451,
+      "keyFiles": []
+    },
+    "plan": {
+      "path": "plan",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1785745427451,
+      "keyFiles": [
+        "compliance-selective-cell-placement-architecture.md",
+        "hyperscaler-grade-cloud-platform-changeset-slices.md",
+        "hyperscaler-grade-cloud-platform-greenfield-plan.md",
+        "hyperscaler-grade-cloud-platform-main-plan-audit.md",
+        "hyperscaler-grade-cloud-platform-quality-review.md"
+      ]
+    },
+    "registry": {
+      "path": "registry",
+      "purpose": null,
+      "fileCount": 18,
+      "lastAccessed": 1785745427451,
+      "keyFiles": [
+        "BUCK",
+        "artifact-capabilities-registry.json",
+        "bounded-contexts.json",
+        "cedar-fragments.json",
+        "ci-fix-loop-retry-budget.json"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 24,
+      "lastAccessed": 1785745427451,
+      "keyFiles": [
+        "agent-pre-push-validate.sh",
+        "asyncapi-lint.mjs",
+        "branch-protection-apply.sh",
+        "check-sequential-pr-merge-conflicts.sh",
+        "emit_rust_tests.py"
+      ]
+    },
+    "specs": {
+      "path": "specs",
+      "purpose": null,
+      "fileCount": 112,
+      "lastAccessed": 1785745427452,
+      "keyFiles": [
+        "active-machine-readable-artifact-contract.json",
+        "agent-durable-goal.json",
+        "agent-operating-contract.json",
+        "agentic-slo-gated-promotion.json",
+        "api-contract-ssot-canonical.json"
+      ]
+    },
+    "target": {
+      "path": "target",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1785745427452,
+      "keyFiles": []
+    },
+    "tasks": {
+      "path": "tasks",
+      "purpose": null,
+      "fileCount": 120,
+      "lastAccessed": 1785745427452,
+      "keyFiles": [
+        "adr-0357-crate-classification.json",
+        "adr-0357-vertical-slice-nesting-plan.md",
+        "b2b-hr-onboarding-readiness-gate-plan.md",
+        "b2b-payroll-group-gl-posting-dispatch-plan.md",
+        "billing-kernel-invoice-total-tax-aggregator-plan.md"
+      ]
+    },
+    "templates": {
+      "path": "templates",
+      "purpose": null,
+      "fileCount": 14,
+      "lastAccessed": 1785745427452,
+      "keyFiles": [
+        "INDEX.md",
+        "adr-template.md",
+        "capability-record-template.yaml",
+        "design-doc-template.md",
+        "evidence-bundle-template.json"
+      ]
+    },
+    "third-party": {
+      "path": "third-party",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1785745427452,
+      "keyFiles": [
+        "BUCK"
+      ]
+    },
+    "toolchains": {
+      "path": "toolchains",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427452,
+      "keyFiles": [
+        "BUCK"
+      ]
+    },
+    "tools": {
+      "path": "tools",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1785745427452,
+      "keyFiles": []
+    },
+    "scripts/build": {
+      "path": "scripts/build",
+      "purpose": "Build output",
+      "fileCount": 1,
+      "lastAccessed": 1785745427454,
+      "keyFiles": [
+        "build-and-push-cloud-intelligence.sh"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

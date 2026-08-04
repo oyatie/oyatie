@@ -1,0 +1,25 @@
+{
+  "blocked_checkpoint_error": "[ultragoal] Cannot record a blocked ultragoal checkpoint while the existing Codex goal is unknown; strict objective mismatch protection remains required for active or incomplete goals.",
+  "captured_at": "2026-06-28T10:05:40Z",
+  "codex_goal_json": ".omx/ultragoal/checkpoints/get-goal-paused-pr967-pr968-20260628T100540Z.json",
+  "codex_goal_status": "paused",
+  "complete_checkpoint_error": "[ultragoal] Codex goal status mismatch: expected active, got unknown.",
+  "evidence": {
+    "origin_dev_registry": "registry/fixuptasks.jsonl validates 386 rows, 385 unique non-empty IDs, no duplicates; F-NXM-CIWEBHOOK/F-NXM-GOVERNANCE/F-NXM-GATEWAY present; no generated files edited",
+    "pr_967": {
+      "merge_commit": "ad9c7de918040f34747eeb8a35f05d67265c2c6f",
+      "quality_gate": "41/41 green including oya-ci-required",
+      "review": "current-head review recorded",
+      "state": "MERGED"
+    },
+    "pr_968": {
+      "merge_commit": "23dcf9afcac290c708bfc502abbb246fd383d512",
+      "quality_gate": "41/41 green including oya-ci-required",
+      "review": "current-head review recorded",
+      "state": "MERGED"
+    }
+  },
+  "goal_id": "G001-complete-oyatie-through-small-merge",
+  "ok": false,
+  "safe_recovery": "Resume from an active Codex goal context for the same aggregate ultragoal before marking G001 complete."
+}
