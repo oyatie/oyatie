@@ -86,6 +86,26 @@ fn workflow_path(root: &Path) -> PathBuf {
     root.join(".github/workflows/oya-ci-required.yml")
 }
 
+fn general_arc_runner_values_path(root: &Path) -> PathBuf {
+    root.join("infra/arc/runner-scale-set-arm64-values.yaml")
+}
+
+fn live_postgres_arc_runner_values_path(root: &Path) -> PathBuf {
+    root.join("infra/arc/runner-scale-set-live-postgres-arm64-values.yaml")
+}
+
+fn live_postgres_network_policy_path(root: &Path) -> PathBuf {
+    root.join("infra/arc/live-postgres-runner-network-policy.yaml")
+}
+
+fn live_postgres_admission_bootstrap_path(root: &Path) -> PathBuf {
+    root.join("infra/arc/live-postgres-admission-bootstrap.json")
+}
+
+fn gitops_values_path(root: &Path) -> PathBuf {
+    root.join("infra/gitops/values.yaml")
+}
+
 fn phase0_automation_matrix_path(root: &Path) -> PathBuf {
     root.join("specs/phase0-automation-matrix.json")
 }
@@ -555,6 +575,73 @@ fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
     fan_in_mentions_job(block, "gate-live-postgres-adapters")
         && fan_in_mentions_job(block, "gate-live-postgres-facades")
         && !block.contains("needs.gate-live-postgres.result")
+}
+
+fn live_postgres_job_uses_isolated_arc_cell(job: &str) -> bool {
+    job.contains("runs-on: oya-live-postgres-arm64")
+        && !job.lines().any(|line| line.trim() == "services:")
+        && job.contains("/run/oya-ci-postgres/admin-password")
+        && job.contains("/run/oya-ci-postgres/app-password")
+        && job.contains("::add-mask::")
+        && job.contains("GITHUB_ENV")
+}
+
+fn general_arc_runner_has_no_database_admin_projection(values: &str) -> bool {
+    values.contains("oya.io/ci-cell: general")
+        && !values.contains("oya-pg-superuser")
+        && !values.contains("OYA_CI_PG_SUPERUSER")
+        && !values.contains("OYA_CI_PG_SUPERPASS")
+        && !values.contains("oya-pg-rw.oya-data.svc.cluster.local")
+}
+
+fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
+    const POSTGRES_16_DIGEST: &str = "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20";
+
+    values.contains("runnerScaleSetName: oya-live-postgres-arm64")
+        && values.contains("maxRunners: 1")
+        && values.contains("name: arc-gha-rs-controller")
+        && values.contains("oya.io/ci-cell: live-postgres")
+        && values.contains("name: generate-postgres-credentials")
+        && values.contains("name: postgres")
+        && values.contains("restartPolicy: Always")
+        && values.contains(
+            "command: [\"/bin/sh\", \"-ec\", \"pg_isready -h 127.0.0.1 -U postgres -d oyatie\"]",
+        )
+        && values.contains(POSTGRES_16_DIGEST)
+        && values.contains("POSTGRES_PASSWORD_FILE")
+        && values.contains("startupProbe:")
+        && values.contains("name: runner")
+        && values.contains("medium: Memory")
+        && values.contains("sizeLimit:")
+        && values.contains("ephemeral-storage: 32Gi")
+        && values.contains("ephemeral-storage: 34Gi")
+        && values.contains("/run/oya-ci-postgres")
+        && !values.contains("secretKeyRef:")
+        && !values.contains("oya.io/nativelink-cas-reader")
+        && !values.contains("oya.io/nativelink-cas-writer")
+        && !values.contains("oya-pg-rw.oya-data.svc.cluster.local")
+}
+
+fn live_postgres_network_policy_denies_cross_pod_ingress(policy: &str) -> bool {
+    policy.contains("kind: NetworkPolicy")
+        && policy.contains("oya.io/ci-cell: live-postgres")
+        && policy.contains("policyTypes:")
+        && policy.contains("- Ingress")
+        && policy.lines().any(|line| line.trim() == "ingress: []")
+        && policy.contains("kind: CiliumNetworkPolicy")
+        && policy.contains("name: ci-runners-deny-shared-data-egress")
+        && policy.contains("values: [general, live-postgres]")
+        && policy.contains("egress: false")
+        && policy.contains("egressDeny:")
+        && policy.contains("k8s:io.kubernetes.pod.namespace: oya-data")
+}
+
+fn gitops_registers_live_postgres_arc_cell(values: &str) -> bool {
+    values.contains("name: oya-live-postgres-arm64")
+        && values.contains("infra/arc/runner-scale-set-live-postgres-arm64-values.yaml")
+        && values.contains("name: oya-live-postgres-network-policy")
+        && values.contains("path: infra/arc")
+        && values.contains("include: live-postgres-runner-network-policy.yaml")
 }
 
 fn affected_set_long_step_telemetry_is_wired(workflow: &str) -> bool {
@@ -1576,6 +1663,99 @@ fn live_postgres_split_lanes_are_both_required_by_fan_in() {
         !live_postgres_split_fan_in_is_complete(&without_facades),
         "missing facade sublane must be detected as fan-in incomplete"
     );
+}
+
+#[test]
+fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
+    let root = repo_root();
+    let wf = workflow_path(&root);
+    let workflow =
+        fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
+
+    for job_name in ["gate-live-postgres-adapters", "gate-live-postgres-facades"] {
+        let job = workflow_job(&workflow, job_name);
+        assert!(
+            live_postgres_job_uses_isolated_arc_cell(&job),
+            "{job_name} must run on the dedicated ARC PostgreSQL cell, remove GitHub services, and load masked per-pod credentials"
+        );
+
+        let generic_runner = job.replace("runs-on: oya-live-postgres-arm64", "runs-on: oya-arm64");
+        assert!(
+            !live_postgres_job_uses_isolated_arc_cell(&generic_runner),
+            "the general-purpose ARC label must not satisfy the live-Postgres cell contract"
+        );
+
+        let services_reintroduced = format!("{job}\n    services:\n      postgres: {{}}\n");
+        assert!(
+            !live_postgres_job_uses_isolated_arc_cell(&services_reintroduced),
+            "reintroducing workflow service containers must violate the ARC sidecar contract"
+        );
+    }
+
+    let general_values_path = general_arc_runner_values_path(&root);
+    let general_values = fs::read_to_string(&general_values_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", general_values_path.display()));
+    assert!(
+        general_arc_runner_has_no_database_admin_projection(&general_values),
+        "general-purpose candidate runners must carry the protected-cell label and receive no shared database administrative credential"
+    );
+
+    let live_values_path = live_postgres_arc_runner_values_path(&root);
+    let live_values = fs::read_to_string(&live_values_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", live_values_path.display()));
+    assert!(
+        live_postgres_arc_cell_is_ephemeral_and_isolated(&live_values),
+        "dedicated live-Postgres ARC values must declare a pinned native sidecar, memory-backed per-pod state and credentials, readiness, and no shared Secret/CNPG reference"
+    );
+
+    let policy_path = live_postgres_network_policy_path(&root);
+    let policy = fs::read_to_string(&policy_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", policy_path.display()));
+    assert!(
+        live_postgres_network_policy_denies_cross_pod_ingress(&policy),
+        "the dedicated cell must deny cross-pod ingress, and both candidate-runner cells must deny shared-data egress"
+    );
+
+    let gitops_path = gitops_values_path(&root);
+    let gitops_values = fs::read_to_string(&gitops_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", gitops_path.display()));
+    assert!(
+        gitops_registers_live_postgres_arc_cell(&gitops_values),
+        "GitOps must own both the dedicated scale set and its ingress isolation policy"
+    );
+
+    let bootstrap_path = live_postgres_admission_bootstrap_path(&root);
+    let bootstrap: Value = serde_json::from_str(
+        &fs::read_to_string(&bootstrap_path)
+            .unwrap_or_else(|e| panic!("read {}: {e}", bootstrap_path.display())),
+    )
+    .unwrap_or_else(|e| panic!("parse {}: {e}", bootstrap_path.display()));
+    assert_eq!(bootstrap["blocked_until_issue_closed"], 1504);
+    assert_eq!(bootstrap["maximum_ttl_seconds"], 7200);
+    let apply = bootstrap["apply_json_patch"]
+        .as_array()
+        .expect("bootstrap apply_json_patch must be an array");
+    assert!(apply.iter().any(|op| {
+        op["path"] == "/spec/source/targetRevision" && op["value"] == "${CANDIDATE_HEAD}"
+    }));
+    assert!(apply.iter().any(|op| {
+        op["path"] == "/spec/source/helm/valuesObject/targetRevision"
+            && op["value"] == "${CANDIDATE_HEAD}"
+    }));
+    let rollback = bootstrap["rollback_json_patch"]
+        .as_array()
+        .expect("bootstrap rollback_json_patch must be an array");
+    assert!(rollback.iter().any(|op| {
+        op["op"] == "replace"
+            && op["path"] == "/spec/source/targetRevision"
+            && op["value"] == "dev"
+    }));
+    assert!(bootstrap["required_readback"]
+        .as_array()
+        .is_some_and(|items| items.len() >= 6));
+    assert!(bootstrap["rollback_readback"]
+        .as_array()
+        .is_some_and(|items| items.len() >= 4));
 }
 
 #[test]

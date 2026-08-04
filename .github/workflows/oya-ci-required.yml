@@ -995,45 +995,18 @@ jobs:
   #    CONTAINERIZED Postgres and GATES merge. Both adapter and facade groups block
   #    the single required `oya-ci-required` context.
   #
-  #    SPLIT SAFETY (#901): adapter and facade groups run in parallel only because
-  #    each job owns an independent Postgres service container and repeats the
-  #    deterministic bootstrap. Inside each group, `--num-threads 1` and sequential
-  #    target invocations remain because the harnesses in that group still share a
-  #    local database.
+  #    SPLIT SAFETY (#901): adapter and facade groups remain separate required jobs, and
+  #    each job owns an independent same-Pod PostgreSQL native sidecar plus deterministic
+  #    bootstrap. The dedicated scale set is capped at maxRunners=1, so the two jobs queue
+  #    and execute serially rather than competing for the disk-constrained runner cell.
+  #    Inside each group, `--num-threads 1` and sequential target invocations remain because
+  #    the harnesses in that group still share a local database.
   gate-live-postgres-adapters:
     name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
-    # HELD on hosted deliberately: this job uses a `services:` container, which needs a
-    # Docker daemon the owned runner pod does not have (no dind on a shared cluster).
-    # Flipping it without first rewiring `services:` to the CNPG cluster in oya-data
-    # would trade one red for another. Tracked separately; see the PR body.
-    runs-on: ubuntu-latest
+    # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL
+    # native sidecar. No Docker daemon, Service, shared CNPG hostname, or DB credential.
+    runs-on: oya-live-postgres-arm64
     timeout-minutes: 25
-    services:
-      postgres:
-        # Pulled from mirror.gcr.io (Google's anonymous pull-through cache of Docker Hub),
-        # not registry-1.docker.io. Docker Hub timed out the service-container pull on three
-        # separate runs (#1423 twice, #1429 once) with `context deadline exceeded` /
-        # `Client.Timeout exceeded while awaiting headers`, exhausting the runner's own
-        # 3-attempt backoff before any test ran. A service container is pulled BEFORE any
-        # step executes, so no retry step, warm-up, or continue-on-error can wrap it — the
-        # registry has to be one that answers. Digest-pinned: the mirror is content-addressed
-        # so this is byte-identical to Docker Hub's postgres:16, and pinning also retires a
-        # tag-pin (see F-SUPPLY-IMAGE-PINS-UNDIGESTED). Issue #1427.
-        image: mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: oyatie
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d oyatie"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-    env:
-      OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
-      OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -1061,12 +1034,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends postgresql-client
           psql --version
       - name: Bootstrap app role + durable schemas/roles (admin, adapters)
-        env:
-          PGPASSWORD: postgres
         run: |
-          set -euo pipefail
+          set -euo pipefail; admin_password="$(cat /run/oya-ci-postgres/admin-password)"; app_password="$(cat /run/oya-ci-postgres/app-password)"; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
           ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', btrim(pg_read_file('/run/oya-ci-postgres/app-password'))); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
@@ -1112,38 +1083,10 @@ jobs:
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
   gate-live-postgres-facades:
     name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
-    # HELD on hosted deliberately: this job uses a `services:` container, which needs a
-    # Docker daemon the owned runner pod does not have (no dind on a shared cluster).
-    # Flipping it without first rewiring `services:` to the CNPG cluster in oya-data
-    # would trade one red for another. Tracked separately; see the PR body.
-    runs-on: ubuntu-latest
+    # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL
+    # native sidecar. No Docker daemon, Service, shared CNPG hostname, or DB credential.
+    runs-on: oya-live-postgres-arm64
     timeout-minutes: 25
-    services:
-      postgres:
-        # Pulled from mirror.gcr.io (Google's anonymous pull-through cache of Docker Hub),
-        # not registry-1.docker.io. Docker Hub timed out the service-container pull on three
-        # separate runs (#1423 twice, #1429 once) with `context deadline exceeded` /
-        # `Client.Timeout exceeded while awaiting headers`, exhausting the runner's own
-        # 3-attempt backoff before any test ran. A service container is pulled BEFORE any
-        # step executes, so no retry step, warm-up, or continue-on-error can wrap it — the
-        # registry has to be one that answers. Digest-pinned: the mirror is content-addressed
-        # so this is byte-identical to Docker Hub's postgres:16, and pinning also retires a
-        # tag-pin (see F-SUPPLY-IMAGE-PINS-UNDIGESTED). Issue #1427.
-        image: mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: oyatie
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d oyatie"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-    env:
-      OYA_PG_ADMIN_URL: postgres://postgres:postgres@127.0.0.1:5432/oyatie
-      OYA_PG_APP_URL: postgres://oya_app:app@127.0.0.1:5432/oyatie
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -1171,12 +1114,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends postgresql-client
           psql --version
       - name: Bootstrap app role + durable schemas/roles (admin, facades)
-        env:
-          PGPASSWORD: postgres
         run: |
-          set -euo pipefail
+          set -euo pipefail; admin_password="$(cat /run/oya-ci-postgres/admin-password)"; app_password="$(cat /run/oya-ci-postgres/app-password)"; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
           ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN CREATE ROLE oya_app LOGIN PASSWORD 'app' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE; END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', btrim(pg_read_file('/run/oya-ci-postgres/app-password'))); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
