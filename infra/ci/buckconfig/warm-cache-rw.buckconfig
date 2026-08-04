@@ -1,28 +1,11 @@
-# Opt-in WARM READ+WRITE buck2 overlay — NativeLink CAS cache-first wiring (ADR-0560,
-# class posture from ADR-0556 via /specs/cache-warmth-policy.json; idea basis
-# docs/ideas/nativelink-remote-cache-first.md).
+# Opt-in READ+WRITE buck2 overlay — NativeLink CAS warm cache.
 #
-# NEVER merged into the root .buckconfig. A lane opts in ONLY through the resolver
-# (`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-cache-wiring-app:oya-cloud-ci-cache-wiring-bin
-# -- resolve --build-class <class>`), which selects this file IFF the class is
-# warm-eligible with cache_write AND /specs/cache-warm-license.json carries
-# warm_reads_licensed=true (the ADR-0556 D2 canary-licensed kill-switch). While the
-# license is false — the state until CAS bring-up + first GREEN integrity-canary —
-# the resolver emits an empty argfile and this file is dead config (dark wiring).
-#
-# Keyed identity (founder 2026-05-30: keyed, never anonymous): the mTLS client
-# certificate is NOT in this file — the resolver appends
-# `--config buck2_re_client.tls_client_cert=$OYA_CACHE_TLS_CLIENT_CERT` from the
-# lane's secret-mounted env and FAILS if a warm mode is requested without it.
-# Untrusted authors hold no key: fork PRs receive no secrets, and the binding
-# refusal is the CAS service boundary (mTLS verify), never this client config.
-#
-# Addresses are the in-cluster WRITER endpoint (trusted CI lanes only); reachable
-# only from owned in-cluster runners (ADR-0515 D5 destination) or a reviewed
-# exposure — GitHub-hosted runners cannot resolve them, which is part of why this
-# wiring ships dark in slice 1.
-
+# This file is for CI-only, out-of-band warm-cache pilots. Use ONLY in
+# trusted CI execution contexts and after canary evidence proves cache safety.
 [buck2_re_client]
+  # Writer endpoint + per-tenant namespace.
+  # In practice the value is often overridden by CI via:
+  #   OYA_CI_RE_ENDPOINT=grpc://... infra/ci/warm-buck2-cache.sh
   engine_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
   cas_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
   action_cache_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
