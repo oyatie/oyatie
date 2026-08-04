@@ -647,5 +647,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(runbook.contains("There is no bootstrap controller in this slice"));
     assert!(runbook.contains("reader leaf against `:50051` fails"));
     assert!(runbook.contains("OYA_NATIVELINK_SERVER_CA_CERT"));
+    assert!(runbook.contains("Do not apply the empty public-CA scaffold directly"));
+    assert!(!runbook.contains("kubectl apply -f infra/kms/openbao-public-ca.k8s.yaml"));
     assert!(!runbook.contains("authenticated bootstrap controller"));
 }

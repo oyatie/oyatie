@@ -518,9 +518,10 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
                      warm reads fleet-wide (ADR-0556 D2)"
                         .to_string()
                 })?;
-                let record = read_json(&record_path)?;
+                let doc = read_json(&record_path)?;
+                let record = app::invocation_record(&doc)?;
                 if let Err(findings) =
-                    app::assert_warm_cache_participation(&record, "integrity-canary", "warm-ro")
+                    app::assert_warm_cache_participation(record, "integrity-canary", "warm-ro")
                 {
                     return Err(format!(
                         "canary-verdict: the warm probe did NOT participate in the cache, so its \
@@ -563,5 +564,60 @@ fn main() -> ExitCode {
     match run(args) {
         Ok(code) => code,
         Err(message) => fail(&message),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn canary_verdict_accepts_wrapped_warm_invocation_record() {
+        let root =
+            std::env::temp_dir().join(format!("oya-cache-canary-command-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let cold = root.join("cold.json");
+        let warm = root.join("warm.json");
+        let record = root.join("record.json");
+        let out = root.join("verdict.json");
+        let manifest = json!({"entries": {"//canary:target": "sha256:fixture"}});
+        fs::write(&cold, serde_json::to_vec(&manifest).unwrap()).unwrap();
+        fs::write(&warm, serde_json::to_vec(&manifest).unwrap()).unwrap();
+        fs::write(
+            &record,
+            serde_json::to_vec(&json!({
+                "data": {"Record": {"data": {"InvocationRecord": {
+                    "cache_hit_rate": 1.0,
+                    "run_action_cache_count": 1,
+                    "run_local_count": 0,
+                    "run_remote_count": 0,
+                    "run_skipped_count": 0,
+                    "cache_upload_attempt_count": 0,
+                    "cache_upload_count": 0,
+                    "exit_result_name": "SUCCESS",
+                    "last_snapshot": {"re_action_cache_started": 1}
+                }}}}
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+
+        let result = run(vec![
+            "canary-verdict".into(),
+            "--cold".into(),
+            cold.display().to_string(),
+            "--warm".into(),
+            warm.display().to_string(),
+            "--warm-record".into(),
+            record.display().to_string(),
+            "--out".into(),
+            out.display().to_string(),
+        ]);
+
+        assert_eq!(result.unwrap(), ExitCode::SUCCESS);
+        assert_eq!(read_json(out.to_str().unwrap()).unwrap()["status"], "GREEN");
+        fs::remove_dir_all(root).unwrap();
     }
 }
