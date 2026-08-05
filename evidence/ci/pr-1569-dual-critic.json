@@ -1,0 +1,44 @@
+{
+  "pr": 1569,
+  "head": "8c655edaaeff4e071a9065f4f8bcea646f636cd8",
+  "title": "docs(adr): ADR-0639 path/event-optional oya-ci-required legs; accept ADR-0630 dual-worker",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "red_team",
+        "chestertons_fence"
+      ],
+      "path": "evidence/ci/pr-1569-critic-a.json"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "contrarian",
+        "systems_thinking",
+        "operability"
+      ],
+      "path": "evidence/ci/pr-1569-critic-b.json"
+    }
+  ],
+  "summary": "Dual-critic APPROVE: Wave-1 docs-only ADR-0639 + ADR-0630 Accepted with planning bindings and CI ratchet/projection repairs. No workflow behavior change; no second required context; capacity apply and path-filter implementations remain follow-ups.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "workflow_path_filters_shipped",
+    "capacity_apply_live",
+    "second_protected_context",
+    "warm_cas_or_re",
+    "docs_only_free_pass_over_admission"
+  ],
+  "wave": "Wave1 docs-only per PLAN-CI-PATH-TIER-AND-CAPACITY",
+  "reviewed_at": "2026-08-05T18:15Z",
+  "reviewer": "orchestrator-dual-critic",
+  "subject_head": "8c655edaaeff4e071a9065f4f8bcea646f636cd8",
+  "note": "dual-critic.head is the CI-fix subject commit; PR tip includes this evidence package"
+}
