@@ -10,7 +10,7 @@ supersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-051
 superseded_by: []
 depends_on: [ADR-0392]
 amends: [ADR-0092, ADR-0363]
-amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624]
+amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624, ADR-0639]
 related:
   - ADR-0111
   - ADR-0116
@@ -25,6 +25,8 @@ related:
   - ADR-0388
   - ADR-0510
   - ADR-0525
+  - ADR-0630
+  - ADR-0639
 related_specs:
   - /specs/phase0-ci-enforcement-baseline.json
   - /specs/phase0-ci-enforcement-result-schema.json

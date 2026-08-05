@@ -5899,10 +5899,12 @@
       "ADR-0565",
       "ADR-0615",
       "ADR-0619",
+      "ADR-0630",
       "ADR-0632",
       "ADR-0635",
       "ADR-0637",
-      "ADR-0638"
+      "ADR-0638",
+      "ADR-0639"
     ],
     "bound_specs": [
       "specs/ci-farm-substrate-canonical.json",

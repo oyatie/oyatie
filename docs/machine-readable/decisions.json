@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 447,
-    "numbering": "ADR-0001..ADR-0638 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "total_adrs": 448,
+    "numbering": "ADR-0001..ADR-0639 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0170", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
-    "next_adr": "ADR-0639",
+    "next_adr": "ADR-0640",
     "status_counts": {
-      "Accepted": 183,
+      "Accepted": 185,
       "Accepted (amendment)": 2,
       "Amended": 2,
-      "Proposed": 155,
+      "Proposed": 154,
       "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
       "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
       "Rejected": 1,
@@ -4056,7 +4056,7 @@
       "path": "decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
       "supersedes": ["ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514"],
       "superseded_by": [],
-      "related": ["ADR-0111", "ADR-0116", "ADR-0124", "ADR-0181", "ADR-0247", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374", "ADR-0388", "ADR-0510", "ADR-0525"]
+      "related": ["ADR-0111", "ADR-0116", "ADR-0124", "ADR-0181", "ADR-0247", "ADR-0363", "ADR-0366", "ADR-0367", "ADR-0369", "ADR-0374", "ADR-0388", "ADR-0510", "ADR-0525", "ADR-0630", "ADR-0639"]
     },
     {
       "adr": "ADR-0516",
@@ -5286,13 +5286,13 @@
       "adr": "ADR-0630",
       "number": 630,
       "title": "ARC as the interim owned-runner substrate",
-      "status": "Proposed",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-07-29",
       "path": "decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0131", "ADR-0523", "ADR-0535", "ADR-0612", "ADR-0554"]
+      "related": ["ADR-0131", "ADR-0523", "ADR-0535", "ADR-0612", "ADR-0554", "ADR-0639"]
     },
     {
       "adr": "ADR-0631",
@@ -5389,6 +5389,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0243", "ADR-0607", "ADR-0609", "ADR-0619", "ADR-0623", "ADR-0628", "ADR-0629", "ADR-0631", "ADR-0632", "ADR-0636"]
+    },
+    {
+      "adr": "ADR-0639",
+      "number": 639,
+      "title": "Path- and event-conditional constituents under the single `oya-ci-required` fan-in",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-05",
+      "path": "decisions/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0539", "ADR-0541", "ADR-0555", "ADR-0636"]
     }
   ]
 }
