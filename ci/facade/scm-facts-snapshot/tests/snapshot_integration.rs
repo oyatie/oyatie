@@ -2076,7 +2076,7 @@ fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary
         ))
         .expect("read ADR-0515");
     assert!(adr.contains(
-        "amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624]"
+        "amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624, ADR-0639]"
     ));
     assert!(
         !adr.contains("adr-census-parent-receipt-gate.rs"),
