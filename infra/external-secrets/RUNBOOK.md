@@ -55,7 +55,7 @@ private key, or issued leaf in git or captured output.
 5. Only after step 4 succeeds, use a second reviewed PR to add exact-path GitOps
    Applications for
    `infra/external-secrets/clustersecretstore-openbao-oya-tls-migration.yaml` and
-   `infra/nativelink/nativelink-cas.k8s.yaml`, both with `cascadeDelete: true`;
+   `storage/adapters/nativelink/nativelink-cas.k8s.yaml`, both with `cascadeDelete: true`;
    do not deploy either by raw apply. That value adds Argo's foreground resources
    finalizer so a later reviewed Application removal cannot orphan live objects.
    Wait until all three `*-tls-migration` stores report Ready, restart ESO, wait

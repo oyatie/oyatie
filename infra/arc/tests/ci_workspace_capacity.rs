@@ -1043,8 +1043,8 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(identity_text.contains("pki_cas_writer/issue/cas-writer"));
     assert!(identity_text.contains("pki_cas_reader/issue/cas-reader"));
     assert!(!identity_text.contains("pki_int/issue"));
-    let nativelink = read(&root, "infra/nativelink/nativelink-cas.k8s.yaml");
-    let nativelink_documents = yaml_documents(&root, "infra/nativelink/nativelink-cas.k8s.yaml");
+    let nativelink = read(&root, "storage/adapters/nativelink/nativelink-cas.k8s.yaml");
+    let nativelink_documents = yaml_documents(&root, "storage/adapters/nativelink/nativelink-cas.k8s.yaml");
     let nativelink_deployment = nativelink_documents
         .iter()
         .find(|document| {
