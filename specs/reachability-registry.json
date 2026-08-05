@@ -402,6 +402,10 @@
       "prefix": "infra/arc/README.md"
     },
     {
+      "anchor": "ADR-0630 D9 / issue #1504 + PR #1564 R1 dual-worker: exact human operator runbook for unlocking general ARC maxRunners=2 via dual-worker workspace admission and required hostname anti-affinity; agents do not apply. breadth: exact path only",
+      "prefix": "infra/arc/RUNBOOK-scale-runners.md"
+    },
+    {
       "anchor": "ADR-0630 D5/D9 / issue #1504: exact source-contract test locking bounded Talos selection, separate provisioner identity, both runner workspace mounts, concurrency, and telemetry declarations.",
       "prefix": "infra/arc/tests/ci_workspace_capacity.rs"
     },
