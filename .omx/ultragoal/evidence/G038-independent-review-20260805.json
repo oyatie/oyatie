@@ -1,0 +1,228 @@
+{
+  "version": "1.0.0",
+  "kind": "ultragoal_independent_review_history",
+  "story_id": "G038-reconcile-legacy-stage-1-and-bind-th",
+  "subject": ".omx/ultragoal/evidence/G038-cas-re-baseline-reconciliation-20260805.json",
+  "status": "approved",
+  "claim_ceiling": "Audit history and remediation handoff only; this artifact is not final approval, merge authority, CAS/RE activation authority, credential authority, or cluster mutation authority.",
+  "history": [
+    {
+      "sequence": 1,
+      "role": "architect",
+      "verdict": "APPROVE",
+      "scope": "Initial G038 boundary-map architecture review",
+      "finding_summary": "The read-only baseline, capability placement, dependency order, and no-mutation boundary were architecturally acceptable.",
+      "audit_note": "Preserved as the initial architecture verdict. It does not waive the later code-reviewer execution-readiness findings."
+    },
+    {
+      "sequence": 2,
+      "role": "code-reviewer",
+      "verdict": "ITERATE",
+      "scope": "Execution-readiness review of the G038 receipt",
+      "findings": [
+        {
+          "id": "G038-R1",
+          "finding": "The pilot lacked an exact artifact-only move plan, a versioned executable population contract with counted semantics and expected N_pre, a differently shaped +1/removal probe, and exact pre/post/promoted commands.",
+          "remediation": "Added pilot_execution_contract.move_plan with exact specs/reorg/local-path-storage-move-plan.json shape and explicit --plan caveat; added pilot-local-path-population/v1 with N=1 StorageClass/local-path provider + 4 runtime edges + 1 structurally resolved named GitOps edge = 6; added the committed differently shaped StatefulSet probe fixture and Rust assertions for 6 -> 7 -> 6; bound the existing corpus_yaml_facts_shards plus Rust/Buck2 pattern; added exact phase commands.",
+          "status": "remediated_pending_re_review"
+        },
+        {
+          "id": "G038-R2",
+          "finding": "Per-touched-path owners and temporal approval transfer were incomplete.",
+          "remediation": "Added touched_path_ownership rows for source/consumer paths, storage destination/test paths, specs plan/reachability paths, and ARC test paths, including pre-owner, sole migration writer, required approval, and post-owner.",
+          "status": "remediated_pending_re_review"
+        },
+        {
+          "id": "G038-R3",
+          "finding": "Authority citations were not structured enough to execute safely or stop activation when authority was missing.",
+          "remediation": "Added authority_traceability rows for Accepted ADR-0515/0562/0614/0615 and Proposed ADR-0560/0612/0630 with primary source, effective date, applicability, control, owner, evidence, review date, and explicit activation stop.",
+          "status": "remediated_pending_re_review"
+        },
+        {
+          "id": "G038-R4",
+          "finding": "The GitOps rewrite and observability values consumer were not exact.",
+          "remediation": "Added a structural selector for Application/local-path-storage; rewrote only spec.source.path from infra/gitops to storage/adapters/local-path; kept directory.include exactly local-path-storage.yaml; named the fourth runtime consumer exactly as oya/observability/iac/k8s/helm/values.yaml#/grafana/persistence/storageClassName=local-path.",
+          "status": "remediated_pending_re_review"
+        },
+        {
+          "id": "G038-R5",
+          "finding": "The receipt conflated Git MERGEABLE with protected merge readiness.",
+          "remediation": "Recorded mergeable=MERGEABLE separately from merge_state_status=BLOCKED and stated that draft status, absent independent approval, and failed required checks keep the PR stopped.",
+          "status": "remediated_pending_re_review"
+        }
+      ]
+    },
+    {
+      "sequence": 3,
+      "role": "executor",
+      "verdict": "REMEDIATED_AWAITING_REVIEW",
+      "scope": "Receipt-only remediation",
+      "changed_artifacts": [
+        ".omx/ultragoal/evidence/G038-cas-re-baseline-reconciliation-20260805.json",
+        ".omx/ultragoal/evidence/G038-independent-review-20260805.json",
+        ".omx/tmp/g038/issue-comment.md"
+      ],
+      "non_effects": [
+        "No implementation or source file changed.",
+        "No GitHub object was mutated.",
+        "No credential or cluster was read or mutated.",
+        "No self-approval was recorded."
+      ]
+    },
+    {
+      "sequence": 4,
+      "role": "architect",
+      "verdict": "BLOCK",
+      "scope": "Remediation architecture regression review",
+      "findings": [
+        "ADR-0562 source date 2026-06-14 and accepted effective date 2026-07-10 must be distinct.",
+        "ADR-0614 source date 2026-07-09 and accepted effective date 2026-08-01 must be distinct."
+      ],
+      "audit_note": "No capability, DAG, CAS-first, bridge, or no-mutation architecture regression was found."
+    },
+    {
+      "sequence": 5,
+      "role": "code-reviewer",
+      "verdict": "ITERATE",
+      "scope": "Second execution-readiness review",
+      "findings": [
+        "Bind every live YAML input and the probe directly to the Buck2 Rust verdict target.",
+        "Add missing probe/QEMU/BUCK/policy temporal ownership and use the NativeLink leaf owner.",
+        "Separate authority source dates from later acceptance dates; remove nonexistent evidence.",
+        "Use the exact grafana.persistence.storageClassName pointer.",
+        "Keep issue-comment commands byte-for-meaning aligned with the receipt."
+      ]
+    },
+    {
+      "sequence": 6,
+      "role": "executor",
+      "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+      "scope": "Evidence-only remediation",
+      "changed_artifacts": [
+        ".omx/ultragoal/evidence/G038-cas-re-baseline-reconciliation-20260805.json",
+        ".omx/ultragoal/evidence/G038-independent-review-20260805.json",
+        ".omx/tmp/g038/issue-comment.md"
+      ],
+      "non_effects": [
+        "No implementation or source file changed.",
+        "No GitHub object was mutated.",
+        "No credential or cluster was read or mutated.",
+        "No self-approval or execution proof was recorded."
+      ]
+    },
+    {
+      "sequence": 7,
+      "role": "code-reviewer",
+      "verdict": "ITERATE",
+      "scope": "Final command-safety review",
+      "findings": [
+        "Promoted tests must execute inside the detached origin/dev worktree.",
+        "Pre/post evidence must fail closed on cleanliness, SSH signature, exact ancestry, and SHA-bound logs."
+      ]
+    },
+    {
+      "sequence": 8,
+      "role": "executor",
+      "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+      "scope": "Command-safety evidence remediation",
+      "non_effects": [
+        "No implementation/source/GitHub/credential/cluster mutation.",
+        "No promoted proof or self-approval claimed."
+      ]
+    },
+    {
+      "sequence": 9,
+      "role": "code-reviewer",
+      "verdict": "ITERATE",
+      "scope": "Fail-closed shell review",
+      "findings": [
+        "Buck2 test logs required pipefail so tee cannot mask failure.",
+        "Exact-head check lookup required an explicit non-empty assertion."
+      ]
+    },
+    {
+      "sequence": 10,
+      "role": "executor",
+      "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+      "scope": "Fail-closed shell evidence remediation",
+      "non_effects": [
+        "No implementation/source/GitHub/credential/cluster mutation.",
+        "Final verdict remains unset."
+      ]
+    },
+    {
+      "sequence": 11,
+      "role": "code-reviewer",
+      "verdict": "APPROVE",
+      "scope": "Final G038 execution-readiness review",
+      "receipt_sha256": "44a0764e7565f197f4bc434f333f3c7f98606a6068c1f0c9c22f46180b0506b7",
+      "findings": []
+    },
+    {
+      "sequence": 12,
+      "role": "architect",
+      "verdict": "CLEAR",
+      "scope": "Final G038 architecture-invariant review",
+      "receipt_sha256": "44a0764e7565f197f4bc434f333f3c7f98606a6068c1f0c9c22f46180b0506b7",
+      "findings": []
+    },
+    {
+      "sequence": 13,
+      "role": "code-reviewer",
+      "verdict": "ITERATE",
+      "scope": "Clean-worktree command replay review",
+      "findings": [
+        "Create .omx/tmp/g039 before the first redirect.",
+        "Align the receipt story status with the active review phase."
+      ]
+    },
+    {
+      "sequence": 14,
+      "role": "executor",
+      "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+      "scope": "Idempotent evidence-directory and status remediation",
+      "non_effects": [
+        "No implementation/source/GitHub/credential/cluster mutation."
+      ]
+    },
+    {
+      "sequence": 15,
+      "role": "code-reviewer",
+      "reviewer": "/root/g038_boundary_review",
+      "verdict": "APPROVE",
+      "scope": "Final G038 execution-readiness review",
+      "receipt_sha256": "8562a4ca2fd95fe6ee1fd7e2dbeb6e0289d430944c04fb7c80db8bfdb89e88ef",
+      "findings": []
+    },
+    {
+      "sequence": 16,
+      "role": "code-reviewer",
+      "reviewer": "/root/g038_final_fast_approve",
+      "verdict": "APPROVE",
+      "scope": "Independent final replay review",
+      "receipt_sha256": "8562a4ca2fd95fe6ee1fd7e2dbeb6e0289d430944c04fb7c80db8bfdb89e88ef",
+      "findings": []
+    },
+    {
+      "sequence": 17,
+      "role": "architect",
+      "reviewer": "/root/g038_architecture_review",
+      "verdict": "CLEAR",
+      "scope": "Final architecture-invariant review",
+      "receipt_sha256": "8562a4ca2fd95fe6ee1fd7e2dbeb6e0289d430944c04fb7c80db8bfdb89e88ef",
+      "findings": []
+    }
+  ],
+  "final_review": {
+    "status": "complete",
+    "reviewer": "/root/g038_boundary_review + /root/g038_final_fast_approve",
+    "verdict": "APPROVE",
+    "architect_reviewer": "/root/g038_architecture_review",
+    "architect_status": "CLEAR",
+    "reviewed_at_utc": "2026-08-05T08:19:49Z",
+    "reviewed_receipt_sha256": "8562a4ca2fd95fe6ee1fd7e2dbeb6e0289d430944c04fb7c80db8bfdb89e88ef",
+    "findings": [],
+    "evidence": "Two independent code-reviewer APPROVE verdicts and architect CLEAR bind the immutable reviewed receipt; all earlier findings remain preserved in history.",
+    "activation_rule": "G038 may checkpoint complete and hand off to G039. This is not PR approval, merge authority, CAS/RE activation authority, credential authority, or cluster mutation authority."
+  }
+}

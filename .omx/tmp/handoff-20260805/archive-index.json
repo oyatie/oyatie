@@ -1,0 +1,312 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/prewipe-session-handoff-index.schema.json",
+  "active_goal_id": "G039-run-the-representative-1558-storage",
+  "aggregate_goal_status": "active",
+  "archive_refs": [
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/adr-0510-trigger-measurement-224cf074f",
+      "sha": "224cf074f130341872dc0e8d677429596db223f1"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/cas-network-proof-14029a924",
+      "sha": "14029a924c5c9a7f772d303f8d5c7647f3abbc30"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/dirty-adr0612-pr-body",
+      "sha": "ec381a78553bb788f2a14db2b3b60844ec875731"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/dirty-affected-baseline-race",
+      "sha": "781817172c42fb0d1b95926ffe7a9790997c22e2"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/dirty-mm-harness-gitignore",
+      "sha": "bb7ec68a7cf8dc2613960e7216e1f516984ceb81"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/dirty-pr1533-restack",
+      "sha": "770a94171e3c6195899a9076c6167cf57a22901c"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/file-pr-scaffold-735e4fed1",
+      "sha": "735e4fed1b13cb0554700e575e0f88eefe8c7ccf"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/k8s-port-w0a-a2f9ca831",
+      "sha": "a2f9ca8317ba4ba0c7a669b04a8b3830ebfe7264"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/primary-workspace-sanitized-v3",
+      "sha": "29850fcef719a522e91e0f07fb18b7672cb3ccd1"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/sapling-mononoke-study-b16f5827e",
+      "sha": "b16f5827e9839f7b43a913c696cffe366efca882"
+    },
+    {
+      "ref": "refs/heads/archive/prewipe-20260805/untracked-content-sanitized-11c772c21",
+      "sha": "11c772c2107af09311f35cbae34ea0310fcf993d"
+    }
+  ],
+  "captured_at": "2026-08-05T08:48:00Z",
+  "claim_ceiling": "Recovery index only. Requery every volatile state and curate every archive path through normal protected PR governance.",
+  "icloud_recovery": [
+    {
+      "bytes": 4780467132,
+      "file": "oyatie-talos-recovery-20260804.tar.zst.age",
+      "hash_verified": "2026-08-05",
+      "sha256": "3d3e41ba9f6d570094649f36ae25ffe00075b96f474c27829dced1c4b67c04c4"
+    },
+    {
+      "bytes": 587680157,
+      "file": "oyatie-prewipe-supplement-20260804T131959Z.tar.zst.age",
+      "hash_verified": "2026-08-05",
+      "sha256": "75da487e2dc0837373572a99610d32bfabf055a3a76a944a6368761f9610e0f7"
+    }
+  ],
+  "merged_pr_1559": {
+    "head": "4d652c652e82c400793fa425e341fe6f470d2fbc",
+    "postmerge_ci": {
+      "conclusion": "",
+      "createdAt": "2026-08-05T08:46:51Z",
+      "databaseId": 30990439972,
+      "event": "push",
+      "headSha": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+      "status": "queued",
+      "url": "https://github.com/jason931225/oyatie/actions/runs/30990439972"
+    },
+    "promoted_commit": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+    "review": "https://github.com/jason931225/oyatie/pull/1559#issuecomment-5189625309"
+  },
+  "open_pull_requests": [
+    {
+      "headRefName": "agent/k8s-port-w0a-20260805",
+      "headRefOid": "587ac30d1c3389366bf6f27bc5f1bead70d44149",
+      "isDraft": true,
+      "mergeStateStatus": "BLOCKED",
+      "mergeable": "MERGEABLE",
+      "number": 1561,
+      "required": [],
+      "reviewDecision": "",
+      "title": "feat(k8s): admit deterministic Go-to-Rust port W0-A",
+      "url": "https://github.com/jason931225/oyatie/pull/1561"
+    },
+    {
+      "headRefName": "feat/cas-proof-bootstrap-20260805",
+      "headRefOid": "54b22d0c6470d8008012542eb37d0ff32b72e1b5",
+      "isDraft": true,
+      "mergeStateStatus": "BLOCKED",
+      "mergeable": "MERGEABLE",
+      "number": 1558,
+      "required": [
+        {
+          "conclusion": "FAILURE",
+          "detailsUrl": "https://github.com/jason931225/oyatie/actions/runs/30977703798/job/92223027421",
+          "status": "COMPLETED"
+        }
+      ],
+      "reviewDecision": "",
+      "title": "infra: add isolated CAS proof-cell prerequisites",
+      "url": "https://github.com/jason931225/oyatie/pull/1558"
+    }
+  ],
+  "origin_dev": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+  "primary_snapshot": {
+    "base_head": "06b5018067a317d1b0f1b45d0c780fa9807da69d",
+    "candidate_path_count": 1780,
+    "captured_at": "2026-08-05",
+    "content_scan": {
+      "mode": "redacted",
+      "name_safe_paths_scanned_and_preserved_count": 26,
+      "result": "passed-after-sanitization",
+      "sanitized_paths": [
+        {
+          "action": "replaced detected literal with REDACTED_RECOVERY_PLACEHOLDER in archive only",
+          "field": "idempotency_key",
+          "line": 56,
+          "path": "oya/supply-chain-planning/crates/oya-supply-chain-planning-network-app/tests/integration.rs"
+        }
+      ],
+      "tool": "gitleaks"
+    },
+    "excluded_paths": [
+      {
+        "path": "--help/mutation-normalization-oracle-v0.2.json",
+        "reason": "secret-like-name-or-prior-leak-finding"
+      },
+      {
+        "path": ".grok/bin/mm-role",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081312Z-ARCHITECT/command.txt",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081312Z-ARCHITECT/meta.json",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081312Z-ARCHITECT/prompt.md",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081312Z-PLANNER/command.txt",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081312Z-PLANNER/meta.json",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081312Z-PLANNER/prompt.md",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081313Z-CRITIC/command.txt",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081313Z-CRITIC/meta.json",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081313Z-CRITIC/prompt.md",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081313Z-EXECUTOR/command.txt",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081313Z-EXECUTOR/meta.json",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/mm-runs/20260805T081313Z-EXECUTOR/prompt.md",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/multi-model-roles.json",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".grok/workflows/delivery-pipeline-improve.rhai",
+        "reason": "local-orchestration-metadata"
+      },
+      {
+        "path": ".worktrees/g023-pr1523-restack-20260802/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/g028-runner-disk-request-20260802/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/k8s-port-w0a/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/review-t_ceb89d13-pr1107/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_03877337-calendar-e2e/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_09997b9d/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_0b5f2b75-crm-closeout/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_1cb9bacc/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_1e67b1be-regeneration/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_60e047bd/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_7b437a23-calendar-build/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_7d05dc85-regsec-001/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_b41da6b2-authz-007-runtime-fix/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_f15d213a-airgap-contract/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/t_fc9e8923-idp-002-fix/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/workspace-drift-cloud-ci-port-20260701/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/workspace-drift-cloud-trust-port-20260701/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/workspace-drift-docs-procedure-port-20260701/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": ".worktrees/workspace-drift-oya-retired-port-20260701/",
+        "reason": "local-worktree-metadata"
+      },
+      {
+        "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+        "reason": "generated-output-policy"
+      },
+      {
+        "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+        "reason": "generated-output-policy"
+      },
+      {
+        "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+        "reason": "generated-output-policy"
+      },
+      {
+        "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+        "reason": "generated-output-policy"
+      },
+      {
+        "path": "controlplane.yaml",
+        "reason": "secret-like-name-or-prior-leak-finding"
+      },
+      {
+        "path": "worker.yaml",
+        "reason": "secret-like-name-or-prior-leak-finding"
+      }
+    ],
+    "origin_dev_observed": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+    "preserved_path_count_after_content_scan": 1739,
+    "preserved_path_count_before_content_scan": 1713,
+    "recovery": "Fetch the archive branch and inspect its single snapshot commit relative to base_head. Do not merge wholesale; curate through normal isolated-worktree PR governance.",
+    "schema": "oyatie-prewipe-sanitized-working-tree-snapshot/v1",
+    "source_checkout": "/Users/jasonlee/Developer/oyatie",
+    "status": "quarantine-recovery-only-not-implementation-or-merge-authority",
+    "supersedes_archive_branch": "archive/prewipe-20260805/primary-workspace-sanitized-v2",
+    "tracked_changed_path_count": 1386,
+    "untracked_path_count": 394
+  },
+  "program_issue": "https://github.com/jason931225/oyatie/issues/1560",
+  "repository": "jason931225/oyatie",
+  "status": "recovery-only-not-implementation-or-merge-authority"
+}
