@@ -1,3 +1,5 @@
+# Preview planning inventory only. Not measured SLO, production readiness,
+# runtime audit-chain, or cloud deployment evidence for treasury.
 apiVersion: openslo/v1
 kind: SLO
 metadata:
@@ -5,8 +7,12 @@ metadata:
   labels:
     service: treasury
     sap_code: "TRM"
+    authority_scope: preview_planning_non_measured
+  annotations:
+    authority_ref: specs/microservices/treasury.json
+    non_claim: "planning inventory only; no measured SLO, runtime service, cloud deployment, or production readiness"
 spec:
-  description: "Treasury treasury-availability objective; benchmarks SAP TRM Treasury and Risk Management | Oracle Fusion Cash Management | Workday Financial Management cash and treasury counterpart | NetSuite Cash Management | Microsoft Dynamics 365 Finance Cash and Bank"
+  description: "Planning-only treasury-availability objective; benchmark inventory only, with no measured SLO, runtime service, cloud deployment, GA, or production readiness claim."
   service: treasury
   indicator:
     metadata:

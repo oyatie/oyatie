@@ -40,6 +40,20 @@ service IsolationPolicy {
 }
 
 // =========================================================================
+// Service: TenantEnvironmentControl
+// =========================================================================
+// ADR-0163 readiness contract for environment-tier API-key issuance, tenant
+// environment views, and non-prod outbound configuration. These RPCs define the
+// contract only; they do not create tenant environments, copy prod data, route
+// production traffic, or provision cells.
+
+service TenantEnvironmentControl {
+  rpc IssueApiKey(IssueApiKeyRequest) returns (IssuedApiKey);
+  rpc ListTenantEnvironments(ListTenantEnvironmentsRequest) returns (ListTenantEnvironmentsResponse);
+  rpc UpdateTenantEnvironmentOutboundConfig(UpdateTenantEnvironmentOutboundConfigRequest) returns (TenantEnvironment);
+}
+
+// =========================================================================
 // Service: CellAssignment
 // =========================================================================
 
@@ -93,6 +107,26 @@ enum PlanTier {
   PLAN_TIER_PRODUCTION = 2;
   PLAN_TIER_SANDBOX = 3;
   PLAN_TIER_INTERNAL = 4;
+}
+
+enum EnvironmentTier {
+  ENVIRONMENT_TIER_UNSPECIFIED = 0;
+  ENVIRONMENT_TIER_TEST = 1;
+  ENVIRONMENT_TIER_STAGING = 2;
+  ENVIRONMENT_TIER_PROD = 3;
+}
+
+enum ApiKeyKind {
+  API_KEY_KIND_UNSPECIFIED = 0;
+  API_KEY_KIND_SERVER = 1;
+  API_KEY_KIND_PUBLIC = 2;
+}
+
+enum OutboundMode {
+  OUTBOUND_MODE_UNSPECIFIED = 0;
+  OUTBOUND_MODE_INTERCEPT = 1;
+  OUTBOUND_MODE_TEST_RECIPIENTS = 2;
+  OUTBOUND_MODE_LIVE = 3;
 }
 
 enum DsrRequestType {
@@ -217,6 +251,33 @@ message JwtFingerprint {
   bool revoked = 7;
 }
 
+message OutboundConfig {
+  OutboundMode mode = 1;
+  repeated string test_recipient_allowlist = 2;
+  string intercept_sink = 3;
+}
+
+message TenantEnvironment {
+  string tenant_id = 1;
+  EnvironmentTier environment_tier = 2;
+  string retention = 3;
+  OutboundConfig outbound_config = 4;
+  string server_key_prefix = 5;
+  string public_key_prefix = 6;
+  string audit_chain_tag = 7;
+  bool destructive_op_acknowledgment_required = 8;
+}
+
+message IssuedApiKey {
+  string api_key_id = 1;
+  string tenant_id = 2;
+  EnvironmentTier environment_tier = 3;
+  ApiKeyKind key_kind = 4;
+  string prefix = 5;
+  string secret_once = 6; // present only at creation time for server keys; never logged
+  google.protobuf.Timestamp created_at = 7;
+}
+
 message TenantLifecycleEvent {
   string event_type = 1;  // TenantCreated | TenantActivated | TenantSuspended | TenantResumed | TenantDeletionRequested | TenantDeletionCompleted
   Tenant tenant = 2;
@@ -285,6 +346,28 @@ message IssueJwtRequest {
 
 message VerifyJwtRequest {
   string jwt = 1;
+}
+
+message IssueApiKeyRequest {
+  string tenant_id = 1;
+  EnvironmentTier environment_tier = 2;
+  ApiKeyKind key_kind = 3;
+  string label = 4;
+}
+
+message ListTenantEnvironmentsRequest {
+  string tenant_id = 1;
+}
+
+message ListTenantEnvironmentsResponse {
+  string tenant_id = 1;
+  repeated TenantEnvironment environments = 2;
+}
+
+message UpdateTenantEnvironmentOutboundConfigRequest {
+  string tenant_id = 1;
+  EnvironmentTier environment_tier = 2;
+  OutboundConfig outbound_config = 3;
 }
 
 message ListRlsPoliciesRequest {

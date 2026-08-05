@@ -88,7 +88,143 @@ when {
 };
 
 // =============================================================================
-// PERMIT 4 — tenant operator reads OWN RLS policy registry (read-only)
+// PERMIT 4 — tenant operator reads own environment-tier contract view
+// =============================================================================
+//
+// ADR-0163 readiness fragment: tenant DPO/operator self-service can inspect the
+// tenant's test/staging/prod configuration. This is read-only; it does not
+// create environments, route traffic, copy data, or bypass the policy-engine
+// substrate.
+
+permit (
+  principal in TenantOperator::?p,
+  action == Action::"read_tenant_environments",
+  resource in TenantEnvironment::?e
+)
+when {
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  resource has env_tier &&
+  resource.env_tier in ["test", "staging", "prod"]
+};
+
+// =============================================================================
+// PERMIT 5 — ADR-0163 API-key issuance role ladder by environment tier
+// =============================================================================
+//
+// Prefix/tier gates: sk_test_/pk_test_ require tenant developer or higher;
+// sk_stage_/pk_stage_ require tenant maintainer or higher; sk_live_/pk_live_
+// require tenant admin only. Runtime issuance must still flow through the
+// shared policy engine; this fragment only declares the Cedar contract shape.
+
+permit (
+  principal in TenantOperator::?p,
+  action == Action::"issue_api_key",
+  resource in TenantEnvironment::?e
+)
+when {
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  principal has plan_tier_role &&
+  resource has env_tier &&
+  resource has api_key_prefix &&
+  (
+    (
+      resource.env_tier == "test" &&
+      resource.api_key_prefix in ["sk_test_", "pk_test_"] &&
+      principal.plan_tier_role in ["developer", "maintainer", "admin", "owner"]
+    ) ||
+    (
+      resource.env_tier == "staging" &&
+      resource.api_key_prefix in ["sk_stage_", "pk_stage_"] &&
+      principal.plan_tier_role in ["maintainer", "admin", "owner"]
+    ) ||
+    (
+      resource.env_tier == "prod" &&
+      resource.api_key_prefix in ["sk_live_", "pk_live_"] &&
+      principal.plan_tier_role == "admin"
+    )
+  )
+};
+
+// =============================================================================
+// PERMIT 6 — non-prod outbound configuration update
+// =============================================================================
+//
+// test remains intercept/log-only; staging can deliver to QA/test recipients;
+// prod live outbound delivery is not mutable through this API surface.
+
+permit (
+  principal in TenantOperator::?p,
+  action == Action::"update_outbound_config",
+  resource in TenantEnvironment::?e
+)
+when {
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  principal has plan_tier_role &&
+  principal.plan_tier_role in ["admin", "owner"] &&
+  resource has env_tier &&
+  resource.env_tier in ["test", "staging"] &&
+  resource has outbound_mode &&
+  resource.outbound_mode in ["intercept", "test_recipients"]
+};
+
+forbid (
+  principal in TenantOperator::?p,
+  action == Action::"update_outbound_config",
+  resource in TenantEnvironment::?e
+)
+when {
+  resource has env_tier &&
+  resource.env_tier == "prod"
+};
+
+// =============================================================================
+// PERMIT 7 — prod destructive operation acknowledgment
+// =============================================================================
+//
+// API boundaries map request header `x-oya-prod-destructive-ack: true` into the
+// Cedar context flag `prod_destructive_acknowledged: true` before prod-tier DSR
+// delete, tenant offboarding, bulk delete, cell migration, or residency-class
+// change operations can proceed.
+
+permit (
+  principal in TenantOperator::?p,
+  action == Action::"perform_prod_destructive_operation",
+  resource in TenantDestructiveOperation::?d
+)
+when {
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  principal has plan_tier_role &&
+  principal.plan_tier_role in ["admin", "owner"] &&
+  resource has env_tier &&
+  resource.env_tier == "prod" &&
+  context has prod_destructive_acknowledged &&
+  context.prod_destructive_acknowledged == true
+};
+
+forbid (
+  principal,
+  action == Action::"perform_prod_destructive_operation",
+  resource in TenantDestructiveOperation::?d
+)
+when {
+  resource has env_tier &&
+  resource.env_tier == "prod"
+}
+unless {
+  context has prod_destructive_acknowledged &&
+  context.prod_destructive_acknowledged == true
+};
+
+// =============================================================================
+// PERMIT 8 — tenant operator reads OWN RLS policy registry (read-only)
 // =============================================================================
 //
 // Tenant operators may want to verify that their tables are RLS-protected.
@@ -131,6 +267,10 @@ forbid (
     Action::"submit_dsr_request",
     Action::"read_dsr_request",
     Action::"read_proof_of_erasure",
+    Action::"read_tenant_environments",
+    Action::"issue_api_key",
+    Action::"update_outbound_config",
+    Action::"perform_prod_destructive_operation",
     Action::"read_rls_policy"
   ],
   resource

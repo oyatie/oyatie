@@ -139,7 +139,7 @@ doc_status: published
 3. Quarantine chunk: `oya ops intelligence rag chunk quarantine --tenant $TENANT --chunk <chunk-id> --reason $INCIDENT_ID`.
 4. Hold RAG answers for affected pack: `oya flags set oya.intelligence.rag.answer_hold=true --tenant $TENANT --pack $PACK --reason $INCIDENT_ID`.
 5. Force citation freshness warning: `oya flags set oya.intelligence.rag.citation_stale_warning=true --tenant $TENANT --pack $PACK --reason $INCIDENT_ID`.
-6. Hold corpus deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+6. Hold corpus deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 7. Refresh corpus source dry-run: `oya ops intelligence rag source refresh --tenant $TENANT --pack $PACK --source all --dry-run`.
 8. Refresh corpus source confirmed: `oya ops intelligence rag source refresh --tenant $TENANT --pack $PACK --source all --confirm $INCIDENT_ID`.
 9. Rebuild index dry-run: `oya ops intelligence rag index rebuild --tenant $TENANT --pack $PACK --embedding-model approved-current --dry-run`.
@@ -169,7 +169,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-rag-corpus --production-snapshot --cell $CELL`.
 12. Verify retrieval eval: `oya ops intelligence eval run --pack $PACK --suite rag-retrieval-quality --tenant $TENANT --expect pass`.
 13. Release answer hold: `oya flags set oya.intelligence.rag.answer_hold=false --tenant $TENANT --pack $PACK --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 15. Seal audit: `oya audit-chain emit --event-class EVT_INTELLIGENCE_RAG_CORPUS_DRIFT_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

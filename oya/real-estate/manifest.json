@@ -308,6 +308,39 @@
     "cell_placement_class": "Tier-3",
     "notes": "Lease and rent-roll operations are moderate request/ledger writes with low cache pressure."
   },
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.32,
+      "memory_watts_per_gib_second": 0.0023,
+      "storage_watts_per_gib_hour": 0.00072,
+      "network_watts_per_gib": 0.052,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/manifest.json#provider-sku-pricing-advisory-binding",
+      "pin_window_hours": 24
+    },
+    "workload_signal_source": {
+      "signal_family": "per_request",
+      "source_ref": "oya/real-estate/manifest.json#audit_chain.seal_events:EVT-REAL_ESTATE-LEASE_CONTRACT-CHANGED+EVT-REAL_ESTATE-RENT_SCHEDULE-CHANGED+EVT-REAL_ESTATE-FACILITY_SERVICE_REQUEST-CHANGED"
+    },
+    "emission_path_tests": [
+      "oya/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs",
+      "SPEC-FINOPS-EMISSION-BATCH-ERP-OPS-001 fixture-only: lease, rent-roll, and facility service assertions must add cost/co2/watt_hours/provider/region before any live FinOps claim"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 4.2,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.00168,
+      "tolerance_pct": 20
+    }
+  },
   "sharding_automation": {
     "autosharding": "control_plane_driven",
     "auto_rebalance": {

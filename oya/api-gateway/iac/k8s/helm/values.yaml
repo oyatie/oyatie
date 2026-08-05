@@ -28,6 +28,62 @@ service:
   port: 8080
   targetPort: 8080
 
+mailProtocolEdge:
+  enabled: true
+  authorityRef: "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md#non-http-protocol-edge-extension"
+  parentRef:
+    name: oya-edge
+    namespace: api-gateway
+  backendNamespace: mail
+  controls:
+    - mtls_spiffe
+    - cilium_network_policy_allowlist
+    - otel_audit_correlation
+    - l4_ddos_connection_rate_limit
+    - per_tenant_ip_rate_limit
+    - starttls_mta_sts_tls_rpt
+    - sasl_oidc_binding
+    - open_relay_refusal
+    - dmarc_spf_dkim_arc_rspamd
+    - rollback_and_protocol_smoke_evidence
+  routes:
+    - name: inbound-smtp-mx
+      kind: TCPRoute
+      sectionName: smtp
+      port: 25
+      backendService: oya-mail-inbound-smtp-worker
+      backendPort: 25
+    - name: inbound-smtps
+      kind: TLSRoute
+      sectionName: smtps
+      port: 465
+      backendService: oya-mail-inbound-smtp-worker
+      backendPort: 465
+    - name: outbound-submission
+      kind: TCPRoute
+      sectionName: submission
+      port: 587
+      backendService: oya-mail-outbound-smtp-worker
+      backendPort: 587
+    - name: imap
+      kind: TCPRoute
+      sectionName: imap
+      port: 143
+      backendService: oya-mail-imap-frontend-worker
+      backendPort: 143
+    - name: imaps
+      kind: TLSRoute
+      sectionName: imaps
+      port: 993
+      backendService: oya-mail-imap-frontend-worker
+      backendPort: 993
+    - name: managesieve
+      kind: TCPRoute
+      sectionName: managesieve
+      port: 4190
+      backendService: oya-mail-imap-frontend-worker
+      backendPort: 4190
+
 config:
   environment: production
   auditChainEnabled: true

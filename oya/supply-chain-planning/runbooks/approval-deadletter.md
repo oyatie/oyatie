@@ -1,29 +1,37 @@
 ---
 doc_class: Runbook
 microservice: supply-chain-planning
-status: Accepted
+status: target-provenance
 date: 2026-05-21
 owner_team: axis-supply-chain-planning + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
 planned_enforcement_ref: oya-governance-supply-chain-planning-doc-set
+inventory_classification: target-provenance
+claim_ceiling: metadata-only-preview-target-no-live-runtime-slo-dr-cloud-or-ga-readiness
+visible_repo_path: oya/supply-chain-planning/runbooks/approval-deadletter.md
+canonical_prd: specs/microservices/supply-chain-planning.json
+operational_claim: none
 scenario: approval-deadletter
 ---
 
 # Runbook: Supply Chain Planning approval-deadletter
 
-## A. Trigger conditions
-- Alert supply-chain-planning_approval_deadletter_active is firing.
-- Audit stream shows EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-RUNBOOK_TRIGGER.
-- Tenant report identifies affected bounded context supply-network-plan.
+## Claim Ceiling
+This file is target/provenance inventory for the metadata-only Supply Chain Planning preview. The alert names, audit event classes, trace spans, dashboard references, rollback notes, and evidence fields below describe future operating posture only; they are not live telemetry, runtime recovery proof, SLO/DR readiness, cloud deployment evidence, or GA readiness.
 
-## B. Pre-checks
+## A. Target trigger conditions (not live alerts)
+- Target alert condition: supply-chain-planning_approval_deadletter_active would fire only after separate activation evidence.
+- Target audit event class: EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-RUNBOOK_TRIGGER; no runtime audit stream evidence is claimed.
+- Target tenant report signal: affected bounded context supply-network-plan; no live tenant report is claimed.
+
+## B. Target pre-checks
 1. Confirm tenant_id and source_system_id.
 2. Confirm Cedar bundle version and policy decision trace.
 3. Confirm ingress negotiated HTTP/3 or fell back to HTTP/2/HTTP/1.1 in order.
 4. Confirm ECH config age and PQC negotiation metric.
 5. Confirm marketplace settlement status is read-only.
 
-## C. Procedure
+## C. Target procedure (not live run instructions)
 1. Execute approval-deadletter step 1: query supply-chain-planning_supply_network_plan_health, inspect trace span oya.supply-chain-planning.supply-network-plan, verify audit event EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-STEP_01, and stop if tenant scope does not match.
 2. Execute approval-deadletter step 2: query supply-chain-planning_supply_network_plan_health, inspect trace span oya.supply-chain-planning.supply-network-plan, verify audit event EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-STEP_02, and stop if tenant scope does not match.
 3. Execute approval-deadletter step 3: query supply-chain-planning_supply_network_plan_health, inspect trace span oya.supply-chain-planning.supply-network-plan, verify audit event EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-STEP_03, and stop if tenant scope does not match.
@@ -45,19 +53,19 @@ scenario: approval-deadletter
 19. Execute approval-deadletter step 19: query supply-chain-planning_supply_network_plan_health, inspect trace span oya.supply-chain-planning.supply-network-plan, verify audit event EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-STEP_19, and stop if tenant scope does not match.
 20. Execute approval-deadletter step 20: query supply-chain-planning_supply_network_plan_health, inspect trace span oya.supply-chain-planning.supply-network-plan, verify audit event EVT-SUPPLY_CHAIN_PLANNING-SUPPLY_NETWORK_PLAN-STEP_20, and stop if tenant scope does not match.
 
-## D. Verification
-Verify the SLO burn rate returns below threshold, the worker queue drains, the Cedar decision log contains no unexpected permit, and the tenant dashboard reflects normal state.
+## D. Future verification
+Do not mark runtime recovery from this file. A future activated service would need measured SLO burn-rate recovery, drained worker queues, Cedar decision logs with no unexpected permits, and tenant dashboard evidence before closure.
 
-## E. Rollback
-Rollback to the last signed replay cursor or previous policy bundle. Never mutate production rows manually.
+## E. Target rollback
+Rollback posture targets the last signed replay cursor or previous policy bundle after activation evidence exists. Never mutate production rows manually, and do not treat this preview runbook as recovery proof.
 
-## F. Post-incident
-Create an evidence record, attach dashboard snapshots, update this runbook if a step was ambiguous, and link a follow-up IP when automation is needed.
+## F. Future post-incident
+After a future measured incident, create an evidence record, attach dashboard snapshots, update this runbook if a step was ambiguous, and link a follow-up IP when automation is needed. This preview inventory creates no incident evidence by itself.
 
 ## G. References
 - docs/standards/documentation-rigor.md
-- microservices/supply-chain-planning/failure-modes.md
-- microservices/supply-chain-planning/incident-response.md
+- oya/supply-chain-planning/failure-modes.md (target/provenance placeholder; not present in this checkout)
+- oya/supply-chain-planning/incident-response.md (target/provenance placeholder; not present in this checkout)
 - SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning
 - Runbook detail 001: approval-deadletter for Supply Chain Planning.supply-network-plan preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
 - Runbook detail 002: approval-deadletter for Supply Chain Planning.supply-network-plan preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.

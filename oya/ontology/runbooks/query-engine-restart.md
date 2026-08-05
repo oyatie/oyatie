@@ -114,7 +114,7 @@ Query Engine Restart incident decision tree
 4. Enable circuit breaker: `oya ops breaker open ontology-query-engine-restart-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n ontology scale deploy/ontology-query-engine-restart-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason ontology-query-engine-restart --ttl 60m`.
-7. Pause promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+7. Pause promotion: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 8. Drain queue safely: `oya ops ontology query-engine-restart drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops ontology query-engine-restart drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT_ONTOLOGY_QUERY_ENGINE_RESTART_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -164,7 +164,7 @@ Query Engine Restart incident decision tree
 14. Watch burn rate: `oya ops watch --metric oya_ontology_query_engine_restart_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close ontology-query-engine-restart-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.ontology.query_engine_restart.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+17. Resume promotion: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT_ONTOLOGY_QUERY_ENGINE_RESTART_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=query-engine-restart`.
 19. Verify seal: `oya audit-chain verify --event-class EVT_ONTOLOGY_QUERY_ENGINE_RESTART_INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.

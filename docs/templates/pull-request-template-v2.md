@@ -35,9 +35,10 @@ doc_status: published
 - Cite the canonical authority you read first per `docs/AGENTS.md §Pre-flight checklist` item 2.
 
 <!-- agent-instructions:start -->
-**Agent path** (read this fork if you are a Claude/Codex/Gemini/Foundry agent):
-- The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Use `oya-tooling-agent-read run-evidence <cmd>` and paste the captured stdout/stderr.
+**Agent path** (read this fork if you are a Claude/Codex/Gemini agent):
+- The `## Verification` block **MUST** paste actual tool output or cloud-ci/GitHub status evidence, not a hand-wave. Legacy `oya-tooling-agent-read` capture is optional bridge evidence only.
 - The `## Code Review` H2 **MUST NOT** be added by the worker agent; only the lead reviewer agent (per change-class table in `docs/AGENTS.md §Per-change-class reviewer agents`) signs it at merge time. Adding it as a worker is a `guard-pr-merge-review.mjs` violation.
+- Before closeout, the worker/reviewer **MUST** harvest agent observations: review chat, review notes, scratch/workspace notes, PR comments, and Kanban comments; dedupe against active cards; then create/link Kanban work or document duplicates/no-action rationale in `## Evidence`.
 <!-- agent-instructions:end -->
 
 **Human path:** PR body uses 5 H2 sections; CI `traceability-validator` fails the gate if any section is missing or empty. Reviewer-agent verdict is pasted into `## Code Review` at merge.
@@ -49,8 +50,8 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - `cargo nextest run --workspace --all-features --no-fail-fast` — `<PASS|FAIL>` — `<excerpt>`
 - `cargo clippy --workspace --all-features --all-targets -- -D warnings` — `<PASS|FAIL>` — `<excerpt>`
 - `cargo deny check` — `<PASS|FAIL>` — `<excerpt>`
-- `oya verify` — `<PASS|FAIL>` — `<excerpt>`
-- `oya gate validate` — `<PASS|FAIL>` — `<excerpt>` (claim-ceiling, foundation-bypass, plane-class)
+- `oya-ci-required` protected status — `<PASS|FAIL>` — `<status URL or cloud-ci packet excerpt>`
+- Legacy local bridge evidence, if run (`oya verify` / `oya gate validate`) — `<PASS|FAIL|N/A>` — `<excerpt or rationale>`
 - Per-change-class fitness lanes: `<list lanes + PASS|FAIL each>`
 - Per-change-class reviewer agent: `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES>`
 
@@ -72,10 +73,21 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - Distroless image build (if shipping a binary): `<image:tag>` + Cosign attestation digest
 - SBOM artifact: `<path|registry-ref>` (Syft/CycloneDX)
 - SLSA provenance level achieved: `L1 | L2 | L3`
+- Post-merge product-completion packet (after squash merge):
+  - promoted SHA + `oya-ci-required` status URL
+  - rollout verification + rollback note
+  - observability check + browser UX/user-story evidence
+  - release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists)
+- Agent-observation harvest:
+  - source contexts reviewed: `<chat|review notes|scratch|PR|Kanban|N/A>`
+  - outcome: `<new/linked Kanban card ids | duplicate/no-action rationale>`
+  - new/linked card fields present: source context, classification, affected card/PR/artifact, acceptance criteria, verification path, suggested owner/profile, dependencies/conflict notes
 
 <!-- merge-gate: lead reviewer adds `## Code Review` below at merge; `guard-pr-merge-review.mjs` refuses without it. -->
 
-## Code Review _(lead-only — never as worker)_
+## Code Review
+
+_(lead-only — never as worker)_
 
 - Reviewer agent: `<rust-reviewer | typescript-reviewer | python-reviewer | database-reviewer | security-reviewer | privacy-reviewer | tdd-guide | silent-failure-hunter | doc-updater | doc-style-reviewer | capability-reviewer | perf-reviewer>`
 - Verdict: `<APPROVE | REQUEST CHANGES>`

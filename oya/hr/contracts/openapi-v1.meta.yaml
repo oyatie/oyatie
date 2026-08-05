@@ -1,7 +1,7 @@
 tier: preview
 owner_team: axis-enterprise
 version: 1.0.0
-sunset: none-before-GA
+sunset: none
 related_adrs:
   - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
   - docs/decisions/ADR-0131-flat-microservices-layout.md
@@ -17,3 +17,15 @@ change_notes:
   - id: CS-ENT-HR-006
     date: 2026-05-23
     summary: Adds HR runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission remain non-claims.
+  - id: CS-ENT-HR-007
+    date: 2026-07-01
+    summary: Reconciles sunset metadata with the api-semver `none` sentinel; the HR contract remains preview/non-deployed and this does not claim GA readiness.
+  - id: CS-ENT-HR-008
+    date: 2026-07-02
+    summary: Adds the bounded HR listener-boundary health route/schema for the prebound std TCP listener harness while preserving non-claims for production-deployed listener, storage, Workflow execution, Payroll calls, sensitive-data retrieval, runtime audit emission, and cloud deployment.
+  - id: CS-ENT-HR-009
+    date: 2026-07-02
+    summary: Extends the leave payroll-impact response with Payroll-consumable source metadata, HR rulepack/evidence refs, source idempotency, and explicit non-claim flags; HR still performs no payroll calculation, Payroll call, Workflow execution, storage persistence, or runtime audit emission.
+  - id: CS-ENT-HR-010
+    date: 2026-07-02
+    summary: Documents the HR sensitive-read runtime-boundary tenant/RBAC scope evidence and audit-event-class contract refs as required preview request metadata; the DTO remains compatibility-tolerant while the bounded runtime boundary fail-closes when either ref is missing, and this does not claim sensitive HR data retrieval, raw sensitive-data echo, storage persistence, Workflow execution, Payroll calls, deployed listener/cloud deployment, or runtime audit-chain emission.

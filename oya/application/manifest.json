@@ -212,6 +212,12 @@
       "title": "IP-016: Tenant Admin Console control surface",
       "acceptance_status": "ga",
       "file": "microservices/application/IP-016-tenant-admin-console-control-surface.md"
+    },
+    {
+      "id": "IP-sustainability-emission-model",
+      "title": "IP: application sustainability emission model planning fixture",
+      "acceptance_status": "advisory-plan-spec",
+      "file": "oya/application/IPs/IP-sustainability-emission-model.md"
     }
   ],
   "regulatory_packs": [
@@ -446,6 +452,39 @@
     "microservices/application/IP-008-auth-gateway-kernel-domain.md",
     "microservices/application/contracts/openapi/application.yaml"
   ],
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.38,
+      "memory_watts_per_gib_second": 0.0019,
+      "storage_watts_per_gib_hour": 0.00042,
+      "network_watts_per_gib": 0.045,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/README.md:56-75; cloud/cloud-billing/implementation-plans/IP-004-composable-billing-components.md:91-107",
+      "pin_window_hours": 1
+    },
+    "workload_signal_source": {
+      "signal_family": "per_request",
+      "source_ref": "oya/application/manifest.json#audit_chain.seal_events[oya.application.module-load,oya.application.session-emit,oya.application.shell-render]"
+    },
+    "emission_path_tests": [
+      "oya/application/IPs/IP-sustainability-emission-model.md#deterministic-fixture",
+      "oya/application/manifest.json#audit_chain.seal_events"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 28,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.0112,
+      "tolerance_pct": 20
+    }
+  },
   "tenant_version_pinning": {
     "declared_versions": [
       "2025-11-21",

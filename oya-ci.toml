@@ -157,6 +157,36 @@ input_kind = "producer-face"
 face = "slo_coverage"
 
 [[gates.enabled]]
+id = "cloud-ci-license-policy"
+input_kind = "producer-face"
+face = "license_policy"
+
+[[gates.enabled]]
+id = "cloud-ci-zero-static-secrets"
+input_kind = "producer-face"
+face = "zero_static_secrets"
+
+[[gates.enabled]]
+id = "cloud-ci-load-balancer-inventory"
+input_kind = "producer-face"
+face = "load_balancer_inventory"
+
+[[gates.enabled]]
+id = "cloud-ci-multi-region-disposition"
+input_kind = "producer-face"
+face = "multi_region_disposition"
+
+[[gates.enabled]]
+id = "cloud-ci-sovereign-tenant-pin"
+input_kind = "producer-face"
+face = "sovereign_tenant_pin"
+
+[[gates.enabled]]
+id = "cloud-ci-tenant-environment-tier"
+input_kind = "producer-face"
+face = "tenant_environment_tier"
+
+[[gates.enabled]]
 id = "cloud-ci-workspace-glob-coverage"
 input_kind = "producer-face"
 face = "workspace_glob_coverage"

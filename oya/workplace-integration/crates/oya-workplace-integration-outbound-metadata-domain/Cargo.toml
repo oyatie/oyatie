@@ -1,0 +1,17 @@
+[package]
+name = "oya-workplace-integration-outbound-metadata-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_workplace_integration_outbound_metadata_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+
+[lints]
+workspace = true

@@ -6,9 +6,10 @@
   "roadmap_phase": "P-STRANGLE (masterplan.ideal_production_roadmap)",
   "related_adrs": [
     "ADR-0111 (merge queue)",
-    "ADR-0349/0359 (Jenkins CI)",
     "ADR-0357 (vertical-slice nesting)",
-    "ADR-0358 (ideal roadmap)"
+    "ADR-0358 (ideal roadmap; strangler posture, with §2 build graph superseded)",
+    "ADR-0392 (Buck2 canonical build graph)",
+    "ADR-0515 (single current CI/CD enforcement; oya-ci-required via GitHub Actions until owned-runner cutover)"
   ],
   "related_specs": [
     "specs/cloud-control-plane-canonical.json",
@@ -23,7 +24,7 @@
   "per_service_pattern": {
     "steps": [
       "1. seam: identify the service's public contract (OpenAPI 3.2.0 / proto3 / GraphQL) from the api-contract-ssot; freeze it as the migration boundary",
-      "2. build ideal: implement the ideal target service (vertical-slice nesting microservices/<ms>/crates, ADR-0357) behind the SAME contract; Bazel build graph; Cedar-gated; OTel-instrumented",
+      "2. build ideal: implement the ideal target service (vertical-slice nesting microservices/<ms>/crates, ADR-0357) behind the SAME contract; Buck2/Cargo build-graph direction with generated-not-hand-maintained target coverage; Cedar-gated; OTel-instrumented",
       "3. facade: route through the Workflow/Ontology adapter layer (no direct cross-service calls); old and new both registered behind the contract facade",
       "4. shadow/canary: dual-run; one-cell canary + PRR (QK-04); compare old-vs-new on the contract",
       "5. cutover: shift traffic to the ideal service ONLY when cutover criteria are green",
@@ -31,21 +32,21 @@
     ]
   },
   "parallel_lane_model": {
-    "lane": "one git worktree lane per microservice (separate Bazel target set + build dir); ~21+ logical lanes (parallel-lane-scoping.md); concurrency bounded by the CI farm (Karpenter-elastic Jenkins agents), not a single host",
+    "lane": "one git worktree lane per microservice (separate Buck2/Cargo target slice + build/evidence dir); ~21+ logical lanes (parallel-lane-scoping.md); concurrency bounded by cloud-ci/oya-ci gate capacity, not a single host; GitHub Actions is the live runner for the protected oya-ci-required context until explicit owned-runner cutover per ADR-0515",
     "single_writer_invariant": [
-      "Cargo/Bazel workspace members",
+      "Cargo/Buck workspace members",
       "evidence/audit-chain.jsonl",
       "registry/dependency-rationales.json",
       "specs/microservices/manifests-index.json",
       "specs/root-hub-pointers.json",
       "specs/masterplan.json"
     ],
-    "fan_in": "merge-queue speculative+batch (ADR-0111); a single serial whole-workspace verify at fan-in; Jenkins required-status gates",
-    "affected_targets": "Bazel rdeps selects only the changed lane's targets for presubmit (Google TAP model)"
+    "fan_in": "merge-queue speculative+batch (ADR-0111); a single serial whole-workspace verify at fan-in; full oya-ci-required/cloud-ci gate context is merge authority; affected-target checks are feedback only",
+    "affected_targets": "Buck2/Cargo affected-target selection plus generated-not-hand-maintained target coverage narrows presubmit feedback for changed lane targets, but cannot replace the full required oya-ci-required/cloud-ci context"
   },
   "definition_of_done_per_migration": [
     "contract parity: ideal service passes the frozen contract's conformance + drift gate (api-contract-ssot-drift)",
-    "tests: domain + integration + e2e green; cargo/bazel test for the lane",
+    "tests: domain + integration + e2e green; Cargo/Buck2 test for the lane",
     "clean architecture: 0 forbidden dependency edges (architecture-boundaries)",
     "SLO: ideal service meets per-manifest SLO targets in canary (ADR-0340)",
     "security: Cedar default-deny + cosign + 0 critical CVE + audit-chain (QK-06, security_exit)",
@@ -59,7 +60,7 @@
     "quality kits applicable to the service green",
     "rollback path proven"
   ],
-  "rollback": "contract facade routes back to the old service; ArgoCD progressive-delivery auto-rollback on metric breach (ADR-0349); merge-queue projected-state revert (ADR-0111).",
+  "rollback": "contract facade routes back to the old service; cloud-cd/progressive-delivery rollback uses Argo CD/Rollouts only as bridge/reference adapters where explicitly authorized and metric breach evidence is wired; merge-queue projected-state revert (ADR-0111).",
   "batch_sequencing": "contracts stabilize (P-TARGET) before parallel implementation; substrate greenfield (P-TOOLCHAIN/cloud-* live) before product-microservice strangler; per-service lanes batch by dependency order; no lane starts until its upstream contracts are frozen.",
   "non_claims": [
     "Target playbook spec only; no service is migrated, no facade/canary/cutover is executed, no measured evidence is produced.",

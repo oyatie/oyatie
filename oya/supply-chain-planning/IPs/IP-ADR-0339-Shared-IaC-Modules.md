@@ -10,12 +10,13 @@ implementation_phase: documentation-and-contracts-only
 rust_code_status: not-authored-in-this-wave
 source_adrs: ADR-0339, ADR-0322, ADR-0181, ADR-0248, ADR-0215, ADR-0218, ADR-0244, ADR-0251, ADR-0338, ADR-0340, ADR-0343, ADR-0344
 lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared OpenTofu modules; ACCEPTED only after implementation evidence lands
+claim_boundary: target/provenance only; no cloud deployment, IAC activation, tenant namespace readiness, DR/SLO readiness, runtime audit-chain emission, or GA claim
 ---
 # IP-ADR-0339-Shared-IaC-Modules: Supply Chain Planning Shared OpenTofu Module Adoption
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `supply-chain-planning` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `supply-chain-planning` until the service-owned wrapper files under `microservices/supply-chain-planning/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `supply-chain-planning` until service-owned wrapper files under the visible `oya/supply-chain-planning/iac/**` inventory invoke signed cloud-iac modules and implementation evidence is reviewed; older `microservices/supply-chain-planning/...` path strings are stale aliases/provenance only.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `supply-chain-planning`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -36,8 +37,8 @@ DOSSIER-005: ADR-0248 cell placement class is `Tier-3`; `supply-chain-planning` 
 DOSSIER-006: Baseline per-tenant CPU is `0.12` vCPU, RAM is `384` MiB, and storage is `12.0` GiB.
 DOSSIER-007: Declared connection budget per tenant is valkey=4, postgres=3, outbound_http=8.
 DOSSIER-008: Capacity notes: ATP and supply-network reads scale with scenario queries and demand-sensing joins, not user seats.
-DOSSIER-009: DR target is RTO p99 `14400` seconds and RPO p99 `900` seconds.
-DOSSIER-010: DR replication shape is `backup-restore-cross-region-warm` with backup substrates `postgres_wal_g, valkey, object_storage_versioned`.
+DOSSIER-009: DR target planning records RTO p99 `14400` seconds and RPO p99 `900` seconds; no DR drill, failover, or readiness evidence is claimed here.
+DOSSIER-010: DR replication target planning records `backup-restore-cross-region-warm` with backup substrates `postgres_wal_g, valkey, object_storage_versioned`; this is not live replication evidence.
 DOSSIER-011: Regulatory packs declared: SOX-404, SOC-2, ISO-27001, GDPR, LGPD, KR-PIPA, jurisdictional-tax.
 DOSSIER-012: Data classes processed: manifest-not-populated.
 DOSSIER-BC-001: Bounded context `demand-plan` states: Bounded context entry `demand-plan` is declared as a compact manifest value.; crate count=0.
@@ -49,7 +50,7 @@ DOSSIER-BC-006: Bounded context `planning-scenario` states: Bounded context entr
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: no public openapi file declared in manifest.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: no public asyncapi file declared in manifest.
 DOSSIER-CONTRACT-003: proto3: no public proto file declared in manifest.
-DOSSIER-CAPABILITY-001: No capability records declared in manifest; ADR-0339 wrappers still protect deployment substrate for service runtime..
+DOSSIER-CAPABILITY-001: No capability records declared in manifest; ADR-0339 wrappers record future deployment-substrate target planning only, with no active service runtime claim.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -144,11 +145,11 @@ CTX-006-007: `oyatie-as-cloud-provider` wrapper must keep state backend referenc
 CTX-006-008: `oyatie-as-cloud-provider` wrapper must be reviewed as service substance, not as cloud-iac primitive implementation.
 
 ## 6. Version Pinning, Signing, And Blast Radius
-PIN-001: `supply-chain-planning` treats `version_pin` as a production contract, not a convenience string.
+PIN-001: `supply-chain-planning` treats `version_pin` as a future production contract only after separate activation evidence; in this IP it is target/provenance metadata, not a live deployment contract.
 PIN-002: Major-version movement for `supply-chain-planning` requires an explicit wrapper review because input variables, outputs, and blast-radius assumptions can change.
 PIN-003: Minor-version movement for `supply-chain-planning` is allowed during the quarterly module upgrade window when catalog release notes prove backward compatibility.
 PIN-004: Patch-version movement for `supply-chain-planning` can occur for CVE, provider, or correctness repair when cosign evidence and validation pass.
-PIN-005: The sunset path for a primitive replacement is: add successor module, dual-run wrapper plan, emit audit-chain evidence, update manifest pin, then remove the old invocation after one successful quarter.
+PIN-005: The future sunset path for a primitive replacement is: add successor module, dual-run wrapper plan, design/emit audit-chain evidence in the activated lane, update manifest pin, then remove the old invocation after one successful quarter; this IP emits no runtime audit-chain row.
 PIN-006: `supply-chain-planning` never consumes `main`, a local unversioned path, or a registry path without an ADR-0181 signature chain.
 PIN-007: Cosign attestation must cover module source digest, provider lockfile digest, catalog entry digest, and release tag.
 PIN-008: Blast-radius review for `supply-chain-planning` starts at primitive granularity: oyatie-as-cloud-provider/tenant-namespace@v1[both], oyatie-as-cloud-provider/per-cell-nodepool-runc@v1[both], on-prem/postgres-service-database@v1[paid], on-prem/valkey-cluster@v1[both], oci-guest/always-free/oci-cache-valkey@v1[demo_trial], aws-guest/event-topic@v1[paid].
@@ -162,7 +163,7 @@ PRECEDENT-001: AWS Solutions Constructs precedent: reusable constructs encode co
 PRECEDENT-002: Google Cloud Foundation Toolkit precedent: foundation modules centralize network, IAM, logging, and project primitives with opinionated guardrails; `supply-chain-planning` draws that design choice by relying on cloud-iac modules for provider-specific guardrails.
 PRECEDENT-003: Azure Verified Modules precedent: resource modules publish consistent interfaces, examples, and versioned releases; `supply-chain-planning` draws that design choice by pinning module versions and requiring catalog-backed input/output contracts.
 PRECEDENT-004: AWS cellular architecture precedent: services isolate blast radius by cell and shuffle-shard; `supply-chain-planning` draws that design choice through `Tier-3` placement and per-cell wrapper variables.
-PRECEDENT-005: Microsoft secure supply-chain precedent: signed build artifacts and repeatable pipelines are treated as deploy prerequisites; `supply-chain-planning` draws that design choice by tying OpenTofu module release to ADR-0181 cosign evidence.
+PRECEDENT-005: Microsoft secure supply-chain precedent: signed build artifacts and repeatable pipelines are treated as future deployment prerequisites; `supply-chain-planning` draws that target design choice by tying any later OpenTofu module release to ADR-0181 cosign evidence.
 PRECEDENT-006: Stripe API-change discipline precedent: versioned public contracts prevent silent tenant breakage; `supply-chain-planning` draws that design choice by treating module pins as service contracts with sunset windows.
 
 ## 8. Twenty-Four Month Maintainability Outlook
@@ -255,7 +256,7 @@ LEADER-002: `supply-chain-planning` differentiates by making infrastructure prim
 LEADER-003: `supply-chain-planning` differentiates by combining ADR-0248 cells, ADR-0244 tenant scoping, ADR-0181 signatures, and ADR-0344 carbon labels in one wrapper contract.
 LEADER-004: At leader scale, `supply-chain-planning` should look like a service-owned contract over cloud-iac primitives, not a service-owned infrastructure implementation fork.
 LEADER-005: `supply-chain-planning` must preserve public contracts while module pins change; OpenAPI 3.2.0, AsyncAPI 3.1.0, and proto3 surfaces stay versioned independently from IaC module versions.
-LEADER-006: `supply-chain-planning` must surface module-driven deploy risk to operators before apply, matching hyperscaler change-management norms for shared foundations.
+LEADER-006: `supply-chain-planning` must surface module-driven deployment risk to operators before any future apply; this IP creates no apply path and no cloud activation claim.
 LEADER-007: `supply-chain-planning` leader-scale posture keeps primitive selection explicit, reviewable, and reversible while avoiding service-local provider logic.
 LEADER-008: `supply-chain-planning` leader-scale posture keeps primitive selection explicit, reviewable, and reversible while avoiding service-local provider logic.
 LEADER-009: `supply-chain-planning` leader-scale posture keeps primitive selection explicit, reviewable, and reversible while avoiding service-local provider logic.
@@ -297,7 +298,7 @@ ALT-004: Delay `supply-chain-planning` manifest declaration until implementation
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/supply-chain-planning/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `oya/supply-chain-planning/IPs/IP-ADR-0339-Shared-IaC-Modules.md`; any older `microservices/supply-chain-planning/...` path wording is stale provenance only.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

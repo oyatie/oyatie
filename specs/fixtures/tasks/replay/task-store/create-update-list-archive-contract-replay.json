@@ -1,0 +1,67 @@
+{
+  "replay_artifact_id": "TASKS-REPLAY-TASK-STORE-LIFECYCLE-001",
+  "parent_fixture_id": "tasks_task_store_lifecycle_contract_fixture",
+  "plan_slice_id": "TASKS-PS-01",
+  "replay_artifact_path": "specs/fixtures/tasks/replay/task-store/create-update-list-archive-contract-replay.json",
+  "red_gate_task": "t_91fc5a1f",
+  "build_task": "t_4221a299",
+  "status": "PASSED_SELECTED_SLICE_REPLAY",
+  "red_status_closed": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS",
+  "source_map_ref": "specs/microservices/tasks.json",
+  "source_paths": [
+    "specs/microservices/tasks.json#api_contract_replay_expectations",
+    "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-01",
+    "specs/fixtures/tasks/red-fixtures.json#tasks_task_store_lifecycle_contract_fixture",
+    "oya/tasks/contracts/openapi/tasks.yaml#/paths/~1tasks",
+    "oya/tasks/contracts/openapi/tasks.yaml#/paths/~1tasks~1{task_id}",
+    "oya/tasks/contracts/proto/tasks.proto#TaskStore"
+  ],
+  "assertions_covered": [
+    "create/read/update/archive/delete lifecycle replay",
+    "idempotency key and optimistic-version conflict behavior",
+    "tenant mismatch denial, Cedar deny-by-default, RLS/tenant-DEK expectation, legal-hold and retention refusal",
+    "audit metadata for task create/update/archive/legal-hold"
+  ],
+  "rejections_covered": [
+    "malformed custom fields",
+    "cross-tenant task read or write",
+    "hard delete while legal hold is open",
+    "task-store readiness without OpenAPI/proto replay evidence"
+  ],
+  "api_contract_replay": {
+    "surfaces": ["OpenAPI", "proto"],
+    "operations": [
+      "POST /tasks create task",
+      "GET /tasks list tasks",
+      "GET /tasks/{task_id} read task",
+      "PATCH /tasks/{task_id} update task",
+      "DELETE /tasks/{task_id} archive task",
+      "TaskStore.CreateTask",
+      "TaskStore.GetTask",
+      "TaskStore.UpdateTask",
+      "TaskStore.ArchiveTask",
+      "TaskStore.ListTasks"
+    ],
+    "positive_cases": [
+      "create/read/update/archive/delete uses tenant-scoped task identity",
+      "optimistic version conflict is represented by expected_version/version fields",
+      "audit metadata is required for task create/update/archive/legal-hold evidence"
+    ],
+    "negative_cases": [
+      "malformed custom fields are refused",
+      "tenant mismatch is denied",
+      "legal-hold blocks destructive removal",
+      "task-store readiness is refused without OpenAPI and proto replay evidence"
+    ]
+  },
+  "browser_user_story_accessibility_evidence": {
+    "runtime_ui_changed": false,
+    "rationale": "API/contract replay artifact only; no UI runtime path changed in this selected slice"
+  },
+  "non_claims": [
+    "no runtime readiness",
+    "no generated JSON hand edits",
+    "no production readiness claim",
+    "deferred fixtures remain RED"
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/microservices/community.json",
+  "title": "MicroservicePrd:Community",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-COMMUNITY",
+    "version": "0.1.0",
+    "status": "Accepted",
+    "owner_team": "communications-service-council",
+    "created_at": "2026-07-01",
+    "authority_lock_task": "t_28c62d82",
+    "purpose": "Community FD-001 source-authority lock: distinguishes the community microservice from messenger, mail, ops-dashboard/control-center, workflow-engine, social, anonymous, and retired network/shorts pointers; authorizes source-backed Plan/Spec and RED fixture cards only, not runtime implementation or production/GA claims."
+  },
+  "authority_resolution": {
+    "current_authority": "/specs/microservices/community.json",
+    "manifest_index_ref": "/specs/microservices/manifests-index.json#microservices[name=community]",
+    "manifest_inventory_ref": "/oya/community/manifest.json",
+    "resolved_missing_pointer": "The previous manifests-index pointer to microservices/community/manifest.json did not resolve in this checkout. The live backlog-fanout authority is this machine-readable PRD; the oya/community manifest remains tracked implementation inventory/provenance and is not sufficient for build fanout or readiness claims by itself.",
+    "legacy_or_missing_sources": [
+      "/microservices/community/manifest.json (absent in this checkout)",
+      "/microservices/community/PRD.md (absent in this checkout; retired network successor placeholder)",
+      "/docs/products/community/PRD.md (absent in this checkout)",
+      "/microservices/social/PRD.md (absent in this checkout; short-form video successor is /specs/microservices/social.json)"
+    ],
+    "claim_boundary": "Source authority for planning and RED-contract decomposition only. No handler, storage, deployment, production readiness, hyperscaler maturity, GA, or customer availability claim is made by this artifact."
+  },
+  "identity": {
+    "product_id": "community",
+    "owning_axis": "community",
+    "product_class": "service",
+    "fd001_material": true,
+    "user_facing_surface": true,
+    "context_model": [
+      "personal",
+      "work"
+    ],
+    "service_boundary": "A flat FD-001 community microservice covering tenant-scoped community discussions, moderation, voting/ranking, professional profile/jobs/recruiting facets absorbed from retired network, and mode-specific social/anonymous surfaces through their own machine-readable specs. Messenger and mail remain separate services; ops-dashboard/control-center and workflow-engine remain separate FD-001 surfaces.",
+    "crate_refs_planned": [
+      "oya-community-post-store-kernel",
+      "oya-community-post-store-domain",
+      "oya-community-post-store-app",
+      "oya-community-post-store-rest"
+    ]
+  },
+  "inherits": {
+    "oyatie_specs": [
+      "$ref:specs/root-hub-pointers.json#entry_points.adr_0217_vertical_rollout_order",
+      "$ref:specs/masterplan.json#first_deliverable",
+      "$ref:specs/masterplan.json#communications_service_catalog_2026_05_17",
+      "$ref:specs/microservices/manifests-index.json#microservices[name=community]",
+      "$ref:specs/microservices/social.json",
+      "$ref:specs/microservices/anonymous.json",
+      "$ref:specs/microservices/messenger.json",
+      "$ref:specs/microservices/mail.json",
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "adrs": [
+      "$ref:docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "$ref:docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md",
+      "$ref:docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md",
+      "$ref:docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+      "$ref:docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    ],
+    "inventory_context_not_fanout_authority": [
+      "$ref:oya/community/manifest.json",
+      "$ref:registry/catalog/oya-community-*.yaml",
+      "$ref:tasks/community-*.md",
+      "$ref:specs/proto/backbone/community/community_post_store.proto"
+    ]
+  },
+  "mode_normalization": [
+    {
+      "id": "community-core",
+      "status": "authority_locked_plan_spec_required",
+      "source_authority": "/specs/microservices/community.json",
+      "scope": "tenant-scoped community forums, posts, comments/threading, votes/ranking, moderation queues, tags/roles, and community knowledge/share surfaces",
+      "claim_boundary": "Plan/Spec and RED fixture names must be authored before implementation handlers land."
+    },
+    {
+      "id": "community-social",
+      "status": "separate_mode_spec",
+      "source_authority": "/specs/microservices/social.json",
+      "scope": "visual/social mode and short-form media flavor after shorts retirement; remains inside community-mode planning rather than a product wrapper"
+    },
+    {
+      "id": "community-shorts",
+      "status": "retired_standalone_service_absorbed_into_social_mode",
+      "source_authority": "/specs/microservices/social.json",
+      "scope": "short-form video/content format only; no standalone shorts microservice fanout from this authority lock"
+    },
+    {
+      "id": "community-network",
+      "status": "retired_standalone_service_absorbed_into_community",
+      "source_authority": "/specs/microservices/community.json",
+      "scope": "professional profile, connections, jobs/recruiting, endorsements, recommendations, pages/events, and professional outreach facets; LinkedIn-style engagement feed and sponsored-post promotion remain forbidden patterns"
+    },
+    {
+      "id": "community-anonymous",
+      "status": "separate_mode_spec",
+      "source_authority": "/specs/microservices/anonymous.json",
+      "scope": "verified-anonymous workplace discussion mode; work-context only; real-identity reveal requires future threat-model, legal-hold, and four-eyes control evidence before any implementation readiness claim"
+    }
+  ],
+  "separate_fd001_surfaces_not_covered": [
+    "messenger",
+    "mail",
+    "ops-dashboard-control-center",
+    "workflow-engine",
+    "workflow-studio",
+    "ontology",
+    "intelligence",
+    "infra"
+  ],
+  "plan_spec_requirements_before_build": [
+    "tenant/RBAC and context-isolation model",
+    "community mode boundaries and forbidden conflations",
+    "data ownership, data classes, retention, legal hold, audit-chain, and anonymity/privacy controls",
+    "API-first REST/gRPC/event/schema contract source of truth before handlers",
+    "Workflow and Ontology mediator contracts with no direct cross-product calls",
+    "imports/exports and migration-out adapters",
+    "abuse/moderation/content-safety and professional-risk threat model",
+    "localization and Korea pack requirements",
+    "SLO, runbook, rollback, observability, capacity, backpressure, and cost envelope targets",
+    "browser/user-story and accessibility evidence requirements for any UI surface",
+    "single-writer allowed paths, conflict class, and generated-face no-hand-edit policy"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-COMMUNITY-AUTH-01",
+      "given": "a worker decomposes community FD-001 work",
+      "when": "it creates Plan/Spec or RED fixture cards",
+      "then": "each card cites this artifact plus ADR-0217, manifests-index, masterplan first_deliverable, and the relevant mode spec; implementation cards remain parented behind Plan/Spec and RED gates"
+    },
+    {
+      "id": "AC-COMMUNITY-AUTH-02",
+      "given": "a worker encounters oya/community inventory, registry catalog rows, task plans, proto files, or historical design-spec evidence",
+      "when": "it needs source authority",
+      "then": "those sources are treated as inventory/provenance only unless reconciled into this artifact or a child Plan/Spec with explicit non-claims"
+    },
+    {
+      "id": "AC-COMMUNITY-AUTH-03",
+      "given": "network, shorts, social, anonymous, messenger, mail, ops-dashboard, or workflow-engine terms appear in backlog cards",
+      "when": "duplicate or authority checks run",
+      "then": "network and shorts are routed through the normalized community/social successors, social and anonymous cite their mode specs, and messenger/mail/ops-dashboard/workflow-engine are not treated as duplicate community coverage"
+    }
+  ],
+  "downstream_lifecycle_gates": {
+    "plan_spec_gate": "Author community FD-001 service-boundary Plan/Spec before RED fixture names or implementation paths are assigned.",
+    "red_fixture_gate": "Create failing API/data/event/schema fixtures from the Plan/Spec before handler/storage/runtime work.",
+    "build_gate": "Build cards may only be created after Plan/Spec and RED fixture gates exist and declare single-writer allowed paths.",
+    "review_fix_gate": "Architecture, security/privacy/abuse, tenant/RBAC/policy, data/audit-chain, API/schema compatibility, observability/SLO, product UX/accessibility where UI exists, performance/backpressure, and localization/Korea pack lenses are required.",
+    "merge_rollout_gate": "Protected PR to dev, reviewer APPROVE, oya-ci-required green, rollback/observability evidence, service API/contract replay, tenant/RBAC packaging evidence, and UI user-story/browser evidence where applicable."
+  },
+  "conflict_and_path_policy": {
+    "conflict_class": "product-spec-authority-community-fd001",
+    "allowed_authority_paths_for_this_lock": [
+      "specs/microservices/community.json",
+      "specs/microservices/manifests-index.json",
+      "specs/root-hub-pointers.json"
+    ],
+    "future_plan_spec_allowed_prefixes": [
+      "specs/microservices/community.json",
+      "plan/community/",
+      "docs/decisions/",
+      "evidence/community/"
+    ],
+    "generated_faces_policy": "Never hand-edit *.generated.json; materializers own generated faces."
+  },
+  "non_claims": [
+    "No community runtime implementation is created or approved by this authority lock.",
+    "No handler, storage adapter, queue, search index, moderation engine, Workflow execution, Ontology projection, cloud deployment, live SLO, production readiness, hyperscaler maturity, or GA/customer-availability claim is made.",
+    "No implementation fanout may use oya/community dirty-tree inventory, registry catalog rows, task plans, or proto discovery as live authority without a source-backed Plan/Spec and RED fixture gate.",
+    "No social/anonymous/messenger/mail/workflow-engine/ops-dashboard conflation is authorized.",
+    "No retired AI-substrate/foundry backlog and no generated JSON hand edits are authorized."
+  ]
+}

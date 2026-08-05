@@ -1,0 +1,224 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/translate-source-map-contract-replay-red-fixtures.schema.json",
+  "fixture_plan_id": "TRANSLATE-SOURCE-MAP-CONTRACT-REPLAY-RED-001",
+  "kanban_task": "t_a966bab0",
+  "review_fix_parent_task": "t_ce0e47d2",
+  "source_lock_task": "t_558fedfa",
+  "status": "red-source-map-contract-replay-pending",
+  "claim_boundary": "metadata/fixture-only RED source-map and contract replay plan; no runtime handlers, storage adapters, model-provider integration, deployment, generated JSON hand edits, production readiness, live SLO, UI readiness, GA, customer availability, or hyperscaler maturity claim",
+  "source_authority_refs": [
+    "specs/microservices/translate.json",
+    "specs/microservices/manifests-index.json#microservices[name=translate]",
+    "oya/translate/manifest.json",
+    "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+    "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+    "kanban:t_ce0e47d2#translate-source-lock-review",
+    "kanban:t_a966bab0#translate-red-source-map-contract-replay"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/translate/manifest.json",
+    "dirty oya/translate/** inventory",
+    "oya/translate/contracts/*",
+    "oya/translate/catalog/*",
+    "oya/translate/capabilities/*",
+    "oya/translate/IPs/*",
+    "oya/translate/slos/*",
+    "microservices/translate/manifest.json",
+    "microservices/translate/contracts/*",
+    "microservices/translate/capabilities/*",
+    "microservices/translate/IP-*.md",
+    "microservices/translate/slos/*"
+  ],
+  "domain_coverage_expectations": [
+    "single_translation",
+    "batch_translation",
+    "bulk_translation",
+    "language_detection",
+    "translation_memory",
+    "quality_estimation",
+    "document_localization",
+    "real_time_caption_translation",
+    "glossary",
+    "termbase"
+  ],
+  "contract_replay_expectations": {
+    "openapi": {
+      "source_path": "oya/translate/contracts/openapi/translate.yaml",
+      "legacy_manifest_pointer": "microservices/translate/contracts/openapi/translate.yaml",
+      "future_replay_family": "translate-openapi-v1",
+      "must_assert": [
+        "single and batch translation require tenant, pack, source/target locale, content class, disclosure, idempotency, and audit evidence",
+        "bulk and document localization jobs expose lifecycle/status/result manifest, fidelity tier, sandbox refusal, and non-silent failures",
+        "language detection, quality estimation, translation memory, glossary, and termbase endpoints preserve tenant/project scope and deterministic errors",
+        "provider routing/refusal/degradation carries residency, cross-border consent, model/provider disclosure, data-use, and audit-chain evidence"
+      ],
+      "must_reject": [
+        "legacy microservices/translate/contracts/openapi/translate.yaml as live source authority",
+        "missing tenant or pack policy",
+        "residency mismatch without refusal or consent evidence",
+        "regulated content without human-review or refusal behavior",
+        "plaintext source/target leakage in evidence"
+      ]
+    },
+    "asyncapi": {
+      "source_path": "oya/translate/contracts/asyncapi/translate-events.yaml",
+      "legacy_manifest_pointer": "microservices/translate/contracts/asyncapi/translate-events.yaml",
+      "future_replay_family": "translate-asyncapi-v1",
+      "must_assert": [
+        "bulk/document started/completed/failed events carry tenant, idempotency, progress, result manifest, and audit-chain linkage",
+        "translation memory, quality estimation, glossary, termbase, and real-time caption events preserve tenant/project and content-class boundaries",
+        "provider routing/refusal/degradation events include residency, consent, data-use, model/provider disclosure, and no-training-reuse evidence",
+        "failure and backpressure events are explicit and do not silently drop translation or caption state"
+      ],
+      "must_reject": [
+        "legacy microservices/translate/contracts/asyncapi/translate-events.yaml as live source authority",
+        "event without tenant/project scope",
+        "provider routing event without residency evidence",
+        "caption event without consent/disclosure state",
+        "idempotency conflict without audit row"
+      ]
+    },
+    "proto": {
+      "source_path": "oya/translate/contracts/proto/translate.proto",
+      "legacy_manifest_pointer": "microservices/translate/contracts/proto/translate.proto",
+      "future_replay_family": "translate-proto-v1",
+      "must_assert": [
+        "TranslateText, BatchTranslate, BulkTranslate, DetectLanguage, TmLeverage, QeScore, DocumentTranslate, RealTimeTranslateStream, glossary, and termbase RPCs preserve tenant and audit-compatible envelopes",
+        "streaming caption chunks encode consent, correction replay, latency/error state, and content hashes",
+        "policy denials, input limits, low-confidence detection, and high-risk human-review requirements have deterministic error semantics",
+        "provider routing and residency decisions are replayed with model/provider disclosure and data-use controls"
+      ],
+      "must_reject": [
+        "legacy microservices/translate/contracts/proto/translate.proto as live source authority",
+        "RPC without tenant or audit envelope",
+        "high-risk automation without human-control",
+        "provider routing without residency evidence",
+        "real-time stream without consent state"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/translate/source-map/replay/",
+  "expected_red_failure": "RED until future Build cards create source-backed OpenAPI/AsyncAPI/proto replay artifacts under specs/fixtures/translate/source-map/replay/ and extend or replace this checker with real replay against implementation seams.",
+  "browser_user_story_accessibility_gate": [
+    "User requests translation from mail/messenger/docs/notes context and sees tenant, policy, provider, and disclosure state.",
+    "Meeting participant enables live caption translation only after consent and can perceive captions, correction replay, latency/errors, and language controls.",
+    "Translator/admin manages glossary and termbase entries with keyboard-only CRUD/import/export, validation errors, screen-reader labels, and focus order evidence.",
+    "Document localization upload/progress/result/error states are keyboard accessible, localizable, and explicit about fidelity tier and failed formats.",
+    "If no UI is touched, Build records explicit N/A rationale and still replays API/contract paths."
+  ],
+  "provider_residency_data_policy_gate": [
+    "tenant/RBAC and Cedar default-deny cover translate, detect, TM, QE, document, stream, bulk, glossary, and termbase actions",
+    "residency-aware provider routing refuses or records cross-border consent evidence before provider egress",
+    "regulated/high-risk content class requires refusal or human-review control before T2 automation",
+    "model/provider disclosure, no-training-reuse policy, data minimization, and no plaintext evidence/log leakage are asserted"
+  ],
+  "global_non_claims": [
+    "No translate runtime implementation is created or approved by this fixture plan.",
+    "oya/translate/manifest.json, contracts, catalog rows, capabilities, dashboards, SLOs, and runbooks are inventory/provenance only until RED/Build/review evidence validates the exact claim.",
+    "microservices/translate/manifest.json restoration is not authorized; legacy pointers must map to verified oya/translate/** paths or remain quarantined provenance.",
+    "Active Foundry or foundry-runtime authority is not authorized; retired/provenance mentions must normalize live AI/model-provider authority to intelligence.",
+    "Green CI alone is insufficient for UI-facing readiness; browser/user-story/accessibility evidence or explicit non-UI N/A rationale is required.",
+    "No generated JSON hand edits are authorized."
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "translate_source_map_authority_lock_fixture",
+      "fixture_kind": "authority_source_map",
+      "source_authority_refs": ["specs/microservices/translate.json#_meta", "specs/microservices/translate.json#authority_resolution", "specs/microservices/manifests-index.json#microservices[name=translate]", "oya/translate/manifest.json", "kanban:t_ce0e47d2", "kanban:t_a966bab0"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/authority/translate-authority-source-map.fixture.json"],
+      "must_assert": ["PRD-TRANSLATE-SOURCE-MAP status Accepted", "current_authority is specs/microservices/translate.json", "manifest-index row is cited", "oya/translate/manifest.json is inventory/provenance only", "ADR-0131/ADR-0512 map service root to oya/translate/"],
+      "must_reject": ["Plan/Spec or Build fanout without specs/microservices/translate.json", "runtime readiness from oya/translate/manifest.json", "microservices/translate/manifest.json restoration", "Build without source-lock review t_ce0e47d2 and RED gate t_a966bab0"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_domain_coverage_fixture",
+      "fixture_kind": "domain_coverage",
+      "source_authority_refs": ["specs/microservices/translate.json#functional_domain_map.domains", "oya/translate/manifest.json#bounded_contexts"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/domain/translate-domain-coverage.fixture.json"],
+      "must_assert": ["single_translation", "batch_translation", "bulk_translation", "language_detection", "translation_memory", "quality_estimation", "document_localization", "real_time_caption_translation", "glossary", "termbase"],
+      "must_reject": ["omitted functional domain", "manifest bounded context treated as sufficient runtime evidence", "Build scope that excludes provider/data/a11y domains without explicit N/A"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_legacy_manifest_rejection_fixture",
+      "fixture_kind": "legacy_manifest_and_path_hygiene",
+      "source_authority_refs": ["specs/microservices/translate.json#source_inventory_map", "oya/translate/manifest.json#contracts", "oya/translate/manifest.json#ips"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/authority/translate-legacy-manifest-rejection.fixture.json"],
+      "must_assert": ["legacy contract pointers map to current oya/translate/contracts paths", "legacy IP references are quarantined unresolved provenance", "current service root is oya/translate/"],
+      "must_reject": ["microservices/translate/manifest.json restoration", "legacy microservices/translate/** as live destination", "microservices/translate/contracts as canonical source", "microservices/translate/IP- as implementation evidence", "microservices/translate/slos as live SLO evidence"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_contract_replay_openapi_fixture",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": ["specs/microservices/translate.json#evidence_expectations.api_contract_replay", "oya/translate/contracts/openapi/translate.yaml", "oya/translate/manifest.json#contracts.openapi"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/openapi/translate-openapi-v1-replay.fixture.json"],
+      "must_assert": ["OpenAPI replay covers single and batch translation", "OpenAPI replay covers bulk and document job lifecycle", "OpenAPI replay covers language detection TM QE glossary and termbase", "OpenAPI replay covers provider routing residency consent data-use and audit evidence"],
+      "must_reject": ["handler before OpenAPI replay", "legacy microservices/translate/contracts/openapi/translate.yaml as live authority", "missing tenant or pack policy", "residency mismatch", "regulated content without human-review or refusal"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_contract_replay_asyncapi_fixture",
+      "fixture_kind": "event_contract_replay",
+      "source_authority_refs": ["specs/microservices/translate.json#evidence_expectations.api_contract_replay", "oya/translate/contracts/asyncapi/translate-events.yaml", "oya/translate/manifest.json#contracts.asyncapi"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/asyncapi/translate-asyncapi-v1-replay.fixture.json"],
+      "must_assert": ["AsyncAPI replay covers bulk/document started completed failed events", "AsyncAPI replay covers TM QE glossary termbase and real-time caption events", "AsyncAPI replay covers provider routing refusal degradation and residency evidence", "AsyncAPI replay covers no silent drop of translation or caption state"],
+      "must_reject": ["event producer before AsyncAPI replay", "legacy microservices/translate/contracts/asyncapi/translate-events.yaml as live authority", "event without tenant/project scope", "caption event without consent/disclosure", "idempotency conflict without audit row"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_contract_replay_proto_fixture",
+      "fixture_kind": "grpc_contract_replay",
+      "source_authority_refs": ["specs/microservices/translate.json#evidence_expectations.api_contract_replay", "oya/translate/contracts/proto/translate.proto", "oya/translate/manifest.json#contracts.proto"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/proto/translate-proto-v1-replay.fixture.json"],
+      "must_assert": ["proto replay covers TranslateText BatchTranslate BulkTranslate DetectLanguage TmLeverage QeScore DocumentTranslate RealTimeTranslateStream glossary and termbase RPCs", "proto replay covers tenant and audit envelopes", "proto replay covers streaming caption consent correction replay latency error state and hashes", "proto replay covers provider routing residency and human-review/refusal behavior"],
+      "must_reject": ["gRPC handler before proto replay", "legacy microservices/translate/contracts/proto/translate.proto as live authority", "RPC without tenant or audit envelope", "high-risk automation without human-control", "real-time stream without consent state"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_browser_accessibility_gate_fixture",
+      "fixture_kind": "browser_user_story_accessibility_contract",
+      "source_authority_refs": ["specs/microservices/translate.json#evidence_expectations.browser_user_story_accessibility", "docs/user-journeys/j72-ai-translation-cross-locale-business/schemas/ai-translation-cross-locale-business-handoff.json", "docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/ux/translate-browser-accessibility-evidence.fixture.json"],
+      "must_assert": ["WCAG 2.2 AA", "keyboard-only translation language picker glossary termbase document job and live caption controls", "screen-reader labels and live-region updates", "visible policy/provider/degradation/disclosure state", "N/A rationale for non-UI-only Build work"],
+      "must_reject": ["green CI alone as UI readiness", "browser evidence missing for UI path", "keyboard path missing", "screen-reader state missing", "spinner-only waiting state"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_provider_residency_data_policy_fixture",
+      "fixture_kind": "provider_residency_data_policy_contract",
+      "source_authority_refs": ["specs/microservices/translate.json#data_privacy_security_notes", "specs/microservices/translate.json#evidence_expectations.security_data_policy", "oya/translate/policy/translate-tenant-scope.cedar"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/security/translate-provider-residency-data-policy.fixture.json"],
+      "must_assert": ["tenant/RBAC", "Cedar", "content class", "residency-aware provider routing", "cross-border consent", "model/provider disclosure", "no training reuse", "audit-chain", "human-review for high-risk contexts"],
+      "must_reject": ["provider egress without residency proof", "regulated content without refusal or human review", "plaintext source/target in logs or evidence", "T2 automation without policy and human control", "cross-tenant TM glossary or termbase access"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_inventory_runtime_readiness_rejection_fixture",
+      "fixture_kind": "inventory_readiness_non_claim",
+      "source_authority_refs": ["specs/microservices/translate.json#source_inventory_map.manifest_source", "specs/microservices/translate.json#claim_boundaries", "oya/translate/manifest.json"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/policy/translate-inventory-runtime-readiness-rejection.fixture.json"],
+      "must_assert": ["fixture is RED-only", "contracts/inventory are provenance until replay", "runtime implementation is out of scope", "Build and review evidence are required before readiness claims"],
+      "must_reject": ["runtime readiness", "product readiness", "production readiness", "live SLO", "GA", "green CI alone", "dirty oya/translate/** inventory as Build approval"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_retired_foundry_intelligence_boundary_fixture",
+      "fixture_kind": "retired_authority_normalization",
+      "source_authority_refs": ["specs/microservices/translate.json#source_inventory_map.stale_or_retired_reference_handling", "docs/decisions/ADR-0335-intelligence-microservice-consolidation.md", "specs/root-hub-pointers.json#agent_quick_start_protocol.step_2_context_recall"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/policy/translate-retired-foundry-intelligence-boundary.fixture.json"],
+      "must_assert": ["retired/provenance AI-substrate terminology is allowed only as provenance", "live model-provider authority routes through intelligence", "policy residency data-use human-control and audit gates precede Build"],
+      "must_reject": ["Foundry as active product authority", "foundry-runtime as live owner", "foundry-runtime adapter as Build approval", "T2 auto-translation without human-control", "retired AI-substrate vocabulary used as implementation permission"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "translate_build_parentage_guard_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_authority_refs": ["kanban:t_ce0e47d2", "kanban:t_a966bab0", "specs/microservices/translate.json#downstream_lifecycle_gates", "specs/microservices/translate.json#allowed_paths.future_build_allowed_prefixes_conditioned_on_review_and_red"],
+      "future_replay_artifacts": ["specs/fixtures/translate/source-map/replay/policy/translate-build-parentage.fixture.json"],
+      "must_assert": ["Build is parented behind source-lock Review/fix t_ce0e47d2", "Build is parented behind RED t_a966bab0", "Build declares allowed path prefixes", "Build preserves generated-face policy", "Build does not edit runtime/cloud/Release Please/legacy CLI authority surfaces before scoped approval"],
+      "must_reject": ["Build without source-lock review parent", "Build without RED fixture parent", "Build without allowed path prefixes", "generated JSON hand edit", "runtime handler in RED card", "Release Please metadata edit", "legacy oya CLI merge-authority edit"],
+      "expected_red_status": "RED_UNTIL_TRANSLATE_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

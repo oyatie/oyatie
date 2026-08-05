@@ -2,8 +2,21 @@ asyncapi: 3.1.0
 info:
   title: Treasury Events
   version: 1.0.0
-  description: AsyncAPI 3.1.0 channels for SAP TRM parity events.
+  description: >-
+    AsyncAPI 3.1.0 metadata-only channel and payload shapes for the preview
+    Treasury PRD. These channels document future wire contracts only; they have
+    no live broker, no durable persistence, no Workflow execution, no runtime
+    audit-chain emission, no payment execution, no live bank connectivity,
+    no cloud deployment, no GA readiness, and no measured SLO/DR readiness.
 defaultContentType: application/json
+x-preview-authority:
+  prd_ref: specs/microservices/treasury.json
+  prd_status: preview
+  scope: metadata-only event payload contracts
+  non_claims:
+    - No live bank connectivity, bank API call, SWIFT/host-to-host transport, or payment execution.
+    - No durable persistence, Postgres/RLS, Workflow execution, accounting ledger mutation, statutory filing, runtime audit-chain emission, or cloud deployment.
+    - No SAP, Oracle, or treasury workstation exhaustive parity claim.
 channels:
   treasury.cash-position.events.v1:
     address: treasury.cash-position.events.v1

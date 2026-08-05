@@ -1,0 +1,592 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/recordings-prd-red-fixtures.schema.json",
+  "fixture_plan_id": "RECORDINGS-PRD-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_72ac2adf",
+  "parent_source_lock_task": "t_6635c6b5",
+  "review_fix_parent_task": "t_8ad99810",
+  "status": "red-fixture-contract-replay-pending",
+  "created_at_utc": "2026-07-01T13:56:13Z",
+  "source_commit_at_authoring": "c52bdb09e",
+  "claim_boundary": "metadata/fixture-only RED contract plan; no runtime handlers, storage, deployment, generated JSON hand edits, product readiness, GA, measured SLO, release-governance completion, or customer availability claim",
+  "source_authority_refs": [
+    "specs/microservices/recordings.json",
+    "specs/microservices/manifests-index.json#microservices[name=recordings]",
+    "oya/recordings/manifest.json",
+    "oya/recordings/contracts/openapi/recordings.yaml",
+    "oya/recordings/contracts/asyncapi/recordings-events.yaml",
+    "oya/recordings/contracts/proto/recordings.proto",
+    "kanban:t_6635c6b5#recordings-source-lock",
+    "kanban:t_8ad99810#recordings-source-lock-review",
+    "kanban:t_72ac2adf#recordings-red-contract-replay"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/recordings/manifest.json",
+    "oya/recordings/catalog/*",
+    "oya/recordings/runbooks/*",
+    "oya/recordings/slos/*",
+    "oya/recordings/policy/*",
+    "oya/recordings/dashboards/*",
+    "oya/recordings/iac/*",
+    "registry/catalog/oya-recordings-domain.yaml",
+    "microservices/recordings/manifest.json",
+    "microservices/recordings/contracts/*",
+    "microservices/recordings/IP-*.md"
+  ],
+  "global_non_claims": [
+    "No recordings runtime implementation is created or approved by this fixture plan.",
+    "No handler, persistence adapter, object storage integration, transcript pipeline, search index, retention worker, legal-hold workflow, eDiscovery exporter, share-link service, deployment, live SLO, product readiness, GA, or customer availability claim is made.",
+    "No inventory manifest, catalog row, runbook, SLO, dashboard, policy file, IaC file, or legacy microservices path is treated as implementation-readiness evidence without source-backed RED/Build/Review gates.",
+    "No generated JSON hand edits, Release Please metadata, source-authority edits, or legacy microservices/recordings/** restoration are authorized.",
+    "Green CI alone is insufficient for UI readiness; future UI-facing slices require browser/user-story/accessibility evidence or a scoped non-UI N/A rationale."
+  ],
+  "required_prd_acceptance_criteria": [
+    "AC-REC-01",
+    "AC-REC-02",
+    "AC-REC-03",
+    "AC-REC-04",
+    "AC-REC-05",
+    "AC-REC-06"
+  ],
+  "required_fixture_families_from_source_map": [
+    "recordings_ingest_contract_replay",
+    "recordings_cedar_scope_playback_search_denials",
+    "recordings_transcript_redaction_overlay_hash_binding",
+    "recordings_retention_legal_hold_mode_matrix",
+    "recordings_export_merkle_four_eyes",
+    "recordings_ui_accessibility_journey_replay"
+  ],
+  "contract_replay_expectations": {
+    "openapi": {
+      "source_path": "oya/recordings/contracts/openapi/recordings.yaml",
+      "legacy_manifest_pointer": "microservices/recordings/contracts/openapi/recordings.yaml",
+      "future_replay_family": "recordings-prd-openapi-v1",
+      "must_cover_paths": [
+        "GET /recordings",
+        "GET /recordings/{recording_id}",
+        "POST /recordings/{recording_id}/playback-session",
+        "GET /recordings/{recording_id}/transcript",
+        "POST /recordings/{recording_id}/redactions",
+        "GET /search",
+        "POST /share-links",
+        "POST /legal-holds",
+        "POST /legal-holds/{hold_id}/release",
+        "POST /ediscovery/exports",
+        "POST /exports",
+        "POST /ingest/presign",
+        "POST /ingest/finalize"
+      ],
+      "must_assert": [
+        "mTLS plus X-Oyatie-Tenant and X-Oyatie-Pack are required before list/read/playback/search/transcript/export bytes are exposed",
+        "Cedar denial and share-link expiry/revocation/view-cap constraints are first-class negative cases",
+        "ingest presign/finalize carries consent_banner_confirmed and later Build replay binds content_hash before transcript/search/export processing",
+        "redactions are insert-only overlays and legal-hold/eDiscovery/export paths require four-eyes and audit-chain evidence"
+      ]
+    },
+    "asyncapi": {
+      "source_path": "oya/recordings/contracts/asyncapi/recordings-events.yaml",
+      "legacy_manifest_pointer": "microservices/recordings/contracts/asyncapi/recordings-events.yaml",
+      "future_replay_family": "recordings-prd-asyncapi-v1",
+      "must_cover_channels": [
+        "recordings.recording.ingested.v1",
+        "recordings.recording.published.v1",
+        "recordings.recording.played.v1",
+        "recordings.recording.shared.v1",
+        "recordings.recording.redacted.v1",
+        "recordings.recording.deleted.v1",
+        "recordings.transcript.ready.v1",
+        "recordings.translation.ready.v1",
+        "recordings.summary.ready.v1",
+        "recordings.legalhold.engaged.v1",
+        "recordings.legalhold.released.v1",
+        "recordings.ediscovery.export.v1",
+        "recordings.retention.applied.v1",
+        "recordings.watermark.rotated.v1",
+        "meet.session.ended.v1",
+        "messenger.huddle.ended.v1"
+      ],
+      "must_assert": [
+        "recording lifecycle events carry tenant_id/content_hash/consent where source authority requires them",
+        "transcript, translation, and summary events preserve source recording/content-hash boundaries and cross-service handoff constraints",
+        "legal-hold, retention, deleted, and eDiscovery events encode four-eyes, KMS shred, tombstone, Merkle, and audit-chain evidence expectations",
+        "meet and messenger consumed events are consumed through Workflow/event mediation, not direct cross-product calls"
+      ]
+    },
+    "proto": {
+      "source_path": "oya/recordings/contracts/proto/recordings.proto",
+      "legacy_manifest_pointer": "microservices/recordings/contracts/proto/recordings.proto",
+      "future_replay_family": "recordings-prd-proto-v1",
+      "must_cover_symbols": [
+        "oyatie.recordings.v1.Recording",
+        "oyatie.recordings.v1.RecordingIngestRequest",
+        "oyatie.recordings.v1.RecordingIngestResponse",
+        "oyatie.recordings.v1.LegalHoldEngageRequest",
+        "oyatie.recordings.v1.LegalHold",
+        "RecordingsIngest.Ingest",
+        "RecordingsLegalHold.Engage"
+      ],
+      "must_assert": [
+        "Ingest is idempotent by tenant plus idempotency key and includes producer_spiffe_id plus parent_audit_chain_ref",
+        "RecordingIngestResponse carries content_hash_verified and ingest_audit_chain_ref",
+        "LegalHoldEngageRequest and LegalHold encode four-eyes paired_approver, court_order_ref, scope_expression, and audit_chain_seal_ref",
+        "proto replay must not claim HTTP handlers, storage, or deployment readiness by itself"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/recordings-prd/replay/",
+  "expected_red_failure": "RED until future Build cards create source-backed OpenAPI/AsyncAPI/proto replay artifacts under specs/fixtures/recordings-prd/replay/ and extend/replace this checker with real contract replay against implementation surfaces.",
+  "verification_commands_for_future_build_worker": [
+    "python3 -m json.tool specs/microservices/recordings.json >/dev/null",
+    "python3 -m json.tool specs/fixtures/recordings-prd/red-fixtures.json >/dev/null",
+    "python3 scripts/tests/recordings_prd_red_fixture_contract_check.py --self-test",
+    "python3 scripts/tests/recordings_prd_red_fixture_contract_check.py # expected RED until future replay artifacts exist",
+    "future Build: replay OpenAPI/AsyncAPI/proto artifacts under specs/fixtures/recordings-prd/replay/ before claiming implementation readiness"
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "recordings_authority_source_lock_fixture",
+      "fixture_kind": "authority_source_lock",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#_meta",
+        "specs/microservices/manifests-index.json#microservices[name=recordings]",
+        "oya/recordings/manifest.json",
+        "kanban:t_6635c6b5",
+        "kanban:t_8ad99810"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/authority/recordings-prd-authority-source-lock.fixture.json"
+      ],
+      "must_assert": [
+        "PRD-RECORDINGS status Accepted",
+        "source_lock_task t_6635c6b5",
+        "review_gate_task t_8ad99810",
+        "recordings inventory is provenance only",
+        "contract files are source-map inputs only"
+      ],
+      "must_reject": [
+        "runtime readiness from manifest inventory",
+        "canonical microservices/recordings/manifest.json",
+        "Build without source map and RED gate",
+        "Release Please metadata from fixture-only work"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_ingest_contract_replay_fixture",
+      "fixture_kind": "rest_asyncapi_proto_ingest_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#acceptance_criteria[AC-REC-01]",
+        "specs/microservices/recordings.json#test_fixture_plan.recordings_ingest_contract_replay",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1ingest~1presign",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1ingest~1finalize",
+        "oya/recordings/contracts/proto/recordings.proto#RecordingIngestRequest"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/ingest/recordings-ingest-contract-replay.fixture.json"
+      ],
+      "must_assert": [
+        "tenant_id",
+        "source_kind",
+        "content_hash",
+        "context_kind",
+        "consent_banner_confirmed",
+        "cell_id",
+        "parent_audit_chain_ref",
+        "idempotency_key",
+        "producer_spiffe_id"
+      ],
+      "must_reject": [
+        "ingest finalize without consent banner",
+        "ingest without content_hash",
+        "duplicate idempotency key with mismatched content hash",
+        "producer without mTLS/SPIFFE identity",
+        "meet/messenger consumed event bypassing Workflow mediation"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_cedar_scope_playback_search_denials_fixture",
+      "fixture_kind": "authorization_playback_search_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#acceptance_criteria[AC-REC-02]",
+        "oya/recordings/contracts/openapi/recordings.yaml#/components/parameters/TenantHeader",
+        "oya/recordings/contracts/openapi/recordings.yaml#/components/parameters/PackHeader",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1recordings~1{recording_id}~1playback-session",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1search",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1share-links"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/authz/recordings-cedar-scope-playback-search-denials.fixture.json"
+      ],
+      "must_assert": [
+        "mTLS identity",
+        "X-Oyatie-Tenant",
+        "X-Oyatie-Pack",
+        "Cedar policy",
+        "share-link constraints",
+        "context boundary",
+        "policy denial before media/transcript bytes"
+      ],
+      "must_reject": [
+        "cross-tenant list/read",
+        "missing pack header",
+        "Cedar deny ignored",
+        "expired share link playback",
+        "revoked share link playback",
+        "view cap exceeded",
+        "search result leaks unauthorized recording"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_transcript_redaction_overlay_hash_binding_fixture",
+      "fixture_kind": "derived_content_hash_redaction_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#acceptance_criteria[AC-REC-03]",
+        "specs/microservices/recordings.json#data_model.entities_ref.Transcript",
+        "specs/microservices/recordings.json#data_model.entities_ref.RedactionOverlay",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.transcript.ready.v1",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.translation.ready.v1",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.summary.ready.v1",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.recording.redacted.v1"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/derived/recordings-transcript-redaction-overlay-hash-binding.fixture.json"
+      ],
+      "must_assert": [
+        "source_recording_hash",
+        "content_hash",
+        "model_version",
+        "redaction overlay",
+        "source media hash remains unchanged",
+        "audit_event_id",
+        "translation handoff is policy-gated"
+      ],
+      "must_reject": [
+        "destructive redaction under legal hold",
+        "transcript not bound to source recording hash",
+        "translation event without transcript_id",
+        "summary without ai_act_classification",
+        "redaction missing reason/applied_by",
+        "model-training signal from recordings without accepted policy"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_retention_legal_hold_mode_matrix_fixture",
+      "fixture_kind": "retention_legal_hold_dsr_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#acceptance_criteria[AC-REC-04]",
+        "specs/microservices/recordings.json#security_privacy_regulatory.regulated_retention_modes",
+        "oya/recordings/decisions/ADR-REC-001-recording-retention-WORM-vs-mutable-vs-purge-on-request.md",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1legal-holds",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1legal-holds~1{hold_id}~1release",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.retention.applied.v1",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.recording.deleted.v1"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/retention/recordings-retention-legal-hold-mode-matrix.fixture.json"
+      ],
+      "must_assert": [
+        "worm_record",
+        "mutable_record",
+        "purge_on_request",
+        "redaction_overlay_only",
+        "two-person approvals",
+        "Cedar roles",
+        "audit-chain seals",
+        "search-index purge ordering",
+        "proof-of-erasure",
+        "KMS shred"
+      ],
+      "must_reject": [
+        "purge succeeds while legal hold engaged",
+        "retention expiry deletes WORM source media",
+        "search index entry remains after purge success",
+        "kms_shred_executed missing for deletion",
+        "legal hold release without paired approver",
+        "DSR erasure false success"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_export_merkle_four_eyes_fixture",
+      "fixture_kind": "ediscovery_regular_export_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#acceptance_criteria[AC-REC-05]",
+        "specs/microservices/recordings.json#data_model.entities_ref.ExportBundle",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1ediscovery~1exports",
+        "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1exports",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.ediscovery.export.v1"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/export/recordings-export-merkle-four-eyes.fixture.json"
+      ],
+      "must_assert": [
+        "eDiscovery export",
+        "regular export",
+        "bundle contents",
+        "signed URL expiry",
+        "watermark/viewer constraints",
+        "Merkle root",
+        "hold/export scope",
+        "requester",
+        "paired approver",
+        "audit-chain seal"
+      ],
+      "must_reject": [
+        "export scope exceeds Cedar/legal basis",
+        "missing paired_approver",
+        "missing merkle_root",
+        "non-expiring signed URL",
+        "unauthorized media/transcript bytes in bundle",
+        "watermark viewer missing when required"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_asyncapi_lifecycle_events_fixture",
+      "fixture_kind": "asyncapi_event_lifecycle_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#contracts.produces",
+        "specs/microservices/recordings.json#contracts.consumes",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/asyncapi/recordings-asyncapi-lifecycle-events.fixture.json"
+      ],
+      "must_assert": [
+        "recording lifecycle",
+        "transcript/translation/summary",
+        "legal hold",
+        "retention",
+        "upstream meet event",
+        "upstream messenger event",
+        "Workflow Engine as canonical bus"
+      ],
+      "must_reject": [
+        "direct microservice-to-microservice call",
+        "event missing tenant_id where required",
+        "recording lifecycle event missing content_hash",
+        "upstream huddle ingest without consent branch",
+        "retention event missing action"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_proto_ingest_legal_hold_fixture",
+      "fixture_kind": "proto_rpc_shape_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#contracts.contract_files.proto",
+        "oya/recordings/contracts/proto/recordings.proto#RecordingIngestRequest",
+        "oya/recordings/contracts/proto/recordings.proto#LegalHoldEngageRequest",
+        "oya/recordings/contracts/proto/recordings.proto#RecordingsIngest",
+        "oya/recordings/contracts/proto/recordings.proto#RecordingsLegalHold"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/proto/recordings-proto-ingest-legal-hold.fixture.json"
+      ],
+      "must_assert": [
+        "idempotency_key",
+        "content_hash",
+        "content_hash_verified",
+        "producer_spiffe_id",
+        "parent_audit_chain_ref",
+        "scope_expression",
+        "court_order_ref",
+        "paired_approver",
+        "audit_chain_seal_ref"
+      ],
+      "must_reject": [
+        "Ingest without idempotency_key",
+        "Ingest without parent audit-chain ref",
+        "content_hash_verified absent",
+        "LegalHold engage without court_order_ref",
+        "LegalHold engage without paired approver",
+        "gRPC shape used as product readiness claim"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_pii_dsr_retention_kms_fixture",
+      "fixture_kind": "privacy_dsr_kms_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#security_privacy_regulatory",
+        "specs/microservices/recordings.json#data_model.entities_ref.PurgeTombstone",
+        "docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
+        "docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/privacy/recordings-pii-dsr-retention-kms.fixture.json"
+      ],
+      "must_assert": [
+        "PII_QUASI",
+        "speaker identity/quasi identifiers",
+        "DSR",
+        "proof_of_erasure_ref",
+        "purge tombstone",
+        "OpenBao/HSM",
+        "KMS shred",
+        "retained_metadata_fields contain no recoverable bytes"
+      ],
+      "must_reject": [
+        "purge tombstone contains recoverable media",
+        "transcript text retained after erasure without legal basis",
+        "speaker quasi identifiers leak through search",
+        "KMS shred omitted",
+        "plaintext model-training signal from recordings"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_translate_handoff_boundary_fixture",
+      "fixture_kind": "cross_product_translate_boundary_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#contracts.cross_product_routing_policy",
+        "specs/microservices/recordings.json#scope.out_of_scope",
+        "specs/microservices/recordings.json#anti_patterns.direct_cross_service_call_for_translation_or_summary",
+        "oya/recordings/contracts/asyncapi/recordings-events.yaml#recordings.translation.ready.v1"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/boundary/recordings-translate-handoff-boundary.fixture.json"
+      ],
+      "must_assert": [
+        "Workflow Engine events",
+        "Ontology projections",
+        "Cedar policy",
+        "audit-chain seals",
+        "translate handoff boundary",
+        "policy-gated automation"
+      ],
+      "must_reject": [
+        "direct cross-product call to translate",
+        "summary pipeline bypasses intelligence authority",
+        "translation without policy basis",
+        "Workflow handoff missing audit seal"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_ui_accessibility_evidence_fixture",
+      "fixture_kind": "browser_user_story_accessibility_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#acceptance_criteria[AC-REC-06]",
+        "specs/microservices/recordings.json#user_experience",
+        "specs/design-system/tenant-context-switcher.json",
+        "specs/design-system/communication-thread-list.json",
+        "specs/design-system/policy-disclosure-banner.json",
+        "specs/design-system/audit-evidence-timeline.json",
+        "specs/design-system/score-card-result-table.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/ux/recordings-ui-accessibility-journey-replay.fixture.json"
+      ],
+      "must_assert": [
+        "playback",
+        "transcript search",
+        "share-link status",
+        "legal-hold/admin path",
+        "WCAG 2.2 AA",
+        "keyboard",
+        "screen-reader",
+        "policy disclosure",
+        "KR/en-US",
+        "responsive",
+        "N/A rationale for non-UI work"
+      ],
+      "must_reject": [
+        "UI readiness from green CI alone",
+        "browser evidence missing for UI path",
+        "keyboard traversal missing",
+        "policy denied state missing",
+        "legal hold conflict state missing",
+        "spinner-only waiting state"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_inventory_provenance_rejection_fixture",
+      "fixture_kind": "authority_non_claim",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#source_authority",
+        "oya/recordings/manifest.json",
+        "registry/catalog/oya-recordings-domain.yaml",
+        "kanban:t_8ad99810"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/authority/recordings-inventory-provenance-rejection.fixture.json"
+      ],
+      "must_assert": [
+        "oya/recordings/manifest.json is inventory/provenance only",
+        "microservices/recordings/manifest.json is absent and must not be restored",
+        "contract files are inputs to RED replay, not implementation readiness",
+        "retired foundry token is provenance only"
+      ],
+      "must_reject": [
+        "oya/recordings/manifest.json as runtime readiness",
+        "catalog row as product readiness",
+        "SLO/dashboard as measured evidence",
+        "microservices/recordings/manifest.json as canonical",
+        "microservices/recordings/contracts as canonical live source",
+        "foundry as live owner"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_build_parentage_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_authority_refs": [
+        "kanban:t_6635c6b5",
+        "kanban:t_8ad99810",
+        "kanban:t_72ac2adf",
+        "specs/microservices/recordings.json#enforcement_status"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/policy/recordings-build-parentage.fixture.json"
+      ],
+      "must_assert": [
+        "Build is parented behind source-lock t_6635c6b5",
+        "Build is parented behind review gate t_8ad99810",
+        "Build is parented behind RED t_72ac2adf",
+        "allowed path prefixes",
+        "no generated JSON hand edits",
+        "no legacy microservices/recordings restoration"
+      ],
+      "must_reject": [
+        "Build without source map parent",
+        "Build without RED fixture parent",
+        "Build without allowed path prefixes",
+        "generated JSON hand edit",
+        "restored retired manifest",
+        "Release Please metadata for fixture-only work"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "recordings_no_implementation_readiness_claim_fixture",
+      "fixture_kind": "claim_boundary_contract",
+      "source_authority_refs": [
+        "specs/microservices/recordings.json#source_authority.claim_boundary",
+        "specs/microservices/recordings.json#enforcement_status.runtime_product_readiness",
+        "specs/hyperscaler-production-readiness-claim-contract.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/recordings-prd/replay/policy/recordings-no-implementation-readiness-claim.fixture.json"
+      ],
+      "must_assert": [
+        "runtime_product_readiness not_claimed",
+        "release_governance not_applicable_to_source_lock_only",
+        "generated_files not_touched",
+        "fixtures are RED guards only"
+      ],
+      "must_reject": [
+        "production ready",
+        "GA ready",
+        "runtime service available",
+        "contract replay passed without future artifacts",
+        "hyperscaler maturity from fixtures alone",
+        "No implementation readiness is claimed by fixtures alone"
+      ],
+      "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

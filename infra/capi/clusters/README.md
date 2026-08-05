@@ -18,8 +18,20 @@ Each cell renders the same CR set — only the infra CRs differ by substrate:
 `Cluster` → `<Infra>Cluster` + `TalosControlPlane` (+`<Infra>MachineTemplate`) + `MachineDeployment`
 (+`TalosConfigTemplate` +`<Infra>MachineTemplate`). All set `cni:none` + `proxy.disabled` (Cilium is
 installed by the CRS); workers carry the `katacontainers.io/kata-runtime` label + vhost modules
-(Kata pool, ADR-0147/0338). Every Cluster is labelled `oya.io/bootstrap=true` → the CRS drops Cilium
-+ Argo CD on it; the cell's Argo CD then pulls `infra/gitops` (override `cell` per spoke).
+(Kata pool, ADR-0147/0338). Every Cluster is labelled `oya.io/bootstrap=true` → Talos fetches
+Argo CD CRDs through `cluster.extraManifests`, the ApplyOnce CRS drops Cilium plus the Argo CD
+namespace/controllers, and the Reconcile CRS retries the root Application until the Argo CD
+Application CRD exists. The cell's Argo CD then pulls `infra/gitops` (override `cell` per spoke).
+
+## Bootstrap ordering
+
+Argo CD CRDs intentionally do **not** travel in the `argocd-bootstrap` CRS ConfigMap: the
+`applicationsets.argoproj.io` CRD alone is larger than Kubernetes' 1 MiB ConfigMap/etcd object cap.
+The spoke chart's `defaults.argocdCrdManifests` pins the raw CRD URLs under Talos
+`cluster.extraManifests`; `infra/capi/crs/render.sh` renders only the Argo CD namespace/controllers
+with `crds.install=false` and verifies those URLs match the Helm chart's `appVersion`. The separate
+`bootstrap-argocd-root-app` CRS uses `Reconcile` so CAPI retries the root `Application` apply until
+the CRD is present, preserving the no-CR-before-CRD rationale without bundling oversized CRDs.
 
 ## The ~8 cells
 Add one entry to `cells` per cell (kr, jp, eu, ksa, us, us-gov, uae, …), set `substrate` + the
@@ -34,7 +46,10 @@ CRDs (this is the current stable line; v1beta2 / ClusterClass is alpha). The cha
 infra apiVersion per substrate in `templates/_helpers.tpl`.
 
 ## Validation
-`helm lint infra/capi/clusters` and `helm template … -f values-example.yaml` render offline. The
-provider CRDs (OCICluster/AWSCluster/Metal3Cluster/TalosControlPlane) exist only after `clusterctl
-init` (infra/capi/init.sh) on the control plane, so server-side validation
-(`kubectl --dry-run=server`) is gated on the control plane + providers being up.
+`helm lint infra/capi/clusters` and `helm template … -f values-example.yaml` render offline. Run
+`make fleet-preflight` for the non-mutating ADR-0375 readiness gate; when Helm is installed it also
+checks the Argo CD chart `appVersion` against `defaults.argocdCrdManifests` so the Talos CRD URLs stay
+aligned with `infra/capi/crs/render.sh`. The provider CRDs
+(OCICluster/AWSCluster/Metal3Cluster/TalosControlPlane) exist only after `clusterctl init`
+(infra/capi/init.sh) on the control plane, so server-side validation (`kubectl --dry-run=server`) is
+gated on the control plane + providers being up.

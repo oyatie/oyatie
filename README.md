@@ -11,6 +11,18 @@ canonical entry-point pointers; [`HANDOFF.md`](HANDOFF.md) carries current cross
 the active backlog. Architecture decisions live in [`docs/decisions/`](docs/decisions/) (ADRs); the
 apex vision is the **Agentic Delivery Fabric** (ADR-0516…0535).
 
+## Engineering and reasoning lenses
+
+The project routes all task reasoning through a task-appropriate, proportionate subset of 16
+lenses; they apply to discovery, diagnosis, planning, design, implementation, operation, and
+review:
+Cartesian doubt, Essentialism/YAGNI, Chesterton’s Fence, contrarian/outside-the-box, Socratic,
+pragmatism, Red Team, Systems Thinking, Operability/Day-2, Opportunity Cost,
+blast-radius/cell-based isolation, constant-work/anti-fragility,
+shared-nothing/eventual consistency, FinOps/unit-cost, telemetry-first, and
+zero-trust/defense-in-depth. Their operating guidance is in
+[`AGENTS.md`](AGENTS.md#engineering-principles-and-reasoning-lenses).
+
 ## Build & verify
 
 The build is moving to a fully hermetic, lifecycle-wide [buck2](https://buck2.build) graph — a clean

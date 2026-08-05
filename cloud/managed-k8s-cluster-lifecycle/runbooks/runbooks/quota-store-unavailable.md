@@ -1,16 +1,21 @@
-# Runbook: Quota Store Unavailable
+# Runbook: Quota Dependency Unavailable During Cluster Create
 
 ## Symptom
-`POST /tenants/{id}/quota/check` returns HTTP 500 with `quota store error`.
+The `managed-k8s-tenant-quota` dependency cannot return a quota decision for a
+cluster create request.
 
 ## Impact
 Cluster-lifecycle cannot provision new clusters (fail-closed by design).
 
 ## Steps
-1. Check the in-memory store (dev) or Postgres adapter (production) health.
-2. Review application logs for `QuotaPortError::Persistence` entries.
-3. Restart the quota service pod if the store is recovered.
-4. Verify with `GET /healthz` → 200 OK.
+1. Check the `managed-k8s-tenant-quota` dependency health through its owner runbooks.
+2. Review cluster-lifecycle logs for quota-decision dependency-unavailable or
+   persistence-failure entries without treating tenant-quota internals as
+   cluster-lifecycle authority.
+3. Retry cluster create only after tenant-quota can return an explicit allow.
+4. Verify cluster-lifecycle still fails closed while the dependency is unavailable.
 
 ## Prevention
-Wire a persistent Postgres-backed store with retry (follow-on ADR-0376 wave).
+Future quota dependency persistence and retry work belongs to the tenant-quota
+service; cluster-lifecycle must continue to treat dependency failures as admission
+denies.

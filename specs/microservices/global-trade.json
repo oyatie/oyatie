@@ -228,6 +228,23 @@
     "runtime/SLO/DR claims without measured evidence",
     "direct cross-microservice calls bypassing Workflow/Ontology"
   ],
+  "sustainability_emission_model_authority": {
+    "status": "conditional_planned_only_manifest_non_claim",
+    "adr": "ADR-0344",
+    "manifest_declaration": "not_authored",
+    "reason": "oya/global-trade/manifest.json exists only as inventory/provenance/planned-only authority and states the manifest index has no global-trade entry. The PRD names trade filing/screening metadata signals, but it explicitly preserves no live denied-party provider, government-list download, customs filing, broker workflow, document archive runtime, Workflow execution, runtime audit-chain emission, cloud deployment, or GA readiness claim.",
+    "workload_signal_candidate": "per_workflow_run trade-party screening, export-control assessment, customs declaration preparation, and landed-cost simulation after manifest-index/runtime authority exists",
+    "required_before_manifest_declaration": [
+      "promote global-trade into manifest-index or an explicit current-manifest authority card",
+      "declare capacity_model and pod_runtime_tier in the current manifest",
+      "land screening/filing runtime authority without violating provider, government-list, customs-filing, broker, Workflow, cloud, or audit-chain non-claims",
+      "add emission-path fixture assertions for cost, co2, watt_hours, provider, and region before any live FinOps claim"
+    ],
+    "non_claims": [
+      "No sustainability_emission_model coefficients are declared for global-trade in this slice.",
+      "No invoice, chargeback, tax filing, payment, billing, live provider, customs/regulator export, broker-network, or runtime audit-chain mutation is introduced."
+    ]
+  },
   "metrics": [
     {
       "name": "domain-test-green",
@@ -242,7 +259,7 @@
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

@@ -29,16 +29,16 @@
       ".omx/plans/test-spec-phase0.md"
     ],
     "icm_scaffold_lock_id": "01KRJM0QGGKVCMVS2FFVAHZBYS",
-    "gitops_vcs_directive_2026_05_14": "Move the Oya VCS replacement earlier and upgrade it for polyglot AST/semantic claims, enforced unit/integration/e2e standards, CI/CD review-fix loops, controller-owned rebase/merge queue, and GitOps promotion. ADR-0116 retires grit/icm/rtk/vox as transition authorities.",
+    "gitops_vcs_directive_2026_05_14": "Historical directive, superseded by ADR-0363/ADR-0515 for live coordination authority: the prior Oya VCS replacement work is provenance for semantic claims, test-standard enforcement, review-fix loops, and queue/controller ideas. Live execution uses plain git isolated worktree branches, protected PRs, reviewer approval, and oya-ci-required.",
     "scaffold_lock_ids": [
       "01KRJM0QGGKVCMVS2FFVAHZBYS",
       "01KRJMSR5EPNN0E1ATR6QYTGEE",
       "01KRJMZ2KY3V7PRDRYMH9BS9KZ",
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
-    "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling.",
+    "oya_vcs_directive_2026_05_14": "Historical Oya VCS product directive retained as provenance only; useful semantics are salvaged into cloud-scm/cloud-ci/cloud-cd and the agentic delivery fabric, while current agent coordination is plain git plus protected PRs and oya-ci-required.",
     "purpose": "Schema for https://docs.oyatie.com/specs/masterplan.json",
-    "oya_vcs_directive_2026_05_15": "Oya VCS replaces grit/icm/rtk/vox/omx/omc as forward agentic VCS/promotion authority; legacy surfaces are compatibility/provenance only.",
+    "oya_vcs_directive_2026_05_15": "Historical directive retained for provenance: Oya VCS was once planned as the forward agentic VCS/promotion authority, but ADR-0363/ADR-0515 supersede that ratchet with plain git, protected PRs, reviewer approval, and oya-ci-required; grit/icm/rtk/vox/omx/omc remain compatibility/provenance only.",
     "session_directives_2026_05_17": {
       "op11_audit": {
         "description": "2026-05-17 OP-11 placeholder-debt audit summary surfaced 847 findings (67 critical, 12 fixuptasks). ADR-0236 keeps the response advisory until the detector, workflow, branch-protection row, and source-corpus artifact exist on branch.",
@@ -437,7 +437,7 @@
   "planning_closure": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "cloud-ci/Rust gate packet: planning-closure; legacy oya-dev-cli bridge output is local-feedback/provenance only and not authority",
     "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "authority": {
       "current_path": "/specs/masterplan.json",
@@ -776,7 +776,7 @@
       ],
       "current_gate_evidence": {
         "status": "local-green-online-audit-strict-evidence-pass",
-        "gate": "cargo run -q -p oya-dev-cli -- gate validate dependency-seam --repo-root . --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json",
+        "gate": "cloud-ci/Rust gate packet: dependency-seam (--repo-root . --online-audit --severity error --emit-report evidence/fd001/cs-p13-dependency-seam-report.json); legacy oya-dev-cli bridge output is local-feedback/provenance only and not authority",
         "result": "6 pass, 0 skipped, 0 diagnostics, 0 blocking",
         "evidence_refs": [
           "/evidence/fd001/cs-p13-dependency-seam-report.json",
@@ -898,7 +898,7 @@
           "planning_closure_ref": "/specs/planning-closure-contract.json",
           "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
           "planning_closure_closed_at": "2026-05-19",
-          "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+          "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
         },
         {
           "id": "P-fitness-chained-enforcement",
@@ -920,7 +920,7 @@
               "planning_closure_ref": "/specs/planning-closure-contract.json",
               "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
               "planning_closure_closed_at": "2026-05-19",
-              "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
+              "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact.",
               "evidence_refs": [
                 "/evidence/fd001/cs-fitness-001-banned-primitives.json",
                 "/evidence/fd001/cs-fitness-001-command-log-corpus.json"
@@ -940,7 +940,7 @@
               "planning_closure_ref": "/specs/planning-closure-contract.json",
               "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
               "planning_closure_closed_at": "2026-05-19",
-              "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+              "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
             }
           ],
           "previous_planning_status": "was-seed",
@@ -948,7 +948,7 @@
           "planning_closure_ref": "/specs/planning-closure-contract.json",
           "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
           "planning_closure_closed_at": "2026-05-19",
-          "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+          "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
         }
       ]
     }
@@ -1013,7 +1013,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
-      "summary": "Approved Oya VCS ralplan v5 folded into M01-P07 phase/IP packet files and global ImplementationPlan-as-ChangeSet contract.",
+      "summary": "Historical Oya VCS ralplan v5 folded into M01-P07 phase/IP packet files and global ImplementationPlan-as-ChangeSet contract; retained as design provenance after ADR-0363/ADR-0515 supersession.",
       "freshness": "2026-05-14T08:55:00Z",
       "command_or_lane": "manual masterplan fold-in + jq validation",
       "result": "planning-closure validation passed 2026-05-19",
@@ -1045,10 +1045,11 @@
   ],
   "gitops_vcs_replacement": {
     "source_spec": "/specs/gitops-vcs-replacement.json",
-    "status": "core-complete-ci-admission-wired-provider-adapters-followup",
+    "status": "historical-complete-superseded-by-ADR-0363-ADR-0515",
+    "current_authority": "Plain git isolated worktree branches, protected PRs against dev, reviewer approval, and the single protected oya-ci-required context. This section is retained for design provenance; it is not live merge or verification authority.",
     "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
-    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev\u2192staging\u2192production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "summary": "Historical P00 design provenance: the retired Oya VCS plan captured useful ideas for AST/semantic locks, isolated work, review/CI/security/GitOps fix loops, merge-queue/backpressure semantics, issue links, and compile-latency scheduling. ADR-0363/ADR-0515 retire it as the live ratchet; current closeout rides plain git protected PRs plus reviewer approval and oya-ci-required while reusable semantics migrate into cloud-scm/cloud-ci/cloud-cd or the agentic delivery fabric.",
     "must_precede": [
       "M01-P08-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
@@ -1160,7 +1161,7 @@
       "source_spec": "/specs/gitops-vcs-replacement.json#test_standard_enforcement.ast_support",
       "required": true
     },
-    "product_name": "Oya VCS",
+    "product_name": "Historical Oya VCS",
     "native_and_adapter_boundary_ref": "/specs/gitops-vcs-replacement.json#native_and_adapter_boundary",
     "rust_compile_latency_strategy_ref": "/specs/gitops-vcs-replacement.json#rust_compile_latency_strategy",
     "queue_model_ref": "/specs/gitops-vcs-replacement.json#queue_model",
@@ -1206,22 +1207,22 @@
       ]
     },
     "authority_cutover": {
-      "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
-      "legacy_surfaces": "grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
-      "admission_lane": "cargo run -q -p oya-vcs-admission-gate-app"
+      "closure_authority": "plain git protected PR -> reviewer APPROVE -> single protected oya-ci-required context -> release-governance/product-completion packet",
+      "legacy_surfaces": "Oya VCS/grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
+      "admission_lane": "cloud-ci gate apps producing the oya-ci-required required context"
     },
     "ci_admission_lane": {
-      "workflow_job": "oya-vcs-admission",
-      "branch_protection_status": "oya-vcs-admission",
-      "required": false,
-      "current_status": "future_target_not_live_required_context",
+      "workflow_job": "oya-ci-required",
+      "branch_protection_status": "oya-ci-required",
+      "required": true,
+      "current_status": "live_required_context_per_ADR_0515",
       "current_live_required_contexts_ref": "/infra/branch-protection/dev.json#required_status_checks.contexts",
-      "target_required_after_P0_0": true,
-      "honest_claim_note": "Do not describe oya-vcs-admission as mechanically branch-protection-enforced until P0.0 proves the status producer is live and required."
+      "target_required_after_P0_0": false,
+      "honest_claim_note": "Do not describe legacy oya-vcs-admission, oya gate, or oya verify output as branch-protection authority; only the protected oya-ci-required context is live merge authority."
     },
     "cloud_toolchain_services_ref": "/specs/bespoke-cloud-toolchain-services.json",
     "evolves_to_cloud_toolchain_services": {
-      "cloud_scm": "Oya VCS becomes the SCM service surface of Oyatie Cloud, with GitHub/git as bridge adapters until native repository/change-graph/status authority cuts over.",
+      "cloud_scm": "Historical Oya VCS productization is superseded as a ratchet; reusable SCM semantics belong in Oyatie Cloud SCM/cloud-scm, with GitHub/git as bridge adapters until native repository/change-graph/status authority cuts over.",
       "cloud_ci": "Existing CI admission semantics become oya-ci, a Rust CI service target; branch protection must require cloud-ci-required or oya-ci-required from trusted cloud-ci/oya-ci control state (or a minimal Rust bridge adapter) before Phase-0 can claim live enforcement.",
       "cloud_cd": "GitOps promotion/release-train semantics become oya-cd, a Rust CD service with Argo CD/Rollouts as bridge adapters until bespoke reconciler/ledger authority cuts over.",
       "tenant_isolation": "All three services use the same tenant isolation contract as /specs/bespoke-cloud-toolchain-services.json."
@@ -1237,12 +1238,12 @@
       "phase_parent",
       "ip_id",
       "change_boundary",
-      "oya_vcs_claim_scope",
+      "plain_git_worktree_branch_scope",
       "affected_symbols_or_artifact_pointers",
       "affected_crates_packages_deployables",
       "required_test_evidence",
       "rollback_or_compatibility_path",
-      "vcs_completion_payload"
+      "protected_pr_completion_packet"
     ],
     "split_when": [
       "unrelated lock scopes",
@@ -1251,8 +1252,8 @@
       "mixed provider adapter and kernel work without explicit contract boundary",
       "review/fix task independent from original ChangeSet"
     ],
-    "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-governance-plan-hierarchy + oya-vcs-admission + oya-governance-honest-claims",
+    "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> protected PR -> reviewer approval + oya-ci-required -> release-governance closeout",
+    "validation_lane": "oya-governance-plan-hierarchy + oya-ci-required + oya-governance-honest-claims",
     "identity_field": "id",
     "required_frontmatter_fields": [
       "doc_class",
@@ -1364,7 +1365,7 @@
             "slug": "P07-gitops-vcs-replacement",
             "path": ".omc/plans/milestones/M01-foundation/phases/P07-gitops-vcs-replacement",
             "index": ".omc/plans/milestones/M01-foundation/phases/P07-gitops-vcs-replacement/INDEX.md",
-            "title": "Polyglot GitOps-capable VCS Replacement (Oya VCS)",
+            "title": "Historical Polyglot GitOps-capable VCS Replacement (Oya VCS provenance)",
             "status": "complete",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 9,
@@ -1502,7 +1503,7 @@
             "slug": "P08-agentic-pipeline-cutover",
             "path": ".omc/plans/milestones/M01-foundation/phases/P08-agentic-pipeline-cutover",
             "index": ".omc/plans/milestones/M01-foundation/phases/P08-agentic-pipeline-cutover/INDEX.md",
-            "title": "Agentic-Pipeline Cutover (Oya VCS SoT; grit/icm historical)",
+            "title": "Agentic-Pipeline Cutover (plain-git/cloud-ci SoT; Oya VCS/grit/icm historical)",
             "status": "foundation-cleared / P00-gated",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 12,
@@ -1525,7 +1526,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-002",
@@ -1545,7 +1546,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-003",
@@ -1565,7 +1566,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-004",
@@ -1585,7 +1586,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-005",
@@ -1605,7 +1606,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-006",
@@ -1625,7 +1626,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-007",
@@ -1645,7 +1646,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-008",
@@ -1709,7 +1710,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P08-IP-012",
@@ -1755,7 +1756,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P09-IP-002",
@@ -1775,7 +1776,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P09-IP-003",
@@ -1795,7 +1796,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -1803,7 +1804,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P10",
@@ -1833,7 +1834,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P10-IP-002",
@@ -1853,7 +1854,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P10-IP-001.1",
@@ -1879,7 +1880,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P11",
@@ -1909,7 +1910,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P11-IP-002",
@@ -1929,7 +1930,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -1937,7 +1938,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P12",
@@ -1967,7 +1968,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P12-IP-002",
@@ -1987,7 +1988,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P12-IP-003",
@@ -2007,7 +2008,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P12-IP-002.1",
@@ -2033,7 +2034,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P13",
@@ -2063,7 +2064,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P13-IP-002",
@@ -2102,7 +2103,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -2110,7 +2111,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P14",
@@ -2140,7 +2141,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P14-IP-002",
@@ -2160,7 +2161,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P14-IP-003",
@@ -2180,7 +2181,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P14-IP-004",
@@ -2200,7 +2201,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -2208,7 +2209,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P15",
@@ -2238,7 +2239,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P15-IP-002",
@@ -2258,7 +2259,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P15-IP-003",
@@ -2278,7 +2279,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P15-IP-004",
@@ -2298,7 +2299,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -2306,7 +2307,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M01-P16",
@@ -2336,7 +2337,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P16-IP-002",
@@ -2356,7 +2357,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P16-IP-003",
@@ -2376,7 +2377,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P16-IP-004",
@@ -2396,7 +2397,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -2404,7 +2405,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "P01-bnf-v4-adrs-finalized",
@@ -2796,7 +2797,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P17-IP-002",
@@ -2814,7 +2815,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P17-IP-004",
@@ -2826,7 +2827,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P17-IP-005",
@@ -2838,7 +2839,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P17-IP-006",
@@ -2850,7 +2851,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P17-IP-007",
@@ -2862,7 +2863,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P17-IP-008",
@@ -2874,7 +2875,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence.",
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact.",
                 "evidence_refs": [
                   "/evidence/fd001/cs-fitness-001-banned-primitives.json",
                   "/evidence/fd001/cs-fitness-001-command-log-corpus.json"
@@ -2891,7 +2892,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ]
           },
@@ -2914,7 +2915,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P18-IP-002",
@@ -2926,7 +2927,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P18-IP-003",
@@ -2938,7 +2939,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P18-IP-004",
@@ -2950,7 +2951,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P18-IP-005",
@@ -2962,7 +2963,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P18-IP-006",
@@ -2974,7 +2975,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M01-P18-IP-007",
@@ -2986,7 +2987,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-structured",
@@ -2994,7 +2995,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           }
         ]
       },
@@ -3038,7 +3039,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P00-IP-002",
@@ -3058,7 +3059,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P00-IP-003",
@@ -3078,7 +3079,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -3086,7 +3087,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M02-P01",
@@ -3116,7 +3117,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P01-IP-002",
@@ -3136,7 +3137,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P01-IP-003",
@@ -3156,7 +3157,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P01-IP-004",
@@ -3176,7 +3177,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -3184,7 +3185,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "P02-multi-subscription-pool",
@@ -3214,7 +3215,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "IP-002-anthropic-compat-adapter",
@@ -3234,7 +3235,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "IP-003-openai-compat-adapter",
@@ -3254,7 +3255,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "IP-004-oauth-subscription-capture",
@@ -3274,7 +3275,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "IP-005-upstream-api-drift-lane",
@@ -3294,7 +3295,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "IP-006-tos-policy-audit-chain",
@@ -3314,7 +3315,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-awaiting-approval",
@@ -3322,7 +3323,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M02-P02",
@@ -3352,7 +3353,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P02-IP-002",
@@ -3372,7 +3373,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P02-IP-003",
@@ -3392,7 +3393,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -3400,7 +3401,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M02-P03",
@@ -3430,7 +3431,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P03-IP-002",
@@ -3450,7 +3451,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P03-IP-003",
@@ -3470,7 +3471,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -3478,7 +3479,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M02-P04",
@@ -3508,7 +3509,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P04-IP-002",
@@ -3528,7 +3529,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P04-IP-003",
@@ -3548,7 +3549,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -3556,7 +3557,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M02-P05",
@@ -3586,7 +3587,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P05-IP-002",
@@ -3606,7 +3607,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M02-P05-IP-003",
@@ -3626,7 +3627,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -3634,7 +3635,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           }
         ]
       },
@@ -3934,7 +3935,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P01-IP-002",
@@ -3954,7 +3955,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P01-IP-003",
@@ -3974,7 +3975,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P01-IP-004",
@@ -3994,7 +3995,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P01-IP-005",
@@ -4014,7 +4015,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ]
           },
@@ -4046,7 +4047,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P02-IP-002",
@@ -4066,7 +4067,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P02-IP-003",
@@ -4086,7 +4087,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ]
           },
@@ -4118,7 +4119,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P03-IP-002",
@@ -4138,7 +4139,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P03-IP-003",
@@ -4158,7 +4159,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P03-IP-004",
@@ -4178,7 +4179,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P03-IP-005",
@@ -4198,7 +4199,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ]
           },
@@ -4230,7 +4231,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P04-IP-002",
@@ -4250,7 +4251,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P04-IP-003",
@@ -4270,7 +4271,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4278,7 +4279,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M03-P05",
@@ -4308,7 +4309,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P05-IP-002",
@@ -4328,7 +4329,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P05-IP-003",
@@ -4348,7 +4349,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4356,7 +4357,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M03-P06",
@@ -4386,7 +4387,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P06-IP-002",
@@ -4406,7 +4407,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P06-IP-003",
@@ -4426,7 +4427,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P06-IP-004",
@@ -4446,7 +4447,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P06-IP-005",
@@ -4466,7 +4467,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4474,7 +4475,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M03-P07",
@@ -4504,7 +4505,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P07-IP-002",
@@ -4524,7 +4525,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4532,7 +4533,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M03-P08",
@@ -4562,7 +4563,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P08-IP-002",
@@ -4582,7 +4583,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P08-IP-003",
@@ -4602,7 +4603,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M03-P08-IP-004",
@@ -4622,7 +4623,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4630,7 +4631,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           }
         ]
       },
@@ -4776,7 +4777,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P01-IP-002",
@@ -4796,7 +4797,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P01-IP-003",
@@ -4816,7 +4817,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4824,7 +4825,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M04-P02",
@@ -4854,7 +4855,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P02-IP-002",
@@ -4874,7 +4875,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P02-IP-003",
@@ -4894,7 +4895,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4902,7 +4903,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M04-P03",
@@ -4932,7 +4933,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P03-IP-002",
@@ -4952,7 +4953,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P03-IP-003",
@@ -4972,7 +4973,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -4980,7 +4981,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M04-P04",
@@ -5010,7 +5011,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P04-IP-002",
@@ -5030,7 +5031,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M04-P04-IP-003",
@@ -5050,7 +5051,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5058,7 +5059,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           }
         ]
       },
@@ -5102,7 +5103,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M05-P01-IP-002",
@@ -5122,7 +5123,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M05-P01-IP-003",
@@ -5142,7 +5143,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5150,7 +5151,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M05-P02",
@@ -5180,7 +5181,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M05-P02-IP-002",
@@ -5200,7 +5201,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M05-P02-IP-003",
@@ -5220,7 +5221,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5228,7 +5229,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M05-P03",
@@ -5258,7 +5259,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M05-P03-IP-002",
@@ -5278,7 +5279,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5286,7 +5287,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M05-P04",
@@ -5316,7 +5317,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M05-P04-IP-002",
@@ -5336,7 +5337,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5344,7 +5345,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           }
         ]
       },
@@ -5388,7 +5389,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P01-IP-002",
@@ -5408,7 +5409,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P01-IP-003",
@@ -5428,7 +5429,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5436,7 +5437,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M06-P02",
@@ -5466,7 +5467,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P02-IP-002",
@@ -5486,7 +5487,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P02-IP-003",
@@ -5506,7 +5507,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P02-IP-004",
@@ -5526,7 +5527,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5534,7 +5535,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M06-P03",
@@ -5564,7 +5565,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P03-IP-002",
@@ -5584,7 +5585,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5592,7 +5593,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           },
           {
             "id": "M06-P04",
@@ -5622,7 +5623,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               },
               {
                 "id": "M06-P04-IP-002",
@@ -5642,7 +5643,7 @@
                 "planning_closure_ref": "/specs/planning-closure-contract.json",
                 "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
                 "planning_closure_closed_at": "2026-05-19",
-                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+                "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
               }
             ],
             "previous_planning_status": "was-seed",
@@ -5650,7 +5651,7 @@
             "planning_closure_ref": "/specs/planning-closure-contract.json",
             "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
             "planning_closure_closed_at": "2026-05-19",
-            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+            "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
           }
         ]
       }
@@ -5735,7 +5736,7 @@
         "planning_closure_ref": "/specs/planning-closure-contract.json",
         "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
         "planning_closure_closed_at": "2026-05-19",
-        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
       },
       {
         "id": "HYPER-IP-002",
@@ -5748,7 +5749,7 @@
         "planning_closure_ref": "/specs/planning-closure-contract.json",
         "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
         "planning_closure_closed_at": "2026-05-19",
-        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
       },
       {
         "id": "HYPER-IP-003",
@@ -5761,7 +5762,7 @@
         "planning_closure_ref": "/specs/planning-closure-contract.json",
         "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
         "planning_closure_closed_at": "2026-05-19",
-        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
       },
       {
         "id": "HYPER-IP-004",
@@ -5774,7 +5775,7 @@
         "planning_closure_ref": "/specs/planning-closure-contract.json",
         "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
         "planning_closure_closed_at": "2026-05-19",
-        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
       },
       {
         "id": "HYPER-IP-005",
@@ -5787,7 +5788,7 @@
         "planning_closure_ref": "/specs/planning-closure-contract.json",
         "planning_closure_status_ledger_ref": "/specs/planning-closure-status-closure-ledger.json",
         "planning_closure_closed_at": "2026-05-19",
-        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through Oya VCS; production exit still requires ChangeSet verification and gate evidence."
+        "planning_closure_basis": "Implementation contract is authored, sequenced, evidence-gated, and claimable through plain-git protected PR scope; production exit requires reviewer approval, oya-ci-required evidence, rollback/observability evidence, and release-governance or release-note impact."
       }
     ]
   },
@@ -5930,7 +5931,7 @@
           "dr_exit": "Multi-region DR with RTO/RPO matrix per service + per-compliance-pack (ADR-0343); >=1 executed cross-region failover drill per region pair (evidence, not claim).",
           "security_exit": "Cedar default-deny universal gate (ADR-0243); tenant isolation proven for BOTH shared (logical: cell+Cedar+per-tenant-encryption) and dedicated (physical cell pinning); cosign-signed images verified at admission via Kubewarden (ADR-0181); 0 critical/high CVE (trivy); no raw secret/PII in logs; audit-chain emission live (ADR-0263).",
           "cost_exit": "FinOps per-tenant cost attribution + OpenCost/FOCUS export live (ADR-0344); mandatory quota/metering/billing resource contract per resource type.",
-          "ci_cd_exit": "cloud-ci full required context green and cloud-cd progressive delivery evidence green; Jenkins and ArgoCD/Rollouts may only satisfy this during an explicitly documented bridge window with deletion criteria, tenant isolation, canary/bake/rollback evidence, merge-queue speculative+batch evidence (ADR-0111), and local oya verify mirror green (ADR-0346).",
+          "ci_cd_exit": "cloud-ci full required context green and cloud-cd progressive delivery evidence green; Jenkins and ArgoCD/Rollouts may only satisfy this during an explicitly documented bridge window with deletion criteria, tenant isolation, canary/bake/rollback evidence, merge-queue speculative+batch evidence (ADR-0111), and any local oya verify mirror treated as optional legacy/local-feedback evidence only (ADR-0346).",
           "master_exit_rule": "100 = the full cloud-* substrate LIVE across shared+dedicated deployment, multi-region hyperscale, KR-compliant, with ALL exit gates GREEN on measured evidence. Until then every production/hyperscaler-maturity claim stays blocked_until_required_evidence_is_green (hyperscaler-gates.json).",
           "quality_evidence_kits": [
             "overload/fairness/load-shedding (request-cost classes, retry budgets, queue limits) \u2014 AWS load-shedding",
@@ -5969,7 +5970,7 @@
         "title": "Bespoke cloud SCM/CI/CD toolchain services \u2014 Rust control planes with bridge adapters, enforced CI, isolated tenant pipelines",
         "status": "revised-specified",
         "parallel": "yes",
-        "deliverable": "P-TOOLCHAIN delivers target Oyatie Cloud SCM, CI, and CD service authority: cloud-scm (Oya VCS/change graph/status fanout), cloud-ci (full required CI/admission/evidence service), and cloud-cd (release ledger, desired-state reconciler, progressive rollout/rollback). GitHub, Jenkins, Argo CD, and Argo Rollouts are bridge adapters/reference substrates until the Rust service authority cuts over. Tenant pipeline isolation remains a fixture/evidence-gated target until required cloud-ci evidence proves it.",
+        "deliverable": "P-TOOLCHAIN delivers target Oyatie Cloud SCM, CI, and CD service authority: cloud-scm (native SCM/change graph/status fanout), cloud-ci (full required CI/admission/evidence service), and cloud-cd (release ledger, desired-state reconciler, progressive rollout/rollback). GitHub, Jenkins, Argo CD, and Argo Rollouts are bridge adapters/reference substrates until the Rust service authority cuts over. Tenant pipeline isolation remains a fixture/evidence-gated target until required cloud-ci evidence proves it.",
         "authoring_adrs": [
           "ADR-0349",
           "ADR-0358",
@@ -6009,7 +6010,7 @@
           },
           {
             "id": "P-TOOLCHAIN.SCM",
-            "step": "cloud-scm: productize Oya VCS as the Rust SCM control plane (repository/change graph, semantic path claims, status fanout, review/queue APIs) with GitHub/git as bridge adapters until native cutover."
+            "step": "cloud-scm: productize native Rust SCM control-plane semantics (repository/change graph, semantic path ownership, status fanout, review/queue APIs) with GitHub/git as bridge adapters until native cutover."
           },
           {
             "id": "P-TOOLCHAIN.CI",
@@ -6081,7 +6082,7 @@
         "rationale": "hyperscaler vertical-slice locality; flat 750-crate dir is the navigability anti-pattern"
       },
       {
-        "choice": "bespoke oya verify full-local-CI-mirror (ADR-0346)",
+        "choice": "legacy bespoke oya verify full-local-CI-mirror (ADR-0346; local-feedback/provenance only)",
         "verdict": "CHANGE -> Bazel affected-targets + RBE; oya as governance overlay (ADR-0358)",
         "rationale": "full-local-mirror does not scale; Google TAP runs affected targets only; dedup doubled cargo mirrors"
       },
@@ -6139,7 +6140,7 @@
       "supersedes_stale_fields": "Existing toolchain_target text mentions Bazel/Jenkins-sole/GitHub-only retirement as historical; current direction is Buck2 + oya-ci + GitHub/Jenkins bridge + bespoke Rust cloud SCM/CI/CD services.",
       "build_graph": "Buck2-first-party with generated-not-hand-maintained target coverage and cargo authoritative bridge until parity is proven.",
       "ci": "cloud-ci/oya-ci Rust service is destination; current branch protection must require a full bespoke cloud-ci/oya-ci required context produced from trusted trunk/controller state before enforcement claims. Legacy `oya verify`/`oya gate` output is local/bridge evidence only, never merge authority.",
-      "scm": "cloud-scm is placed in P-TOOLCHAIN as Oya VCS productization; GitHub/git are bridge adapters.",
+      "scm": "cloud-scm is placed in P-TOOLCHAIN as native Rust SCM/change-graph/status authority; GitHub/git are bridge adapters.",
       "cd": "cloud-cd is placed in P-TOOLCHAIN as Rust release-ledger/reconciler/product surface; Argo CD/Rollouts are bridge adapters/reference substrate.",
       "tenant_isolation": "internal tenant=oyatie-internal; every external tenant gets separate pipeline identity, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and secrets."
     }

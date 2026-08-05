@@ -6,7 +6,7 @@ date: 2026-05-18
 owner: axis-identity
 supersedes: []
 superseded_by: [ADR-0476]
-supersession_note: "Zitadel demoted from canonical IdP to Phase-1 vendored bridge; superseded-as-endpoint by ADR-0476 (oya-identity bespoke Rust, owned endpoint). D5 ruling. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-13/P2."
+supersession_note: "Zitadel is superseded as the canonical/live OIDC IdP default. Current authority is ADR-0476/ADR-0482: Keycloak is the Phase-1 bridge and oya-identity is the founder-accepted bespoke Rust target after feature parity. D5 ruling. D-DISPOSITIONS-RATIFIED: SUPERSEDE-9-clean, C-13/P2."
 related: [ADR-0145, ADR-0182, ADR-0183, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership]
 related_specs:
   - /specs/microservices/manifest-schema.json
@@ -15,11 +15,11 @@ microservice: identity
 versions_current_as_of: 2026-05-18
 ---
 
-# ADR-0187 — Canonical OIDC IdP: Zitadel primary; OIDC/SAML/SCIM/Passkeys/WebAuthn first-class
+# ADR-0187 — Superseded OIDC IdP: Zitadel primary; OIDC/SAML/SCIM/Passkeys/WebAuthn first-class
 
 ## Status
 
-Accepted (2026-05-18). Names Zitadel v2.55+ deployed via Helm chart v9.34.1 as the canonical Identity Provider (IdP) for the `identity` µservice and the authoritative origin of OIDC ID-tokens, SAML assertions, SCIM 2.0 endpoints, and WebAuthn/Passkey credentials across the oyatie fleet.[^1]
+Superseded by ADR-0476 (2026-05-28) and ADR-0482. This ADR is retained for historical rationale and standards coverage only. It no longer names the live canonical OIDC identity provider: current authority uses Keycloak as the Phase-1 bridge and `oya-identity` as the founder-accepted bespoke Rust target after feature parity (`docs/decisions/ADR-0476-oya-identity-bespoke-human-identity.md:29-37`, `:66-78`; `docs/decisions/ADR-0482-bespoke-substrate-roadmap.md:52-60`).
 
 ## Context
 
@@ -35,9 +35,9 @@ The hyperscaler bar for an IdP substrate:
 
 ## Decision
 
-**Zitadel v2.55+ (Apache-2.0) is the canonical IdP, deployed via the official zitadel-charts Helm chart v9.34.1.**[^1] Zitadel runs as the `identity` µservice control plane and is the single issuer of OIDC ID-tokens, SAML assertions, SCIM 2.0 endpoint, and WebAuthn relying party for every tenant.
+**Historical decision, superseded:** ADR-0187 selected Zitadel v2.55+ (Apache-2.0) as the canonical IdP.[^1] **Current decision:** ADR-0476/ADR-0482 supersede that endpoint choice; Keycloak is the Phase-1 bridge and `oya-identity` is the long-term OIDC/OAuth2/WebAuthn/tenant-federation/MFA target. Do not cite this ADR as a live default or as a ≥50K-tenant trigger for Zitadel.
 
-### Why Zitadel
+### Historical rationale for Zitadel (superseded)
 
 | Criterion | Zitadel | Keycloak | Authentik | Ory (Hydra+Kratos+Keto+Oathkeeper) | FusionAuth |
 |---|---|---|---|---|---|
@@ -52,9 +52,9 @@ The hyperscaler bar for an IdP substrate:
 | Air-gapped deployable | yes (no telemetry phone-home) | yes | yes | yes | community-edition yes, premium phones home |
 | Hyperscaler reference customer | scaleway, doctolib | RedHat, Cloudera, government | self-hosted SaaS shops | Ory Cloud (managed), self-hosted | Aiven, Crunchbase |
 
-Zitadel's multi-tenant Instances-Organizations model is the production shape oyatie needs from day one. Keycloak's realm-per-tenant model scales operationally but couples lifecycle (realm upgrade ↔ Keycloak upgrade); Ory's component split is more composable but multiplies the operational surface 4×. FusionAuth's premium tier creates lock-in. Authentik's Python + Celery + Redis substrate is heavier than necessary and the SCIM story is via Outposts (separate process).
+At the time, ADR-0187 judged Zitadel's multi-tenant Instances-Organizations model to be the production shape Oyatie needed from day one. ADR-0476/ADR-0482 supersede that judgment for the live endpoint: Keycloak now bridges the build period, and `oya-identity` is the founder-accepted target after feature parity.
 
-### What Zitadel issues
+### Historical Zitadel-issued surface (superseded by `oya-identity` target)
 
 - **OIDC ID-tokens** with `tenant_id`, `acr` (ACR per ADR-0189), `purpose`, `data_class` custom claims; JWKS rotates every 24h; tokens are short-lived (15min access, 24h refresh, 90d session).
 - **SAML 2.0 assertions** for enterprise federation (Okta, Microsoft Entra, Google Workspace, OneLogin, Ping Federate).
@@ -63,7 +63,7 @@ Zitadel's multi-tenant Instances-Organizations model is the production shape oya
 - **Device authorization grant** (RFC 8628) for `oya` CLI + service accounts on headless agents.
 - **Magic-link sign-in** with TOTP fallback (RFC 6238) — SMS rejected per NIST SP 800-63B §5.1.3.
 
-### Deployment shape
+### Historical deployment shape (superseded)
 
 - One Zitadel Instance per regulatory pack (kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa) per ADR-0240-sovereign-cloud-per-regional-pack. No cross-pack federation; each pack owns its own users + sessions + audit log.
 - Per-tenant Organization within the pack's Instance. Tenant lifecycle managed via Workflow saga (ADR-0175 tenant-lifecycle-workflow).
@@ -78,7 +78,7 @@ Zitadel's multi-tenant Instances-Organizations model is the production shape oya
 - Does not specify the Step-up ACR levels (ADR-0189 owns those).
 - Does not specify the SCIM provisioning adapter contract (ADR-0190 owns that).
 
-## Alternatives considered
+## Historical alternatives considered (superseded)
 
 ### Keycloak
 
@@ -98,13 +98,13 @@ Commercial-first; community edition limits tenants. SCIM and SAML are premium-ti
 
 ### Self-built IdP
 
-Rejected. Identity is undifferentiated heavy-lifting; building it ourselves consumes engineering capacity for zero competitive advantage and produces a substrate the entire fleet's blast radius rests on. Same posture as ADR-0173.
+Superseded by ADR-0476 founder direction. Human identity is now treated as a product primitive and bespoke substrate target; Keycloak bridges the build period, and `oya-identity` replaces the historical Zitadel default after feature parity.
 
 ### Cloud-provider IdP (Auth0, Cognito, Microsoft Entra External ID)
 
 Rejected. Each is a managed-service vendor lock-in; air-gapped sovereign packs (pack-kr-sovereign, pack-ae-sovereign, pack-ksa-sovereign) cannot run them. Pricing scales linearly with MAU which is hostile to multi-tenant SaaS economics.
 
-## Consequences
+## Historical consequences (superseded)
 
 ### Positive
 
@@ -124,7 +124,9 @@ Rejected. Each is a managed-service vendor lock-in; air-gapped sovereign packs (
 
 - Per-pack deployment ties Zitadel availability to pack availability — no cross-pack failover by design (sovereign regulation forbids cross-pack identity replication).
 
-## Implementation
+## Historical implementation (superseded)
+
+The following records the 2026-05-18 Zitadel plan for provenance only; ADR-0476/ADR-0482 own current bridge and target implementation.
 
 - Helm chart `microservices/identity/iac/helm/zitadel/` pinned to chart version 9.34.1, app version v2.55.0.[^1]
 - Postgres connection via `SecretReference: ${openbao:secret/identity/{pack}/postgres-dsn}`.
@@ -133,32 +135,23 @@ Rejected. Each is a managed-service vendor lock-in; air-gapped sovereign packs (
 - Audit emission to `audit-chain` µservice via the AsyncAPI `IdentityEvents` channel.
 - ext_authz bridge: Cedar PDP at waypoint consumes the OIDC bearer claims (`tenant_id`, `acr`, `purpose`, `data_class`).
 
-## Verification
+## Historical verification (superseded)
 
 - `oya-check-vendor-recency` gate: Zitadel chart version ≥ 9.34.1 (May 2026 baseline).[^1]
 - `oya-check-license-policy` gate: Apache-2.0 confirmed; no BSL/SSPL transitive dependency.
 - `oya-check-vendor-lockin-discipline` gate: only OIDC/SAML/SCIM/WebAuthn standard wire formats accepted.
 - Integration test: `oya-shared-oidc-client-kernel` verifies a Zitadel-issued JWT, fetches JWKS, validates audience, checks expiry, parses `tenant_id` + `acr` claims.
 
-## In-house roadmap
+## Current identity roadmap (ADR-0476 / ADR-0482 supersession)
 
-Per user directive 2026-05-18 ("Wherever possible, we should support in-house tech stack — like AWS / Google / Microsoft / Oracle"), Zitadel is treated as a Phase-0 substrate, vendor-replaceable behind the `oya-shared-oidc-client-kernel` adapter boundary.
+ADR-0476 founder-locks `oya-identity`, a bespoke Rust-native OIDC provider and OAuth 2.0 authorization server, with Keycloak preserved as the transitional Phase-1 bridge during the build period. ADR-0482 places `oya-identity` in Tier 1 with Keycloak parallel-run and feature-parity cutover. The live bridge/target sequence is therefore:
 
-| Phase | Window | Substrate | Trigger to advance |
-|---|---|---|---|
-| Phase 0 (current) | now → Q4 2026 | Zitadel v2.55+ via Helm; `oya-shared-oidc-client-kernel` is the only consumer-facing surface; Zitadel gRPC admin API + Postgres schema are internal-only adapter details | n/a — production posture today |
-| Phase 1 (hardening) | Q4 2026 → Q1 2027 | Same Zitadel, but `oya-identity-zitadel-instance-controller` owns full lifecycle (deploy / upgrade / rollback / Postgres migrate) without operator touch; multi-region active-passive within pack | ≥1K tenants OR HA incident motivates control-plane ownership |
-| Phase 2 (in-house) | Q1 2027+ | `oya-identity-server` — Rust-native OIDC issuer + SAML 2 IdP + SCIM 2.0 server + WebAuthn relying party, fronting the same `oya-shared-oidc-client-kernel` surface; Postgres event-store keeps same semantics; existing consumer crates require ZERO change | **CONCRETE TRIGGER (any one met)**: (a) ≥50K tenants per pack; (b) sustained `oya-identity-oidc-token-issue-latency` p99 > 200ms over 7 days; (c) cross-region active-active RTO ≤30s within a pack required (Zitadel's Postgres event-store does not natively support split-brain-safe multi-region writes); (d) IP-016 load test fails at year-3 projection; (e) Zitadel upstream stalls (no commits 6 months) or licensing changes to non-Apache-2.0; (f) sovereign-pack air-gap restriction Zitadel can't satisfy. |
+| Phase | Substrate | Cutover discipline |
+|---|---|---|
+| Phase 1 bridge | Keycloak | Preserve bridge endpoints and traffic shadowing during build; do not expose Keycloak-specific details outside the identity adapter boundary. |
+| Bespoke target | `oya-identity` | Cut over only after OIDC + OAuth 2.0 + WebAuthn + tenant IdP federation + MFA feature parity and the `oya-identity` integration suite pass. |
 
-Parallel reference: AWS Cognito (vendor) → AWS in-house identity stack served via Cognito-facing API; Google replaced third-party IdPs with Google Identity Platform; Microsoft replaced AD-on-prem with Entra ID; Oracle replaced third-party with OCI Identity Cloud Service. Each phase swap was invisible to clients because the wire protocol (OIDC / SAML / SCIM) stayed put.
-
-**Adapter discipline**: nothing outside `microservices/identity/` references Zitadel-specific gRPC types or Postgres schema. The Zitadel-specific dependencies isolated for Phase-2 swap are:
-
-- Zitadel gRPC admin API (only `oya-identity-oidc-issuer-adapter-zitadel` + `oya-identity-scim-server-adapter-zitadel` consume it).
-- Zitadel Postgres event-store schema (only `oya-identity-zitadel-instance-controller` reads/migrates it).
-- Zitadel-specific Helm values (only `microservices/identity/iac/helm/zitadel/` references them).
-
-All five surfaces are documented in `docs/standards/identity-vendor-isolation.md` (advisory-mode lane `lean-a18-identity-vendor-isolation` refuses Zitadel-type imports from any crate outside the adapter set).
+Zitadel-specific text in this ADR remains provenance only. It must not be used as the current ownership-ratchet default, and ADR-0394's Internal Developer Platform portal/BFF must not be confused with the OIDC identity provider.
 
 ## Cross-references
 

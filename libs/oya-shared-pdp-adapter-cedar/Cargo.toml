@@ -9,6 +9,9 @@ description = "Embedded cedar-policy PDP adapter (G004 / ADR-0536 D-2): implemen
 
 [dependencies]
 cedar-policy = { workspace = true }
+oya-audit-chain-domain = { path = "../../oya/audit-chain/crates/oya-audit-chain-domain" }
+oya-audit-chain-file-adapter = { path = "../../oya/audit-chain/crates/oya-audit-chain-file-adapter" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 oya-shared-pdp-kernel = { path = "../oya-shared-pdp-kernel" }
 oya-shared-platform-contracts-kernel = { path = "../oya-shared-platform-contracts-kernel" }
 oya-shared-ulid-id-kernel = { path = "../oya-shared-ulid-id-kernel" }

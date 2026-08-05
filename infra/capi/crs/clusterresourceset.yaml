@@ -4,16 +4,19 @@
 # TWO CRS objects, by ordering need:
 #
 #   1. bootstrap-cilium-argocd (ApplyOnce) — Cilium (CNI; nodes NotReady until it
-#      lands) + the self-contained Argo CD install (namespace + CRDs + workloads,
-#      bundled by render.sh via --include-crds). ApplyOnce because Argo CD then
-#      takes over Cilium's lifecycle (the `cilium` app in infra/gitops), so the
-#      CRS must NOT keep re-asserting it.
+#      lands) + the Argo CD namespace/controllers render. Argo CD CRDs are NOT
+#      bundled into this CRS ConfigMap: they exceed the 1 MiB ConfigMap/etcd cap
+#      and instead land through Talos `cluster.extraManifests` in the spoke chart.
+#      ApplyOnce because Argo CD then takes over Cilium's lifecycle (the `cilium`
+#      app in infra/gitops), so the CRS must NOT keep re-asserting it.
 #
 #   2. bootstrap-argocd-root-app (Reconcile) — the per-cell Argo CD root
 #      Application (infra/gitops/root-app.yaml). Reconcile (not ApplyOnce) so
-#      CAPI RETRIES applying the Application CR until Argo CD's Application CRD is
-#      established by CRS #1 — eliminating the CR-before-CRD race. Once applied,
-#      Argo CD owns ongoing reconciliation; the CRS re-apply is an idempotent no-op.
+#      CAPI RETRIES applying the Application CR until Talos extraManifests have
+#      established Argo CD's Application CRD — eliminating the CR-before-CRD
+#      race without claiming controller readiness. Once applied and Argo CD is
+#      ready, Argo CD owns ongoing reconciliation; the CRS re-apply is an
+#      idempotent no-op.
 #
 # The referenced ConfigMaps are produced by render.sh (helm template -> ConfigMap).
 # render.sh templates metadata.namespace to match NS so namespaced CRS resourceRefs
@@ -31,7 +34,7 @@ spec:
   resources:
     - name: cilium-bootstrap   # rendered by render.sh — applied first (CNI)
       kind: ConfigMap
-    - name: argocd-bootstrap   # rendered by render.sh — ns + CRDs + Argo CD install
+    - name: argocd-bootstrap   # rendered by render.sh — namespace + controllers only; CRDs via Talos extraManifests
       kind: ConfigMap
 ---
 apiVersion: addons.cluster.x-k8s.io/v1beta1
@@ -44,7 +47,7 @@ spec:
     matchLabels:
       oya.io/bootstrap: "true"
   # Reconcile so the root Application apply RETRIES until Argo CD's Application
-  # CRD (shipped by bootstrap-cilium-argocd) is established on the spoke.
+  # CRD (shipped by Talos extraManifests) is established on the spoke.
   strategy: Reconcile
   resources:
     - name: argocd-root-app    # the per-cell Argo CD root Application (infra/gitops/root-app.yaml)

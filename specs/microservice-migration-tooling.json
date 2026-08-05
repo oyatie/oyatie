@@ -9,11 +9,11 @@
     "created_at": "2026-05-17",
     "owner_team": "axis-foundry + council-architecture",
     "adr": "ADR-0131",
-    "purpose": "Spec for the `oya dev migrate-microservice` command that mechanises per-µservice migrations from the legacy scattered layout (crates/, docs/prds/, /specs/microservices/, .omc/plans/milestones/, registry/catalog/) to the canonical per-microservice flat layout under microservices/<ms>/ per ADR-0131."
+    "purpose": "Historical spec for the retired `oya dev migrate-microservice` planning surface. It preserves prior per-µservice migration semantics as provenance only; live migration authority is plain git isolated worktree/PR scope, reviewer approval, cloud-ci/Rust gate evidence, and the single protected oya-ci-required context per ADR-0363/ADR-0515."
   },
-  "command": "oya dev migrate-microservice",
-  "implemented_by": "crates/oya-dev-cli/src/commands/migrate_microservice.rs (Turn 2 IP)",
-  "synopsis": "oya dev migrate-microservice --microservice <ms> [--dry-run] [--force] [--from-paths <path-list>] [--scope crates|docs|specs|catalog|contracts|all]",
+  "command": "retired historical local-planning surface: oya dev migrate-microservice",
+  "implemented_by": "historical oya-dev-cli migration-planning prototype; do not treat as live merge, verification, or exit authority",
+  "synopsis": "historical/local planning only: oya dev migrate-microservice --microservice <ms> [--dry-run] [--force] [--from-paths <path-list>] [--scope crates|docs|specs|catalog|contracts|all]",
   "arguments": {
     "--microservice": {
       "type": "string",
@@ -73,8 +73,8 @@
         },
         {
           "id": "PF-02",
-          "rule": "no other agent holds an oya vcs claim on these paths",
-          "violation": "concurrent claim active; retry after that claim completes"
+          "rule": "no parallel protected PR, Kanban lane, or path owner is already writing these paths",
+          "violation": "concurrent writer detected; coordinate path ownership or serialize behind that lane before editing"
         },
         {
           "id": "PF-03",
@@ -164,9 +164,9 @@
         "cargo check --workspace exits 0",
         "cargo build --workspace exits 0",
         "cargo nextest run --workspace exits 0",
-        "oya gate validate per-microservice-layout --microservice <ms> exits 0",
-        "oya gate validate cross-ref-validity exits 0",
-        "oya gate validate aggregation-index-generation exits 0",
+        "cloud-ci/Rust per-microservice-layout gate packet, or its documented local bridge evidence, passes for <ms>",
+        "cloud-ci/Rust cross-ref-validity gate packet, or its documented local bridge evidence, passes",
+        "cloud-ci/Rust aggregation-index-generation gate packet, or its documented local bridge evidence, passes",
         "find legacy paths returns empty (no orphans left in crates/oya-<ms>-*, docs/prds/<ms>.md, /specs/microservices/<ms>/, etc.)",
         "git log --follow shows continuity for moved files (no broken history)"
       ]
@@ -175,7 +175,7 @@
       "name": "6-finalize",
       "description": "Mark migration complete; release claim; emit completion event.",
       "actions": [
-        "oya vcs done --agent migrate-microservice --changeset migration-<ms>-<unix_ts>",
+        "Record protected-PR closeout: reviewer approval, oya-ci-required success, rollback note, observability/audit evidence, and release-governance or release-note impact",
         "Emit MicroserviceMigrationCompleted event (consumed by audit-chain + DR-pair cluster's mirror)"
       ]
     }
@@ -190,7 +190,7 @@
     ]
   },
   "idempotency": "Re-running migrate-microservice on an already-migrated µservice is a no-op + emits a `migration_already_complete` audit event. The command does NOT mutate state when the target shape is already correct.",
-  "parallel_safety": "Multiple migrations may run concurrently for different µservices (they touch disjoint paths). Running the same migration twice in parallel is prevented by oya vcs claim on `microservices/<ms>/**`.",
+  "parallel_safety": "Multiple migrations may run concurrently for different µservices only when path ownership is disjoint. Running the same migration twice in parallel is prevented by one isolated worktree/PR lane per µservice plus Kanban/path-conflict checks on `microservices/<ms>/**`.",
   "cost_estimate": {
     "small_microservice (1-3 crates, 1 PRD)": {
       "files_moved": 5,
@@ -214,7 +214,7 @@
     }
   },
   "verification_post_completion": {
-    "lane": "oya-governance-per-microservice-layout",
+    "lane": "cloud-ci-per-microservice-layout Rust gate packet",
     "expected_state": "every migrated µservice conforms to ADR-0131 canonical folder shape",
     "rollback_window": "Migration commit may be reverted within 24h without ADR; after 24h, revert requires its own ADR-shaped decision."
   },

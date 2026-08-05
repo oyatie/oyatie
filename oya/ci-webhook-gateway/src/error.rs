@@ -19,11 +19,12 @@ pub type Result<T> = std::result::Result<T, GatewayError>;
 pub enum PipelineStage {
     /// Repo-entry admission (the wired `oya-vcs-admission` governance check).
     Admission,
-    /// Local CI mirror gates: `oya gate run-all` (the trusted-runner re-exec
-    /// is owned by Jenkins per ADR-0367; the gateway only dispatches).
+    /// Historical local CI mirror gate: `oya gate run-all` bridge replay.
+    /// Current merge authority is cloud-ci `oya-ci-required`; the gateway only
+    /// dispatches the deprecated bridge.
     GateRunAll,
     /// Narrow board projection snapshot path. This is intentionally not
-    /// `oya gate run-all`; label/claim-ref webhooks must not trigger global CI.
+    /// the legacy local replay; label/claim-ref webhooks must not trigger CI.
     BoardProjection,
     /// Adversarial reviewer gate — a CI stage powered by the Intelligence
     /// service (ADR-0367 D2). Distinct identity from the author.

@@ -502,6 +502,12 @@ pub const FIREWALL_TARGET: &str = "//cloud/cloud-ci/gates:oya-cloud-ci-firewall-
 /// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
 /// - `staleness`: the registry rows aged with `age_days` (the binary supplies the aging)
 /// - `slo_coverage`: the catalog SLO face (`rows` with crate_id/slo)
+/// - `license_policy`: workspace package-license rows (`package_name`/`manifest_path`/`license`)
+/// - `zero_static_secrets`: tracked-corpus credential candidate lines + policy DATA
+/// - `load_balancer_inventory`: tenant-facing Service.type=LoadBalancer taxonomy rows.
+/// - `multi_region_disposition`: service manifest/doc disposition rows.
+/// - `sovereign_tenant_pin`: tenant pin routing fixture rows.
+/// - `tenant_environment_tier`: env-tier isolation fixture rows.
 /// - `enforcement_liveness`: tracked hook/wiring rows for the FRIC-012 liveness gate
 pub struct GateInputs<'a> {
     pub total_accounting: &'a Value,
@@ -530,6 +536,27 @@ pub struct GateInputs<'a> {
     /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
     /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
+    /// The license-policy gate input: `{"rows":[{"package_name","manifest_path","license"}]}`.
+    /// The producer resolves workspace members via `oya-workspace-members-kernel`, reads each
+    /// member manifest, and the gate reuses `oya_check_license_policy::LicensePolicy` per row.
+    pub license_policy: &'a Value,
+    /// The zero-static-secrets gate input:
+    /// `{"_provenance":{"scanned_paths":N},"policy":{...},"rows":[{"path","line","text"}]}`.
+    /// The producer scans the declared tracked corpus from `scm-facts.generated.json`, emits only
+    /// candidate credential-shaped lines, and leaves exception decisions to the gate's policy DATA.
+    pub zero_static_secrets: &'a Value,
+    /// LoadBalancer inventory gate input:
+    /// `{"rows":[{"row_type","resource_id","owner","classification","ports",...}]}`.
+    pub load_balancer_inventory: &'a Value,
+    /// Multi-region disposition gate input:
+    /// `{"rows":[{"service_id","manifest_path","manifest_disposition","doc_present",...}]}`.
+    pub multi_region_disposition: &'a Value,
+    /// Sovereign tenant pin gate input:
+    /// `{"gate_id":"sovereign-tenant-pin","scenarios":[{"scenario_id","tenant_id","allowed_regions","decision",...}]}`.
+    pub sovereign_tenant_pin: &'a Value,
+    /// Tenant environment-tier gate input:
+    /// `{"rows":[{"fixture_id","tier","api_key_prefix","outbound_mode_*",...}]}`.
+    pub tenant_environment_tier: &'a Value,
     /// The ADR-0538 workspace-glob-coverage gate input:
     /// `{"rows":[{"member_entry","is_glob"},{"crate_dir","covered","excluded"}]}`. The
     /// producer reads the root workspace entries and resolves covered dirs via
@@ -603,6 +630,42 @@ fn producer_face_keys(
             oya_cloud_ci_slo_coverage_app::evaluate_keyed(inputs.slo_coverage)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
+        ),
+        GateFace::LicensePolicy => group_findings(
+            oya_cloud_ci_license_policy_app::evaluate_keyed(inputs.license_policy)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::ZeroStaticSecrets => group_findings(
+            oya_cloud_ci_zero_static_secrets_app::evaluate_keyed(inputs.zero_static_secrets)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::LoadBalancerInventory => group_findings(
+            oya_cloud_ci_load_balancer_inventory_app::evaluate_keyed(
+                inputs.load_balancer_inventory,
+            )
+            .into_iter()
+            .map(|f| (f.code, f.key)),
+        ),
+        GateFace::MultiRegionDisposition => group_findings(
+            oya_cloud_ci_multi_region_disposition_app::evaluate_keyed(
+                inputs.multi_region_disposition,
+            )
+            .into_iter()
+            .map(|f| (f.code, f.key)),
+        ),
+        GateFace::SovereignTenantPin => group_findings(
+            oya_cloud_ci_sovereign_tenant_pin_app::evaluate_keyed(inputs.sovereign_tenant_pin)
+                .into_iter()
+                .map(|f| (f.code, f.key)),
+        ),
+        GateFace::TenantEnvironmentTier => group_findings(
+            oya_cloud_ci_tenant_environment_tier_app::evaluate_keyed(
+                inputs.tenant_environment_tier,
+            )
+            .into_iter()
+            .map(|f| (f.code, f.key)),
         ),
         GateFace::WorkspaceGlobCoverage => group_findings(
             oya_cloud_ci_workspace_glob_coverage_app::evaluate_keyed(
@@ -907,6 +970,12 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            license_policy: &empty_face,
+            zero_static_secrets: &empty_face,
+            load_balancer_inventory: &empty_face,
+            multi_region_disposition: &empty_face,
+            sovereign_tenant_pin: &empty_face,
+            tenant_environment_tier: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -958,6 +1027,12 @@ mod tests {
             manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
+            license_policy: &empty_face,
+            zero_static_secrets: &empty_face,
+            load_balancer_inventory: &empty_face,
+            multi_region_disposition: &empty_face,
+            sovereign_tenant_pin: &empty_face,
+            tenant_environment_tier: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,

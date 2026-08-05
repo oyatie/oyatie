@@ -2,35 +2,64 @@ asyncapi: 3.1.0
 info:
   title: Supply Chain Planning Events
   version: 1.0.0
-  description: AsyncAPI 3.1.0 channels for SAP SCM/APO parity events.
+  description: >-
+    Preview metadata-only AsyncAPI contract for Supply Chain Planning event and
+    receipt shapes. Channels and message names are contract fixtures only; they
+    do not claim a deployed broker, producer, consumer, durable persistence,
+    signed/runtime audit-chain emission, cloud deployment, GA readiness,
+    measured SLO/DR readiness, or exhaustive vendor parity.
+  x-oyatie-contract-status: preview-not-deployed
+  x-oyatie-preview-authority:
+    prd_ref: specs/microservices/supply-chain-planning.json
+    root_hub_pointer: specs/root-hub-pointers.json#/entry_points/prd_supply_chain_planning
+    produced_contract_family: enterprise.enterprise_supply_chain_planning.v1
+    non_claims:
+      - no deployed broker, producer, or consumer runtime
+      - no durable persistence or Workflow execution
+      - no signed/runtime audit-chain emission
+      - no cloud deployment, GA readiness, measured SLO readiness, or DR readiness
+      - no exhaustive vendor parity or live optimizer/scheduler/ATP/replenishment runtime
+    prd_ac_alignment:
+      AC-01: DemandPlanChanged previews demand-plan metadata notification shape only.
+      AC-02: SupplyNetworkPlanChanged previews supply-network proposal metadata notification shape only.
+      AC-03: AvailableToPromiseChanged previews ATP response metadata notification shape only.
+      AC-04: TransportationPlanChanged is retained as distribution-lane metadata notification shape only; no transportation execution.
+      AC-05: All messages carry validation-shape fields only; audit_event_class is a classifier string, not proof of signed runtime emission.
+      preview_extensions: ReplenishmentPlanChanged and PlanningScenarioChanged are reserved manifest bounded-context fixtures, not activation claims.
 defaultContentType: application/json
 channels:
   supply-chain-planning.demand-plan.events.v1:
+    description: Preview demand-plan metadata notification shape for PRD AC-01/AC-05; no runtime event bus or audit-chain emission is claimed.
     address: supply-chain-planning.demand-plan.events.v1
     messages:
       DemandPlanChanged:
         $ref: "#/components/messages/DemandPlanChanged"
   supply-chain-planning.supply-network-plan.events.v1:
+    description: Preview supply-network proposal metadata notification shape for PRD AC-02/AC-05; no runtime event bus or audit-chain emission is claimed.
     address: supply-chain-planning.supply-network-plan.events.v1
     messages:
       SupplyNetworkPlanChanged:
         $ref: "#/components/messages/SupplyNetworkPlanChanged"
   supply-chain-planning.available-to-promise.events.v1:
+    description: Preview ATP response metadata notification shape for PRD AC-03/AC-05; no order-management, warehouse mutation, runtime event bus, or audit-chain emission is claimed.
     address: supply-chain-planning.available-to-promise.events.v1
     messages:
       AvailableToPromiseChanged:
         $ref: "#/components/messages/AvailableToPromiseChanged"
   supply-chain-planning.replenishment-plan.events.v1:
+    description: Reserved preview metadata notification fixture; no replenishment runtime, purchase requisition, inventory mutation, runtime event bus, or audit-chain emission is claimed.
     address: supply-chain-planning.replenishment-plan.events.v1
     messages:
       ReplenishmentPlanChanged:
         $ref: "#/components/messages/ReplenishmentPlanChanged"
   supply-chain-planning.transportation-plan.events.v1:
+    description: Preview distribution-lane/transportation-plan metadata notification shape for PRD AC-04/AC-05; no carrier booking, transportation execution, runtime event bus, or audit-chain emission is claimed.
     address: supply-chain-planning.transportation-plan.events.v1
     messages:
       TransportationPlanChanged:
         $ref: "#/components/messages/TransportationPlanChanged"
   supply-chain-planning.planning-scenario.events.v1:
+    description: Reserved preview metadata notification fixture; no optimizer, simulation runtime, Workflow execution, runtime event bus, or audit-chain emission is claimed.
     address: supply-chain-planning.planning-scenario.events.v1
     messages:
       PlanningScenarioChanged:
@@ -39,6 +68,7 @@ components:
   messages:
     DemandPlanChanged:
       name: DemandPlanChanged
+      description: Preview classifier payload for PRD AC-01/AC-05; audit_event_class is metadata only, not signed runtime emission.
       payload:
         type: object
         required: [tenant_id, audit_event_class, bounded_context, occurred_at]
@@ -58,6 +88,7 @@ components:
             format: date-time
     SupplyNetworkPlanChanged:
       name: SupplyNetworkPlanChanged
+      description: Preview classifier payload for PRD AC-02/AC-05; audit_event_class is metadata only, not signed runtime emission.
       payload:
         type: object
         required: [tenant_id, audit_event_class, bounded_context, occurred_at]
@@ -77,6 +108,7 @@ components:
             format: date-time
     AvailableToPromiseChanged:
       name: AvailableToPromiseChanged
+      description: Preview classifier payload for PRD AC-03/AC-05; audit_event_class is metadata only, not signed runtime emission.
       payload:
         type: object
         required: [tenant_id, audit_event_class, bounded_context, occurred_at]
@@ -96,6 +128,7 @@ components:
             format: date-time
     ReplenishmentPlanChanged:
       name: ReplenishmentPlanChanged
+      description: Reserved preview classifier payload; no replenishment runtime or signed runtime audit emission is claimed.
       payload:
         type: object
         required: [tenant_id, audit_event_class, bounded_context, occurred_at]
@@ -115,6 +148,7 @@ components:
             format: date-time
     TransportationPlanChanged:
       name: TransportationPlanChanged
+      description: Preview distribution-lane classifier payload for PRD AC-04/AC-05; no transportation execution or signed runtime audit emission is claimed.
       payload:
         type: object
         required: [tenant_id, audit_event_class, bounded_context, occurred_at]
@@ -134,6 +168,7 @@ components:
             format: date-time
     PlanningScenarioChanged:
       name: PlanningScenarioChanged
+      description: Reserved preview classifier payload; no optimizer, simulation runtime, or signed runtime audit emission is claimed.
       payload:
         type: object
         required: [tenant_id, audit_event_class, bounded_context, occurred_at]

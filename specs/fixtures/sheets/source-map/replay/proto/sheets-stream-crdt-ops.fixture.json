@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/sheets-source-map-replay-artifact.schema.json",
+  "artifact_id": "sheets-stream-crdt-ops.fixture",
+  "replay_artifact_path": "specs/fixtures/sheets/source-map/replay/proto/sheets-stream-crdt-ops.fixture.json",
+  "parent_fixture_id": "sheets_collaboration_conflict_contract_fixture",
+  "fixture_kind": "collaboration_event_contract_replay",
+  "source_map_ref": "specs/microservices/sheets.json",
+  "red_gate_task": "t_48991095",
+  "build_task": "t_10bf9a15",
+  "status": "SOURCE_BACKED_REPLAY_PASS",
+  "red_status_closed": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS",
+  "replay_family": "sheets-proto-v1",
+  "contract_surface": "gRPC proto workbook/cell/collab/import-export surface",
+  "source_authority_refs": [
+    "specs/microservices/sheets.json#evidence_expectations.api_contract_replay",
+    "oya/sheets/contracts/asyncapi/sheets-events.yaml#channels.collab-merged",
+    "oya/sheets/contracts/asyncapi/sheets-events.yaml#channels.collab-conflict-surfaced",
+    "oya/sheets/contracts/proto/sheets.proto#StreamCrdtOps"
+  ],
+  "source_paths": [
+    "specs/microservices/sheets.json",
+    "oya/sheets/contracts/proto/sheets.proto",
+    "oya/sheets/contracts/asyncapi/sheets-events.yaml"
+  ],
+  "assertions_covered": [
+    "CRDT/collaboration merge",
+    "conflict-surfaced event flow",
+    "no silent data loss",
+    "participants",
+    "conflict visibility"
+  ],
+  "rejections_covered": [
+    "silent overwrite",
+    "CRDT merge without conflict_id",
+    "collab event without tenant context",
+    "hidden conflict resolution"
+  ],
+  "replay_steps": [
+    "Replay service/message coverage against oya/sheets/contracts/proto/sheets.proto.",
+    "Confirm WorkbookSession, Cell, Range, CrdtOp/CrdtOpAck, ImportJob, ExportJob, and policy enums are contract-visible.",
+    "Confirm tenant metadata and Cedar/per-range ACL semantics are documented by the source contract comments and source-lock assertions."
+  ],
+  "api_contract_replay_evidence": {
+    "openapi": false,
+    "asyncapi": true,
+    "proto": true,
+    "notes": "Source-backed static contract replay artifact; no handler/runtime or generated face is created by this slice."
+  },
+  "browser_user_story_accessibility_evidence": {
+    "applicable": false,
+    "runtime_ui_changed": false,
+    "n_a_rationale": "No browser/UI runtime path changes in t_10bf9a15; future user-visible slices must supply keyboard, screen-reader, grid, formula-error, collaboration-conflict, protected-range, and import/export evidence."
+  },
+  "non_claims": [
+    "No runtime readiness, product readiness, production readiness, GA, customer availability, live SLO, or hyperscaler maturity claim is made.",
+    "No generated JSON hand edits are made.",
+    "No legacy microservices/sheets/manifest.json restoration is authorized.",
+    "Green CI alone is not UI readiness evidence."
+  ]
+}

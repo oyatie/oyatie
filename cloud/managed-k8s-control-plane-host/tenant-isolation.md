@@ -1,9 +1,10 @@
 # Tenant isolation — `oya-managed-k8s-control-plane-host`
 
 **Authority:** ADR-0376, ADR-0009 (cells), ADR-0148 (mesh), ADR-0147/0338 (Kata +
-Cloud Hypervisor for untrusted workloads). non_claim: the LIVE isolation
-enforcement (NetworkPolicy, Kamaji datastore separation, ztunnel posture) lands
-with `kamaji-provider-live-integration`; this lane fixes the isolation MODEL.
+Cloud Hypervisor for untrusted workloads). non_claim: sandbox/live enforcement
+proof for NetworkPolicy, Kamaji datastore separation, and ztunnel posture still
+requires an explicit target/credential/rollback artifact; this document fixes
+the isolation model the live adapter must preserve.
 
 ## Isolation model
 

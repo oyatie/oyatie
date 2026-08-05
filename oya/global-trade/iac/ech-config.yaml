@@ -1,9 +1,14 @@
-apiVersion: oyatie.dev/v1
-kind: EchConfig
-metadata:
-  name: oya-global-trade-ech
-spec:
-  rotationCadenceDays: 90
-  httpsRecord: true
-  gracefulFallback: true
-  auditEventClass: EVT-GLOBAL_TRADE-CUSTOMS_DECLARATION-ECH_ROTATED
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/ech-config.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

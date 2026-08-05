@@ -24,4 +24,4 @@ cells:
     metal3:
       controlPlaneVip: 10.0.0.10          # VIP across the CP BareMetalHosts
       imageUrl: https://factory.talos.dev/image/example/v1.36.1/metal-amd64.raw.xz
-      imageChecksum: "" # required: real Talos image sha256 checksum
+      imageChecksum: "sha256:0000000000000000000000000000000000000000000000000000000000000000" # illustrative placeholder; replace with the real Talos image sha256 checksum before live apply

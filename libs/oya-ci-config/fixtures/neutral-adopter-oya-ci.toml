@@ -1,0 +1,13 @@
+schema_version = 1
+profile = "neutral"
+
+[repo]
+root_markers = [".git"]
+path_excludes = ["target/"]
+
+[slo_coverage]
+catalog_record_globs = ["catalog/*.yaml"]
+
+[[gates.enabled]]
+id = "cloud-ci-brand-residue"
+input_kind = "raw-corpus-collector"

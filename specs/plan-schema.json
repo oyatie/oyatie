@@ -28,7 +28,7 @@
         "serializes_with_changesets",
         "writes_global_artifacts"
       ],
-      "validator": "oya gate validate honest-claims"
+      "validator": "cloud-ci/Rust gate packet: honest-claims"
     },
     "user_directive": "Phase 1 of accumulated-requirements roadmap: kill Markdown-as-source-of-truth gap",
     "related": [

@@ -1,3 +1,6 @@
+// Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+// This Cedar fragment is planned/provenance only and is not runtime policy-engine authority.
+// Non-claims: no live authorization runtime, no Workflow execution, no runtime audit-chain emission, no cloud deployment.
 // Cedar policy fragments for global-trade.
 // Wave 15-ZF-14 propagation for ADR-0346, ADR-0347, ADR-0348, and ADR-0349.
 // ADR-0346 purpose: ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.

@@ -14,7 +14,9 @@ use oya_payroll_run_domain::{
     EmployeeId, EvidenceDigest, EvidenceRef, HrLeaveImpactIntake, HrLeaveImpactIntakeInput,
     HrLeaveImpactKind, JournalId, LeaveRequestId, LegalEntityId, PayeeId, PayrollDomainError,
     PayrollJournalDraft, PayrollJournalInput, PayrollRun, PayrollRunId, PayrollTrialCloseInput,
-    TenantId, build_payroll_journal, ingest_hr_leave_impact, trial_close,
+    PreparedYearEndSettlementInput, StatutoryCalculationDraft, StatutoryCalculationInput, TenantId,
+    YearEndSettlementInput, build_payroll_journal, calculate_statutory_deductions,
+    ingest_hr_leave_impact, prepare_year_end_settlement_inputs, trial_close,
 };
 
 const PAYROLL_CLOSE_TOPIC: &str = "audit.payroll.run.close";
@@ -88,6 +90,16 @@ pub struct HrLeaveImpactIntakeOutcome {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StatutoryCalculationPreviewOutcome {
+    pub draft: StatutoryCalculationDraft, // data_class: FINANCIAL
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct YearEndSettlementPreviewOutcome {
+    pub prepared: PreparedYearEndSettlementInput, // data_class: PII_IDENTIFYING + FINANCIAL
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PayrollAppError {
     Domain(PayrollDomainError),
 }
@@ -129,6 +141,20 @@ pub fn prepare_hr_leave_impact_intake(
         intake,
         intake_envelope,
     })
+}
+
+pub fn prepare_statutory_calculation_preview(
+    input: StatutoryCalculationInput,
+) -> Result<StatutoryCalculationPreviewOutcome, PayrollAppError> {
+    let draft = calculate_statutory_deductions(input)?;
+    Ok(StatutoryCalculationPreviewOutcome { draft })
+}
+
+pub fn prepare_year_end_settlement_preview(
+    input: YearEndSettlementInput,
+) -> Result<YearEndSettlementPreviewOutcome, PayrollAppError> {
+    let prepared = prepare_year_end_settlement_inputs(input)?;
+    Ok(YearEndSettlementPreviewOutcome { prepared })
 }
 
 fn close_audit_envelope(run: &PayrollRun) -> PayrollAuditEnvelope {

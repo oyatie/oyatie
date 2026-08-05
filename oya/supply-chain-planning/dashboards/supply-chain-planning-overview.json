@@ -8,6 +8,12 @@
   ],
   "timezone": "utc",
   "schemaVersion": 39,
+  "provenance": {
+    "inventory_classification": "target-provenance",
+    "visible_repo_path": "oya/supply-chain-planning/dashboards/supply-chain-planning-overview.json",
+    "authority_ceiling": "Metadata-only preview target; no live dashboard import, measured telemetry, SLO readiness, cloud deployment, DR, audit-chain recovery, or GA readiness claim.",
+    "canonical_prd": "specs/microservices/supply-chain-planning.json"
+  },
   "benchmarks": [
     "SAP SCM/APO and SAP IBP",
     "Oracle Supply Chain Planning",

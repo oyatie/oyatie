@@ -8,6 +8,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use serde_json::Value;
+
 fn repo_root() -> &'static str {
     env!("CARGO_MANIFEST_DIR")
         .strip_suffix("/crates/oya-dev-cli")
@@ -153,6 +155,118 @@ fn oya_verify_unknown_ci_required_flag_exits_two() {
     assert!(stderr(&output).contains("unknown flag"));
 }
 
+#[test]
+fn oya_verify_pre_push_runs_freshness_faces_and_affected_set_before_push() {
+    let fixture = VerifyFixture::new("verify-pre-push-pass");
+
+    let output = fixture.run(&["verify", "--pre-push", "--base", "origin/dev"], &[], "");
+
+    assert_success(&output);
+    assert!(stdout(&output).contains("oya verify --pre-push: PASS (3/3)"));
+
+    let root = fixture.root.display().to_string();
+    let freshness = format!("oya gate validate freshness --repo-root {root}");
+    let faces = format!(
+        "buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-face-settle-bin -- --repo-root {root}"
+    );
+    let log = fixture.log();
+    assert_in_order(
+        &log,
+        &[
+            "git rev-parse --show-toplevel",
+            &freshness,
+            &faces,
+            "buck2-affected-gate.sh origin/dev HEAD",
+        ],
+    );
+}
+
+#[test]
+fn oya_verify_pre_push_affected_failure_reports_actionable_autofix_guidance() {
+    let fixture = VerifyFixture::new("verify-pre-push-affected-fail");
+
+    let output = fixture.run(
+        &["verify", "--pre-push", "--base", "origin/dev"],
+        &[(
+            "FAKE_VERIFY_FAILURES",
+            "buck2-affected-gate.sh origin/dev HEAD",
+        )],
+        "",
+    );
+
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    let stdout = stdout(&output);
+    assert!(stdout.contains("oya verify --pre-push: FAIL (2/3)"));
+    assert!(stdout.contains("Autofix guidance (affected-set)"));
+    assert!(stdout.contains("infra/ci/buck2-affected-gate.sh origin/dev HEAD"));
+
+    let log = fixture.log();
+    assert!(log.contains("oya gate validate freshness --repo-root"));
+    assert!(log.contains("oya-cloud-ci-face-settle-bin"));
+    assert!(log.contains("buck2-affected-gate.sh origin/dev HEAD"));
+}
+
+#[test]
+fn oya_verify_terminal_clean_checkout_emits_machine_readable_slice_result() {
+    let fixture = VerifyFixture::new("verify-terminal-clean-checkout-pass");
+
+    let output = fixture.run(
+        &["verify", "--terminal-evidence", "clean-checkout"],
+        &[],
+        "",
+    );
+
+    assert_success(&output);
+    let result: Value = serde_json::from_str(&stdout(&output)).expect("stdout is json");
+    assert_eq!(
+        result["schema_version"],
+        "g013-terminal-verifier-harness.v1"
+    );
+    assert_eq!(result["evidence_class"], "clean-checkout");
+    assert_eq!(result["claim_scope"], "slice_evidence");
+    assert_eq!(result["outcome"], "pass");
+    assert_eq!(result["full_platform_terminal_closure_claimed"], false);
+    assert_eq!(
+        result["dirty_paths"]
+            .as_array()
+            .expect("dirty_paths array")
+            .len(),
+        0
+    );
+    assert_eq!(result["checkout_ref"], "fixture-head-1234567890abcdef");
+
+    let log = fixture.log();
+    assert_in_order(
+        &log,
+        &[
+            "git rev-parse --show-toplevel",
+            "git rev-parse HEAD",
+            "git status --short --untracked-files=all",
+        ],
+    );
+}
+
+#[test]
+fn oya_verify_terminal_clean_checkout_fails_dirty_checkout_without_terminal_claim() {
+    let fixture = VerifyFixture::new("verify-terminal-clean-checkout-dirty");
+
+    let output = fixture.run(
+        &["verify", "--terminal-evidence", "clean-checkout"],
+        &[("FAKE_VERIFY_GIT_STATUS", " M src/lib.rs\n?? scratch.txt\n")],
+        "",
+    );
+
+    assert_eq!(output.status.code(), Some(1), "{}", stderr(&output));
+    let result: Value = serde_json::from_str(&stdout(&output)).expect("stdout is json");
+    assert_eq!(result["evidence_class"], "clean-checkout");
+    assert_eq!(result["outcome"], "fail");
+    assert_eq!(result["full_platform_terminal_closure_claimed"], false);
+    let dirty_paths = result["dirty_paths"].as_array().expect("dirty_paths array");
+    assert_eq!(dirty_paths.len(), 2);
+    assert!(dirty_paths.iter().any(|path| path == "M src/lib.rs"));
+    assert!(dirty_paths.iter().any(|path| path == "?? scratch.txt"));
+}
+
 struct VerifyFixture {
     root: PathBuf,
     bin: PathBuf,
@@ -168,6 +282,11 @@ impl VerifyFixture {
         for name in ["cargo", "oya", "git"] {
             install_fake_command(fake, &bin.join(name));
         }
+        install_fake_command(fake, &bin.join("buck2"));
+        let affected_gate = root.join("infra/ci/buck2-affected-gate.sh");
+        fs::create_dir_all(affected_gate.parent().expect("affected gate parent"))
+            .expect("affected gate parent created");
+        install_fake_command(fake, &affected_gate);
         Self {
             log: root.join("commands.log"),
             root,
@@ -178,7 +297,7 @@ impl VerifyFixture {
     fn run(&self, args: &[&str], envs: &[(&str, &str)], git_diff: &str) -> Output {
         let mut command = Command::new(env!("CARGO_BIN_EXE_oya"));
         command
-            .current_dir(repo_root())
+            .current_dir(&self.root)
             .args(args)
             // These integration tests are themselves run by
             // `oya verify --ci-required` during the CI mirror. The verifier
@@ -190,7 +309,7 @@ impl VerifyFixture {
             .env_remove("OYA_VERIFY_RUNNING")
             .env("PATH", fixture_path(&self.bin))
             .env("FAKE_VERIFY_LOG", &self.log)
-            .env("FAKE_VERIFY_GIT_ROOT", repo_root())
+            .env("FAKE_VERIFY_GIT_ROOT", &self.root)
             .env("FAKE_VERIFY_GIT_DIFF", git_diff);
         for (key, value) in envs {
             command.env(key, value);

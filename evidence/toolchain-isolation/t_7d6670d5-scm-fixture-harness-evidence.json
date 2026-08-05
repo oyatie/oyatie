@@ -1,0 +1,63 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/toolchain-isolation-scm-fixture-harness-evidence.schema.json",
+  "evidence_id": "toolchain-isolation-scm-t_7d6670d5-20260701T141354Z",
+  "task_id": "t_7d6670d5",
+  "created_at": "2026-07-01T14:13:54Z",
+  "scope": "SCM-side T-ISOLATION-0 fixture harness only; no runtime, native SCM storage, branch protection, cloud-ci/cloud-cd app, secret, cluster, or generated-face mutation.",
+  "repo_files": [
+    "specs/toolchain-tenant-isolation-fixtures.json"
+  ],
+  "evidence_files": [
+    "evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json"
+  ],
+  "authority_sources": [
+    "/specs/bespoke-cloud-toolchain-services.json#tenant_isolation_contract",
+    "/specs/work-area-content-hash-contract.json#output_aliases",
+    "/specs/work-area-content-hash-contract.json#consumer_contracts.scm",
+    "/specs/bespoke-scm-virtual-materialization-plan.json#virtual_materialization_model.stage_boundary",
+    "docs/decisions/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md",
+    "t_bef50749 RED fixture contract and t_e7eed0bf APPROVE review/fix handoff",
+    "t_5e39caae W4 SCM contract handoff"
+  ],
+  "claim_boundary": {
+    "bridge_current_state_only": [
+      "GitHub repositories, pull requests, checks, statuses, webhooks, and git wire identifiers are reference/current-state inputs only.",
+      "The fixture harness does not assert a live cloud-scm service or tenant-facing exposure."
+    ],
+    "destination_claim_status": "blocked until T-ISOLATION-0 fan-in validates SCM, CI, CD, identity, secret, evidence, and audit fixture evidence together."
+  },
+  "covered_scm_surfaces": [
+    "repository_namespace",
+    "changeset_change_graph",
+    "work_area_hash_scm_change_id_ownership",
+    "status_callback_identity",
+    "scm_audit_evidence",
+    "tenant_internal_no_bypass"
+  ],
+  "known_bad_fixture_ids": [
+    "T-ISOLATION-SCM-BAD-cross-tenant-repository-read-write",
+    "T-ISOLATION-SCM-BAD-cross-tenant-changeset-change-graph",
+    "T-ISOLATION-SCM-BAD-work-area-hash-scm-change-id-tenant-spoof",
+    "T-ISOLATION-SCM-BAD-status-callback-identity-spoof-or-consume",
+    "T-ISOLATION-SCM-BAD-oyatie-internal-implicit-repository-changeset-bypass",
+    "T-ISOLATION-SCM-BAD-missing-or-cross-tenant-audit-evidence"
+  ],
+  "reference_green_fixture_ids": [
+    "T-ISOLATION-SCM-GOOD-tenant-scoped-declare-observe-handoff-reference-only"
+  ],
+  "assertions": {
+    "repository_namespace": "tenant-a cannot read or write tenant-b repository refs/metadata.",
+    "changeset_change_graph": "tenant-a cannot read, write, mutate graph edges, or status-update tenant-b ChangeSet state.",
+    "work_area_hash_scm_change_id_ownership": "tenant ownership wraps work_area_hash/scm_change_id/change_unit_id; another tenant cannot spoof ownership by aliasing an existing digest.",
+    "status_callback_identity": "tenant-a cannot spoof, consume, fan out to, or reuse tenant-b/global status callback identity.",
+    "tenant_internal_no_bypass": "tenant=oyatie-internal is denied customer repository/ChangeSet/status access unless approved TTL breakglass, reviewer acknowledgment, scoped identity, and audit-chain evidence exist.",
+    "audit_evidence": "SCM audit evidence must include tenant, actor tenant, target tenant, object identity, action, DENY verdict, TENANT_BOUNDARY reason, and audit_chain_ref."
+  },
+  "verification_commands": [
+    "python3 -m json.tool specs/toolchain-tenant-isolation-fixtures.json >/tmp/toolchain-tenant-isolation-fixtures.pretty.json",
+    "python3 -m json.tool evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json >/tmp/t_7d6670d5-scm-fixture-harness-evidence.pretty.json",
+    "inline Python structural assertions over object_level_t_isolation_0_matrix and scm_t_isolation_0_fixture_harness",
+    "git diff --check -- specs/toolchain-tenant-isolation-fixtures.json evidence/toolchain-isolation/t_7d6670d5-scm-fixture-harness-evidence.json"
+  ],
+  "verification_result": "passed after review/fix t_893be27f: 12 object-level rows preserved and 7 SCM fixture harness rows validated structurally; source contract references resolve to existing machine-readable specs/ADR evidence."
+}

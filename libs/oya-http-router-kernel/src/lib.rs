@@ -98,6 +98,87 @@ pub enum RouterError {
     },
 }
 
+fn hex_value(byte: u8) -> Option<u8> {
+    match byte {
+        b'0'..=b'9' => Some(byte - b'0'),
+        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'A'..=b'F' => Some(byte - b'A' + 10),
+        _ => None,
+    }
+}
+
+fn is_dot_segment_capture(value: &str) -> bool {
+    if value == "." || value == ".." {
+        return true;
+    }
+
+    let bytes = value.as_bytes();
+    let mut index = 0;
+    let mut dot_count = 0;
+
+    while index < bytes.len() {
+        let decoded = if bytes[index] == b'%' {
+            if index + 2 >= bytes.len() {
+                return false;
+            }
+            let Some(high) = hex_value(bytes[index + 1]) else {
+                return false;
+            };
+            let Some(low) = hex_value(bytes[index + 2]) else {
+                return false;
+            };
+            index += 3;
+            (high << 4) | low
+        } else {
+            let byte = bytes[index];
+            index += 1;
+            byte
+        };
+
+        if decoded != b'.' {
+            return false;
+        }
+        dot_count += 1;
+    }
+
+    dot_count == 1 || dot_count == 2
+}
+
+fn contains_decoded_path_separator(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    let mut index = 0;
+
+    while index < bytes.len() {
+        let decoded = if bytes[index] == b'%' && index + 2 < bytes.len() {
+            match (hex_value(bytes[index + 1]), hex_value(bytes[index + 2])) {
+                (Some(high), Some(low)) => {
+                    index += 3;
+                    (high << 4) | low
+                }
+                _ => {
+                    let byte = bytes[index];
+                    index += 1;
+                    byte
+                }
+            }
+        } else {
+            let byte = bytes[index];
+            index += 1;
+            byte
+        };
+
+        if decoded == b'/' || decoded == b'\\' {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn is_safe_placeholder_name(name: &str) -> bool {
+    !is_dot_segment_capture(name) && !contains_decoded_path_separator(name)
+}
+
 impl RouteTemplate {
     pub fn parse(input: &str) -> Result<Self, RouterError> {
         if !input.starts_with('/') {
@@ -125,6 +206,12 @@ impl RouteTemplate {
                     return Err(RouterError::InvalidTemplate {
                         template: input.to_string(),
                         reason: "placeholder name is empty".to_string(),
+                    });
+                }
+                if !is_safe_placeholder_name(name) {
+                    return Err(RouterError::InvalidTemplate {
+                        template: input.to_string(),
+                        reason: format!("placeholder name `{name}` contains unsafe grammar"),
                     });
                 }
                 segments.push(Segment::Placeholder(name.to_string()));
@@ -168,8 +255,11 @@ impl RouteTemplate {
                     if actual.is_empty() {
                         return None;
                     }
-                    // S5 defense: reject dot-segments as captures.
-                    if actual == "." || actual == ".." {
+                    // S5 defense: reject raw/percent-encoded dot-segments and decoded
+                    // path separators as captures. Downstream handlers may decode
+                    // captures before using them as filesystem names or resource ids,
+                    // so the router fails closed on traversal-shaped segment values.
+                    if is_dot_segment_capture(actual) || contains_decoded_path_separator(actual) {
                         return None;
                     }
                     captures.insert(name.clone(), actual.to_string());
@@ -325,6 +415,28 @@ mod tests {
     fn route_template_empty_placeholder_errors() {
         let result = RouteTemplate::parse("/foo/{}");
         assert!(matches!(result, Err(RouterError::InvalidTemplate { .. })));
+    }
+
+    #[test]
+    fn placeholder_names_reject_path_separator_and_dot_segments() {
+        for template in [
+            "/files/{.}",
+            "/files/{..}",
+            "/files/{%2e}",
+            "/files/{%2e%2e}",
+            "/files/{tenant/id}",
+            "/files/{tenant\\id}",
+            "/files/{tenant%2fid}",
+            "/files/{tenant%5cid}",
+        ] {
+            assert!(
+                matches!(
+                    RouteTemplate::parse(template),
+                    Err(RouterError::InvalidTemplate { .. })
+                ),
+                "unsafe placeholder template `{template}` must be rejected"
+            );
+        }
     }
 
     #[test]
@@ -501,9 +613,45 @@ mod tests {
     }
 
     #[test]
+    fn encoded_dot_dot_capture_is_rejected() {
+        let template = RouteTemplate::parse("/users/{id}").unwrap();
+
+        for encoded_dot_dot in ["%2e%2e", "%2E%2E", "%2e%2E", "%2e.", ".%2e", "%2E.", ".%2E"] {
+            assert!(
+                template
+                    .match_path(&format!("/users/{encoded_dot_dot}"))
+                    .is_none(),
+                "encoded traversal capture `{encoded_dot_dot}` must not match a placeholder"
+            );
+        }
+    }
+
+    #[test]
     fn match_path_rejects_single_dot_in_capture() {
         let template = RouteTemplate::parse("/users/{id}").unwrap();
         assert!(template.match_path("/users/.").is_none());
+    }
+
+    #[test]
+    fn encoded_path_separator_capture_is_rejected() {
+        let template = RouteTemplate::parse("/files/{name}").unwrap();
+
+        for unsafe_capture in [
+            "%2e%2e%2fsecret",
+            "%2e%2e%5csecret",
+            "safe%2fname",
+            "safe%2Fname",
+            "safe%5cname",
+            "safe%5Cname",
+            "safe\\name",
+        ] {
+            assert!(
+                template
+                    .match_path(&format!("/files/{unsafe_capture}"))
+                    .is_none(),
+                "decoded path separator capture `{unsafe_capture}` must not match a placeholder"
+            );
+        }
     }
 
     // F3 adversarial: dot-prefixed values that are NOT bare dots are fine
@@ -554,5 +702,30 @@ mod tests {
             !template.contains(sensitive),
             "matched_template MUST NOT contain the captured sensitive value"
         );
+    }
+
+    #[test]
+    fn matched_template_stays_static_for_encoded_sensitive_capture() {
+        let mut router: Router<&'static str> = Router::new();
+        router
+            .route(HttpMethod::Get, "/api/v1/keys/{key_id}", "lookup")
+            .unwrap();
+
+        let encoded_sensitive = "sk_%7Bredacted%7D_%3Ftoken%3Dsecret";
+        let decoded_sensitive = "sk_{redacted}_?token=secret";
+        let (_, captures, template) = router
+            .match_route(
+                HttpMethod::Get,
+                &format!("/api/v1/keys/{encoded_sensitive}"),
+            )
+            .unwrap();
+
+        assert_eq!(
+            captures.get("key_id").map(String::as_str),
+            Some(encoded_sensitive)
+        );
+        assert_eq!(template, "/api/v1/keys/{key_id}");
+        assert!(!template.contains(encoded_sensitive));
+        assert!(!template.contains(decoded_sensitive));
     }
 }

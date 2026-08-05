@@ -16,14 +16,14 @@ purpose: |
   `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline,
   and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
-  MASTERPLAN Directive 4.
+  the provider-agnostic doctrine.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 planned_enforcement_ref: oya-governance-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
   - docs/standards/image-discipline.md
-  - .omc/scratch/lts-versions-verified-2026-05-12.md
+  - docs/standards/lts-versions-verified.md
 related_adrs:
   - ADR-0053
   - ADR-0052
@@ -37,12 +37,11 @@ related_adrs:
 Every direct runtime, framework, base image, and supply-chain tool the
 workspace depends on MUST be pinned, license-clean, and reviewed via the
 supply-chain triad. This standard codifies the policy; the program-level
-inventory lives in `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
+inventory lives in `docs/standards/lts-versions-verified.md`.
 
 ## 1. LTS pinning
 
-Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md)
-and MASTERPLAN §2 Directive 8:
+Per [`lts-versions-verified.md`](lts-versions-verified.md):
 
 - Every direct dependency tracks the **current LTS** major.minor where the
   project publishes an LTS line.
@@ -51,7 +50,7 @@ and MASTERPLAN §2 Directive 8:
   pin (e.g., Canonical 1.32 LTS for K8s).
 - The LTS roster is refreshed **quarterly** and on any major upstream LTS
   announcement; the verified-as-of date is recorded in
-  `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
+  `docs/standards/lts-versions-verified.md`.
 - Lane: `oya-governance-lts-dependency` checks every direct
   dependency against the roster on every PR.
 
@@ -119,7 +118,7 @@ Pinning rules:
 
 ## 4. Renovate baseline
 
-Per [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+Per [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
 Domain 4: **Renovate** is the canonical dependency-update bot
 (supports 30+ ecosystems vs Dependabot's 14). Dependabot remains
 enabled for security-advisory fan-in only.
@@ -150,8 +149,8 @@ Source: [Renovate docs](https://docs.renovatebot.com/).
 
 ## 5. Provider-SDK strategy — `ProviderAdapter`
 
-Per MASTERPLAN Directive 4 (Provider-agnostic by default), every
-provider-specific dependency lives in an `oya-*-adapter-<provider>-*`
+Per the provider-agnostic doctrine, every provider-specific dependency
+lives in an `oya-*-adapter-<provider>-*`
 crate. The `app` and `domain` layers depend only on a trait abstraction.
 
 ### 5.1 The `ProviderAdapter` shape
@@ -222,7 +221,7 @@ imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 
 ## 8. CI/CD platform
 
-Per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4: the
+Per [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md) Domain 4: the
 default platform is **GitHub Actions**. Self-hosted runners under the
 Buildkite control plane are the cloud-portable analog for high-volume.
 Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
@@ -243,8 +242,8 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 
 ## 10. Sources scanned
 
-- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md);
-  [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+- [`lts-versions-verified.md`](lts-versions-verified.md);
+  [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
   Domain 3 + 4.
 - [Mozilla — cargo-vet](https://mozilla.github.io/cargo-vet/);
   [cargo-deny](https://embarkstudios.github.io/cargo-deny/);
@@ -252,11 +251,11 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 - [OpenBao](https://openbao.org/), [Valkey](https://valkey.io/),
   [GitLab Handbook — ADR 007 OpenBao](https://handbook.gitlab.com/handbook/engineering/architecture/design-documents/secret_manager/decisions/007_openbao/).
 
-## 11. OSS stewardship registry — canonical aggregate per ADR-0345
+## 11. OSS stewardship registry — canonical aggregate per ADR-0535
 
-Per [ADR-0345](../decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md),
-every direct upstream OSS dependency Oyatie consumes — every crate listed in
-§1 (LTS pinning), every license substitute named in §2.1, every supply-chain
+Per [ADR-0535](../decisions/ADR-0535-cross-product-versioning-release-governance.md)
+(which re-authors ADR-0345), every direct upstream OSS dependency Oyatie
+consumes — every crate listed in §1 (LTS pinning), every license substitute named in §2.1, every supply-chain
 tool in §3, every Renovate-managed dependency in §4, every provider SDK in §5,
 every secret-provider substrate in §6, every data-store substrate in §7, every
 CI/CD-platform dependency in §8 — MUST be classified into one of three
@@ -274,7 +273,7 @@ CI/CD-platform dependency in §8 — MUST be classified into one of three
 | **Contributor** | Oyatie actively patches upstream + commits staff time | **P0 ≤ 7 days; P1 ≤ 30 days** (wall-clock from public CVE disclosure) | `contribution_budget_dev_days_per_quarter` (integer dev-days/quarter) |
 | **Consumer** | Oyatie pins + audits without upstream contribution | **pin update ≤ 14 days** of public CVE disclosure (P0 upstream-monitored) | `audit_subscription_cost_usd` (integer USD/year) |
 
-### 11.2 Floor enumeration (per ADR-0345 §D-3 / §D-4 / §D-5)
+### 11.2 Floor enumeration (per ADR-0535's re-authored stewardship canon)
 
 **Maintainer-class floor:** every `oya-*` crate (~200+); `oya-shuffle-sharding`
 (ADR-0333 substrate); `oya-dev-cli` (ADR-0218); `oya-shared-policy-engine-client`
@@ -308,10 +307,10 @@ OSS stewardship uses **class** (a relationship label), NOT **tier**. The word
   tenant-data-plane / first-party / edge perf-critical).
 
 The lane **`oya-governance-stewardship-class-vocabulary`** refuses corpus drift
-toward the word "tier" in OSS-stewardship contexts. Enforced day-1 from ADR-0345
-Acceptance; no grace window.
+toward the word "tier" in OSS-stewardship contexts. Enforced day-1 from the
+ADR-0535 re-authored stewardship canon; no grace window.
 
-### 11.4 Enforcement lanes (per ADR-0345 §E)
+### 11.4 Enforcement lanes (per ADR-0535's re-authored stewardship canon)
 
 - `oya-check-oss-stewardship-registry-presence` — refuses corpus changes
   adding a new direct upstream (in `Cargo.toml`, OpenTofu providers, Helm
@@ -369,5 +368,6 @@ substrate adoption that skips registry declaration. Council-architecture +
 council-security + ops-supply-chain joint approval is required for the dev-days
 or audit-subscription budget.
 
-Source: [ADR-0345](../decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md);
+Source: [ADR-0535](../decisions/ADR-0535-cross-product-versioning-release-governance.md)
+(re-authoring ADR-0345);
 canonical registry at [`/specs/oss-stewardship-registry.json`](../../specs/oss-stewardship-registry.json).

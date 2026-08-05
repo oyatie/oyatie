@@ -127,7 +127,7 @@ Spec Rollback incident decision tree
 4. Enable circuit breaker: `oya ops breaker open workflow-engine-spec-rollback-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
 5. Reduce blast radius: `kubectl -n workflow-engine scale deploy/workflow-engine-spec-rollback-worker --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason workflow-engine-spec-rollback --ttl 60m`.
-7. Pause promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+7. Pause promotion: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 8. Drain queue safely: `oya ops workflow-engine spec-rollback drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops workflow-engine spec-rollback drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT_WORKFLOW_ENGINE_SPEC_ROLLBACK_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
@@ -177,7 +177,7 @@ Spec Rollback incident decision tree
 14. Watch burn rate: `oya ops watch --metric oya_workflow_engine_spec_rollback_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close workflow-engine-spec-rollback-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.workflow-engine.spec_rollback.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-17. Resume promotion: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+17. Resume promotion: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 18. Seal resolution audit: `oya audit-chain emit --event-class EVT_WORKFLOW_ENGINE_SPEC_ROLLBACK_INCIDENT --incident $INCIDENT_ID --field resolution=complete --field runbook=spec-rollback`.
 19. Verify seal: `oya audit-chain verify --event-class EVT_WORKFLOW_ENGINE_SPEC_ROLLBACK_INCIDENT --incident $INCIDENT_ID`.
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.

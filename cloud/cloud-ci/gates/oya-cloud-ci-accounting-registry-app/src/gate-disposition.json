@@ -62,6 +62,58 @@
       "slo_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
       "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true}
     },
+    "cloud-ci-license-policy": {
+      "license_policy_missing_license": {"mode": "baseline-block-on-new"},
+      "license_policy_unknown_license": {"mode": "baseline-block-on-new"},
+      "license_policy_forbidden_license": {"mode": "baseline-block-on-new"},
+      "license_policy_review_required": {"mode": "baseline-block-on-new"},
+      "license_policy_no_workspace_members": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
+    "cloud-ci-load-balancer-inventory": {
+      "load_balancer_inventory_missing": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "unclassified_tenant_facing_load_balancer": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "direct_mail_workload_load_balancer": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "mail_workload_not_clusterip": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "non_http_edge_missing_authority": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "non_http_edge_port_not_authorized": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "non_http_edge_missing_control": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "mail_public_ingress_bypass": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
+    "cloud-ci-multi-region-disposition": {
+      "manifest_missing_multi_region_disposition": {"mode": "baseline-block-on-new"},
+      "manifest_invalid_multi_region_disposition": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "multi_region_doc_missing": {"mode": "baseline-block-on-new"},
+      "multi_region_doc_missing_required_section": {"mode": "baseline-block-on-new"},
+      "disposition_doc_mismatch": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "active_passive_missing_rpo_rto": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "deployment_shape_mismatch": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
+    "cloud-ci-sovereign-tenant-pin": {
+      "tenant_pin_gate_id_mismatch": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_no_scenarios": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_no_admitted_scenario": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_no_misdirected_scenario": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_row_missing_field": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_invalid_tenant_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_home_region_not_allowed": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_strict_residency_not_single_home_region": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_allowed_cell_not_admitted": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_admitted_status_not_202": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_current_cell_not_allowed": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_misdirected_status_not_421": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tenant_pin_location_header_missing": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
+    "cloud-ci-tenant-environment-tier": {
+      "env_tier_fixture_missing": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "api_key_prefix_unmapped": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "test_key_routes_to_prod": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "outbound_mode_unenforced": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "prod_destructive_ack_missing": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "cedar_key_grant_missing": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "audit_chain_env_tier_missing": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "workflow_default_tier_not_test": {"mode": "baseline-block-on-new", "frozen_empty": true},
+      "tier_model_budget_hook_missing": {"mode": "baseline-block-on-new", "frozen_empty": true}
+    },
     "cloud-ci-brand-residue": {
       "forbidden_foundry": {"mode": "baseline-block-on-new"},
       "forbidden_forgejo": {"mode": "baseline-block-on-new"},

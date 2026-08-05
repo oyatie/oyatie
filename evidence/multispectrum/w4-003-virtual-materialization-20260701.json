@@ -1,0 +1,37 @@
+{
+  "change_id": "w4-003-virtual-materialization-design-spike",
+  "created_at": "2026-07-01T14:10:26Z",
+  "kanban_task": "t_62a6e35a",
+  "branch": "preserve/hermes-w1-dirty-20260630",
+  "scope": {
+    "summary": "Design-spike/prototype contract for virtual materialization from content-addressed WorkAreaTree records to reversible materialized file views.",
+    "files_touched": [
+      "specs/bespoke-scm-virtual-materialization-plan.json",
+      "specs/root-hub-pointers.json",
+      "registry/artifact-capabilities-registry.json",
+      "evidence/multispectrum/w4-003-virtual-materialization-20260701.json"
+    ],
+    "claim_boundary": "Metadata-only design spike/prototype. No native SCM storage, virtual filesystem runtime, parser runtime, object-store runtime, or CD runtime is claimed."
+  },
+  "facets": {
+    "F1_correctness": "The plan maps WorkAreaTree work_area_hash/root/node identities to deterministic MaterializedPathEntry records and back to result_work_area_hash through an overlay journal.",
+    "F2_tests": "Verification is JSON syntax plus structural assertions over deterministic steps, reversibility invariants, acceptance fixtures, root-hub pointer, and artifact registry row.",
+    "F3_maintainability": "The artifact is machine-readable, metadata-only, and names future implementation slices instead of mixing runtime code into the design spike.",
+    "F4_compatibility": "The seam consumes existing WorkAreaTree, work-area hash, object-store-kernel, and scm-facts interfaces without changing their Rust APIs.",
+    "F7_operability": "The plan records forbidden ambient inputs, generated-output refusal, and host-path exclusion so future runtime/gates can fail closed.",
+    "F10_reversibility": "Every materialized entry requires reverse_mapping_ref; untouched views preserve the base hash, and authored overlays emit roundtrip evidence.",
+    "F13_migration": "Bridge adapters are allowed only as transitional parity evidence while native SCM/runtime cutover remains ADR-0510/ADR-0518 gated."
+  },
+  "verification_plan": [
+    "python3 -m json.tool specs/bespoke-scm-virtual-materialization-plan.json >/dev/null",
+    "python3 -m json.tool specs/root-hub-pointers.json >/dev/null",
+    "python3 -m json.tool registry/artifact-capabilities-registry.json >/dev/null",
+    "inline Python structural assertions for VMAT plan/root-hub/registry coherence"
+  ],
+  "review_status": "reviewed-and-fixed by t_7f8418f0 at 2026-07-01T14:20:23Z; APPROVE after adding missing prototype fixture work_area_tree_root_digest required by VirtualMaterializationInput",
+  "non_claims": [
+    "No native filesystem/mount implementation was built.",
+    "No bespoke SCM storage server was built.",
+    "No production object-store or CD runtime behavior was claimed."
+  ]
+}

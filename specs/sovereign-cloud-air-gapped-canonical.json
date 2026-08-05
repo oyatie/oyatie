@@ -127,7 +127,7 @@
       "llm": "vLLM Llama 3"
     }
   },
-  "ci_lane": "air-gap-overlay (oya gate validate air-gap-overlay)",
+  "ci_lane": "air-gap-overlay (cloud-ci/Rust gate packet: air-gap-overlay)",
   "ci_assertions": [
     "air-gap packs reference no external host in ServiceEntry / NetworkPolicy egress",
     "image references in air-gap pack manifests rewritten to in-cell Harbor",

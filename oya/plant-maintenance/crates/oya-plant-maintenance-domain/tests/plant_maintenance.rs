@@ -121,6 +121,53 @@ fn asset_master_drives_preventive_plan_work_order_and_completion() {
 }
 
 #[test]
+fn plant_maintenance_preview_non_claim_contract_is_explicit() {
+    let equipment = register_equipment_asset(equipment_input()).unwrap();
+    assert_eq!(
+        equipment.idempotency_key.value,
+        "plant-maintenance:equipment:ten_enterprise:le_us001:plant_us001:equip_press_line_01"
+    );
+    assert_eq!(equipment.schema_version.value, 1);
+    assert!(!equipment.durable_asset_registry_attached.value);
+    assert!(!equipment.iot_or_scada_ingestion_attached.value);
+    assert!(!equipment.cloud_deployment_attached.value);
+
+    let plan = approve_preventive_maintenance_plan(plan_input(true)).unwrap();
+    assert_eq!(
+        plan.idempotency_key.value,
+        "plant-maintenance:plan:ten_enterprise:le_us001:plant_us001:mplan_press_line_01_monthly"
+    );
+    assert_eq!(plan.schema_version.value, 1);
+    assert!(!plan.scheduler_runtime_attached.value);
+    assert!(!plan.inventory_reservation_attached.value);
+    assert!(!plan.workflow_execution_attached.value);
+    assert!(!plan.cloud_deployment_attached.value);
+
+    let work_order = release_maintenance_work_order(work_order_input(true)).unwrap();
+    assert_eq!(
+        work_order.idempotency_key.value,
+        "plant-maintenance:work-order:ten_enterprise:le_us001:plant_us001:mwo_press_line_01_june"
+    );
+    assert_eq!(work_order.schema_version.value, 1);
+    assert!(!work_order.inventory_reservation_attached.value);
+    assert!(!work_order.procurement_requisition_attached.value);
+    assert!(!work_order.technician_dispatch_attached.value);
+    assert!(!work_order.workflow_execution_attached.value);
+    assert!(!work_order.cloud_deployment_attached.value);
+
+    let completion = complete_maintenance_work_order(completion_input(true)).unwrap();
+    assert_eq!(
+        completion.idempotency_key.value,
+        "plant-maintenance:completion:ten_enterprise:le_us001:plant_us001:mwo_press_line_01_june"
+    );
+    assert_eq!(completion.schema_version.value, 1);
+    assert!(!completion.accounting_posting_attached.value);
+    assert!(!completion.equipment_meter_write_attached.value);
+    assert!(!completion.runtime_audit_chain_emission_attached.value);
+    assert!(!completion.cloud_deployment_attached.value);
+}
+
+#[test]
 fn plant_maintenance_refuses_unregistered_unapproved_and_unreleased_flow() {
     assert_eq!(
         approve_preventive_maintenance_plan(plan_input(false)),
@@ -171,6 +218,37 @@ fn plant_maintenance_validates_dates_refs_intervals_and_quantities() {
     assert_eq!(
         release_maintenance_work_order(bad_labor),
         Err(PlantMaintenanceError::InvalidQuantity)
+    );
+}
+
+#[test]
+fn plant_maintenance_refuses_ac05_boundary_values() {
+    let mut prefix_only = equipment_input();
+    prefix_only.equipment_id = "equip_".to_owned();
+    assert_eq!(
+        register_equipment_asset(prefix_only),
+        Err(PlantMaintenanceError::InvalidEquipmentId)
+    );
+
+    let mut whitespace_tenant = equipment_input();
+    whitespace_tenant.tenant_id = "ten_enterprise north".to_owned();
+    assert_eq!(
+        register_equipment_asset(whitespace_tenant),
+        Err(PlantMaintenanceError::InvalidTenantId)
+    );
+
+    let mut impossible_date = equipment_input();
+    impossible_date.installed_on_yyyymmdd = 20260231;
+    assert_eq!(
+        register_equipment_asset(impossible_date),
+        Err(PlantMaintenanceError::InvalidDate)
+    );
+
+    let mut control_ref = equipment_input();
+    control_ref.registration_evidence_ref = "audit/plant-maintenance/bad\nref".to_owned();
+    assert_eq!(
+        register_equipment_asset(control_ref),
+        Err(PlantMaintenanceError::InvalidEvidenceRef)
     );
 }
 

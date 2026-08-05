@@ -18,8 +18,10 @@
 //! Cedar AND Kyverno for runtime decisions, or imports both Valkey/Redis
 //! AND Memcached as cache backends, violates the layer boundary.
 //!
-//! This crate is the pure-fn kernel for the
-//! `oya gate validate layered-architecture-discipline` lane.
+//! This crate is the pure-fn kernel behind the
+//! `layered-architecture-discipline` Rust gate packet; any legacy
+//! `oya gate validate layered-architecture-discipline` invocation is a
+//! local bridge/provenance surface only.
 //!
 //! # Layer
 //!

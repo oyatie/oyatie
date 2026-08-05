@@ -35,6 +35,8 @@ pub const BILLING_INVOICE_EVIDENCE_PREFIX: &str = "evidence/billing/invoice/";
 pub const BILLING_TAX_EVIDENCE_PREFIX: &str = "evidence/billing/tax/";
 pub const BILLING_AUDIT_CHAIN_PREFIX: &str = "audit-chain/billing/";
 pub const BILLING_DEMO_TRIAL_CAP_EVIDENCE_PREFIX: &str = "evidence/billing/demo-trial-cap/";
+pub const BILLING_DESTINATION_BINDING_PREFIX: &str = "billing-destination/";
+pub const BILLING_POLICY_EVIDENCE_PREFIX: &str = "policy-evidence/";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct BillingAccountId {
@@ -104,6 +106,27 @@ pub enum CloudBillingEventKind {
     Reservation,
     Commitment,
     Credit,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum BillingEnvTier {
+    Test,
+    Staging,
+    Prod,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum BillingOutboundMode {
+    Intercept,
+    TestRecipients,
+    Live,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum BillingEventClass {
+    Billing,
+    Invoice,
+    Metering,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -274,6 +297,31 @@ pub struct CloudBillingTenantGuardrail {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BillingOutboundEmissionPlanCreate {
+    pub tenant_id: String,                        // data_class: INTERNAL_ONLY
+    pub region: String,                           // data_class: PUBLIC
+    pub env_tier: Option<BillingEnvTier>,         // data_class: INTERNAL_ONLY
+    pub outbound_mode: BillingOutboundMode,       // data_class: INTERNAL_ONLY
+    pub billing_event_class: BillingEventClass,   // data_class: INTERNAL_ONLY
+    pub destination_binding_ref: Option<String>,  // data_class: INTERNAL_ONLY
+    pub invoice_or_metering_evidence_ref: String, // data_class: AUDIT
+    pub policy_evidence_ref: String,              // data_class: AUDIT
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BillingOutboundEmissionPlan {
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub region: Classified<RegionCode>, // data_class: PUBLIC
+    pub env_tier: Classified<BillingEnvTier>, // data_class: INTERNAL_ONLY
+    pub outbound_mode: Classified<BillingOutboundMode>, // data_class: INTERNAL_ONLY
+    pub billing_event_class: Classified<BillingEventClass>, // data_class: INTERNAL_ONLY
+    pub destination_binding_ref: Classified<Option<String>>, // data_class: INTERNAL_ONLY
+    pub invoice_or_metering_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub policy_evidence_ref: Classified<String>, // data_class: AUDIT
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudBillingEventCreate {
     pub id: String,                     // data_class: INTERNAL_ONLY
     pub tenant_id: String,              // data_class: INTERNAL_ONLY
@@ -327,6 +375,12 @@ pub enum CloudBillingError {
     InvalidBillingComponentPolicy,
     InvalidBillingEvidenceRef,
     InvalidAuditChainRef,
+    MissingEnvTier,
+    InvalidOutboundModeForTier,
+    ExternalDeliveryNotAllowedForTier,
+    MissingQaDestination,
+    ProdPolicyEvidenceRequired,
+    InvalidOutboundMetadataRef,
     InvalidDataClass,
     BillingAccountInactive,
     TenantMismatch,
@@ -511,6 +565,44 @@ impl BillingComponent {
             Self::RevenueShare => "revenue_share",
             Self::PerSeat => "per_seat",
             Self::PerUsage => "per_usage",
+        }
+    }
+}
+
+impl BillingEnvTier {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Test => "test",
+            Self::Staging => "staging",
+            Self::Prod => "prod",
+        }
+    }
+
+    pub const fn derived_outbound_mode(self) -> BillingOutboundMode {
+        match self {
+            Self::Test => BillingOutboundMode::Intercept,
+            Self::Staging => BillingOutboundMode::TestRecipients,
+            Self::Prod => BillingOutboundMode::Live,
+        }
+    }
+}
+
+impl BillingOutboundMode {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Intercept => "intercept",
+            Self::TestRecipients => "test_recipients",
+            Self::Live => "live",
+        }
+    }
+}
+
+impl BillingEventClass {
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Billing => "billing",
+            Self::Invoice => "invoice",
+            Self::Metering => "metering",
         }
     }
 }
@@ -736,6 +828,43 @@ impl CloudBillingTenantGuardrail {
             tax_evidence_ref: audit(tax_evidence_ref),
             audit_chain_ref: audit(audit_chain_ref),
             demo_trial_cap_evidence_ref: audit(demo_trial_cap_evidence_ref),
+            schema_version: public(CLOUD_INVOICE_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl BillingOutboundEmissionPlan {
+    pub fn new(input: BillingOutboundEmissionPlanCreate) -> Result<Self, CloudBillingError> {
+        validate_tenant_id(&input.tenant_id)?;
+        let region =
+            RegionCode::new(input.region).map_err(|_| CloudBillingError::RegionMismatch)?;
+        let env_tier = input.env_tier.ok_or(CloudBillingError::MissingEnvTier)?;
+        let derived_outbound_mode = env_tier.derived_outbound_mode();
+        if input.outbound_mode != derived_outbound_mode {
+            return Err(CloudBillingError::InvalidOutboundModeForTier);
+        }
+        let invoice_or_metering_evidence_ref = validate_invoice_or_metering_evidence_ref(
+            input.invoice_or_metering_evidence_ref,
+            &input.tenant_id,
+            &region.value,
+        )?;
+        let policy_evidence_ref =
+            validate_policy_evidence_ref(input.policy_evidence_ref, &input.tenant_id, env_tier)?;
+        let destination_binding_ref = validate_destination_binding_ref(
+            input.destination_binding_ref,
+            &input.tenant_id,
+            &region.value,
+            env_tier,
+        )?;
+        Ok(Self {
+            tenant_id: internal(input.tenant_id),
+            region: public(region),
+            env_tier: internal(env_tier),
+            outbound_mode: internal(derived_outbound_mode),
+            billing_event_class: internal(input.billing_event_class),
+            destination_binding_ref: internal(destination_binding_ref),
+            invoice_or_metering_evidence_ref: audit(invoice_or_metering_evidence_ref),
+            policy_evidence_ref: audit(policy_evidence_ref),
             schema_version: public(CLOUD_INVOICE_SCHEMA_VERSION),
         })
     }
@@ -1065,6 +1194,135 @@ fn validate_evidence_ref(
     }
 }
 
+fn validate_invoice_or_metering_evidence_ref(
+    value: String,
+    tenant_id: &str,
+    region: &str,
+) -> Result<String, CloudBillingError> {
+    if value.starts_with(BILLING_INVOICE_EVIDENCE_PREFIX) {
+        validate_evidence_ref(
+            value,
+            BILLING_INVOICE_EVIDENCE_PREFIX,
+            tenant_id,
+            region,
+            CloudBillingError::InvalidBillingEvidenceRef,
+        )
+    } else if value.starts_with(BILLING_METERING_EVIDENCE_PREFIX) {
+        validate_evidence_ref(
+            value,
+            BILLING_METERING_EVIDENCE_PREFIX,
+            tenant_id,
+            region,
+            CloudBillingError::InvalidBillingEvidenceRef,
+        )
+    } else {
+        Err(CloudBillingError::InvalidBillingEvidenceRef)
+    }
+}
+
+fn validate_policy_evidence_ref(
+    value: String,
+    tenant_id: &str,
+    env_tier: BillingEnvTier,
+) -> Result<String, CloudBillingError> {
+    if !value.starts_with(BILLING_POLICY_EVIDENCE_PREFIX)
+        || !is_safe_reference(&value)
+        || contains_secret_marker(&value)
+    {
+        return Err(CloudBillingError::InvalidBillingEvidenceRef);
+    }
+    let Some(suffix) = value.strip_prefix(BILLING_POLICY_EVIDENCE_PREFIX) else {
+        return Err(CloudBillingError::InvalidBillingEvidenceRef);
+    };
+    let parts: Vec<&str> = suffix.split('/').collect();
+    if parts.len() < 3 {
+        return Err(CloudBillingError::InvalidBillingEvidenceRef);
+    }
+    if parts[0] != tenant_id {
+        return Err(CloudBillingError::TenantMismatch);
+    }
+    if parts[1] != env_tier.label() {
+        return Err(CloudBillingError::InvalidOutboundMetadataRef);
+    }
+    if env_tier == BillingEnvTier::Prod && !parts[2..].contains(&"env-tier") {
+        return Err(CloudBillingError::ProdPolicyEvidenceRequired);
+    }
+    Ok(value)
+}
+
+fn validate_destination_binding_ref(
+    value: Option<String>,
+    tenant_id: &str,
+    region: &str,
+    env_tier: BillingEnvTier,
+) -> Result<Option<String>, CloudBillingError> {
+    match (env_tier, value) {
+        (BillingEnvTier::Test, None) => Ok(None),
+        (BillingEnvTier::Test, Some(_)) => {
+            Err(CloudBillingError::ExternalDeliveryNotAllowedForTier)
+        }
+        (BillingEnvTier::Staging, None) => Err(CloudBillingError::MissingQaDestination),
+        (BillingEnvTier::Staging, Some(value)) => {
+            let (value, destination_tier) =
+                parse_destination_binding_ref(value, tenant_id, region)?;
+            if matches!(destination_tier.as_str(), "qa" | "test") {
+                Ok(Some(value))
+            } else {
+                Err(CloudBillingError::MissingQaDestination)
+            }
+        }
+        (BillingEnvTier::Prod, None) => Err(CloudBillingError::InvalidOutboundMetadataRef),
+        (BillingEnvTier::Prod, Some(value)) => {
+            let (value, destination_tier) =
+                parse_destination_binding_ref(value, tenant_id, region)?;
+            if destination_tier == "live" {
+                Ok(Some(value))
+            } else {
+                Err(CloudBillingError::InvalidOutboundMetadataRef)
+            }
+        }
+    }
+}
+
+fn parse_destination_binding_ref(
+    value: String,
+    tenant_id: &str,
+    region: &str,
+) -> Result<(String, String), CloudBillingError> {
+    if !value.starts_with(BILLING_DESTINATION_BINDING_PREFIX)
+        || !is_safe_reference(&value)
+        || contains_secret_marker(&value)
+    {
+        return Err(CloudBillingError::InvalidOutboundMetadataRef);
+    }
+    let destination_tier = {
+        let Some(suffix) = value.strip_prefix(BILLING_DESTINATION_BINDING_PREFIX) else {
+            return Err(CloudBillingError::InvalidOutboundMetadataRef);
+        };
+        let mut parts = suffix.split('/');
+        let destination_tenant = parts
+            .next()
+            .ok_or(CloudBillingError::InvalidOutboundMetadataRef)?;
+        let destination_region = parts
+            .next()
+            .ok_or(CloudBillingError::InvalidOutboundMetadataRef)?;
+        let destination_tier = parts
+            .next()
+            .ok_or(CloudBillingError::InvalidOutboundMetadataRef)?;
+        if parts.next().is_none() {
+            return Err(CloudBillingError::InvalidOutboundMetadataRef);
+        }
+        if destination_tenant != tenant_id {
+            return Err(CloudBillingError::TenantMismatch);
+        }
+        if destination_region != region {
+            return Err(CloudBillingError::RegionMismatch);
+        }
+        destination_tier.to_string()
+    };
+    Ok((value, destination_tier))
+}
+
 fn validate_metering_tag(
     value: &str,
     tenant_id: &str,
@@ -1170,7 +1428,7 @@ fn is_safe_reference(value: &str) -> bool {
 
 fn contains_secret_marker(value: &str) -> bool {
     let lower = value.to_ascii_lowercase();
-    [
+    let named_secret_marker = [
         "access_token",
         "api_key",
         "apikey",
@@ -1185,7 +1443,11 @@ fn contains_secret_marker(value: &str) -> bool {
         "token=",
     ]
     .iter()
-    .any(|marker| lower.contains(marker))
+    .any(|marker| lower.contains(marker));
+    let api_key_prefix_marker = lower
+        .split(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '_'))
+        .any(|segment| segment.starts_with("sk_"));
+    named_secret_marker || api_key_prefix_marker
 }
 
 fn is_ascii_token(value: &str) -> bool {

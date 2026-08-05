@@ -4,11 +4,13 @@
 
 use oya_cloud_kms_api::{
     CLOUD_KMS_DECRYPT_SURFACE, CLOUD_KMS_DEFAULT_PUBLIC_API_VERSION, CLOUD_KMS_ENCRYPT_SURFACE,
-    CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS, CloudKmsApiAuthorization, CloudKmsApiBoundaryContext,
-    CloudKmsApiError, CloudKmsApiPrincipal, CloudKmsCryptoApiStatus,
-    CloudKmsCryptoIdempotencyLedger, CloudKmsDecryptApiRequest, CloudKmsDecryptRequest,
-    CloudKmsEncryptApiRequest, CloudKmsEncryptRequest, authorize_cloud_kms_decrypt_from_api,
-    authorize_cloud_kms_encrypt_from_api,
+    CLOUD_KMS_SCHEDULE_KEY_DELETION_SURFACE, CLOUD_KMS_SUPPORTED_PUBLIC_API_VERSIONS,
+    CloudKmsApiAuthorization, CloudKmsApiBoundaryContext, CloudKmsApiError, CloudKmsApiPrincipal,
+    CloudKmsCryptoApiStatus, CloudKmsCryptoIdempotencyLedger, CloudKmsDecryptApiRequest,
+    CloudKmsDecryptRequest, CloudKmsEncryptApiRequest, CloudKmsEncryptRequest,
+    CloudKmsKeyDeletionIdempotencyLedger, CloudKmsScheduleKeyDeletionApiRequest,
+    CloudKmsScheduleKeyDeletionRequest, authorize_cloud_kms_decrypt_from_api,
+    authorize_cloud_kms_encrypt_from_api, schedule_cloud_kms_key_deletion_from_api,
 };
 use oya_cloud_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation, KmsKeyCreate, KmsKeyOrigin, KmsKeyState,
@@ -115,6 +117,32 @@ fn decrypt_api_request(request_id: &str, idempotency_key: &str) -> CloudKmsDecry
     }
 }
 
+fn schedule_key_deletion_api_request(
+    request_id: &str,
+    idempotency_key: &str,
+) -> CloudKmsScheduleKeyDeletionApiRequest {
+    CloudKmsScheduleKeyDeletionApiRequest {
+        path_key_id: "kms/region-home/ten_alpha/object-key".to_string(),
+        boundary: boundary_for(request_id, idempotency_key),
+        principal: principal_for("sp_tenant_offboarding"),
+        authorization: authorization_for(
+            "sp_tenant_offboarding",
+            &[CLOUD_KMS_SCHEDULE_KEY_DELETION_SURFACE],
+        ),
+        body: CloudKmsScheduleKeyDeletionRequest {
+            key_id: "kms/region-home/ten_alpha/object-key".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            actor: "sp_tenant_offboarding".to_string(),
+            schedule_proof_ref: "kproof_tenant_offboard_schedule_001".to_string(),
+            authorization_policy_version: "cedar-policy-v3".to_string(),
+            required_approvals: 2,
+            approver_principal_ids: vec!["usr_security_a".to_string(), "usr_privacy_b".to_string()],
+            requested_at_epoch_seconds: 1_700_000_100,
+            scheduled_deletion_at_epoch_seconds: 1_700_604_900,
+        },
+    }
+}
+
 #[test]
 fn encrypt_api_rejects_path_body_key_drift_before_receipt_mutation() {
     let mut directory = directory_with_key();
@@ -134,6 +162,83 @@ fn encrypt_api_rejects_path_body_key_drift_before_receipt_mutation() {
     );
     assert!(ledger.is_empty());
     assert_eq!(directory.receipts().count(), 0);
+}
+
+#[test]
+fn schedule_key_deletion_requires_cedar_quorum_decision_and_emits_audit_evidence() {
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsKeyDeletionIdempotencyLedger::default();
+    let request =
+        schedule_key_deletion_api_request("req-kms-schedule-delete", "idem-kms-schedule-delete");
+
+    let response =
+        schedule_cloud_kms_key_deletion_from_api(&mut directory, &mut ledger, request.clone())
+            .expect("Cedar-authorized quorum schedule emits evidence");
+    let replay = schedule_cloud_kms_key_deletion_from_api(&mut directory, &mut ledger, request)
+        .expect("same ScheduleKeyDeletion request replays idempotently");
+
+    assert_eq!(response, replay);
+    assert_eq!(ledger.len(), 1);
+    assert_eq!(directory.deletion_schedule_receipts().count(), 1);
+    assert_eq!(response.data.key_state, "pending_deletion");
+    assert_eq!(
+        response.data.authorization_decision_id,
+        "authz_decision_sp_tenant_offboarding"
+    );
+    assert_eq!(
+        response.data.authorization_policy_version,
+        "cedar-policy-v3"
+    );
+    assert_eq!(response.data.required_approvals, 2);
+    assert_eq!(
+        response.data.approver_principal_ids,
+        vec!["usr_privacy_b".to_string(), "usr_security_a".to_string()]
+    );
+    assert_eq!(response.evidence.operation, "schedule_key_deletion");
+    assert_eq!(
+        response.evidence.evidence_ref,
+        "kproof_tenant_offboard_schedule_001"
+    );
+    assert_eq!(response.evidence.actor, "sp_tenant_offboarding");
+    assert_eq!(
+        directory
+            .keys()
+            .next()
+            .expect("key remains indexed")
+            .state
+            .value,
+        KmsKeyState::PendingDeletion
+    );
+}
+
+#[test]
+fn schedule_key_deletion_rejects_missing_quorum_before_state_or_ledger_mutation() {
+    let mut directory = directory_with_key();
+    let mut ledger = CloudKmsKeyDeletionIdempotencyLedger::default();
+    let mut request = schedule_key_deletion_api_request(
+        "req-kms-schedule-delete-no-quorum",
+        "idem-kms-schedule-delete-no-quorum",
+    );
+    request.body.approver_principal_ids = vec!["usr_security_a".to_string()];
+
+    let error = schedule_cloud_kms_key_deletion_from_api(&mut directory, &mut ledger, request)
+        .expect_err("ScheduleKeyDeletion requires Cedar quorum evidence");
+
+    assert_eq!(
+        error,
+        CloudKmsApiError::Kms(CloudKmsError::KeyDeletionQuorumNotReached)
+    );
+    assert!(ledger.is_empty());
+    assert_eq!(directory.deletion_schedule_receipts().count(), 0);
+    assert_eq!(
+        directory
+            .keys()
+            .next()
+            .expect("key remains indexed")
+            .state
+            .value,
+        KmsKeyState::Enabled
+    );
 }
 
 #[test]

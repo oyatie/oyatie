@@ -226,5 +226,5 @@ Every on-call event of consequence emits an audit-chain record per
 - [Google SRE — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/).
 - [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-10 mistakes doctrine.
 - [`docs/INCIDENT-MANAGEMENT.md`](../INCIDENT-MANAGEMENT.md).
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+- [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
   Domain 2 "On-call / runbooks".

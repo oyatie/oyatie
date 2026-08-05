@@ -5,8 +5,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_gen_microservice_manifests_app::MICROSERVICES;
+use oya_gen_microservice_manifests_app::{MICROSERVICES, build_manifests_index};
 use serde_json::Value;
+
+const MANIFESTS_INDEX_GENERATED_AT: &str = "2026-05-19";
 
 fn temp_repo() -> PathBuf {
     let nonce = SystemTime::now()
@@ -26,61 +28,84 @@ fn write(path: &Path, content: &str) {
     fs::write(path, content).expect("write fixture");
 }
 
-#[test]
-fn check_mode_rejects_ops_capability_and_slo_source_drift() {
-    let repo = temp_repo();
-    fs::create_dir_all(repo.join("docs/decisions")).expect("create docs decisions");
-    fs::create_dir_all(repo.join("specs/microservices")).expect("create specs");
-    for ms in MICROSERVICES {
-        fs::create_dir_all(repo.join(format!("microservices/{ms}"))).expect("create ms dir");
+fn write_current_index_fixture(repo: &Path) -> Value {
+    let index = build_manifests_index(MANIFESTS_INDEX_GENERATED_AT, MICROSERVICES);
+    write(
+        &repo.join("specs/microservices/manifests-index.json"),
+        &(serde_json::to_string_pretty(&index).unwrap() + "\n"),
+    );
+
+    for row in index["microservices"].as_array().unwrap() {
+        let Some(manifest) = row.get("manifest").and_then(Value::as_str) else {
+            continue;
+        };
+        let name = row["name"].as_str().unwrap();
+        let manifest_microservice = if name == "foundry" {
+            "intelligence"
+        } else {
+            name
+        };
+        let payload = serde_json::json!({
+            "schema_version": "1.0",
+            "microservice": manifest_microservice,
+            "version": "0.1.0"
+        });
+        write(
+            &repo.join(manifest),
+            &(serde_json::to_string_pretty(&payload).unwrap() + "\n"),
+        );
     }
 
-    write(
-        &repo.join("microservices/ops-dashboard-control-center/capabilities/rollback-execute.yaml"),
-        "schema_version: \"1.0\"\nname: rollback-execute\ntier: T3\neu_ai_act_risk_class: high\n",
+    index
+}
+
+#[test]
+fn check_mode_accepts_current_manifest_index_contract() {
+    let repo = temp_repo();
+    write_current_index_fixture(&repo);
+
+    let bin = env!("CARGO_BIN_EXE_oya-gen-microservice-manifests");
+    let check = Command::new(bin)
+        .arg("--repo-root")
+        .arg(&repo)
+        .arg("--check")
+        .output()
+        .expect("run check");
+    assert!(
+        check.status.success(),
+        "stdout={} stderr={}",
+        String::from_utf8_lossy(&check.stdout),
+        String::from_utf8_lossy(&check.stderr)
     );
+    let stdout = String::from_utf8_lossy(&check.stdout);
+    assert!(stdout.contains("retired writer guard passed"), "{stdout}");
+    assert!(stdout.contains("rows=37"), "{stdout}");
+
+    fs::remove_dir_all(repo).ok();
+}
+
+#[test]
+fn check_mode_rejects_legacy_microservices_manifest_index_rows() {
+    let repo = temp_repo();
+    let mut index = write_current_index_fixture(&repo);
+    for row in index["microservices"].as_array_mut().unwrap() {
+        let Some(name) = row
+            .get("name")
+            .and_then(Value::as_str)
+            .map(ToString::to_string)
+        else {
+            continue;
+        };
+        if row.get("manifest").is_some() {
+            row["manifest"] = Value::String(format!("microservices/{name}/manifest.json"));
+        }
+    }
     write(
-        &repo.join("microservices/ops-dashboard-control-center/slos/rollback.openslo.yaml"),
-        r#"apiVersion: openslo/v1
-kind: SLO
-metadata:
-  name: oya-ops-rollback
-spec:
-  objective:
-    target: "0.95"
-  indicator:
-    ratioMetric:
-      good:
-        metricSource:
-          spec:
-            query: 'histogram_quantile(0.95, sum(rate(oya_ops_rollback_bucket[5m])) by (le))'
-"#,
+        &repo.join("specs/microservices/manifests-index.json"),
+        &(serde_json::to_string_pretty(&index).unwrap() + "\n"),
     );
 
     let bin = env!("CARGO_BIN_EXE_oya-gen-microservice-manifests");
-    let seed = Command::new(bin)
-        .arg("--repo-root")
-        .arg(&repo)
-        .output()
-        .expect("run seed");
-    assert!(
-        seed.status.success(),
-        "{}",
-        String::from_utf8_lossy(&seed.stderr)
-    );
-
-    let manifest_path = repo.join("microservices/ops-dashboard-control-center/manifest.json");
-    let mut manifest: Value =
-        serde_json::from_str(&fs::read_to_string(&manifest_path).unwrap()).unwrap();
-    manifest["capabilities"][0]["tier"] = Value::String("T1".to_string());
-    manifest["capabilities"][0]["eu_ai_act_risk_class"] = Value::String("minimal".to_string());
-    manifest["slos"][0]["sli"] = Value::String("sum(rate(wrong_total[5m]))".to_string());
-    fs::write(
-        &manifest_path,
-        serde_json::to_string_pretty(&manifest).unwrap() + "\n",
-    )
-    .unwrap();
-
     let check = Command::new(bin)
         .arg("--repo-root")
         .arg(&repo)
@@ -94,9 +119,41 @@ spec:
         String::from_utf8_lossy(&check.stderr)
     );
     let stderr = String::from_utf8_lossy(&check.stderr);
-    assert!(stderr.contains("capabilities.microservices/ops-dashboard-control-center/capabilities/rollback-execute.yaml.tier mismatch"), "{stderr}");
-    assert!(stderr.contains("capabilities.microservices/ops-dashboard-control-center/capabilities/rollback-execute.yaml.eu_ai_act_risk_class mismatch"), "{stderr}");
-    assert!(stderr.contains("slos.microservices/ops-dashboard-control-center/slos/rollback.openslo.yaml.sli mismatch"), "{stderr}");
+    assert!(stderr.contains("[diff]"), "{stderr}");
+    assert!(stderr.contains("[legacy-path]"), "{stderr}");
+    assert!(
+        stderr.contains("microservices/application/manifest.json"),
+        "{stderr}"
+    );
+
+    fs::remove_dir_all(repo).ok();
+}
+
+#[test]
+fn non_check_mode_refuses_to_write_retired_generator_output() {
+    let repo = temp_repo();
+    fs::create_dir_all(&repo).expect("create repo");
+
+    let bin = env!("CARGO_BIN_EXE_oya-gen-microservice-manifests");
+    let run = Command::new(bin)
+        .arg("--repo-root")
+        .arg(&repo)
+        .output()
+        .expect("run retired writer");
+    assert!(
+        !run.status.success(),
+        "retired writer unexpectedly succeeded: stdout={} stderr={}",
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(stderr.contains("retired/provenance-only"), "{stderr}");
+    assert!(
+        !repo
+            .join("specs/microservices/manifests-index.json")
+            .exists(),
+        "retired writer must not create manifests-index.json"
+    );
 
     fs::remove_dir_all(repo).ok();
 }

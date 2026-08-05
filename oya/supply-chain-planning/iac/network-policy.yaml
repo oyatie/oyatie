@@ -1,7 +1,12 @@
+# Claim boundary: target/provenance inventory only; no Kubernetes namespace,
+# pod, or network-enforcement readiness is claimed by this file.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: oya-supply-chain-planning-default-deny
+  annotations:
+    oyatie.com/claim-boundary: target-provenance-only
+    oyatie.com/no-tenant-namespace-readiness: "true"
 spec:
   podSelector:
     matchLabels:

@@ -346,7 +346,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only + mock frontend render-envelope boundary",
       "owner_team": "council-architecture",
-      "rationale": "JSON ser/de. Strictly adapter-layer except for the app-shell frontend prototype's local dev-server-to-WASM render-envelope boundary; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime). The app-shell exception is mock-only, carries no PHI/PII/production tenant data, and does not establish a production backend/API readiness claim. Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
+      "rationale": "JSON ser/de. Strictly adapter-layer except for the app-shell frontend prototype's local dev-server-to-WASM render-envelope boundary; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime). The app-shell exception is mock-only, carries no PHI/PII/production tenant data, and does not establish a production backend/API readiness claim. Managed-k8s control-plane-host uses this dependency only inside the kube-rs CAPI adapter to construct/read DynamicObject spec/status JSON at the adapter seam; no cluster-lifecycle or SLA-observability caller gains JSON/provider coupling. Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter-layer crates",
       "allowed_crates": [
@@ -381,6 +381,7 @@
         "oya-intelligence-provider-pool-app",
         "oya-json-kernel",
         "oya-managed-k8s-cluster-lifecycle-app",
+        "oya-managed-k8s-control-plane-host-adapter-capi",
         "oya-managed-k8s-control-plane-host-api",
         "oya-managed-k8s-control-plane-host-app",
         "oya-managed-k8s-control-plane-host-kernel",
@@ -722,7 +723,7 @@
       "version_pin": "3.1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture + ops-platform",
-      "rationale": "Kubernetes client (Client + dynamic Api) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Used only to talk to the management cluster's CAPI control-plane providers (Kamaji TenantControlPlane on controlplane.cluster.x-k8s.io; the dedicated Talos control-plane reference). The LIVE CRD reconciliation is honest-deferred per registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration, so the adapter references kube-rs's dynamic surface and returns Unimplemented::KamajiProviderLiveIntegration instead of faking success. Kernel/api/inmemory crates stay kube-free.",
+      "rationale": "Kubernetes client (Client + dynamic Api) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Used only inside the adapter to talk to the management cluster's CAPI control-plane providers: hosted Kamaji TenantControlPlane on the LTS-pinned kamaji.clastix.io/v1alpha1 GVK and the dedicated Talos/CAPI reference path. The hosted tier now creates/reads/deletes the dynamic object; callers still use ControlPlaneProvisioning and kernel/api/inmemory crates stay kube-free.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
       "allowed_crates": [
@@ -733,7 +734,7 @@
       "version_pin": "3.1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture + ops-platform",
-      "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; the live control-plane reconcile loop is honest-deferred (kamaji-provider-live-integration), so the dependency is the declared seam the follow-on ADR's controller will consume without a caller change.",
+      "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) reserved for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; future reconciler/controller work can extend the live dynamic-object path inside this crate without a caller or public-port change.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
       "allowed_crates": [

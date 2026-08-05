@@ -1,29 +1,14 @@
-{{- if .Values.cedar.enabled }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.cedar.policyConfigMapName | quote }}
-  labels:
-    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
-    oyatie.com/policy-engine: cedar
-    oyatie.com/adr-0246: policy-engine-substrate
-data:
-  policies.cedar: |
-    permit(
-      principal,
-      action,
-      resource
-    ) when {
-      resource.microservice == "{{ .Values.microservice.id }}" &&
-      principal.tenant_class == "{{ .Values.microservice.tenantClass }}"
-    };
-
-    forbid(
-      principal,
-      action,
-      resource
-    ) when {
-      resource.microservice == "{{ .Values.microservice.id }}" &&
-      principal.tenant_class != "{{ .Values.microservice.tenantClass }}"
-    };
-{{- end }}
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/k8s/helm/templates/cedar.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

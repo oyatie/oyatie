@@ -1,3 +1,11 @@
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+authority_boundary:
+  current_authority: specs/microservices/global-trade.json
+  authority_status: metadata-only PRD
+  inventory_status: inventory/provenance/planned-only
+  non_claims:
+    - no live provider calls
+    - no filing, broker, document archive, Workflow, runtime audit, or cloud deployment authority
 schema_version: "1.0"
 crate: oya-global-trade-export-control-classification-kernel
 microservice: global-trade

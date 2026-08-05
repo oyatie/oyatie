@@ -24,7 +24,7 @@
     ],
     "cannot_claim_yet": [
       "measured SLO windows",
-      "runtime collector or SLO evaluator availability",
+      "runtime collector, exporter, or SLO evaluator availability",
       "public SLA/SLO language",
       "production or tenant-workload readiness",
       "hyperscaler maturity"
@@ -117,6 +117,2689 @@
       "deployment.environment"
     ],
     "canonical_burn_rate_source": "specs/openslo/canonical-envelope-schema.json#burn_rate_alert_pattern.windows"
+  },
+  "measured_slo_window_query_digest_receipt_producer": {
+      "status": "green_shape_valid_not_measured",
+      "receipt_type": "measured_slo_window",
+      "owner_task": "t_abde9192",
+      "claim_tier": "target_non_claim/metadata_green_receipt_shape",
+      "claim_ceiling": {
+        "metadata_only": true,
+        "evidence_contract_only": true,
+        "no_measured_slo_claim": true,
+        "no_public_sla_slo_claim": true,
+        "no_runtime_collector": true,
+        "no_slo_engine": true,
+        "no_dashboard": true,
+        "no_production_readiness_claim": true,
+        "no_tenant_workload_readiness": true,
+        "no_hyperscaler_maturity_claim": true
+      },
+      "source_citations": [
+        {
+          "path": "specs/cloud-observability-slo-evidence-contract.json",
+          "json_pointer": "/evidence_vocabulary/sli_evidence_fields and /resource_observability",
+          "use": "Provides measured_slo_window fields plus all 33 resource rows."
+        },
+        {
+          "path": "specs/cloud-observability-slo-target.json",
+          "lines": "27-40",
+          "use": "Defines OpenSLO/burn-rate target and the no measured evidence non-claim boundary."
+        },
+        {
+          "task_id": "t_49514ca4",
+          "use": "Plan/Spec/RED packet defining digest rules, red fixture, 13 category rollups, and 33 resource rows."
+        }
+      ],
+      "receipt_schema": {
+        "required_fields": [
+          "slo_id",
+          "indicator",
+          "objective",
+          "window_start",
+          "window_end",
+          "numerator_query",
+          "denominator_query",
+          "sample_count",
+          "datasource",
+          "query_digest",
+          "measured_value",
+          "error_budget_remaining",
+          "burn_rate",
+          "evidence_digest",
+          "source_commit",
+          "artifact_digest",
+          "reviewer"
+        ],
+        "mandatory_receipt_metadata": [
+          "source_commit",
+          "artifact_digest",
+          "reviewer"
+        ],
+        "explicit_na_fields_until_measured": [
+          "measured_value",
+          "error_budget_remaining",
+          "burn_rate"
+        ],
+        "not_yet_measured_rule": "Until dogfood telemetry storage emits real SLO samples, measured_value, error_budget_remaining, and burn_rate stay explicit N/A objects with status=not_measured_yet and explicit_na=true."
+      },
+      "digest_rules": {
+        "dogfood_storage_boundary": "future evidence must come from Oyatie-owned dogfood telemetry storage, not external hyperscaler consoles or unmanaged tenant systems",
+        "query_digest_algorithm": "sha256 over canonical UTF-8 JSON, emitted as sha256:<64 hex>",
+        "query_digest_payload_fields": [
+          "datasource",
+          "query_language",
+          "slo_id",
+          "indicator",
+          "window_start",
+          "window_end",
+          "numerator_query",
+          "denominator_query",
+          "telemetry_storage_boundary"
+        ],
+        "query_canonicalization": [
+          "sort JSON keys",
+          "compact JSON separators",
+          "normalize CRLF/CR line endings to LF in numerator_query and denominator_query",
+          "trim insignificant leading/trailing query whitespace"
+        ],
+        "evidence_digest_algorithm": "sha256 over canonical UTF-8 JSON for the complete receipt with evidence_digest omitted, emitted as sha256:<64 hex>",
+        "evidence_digest_omits": "evidence_digest",
+        "forbidden_sources": [
+          "external hyperscaler consoles",
+          "screenshots from provider consoles",
+          "unmanaged tenant systems",
+          "hand-entered measured values without dogfood telemetry query evidence"
+        ]
+      },
+      "red_fixture_assertion": {
+        "fixture_id": "measured-slo-window-missing-window-query-digest-reviewer",
+        "bad_missing_required_fields": {
+          "receipt_type": "measured_slo_window",
+          "receipt_status": "red_fixture_missing_window_query_digest_reviewer",
+          "slo_id": "cloud-iam.identity-provider.availability.metadata-shape-only",
+          "indicator": "availability",
+          "objective": "99.9 target, not measured",
+          "numerator_query": "sum(rate(oya_cloud_control_plane_operation_count{service_name=\"cloud-iam\",resource_type=\"IdentityProvider\",outcome=\"success\"}[5m]))",
+          "denominator_query": "sum(rate(oya_cloud_control_plane_operation_count{service_name=\"cloud-iam\",resource_type=\"IdentityProvider\"}[5m]))",
+          "sample_count": 0,
+          "datasource": "oyatie_dogfood_telemetry:prometheus_remote_write:cell-001",
+          "query_language": "promql",
+          "telemetry_storage_boundary": "dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "measured_value": {
+            "status": "not_measured_yet",
+            "explicit_na": true,
+            "value": null,
+            "reason": "metadata GREEN output only; no dogfood telemetry measurement exists in this lane"
+          },
+          "error_budget_remaining": {
+            "status": "not_measured_yet",
+            "explicit_na": true,
+            "value": null,
+            "reason": "metadata GREEN output only; no SLO engine or burn-rate runtime is implemented in this lane"
+          },
+          "burn_rate": {
+            "status": "not_measured_yet",
+            "explicit_na": true,
+            "value": null,
+            "reason": "metadata GREEN output only; no burn-rate alerting runtime is implemented in this lane"
+          },
+          "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+          "artifact_digest": "sha256:bc9637e6986ab95d63a4525ef61f11d8fd8e92c73ece6ba8fd9c9f27823e4be0",
+          "claim_ceiling": "metadata shape only; no measured SLO, public SLA/SLO, production-readiness, tenant-workload readiness, or hyperscaler-maturity claim",
+          "evidence_digest": "sha256:7510efa44d2389d0e955c7caea6f27d11556c1f361f150ee2ce26dd58620c363",
+          "expected_verdict": "RED"
+        },
+        "expected_missing_fields": [
+          "window_start",
+          "window_end",
+          "query_digest",
+          "reviewer"
+        ],
+        "assertion": "The checker must reject the RED fixture for missing window_start/window_end/query_digest/reviewer before accepting the GREEN metadata shape."
+      },
+      "example_green_receipt": {
+        "receipt_type": "measured_slo_window",
+        "receipt_status": "green_shape_valid_not_measured",
+        "slo_id": "cloud-iam.identity-provider.availability.metadata-shape-only",
+        "indicator": "availability",
+        "objective": "99.9 target, not measured",
+        "window_start": "N/A-not-measured-yet",
+        "window_end": "N/A-not-measured-yet",
+        "numerator_query": "sum(rate(oya_cloud_control_plane_operation_count{service_name=\"cloud-iam\",resource_type=\"IdentityProvider\",outcome=\"success\"}[5m]))",
+        "denominator_query": "sum(rate(oya_cloud_control_plane_operation_count{service_name=\"cloud-iam\",resource_type=\"IdentityProvider\"}[5m]))",
+        "sample_count": 0,
+        "datasource": "oyatie_dogfood_telemetry:prometheus_remote_write:cell-001",
+        "query_language": "promql",
+        "telemetry_storage_boundary": "dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+        "measured_value": {
+          "status": "not_measured_yet",
+          "explicit_na": true,
+          "value": null,
+          "reason": "metadata GREEN output only; no dogfood telemetry measurement exists in this lane"
+        },
+        "error_budget_remaining": {
+          "status": "not_measured_yet",
+          "explicit_na": true,
+          "value": null,
+          "reason": "metadata GREEN output only; no SLO engine or burn-rate runtime is implemented in this lane"
+        },
+        "burn_rate": {
+          "status": "not_measured_yet",
+          "explicit_na": true,
+          "value": null,
+          "reason": "metadata GREEN output only; no burn-rate alerting runtime is implemented in this lane"
+        },
+        "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+        "artifact_digest": "sha256:bc9637e6986ab95d63a4525ef61f11d8fd8e92c73ece6ba8fd9c9f27823e4be0",
+        "reviewer": "required-on-future-receipts-not-a-runtime-approval",
+        "claim_ceiling": "metadata shape only; no measured SLO, public SLA/SLO, production-readiness, tenant-workload readiness, or hyperscaler-maturity claim",
+        "query_digest": "sha256:d7dfd63a0ebe752305754088ac7849d2969bae9c4e58d5e754b7edc43b1551eb",
+        "evidence_digest": "sha256:7510efa44d2389d0e955c7caea6f27d11556c1f361f150ee2ce26dd58620c363"
+      },
+      "row_to_producer_map": [
+        {
+          "resource_contract_id": "iam.identity_provider",
+          "category_id": "identity_access_policy",
+          "service": "cloud-iam",
+          "resource_type": "IdentityProvider",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-iam/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/iam-identity_provider/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-iam.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "iam.policy_binding",
+          "category_id": "identity_access_policy",
+          "service": "cloud-iam",
+          "resource_type": "PolicyBinding",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-iam/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/iam-policy_binding/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-iam.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "compute.vm_instance",
+          "category_id": "compute_instances",
+          "service": "cloud-compute",
+          "resource_type": "VmInstance",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-compute/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/compute-vm_instance/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-compute.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "compute.machine_image",
+          "category_id": "compute_instances",
+          "service": "cloud-compute",
+          "resource_type": "MachineImage",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-compute/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/compute-machine_image/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-compute.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "compute.k8s_cluster",
+          "category_id": "containers_kubernetes",
+          "service": "cloud-compute",
+          "resource_type": "K8sCluster",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-compute/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/compute-k8s_cluster/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-compute.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "compute.node_pool",
+          "category_id": "containers_kubernetes",
+          "service": "cloud-compute",
+          "resource_type": "NodePool",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-compute/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/compute-node_pool/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-compute.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "compute.function",
+          "category_id": "serverless_functions",
+          "service": "cloud-compute",
+          "resource_type": "Function",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-compute/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/compute-function/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-compute.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "compute.container",
+          "category_id": "serverless_functions",
+          "service": "cloud-compute",
+          "resource_type": "Container",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-compute/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/compute-container/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-compute.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "storage.object_bucket",
+          "category_id": "storage_object_block_file",
+          "service": "cloud-storage",
+          "resource_type": "ObjectBucket",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-storage/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/storage-object_bucket/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-storage.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "storage.block_volume",
+          "category_id": "storage_object_block_file",
+          "service": "cloud-storage",
+          "resource_type": "BlockVolume",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-storage/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/storage-block_volume/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-storage.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "storage.file_share",
+          "category_id": "storage_object_block_file",
+          "service": "cloud-storage",
+          "resource_type": "FileShare",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-storage/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/storage-file_share/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-storage.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "network.vpc",
+          "category_id": "networking_dns_edge",
+          "service": "cloud-network",
+          "resource_type": "Vpc",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-network/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/network-vpc/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-network.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "network.subnet",
+          "category_id": "networking_dns_edge",
+          "service": "cloud-network",
+          "resource_type": "Subnet",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-network/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/network-subnet/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-network.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "network.load_balancer",
+          "category_id": "networking_dns_edge",
+          "service": "cloud-network",
+          "resource_type": "LoadBalancer",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-network/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/network-load_balancer/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-network.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "network.dns_zone",
+          "category_id": "networking_dns_edge",
+          "service": "cloud-network",
+          "resource_type": "DnsZone",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-network/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/network-dns_zone/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-network.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "data.postgres_database",
+          "category_id": "databases_data_analytics",
+          "service": "cloud-data",
+          "resource_type": "PostgresDatabase",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-data/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/data-postgres_database/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-data.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "data.warehouse",
+          "category_id": "databases_data_analytics",
+          "service": "cloud-data",
+          "resource_type": "Warehouse",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-data/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/data-warehouse/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-data.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "data.stream",
+          "category_id": "databases_data_analytics",
+          "service": "cloud-data",
+          "resource_type": "Stream",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-data/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/data-stream/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-data.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "kms.key_ring",
+          "category_id": "kms_secrets_confidentiality",
+          "service": "cloud-kms",
+          "resource_type": "KeyRing",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-kms/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/kms-key_ring/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-kms.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "kms.key",
+          "category_id": "kms_secrets_confidentiality",
+          "service": "cloud-kms",
+          "resource_type": "Key",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-kms/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/kms-key/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-kms.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "secrets.secret",
+          "category_id": "kms_secrets_confidentiality",
+          "service": "cloud-secrets",
+          "resource_type": "Secret",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-secrets/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/secrets-secret/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-secrets.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "observability.slo_tier",
+          "category_id": "observability_operations",
+          "service": "cloud-capacity",
+          "resource_type": "SloTier",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-capacity/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/observability-slo_tier/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-capacity.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "observability.event_stream",
+          "category_id": "observability_operations",
+          "service": "cloud-capacity",
+          "resource_type": "ControlPlaneEventStream",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-capacity/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/observability-event_stream/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-capacity.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "billing.billing_account",
+          "category_id": "billing_finops_quotas",
+          "service": "cloud-billing",
+          "resource_type": "BillingAccount",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-billing/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/billing-billing_account/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-billing.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "billing.meter",
+          "category_id": "billing_finops_quotas",
+          "service": "cloud-billing",
+          "resource_type": "Meter",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-billing/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/billing-meter/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-billing.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "billing.quota",
+          "category_id": "billing_finops_quotas",
+          "service": "cloud-billing",
+          "resource_type": "Quota",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-billing/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/billing-quota/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-billing.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "marketplace.catalog_item",
+          "category_id": "marketplace_isv_ecosystem",
+          "service": "cloud-marketplace",
+          "resource_type": "CatalogItem",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-marketplace/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/marketplace-catalog_item/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-marketplace.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "marketplace.installation",
+          "category_id": "marketplace_isv_ecosystem",
+          "service": "cloud-marketplace",
+          "resource_type": "MarketplaceInstallation",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-marketplace/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/marketplace-installation/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-marketplace.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "security.policy_pack",
+          "category_id": "security_posture_guardrails",
+          "service": "cloud-iam",
+          "resource_type": "SecurityPolicyPack",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-iam/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/security-policy_pack/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-iam.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "security.finding",
+          "category_id": "security_posture_guardrails",
+          "service": "cloud-iam",
+          "resource_type": "SecurityFinding",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-iam/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/security-finding/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-iam.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "platform.declarative_api",
+          "category_id": "cloud_native_platform_contract",
+          "service": "cloud-capacity",
+          "resource_type": "DeclarativeApiSurface",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-capacity/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/platform-declarative_api/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-capacity.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "platform.reconciler_workflow",
+          "category_id": "cloud_native_platform_contract",
+          "service": "cloud-capacity",
+          "resource_type": "ReconcilerWorkflow",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-capacity/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/platform-reconciler_workflow/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-capacity.control_plane_operation_success_ratio"
+        },
+        {
+          "resource_contract_id": "platform.cluster_cell",
+          "category_id": "cloud_native_platform_contract",
+          "service": "cloud-capacity",
+          "resource_type": "ClusterCell",
+          "receipt_type": "measured_slo_window",
+          "openslo_artifact_pattern": "cloud/cloud-capacity/slos/*.openslo.yaml",
+          "measured_window_receipt_pattern": "evidence/observability/platform-cluster_cell/measured-slo-window-*.json",
+          "producer_status": "green_shape_valid_not_measured",
+          "datasource_scope": "Oyatie-owned dogfood telemetry storage only; no external hyperscaler console or unmanaged tenant system",
+          "query_template_family": "cloud-capacity.control_plane_operation_success_ratio"
+        }
+      ],
+      "category_rollup_coverage": [
+        {
+          "category_id": "billing_finops_quotas",
+          "row_count": 3,
+          "services": [
+            "cloud-billing"
+          ],
+          "resource_contract_ids": [
+            "billing.billing_account",
+            "billing.meter",
+            "billing.quota"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "cloud_native_platform_contract",
+          "row_count": 3,
+          "services": [
+            "cloud-capacity"
+          ],
+          "resource_contract_ids": [
+            "platform.declarative_api",
+            "platform.reconciler_workflow",
+            "platform.cluster_cell"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "compute_instances",
+          "row_count": 2,
+          "services": [
+            "cloud-compute"
+          ],
+          "resource_contract_ids": [
+            "compute.vm_instance",
+            "compute.machine_image"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "containers_kubernetes",
+          "row_count": 2,
+          "services": [
+            "cloud-compute"
+          ],
+          "resource_contract_ids": [
+            "compute.k8s_cluster",
+            "compute.node_pool"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "databases_data_analytics",
+          "row_count": 3,
+          "services": [
+            "cloud-data"
+          ],
+          "resource_contract_ids": [
+            "data.postgres_database",
+            "data.warehouse",
+            "data.stream"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "identity_access_policy",
+          "row_count": 2,
+          "services": [
+            "cloud-iam"
+          ],
+          "resource_contract_ids": [
+            "iam.identity_provider",
+            "iam.policy_binding"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "kms_secrets_confidentiality",
+          "row_count": 3,
+          "services": [
+            "cloud-kms",
+            "cloud-secrets"
+          ],
+          "resource_contract_ids": [
+            "kms.key_ring",
+            "kms.key",
+            "secrets.secret"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "marketplace_isv_ecosystem",
+          "row_count": 2,
+          "services": [
+            "cloud-marketplace"
+          ],
+          "resource_contract_ids": [
+            "marketplace.catalog_item",
+            "marketplace.installation"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "networking_dns_edge",
+          "row_count": 4,
+          "services": [
+            "cloud-network"
+          ],
+          "resource_contract_ids": [
+            "network.vpc",
+            "network.subnet",
+            "network.load_balancer",
+            "network.dns_zone"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "observability_operations",
+          "row_count": 2,
+          "services": [
+            "cloud-capacity"
+          ],
+          "resource_contract_ids": [
+            "observability.slo_tier",
+            "observability.event_stream"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "security_posture_guardrails",
+          "row_count": 2,
+          "services": [
+            "cloud-iam"
+          ],
+          "resource_contract_ids": [
+            "security.policy_pack",
+            "security.finding"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "serverless_functions",
+          "row_count": 2,
+          "services": [
+            "cloud-compute"
+          ],
+          "resource_contract_ids": [
+            "compute.function",
+            "compute.container"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        },
+        {
+          "category_id": "storage_object_block_file",
+          "row_count": 3,
+          "services": [
+            "cloud-storage"
+          ],
+          "resource_contract_ids": [
+            "storage.object_bucket",
+            "storage.block_volume",
+            "storage.file_share"
+          ],
+          "producer_status": "green_shape_valid_not_measured"
+        }
+      ],
+      "future_implementation_boundary": "This BUILD/GREEN packet validates metadata receipt shape and dogfood-only digests; it does not implement a runtime collector, SLO engine, dashboard, release runtime, tenant-workload readiness, or measured SLO value."
+    },
+  "otel_trace_metric_log_sample_receipt_producer": {
+    "status": "plan_spec_red_only",
+    "receipt_type": "otel_trace_metric_log_sample",
+    "owner_task": "t_5b8f743d",
+    "claim_tier": "target_non_claim/spec_ready_fixture_plan",
+    "claim_ceiling": "Target/spec/RED only; no measured SLO, public SLA/SLO, production-readiness, tenant workload, runtime collector, runtime exporter, runtime SLO engine, dashboard, or hyperscaler maturity claim.",
+    "source_citations": [
+      {
+        "path": "specs/cloud-observability-slo-evidence-contract.json",
+        "json_pointer": "/resource_observability and /evidence_vocabulary",
+        "use": "Provides the 33 resource rows, OTel resource attributes, event fields, correlation fields, burn-rate windows, and evidence-required-before-claim vocabulary."
+      },
+      {
+        "path": "specs/cloud-observability-slo-target.json",
+        "lines": "21-40",
+        "use": "Declares the OpenTelemetry target substrate and non-claim boundary: no collector, exporter, SLO engine, dashboards, or measured evidence in this lane."
+      },
+      {
+        "path": "specs/hyperscaler-production-readiness-claim-contract.json",
+        "lines": "84-120",
+        "use": "Constrains this packet to target/spec/RED language and fixture planning until evidence exists."
+      },
+      {
+        "task_id": "t_87a25fab",
+        "use": "Parent decomposition that mapped all 33 rows and assigned the OTel sample receipt producer to this child."
+      }
+    ],
+    "prerequisite_overlap_cards": [
+      {
+        "task_id": "t_bfcbdde5",
+        "scope": "OBS-002 runtime traceparent/OTLP middleware. This packet does not rework generic HTTP middleware."
+      },
+      {
+        "task_id": "t_ed15035b",
+        "scope": "Independent review/fix for OBS-002 runtime traceparent/OTLP evidence."
+      },
+      {
+        "task_id": "t_7852e42b",
+        "scope": "OBS-003 wide-event tenant/correlation validation. This packet does not create another broad middleware lane."
+      },
+      {
+        "task_id": "t_567f0c76",
+        "scope": "OBS-003 review/fix coverage for tenant/correlation validation."
+      }
+    ],
+    "receipt_schema": {
+      "required_fields": [
+        "service.name",
+        "service.namespace",
+        "service.instance.id",
+        "service.version",
+        "deployment.environment.name",
+        "oya.tenant",
+        "oya.account",
+        "oya.project",
+        "oya.region",
+        "oya.cell",
+        "oya.resource.orn",
+        "oya.resource.type",
+        "oya.operation.id",
+        "trace_id",
+        "span_id",
+        "operation_id",
+        "resource_orn",
+        "metric_sample",
+        "structured_log_sample",
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "required_resource_attributes": [
+        "service.name",
+        "service.namespace",
+        "service.instance.id",
+        "service.version",
+        "deployment.environment.name",
+        "oya.tenant",
+        "oya.account",
+        "oya.project",
+        "oya.region",
+        "oya.cell",
+        "oya.resource.orn",
+        "oya.resource.type",
+        "oya.operation.id"
+      ],
+      "required_correlation_fields": [
+        "trace_id",
+        "span_id",
+        "operation_id",
+        "resource_orn"
+      ],
+      "required_sample_blocks": [
+        "metric_sample",
+        "structured_log_sample"
+      ],
+      "mandatory_receipt_metadata": [
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "metric_sample_boundary": "A non-empty metric_sample block is required, but this packet does not assert a live metrics backend.",
+      "structured_log_sample_boundary": "A non-empty structured_log_sample block is required, but this packet does not assert a live log pipeline."
+    },
+    "future_evidence_receipt_fields": {
+      "measured_slo_window": [
+        "slo_id",
+        "indicator",
+        "objective",
+        "window_start",
+        "window_end",
+        "numerator_query",
+        "denominator_query",
+        "sample_count",
+        "datasource",
+        "query_digest",
+        "measured_value",
+        "error_budget_remaining",
+        "burn_rate",
+        "evidence_digest",
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "burn_rate_alert_receipt": [
+        "alert_id",
+        "slo_id",
+        "windows",
+        "burn_rate",
+        "threshold",
+        "fired_at",
+        "resolved_at",
+        "query_digest",
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "otel_trace_metric_log_sample": [
+        "service.name",
+        "service.namespace",
+        "service.instance.id",
+        "service.version",
+        "deployment.environment.name",
+        "oya.tenant",
+        "oya.account",
+        "oya.project",
+        "oya.region",
+        "oya.cell",
+        "oya.resource.orn",
+        "oya.resource.type",
+        "oya.operation.id",
+        "trace_id",
+        "span_id",
+        "operation_id",
+        "resource_orn",
+        "metric_sample",
+        "structured_log_sample",
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "audit_chain_correlation_sample": [
+        "audit_chain_id",
+        "operation_id",
+        "trace_id",
+        "span_id",
+        "resource_orn",
+        "tenant_account_project",
+        "region_cell",
+        "policy_snapshot",
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "progressive_delivery_gate_receipt": [
+        "promotion_stage",
+        "canary_window",
+        "bake_window",
+        "source_commit",
+        "artifact_digest",
+        "slo_gate_result",
+        "rollback_or_brownout_decision",
+        "reviewer"
+      ],
+      "receipt_metadata_required_on_every_receipt": [
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "burn_rate_windows": [
+        "5m",
+        "30m",
+        "1h",
+        "2h",
+        "6h",
+        "1d",
+        "3d"
+      ]
+    },
+    "red_fixture_assertion": {
+      "fixture_id": "otel-sample-receipt-missing-trace-span-operation-resource",
+      "single_resource_operation": "cloud-iam iam.identity_provider create control-plane operation",
+      "bad_missing_required_fields": {
+        "service.name": "cloud-iam",
+        "service.namespace": "oyatie-cloud-control-plane",
+        "service.instance.id": "plan-spec-red-fixture-instance",
+        "service.version": "target-spec-fixture",
+        "deployment.environment.name": "dev",
+        "oya.tenant": "tenant-fixture",
+        "oya.account": "account-fixture",
+        "oya.project": "project-fixture",
+        "oya.region": "kr-dev-1",
+        "oya.cell": "cell-fixture-001",
+        "oya.resource.orn": "orn:oya:cloud-iam:kr-dev-1:tenant-fixture/account-fixture/project-fixture/identity-provider/example",
+        "oya.resource.type": "IdentityProvider",
+        "oya.operation.id": "op-iam-identity-provider-create-001",
+        "metric_sample": {
+          "operation.duration": 123,
+          "operation.count": 1,
+          "operation.errors": 0,
+          "resource.state": "provisioning",
+          "quota.saturation": 0.42
+        },
+        "structured_log_sample": {
+          "event_type": "operation_outcome_receipt",
+          "schema_version": "otel-sample-receipt.plan-spec-red.v1",
+          "occurred_at": "2026-07-01T00:00:00Z",
+          "message": "Plan/Spec/RED fixture only; no runtime collector or SLO engine is asserted."
+        },
+        "source_commit": "<candidate-source-commit>",
+        "artifact_digest": "sha256:<otel-sample-receipt-artifact-digest>",
+        "reviewer": "<reviewer-id>"
+      },
+      "expected_missing_fields": [
+        "trace_id",
+        "span_id",
+        "operation_id",
+        "resource_orn"
+      ],
+      "assertion": "scripts/tests/cloud_observability_slo_evidence_check.py --show-otel-red-fixture must report trace_id, span_id, operation_id, and resource_orn as missing before any GREEN/build card proceeds."
+    },
+    "example_good_receipt": {
+      "service.name": "cloud-iam",
+      "service.namespace": "oyatie-cloud-control-plane",
+      "service.instance.id": "plan-spec-red-fixture-instance",
+      "service.version": "target-spec-fixture",
+      "deployment.environment.name": "dev",
+      "oya.tenant": "tenant-fixture",
+      "oya.account": "account-fixture",
+      "oya.project": "project-fixture",
+      "oya.region": "kr-dev-1",
+      "oya.cell": "cell-fixture-001",
+      "oya.resource.orn": "orn:oya:cloud-iam:kr-dev-1:tenant-fixture/account-fixture/project-fixture/identity-provider/example",
+      "oya.resource.type": "IdentityProvider",
+      "oya.operation.id": "op-iam-identity-provider-create-001",
+      "trace_id": "0af7651916cd43dd8448eb211c80319c",
+      "span_id": "b7ad6b7169203331",
+      "operation_id": "op-iam-identity-provider-create-001",
+      "resource_orn": "orn:oya:cloud-iam:kr-dev-1:tenant-fixture/account-fixture/project-fixture/identity-provider/example",
+      "metric_sample": {
+        "operation.duration": 123,
+        "operation.count": 1,
+        "operation.errors": 0,
+        "resource.state": "provisioning",
+        "quota.saturation": 0.42
+      },
+      "structured_log_sample": {
+        "event_type": "operation_outcome_receipt",
+        "schema_version": "otel-sample-receipt.plan-spec-red.v1",
+        "occurred_at": "2026-07-01T00:00:00Z",
+        "message": "Plan/Spec/RED fixture only; no runtime collector or SLO engine is asserted."
+      },
+      "source_commit": "<candidate-source-commit>",
+      "artifact_digest": "sha256:<otel-sample-receipt-artifact-digest>",
+      "reviewer": "<reviewer-id>"
+    },
+    "category_service_rollup": [
+      {
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_contract_ids": [
+          "billing.billing_account",
+          "billing.meter",
+          "billing.quota"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-billing.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_contract_ids": [
+          "platform.cluster_cell",
+          "platform.declarative_api",
+          "platform.reconciler_workflow"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "compute_instances",
+        "service": "cloud-compute",
+        "resource_contract_ids": [
+          "compute.machine_image",
+          "compute.vm_instance"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "containers_kubernetes",
+        "service": "cloud-compute",
+        "resource_contract_ids": [
+          "compute.k8s_cluster",
+          "compute.node_pool"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_contract_ids": [
+          "data.postgres_database",
+          "data.stream",
+          "data.warehouse"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-data.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "identity_access_policy",
+        "service": "cloud-iam",
+        "resource_contract_ids": [
+          "iam.identity_provider",
+          "iam.policy_binding"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-iam.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-kms",
+        "resource_contract_ids": [
+          "kms.key",
+          "kms.key_ring"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-kms.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-secrets",
+        "resource_contract_ids": [
+          "secrets.secret"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-secrets.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "marketplace_isv_ecosystem",
+        "service": "cloud-marketplace",
+        "resource_contract_ids": [
+          "marketplace.catalog_item",
+          "marketplace.installation"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-marketplace.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_contract_ids": [
+          "network.dns_zone",
+          "network.load_balancer",
+          "network.subnet",
+          "network.vpc"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-network.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "observability_operations",
+        "service": "cloud-capacity",
+        "resource_contract_ids": [
+          "observability.event_stream",
+          "observability.slo_tier"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "security_posture_guardrails",
+        "service": "cloud-iam",
+        "resource_contract_ids": [
+          "security.finding",
+          "security.policy_pack"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-iam.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "serverless_functions",
+        "service": "cloud-compute",
+        "resource_contract_ids": [
+          "compute.container",
+          "compute.function"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      },
+      {
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_contract_ids": [
+          "storage.block_volume",
+          "storage.file_share",
+          "storage.object_bucket"
+        ],
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-storage.control_plane_otel_sample_receipt_producer",
+        "producer_status": "plan_spec_red_only",
+        "future_single_path_rule": "A future GREEN/build card must choose this service/resource-category path and serialize cloud/runtime/shared-root edits before implementing emission."
+      }
+    ],
+    "row_to_producer_map": [
+      {
+        "resource_contract_id": "iam.identity_provider",
+        "category_id": "identity_access_policy",
+        "service": "cloud-iam",
+        "resource_type": "IdentityProvider",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-iam.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-iam control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "iam.policy_binding",
+        "category_id": "identity_access_policy",
+        "service": "cloud-iam",
+        "resource_type": "PolicyBinding",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-iam.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-iam control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "compute.vm_instance",
+        "category_id": "compute_instances",
+        "service": "cloud-compute",
+        "resource_type": "VmInstance",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-compute control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "compute.machine_image",
+        "category_id": "compute_instances",
+        "service": "cloud-compute",
+        "resource_type": "MachineImage",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-compute control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "compute.k8s_cluster",
+        "category_id": "containers_kubernetes",
+        "service": "cloud-compute",
+        "resource_type": "K8sCluster",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-compute control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "compute.node_pool",
+        "category_id": "containers_kubernetes",
+        "service": "cloud-compute",
+        "resource_type": "NodePool",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-compute control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "compute.function",
+        "category_id": "serverless_functions",
+        "service": "cloud-compute",
+        "resource_type": "Function",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-compute control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "compute.container",
+        "category_id": "serverless_functions",
+        "service": "cloud-compute",
+        "resource_type": "Container",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-compute.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-compute control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "storage.object_bucket",
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_type": "ObjectBucket",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-storage.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-storage control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "storage.block_volume",
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_type": "BlockVolume",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-storage.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-storage control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "storage.file_share",
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_type": "FileShare",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-storage.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-storage control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "network.vpc",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "Vpc",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-network.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-network control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "network.subnet",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "Subnet",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-network.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-network control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "network.load_balancer",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "LoadBalancer",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-network.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-network control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "network.dns_zone",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "DnsZone",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-network.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-network control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "data.postgres_database",
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_type": "PostgresDatabase",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-data.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-data control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "data.warehouse",
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_type": "Warehouse",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-data.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-data control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "data.stream",
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_type": "Stream",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-data.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-data control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "kms.key_ring",
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-kms",
+        "resource_type": "KeyRing",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-kms.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-kms control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "kms.key",
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-kms",
+        "resource_type": "Key",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-kms.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-kms control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "secrets.secret",
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-secrets",
+        "resource_type": "Secret",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-secrets.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-secrets control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "observability.slo_tier",
+        "category_id": "observability_operations",
+        "service": "cloud-capacity",
+        "resource_type": "SloTier",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-capacity control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "observability.event_stream",
+        "category_id": "observability_operations",
+        "service": "cloud-capacity",
+        "resource_type": "ControlPlaneEventStream",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-capacity control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "billing.billing_account",
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_type": "BillingAccount",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-billing.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-billing control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "billing.meter",
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_type": "Meter",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-billing.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-billing control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "billing.quota",
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_type": "Quota",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-billing.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-billing control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "marketplace.catalog_item",
+        "category_id": "marketplace_isv_ecosystem",
+        "service": "cloud-marketplace",
+        "resource_type": "CatalogItem",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-marketplace.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-marketplace control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "marketplace.installation",
+        "category_id": "marketplace_isv_ecosystem",
+        "service": "cloud-marketplace",
+        "resource_type": "MarketplaceInstallation",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-marketplace.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-marketplace control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "security.policy_pack",
+        "category_id": "security_posture_guardrails",
+        "service": "cloud-iam",
+        "resource_type": "SecurityPolicyPack",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-iam.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-iam control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "security.finding",
+        "category_id": "security_posture_guardrails",
+        "service": "cloud-iam",
+        "resource_type": "SecurityFinding",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-iam.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-iam control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "platform.declarative_api",
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_type": "DeclarativeApiSurface",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-capacity control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "platform.reconciler_workflow",
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_type": "ReconcilerWorkflow",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-capacity control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      },
+      {
+        "resource_contract_id": "platform.cluster_cell",
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_type": "ClusterCell",
+        "receipt_type": "otel_trace_metric_log_sample",
+        "otel_receipt_producer": "cloud-capacity.control_plane_otel_sample_receipt_producer",
+        "future_emission_path": "cloud-capacity control-plane operation instrumentation",
+        "producer_status": "plan_spec_red_only",
+        "sample_kinds": [
+          "trace",
+          "metric",
+          "structured_log"
+        ]
+      }
+    ],
+    "future_implementation_boundary": "A future GREEN/build card must choose one category/service path and serialize cloud/runtime/shared-root edits; this packet only fixes the evidence receipt contract and RED fixture."
+  },
+  "audit_chain_correlation_receipt_producer": {
+    "status": "green_shape_valid_not_live",
+    "receipt_type": "audit_chain_correlation_receipt",
+    "owner_task": "t_22dd6002",
+    "claim_tier": "target_non_claim/metadata_green_receipt_shape",
+    "claim_ceiling": {
+      "metadata_only": true,
+      "evidence_contract_only": true,
+      "no_audit_chain_runtime_append_claim": true,
+      "no_runtime_observability_engine": true,
+      "no_measured_slo_claim": true,
+      "no_public_sla_slo_claim": true,
+      "no_status_page_or_incident_workflow_claim": true,
+      "no_production_readiness_claim": true,
+      "no_tenant_workload_readiness": true,
+      "no_hyperscaler_maturity_claim": true
+    },
+    "source_citations": [
+      {
+        "path": "specs/cloud-observability-slo-evidence-contract.json",
+        "json_pointer": "/evidence_vocabulary/correlation_fields and /resource_observability",
+        "use": "Provides audit-chain correlation fields plus all 33 resource rows."
+      },
+      {
+        "path": "specs/cloud-observability-slo-target.json",
+        "lines": "23-26,38-40",
+        "use": "Names lifecycle spans, event bus, audit-chain correlation, and the no measured evidence boundary."
+      },
+      {
+        "task_id": "t_b986aeb8",
+        "use": "Plan/Spec/RED packet defining audit-chain receipt families, RED fixtures, 13 category rollups, and 33 resource rows."
+      }
+    ],
+    "receipt_schema": {
+      "required_fields": [
+        "audit_chain_id",
+        "operation_id",
+        "trace_id",
+        "span_id",
+        "resource_orn",
+        "tenant_account_project",
+        "region_cell",
+        "policy_snapshot",
+        "correlated_receipts",
+        "evidence_digest",
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "mandatory_receipt_metadata": [
+        "source_commit",
+        "artifact_digest",
+        "reviewer"
+      ],
+      "required_policy_snapshot_fields": [
+        "policy_engine",
+        "policy_bundle_digest",
+        "policy_version",
+        "decision_id",
+        "subject",
+        "action",
+        "resource",
+        "effect",
+        "captured_at"
+      ],
+      "minimum_receipt_families": [
+        "operation_outcome_receipt",
+        "lifecycle_transition_receipt",
+        "audit_chain_correlation_receipt",
+        "slo_gate_receipt"
+      ],
+      "correlated_receipts_required": [
+        "operation_outcome_receipt",
+        "lifecycle_transition_receipt",
+        "slo_gate_receipt"
+      ],
+      "consistency_tuple_fields": [
+        "operation_id",
+        "resource_orn",
+        "tenant_account_project",
+        "region_cell",
+        "trace_id",
+        "span_id",
+        "audit_chain_id"
+      ],
+      "policy_snapshot_boundary": "required metadata object only; does not claim live PDP enforcement"
+    },
+    "red_fixture_assertion": {
+      "expected_violations_by_fixture": {
+        "missing_audit_chain_id": [
+          "missing required field: audit_chain_id"
+        ],
+        "mismatched_operation_trace_resource": [
+          "inconsistent operation_outcome_receipt.operation_id",
+          "inconsistent lifecycle_transition_receipt.resource_orn",
+          "inconsistent slo_gate_receipt.trace_id"
+        ],
+        "absent_policy_snapshot": [
+          "missing required field: policy_snapshot"
+        ],
+        "absent_common_provenance": [
+          "missing required field: source_commit",
+          "missing required field: artifact_digest",
+          "missing required field: reviewer"
+        ]
+      },
+      "assertion": "The checker must reject missing audit_chain_id, mismatched operation/resource/trace fields, absent policy_snapshot, and absent source_commit/artifact_digest/reviewer before accepting the GREEN metadata shape."
+    },
+    "example_green_receipt": {
+      "artifact_digest": "sha256:585831aca60f877a0c2aeebd65a0adf829304e64158d8d622ae709766faa686f",
+      "audit_chain_id": "audit-chain:2026-07-01:cloud-iam:identity-provider:create:0001",
+      "claim_ceiling": "example schema shape only; no runtime observability engine, no audit-chain runtime append, no measured SLO, no public SLA/SLO, no status page, no incident workflow, no production-readiness, no tenant-workload readiness, and no hyperscaler-maturity claim",
+      "correlated_receipts": {
+        "lifecycle_transition_receipt": {
+          "artifact_digest": "sha256:585831aca60f877a0c2aeebd65a0adf829304e64158d8d622ae709766faa686f",
+          "audit_chain_id": "audit-chain:2026-07-01:cloud-iam:identity-provider:create:0001",
+          "claim_ceiling": "shape example only; no lifecycle transition evidence claim",
+          "event_type": "cloud.resource.lifecycle_transition.shape_example",
+          "next_state": "N/A-not-emitted-yet",
+          "occurred_at": "N/A-not-emitted-yet",
+          "operation_id": "op-cloud-iam-identity-provider-create-example-0001",
+          "previous_state": "N/A-not-emitted-yet",
+          "producer": "future cloud resource lifecycle controller / reconciler event producer",
+          "receipt_type": "lifecycle_transition_receipt",
+          "region_cell": {
+            "cell": "cell-001",
+            "region": "us-kr-1"
+          },
+          "resource_orn": "orn:oya:cloud-iam:us-kr-1:cell-001:tenant/example-tenant/account/example-account/project/example-project/identity-provider/idp-example-001",
+          "reviewer": "required-on-future-receipts-not-a-runtime-approval",
+          "schema_version": "audit-chain-correlation-receipt.v0.plan-spec-red",
+          "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+          "span_id": "00f067aa0ba902b7",
+          "tenant_account_project": {
+            "account": "example-account",
+            "project": "example-project",
+            "tenant": "example-tenant"
+          },
+          "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
+        },
+        "operation_outcome_receipt": {
+          "artifact_digest": "sha256:585831aca60f877a0c2aeebd65a0adf829304e64158d8d622ae709766faa686f",
+          "audit_chain_id": "audit-chain:2026-07-01:cloud-iam:identity-provider:create:0001",
+          "claim_ceiling": "shape example only; no runtime operation outcome claim",
+          "event_type": "cloud.control_plane.operation_outcome.shape_example",
+          "occurred_at": "N/A-not-emitted-yet",
+          "operation_id": "op-cloud-iam-identity-provider-create-example-0001",
+          "outcome": "shape_example_not_runtime_evidence",
+          "producer": "future cloud resource operation ledger / control-plane event producer",
+          "receipt_type": "operation_outcome_receipt",
+          "region_cell": {
+            "cell": "cell-001",
+            "region": "us-kr-1"
+          },
+          "resource_orn": "orn:oya:cloud-iam:us-kr-1:cell-001:tenant/example-tenant/account/example-account/project/example-project/identity-provider/idp-example-001",
+          "reviewer": "required-on-future-receipts-not-a-runtime-approval",
+          "schema_version": "audit-chain-correlation-receipt.v0.plan-spec-red",
+          "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+          "span_id": "00f067aa0ba902b7",
+          "tenant_account_project": {
+            "account": "example-account",
+            "project": "example-project",
+            "tenant": "example-tenant"
+          },
+          "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
+        },
+        "slo_gate_receipt": {
+          "artifact_digest": "sha256:585831aca60f877a0c2aeebd65a0adf829304e64158d8d622ae709766faa686f",
+          "audit_chain_id": "audit-chain:2026-07-01:cloud-iam:identity-provider:create:0001",
+          "claim_ceiling": "shape example only; no measured SLO or promotion decision claim",
+          "event_type": "cloud.slo_gate.decision.shape_example",
+          "occurred_at": "N/A-not-emitted-yet",
+          "operation_id": "op-cloud-iam-identity-provider-create-example-0001",
+          "producer": "future OpenSLO/progressive delivery gate consumer; runtime owned by RELEASE/RESILIENCE lanes",
+          "promotion_stage": "N/A-not-promoting-yet",
+          "query_digest": "sha256:7ad5511eb326c29b45f1fe8f3f143eaa472cf139af42d2299b2f0b7d4df0588e",
+          "receipt_type": "slo_gate_receipt",
+          "region_cell": {
+            "cell": "cell-001",
+            "region": "us-kr-1"
+          },
+          "resource_orn": "orn:oya:cloud-iam:us-kr-1:cell-001:tenant/example-tenant/account/example-account/project/example-project/identity-provider/idp-example-001",
+          "reviewer": "required-on-future-receipts-not-a-runtime-approval",
+          "schema_version": "audit-chain-correlation-receipt.v0.plan-spec-red",
+          "slo_gate_result": "N/A-not-measured-yet",
+          "slo_id": "cloud-iam.identity-provider.availability.example-shape-only",
+          "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+          "span_id": "00f067aa0ba902b7",
+          "tenant_account_project": {
+            "account": "example-account",
+            "project": "example-project",
+            "tenant": "example-tenant"
+          },
+          "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
+        }
+      },
+      "evidence_digest": "sha256:fb640ed4553db937107e3d76a17099753ffcd8b3da191eee6da8a0467bb445fc",
+      "operation_id": "op-cloud-iam-identity-provider-create-example-0001",
+      "policy_snapshot": {
+        "action": "cloud-iam:CreateIdentityProvider",
+        "captured_at": "N/A-not-emitted-yet",
+        "decision_id": "policy-decision-shape-example-0001",
+        "effect": "N/A-not-runtime-authorization",
+        "policy_bundle_digest": "sha256:8921f666f49def3bbd790adb5d7add2b3537dd40944087e0439424b984b93c0e",
+        "policy_engine": "Cedar target contract; no live PDP claim",
+        "policy_version": "N/A-not-runtime-policy",
+        "resource": "orn:oya:cloud-iam:us-kr-1:cell-001:tenant/example-tenant/account/example-account/project/example-project/identity-provider/idp-example-001",
+        "subject": "principal:example-operator"
+      },
+      "receipt_status": "shape_example_not_live_evidence",
+      "receipt_type": "audit_chain_correlation_receipt",
+      "region_cell": {
+        "cell": "cell-001",
+        "region": "us-kr-1"
+      },
+      "resource_orn": "orn:oya:cloud-iam:us-kr-1:cell-001:tenant/example-tenant/account/example-account/project/example-project/identity-provider/idp-example-001",
+      "reviewer": "required-on-future-receipts-not-a-runtime-approval",
+      "schema_version": "audit-chain-correlation-receipt.v0.plan-spec-red",
+      "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+      "span_id": "00f067aa0ba902b7",
+      "tenant_account_project": {
+        "account": "example-account",
+        "project": "example-project",
+        "tenant": "example-tenant"
+      },
+      "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
+    },
+    "row_to_producer_map": [
+      {
+        "resource_contract_id": "iam.identity_provider",
+        "category_id": "identity_access_policy",
+        "service": "cloud-iam",
+        "resource_type": "IdentityProvider",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/iam-identity_provider/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "iam.policy_binding",
+        "category_id": "identity_access_policy",
+        "service": "cloud-iam",
+        "resource_type": "PolicyBinding",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/iam-policy_binding/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "compute.vm_instance",
+        "category_id": "compute_instances",
+        "service": "cloud-compute",
+        "resource_type": "VmInstance",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/compute-vm_instance/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "compute.machine_image",
+        "category_id": "compute_instances",
+        "service": "cloud-compute",
+        "resource_type": "MachineImage",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/compute-machine_image/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "compute.k8s_cluster",
+        "category_id": "containers_kubernetes",
+        "service": "cloud-compute",
+        "resource_type": "K8sCluster",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/compute-k8s_cluster/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "compute.node_pool",
+        "category_id": "containers_kubernetes",
+        "service": "cloud-compute",
+        "resource_type": "NodePool",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/compute-node_pool/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "compute.function",
+        "category_id": "serverless_functions",
+        "service": "cloud-compute",
+        "resource_type": "Function",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/compute-function/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "compute.container",
+        "category_id": "serverless_functions",
+        "service": "cloud-compute",
+        "resource_type": "Container",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/compute-container/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "storage.object_bucket",
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_type": "ObjectBucket",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/storage-object_bucket/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "storage.block_volume",
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_type": "BlockVolume",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/storage-block_volume/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "storage.file_share",
+        "category_id": "storage_object_block_file",
+        "service": "cloud-storage",
+        "resource_type": "FileShare",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/storage-file_share/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "network.vpc",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "Vpc",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/network-vpc/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "network.subnet",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "Subnet",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/network-subnet/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "network.load_balancer",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "LoadBalancer",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/network-load_balancer/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "network.dns_zone",
+        "category_id": "networking_dns_edge",
+        "service": "cloud-network",
+        "resource_type": "DnsZone",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/network-dns_zone/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "data.postgres_database",
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_type": "PostgresDatabase",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/data-postgres_database/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "data.warehouse",
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_type": "Warehouse",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/data-warehouse/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "data.stream",
+        "category_id": "databases_data_analytics",
+        "service": "cloud-data",
+        "resource_type": "Stream",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/data-stream/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "kms.key_ring",
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-kms",
+        "resource_type": "KeyRing",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/kms-key_ring/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "kms.key",
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-kms",
+        "resource_type": "Key",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/kms-key/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "secrets.secret",
+        "category_id": "kms_secrets_confidentiality",
+        "service": "cloud-secrets",
+        "resource_type": "Secret",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/secrets-secret/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "observability.slo_tier",
+        "category_id": "observability_operations",
+        "service": "cloud-capacity",
+        "resource_type": "SloTier",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/observability-slo_tier/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "observability.event_stream",
+        "category_id": "observability_operations",
+        "service": "cloud-capacity",
+        "resource_type": "ControlPlaneEventStream",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/observability-event_stream/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "billing.billing_account",
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_type": "BillingAccount",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/billing-billing_account/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "billing.meter",
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_type": "Meter",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/billing-meter/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "billing.quota",
+        "category_id": "billing_finops_quotas",
+        "service": "cloud-billing",
+        "resource_type": "Quota",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/billing-quota/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "marketplace.catalog_item",
+        "category_id": "marketplace_isv_ecosystem",
+        "service": "cloud-marketplace",
+        "resource_type": "CatalogItem",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/marketplace-catalog_item/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "marketplace.installation",
+        "category_id": "marketplace_isv_ecosystem",
+        "service": "cloud-marketplace",
+        "resource_type": "MarketplaceInstallation",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/marketplace-installation/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "security.policy_pack",
+        "category_id": "security_posture_guardrails",
+        "service": "cloud-iam",
+        "resource_type": "SecurityPolicyPack",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/security-policy_pack/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "security.finding",
+        "category_id": "security_posture_guardrails",
+        "service": "cloud-iam",
+        "resource_type": "SecurityFinding",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/security-finding/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "platform.declarative_api",
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_type": "DeclarativeApiSurface",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/platform-declarative_api/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "platform.reconciler_workflow",
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_type": "ReconcilerWorkflow",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/platform-reconciler_workflow/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      },
+      {
+        "resource_contract_id": "platform.cluster_cell",
+        "category_id": "cloud_native_platform_contract",
+        "service": "cloud-capacity",
+        "resource_type": "ClusterCell",
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_pattern": "evidence/audit-chain/platform-cluster_cell/audit-chain-correlation-*.json",
+        "receipt_families": [
+          "operation_outcome_receipt",
+          "lifecycle_transition_receipt",
+          "audit_chain_correlation_receipt",
+          "slo_gate_receipt"
+        ],
+        "producer_boundary": "metadata GREEN shape only; future runtime work must choose one service/resource path and serialize shared evidence/audit-chain writes"
+      }
+    ],
+    "category_rollup_coverage": [
+      {
+        "category_id": "billing_finops_quotas",
+        "resource_contract_ids": [
+          "billing.billing_account",
+          "billing.meter",
+          "billing.quota"
+        ],
+        "services": [
+          "cloud-billing"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/billing-billing_account/audit-chain-correlation-*.json",
+          "evidence/audit-chain/billing-meter/audit-chain-correlation-*.json",
+          "evidence/audit-chain/billing-quota/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "cloud_native_platform_contract",
+        "resource_contract_ids": [
+          "platform.cluster_cell",
+          "platform.declarative_api",
+          "platform.reconciler_workflow"
+        ],
+        "services": [
+          "cloud-capacity"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/platform-cluster_cell/audit-chain-correlation-*.json",
+          "evidence/audit-chain/platform-declarative_api/audit-chain-correlation-*.json",
+          "evidence/audit-chain/platform-reconciler_workflow/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "compute_instances",
+        "resource_contract_ids": [
+          "compute.machine_image",
+          "compute.vm_instance"
+        ],
+        "services": [
+          "cloud-compute"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/compute-machine_image/audit-chain-correlation-*.json",
+          "evidence/audit-chain/compute-vm_instance/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "containers_kubernetes",
+        "resource_contract_ids": [
+          "compute.k8s_cluster",
+          "compute.node_pool"
+        ],
+        "services": [
+          "cloud-compute"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/compute-k8s_cluster/audit-chain-correlation-*.json",
+          "evidence/audit-chain/compute-node_pool/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "databases_data_analytics",
+        "resource_contract_ids": [
+          "data.postgres_database",
+          "data.stream",
+          "data.warehouse"
+        ],
+        "services": [
+          "cloud-data"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/data-postgres_database/audit-chain-correlation-*.json",
+          "evidence/audit-chain/data-stream/audit-chain-correlation-*.json",
+          "evidence/audit-chain/data-warehouse/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "identity_access_policy",
+        "resource_contract_ids": [
+          "iam.identity_provider",
+          "iam.policy_binding"
+        ],
+        "services": [
+          "cloud-iam"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/iam-identity_provider/audit-chain-correlation-*.json",
+          "evidence/audit-chain/iam-policy_binding/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "kms_secrets_confidentiality",
+        "resource_contract_ids": [
+          "kms.key",
+          "kms.key_ring",
+          "secrets.secret"
+        ],
+        "services": [
+          "cloud-kms",
+          "cloud-secrets"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/kms-key/audit-chain-correlation-*.json",
+          "evidence/audit-chain/kms-key_ring/audit-chain-correlation-*.json",
+          "evidence/audit-chain/secrets-secret/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "marketplace_isv_ecosystem",
+        "resource_contract_ids": [
+          "marketplace.catalog_item",
+          "marketplace.installation"
+        ],
+        "services": [
+          "cloud-marketplace"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/marketplace-catalog_item/audit-chain-correlation-*.json",
+          "evidence/audit-chain/marketplace-installation/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "networking_dns_edge",
+        "resource_contract_ids": [
+          "network.dns_zone",
+          "network.load_balancer",
+          "network.subnet",
+          "network.vpc"
+        ],
+        "services": [
+          "cloud-network"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/network-dns_zone/audit-chain-correlation-*.json",
+          "evidence/audit-chain/network-load_balancer/audit-chain-correlation-*.json",
+          "evidence/audit-chain/network-subnet/audit-chain-correlation-*.json",
+          "evidence/audit-chain/network-vpc/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "observability_operations",
+        "resource_contract_ids": [
+          "observability.event_stream",
+          "observability.slo_tier"
+        ],
+        "services": [
+          "cloud-capacity"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/observability-event_stream/audit-chain-correlation-*.json",
+          "evidence/audit-chain/observability-slo_tier/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "security_posture_guardrails",
+        "resource_contract_ids": [
+          "security.finding",
+          "security.policy_pack"
+        ],
+        "services": [
+          "cloud-iam"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/security-finding/audit-chain-correlation-*.json",
+          "evidence/audit-chain/security-policy_pack/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "serverless_functions",
+        "resource_contract_ids": [
+          "compute.container",
+          "compute.function"
+        ],
+        "services": [
+          "cloud-compute"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/compute-container/audit-chain-correlation-*.json",
+          "evidence/audit-chain/compute-function/audit-chain-correlation-*.json"
+        ]
+      },
+      {
+        "category_id": "storage_object_block_file",
+        "resource_contract_ids": [
+          "storage.block_volume",
+          "storage.file_share",
+          "storage.object_bucket"
+        ],
+        "services": [
+          "cloud-storage"
+        ],
+        "receipt_type": "audit_chain_correlation_receipt",
+        "producer_status": "green_shape_valid_not_live",
+        "audit_chain_receipt_patterns": [
+          "evidence/audit-chain/storage-block_volume/audit-chain-correlation-*.json",
+          "evidence/audit-chain/storage-file_share/audit-chain-correlation-*.json",
+          "evidence/audit-chain/storage-object_bucket/audit-chain-correlation-*.json"
+        ]
+      }
+    ],
+    "consumer_boundaries": {
+      "SREOPS": "future consumer of service health, incident/postmortem/status, and error-budget evidence; this block does not make those workflows live",
+      "TrustCenter": "future consumer of tenant-scoped evidence/audit-chain references; this block does not implement portal/API/certification output",
+      "RESILIENCE": "future consumer for chaos/status/brownout/SLO replay; this block does not implement runtime control loops"
+    },
+    "future_implementation_boundary": "contract/checker metadata only; no runtime observability engine, audit-chain append runtime, measured SLO, public SLA/SLO, status page, incident workflow, production-readiness, tenant-workload readiness, or hyperscaler-maturity claim"
   },
   "resource_observability": [
     {

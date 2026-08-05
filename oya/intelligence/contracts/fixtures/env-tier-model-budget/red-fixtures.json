@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0",
+  "fixture_suite_id": "intelligence-env-tier-model-budget-red-fixtures-v1",
+  "status": "plan_spec_red",
+  "contract_under_test": "oya/intelligence/contracts/env-tier-model-budget-contract.json",
+  "claim_ceiling": [
+    "known-bad fixtures only",
+    "no runtime implementation",
+    "no production traffic",
+    "no provider calls",
+    "no hyperscaler claim"
+  ],
+  "red_until": "A later Build card implements and reviews runtime/domain/schema enforcement for each expected denial.",
+  "fixtures": [
+    {
+      "name": "missing_env_tier_denies_before_model_selection",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_demo",
+        "model_default_policy_ref": "policy:intelligence.env-tier.model-default.test.v1",
+        "tier_cost_budget_policy_ref": "policy:intelligence.env-tier.cost-budget.test.v1",
+        "tier_cost_budget_evidence_ref": "budget:intelligence:test:demo:2026-07-01",
+        "model_route_registry_snapshot_ref": "route-registry:intelligence:env-tier:v1",
+        "policy_decision_ref": "policy-decision:intelligence:test:allow",
+        "trace_context_ref": "trace:intelligence:missing-env-tier"
+      },
+      "expected_denial": {
+        "rule_id": "ENV-TIER-REQUIRED",
+        "reason": "missing_env_tier",
+        "deny_before": [
+          "model-routing candidate selection",
+          "credential resolution",
+          "cloud-intelligence provider dispatch"
+        ]
+      },
+      "future_test_ref": "oya-intelligence-model-routing-domain::env_tier_is_required_before_route_selection"
+    },
+    {
+      "name": "test_tier_rejects_production_grade_default",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_demo",
+        "env_tier": "test",
+        "model_default_class": "production_grade_selection",
+        "model_profile_tags": [
+          "production_grade",
+          "prod_approved",
+          "slo_backed"
+        ],
+        "model_default_policy_ref": "policy:intelligence.env-tier.model-default.prod.v1",
+        "tier_cost_budget_policy_ref": "policy:intelligence.env-tier.cost-budget.test.v1",
+        "tier_cost_budget_evidence_ref": "budget:intelligence:test:demo:2026-07-01",
+        "model_route_registry_snapshot_ref": "route-registry:intelligence:env-tier:v1",
+        "policy_decision_ref": "policy-decision:intelligence:test:deny-prod-default",
+        "trace_context_ref": "trace:intelligence:test-prod-default"
+      },
+      "expected_denial": {
+        "rule_id": "TIER-MODEL-DEFAULT-MATCH",
+        "reason": "wrong_model_default_for_tier",
+        "deny_before": [
+          "provider route selection",
+          "production model traffic"
+        ]
+      },
+      "future_test_ref": "oya-intelligence-model-routing-domain::test_tier_requires_small_cheap_non_prod_default"
+    },
+    {
+      "name": "prod_tier_rejects_missing_cost_budget_evidence",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_demo",
+        "env_tier": "prod",
+        "model_default_class": "production_grade_selection",
+        "model_profile_tags": [
+          "production_grade",
+          "prod_approved",
+          "slo_backed",
+          "eval_gate_passed"
+        ],
+        "model_default_policy_ref": "policy:intelligence.env-tier.model-default.prod.v1",
+        "tier_cost_budget_policy_ref": "policy:intelligence.env-tier.cost-budget.prod.v1",
+        "model_route_registry_snapshot_ref": "route-registry:intelligence:env-tier:v1",
+        "policy_decision_ref": "policy-decision:intelligence:prod:deny-missing-budget",
+        "trace_context_ref": "trace:intelligence:prod-missing-budget"
+      },
+      "expected_denial": {
+        "rule_id": "TIER-BUDGET-EVIDENCE-REQUIRED",
+        "reason": "missing_per_tier_cost_budget_evidence",
+        "deny_before": [
+          "credential handle issuance",
+          "cloud-intelligence provider dispatch",
+          "usage metering as admitted traffic"
+        ]
+      },
+      "future_test_ref": "oya-intelligence-model-routing-usecase::prod_tier_requires_cost_budget_evidence_before_dispatch"
+    },
+    {
+      "name": "foundry_live_authority_resurrection_is_rejected",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_demo",
+        "env_tier": "test",
+        "model_default_class": "small_cheap",
+        "model_profile_tags": [
+          "cheap_or_small",
+          "sandbox_ok",
+          "non_prod_only"
+        ],
+        "model_default_policy_ref": "foundry:cost-budget.md#test_tier_model_default",
+        "tier_cost_budget_policy_ref": "foundry:cost-budget.md#per_tier_budget",
+        "tier_cost_budget_evidence_ref": "budget:intelligence:test:demo:2026-07-01",
+        "model_route_registry_snapshot_ref": "specs/microservices/foundry.json#live-authority",
+        "policy_decision_ref": "policy-decision:intelligence:test:deny-foundry-resurrection",
+        "trace_context_ref": "trace:intelligence:foundry-resurrection"
+      },
+      "expected_denial": {
+        "rule_id": "FOUNDRY-LIVE-AUTHORITY-FORBIDDEN",
+        "reason": "foundry_live_authority_resurrection",
+        "deny_before": [
+          "retired foundry manifest consumption",
+          "new foundry crate/service generation",
+          "model-routing policy admission"
+        ]
+      },
+      "future_test_ref": "oya-intelligence-model-routing-domain::retired_foundry_authority_refs_are_denied"
+    }
+  ]
+}

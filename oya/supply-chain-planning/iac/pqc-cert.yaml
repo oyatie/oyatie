@@ -1,7 +1,12 @@
+# Claim boundary: target/provenance inventory only; no certificate issuance,
+# tenant namespace readiness, TLS readiness, or live deployment is claimed.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: oya-supply-chain-planning-pqc
+  annotations:
+    oyatie.com/claim-boundary: target-provenance-only
+    oyatie.com/no-live-cert-readiness: "true"
 spec:
   secretName: oya-supply-chain-planning-tls
   commonName: supply-chain-planning.svc.oyatie.example

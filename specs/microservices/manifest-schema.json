@@ -517,6 +517,14 @@
         }
       }
     },
+    "multi_region_disposition": {
+      "description": "ADR-0158 / /specs/multi-region-disposition-canonical.json — Accepted per-µservice multi-region disposition declaration. The canonical spec marks this manifest field required and pairs it with a same-root `multi-region.md` companion document; this schema admits the field now so `additionalProperties=false` manifests can declare it while the corpus-wide readiness gate fills current oya/cloud roots and promotes hard-required enforcement through the future cloud-ci/Rust gate packet `multi-region-disposition`.",
+      "enum": [
+        "active_active",
+        "active_passive",
+        "single_region"
+      ]
+    },
     "outbox_required": {
       "description": "ADR-0153 — Whether the µservice MUST integrate the transactional outbox pattern. True for the five charter carriers (messenger, mail, social, tasks, calendar) first; expanding across all event-emitters.",
       "type": "boolean"
@@ -1182,6 +1190,306 @@
         "notes": {
           "type": "string",
           "description": "Free-text justification of declared values; recommended for substance-bar evidence per ADR-0322."
+        }
+      }
+    },
+    "sustainability_emission_model": {
+      "description": "ADR-0344 D-2 — Advisory per-µservice sustainability emission model declaration. Workload-emitting µservices declare this top-level block before per-service fanout; values are bespoke per service and do not create a live FinOps, billing, OpenCost/FOCUS, regulator-export, or cost-readiness claim until ADR-0344 is Accepted or explicitly promoted. The schema admits the authority shape only; oya-check-sustainability-emission-model owns report-only/template-stamp refusal semantics before any future BLOCKER promotion.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pod_runtime_tier_ref",
+        "power_model",
+        "price_model",
+        "workload_signal_source",
+        "emission_path_tests",
+        "validation_baseline"
+      ],
+      "properties": {
+        "pod_runtime_tier_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Reference to this manifest's pod_runtime_tier declaration; canonical value is self.pod_runtime_tier unless an authority-approved source ref is needed."
+        },
+        "power_model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cpu_watts_per_vcpu_second",
+            "memory_watts_per_gib_second",
+            "storage_watts_per_gib_hour",
+            "network_watts_per_gib",
+            "tier_overhead_factor"
+          ],
+          "properties": {
+            "cpu_watts_per_vcpu_second": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Positive, per-service calibrated CPU watt coefficient; ADR-0344 examples are illustrative and are not calibration evidence."
+            },
+            "memory_watts_per_gib_second": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Positive, per-service calibrated memory watt coefficient; ADR-0344 examples are illustrative and are not calibration evidence."
+            },
+            "storage_watts_per_gib_hour": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Non-negative, per-service calibrated storage watt coefficient for the service's storage profile."
+            },
+            "network_watts_per_gib": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Non-negative, per-service calibrated network watt coefficient for the service's network path."
+            },
+            "tier_overhead_factor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "tier_0_kata_clh",
+                "tier_1_kata_clh",
+                "tier_2_runc",
+                "tier_3_runc_edge"
+              ],
+              "properties": {
+                "tier_0_kata_clh": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 1.4,
+                  "description": "ADR-0344/ADR-0338 default overhead factor for Tier 0 Kata + Cloud Hypervisor; default is authority metadata, not per-service evidence."
+                },
+                "tier_1_kata_clh": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 1.4,
+                  "description": "ADR-0344/ADR-0338 default overhead factor for Tier 1 Kata + Cloud Hypervisor; default is authority metadata, not per-service evidence."
+                },
+                "tier_2_runc": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 1.0,
+                  "description": "ADR-0344/ADR-0338 default overhead factor for Tier 2 runc baseline; default is authority metadata, not per-service evidence."
+                },
+                "tier_3_runc_edge": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 1.05,
+                  "description": "ADR-0344/ADR-0338 default overhead factor for Tier 3 edge/perf runc; default is authority metadata, not per-service evidence."
+                }
+              }
+            }
+          }
+        },
+        "price_model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "binding",
+            "pin_window_hours"
+          ],
+          "properties": {
+            "source": {
+              "enum": [
+                "provider_sku_pricing"
+              ],
+              "description": "Current closed authority source. Additional sources require ADR/spec promotion before being admitted here."
+            },
+            "binding": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Repo path or authority-approved reference to the provider SKU/pricing binding; must not mutate invoices, chargeback, cost allocation, or live billing data."
+            },
+            "pin_window_hours": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "description": "Pricing pin window in hours; ADR-0344 example uses one hour."
+            }
+          }
+        },
+        "workload_signal_source": {
+          "description": "Concrete service-specific signal family and source binding used to convert workload activity to watt-hours. A string source-ref is allowed for existing manifests; structured declarations must name the signal family.",
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "signal_family",
+                "source_ref"
+              ],
+              "properties": {
+                "signal_family": {
+                  "enum": [
+                    "per_message",
+                    "per_query",
+                    "per_workflow_run",
+                    "per_request",
+                    "per_capability",
+                    "media_minutes",
+                    "storage_byte_hour",
+                    "network_gib"
+                  ]
+                },
+                "source_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          ]
+        },
+        "emission_path_tests": {
+          "description": "Test, fixture, or target path(s) proving the service emission path populates cost, CO2, watt-hours, provider, and region within tolerance. Shape-only green is insufficient.",
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "validation_baseline": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "expected_watt_hours_per_request_p50_mwh",
+            "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh",
+            "tolerance_pct"
+          ],
+          "properties": {
+            "expected_watt_hours_per_request_p50_mwh": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Per-service deterministic p50 fixture baseline in mWh; not a measured production claim without supporting IP/evidence."
+            },
+            "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Per-service deterministic p50 CO2 fixture baseline at 400 gCO2/kWh; not a measured production claim without supporting IP/evidence."
+            },
+            "tolerance_pct": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "default": 20,
+              "description": "Default ±20 percent tolerance per ADR-0344; per-service IPs may tighten with evidence."
+            }
+          }
+        }
+      },
+      "not": {
+        "description": "Refuse the exact ADR-0344 illustrative block from D-2.2; per-service declarations must be bespoke and oya-check-sustainability-emission-model owns deeper template-stamp refusal.",
+        "required": [
+          "pod_runtime_tier_ref",
+          "power_model",
+          "price_model",
+          "workload_signal_source",
+          "emission_path_tests",
+          "validation_baseline"
+        ],
+        "properties": {
+          "pod_runtime_tier_ref": {
+            "const": "self.pod_runtime_tier"
+          },
+          "power_model": {
+            "required": [
+              "cpu_watts_per_vcpu_second",
+              "memory_watts_per_gib_second",
+              "storage_watts_per_gib_hour",
+              "network_watts_per_gib",
+              "tier_overhead_factor"
+            ],
+            "properties": {
+              "cpu_watts_per_vcpu_second": {
+                "const": 0.5
+              },
+              "memory_watts_per_gib_second": {
+                "const": 0.0025
+              },
+              "storage_watts_per_gib_hour": {
+                "const": 0.0008
+              },
+              "network_watts_per_gib": {
+                "const": 0.06
+              },
+              "tier_overhead_factor": {
+                "required": [
+                  "tier_0_kata_clh",
+                  "tier_1_kata_clh",
+                  "tier_2_runc",
+                  "tier_3_runc_edge"
+                ],
+                "properties": {
+                  "tier_0_kata_clh": {
+                    "const": 1.4
+                  },
+                  "tier_1_kata_clh": {
+                    "const": 1.4
+                  },
+                  "tier_2_runc": {
+                    "const": 1.0
+                  },
+                  "tier_3_runc_edge": {
+                    "const": 1.05
+                  }
+                }
+              }
+            }
+          },
+          "price_model": {
+            "required": [
+              "source",
+              "binding",
+              "pin_window_hours"
+            ],
+            "properties": {
+              "source": {
+                "const": "provider_sku_pricing"
+              },
+              "binding": {
+                "const": "microservices/cloud-billing/pricing-pinned/"
+              },
+              "pin_window_hours": {
+                "const": 1
+              }
+            }
+          },
+          "workload_signal_source": {
+            "const": "observability/per-call-resource-accounting"
+          },
+          "emission_path_tests": {
+            "const": "tests/sustainability/emission_model.rs"
+          },
+          "validation_baseline": {
+            "required": [
+              "expected_watt_hours_per_request_p50_mwh",
+              "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh",
+              "tolerance_pct"
+            ],
+            "properties": {
+              "expected_watt_hours_per_request_p50_mwh": {
+                "const": 12
+              },
+              "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": {
+                "const": 5
+              },
+              "tolerance_pct": {
+                "const": 20
+              }
+            }
+          }
         }
       }
     },

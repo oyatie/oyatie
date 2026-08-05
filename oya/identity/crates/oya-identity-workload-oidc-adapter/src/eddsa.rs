@@ -8,9 +8,9 @@
 //! The harness is deterministic in the sense that each test generates its own
 //! ephemeral key pair — no shared mutable state, no ambient clock reads.
 
+use aws_lc_rs::signature::{Ed25519KeyPair, KeyPair};
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use aws_lc_rs::signature::{Ed25519KeyPair, KeyPair};
 
 use crate::{Jwk, Jwks, OidcValidationError, ValidationConfig, validate_workload_token};
 
@@ -141,7 +141,7 @@ fn rsa_token_against_okp_kid_is_algorithm_mismatch() {
     let ec_key = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
         .expect("load ec key");
     let _public = ec_key.public_key().as_ref();
-    let header = format!(r#"{{"alg":"ES256","typ":"JWT","kid":"kid-ed-1"}}"#);
+    let header = r#"{"alg":"ES256","typ":"JWT","kid":"kid-ed-1"}"#.to_owned();
     let signing_input = format!(
         "{}.{}",
         b64url(header.as_bytes()),

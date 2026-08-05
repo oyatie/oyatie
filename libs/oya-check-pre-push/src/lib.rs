@@ -2,11 +2,10 @@
 //!
 //! Asserts the CLI-surface invariant for the canonical `oya verify`
 //! command: the dev-CLI dispatch source, the Done-Definition, and the
-//! local git hook all agree that `oya verify --ci-required` is the
-//! canonical pre-push / pre-PR verification entry point AND that it
-//! dispatches natively into the Rust `gate run-all --ci-required`
-//! aggregator — not into plain lightweight `oya verify` or a
-//! transitional `.sh` subprocess.
+//! local git hook all agree that `oya verify --pre-push` is the
+//! canonical pre-push self-verify entry point AND that it dispatches
+//! natively into the Rust `verify` handler — not into plain lightweight
+//! `oya verify` or a transitional `.sh` subprocess.
 //!
 //! Naming justification: the crate name `oya-check-pre-push` remains
 //! stable across the `repoctl` retirement so the fitness-lane id
@@ -15,10 +14,10 @@
 //! status check, and the IP-C extracted catalog) stays unchanged
 //! per `feedback_no_silent_regression`. The lane semantics (local-side
 //! pre-push gate) are preserved; only the canonical *command name*
-//! swaps from `repoctl pre-push` to `oya verify --ci-required` because
+//! swaps from `repoctl pre-push` to `oya verify --pre-push` because
 //! `repoctl` is retired and plain `oya verify` is only the lightweight
-//! local gate; the pre-push / pre-PR contract must include hosted
-//! required-check mirrors.
+//! local gate; the pre-push contract must run freshness, generated-face
+//! settle checking, and the Buck2 affected-set before push.
 //! Type `PrePushContractEvidence` retains its name to keep the
 //! lane-internal API stable. Layer enum: this kernel sits on the
 //! `domain` layer (port-in-kernel, ADR-0056); it performs pure
@@ -35,10 +34,10 @@ use std::fmt;
 /// subcommand string to the native `commands::verify::run` handler.
 ///
 /// Plain `oya verify` is intentionally insufficient here: it proves
-/// the local gate catalog only. The `--ci-required` flag proves the
-/// hosted required-check mirrors before a branch can appear green
-/// locally while failing required CI.
-pub const CANONICAL_PRE_PUSH_COMMAND: &str = "oya verify --ci-required";
+/// the local gate catalog only. The `--pre-push` flag proves the
+/// freshness, generated-face settle, and affected-set slice before a
+/// push while protected-branch merge authority remains `oya-ci-required`.
+pub const CANONICAL_PRE_PUSH_COMMAND: &str = "oya verify --pre-push";
 
 /// Subcommand-match-arm literal that the dev-CLI dispatch source must
 /// contain in its top-level command router, confirming that the
@@ -69,9 +68,9 @@ pub struct PrePushContractEvidence<'a> {
     /// Local git hook script contents (the pre-push hook installed
     /// under `.git/hooks/pre-push`, or its source-of-truth file
     /// during the transitional period). Must invoke the canonical
-    /// pre-push / pre-PR command, either by spelling
+    /// pre-push command, either by spelling
     /// `CANONICAL_PRE_PUSH_COMMAND` directly or by invoking
-    /// `cargo run … -p oya-dev-cli -- verify --ci-required` (the
+    /// `cargo run … -p oya-dev-cli -- verify --pre-push` (the
     /// build-from-source equivalent).
     pub hook_script: &'a str, // data_class: INTERNAL_ONLY
 }
@@ -147,9 +146,9 @@ pub fn validate_pre_push_contract(
 
 /// True iff the hook script has a non-comment, non-empty line that
 /// invokes the canonical local-verify command. Accepts both the
-/// installed-binary form (`oya verify --ci-required …`) and the
+/// installed-binary form (`oya verify --pre-push …`) and the
 /// build-from-source form
-/// (`cargo run … -p oya-dev-cli -- verify --ci-required …`) so the
+/// (`cargo run … -p oya-dev-cli -- verify --pre-push …`) so the
 /// same hook works in a workspace clone and in a system with `oya` on
 /// PATH.
 ///
@@ -162,8 +161,8 @@ fn hook_invokes_full_pre_push(hook_script: &str) -> bool {
             return false;
         }
         trimmed.contains(CANONICAL_PRE_PUSH_COMMAND)
-            || trimmed.contains("oya-dev-cli -- verify --ci-required")
-            || trimmed.contains("oya-dev-cli --bin oya -- verify --ci-required")
+            || trimmed.contains("oya-dev-cli -- verify --pre-push")
+            || trimmed.contains("oya-dev-cli --bin oya -- verify --pre-push")
     })
 }
 
@@ -202,7 +201,7 @@ mod tests {
     fn accepts_grounded_pre_push_contract() {
         let report = validate_pre_push_contract(valid_evidence()).expect("contract validates");
 
-        assert_eq!(report.canonical_command, "oya verify --ci-required");
+        assert_eq!(report.canonical_command, "oya verify --pre-push");
         assert_eq!(report.native_verify_dispatch_token, "commands::verify::run");
         assert!(report.done_definition_mentions_command);
         assert!(report.verify_subcommand_wired_in_cli);
@@ -275,12 +274,12 @@ mod tests {
     #[test]
     fn accepts_hook_that_uses_cargo_run_form() {
         // Build-from-source form: the hook in a fresh clone calls
-        // `cargo run -p oya-dev-cli -- verify --ci-required` because
+        // `cargo run -p oya-dev-cli -- verify --pre-push` because
         // `oya` is not yet on PATH. Both forms must satisfy the
         // contract.
         let mut evidence = valid_evidence();
         evidence.hook_script =
-            "cargo run -q -p oya-dev-cli -- verify --ci-required \"$@\" || exit 1\n";
+            "cargo run -q -p oya-dev-cli -- verify --pre-push \"$@\" || exit 1\n";
 
         let report =
             validate_pre_push_contract(evidence).expect("cargo-run hook satisfies the contract");
@@ -289,11 +288,11 @@ mod tests {
 
     fn valid_evidence() -> PrePushContractEvidence<'static> {
         PrePushContractEvidence {
-            done_definition_doc: "- [ ] D12 `oya verify --ci-required` passes.",
+            done_definition_doc: "- [ ] D12 `oya verify --pre-push` passes before push; `oya-ci-required` remains protected PR authority.",
             cli_dispatch_source: "match args.next().as_deref() {\n    \
                  Some(\"verify\") => commands::verify::run(args.collect(), &usage()),\n}\n",
-            hook_script: "oya verify --ci-required \"$@\" || exit 1\n\
-                          # canonical: oya verify --ci-required\n",
+            hook_script: "oya verify --pre-push \"$@\" || exit 1\n\
+                          # canonical: oya verify --pre-push\n",
         }
     }
 }

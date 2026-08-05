@@ -1,0 +1,33 @@
+{{- if .Values.mailProtocolEdge.enabled }}
+{{- range .Values.mailProtocolEdge.routes }}
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: {{ .kind }}
+metadata:
+  name: {{ printf "mail-protocol-%s" .name | trunc 63 | trimSuffix "-" | quote }}
+  namespace: {{ $.Values.mailProtocolEdge.parentRef.namespace | quote }}
+  labels:
+    app.kubernetes.io/name: {{ $.Values.microservice.id | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    oyatie.com/protocol-edge: mail
+    oyatie.com/load-balancer-inventory-classification: authorized_non_http_protocol_edge
+  annotations:
+    oyatie.com/authority-ref: {{ $.Values.mailProtocolEdge.authorityRef | quote }}
+    oyatie.com/non-claim: "route-contract-only-no-live-gateway-controller-load-balancer-or-cluster-mutation"
+    oyatie.com/required-controls: {{ join "," $.Values.mailProtocolEdge.controls | quote }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $.Values.mailProtocolEdge.parentRef.name | quote }}
+      namespace: {{ $.Values.mailProtocolEdge.parentRef.namespace | quote }}
+      sectionName: {{ .sectionName | quote }}
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ .backendService | quote }}
+          namespace: {{ $.Values.mailProtocolEdge.backendNamespace | quote }}
+          port: {{ .backendPort }}
+{{- end }}
+{{- end }}

@@ -13,6 +13,7 @@ oya-http-middleware-kernel = { path = "../oya-http-middleware-kernel" }
 
 [dev-dependencies]
 oya-http-router-kernel = { path = "../oya-http-router-kernel" }
+oya-http-telemetry-middleware-infrastructure = { path = "../oya-http-telemetry-middleware-infrastructure" }
 
 
 [lib]

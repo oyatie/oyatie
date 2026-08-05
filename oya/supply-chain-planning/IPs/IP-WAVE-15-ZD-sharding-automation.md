@@ -11,6 +11,7 @@ rust_code_status: not-authored-in-this-wave
 source_adrs: ADR-0346, ADR-0347, ADR-0348, ADR-0349
 slot_owner: ZF-9
 sharding_role: regulated-workload-owner
+claim_boundary: target/provenance only; no live sharding automation, deployment, SLO/DR readiness, runtime audit-chain emission, tenant namespace readiness, or GA claim
 ---
 # IP-WAVE-15-ZD-sharding-automation: Supply Chain Planning Sharding Automation Stance
 
@@ -20,7 +21,7 @@ SCOPE-002: This is doctrine propagation, not Rust implementation, manifest editi
 SCOPE-003: supply-chain-planning must interpret ADR-0348 through its own bounded context: demand-plan.
 SCOPE-004: supply-chain-planning uses ADR-0346 as the local verifier contract for any downstream implementation PR that turns this plan into code.
 SCOPE-005: supply-chain-planning uses ADR-0347 lane vocabulary, so governance-owned checks cite `oya-governance-*` and not the pre-rename fitness prefix.
-SCOPE-006: supply-chain-planning uses ADR-0349 for self-hostable CI/CD rollout expectations once Wave 15-ZE authors Jenkinsfile, Helm, and ArgoCD surfaces.
+SCOPE-006: supply-chain-planning treats ADR-0349 Jenkins CI wording as historical/provenance after ADR-0515; future owned-runner or ArgoCD surfaces must preserve `oya-ci-required`/CD evidence without reviving Jenkins as live CI authority.
 SCOPE-007: This file records the rollback_path required by ADR-0348's IP-level reversibility lane.
 SCOPE-008: The plan is accepted only when the file remains at least 150 lines and cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
 
@@ -37,18 +38,18 @@ STANCE-009: Current sharding declaration state: manifest already declares shardi
 STANCE-010: Canonical autosharding stance is control_plane_driven; operator-picked placement is not the default for supply-chain-planning.
 STANCE-011: Auto-rebalance stance is residency-honoring before movement; cross-jurisdiction movement requires Cedar permit evidence.
 STANCE-012: Dynamic sharding stance is explicit-threshold only; default-fill is rejected for supply-chain-planning because load characteristics are service-specific.
-STANCE-013: Audit stance is emit-on-every-event; supply-chain-planning must not create silent tenant, cell, or shard transitions.
+STANCE-013: Target audit stance is emit-on-every-event for future activated automation; this doctrine artifact emits no runtime audit-chain rows and must not be read as current transition evidence.
 STANCE-014: Reversibility stance is audit-chain-first; every transition records enough pre_state and post_state to enumerate the inverse operation.
-STANCE-015: Observability stance is metric-triggered; p99, utilization, skew, refusal, and rollback labels must be visible where supply-chain-planning participates.
+STANCE-015: Target observability stance is metric-triggered; p99, utilization, skew, refusal, and rollback labels must be visible only after a future implementation supplies measured evidence. This file claims no current SLO/observability readiness.
 STANCE-016: Routing stance is transaction-boundary switch only; consumers must not observe half-migrated tenant placement.
 STANCE-017: Compliance stance is pack-aware candidate filtering before execution, not after-the-fact audit repair.
-STANCE-018: CI stance is ADR-0346 full-mirror verification before push for downstream code, schema, or workflow changes.
-STANCE-019: CI/CD substrate stance is ADR-0349 Jenkins plus ArgoCD parity once the rollout wave authors deployment surfaces.
+STANCE-018: CI stance is ADR-0515 protected `oya-ci-required` evidence before push/merge; ADR-0346 local verification is optional provenance only.
+STANCE-019: CI/CD substrate stance is ADR-0515 `oya-ci-required` for CI authority; ADR-0349 Jenkins wording is provenance, while separately authorized ArgoCD deployment surfaces remain CD evidence.
 STANCE-020: Governance naming stance is ADR-0347; this IP uses governance lane identifiers consistently.
 
 ## 3. Canonical ADR-0346 Wording
-ADR346-PURPOSE-001: `./bin/oya verify --ci-required` is the canonical local pre-push verifier.
-ADR346-PURPOSE-002: It MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+ADR346-PURPOSE-001: Legacy `./bin/oya verify --ci-required` wording is provenance/local-feedback only after ADR-0515.
+ADR346-PURPOSE-002: ADR-0515 supersedes local mirror authority; branch-protected `oya-ci-required` is the live CI acceptance signal.
 ADR346-PURPOSE-003: Default invocation runs every step; skip flags are limited to `{--skip-fmt, --skip-clippy, --skip-nextest, --skip-gates}`.
 ADR346-PURPOSE-004: Exit-code contract is closed: 0 = ALL passed; 1 = at least one failed; 2 = invalid arguments.
 ADR346-ENFORCED-BY-001: oya-governance-oya-verify-ci-mirror-coverage (new lane; refuses corpus changes to `crates/oya-dev-cli/src/commands/verify.rs` that do not invoke cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all by static analysis; promoted to BLOCKER 14 days post Wave 15-ZA implementation lands)
@@ -70,7 +71,7 @@ ADR348-PURPOSE-001: Cellular topology MUST support three control-plane-driven au
 ADR348-PURPOSE-002: AUTOSHARDING computes tenant-to-cell/shard placement automatically from capacity_model, compliance_pack constraints, ResidencyClass, cell_placement_class, and shuffle sharding.
 ADR348-PURPOSE-003: AUTO-REBALANCE migrates tenants from hot cells to cooler cells while honoring residency and compliance packs.
 ADR348-PURPOSE-004: DYNAMIC SHARDING performs HOT-SPLIT and COLD-MERGE based on explicit per-microservice thresholds.
-ADR348-PURPOSE-005: Every automation event is observable, reversible, and audit-chain-emit per ADR-0263.
+ADR348-PURPOSE-005: Every future activated automation event must be observable, reversible, and audit-chain-emitting per ADR-0263; this IP does not claim current runtime emission.
 ADR348-PURPOSE-006: Every microservice manifest.json gains a `sharding_automation` block declaring per-automation-mode configuration.
 ADR348-ENFORCED-BY-001: oya-governance-sharding-automation-coverage (new lane; refuses any microservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema; allowlist for microservices on the EXEMPT_FROM_CELLULAR list at .omc/state/cellular-exemption-allowlist-2026-05-21.json -- e.g., static-only edge surfaces, no-tenant-state microservices)
 ADR348-ENFORCED-BY-002: oya-governance-autosharding-manual-mode-refusal (new lane; refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual; the canonical autosharding mode is control_plane_driven; a manual-mode exception requires an ADR-amendment to this ADR enumerating the surface justifying the exception)
@@ -80,11 +81,11 @@ ADR348-ENFORCED-BY-005: oya-governance-audit-chain-emit-on-automation-events (ne
 ADR348-ENFORCED-BY-006: oya-governance-tenant-migration-reversibility (new lane; refuses any microservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
 
 ## 6. Canonical ADR-0349 Wording
-ADR349-PURPOSE-001: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-ADR349-PURPOSE-002: Jenkins augments rather than replaces GitHub Actions; GitHub Actions remains the hosted PR review CI surface.
-ADR349-PURPOSE-003: ArgoCD is the canonical GitOps CD orchestrator and replaces manual kubectl apply and manual Helm CLI deploys across all contexts.
-ADR349-PURPOSE-004: Both substrates are provisioned via OpenTofu modules under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/`.
-ADR349-PURPOSE-005: Cosign verification, tenant namespace isolation, JCasC-only Jenkins state, and audit-chain deploy emission are enforced by governance lanes.
+ADR349-PURPOSE-001: ADR-0349 Jenkins CI wording is historical/provenance after ADR-0515; ArgoCD remains separately authorized CD evidence where applicable.
+ADR349-PURPOSE-002: GitHub Actions + branch protection remain the live CI authority until explicit owned-runner cutover preserving `oya-ci-required`.
+ADR349-PURPOSE-003: ArgoCD is target/provenance CD-bridge planning where separately authorized; it is not current cloud activation authority here and does not authorize manual kubectl apply or manual Helm CLI deploys.
+ADR349-PURPOSE-004: Jenkins/Argo substrate module paths under `microservices/cloud-iac/modules/<context>/jenkins/` and `/argocd/` are historical/target provenance unless a later activation card proves current ownership.
+ADR349-PURPOSE-005: Cosign verification, tenant namespace isolation, JCasC-only Jenkins state, and audit-chain deploy emission are future governance-lane requirements, not evidence that this service is deployed or emitting audit-chain rows.
 ADR349-ENFORCED-BY-001: oya-governance-jenkins-github-actions-parity (new lane; refuses Jenkinsfile / .github/workflows drift such that a CI step exists in one surface but not the other across the per-microservice CI-parity contract enumerated in D-3 below; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
 ADR349-ENFORCED-BY-002: oya-governance-argocd-application-cosign-verified (new lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
 ADR349-ENFORCED-BY-003: oya-governance-argocd-tenant-namespace-isolation (new lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243; promoted to BLOCKER 30 days post Wave 15-ZE-completion)
@@ -99,9 +100,9 @@ PLAN-004: Treat cell_placement_class as a filter on candidate cells.
 PLAN-005: Treat compliance packs as hard constraints on candidate target cells.
 PLAN-006: Treat ResidencyClass as a hard boundary unless Cedar permit evidence exists.
 PLAN-007: Record Cedar permit ids on every cross-jurisdiction transition.
-PLAN-008: Emit audit-chain rows for auto_rebalance_migration events.
-PLAN-009: Emit audit-chain rows for dynamic_sharding_hot_split events.
-PLAN-010: Emit audit-chain rows for dynamic_sharding_cold_merge events.
+PLAN-008: Future downstream implementation must emit audit-chain rows for auto_rebalance_migration events; this IP emits none.
+PLAN-009: Future downstream implementation must emit audit-chain rows for dynamic_sharding_hot_split events; this IP emits none.
+PLAN-010: Future downstream implementation must emit audit-chain rows for dynamic_sharding_cold_merge events; this IP emits none.
 PLAN-011: Store pre_state and post_state for every event.
 PLAN-012: Keep rollback invocations separate from first-time placement.
 PLAN-013: Keep operator UI surfaces proposal-only unless the owning service authorizes mutation.
@@ -115,9 +116,9 @@ PLAN-020: Ensure auto_rebalance.honors_residency is true when auto_rebalance is 
 PLAN-021: Ensure auto_rebalance.honors_compliance_packs is true when auto_rebalance is enabled.
 PLAN-022: Ensure audit_chain_emit is true for auto_rebalance when enabled.
 PLAN-023: Ensure audit_chain_emit is true for dynamic_sharding when enabled.
-PLAN-024: Use ADR-0346 verification before any downstream push.
+PLAN-024: Use ADR-0515 `oya-ci-required` evidence before any downstream push/merge; ADR-0346 local verification is optional provenance only.
 PLAN-025: Use ADR-0347 governance lane names in downstream evidence.
-PLAN-026: Use ADR-0349 Jenkins parity when self-hosted CI is introduced.
+PLAN-026: Treat ADR-0349 Jenkins parity as historical; use ADR-0515 owned-runner cutover evidence when self-hosted CI is introduced.
 PLAN-027: Use ADR-0349 ArgoCD cosign verification when deployment manifests are introduced.
 PLAN-028: Keep source-code changes out of this doctrine propagation artifact.
 PLAN-029: Keep manifest edits out of this ZF-9 path; ZF-8 owns manifest propagation.
@@ -131,7 +132,7 @@ PLAN-036: Keep capability edits out of this ZF-9 path; ZF-16 owns capability pro
 
 ## 8. rollback_path
 ROLLBACK-001: rollback_path exists to satisfy ADR-0348 IP-level reversibility documentation.
-ROLLBACK-002: For supply-chain-planning, rollback starts from the audit-chain row that recorded the automation event.
+ROLLBACK-002: For future activated supply-chain-planning automation, rollback starts from the audit-chain row that recorded the automation event; no such row is claimed by this IP.
 ROLLBACK-003: Read event_type to distinguish auto_rebalance_migration, dynamic_sharding_hot_split, and dynamic_sharding_cold_merge.
 ROLLBACK-004: Read pre_state as the authoritative inverse target; do not reconstruct from current topology guesses.
 ROLLBACK-005: Re-evaluate Cedar with rollback intent and tenant context before mutating state.
@@ -139,7 +140,7 @@ ROLLBACK-006: For auto_rebalance_migration, move tenant assignment from cell_tar
 ROLLBACK-007: For hot_split, cold-merge the two sub-shards recorded as the split output when safety checks permit.
 ROLLBACK-008: For cold_merge, hot-split the merged shard back to the pre_state shard pair when safety checks permit.
 ROLLBACK-009: Switch routing only at the same transaction boundary as the inverse state transition.
-ROLLBACK-010: Emit a new audit-chain row with rollback_of_event_id pointing to the original automation event.
+ROLLBACK-010: Future rollback implementation must emit a new audit-chain row with rollback_of_event_id pointing to the original automation event; this doctrine artifact emits none.
 ROLLBACK-011: Notify observability with success or refusal and bounded labels.
 ROLLBACK-012: If rollback is refused, escalate as an operator-visible refusal; do not silently retry without new evidence.
 
@@ -148,7 +149,7 @@ VERIFY-001: Static read confirms this file cites ADR-0346 by exact ID.
 VERIFY-002: Static read confirms this file cites ADR-0347 by exact ID.
 VERIFY-003: Static read confirms this file cites ADR-0348 by exact ID.
 VERIFY-004: Static read confirms this file cites ADR-0349 by exact ID.
-VERIFY-005: Static read confirms at least one ADR-0346 enforced_by lane appears.
+VERIFY-005: Static read confirms ADR-0346 verifier lanes, if present, are labeled historical/local-feedback after ADR-0515.
 VERIFY-006: Static read confirms at least one ADR-0347 enforced_by lane appears.
 VERIFY-007: Static read confirms at least one ADR-0348 enforced_by lane appears.
 VERIFY-008: Static read confirms at least one ADR-0349 enforced_by lane appears.
@@ -159,7 +160,7 @@ VERIFY-012: Static read confirms sharding role is service-specific.
 VERIFY-013: Static read confirms owner team is service-specific.
 VERIFY-014: Static read confirms bounded context is service-specific.
 VERIFY-015: Static read confirms capacity or placement input is service-specific.
-VERIFY-016: Downstream implementation must run ADR-0346 full mirror before push.
+VERIFY-016: Downstream implementation must provide ADR-0515 `oya-ci-required` evidence before push/merge; ADR-0346 legacy local-feedback output is optional provenance only.
 VERIFY-017: Downstream implementation must prove autosharding mode is control_plane_driven.
 VERIFY-018: Downstream implementation must prove auto_rebalance honors residency.
 VERIFY-019: Downstream implementation must prove compliance-pack filtering before migration.
@@ -189,8 +190,8 @@ ACCEPT-010: The file includes rollback_path as a section heading.
 ACCEPT-011: The file keeps this wave documentation-only.
 ACCEPT-012: The file does not edit another agent slot artifact type.
 ACCEPT-013: The file cites governance lane vocabulary from ADR-0347.
-ACCEPT-014: The file cites full CI mirror expectations from ADR-0346.
-ACCEPT-015: The file cites Jenkins plus ArgoCD substrate expectations from ADR-0349.
+ACCEPT-014: The file cites ADR-0346 only as legacy local-feedback provenance amended by ADR-0515.
+ACCEPT-015: The file cites ADR-0349 Jenkins wording only as historical provenance and separates any current ArgoCD CD evidence.
 ACCEPT-016: The file declares microservice-specific owner and role context.
 ACCEPT-017: The file names bounded context evidence from the manifest when present.
 ACCEPT-018: The file names capacity or placement input from the manifest when present.

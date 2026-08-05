@@ -1,12 +1,18 @@
+# Preview planning inventory only. This file is not current deployment
+# authority for treasury and does not claim cloud deployment, production
+# readiness, durable persistence, or runtime audit-chain emission.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oya-treasury
+  annotations:
+    oyatie.com/authority-scope: preview-planning-non-authoritative
+    oyatie.com/non-claim: no-cloud-deployment-no-production-readiness
   labels:
     app: oya-treasury
     sap-code: "TRM"
 spec:
-  replicas: 3
+  replicas: 0
   selector:
     matchLabels:
       app: oya-treasury

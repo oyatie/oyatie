@@ -46,9 +46,9 @@
     "$ref:specs/microservices/ontology.json#frontend_components"
   ],
   "verification_commands": [
-    "target/debug/oya gate validate product-prd-json",
+    "cloud-ci/Rust gate packet: product-prd-json",
     "python3 -m json.tool specs/design-system/<component>.json",
-    "target/debug/oya gate validate active-artifact-contract"
+    "cloud-ci/Rust gate packet: active-artifact-contract"
   ],
   "sources_scanned": [
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

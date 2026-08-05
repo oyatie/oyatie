@@ -1,3 +1,4 @@
+# Preview planning inventory only; not service deployment authority.
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,6 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
     app.kubernetes.io/part-of: oyatie-microservices
+    oyatie.com/authority-scope: preview-planning-non-authoritative
     oyatie.com/adr-0349: argocd-managed
 spec:
   type: {{ .Values.service.type | quote }}

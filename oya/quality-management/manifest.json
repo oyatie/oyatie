@@ -310,6 +310,39 @@
     "cell_placement_class": "Tier-3",
     "notes": "Inspection, audit-evidence, and quality-hold surfaces scale by enabled capability."
   },
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.36,
+      "memory_watts_per_gib_second": 0.0027,
+      "storage_watts_per_gib_hour": 0.00086,
+      "network_watts_per_gib": 0.064,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/manifest.json#provider-sku-pricing-advisory-binding",
+      "pin_window_hours": 24
+    },
+    "workload_signal_source": {
+      "signal_family": "per_capability",
+      "source_ref": "oya/quality-management/manifest.json#audit_chain.seal_events:EVT-QUALITY_MANAGEMENT-INSPECTION_LOT-CHANGED+EVT-QUALITY_MANAGEMENT-QUALITY_HOLD-CHANGED+EVT-QUALITY_MANAGEMENT-AUDIT_EVIDENCE-CHANGED"
+    },
+    "emission_path_tests": [
+      "oya/quality-management/crates/oya-quality-management-domain/tests/quality_management.rs",
+      "SPEC-FINOPS-EMISSION-BATCH-ERP-OPS-001 fixture-only: inspection, nonconformance/CAPA, and audit-evidence assertions must add cost/co2/watt_hours/provider/region before any live FinOps claim"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 5.8,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.00232,
+      "tolerance_pct": 20
+    }
+  },
   "sharding_automation": {
     "autosharding": "control_plane_driven",
     "auto_rebalance": {

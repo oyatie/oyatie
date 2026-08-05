@@ -33,7 +33,8 @@
   ],
   "ips": [
     {"id": "ADR-0376", "title": "Oyatie managed-Kubernetes product surface", "acceptance_status": "accepted", "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"},
-    {"id": "IP-001-managed-k8s-tenant-quota", "title": "IP-001: managed-k8s tenant-quota kernel + QuotaDecision port + adapters + app", "acceptance_status": "ga", "file": "microservices/managed-k8s-tenant-quota/IP-001-managed-k8s-tenant-quota.md"}
+    {"id": "IP-001-managed-k8s-tenant-quota", "title": "IP-001: managed-k8s tenant-quota kernel + QuotaDecision port + adapters + app", "acceptance_status": "ga", "file": "microservices/managed-k8s-tenant-quota/IP-001-managed-k8s-tenant-quota.md"},
+    {"id": "IP-sustainability-emission-model", "title": "IP: tenant-quota sustainability emission model planning fixture", "acceptance_status": "advisory-plan-spec", "file": "cloud/managed-k8s-tenant-quota/IPs/IP-sustainability-emission-model.md"}
   ],
   "regulatory_packs": ["kr","eu","us","jp","sg","au","in","br","ae","ksa"],
   "lts_pins": {"rust": "1.83"},
@@ -53,6 +54,7 @@
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "Pure quota enforcement kernel + in-memory adapters; no database, no external I/O on the hot path. ADR-0083 Tier-3.",
   "pod_runtime_tier_surface_evidence": ["microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs"],
+  "sustainability_emission_model": {"pod_runtime_tier_ref": "self.pod_runtime_tier", "power_model": {"cpu_watts_per_vcpu_second": 0.12, "memory_watts_per_gib_second": 0.0006, "storage_watts_per_gib_hour": 0.0, "network_watts_per_gib": 0.012, "tier_overhead_factor": {"tier_0_kata_clh": 1.4, "tier_1_kata_clh": 1.4, "tier_2_runc": 1.0, "tier_3_runc_edge": 1.05}}, "price_model": {"source": "provider_sku_pricing", "binding": "cloud/cloud-billing/README.md:56-75; cloud/cloud-billing/implementation-plans/IP-004-composable-billing-components.md:91-107", "pin_window_hours": 1}, "workload_signal_source": {"signal_family": "per_request", "source_ref": "cloud/managed-k8s-tenant-quota/manifest.json#capabilities.quota-decision-evaluate + Cedar quota-rbac policy path"}, "emission_path_tests": ["cloud/managed-k8s-tenant-quota/IPs/IP-sustainability-emission-model.md#quota-decision-fixture", "cloud/managed-k8s-tenant-quota/cedar/quota-rbac.cedar"], "validation_baseline": {"expected_watt_hours_per_request_p50_mwh": 4, "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.0016, "tolerance_pct": 20}},
   "tenant_version_pinning": {"declared_versions": [], "default_version": null, "supported_window_size": 1, "supported_window_minimum_days": 0, "supports_per_tenant_pinning": false, "deprecation_calendar": [], "public_surface_files": {}},
   "consumes_upstream_oss": ["cedar", "axum", "tokio"],
   "oss_stewardship_class_overrides": [],

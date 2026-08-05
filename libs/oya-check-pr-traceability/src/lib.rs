@@ -44,6 +44,9 @@ pub enum PrTraceabilityError {
     MissingEvidenceField {
         field: &'static str,
     },
+    MissingCodeReviewField {
+        field: &'static str,
+    },
     CodeReviewRequired,
     CodeReviewForbidden,
 }
@@ -129,6 +132,9 @@ pub fn validate_pr_traceability(
     if policy.require_code_review && !code_review_present {
         return Err(PrTraceabilityError::CodeReviewRequired);
     }
+    if policy.require_code_review {
+        validate_code_review_evidence(section_body(&document.body, &sections, "Code Review"))?;
+    }
     if policy.forbid_code_review && code_review_present {
         return Err(PrTraceabilityError::CodeReviewForbidden);
     }
@@ -197,6 +203,74 @@ fn contains_issue_reference(issue: &str) -> bool {
     issue.contains("Closes #") || issue.contains("Refs #") || issue.contains("Blocks #")
 }
 
+fn validate_code_review_evidence(code_review: &str) -> Result<(), PrTraceabilityError> {
+    require_code_review_field(
+        code_review,
+        &["Reviewer agent", "reviewer-agent"],
+        "Reviewer agent",
+    )?;
+
+    let verdict = require_code_review_field(code_review, &["Verdict"], "Verdict: APPROVE")?;
+    if !verdict.eq_ignore_ascii_case("APPROVE") {
+        return Err(PrTraceabilityError::MissingCodeReviewField {
+            field: "Verdict: APPROVE",
+        });
+    }
+
+    require_code_review_field(code_review, &["Resolved items"], "Resolved items")?;
+    require_code_review_field(code_review, &["Deferred items"], "Deferred items")?;
+    Ok(())
+}
+
+fn require_code_review_field<'a>(
+    code_review: &'a str,
+    labels: &[&str],
+    field: &'static str,
+) -> Result<&'a str, PrTraceabilityError> {
+    let Some(value) = code_review_field_value(code_review, labels) else {
+        return Err(PrTraceabilityError::MissingCodeReviewField { field });
+    };
+    if value.is_empty() {
+        return Err(PrTraceabilityError::MissingCodeReviewField { field });
+    }
+    Ok(value)
+}
+
+fn code_review_field_value<'a>(code_review: &'a str, labels: &[&str]) -> Option<&'a str> {
+    for line in code_review.lines() {
+        let mut candidate = line.trim();
+        for prefix in ["- ", "* "] {
+            if let Some(rest) = candidate.strip_prefix(prefix) {
+                candidate = rest.trim_start();
+            }
+        }
+
+        let Some((raw_label, raw_value)) = candidate.split_once(':') else {
+            continue;
+        };
+        if labels.iter().any(|expected| {
+            normalize_code_review_label(raw_label) == normalize_code_review_label(expected)
+        }) {
+            return Some(raw_value.trim().trim_start_matches('*').trim());
+        }
+    }
+    None
+}
+
+fn normalize_code_review_label(label: &str) -> String {
+    label
+        .chars()
+        .filter_map(|character| match character {
+            '*' | '`' => None,
+            '_' | '-' => Some('-'),
+            character if character.is_whitespace() => Some('-'),
+            character => Some(character.to_ascii_lowercase()),
+        })
+        .collect::<String>()
+        .trim_matches('-')
+        .to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -215,7 +289,7 @@ mod tests {
     #[test]
     fn accepts_merge_ready_body_when_code_review_required() {
         let body = format!(
-            "{}\n## Code Review\nreviewer-agent: APPROVE\n",
+            "{}\n## Code Review\n- Reviewer agent: architect 136-IdentityBridgeReReview\n- Verdict: APPROVE\n- Resolved items: none\n- Deferred items: none\n",
             valid_body()
         );
 
@@ -284,6 +358,94 @@ mod tests {
         assert_eq!(
             validate_pr_traceability(&document(&body), author_policy()),
             Err(PrTraceabilityError::CodeReviewForbidden)
+        );
+    }
+
+    #[test]
+    fn rejects_code_review_without_reviewer_agent_approve_fields() {
+        let missing_reviewer_agent = format!(
+            "{}\n## Code Review\n- Verdict: APPROVE\n- Resolved items: none\n- Deferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(
+                &document(&missing_reviewer_agent),
+                PrTraceabilityPolicy {
+                    require_code_review: true,
+                    forbid_code_review: false,
+                },
+            ),
+            Err(PrTraceabilityError::MissingCodeReviewField {
+                field: "Reviewer agent",
+            })
+        );
+
+        let missing_approve_verdict = format!(
+            "{}\n## Code Review\n- Reviewer agent: architect 136-IdentityBridgeReReview\n- Verdict: REQUEST CHANGES\n- Resolved items: none\n- Deferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(
+                &document(&missing_approve_verdict),
+                PrTraceabilityPolicy {
+                    require_code_review: true,
+                    forbid_code_review: false,
+                },
+            ),
+            Err(PrTraceabilityError::MissingCodeReviewField {
+                field: "Verdict: APPROVE",
+            })
+        );
+
+        let ambiguous_approve_verdict = format!(
+            "{}\n## Code Review\n- Reviewer agent: architect 136-IdentityBridgeReReview\n- Verdict: DO NOT APPROVE\n- Resolved items: none\n- Deferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(
+                &document(&ambiguous_approve_verdict),
+                PrTraceabilityPolicy {
+                    require_code_review: true,
+                    forbid_code_review: false,
+                },
+            ),
+            Err(PrTraceabilityError::MissingCodeReviewField {
+                field: "Verdict: APPROVE",
+            })
+        );
+
+        let missing_resolved_items = format!(
+            "{}\n## Code Review\n- Reviewer agent: architect 136-IdentityBridgeReReview\n- Verdict: APPROVE\n- Deferred items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(
+                &document(&missing_resolved_items),
+                PrTraceabilityPolicy {
+                    require_code_review: true,
+                    forbid_code_review: false,
+                },
+            ),
+            Err(PrTraceabilityError::MissingCodeReviewField {
+                field: "Resolved items",
+            })
+        );
+
+        let missing_deferred_items = format!(
+            "{}\n## Code Review\n- Reviewer agent: architect 136-IdentityBridgeReReview\n- Verdict: APPROVE\n- Resolved items: none\n",
+            valid_body()
+        );
+        assert_eq!(
+            validate_pr_traceability(
+                &document(&missing_deferred_items),
+                PrTraceabilityPolicy {
+                    require_code_review: true,
+                    forbid_code_review: false,
+                },
+            ),
+            Err(PrTraceabilityError::MissingCodeReviewField {
+                field: "Deferred items",
+            })
         );
     }
 

@@ -1,3 +1,6 @@
+// Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+// This Cedar fragment is planned/provenance only and is not runtime policy-engine authority.
+// Non-claims: no live authorization runtime, no Workflow execution, no runtime audit-chain emission, no cloud deployment.
 // Global Trade denied-party-hit authorization
 // Cedar v4.2 LTS fragment
 // References: ADR-0243, ADR-0244, ADR-0294, ADR-0297, ADR-0314, ADR-0315

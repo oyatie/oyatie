@@ -1,15 +1,14 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ printf "%s-config" .Values.microservice.id | quote }}
-  labels:
-    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
-    oyatie.com/adr-0181: signed-image-promotion-required
-    oyatie.com/adr-0349: argocd-managed
-data:
-  microservice: {{ .Values.microservice.id | quote }}
-  cargo_package: {{ .Values.microservice.cargoPackage | quote }}
-  environment: {{ .Values.config.environment | quote }}
-  audit_chain_enabled: {{ .Values.config.auditChainEnabled | quote }}
-  image_signature_policy: {{ .Values.config.imagePromotionPolicy | quote }}
-  cosign_required: {{ .Values.image.cosign.required | quote }}
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/k8s/helm/templates/configmap.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

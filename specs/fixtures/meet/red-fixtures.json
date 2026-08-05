@@ -1,0 +1,240 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/meet-source-map-contract-replay-red-fixtures.schema.json",
+  "fixture_plan_id": "MEET-SOURCE-MAP-CONTRACT-REPLAY-RED-001",
+  "kanban_task": "t_409487e4",
+  "review_fix_parent_task": "t_7f81620b",
+  "source_lock_task": "t_13b685a0",
+  "status": "red-source-map-contract-replay-pending",
+  "created_at_utc": "2026-07-01T13:58:49Z",
+  "source_commit_at_authoring": "c52bdb09ea33",
+  "claim_boundary": "metadata/fixture-only RED source-map and contract replay plan; no runtime handlers, storage, media plane, deployment, generated JSON hand edits, production readiness, live SLO, UI readiness, GA, customer availability, or hyperscaler maturity claim",
+  "source_authority_refs": [
+    "specs/microservices/meet.json",
+    "specs/microservices/manifests-index.json#microservices[name=meet]",
+    "oya/meet/manifest.json",
+    "kanban:t_7f81620b#meet-source-lock-review",
+    "kanban:t_409487e4#meet-red-source-map-contract-replay"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/meet/manifest.json",
+    "oya/meet/contracts/*",
+    "oya/meet/catalog/*",
+    "oya/meet/IPs/*",
+    "microservices/meet/contracts/*",
+    "microservices/meet/capabilities/*",
+    "microservices/meet/IP-*.md",
+    "microservices/meet/slos/*"
+  ],
+  "source_lock_line_refs": {
+    "authority_resolution": "specs/microservices/meet.json:15-30",
+    "legacy_disposition": "specs/microservices/meet.json:146-192",
+    "privacy_security": "specs/microservices/meet.json:281-329",
+    "red_fixture_strategy": "specs/microservices/meet.json:341-375",
+    "api_contract_replay": "specs/microservices/meet.json:376-392",
+    "browser_accessibility": "specs/microservices/meet.json:394-410",
+    "generated_faces_policy": "specs/microservices/meet.json:419-439",
+    "non_claims": "specs/microservices/meet.json:467-472"
+  },
+  "global_non_claims": [
+    "No meet runtime implementation is created or approved by this fixture plan.",
+    "No handler, storage adapter, media-plane/SFU, TURN, recording, transcription, LiveKit, Whisper, queue, search, workflow, ontology projection, cloud deployment, live SLO, production readiness, GA, UI readiness, or customer-availability claim is made.",
+    "oya/meet/manifest.json, catalog rows, contracts, dashboards, SLOs, and runbooks are inventory/provenance only until RED/Build/review evidence validates the exact claim.",
+    "microservices/meet/** destination authority is not authorized; legacy pointers must map to verified oya/meet/** paths or remain quarantined provenance.",
+    "Green CI alone is insufficient for UI-facing readiness; browser/user-story/accessibility evidence or an explicit non-UI N/A rationale is required.",
+    "No generated JSON hand edits are authorized."
+  ],
+  "contract_replay_expectations": {
+    "openapi": {
+      "source_path": "oya/meet/contracts/openapi/meet.yaml",
+      "legacy_manifest_pointer": "microservices/meet/contracts/openapi/meet.yaml",
+      "future_replay_family": "meet-openapi-v1",
+      "must_assert": [
+        "room create/read/archive lifecycle carries tenant scope, idempotency, and audit envelope",
+        "meeting instance start/end state preserves tenant/cell/SFU placement metadata and audit trail",
+        "participant role/lobby/consent lifecycle has explicit tenant policy and audit evidence",
+        "recording start/finalize and transcript/caption/summary references carry consent, retention, legal-hold, content-hash, and audit fields"
+      ],
+      "must_reject": [
+        "legacy microservices/meet/contracts/openapi/meet.yaml as live source authority",
+        "missing consent recording start",
+        "tenant mismatch",
+        "Cedar deny",
+        "idempotency conflict"
+      ]
+    },
+    "asyncapi": {
+      "source_path": "oya/meet/contracts/asyncapi/meet-events.yaml",
+      "legacy_manifest_pointer": "microservices/meet/contracts/asyncapi/meet-events.yaml",
+      "future_replay_family": "meet-asyncapi-v1",
+      "must_assert": [
+        "meet.meeting_room.created and meet.meeting_instance.* events carry tenant, idempotency, and audit semantics",
+        "meet.participant.* and lobby frames preserve role, consent, and policy decision boundaries",
+        "meet.recording.* and meet.transcript.sealed events include retention/legal-hold/content-hash/seal references",
+        "caption, breakout, live-stream, webinar, and MLS events preserve data minimization and audit-chain linkage"
+      ],
+      "must_reject": [
+        "legacy microservices/meet/contracts/asyncapi/meet-events.yaml as live source authority",
+        "missing consent event",
+        "tenant mismatch event",
+        "Cedar deny missing from event replay",
+        "idempotency conflict without audit row"
+      ]
+    },
+    "proto": {
+      "source_path": "oya/meet/contracts/proto/meet.proto",
+      "legacy_manifest_pointer": "microservices/meet/contracts/proto/meet.proto",
+      "future_replay_family": "meet-proto-v1",
+      "must_assert": [
+        "MeetingRoom and MeetingInstance services preserve tenant, idempotency, and audit-compatible request envelopes",
+        "Participant and lobby RPCs encode role, consent, policy denial, and audit-safe state transitions",
+        "Recording and Transcription RPCs require consent, retention/legal-hold, content-hash, and seal/audit references",
+        "Webinar, LiveStreamEgress, and MLS paths preserve scoped policy and no-silent-downgrade semantics"
+      ],
+      "must_reject": [
+        "legacy microservices/meet/contracts/proto/meet.proto as live source authority",
+        "missing consent RPC",
+        "tenant mismatch RPC",
+        "Cedar deny absent from RPC replay",
+        "idempotency conflict without deterministic error"
+      ]
+    },
+    "workspace_projection": {
+      "source_path": "contracts/openapi/workspace/workspace-meet-v1.yaml",
+      "scope_boundary": "workspace shell integration only when explicitly scoped; service-local oya/meet/contracts/* remain the meet source of truth",
+      "future_replay_family": "workspace-meet-projection-v1",
+      "must_assert": [
+        "Workspace session-start projection reconciles tenant, idempotency, and audit headers with the meet service-local contract",
+        "workspace projection is scoped to shell session start and does not replace meet room/session/participant source contracts",
+        "workspace projection records explicit tenant, authorization, participant, and SFU placement semantics",
+        "workspace projection documents non-UI N/A or browser/user-story evidence when user-facing shell changes are in scope"
+      ],
+      "must_reject": [
+        "legacy microservices/meet workspace projection as live authority",
+        "missing consent for recording/transcription projection",
+        "workspace shell contract treated as sole meet service source of truth",
+        "tenant mismatch without 403",
+        "idempotency conflict without 409 or 422 semantics"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/meet/replay/",
+  "expected_red_failure": "RED until future Build cards create source-backed source-map/OpenAPI/AsyncAPI/proto/workspace replay artifacts under specs/fixtures/meet/replay/ and extend or replace this checker with real replay against implementation seams.",
+  "browser_user_story_accessibility_gate": [
+    "Host creates or starts a tenant-scoped meeting from workspace/calendar context.",
+    "Attendee joins through lobby, acknowledges recording/transcription consent, and toggles mute/camera with WCAG 2.2 AA keyboard and screen-reader evidence where UI exists.",
+    "Presenter screen-share and host recording controls expose visible state, focus order, live-region updates, and policy-denied/error states.",
+    "If no UI is touched, Build records explicit N/A rationale and still replays API/contract paths."
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "meet_authority_source_map_fixture",
+      "fixture_kind": "authority_source_map",
+      "source_authority_refs": ["specs/microservices/meet.json#_meta", "specs/microservices/meet.json#authority_resolution", "specs/microservices/manifests-index.json#microservices[name=meet]", "oya/meet/manifest.json", "kanban:t_7f81620b", "kanban:t_409487e4"],
+      "source_lock_lines": ["specs/microservices/meet.json:15-30", "specs/microservices/meet.json:441-465"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/authority/meet-authority-source-map.fixture.json"],
+      "must_assert": ["PRD-MEET status Accepted", "current_authority is /specs/microservices/meet.json", "manifest-index row is cited", "oya/meet/manifest.json is inventory/provenance only"],
+      "must_reject": ["Plan/Spec or Build fanout without specs/microservices/meet.json", "runtime readiness from oya/meet/manifest.json", "legacy microservices/meet/** as live destination", "Build without parent Review/fix t_7f81620b and RED gate t_409487e4"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_retired_path_hygiene_fixture",
+      "fixture_kind": "retired_path_hygiene",
+      "source_authority_refs": ["specs/microservices/meet.json#source_reference_map.legacy_manifest_reference_disposition", "oya/meet/manifest.json#contracts", "oya/meet/manifest.json#ips"],
+      "source_lock_lines": ["specs/microservices/meet.json:146-192", "specs/microservices/meet.json:467-472"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/authority/meet-retired-path-hygiene.fixture.json"],
+      "must_assert": ["legacy contract pointers map to current oya/meet/contracts paths", "legacy IP references are quarantined unresolved provenance", "current service root is oya/meet/"],
+      "must_reject": ["microservices/meet/** as live destination", "microservices/meet/contracts as canonical source", "microservices/meet/IP- as implementation evidence", "legacy root recreation", "microservices/meet/slos as live SLO evidence"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_contract_replay_openapi_fixture",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": ["specs/microservices/meet.json#api_contract_replay_expectations", "oya/meet/contracts/openapi/meet.yaml", "oya/meet/manifest.json#contracts.openapi"],
+      "source_lock_lines": ["specs/microservices/meet.json:376-392"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/openapi/meet-openapi-v1-replay.fixture.json"],
+      "must_assert": ["OpenAPI replay covers room create/read/archive lifecycle", "OpenAPI replay covers meeting instance start/end tenant/cell/SFU placement", "OpenAPI replay covers participant role/lobby/consent lifecycle", "OpenAPI replay covers recording and transcript references with consent retention legal-hold audit semantics"],
+      "must_reject": ["handler before OpenAPI replay", "legacy microservices/meet/contracts/openapi/meet.yaml as live authority", "missing consent recording start", "tenant mismatch", "Cedar deny", "idempotency conflict"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_contract_replay_asyncapi_fixture",
+      "fixture_kind": "event_contract_replay",
+      "source_authority_refs": ["specs/microservices/meet.json#api_contract_replay_expectations", "oya/meet/contracts/asyncapi/meet-events.yaml", "oya/meet/manifest.json#contracts.asyncapi"],
+      "source_lock_lines": ["specs/microservices/meet.json:376-392"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/asyncapi/meet-asyncapi-v1-replay.fixture.json"],
+      "must_assert": ["AsyncAPI replay covers meet.meeting_room.created", "AsyncAPI replay covers meet.meeting_instance.*", "AsyncAPI replay covers participant/lobby/caption frames", "AsyncAPI replay covers recording/transcript/summary events with audit-chain linkage"],
+      "must_reject": ["event producer before AsyncAPI replay", "legacy microservices/meet/contracts/asyncapi/meet-events.yaml as live authority", "missing consent event", "tenant mismatch event", "Cedar deny missing from event replay", "idempotency conflict without audit row"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_contract_replay_proto_fixture",
+      "fixture_kind": "grpc_contract_replay",
+      "source_authority_refs": ["specs/microservices/meet.json#api_contract_replay_expectations", "oya/meet/contracts/proto/meet.proto", "oya/meet/manifest.json#contracts.proto"],
+      "source_lock_lines": ["specs/microservices/meet.json:376-392"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/proto/meet-proto-v1-replay.fixture.json"],
+      "must_assert": ["proto replay covers MeetingRoom", "proto replay covers MeetingInstance", "proto replay covers Participant and lobby RPCs", "proto replay covers Recording and Transcription consent/audit/legal-hold semantics"],
+      "must_reject": ["gRPC handler before proto replay", "legacy microservices/meet/contracts/proto/meet.proto as live authority", "missing consent RPC", "tenant mismatch RPC", "Cedar deny absent from RPC replay", "idempotency conflict without deterministic error"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_workspace_projection_scope_fixture",
+      "fixture_kind": "workspace_projection_scope",
+      "source_authority_refs": ["specs/microservices/meet.json#source_reference_map.verified_current_paths[workspace_api_projection]", "contracts/openapi/workspace/workspace-meet-v1.yaml"],
+      "source_lock_lines": ["specs/microservices/meet.json:121-126", "specs/microservices/meet.json:376-382"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/workspace/workspace-meet-v1-projection-replay.fixture.json"],
+      "must_assert": ["workspace shell integration is explicitly in scope before projection replay", "workspace projection reconciles against service-local meet contracts", "workspace projection is not the sole service source of truth", "workspace projection preserves tenant/idempotency/audit headers"],
+      "must_reject": ["workspace projection treated as full meet service authority", "workspace shell contract used without explicit scope", "legacy microservices/meet workspace projection as live authority", "missing consent for recording/transcription projection"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_consent_privacy_security_negative_fixture",
+      "fixture_kind": "privacy_security_negative_contract",
+      "source_authority_refs": ["specs/microservices/meet.json#data_privacy_security_notes", "specs/microservices/meet.json#data_privacy_security_notes.security_risks_to_fixture"],
+      "source_lock_lines": ["specs/microservices/meet.json:281-329"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/privacy/meet-consent-privacy-security-negative.fixture.json"],
+      "must_assert": ["recording/transcription/caption consent matrix exists before derived artifacts", "guest/lobby policy deny state is explicit", "E2E mode binds participant key state to visible warnings", "data minimization and no model-training use are explicit"],
+      "must_reject": ["recording without consent", "transcription without consent", "captioning without jurisdiction disclosure", "lobby bypass", "silent E2E downgrade", "derived artifact without retention/legal-hold/audit envelope"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_browser_accessibility_gate_fixture",
+      "fixture_kind": "browser_user_story_accessibility_contract",
+      "source_authority_refs": ["specs/microservices/meet.json#browser_user_story_accessibility_expectations", "docs/user-journeys/j39-b2b-meeting-with-transcription/schemas/meeting-transcript-archive.json", "docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json"],
+      "source_lock_lines": ["specs/microservices/meet.json:394-410"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/ux/meet-browser-accessibility-evidence.fixture.json"],
+      "must_assert": ["WCAG 2.2 AA", "keyboard operation for join leave mute camera screen share lobby captions and recording consent", "screen-reader labels and live-region updates", "N/A rationale for non-UI-only Build work"],
+      "must_reject": ["green CI alone as UI readiness", "browser evidence missing for UI path", "keyboard path missing", "screen-reader state missing", "spinner-only waiting state"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_generated_face_no_hand_edit_fixture",
+      "fixture_kind": "generated_face_policy",
+      "source_authority_refs": ["AGENTS.md#generated_faces_policy", "specs/microservices/meet.json#conflict_and_path_policy.generated_faces_policy"],
+      "source_lock_lines": ["specs/microservices/meet.json:419-439"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/policy/meet-generated-face-no-hand-edit.fixture.json"],
+      "must_assert": ["generated faces are materializer-owned", "RED fixture paths are not generated JSON", "future Build declares generated-face policy"],
+      "must_reject": ["*.generated.json hand edit", "hand edit to materialized generated face", "fixture plan emitted as generated JSON", "generated-face diff without materializer/gate ownership"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_no_runtime_product_readiness_overclaim_fixture",
+      "fixture_kind": "runtime_product_readiness_non_claim",
+      "source_authority_refs": ["specs/microservices/meet.json#non_claims", "specs/microservices/meet.json#functional_scope.out_of_scope_for_this_lock", "specs/microservices/meet.json#authority_resolution.claim_boundary"],
+      "source_lock_lines": ["specs/microservices/meet.json:207-216", "specs/microservices/meet.json:467-472"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/policy/meet-no-runtime-product-readiness-overclaim.fixture.json"],
+      "must_assert": ["fixture is RED-only", "contracts/inventory are provenance until replay", "runtime implementation is out of scope", "Build and review evidence are required before readiness claims"],
+      "must_reject": ["production readiness", "live SLO", "GA", "media-plane", "green CI alone", "customer availability", "hyperscaler maturity", "runtime handler approved by source lock"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "meet_build_parentage_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_authority_refs": ["kanban:t_7f81620b", "kanban:t_409487e4", "specs/microservices/meet.json#downstream_lifecycle_gates", "specs/microservices/meet.json#conflict_and_path_policy.future_red_allowed_prefixes_after_plan_spec"],
+      "source_lock_lines": ["specs/microservices/meet.json:412-418", "specs/microservices/meet.json:432-439"],
+      "future_replay_artifacts": ["specs/fixtures/meet/replay/policy/meet-build-parentage.fixture.json"],
+      "must_assert": ["Build is parented behind Review/fix t_7f81620b", "Build is parented behind RED t_409487e4", "Build declares allowed path prefixes", "Build preserves generated-face policy", "Build does not edit runtime/cloud/Release Please/CLI authority surfaces before scoped approval"],
+      "must_reject": ["Build without source-lock review parent", "Build without RED fixture parent", "Build without allowed path prefixes", "generated-face hand edit", "runtime handler in RED card", "Release Please metadata edit"],
+      "expected_red_status": "RED_UNTIL_MEET_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

@@ -86,21 +86,21 @@
       "given": "a tenant package resolves to enabled service surfaces",
       "when": "a user requests a microservice capability",
       "then": "the decision carries tenant_id, entitlement_set_id, role binding, policy scope, and audit evidence refs before the owning microservice evaluates access",
-      "test_ref": "specs/tenant-rbac-packaging.json#AC-01 + oya gate validate planning-closure"
+      "test_ref": "specs/tenant-rbac-packaging.json#AC-01 + cloud-ci/Rust gate packet: planning-closure"
     },
     {
       "id": "AC-02",
       "given": "a regulated tenant enables healthcare-related capabilities",
       "when": "healthcare-integration or adjacent services are exposed",
       "then": "the exposure is controlled by regulatory pack, tenancy, and RBAC scopes rather than a market-label product boundary",
-      "test_ref": "specs/tenant-rbac-packaging.json#regulated-packaging + oya gate validate product-prd-json"
+      "test_ref": "specs/tenant-rbac-packaging.json#regulated-packaging + cloud-ci/Rust gate packet: product-prd-json"
     },
     {
       "id": "AC-03",
       "given": "messenger or mail is enabled for both personal and professional contexts",
       "when": "tenant/RBAC packaging resolves access",
       "then": "personal and professional life scopes remain separate in policy, evidence, and downstream service evaluation",
-      "test_ref": "oya gate validate planning-closure + specs/planning-closure-contract.json#success_exit_rule"
+      "test_ref": "cloud-ci/Rust gate packet: planning-closure + specs/planning-closure-contract.json#success_exit_rule"
     }
   ],
   "scope": {
@@ -252,7 +252,7 @@
       "targets": {
         "preview": "all scope decisions carry evidence refs"
       },
-      "verification_ref": "oya gate validate planning-closure"
+      "verification_ref": "cloud-ci/Rust gate packet: planning-closure"
     }
   ],
   "goals": {

@@ -1,8 +1,7 @@
 # Threat model — `oya-managed-k8s-control-plane-host`
 
-**Authority:** ADR-0376. Maturity: design-spec (the live reconcile is
-honest-deferred; the threat model frames the surface the live integration must
-satisfy).
+**Authority:** ADR-0376. Maturity: live adapter foundation; sandbox/live
+isolation proof still requires an explicit target/credential/rollback artifact.
 
 ## Core risk (THE risk)
 

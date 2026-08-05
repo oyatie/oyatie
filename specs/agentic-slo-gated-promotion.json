@@ -503,7 +503,7 @@
       "exit 0 only when every microservice has an 'eligible' verdict",
       "exit non-zero with structured JSON listing which microservices are held|rejected|rollback and the burn-rate snapshot"
     ],
-    "implementation": "cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --sha <sha> --env <env>"
+    "implementation": "cloud-ci/Rust gate packet: oya-governance-promotion-readiness (--sha <sha> --env <env>)"
   },
   "bootstrap_order_decision": {
     "policy": "incremental — each microservice brings its OpenSLO manifest at the time it migrates to microservices/<ms>/ per ADR-0131. Until a microservice has a manifest, the gate treats its eligibility as 'held' (fail-closed) and that microservice cannot promote past 'dev'.",

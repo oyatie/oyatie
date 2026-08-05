@@ -1,3 +1,11 @@
+claimBoundary:
+  classification: target-provenance-only
+  noActiveDeployment: true
+  noTenantNamespaceReadiness: true
+  noMeasuredSloReadiness: true
+  noDrReadiness: true
+  noRuntimeAuditChainEmission: true
+
 microservice:
   id: supply-chain-planning
   cargoPackage: oya-supply-chain-planning-network-app
@@ -29,8 +37,9 @@ service:
   targetPort: 8080
 
 config:
-  environment: production
-  auditChainEnabled: true
+  environment: target-provenance
+  auditChainRuntimeEmission: false
+  auditChainTargetClass: microservice-deployment
   imagePromotionPolicy: cosign-required
 
 cedar:

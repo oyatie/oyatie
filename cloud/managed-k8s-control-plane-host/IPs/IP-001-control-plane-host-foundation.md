@@ -8,9 +8,8 @@ error-handling Tier-3 per ADR-0083.
 
 Land the buildable, tested foundation of `oya-managed-k8s-control-plane-host`:
 the pure kernel, the shared `ControlPlaneProvisioning` port, both adapters
-(kube-rs CAPI — live reconcile honest-deferred — and the deterministic
-in-memory fake), and the composition-root app (axum admin/status API +
-fail-closed `[[bin]]` main).
+(kube-rs CAPI live adapter and deterministic in-memory fake), and the
+composition-root app (axum admin/status API + fail-closed `[[bin]]` main).
 
 ## Changesets (this IP)
 
@@ -25,9 +24,10 @@ fail-closed `[[bin]]` main).
 3. **adapter-inmemory** (`-adapter-inmemory`) — deterministic fake driving both
    tiers through the kernel state machine; idempotent teardown.
 4. **adapter-capi** (`-adapter-capi`) — kube-rs Client + Kamaji
-   `TenantControlPlane` dynamic descriptor; every port method returns
-   `Unimplemented::KamajiProviderLiveIntegration` (honest-deferred). kube-rs +
-   k8s-openapi isolated here only.
+   `TenantControlPlane` dynamic descriptor; hosted-tier DynamicObject
+   create/read/delete, provider-condition status mapping, ownership-guarded
+   teardown, rollback switch, and dedicated Talos/CAPI reference resolution.
+   kube-rs + k8s-openapi isolated here only.
 5. **app** (`-app`) — composition root: `build_state_in_memory` /
    `build_state_capi`, `build_router`, `serve`, fail-closed
    `mgmt_kubeconfig_path_from_env`; axum admin/status API; `[[bin]]` main;
@@ -43,8 +43,9 @@ fail-closed `[[bin]]` main).
 
 ## Out of scope (named follow-ons)
 
-- The live Kamaji `TenantControlPlane` / Talos control-plane CRD reconcile
-  (`kamaji-provider-live-integration`).
+- Real sandbox/live management-cluster execution proof for the Kamaji
+  `TenantControlPlane` / Talos control-plane path (requires explicit target,
+  credentials boundary, object create/delete evidence, and rollback artifact).
 - Billing / SLA / DPIA / external GA (`oya-managed-k8s-commercial-ga`, per
   ADR-0376).
 - The sibling microservices that CONSUME the port (`cluster-lifecycle`,

@@ -4,8 +4,26 @@ package oya.supply_chain_planning.v1;
 
 option java_package = "dev.oyatie.supply_chain_planning.v1";
 
-// SAP SCM/APO; benchmarks: SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning
-// Transport binding: HTTP/3 default at REST edge, gRPC over mTLS internally, ECH/PQC at ingress where supported.
+// Preview metadata-only contract authority: specs/microservices/supply-chain-planning.json.
+// Produced contract family per PRD: enterprise.enterprise_supply_chain_planning.v1.
+// Package note: oya.supply_chain_planning.v1 remains the visible repository/gRPC
+// wire namespace for this preview inventory. It is a documented namespace alias
+// for the PRD produced contract family, not a separate activation claim; a
+// package rename requires separate compatibility evidence.
+// Non-claims: no deployed gRPC runtime, accepted live write, durable
+// persistence, Workflow execution, signed/runtime audit-chain emission, cloud
+// deployment, GA readiness, measured SLO/DR readiness, live optimizer,
+// scheduler, ATP engine, replenishment runtime, or exhaustive vendor parity.
+// PRD AC mapping: MutateDemandPlan -> AC-01/AC-05; MutateSupplyNetworkPlan ->
+// AC-02/AC-05; MutateAvailableToPromise -> AC-03/AC-05;
+// MutateTransportationPlan -> AC-04 distribution-lane metadata/AC-05;
+// MutateReplenishmentPlan and MutatePlanningScenario are reserved preview
+// extension envelopes only. Result audit_event_class fields are classifier
+// strings, not evidence of signed runtime audit emission.
+// Network scaffold route-shape note: the read-only network app currently uses
+// five action-style routes and omits the transportation/distribution route;
+// this contract card records the mismatch and leaves scaffold fixes to
+// t_d2b84fb7.
 
 message DemandPlanCommand {
   string tenant_id = 1;
@@ -91,6 +109,9 @@ message PlanningScenarioResult {
   string status = 3;
 }
 
+// RPC names describe preview command-envelope wire shape only. They are not
+// evidence of a deployed server, accepted runtime mutation, or signed audit
+// event emission.
 service SupplyChainPlanningService {
   rpc MutateDemandPlan (DemandPlanCommand) returns (DemandPlanResult);
   rpc MutateSupplyNetworkPlan (SupplyNetworkPlanCommand) returns (SupplyNetworkPlanResult);

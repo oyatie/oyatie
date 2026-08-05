@@ -1,0 +1,879 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/microservices/recordings.schema.json",
+  "title": "MicroservicePrd:Recordings",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-RECORDINGS",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "axis-recordings",
+    "created_at": "2026-07-01T00:00:00Z",
+    "source_lock_task": "t_6635c6b5",
+    "review_gate_task": "t_8ad99810",
+    "purpose": "Recordings microservice PRD/source map: tenant-scoped recording ingest, archive, transcript, redaction, search, playback/share links, retention, legal hold, eDiscovery/export, and translate handoff boundaries. This file is source-authority for Plan/Spec and downstream RED fanout only; it does not claim runtime/product readiness."
+  },
+  "source_authority": {
+    "authority_status": "source-authority-locked-by-t_6635c6b5",
+    "canonical_prd_path": "specs/microservices/recordings.json",
+    "manifest_index_row": {
+      "path": "specs/microservices/manifests-index.json",
+      "name": "recordings",
+      "manifest": "oya/recordings/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02"
+    },
+    "starting_state": {
+      "specific_spec_before_task": "absent: specs/microservices/recordings.json",
+      "legacy_microservices_manifest": "absent and must not be restored: microservices/recordings/manifest.json",
+      "inventory_manifest": "present but provenance-only: oya/recordings/manifest.json",
+      "catalog_row": "present but preview/unreviewed catalog evidence only: registry/catalog/oya-recordings-domain.yaml"
+    },
+    "authority_boundary": "This PRD/source map is the machine-readable source lock for downstream Plan/Spec, RED fixture, and later Build fanout. oya/recordings/manifest.json, contract files, catalog rows, runbooks, SLOs, dashboards, and policy files are inventory/provenance inputs only and must not be used as implementation-readiness or production-readiness evidence without follow-on RED/Build/Review gates.",
+    "service_home_boundary": "Per ADR-0131/ADR-0512, live service homes are {oya,cloud}/<service>/; microservices/recordings/** is legacy/removal-candidate provenance after migration evidence and must not be recreated as canonical.",
+    "claim_boundary": "Planning/source-authority contract only. No live service, product availability, benchmark, measured SLO, cloud deployment, release-governance completion, or runtime tenant support is claimed by this file."
+  },
+  "identity": {
+    "product_id": "recordings",
+    "owning_axis": "workspace-communications",
+    "product_class": "service",
+    "user_facing_surface": true,
+    "context_model": [
+      "personal",
+      "work"
+    ],
+    "owner_team": "axis-recordings",
+    "tier_classification": "hero-product",
+    "data_classification": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_QUASI",
+      "regulated-content-conditional"
+    ],
+    "crate_refs_planned": [
+      "oya-recordings-recording-kernel",
+      "oya-recordings-transcript-kernel",
+      "oya-recordings-retention-policy-kernel",
+      "oya-recordings-legal-hold-kernel",
+      "oya-recordings-recording-adapter-s3",
+      "oya-recordings-recording-adapter-postgres",
+      "oya-recordings-search-adapter-meilisearch",
+      "oya-recordings-transcript-adapter-whisper",
+      "oya-recordings-app"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure, service-home manifests, cloud-ci Rust gate packets, and protected oya-ci-required context; no legacy oya CLI merge authority or manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "oyatie_adrs": [
+      "$ref:docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
+      "$ref:docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
+      "$ref:docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "$ref:docs/decisions/ADR-0243-cedar-as-universal-gate.md",
+      "$ref:docs/decisions/ADR-0263-observability-emission-contract.md",
+      "$ref:docs/decisions/ADR-0335-foundry-absorbed-by-intelligence.md",
+      "$ref:docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "$ref:docs/decisions/ADR-0512-platform-readiness.md",
+      "$ref:docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    ],
+    "service_local_decisions": [
+      "$ref:oya/recordings/decisions/ADR-REC-001-recording-retention-WORM-vs-mutable-vs-purge-on-request.md"
+    ],
+    "source_inventory": [
+      "$ref:oya/recordings/manifest.json",
+      "$ref:oya/recordings/README.md",
+      "$ref:oya/recordings/contracts/openapi/recordings.yaml",
+      "$ref:oya/recordings/contracts/asyncapi/recordings-events.yaml",
+      "$ref:oya/recordings/contracts/proto/recordings.proto",
+      "$ref:registry/catalog/oya-recordings-domain.yaml"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-13 one PRD per platform plus per-app sub-PRDs",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/microservices/<id>.json",
+      "2026-07-01:t_444d92d7 recordings requires specs/microservices/recordings.json source-authority/spec creation before RED or implementation fanout"
+    ]
+  },
+  "source_map_normalization": {
+    "path_normalization": [
+      {
+        "stale_or_inventory_reference": "microservices/recordings/contracts/openapi/recordings.yaml",
+        "current_service_home_path": "oya/recordings/contracts/openapi/recordings.yaml",
+        "disposition": "normalize in source map; do not restore legacy microservices path"
+      },
+      {
+        "stale_or_inventory_reference": "microservices/recordings/contracts/asyncapi/recordings-events.yaml",
+        "current_service_home_path": "oya/recordings/contracts/asyncapi/recordings-events.yaml",
+        "disposition": "normalize in source map; do not restore legacy microservices path"
+      },
+      {
+        "stale_or_inventory_reference": "microservices/recordings/contracts/proto/recordings.proto",
+        "current_service_home_path": "oya/recordings/contracts/proto/recordings.proto",
+        "disposition": "normalize in source map; do not restore legacy microservices path"
+      },
+      {
+        "stale_or_inventory_reference": "microservices/recordings/PRD.md",
+        "current_service_home_path": "specs/microservices/recordings.json",
+        "disposition": "canonical PRD/source lock is this JSON file; Markdown PRD reference is stale unless separately restored by an assigned docs task"
+      },
+      {
+        "stale_or_inventory_reference": "microservices/recordings/manifest.json",
+        "current_service_home_path": "oya/recordings/manifest.json",
+        "disposition": "legacy manifest path absent; current manifest is inventory/provenance only and not source authority"
+      }
+    ],
+    "retired_token_normalization": [
+      {
+        "retired_token": "foundry",
+        "absorbed_by": "intelligence",
+        "authority_ref": "ADR-0335 and manifests-index readiness_contracts.foundry_retirement_authority",
+        "disposition": "treat existing inventory, policy, catalog, runbook, and historical dependency mentions as cleanup/provenance; do not assign live product ownership or runtime dependency to the retired token",
+        "current_authority_token": "intelligence"
+      }
+    ],
+    "inventory_claim_ceiling": "Existing manifest/IP acceptance_status, SLO files, dashboards, iac files, policies, and catalog records are not promoted by this PRD. Downstream gates must prove each runtime claim independently."
+  },
+  "target_users": [
+    {
+      "persona": "employee_end_user",
+      "interface": "recordings list, playback, transcript, search, share link, and export surfaces",
+      "billing": "workspace seat plus storage/transcript/export usage units"
+    },
+    {
+      "persona": "meeting_or_huddle_host",
+      "interface": "meet/messenger recording consent banner, ingest finalization, playback readiness, transcript readiness",
+      "billing": "workspace seat and recording minutes"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "retention policy, legal hold, redaction, eDiscovery export, chain-of-custody verification",
+      "billing": "compliance entitlement"
+    },
+    {
+      "persona": "auditor_or_regulator_reader",
+      "interface": "scoped evidence export, Merkle-sealed bundle, retention/hold proof",
+      "billing": "auditor-room or regulatory evidence access"
+    },
+    {
+      "persona": "workflow_or_translation_operator",
+      "interface": "Workflow handoff, transcript/translation events, policy-gated automation",
+      "billing": "workflow execution units and translation usage"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "manual upload presign/finalize contract",
+        "meet and messenger huddle ingest event/RPC contracts",
+        "recording list/read and playback-session contract",
+        "transcript retrieval and transcript-ready event contract",
+        "Cedar/mTLS tenant and pack headers",
+        "consent_banner_confirmed and content_hash invariants"
+      ],
+      "stable": [
+        "redaction overlay model",
+        "transcript search",
+        "share-link lifecycle and per-viewer watermarking",
+        "retention-mode matrix and purge tombstones",
+        "legal-hold engage/release four-eyes workflow",
+        "eDiscovery and regular export bundle contract"
+      ],
+      "GA": [
+        "regulated WORM or audit-trail-equivalent retention profiles",
+        "multi-region pack-pinned cell placement",
+        "DR and restore drills for source media/transcript/search/audit evidence",
+        "translation handoff with current intelligence and translate authorities",
+        "full browser/user-story/accessibility coverage for playback, search, legal hold, and export journeys"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "runtime service implementation or cloud deployment",
+        "why": "this source-lock card is Plan/Spec only; RED fixtures and Build cards follow"
+      },
+      {
+        "item": "legacy microservices/recordings manifest restoration",
+        "why": "ADR-0131/ADR-0512 establish oya/recordings as the service home and microservices as legacy/removal-candidate"
+      },
+      {
+        "item": "promoting existing manifest/IP/SLO inventory into production-readiness evidence",
+        "why": "inventory rows are provenance only until runtime gates replay contract, security, privacy, and observability evidence"
+      },
+      {
+        "item": "destructive source-media mutation under legal hold or WORM retention",
+        "why": "ADR-REC-001 requires immutable source media or redaction overlays for hold/regulated contexts"
+      },
+      {
+        "item": "direct cross-product calls to meet, messenger, translate, ontology, or intelligence",
+        "why": "cross-product flows route through Workflow/Ontology/event contracts and policy-gated boundaries"
+      }
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-REC-01",
+      "given": "a meet, messenger huddle, live broadcast, screen capture, or manual upload recording is finalized",
+      "when": "recordings accepts the ingest request or consumed event",
+      "then": "tenant_id, source_kind, content_hash, context_kind, consent_banner_confirmed, cell_id, and parent audit-chain reference are recorded and the ingest is idempotent by tenant plus source/idempotency key",
+      "planned_verification_ref": "RED fixture: recordings_ingest_contract_replay"
+    },
+    {
+      "id": "AC-REC-02",
+      "given": "a user lists, reads, plays, or searches recordings",
+      "when": "request headers and resource scope are evaluated",
+      "then": "mTLS identity, X-Oyatie-Tenant, X-Oyatie-Pack, Cedar policy, share-link constraints, and context boundary decide access before any media/transcript bytes are exposed",
+      "planned_verification_ref": "RED fixture: recordings_cedar_scope_playback_search_denials"
+    },
+    {
+      "id": "AC-REC-03",
+      "given": "a transcript, translation, summary, or redaction overlay is produced",
+      "when": "derived content is stored or emitted",
+      "then": "derived content binds to the source recording content_hash, records model/version or reviewer reason, emits audit/event evidence, and never mutates immutable source media",
+      "planned_verification_ref": "RED fixture: recordings_transcript_redaction_overlay_hash_binding"
+    },
+    {
+      "id": "AC-REC-04",
+      "given": "a recording is under legal hold, regulated WORM profile, statutory floor, or active DSR/purge review",
+      "when": "retention, purge, redaction, export, or release actions run",
+      "then": "ADR-REC-001 mode matrix, two-person approvals, Cedar roles, audit-chain seals, search-index purge ordering, and proof-of-erasure or chain-of-custody records are enforced",
+      "planned_verification_ref": "RED fixture: recordings_retention_legal_hold_mode_matrix"
+    },
+    {
+      "id": "AC-REC-05",
+      "given": "an eDiscovery or regular export is requested",
+      "when": "the export bundle is queued or completed",
+      "then": "bundle contents, signed URL expiry, watermark/viewer constraints, Merkle root, hold/export scope, requester, paired approver, and audit-chain seal are recorded without leaking unauthorized media/transcript bytes",
+      "planned_verification_ref": "RED fixture: recordings_export_merkle_four_eyes"
+    },
+    {
+      "id": "AC-REC-06",
+      "given": "recordings user-facing UI paths are implemented later",
+      "when": "playback, transcript search, share-link, redaction, retention, legal-hold, or export journeys are exercised",
+      "then": "browser/user-story evidence proves WCAG 2.2 AA keyboard/screen-reader coverage, visible consent/policy disclosure, responsive layout, localized KR/en-US basics, and clear denied/error states",
+      "planned_verification_ref": "future Build/Review browser and accessibility evidence; not satisfied by this source-lock file"
+    }
+  ],
+  "contracts": {
+    "consumes": [
+      "tenant_rbac.context.v1",
+      "meet.session.ended.v1",
+      "messenger.huddle.ended.v1",
+      "workflow.recording_handoff.v1",
+      "regional.retention_policy.v1",
+      "audit-chain.seal.v1",
+      "translate.transcript_translation.v1",
+      "intelligence.transcription_summary_policy.v1",
+      "ontology.Recording",
+      "ontology.Transcript"
+    ],
+    "produces": [
+      "recordings.recording.v1",
+      "recordings.recording.ingested.v1",
+      "recordings.recording.published.v1",
+      "recordings.recording.played.v1",
+      "recordings.recording.shared.v1",
+      "recordings.recording.redacted.v1",
+      "recordings.recording.deleted.v1",
+      "recordings.transcript.ready.v1",
+      "recordings.translation.ready.v1",
+      "recordings.summary.ready.v1",
+      "recordings.legalhold.engaged.v1",
+      "recordings.legalhold.released.v1",
+      "recordings.ediscovery.export.v1",
+      "recordings.retention.applied.v1",
+      "recordings.watermark.rotated.v1"
+    ],
+    "contract_files": {
+      "openapi": {
+        "current_path": "oya/recordings/contracts/openapi/recordings.yaml",
+        "inventory_manifest_path_was_stale": "microservices/recordings/contracts/openapi/recordings.yaml",
+        "surface_summary": [
+          "GET /recordings",
+          "GET /recordings/{recording_id}",
+          "POST /recordings/{recording_id}/playback-session",
+          "GET /recordings/{recording_id}/transcript",
+          "POST /recordings/{recording_id}/redactions",
+          "GET /search",
+          "POST /share-links",
+          "POST /legal-holds",
+          "POST /legal-holds/{hold_id}/release",
+          "POST /ediscovery/exports",
+          "POST /exports",
+          "POST /ingest/presign",
+          "POST /ingest/finalize"
+        ],
+        "required_replay_focus": "tenant/pack headers, Cedar denies, share-link constraints, consent banner, content_hash, redaction overlay, legal hold, export bundle"
+      },
+      "asyncapi": {
+        "current_path": "oya/recordings/contracts/asyncapi/recordings-events.yaml",
+        "inventory_manifest_path_was_stale": "microservices/recordings/contracts/asyncapi/recordings-events.yaml",
+        "surface_summary": [
+          "recordings.recording.ingested.v1",
+          "recordings.recording.published.v1",
+          "recordings.recording.played.v1",
+          "recordings.recording.shared.v1",
+          "recordings.recording.redacted.v1",
+          "recordings.recording.deleted.v1",
+          "recordings.transcript.ready.v1",
+          "recordings.translation.ready.v1",
+          "recordings.summary.ready.v1",
+          "recordings.legalhold.engaged.v1",
+          "recordings.legalhold.released.v1",
+          "recordings.ediscovery.export.v1",
+          "recordings.retention.applied.v1",
+          "recordings.watermark.rotated.v1",
+          "meet.session.ended.v1",
+          "messenger.huddle.ended.v1"
+        ],
+        "required_replay_focus": "event payload required fields, idempotency, consent, legal-hold, retention, purge, export, and cross-service consumed-event boundaries"
+      },
+      "proto": {
+        "current_path": "oya/recordings/contracts/proto/recordings.proto",
+        "inventory_manifest_path_was_stale": "microservices/recordings/contracts/proto/recordings.proto",
+        "surface_summary": [
+          "oyatie.recordings.v1.Recording",
+          "oyatie.recordings.v1.RecordingIngestRequest",
+          "oyatie.recordings.v1.RecordingIngestResponse",
+          "oyatie.recordings.v1.LegalHoldEngageRequest",
+          "oyatie.recordings.v1.LegalHold",
+          "RecordingsIngest.Ingest",
+          "RecordingsLegalHold.Engage"
+        ],
+        "required_replay_focus": "producer SPIFFE, parent audit-chain ref, idempotency key, content_hash_verified, and legal-hold p99/correctness shape"
+      }
+    },
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow Engine events",
+        "Ontology projections",
+        "Cedar policy",
+        "audit-chain seals"
+      ],
+      "policy_ref": "ADR-0131 flat service ownership and existing AsyncAPI no direct microservice-to-microservice call note"
+    }
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "Recording",
+        "fields": [
+          "recording_id",
+          "tenant_id",
+          "source_kind",
+          "pack_id",
+          "context_kind",
+          "title_ciphertext_or_policy_visible_title",
+          "description_ciphertext",
+          "ingested_at",
+          "ended_at",
+          "duration_seconds",
+          "content_hash",
+          "retention_policy_id",
+          "legal_hold_engaged",
+          "author_ref",
+          "consent_banner_confirmed",
+          "cell_id",
+          "parent_audit_chain_ref"
+        ],
+        "invariants": [
+          "content_hash immutable",
+          "context_kind immutable",
+          "tenant_id and pack_id required before read/write",
+          "consent banner required for recorded sources where law/policy requires notice",
+          "source media is never destructively redacted under legal hold or WORM mode"
+        ]
+      },
+      {
+        "entity": "Transcript",
+        "fields": [
+          "transcript_id",
+          "recording_id",
+          "lang_code",
+          "content_hash",
+          "speaker_count",
+          "segments",
+          "model_version",
+          "source_recording_hash"
+        ],
+        "invariants": [
+          "transcript version binds to source recording hash",
+          "redacted spans are overlay references",
+          "translation handoff is policy-gated"
+        ]
+      },
+      {
+        "entity": "RedactionOverlay",
+        "fields": [
+          "redaction_id",
+          "recording_id",
+          "span_start_ms",
+          "span_end_ms",
+          "reason",
+          "applied_at",
+          "applied_by",
+          "audit_event_id"
+        ],
+        "invariants": [
+          "overlay insert-only unless compensated by explicit audit event",
+          "source media hash remains unchanged"
+        ]
+      },
+      {
+        "entity": "LegalHold",
+        "fields": [
+          "hold_id",
+          "tenant_id",
+          "scope_expression",
+          "engaged_at",
+          "released_at",
+          "court_order_ref",
+          "engaged_by",
+          "paired_approver",
+          "matched_recordings_count",
+          "audit_chain_seal_ref"
+        ],
+        "invariants": [
+          "four-eyes approval required for engage/release/export",
+          "hold blocks purge and retention expiry",
+          "scope expression is Cedar-evaluable and audit-visible"
+        ]
+      },
+      {
+        "entity": "ExportBundle",
+        "fields": [
+          "bundle_id",
+          "recording_id_or_hold_id",
+          "formats",
+          "signed_url",
+          "expires_at",
+          "merkle_root",
+          "requester",
+          "paired_approver",
+          "watermark_viewer_ref"
+        ],
+        "invariants": [
+          "signed URL expires",
+          "Merkle root seals bundle contents",
+          "export scope cannot exceed Cedar/legal basis"
+        ]
+      },
+      {
+        "entity": "PurgeTombstone",
+        "fields": [
+          "tenant_id",
+          "recording_id",
+          "request_id",
+          "proof_of_erasure_ref",
+          "deleted_at",
+          "retained_metadata_fields"
+        ],
+        "invariants": [
+          "contains no recoverable media or transcript bytes",
+          "search index delete precedes purge success"
+        ]
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "RecordingObject",
+        "store": "object storage with pack/cell residency and optional WORM/audit-trail equivalence",
+        "sharding_key": "tenant_id+cell_id+recording_id",
+        "retention": "ADR-REC-001 retention mode matrix"
+      },
+      {
+        "aggregate": "RecordingMetadata",
+        "store": "Postgres/RLS",
+        "sharding_key": "tenant_id+recording_id",
+        "retention": "per retention policy, legal hold, DSR outcome, and audit-chain rules"
+      },
+      {
+        "aggregate": "TranscriptSearchIndex",
+        "store": "search adapter with tenant/Cedar scope and redaction awareness",
+        "sharding_key": "tenant_id+language+time_bucket",
+        "retention": "mirrors recording/transcript purge and legal-hold state"
+      }
+    ],
+    "ontology_projections": [
+      "Recording",
+      "Transcript",
+      "Speaker",
+      "Redaction",
+      "LegalHold"
+    ],
+    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md"
+  },
+  "security_privacy_regulatory": {
+    "policy_controls": [
+      "mTLS for all REST/RPC calls",
+      "X-Oyatie-Tenant and X-Oyatie-Pack headers on REST surfaces",
+      "Cedar deny-by-default for tenant, pack, legal-hold, public-read/share-link, auditor, CI, and retention actions",
+      "OpenBao/HSM custody for purge and encryption material",
+      "per-cell residency and pack-pinned storage placement",
+      "audit-chain emission for ingest, publish, play, share, redaction, delete, retention, legal hold, export, purge, and watermark events"
+    ],
+    "privacy_posture": {
+      "content_types": [
+        "audio",
+        "video",
+        "screen capture",
+        "transcript text",
+        "speaker identity/quasi identifiers",
+        "search terms and hit metadata",
+        "legal-hold scope",
+        "export bundle metadata"
+      ],
+      "minimum_required_guards": [
+        "consent banner capture for recording sources",
+        "purpose-limited transcript/summary/translation processing",
+        "non-destructive redaction overlays",
+        "DSR and purge workflows with legal-hold/statutory denial support",
+        "share-link expiry, revocation, view cap, password policy, and watermarking",
+        "no plaintext model-training signal from recordings or transcripts unless future accepted policy explicitly allows a de-identified path"
+      ]
+    },
+    "regulatory_packs": [
+      "kr",
+      "eu",
+      "us",
+      "us-healthcare",
+      "us-financial",
+      "jp",
+      "sg",
+      "au",
+      "in",
+      "br",
+      "ae",
+      "ksa",
+      "hipaa",
+      "gdpr",
+      "SOC 2 Type 2",
+      "NIS2",
+      "kr-isms-p",
+      "lgpd",
+      "iso27001",
+      "soc2"
+    ],
+    "regulated_retention_modes": [
+      "worm_record",
+      "mutable_record",
+      "purge_on_request",
+      "redaction_overlay_only"
+    ],
+    "regulated_claim_boundary": "This file identifies required regulatory posture and evidence targets. It does not claim compliance certification, production legal-hold correctness, SEC 17a-4(f) readiness, HIPAA production safeguards, GDPR/PIPA production erasure fulfillment, or measured controls."
+  },
+  "user_experience": {
+    "accessibility_coverage": "WCAG 2.2 AA minimum for all future recordings user/admin paths; keyboard, screen-reader, reduced-motion, caption/transcript, visible focus, high-contrast, and error-state coverage required.",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "KR and en-US launch coverage; EU locale readiness through regional packs; transcript language display uses BCP 47 codes.",
+    "design_system_components_expected": [
+      "$ref:specs/design-system/tenant-context-switcher.json",
+      "$ref:specs/design-system/communication-thread-list.json",
+      "$ref:specs/design-system/policy-disclosure-banner.json",
+      "$ref:specs/design-system/audit-evidence-timeline.json",
+      "$ref:specs/design-system/score-card-result-table.json"
+    ],
+    "journey_critical_paths": [
+      {
+        "persona": "employee_end_user",
+        "journeys": [
+          "find a recording",
+          "play with visible policy/consent state",
+          "open transcript and search",
+          "create or revoke a share link"
+        ],
+        "time_to_success_target": "< 2 minutes for routine find/play/share with policy state visible"
+      },
+      {
+        "persona": "compliance_officer",
+        "journeys": [
+          "engage legal hold with paired approver",
+          "create redaction overlay",
+          "export eDiscovery bundle",
+          "verify Merkle/chain-of-custody evidence"
+        ],
+        "time_to_success_target": "< 10 minutes for scoped investigation packet after authorization"
+      },
+      {
+        "persona": "meeting_or_huddle_host",
+        "journeys": [
+          "confirm recording consent banner",
+          "finalize ingest",
+          "track transcript readiness",
+          "handle failed or delayed processing"
+        ],
+        "time_to_success_target": "status visible within 30 seconds; no silent processing failure"
+      }
+    ],
+    "error_state_coverage": {
+      "policy_denied": "inline reason with audit-safe details and remediation owner",
+      "legal_hold_conflict": "blocking state requiring authorized role and paired approver",
+      "retention_or_purge_denied": "lawful-basis explanation with DSR/appeal path",
+      "transcript_pipeline_degraded": "clear delayed status with fallback and no false ready state",
+      "share_link_revoked_or_expired": "safe error with no metadata leak"
+    }
+  },
+  "metrics": [
+    {
+      "name": "recordings_ingest_finalize_p99_ms",
+      "targets": {
+        "preview": 1000,
+        "stable": 500,
+        "GA": 250
+      },
+      "planned_verification_ref": "contract replay and benchmark after Build"
+    },
+    {
+      "name": "recordings_playback_start_p99_ms",
+      "targets": {
+        "preview": 1000,
+        "stable": 700,
+        "GA": 400
+      },
+      "planned_verification_ref": "playback-start SLO and browser replay after Build"
+    },
+    {
+      "name": "recordings_transcript_search_p99_ms",
+      "targets": {
+        "preview": 500,
+        "stable": 300,
+        "GA": 200
+      },
+      "planned_verification_ref": "search replay with tenant/Cedar/redaction filters after Build"
+    },
+    {
+      "name": "recordings_legal_hold_correctness_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "planned_verification_ref": "legal-hold mode matrix fixtures and export replay"
+    },
+    {
+      "name": "recordings_purge_false_success_count",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "planned_verification_ref": "DSR purge tombstone and search-delete-before-success replay"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-REC-01",
+      "severity": "critical",
+      "risk": "recording source media or transcripts leak across tenant, pack, context, share-link, or legal-hold boundaries",
+      "mitigation": "mTLS, tenant/pack headers, Cedar deny-by-default, share-link expiry/revocation, and RED access-denial fixtures before Build"
+    },
+    {
+      "id": "R-REC-02",
+      "severity": "critical",
+      "risk": "legal hold, regulated WORM, or eDiscovery chain-of-custody is bypassed by purge, redaction, export, or mutable correction paths",
+      "mitigation": "ADR-REC-001 mode matrix, four-eyes approvals, non-destructive overlays, Merkle export bundle, audit-chain seals, and legal-hold correctness fixtures"
+    },
+    {
+      "id": "R-REC-03",
+      "severity": "high",
+      "risk": "existing inventory overclaims GA/IP/SLO readiness without current source authority or runtime evidence",
+      "mitigation": "this PRD sets source-authority claim ceiling; downstream gates must replay contracts and produce runtime evidence before readiness claims"
+    },
+    {
+      "id": "R-REC-04",
+      "severity": "high",
+      "risk": "retired dependency vocabulary routes work to stale ownership or infrastructure",
+      "mitigation": "normalize retired token to intelligence authority and treat historical references as cleanup/provenance until dedicated migration cards update service-home files"
+    },
+    {
+      "id": "R-REC-05",
+      "severity": "medium",
+      "risk": "large media/transcript workloads create unbounded cost or processing backlog",
+      "mitigation": "per-tenant storage/minutes/export metering, queue backpressure, transcription degraded runbooks, and SLO/metric gates"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-REC-01",
+      "rule": "recording ingest is idempotent and content-hash verified before downstream processing",
+      "planned_enforcement_ref": "RED fixture recordings_ingest_contract_replay"
+    },
+    {
+      "id": "BP-REC-02",
+      "rule": "legal hold and eDiscovery require four-eyes approval plus audit-chain seal",
+      "planned_enforcement_ref": "RED fixture recordings_export_merkle_four_eyes"
+    },
+    {
+      "id": "BP-REC-03",
+      "rule": "redactions are overlays and do not mutate source media in WORM or legal-hold contexts",
+      "planned_enforcement_ref": "RED fixture recordings_transcript_redaction_overlay_hash_binding"
+    },
+    {
+      "id": "BP-REC-04",
+      "rule": "share links are scoped, expiring, revocable, watermarkable, and never bypass tenant policy",
+      "planned_enforcement_ref": "RED fixture recordings_cedar_scope_playback_search_denials"
+    },
+    {
+      "id": "BP-REC-05",
+      "rule": "retired/provenance service tokens are normalized to current authorities before assignment or implementation",
+      "planned_enforcement_ref": "source-authority review t_8ad99810"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "legacy_microservices_manifest_resurrection",
+      "why_forbidden": "restores retired source topology and undermines ADR-0131/ADR-0512 service-home authority",
+      "detection_lane": "targeted source-authority scan for microservices/recordings/manifest.json creation"
+    },
+    {
+      "anti_pattern": "inventory_as_runtime_readiness",
+      "why_forbidden": "manifest/IP/SLO rows are provenance and can be stale; runtime readiness requires RED/Build/Review evidence",
+      "detection_lane": "source-authority review no-overclaim lens"
+    },
+    {
+      "anti_pattern": "destructive_redaction_under_hold",
+      "why_forbidden": "breaks chain-of-custody and regulated preservation obligations",
+      "detection_lane": "redaction overlay/hash binding fixture"
+    },
+    {
+      "anti_pattern": "share_link_policy_bypass",
+      "why_forbidden": "anonymous playback must still be granted only by valid share-link context and policy",
+      "detection_lane": "playback/share-link Cedar replay fixture"
+    },
+    {
+      "anti_pattern": "direct_cross_service_call_for_translation_or_summary",
+      "why_forbidden": "bypasses Workflow/Ontology, audit, and current intelligence/translate boundaries",
+      "detection_lane": "contract replay plus dependency authority review"
+    }
+  ],
+  "test_fixture_plan": {
+    "red_fixture_contract_card": "t_72ac2adf",
+    "required_fixtures": [
+      {
+        "name": "recordings_ingest_contract_replay",
+        "covers": [
+          "REST ingest presign/finalize",
+          "proto Ingest",
+          "meet/messenger consumed events",
+          "content_hash",
+          "consent_banner_confirmed",
+          "tenant/pack context"
+        ]
+      },
+      {
+        "name": "recordings_cedar_scope_playback_search_denials",
+        "covers": [
+          "recording list/read",
+          "playback session",
+          "transcript search",
+          "share-link expiry/revocation/view cap",
+          "tenant/Cedar/mTLS denial"
+        ]
+      },
+      {
+        "name": "recordings_transcript_redaction_overlay_hash_binding",
+        "covers": [
+          "TranscriptReady",
+          "TranslationReady",
+          "SummaryReady",
+          "RecordingRedacted",
+          "source hash binding",
+          "non-destructive redaction overlay"
+        ]
+      },
+      {
+        "name": "recordings_retention_legal_hold_mode_matrix",
+        "covers": [
+          "worm_record",
+          "mutable_record",
+          "purge_on_request",
+          "redaction_overlay_only",
+          "legal hold engage/release",
+          "DSR proof-of-erasure/tombstone"
+        ]
+      },
+      {
+        "name": "recordings_export_merkle_four_eyes",
+        "covers": [
+          "eDiscovery export",
+          "regular export",
+          "signed URL expiry",
+          "Merkle root",
+          "paired approver",
+          "audit-chain seal"
+        ]
+      },
+      {
+        "name": "recordings_ui_accessibility_journey_replay",
+        "covers": [
+          "browser playback",
+          "transcript search",
+          "share-link status",
+          "legal-hold/admin path",
+          "WCAG 2.2 AA keyboard/screen-reader evidence"
+        ],
+        "claim_boundary": "future UI Build/Review only; source-lock task records expected evidence"
+      }
+    ],
+    "verification_commands_for_this_source_lock": [
+      "python3 -m json.tool specs/microservices/recordings.json",
+      "targeted source-authority scan for microservices/recordings/manifest.json and retired-token context",
+      "compare key shape against specs/microservices/calendar.json without copying stale runtime claims"
+    ]
+  },
+  "decision_log": [
+    {
+      "date": "2026-07-01",
+      "decision": "specs/microservices/recordings.json is created as the recordings source-authority PRD/source map before RED/Build fanout.",
+      "drivers": [
+        "t_444d92d7 source map found no existing specific spec",
+        "manifests-index row declared oya/recordings/manifest.json inventory/provenance only",
+        "downstream RED fixture and Build cards require a machine-readable source lock"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "legacy microservices/recordings/** paths are normalized to oya/recordings/** or this spec path and are not restored as canonical.",
+      "drivers": [
+        "ADR-0131/ADR-0512 service-home boundary",
+        "task non-goal forbids microservices/recordings/manifest.json restoration"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "retired service/dependency vocabulary is normalized to current intelligence authority before downstream assignment.",
+      "drivers": [
+        "ADR-0335 retirement boundary",
+        "manifests-index foundry_retirement_authority",
+        "t_444d92d7 retired-authority guard recommendation"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "$ref:specs/root-hub-pointers.json",
+    "$ref:docs/AGENTS.md",
+    "$ref:specs/microservices/manifests-index.json",
+    "$ref:specs/microservices/calendar.json",
+    "$ref:specs/microservices/social.json",
+    "kanban:t_444d92d7/recordings-source-map-backlog.md",
+    "$ref:oya/recordings/manifest.json",
+    "$ref:oya/recordings/README.md",
+    "$ref:oya/recordings/contracts/openapi/recordings.yaml",
+    "$ref:oya/recordings/contracts/asyncapi/recordings-events.yaml",
+    "$ref:oya/recordings/contracts/proto/recordings.proto",
+    "$ref:oya/recordings/decisions/ADR-REC-001-recording-retention-WORM-vs-mutable-vs-purge-on-request.md",
+    "$ref:registry/catalog/oya-recordings-domain.yaml"
+  ],
+  "enforcement_status": {
+    "source_lock": "complete_for_downstream_review_by_t_8ad99810",
+    "contract_replay": "planned_for_red_fixture_card_t_72ac2adf",
+    "runtime_product_readiness": "not_claimed",
+    "release_governance": "not_applicable_to_source_lock_only",
+    "generated_files": "not_touched"
+  }
+}

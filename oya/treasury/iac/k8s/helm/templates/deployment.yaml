@@ -2,6 +2,9 @@
 {{- if and .Values.image.cosign.required (not (and (regexMatch "^sha256:[0-9a-f]{64}$" $imageDigest) (regexMatch "[1-9a-f]" (trimPrefix "sha256:" $imageDigest)))) -}}
 {{- fail "image.digest must be set to a real non-zero sha256 digest when image.cosign.required=true" -}}
 {{- end -}}
+# Preview planning inventory only under specs/microservices/treasury.json.
+# Rendering this template is not treasury deployment authority and does not
+# claim cloud deployment or runtime audit-chain emission.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,6 +15,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     oyatie.com/adr-0349: argocd-managed
     oyatie.com/cargo-package: {{ .Values.microservice.cargoPackage | quote }}
+    oyatie.com/authority-scope: preview-planning-non-authoritative
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -28,7 +32,8 @@ spec:
         cosign.sigstore.dev/required: {{ .Values.image.cosign.required | quote }}
         oyatie.com/image-digest: {{ $imageDigest | quote }}
         oyatie.com/image-promotion-policy: {{ .Values.image.cosign.policy | quote }}
-        oyatie.com/audit-chain-event: "microservice-deployment"
+        oyatie.com/audit-chain-event: "planning-inventory-only-no-runtime-audit-chain-emission"
+        oyatie.com/non-claim: "no-cloud-deployment-no-production-readiness"
     spec:
       runtimeClassName: {{ .Values.podRuntime.runtimeClassName | quote }}
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
@@ -50,6 +55,8 @@ spec:
               value: {{ .Values.microservice.cargoPackage | quote }}
             - name: OYA_OTEL_ENDPOINT
               value: {{ .Values.otel.endpoint | quote }}
+            - name: OYA_TREASURY_PREVIEW_NON_CLAIM
+              value: "no-runtime-deployment"
             - name: OYA_IMAGE_PROMOTION_POLICY
               value: {{ .Values.config.imagePromotionPolicy | quote }}
           readinessProbe:

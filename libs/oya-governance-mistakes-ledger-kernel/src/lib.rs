@@ -12,7 +12,8 @@
 //! - Future dev-CLI `oya-governance-mistakes-ledger-app` —
 //!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:mistakes-ledger>-<layer:app>`;
 //!   binary tool surface (canonical `app` suffix per ADR-0107 amendment 2026-05-15),
-//!   wraps the kernel for `oya gate validate mistakes-ledger`.
+//!   wraps the kernel for the mistakes-ledger Rust gate packet; legacy
+//!   `oya gate validate mistakes-ledger` calls are local bridge/provenance only.
 //!
 //! # Intent
 //!

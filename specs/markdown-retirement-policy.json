@@ -8,7 +8,7 @@
     "_note": "sunset_at = last phase deadline (PHASE-8-CHECK-CRATE-REWRITES, 2026-08-31). Once all 11 check crates consume JSON, the policy itself retires; subsequent enforcement lives in lean-a* lanes. deprecation_at and removal_at omitted — defaults apply per ADR-0108 §Canonical sub-rule: deprecation_at = sunset_at + 30 days; removal_at = effective deprecation_at + 90 days."
   },
   "title": "MarkdownRetirementPolicy",
-  "description": "Policy for retiring hand-authored Markdown from the repo per user directive 2026-05-13. Only README.md + CLAUDE.md + AGENTS.md (at repo root) survive as machine-readable pointer hubs. Everything else under docs/, .omc/, contracts/, etc. becomes JSON/TOML/YAML with the active-artifact-contract v3.0.0 9-capability declaration. Per autonomous-prompt directive 'target 0 hand-authored Markdown'.",
+  "description": "Policy for retiring hand-authored Markdown from the repo per user directive 2026-05-13. README.md + CLAUDE.md + AGENTS.md are the only repo-root machine-readable pointer hubs. HANDOFF.md is retained as a bounded fresh-session handoff exception recorded in retention_rules.bounded_root_markdown_exceptions; it is not a fourth pointer hub. Everything else under docs/, .omc/, contracts/, etc. becomes JSON/TOML/YAML with the active-artifact-contract v3.0.0 9-capability declaration. Per autonomous-prompt directive 'target 0 hand-authored Markdown'.",
   "_meta": {
     "doc_class": "Machine-Readable-Policy",
     "schema_id": "EXE-MD-RETIREMENT-POLICY",
@@ -23,13 +23,30 @@
       "CLAUDE.md and AGENTS.md",
       "that should utilize machine readable pointers to relevent files"
     ],
-    "purpose": "Policy for retiring hand-authored Markdown from the repo per user directive 2026-05-13. Only README.md + CLAUDE.md + AGENTS.md (at repo root) survive as machine-readable pointer hubs. Everything else under docs/, .omc/, contracts/, etc."
+    "purpose": "Policy for retiring hand-authored Markdown from the repo per user directive 2026-05-13. README.md + CLAUDE.md + AGENTS.md are the only repo-root machine-readable pointer hubs; HANDOFF.md remains only as a bounded fresh-session handoff exception with owner, lifecycle, and freshness rules below. Everything else under docs/, .omc/, contracts/, etc."
   },
   "retention_rules": {
     "survive_at_root_as_pointer_hubs": [
       "README.md",
       "CLAUDE.md",
       "AGENTS.md"
+    ],
+    "bounded_root_markdown_exceptions": [
+      {
+        "path": "HANDOFF.md",
+        "classification": "fresh-session-handoff-exception-not-pointer-hub",
+        "owner_team": "founder + platform-governance",
+        "decision": "retain at repo root until the cross-repo state, backlog, guardrails, and consolidation map are migrated to a machine-readable successor or expire as completed/superseded state",
+        "source_of_truth_rationale": [
+          "Founder directive 2026-06-08 recorded in HANDOFF.md: fresh sessions need cross-repo state, full backlog, hard guardrails, and sibling/kernel consolidation map with zero context loss.",
+          "specs/root-hub-pointers.json entry_points.session_handoff registers HANDOFF.md as the current fresh-session handoff entry.",
+          "git tracked root Markdown inventory as of 2026-07-01 contains AGENTS.md, CLAUDE.md, HANDOFF.md, and README.md."
+        ],
+        "authority_boundary": "HANDOFF.md may summarize current state/backlog for session re-entry, but it must not override README.md, CLAUDE.md, AGENTS.md, docs/AGENTS.md, accepted ADRs, or machine-readable specs/registries.",
+        "freshness_rule": "Audit when root-hub pointers or repo-hygiene automation are updated, and otherwise treat claims older than 30 days as stale unless refreshed by a governance/docs task.",
+        "retirement_rule": "Prefer migration to a machine-readable session-handoff registry; after equivalent state is preserved there, remove HANDOFF.md from the root allowlist in this policy, specs/root-hub-pointers.json, and specs/repo-hygiene-automation.json in one cohesion slice.",
+        "expansion_rule": "No additional root Markdown files are allowed by analogy; every new exception needs an explicit policy row with owner, lifecycle, and retirement rule."
+      }
     ],
     "survive_as_immutable_audit_archive": [
       "/evidence/audits/consensus/**/*.md (historical consensus outputs; immutable; logged as audit-archive profile)"
@@ -94,7 +111,8 @@
       "phase_id": "PHASE-5-CORE-DOCS",
       "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* → JSON",
       "deadline": "2026-06-30",
-      "status": "planned",
+      "status": "overdue-needs-replan",
+      "reconciliation_note": "As of 2026-07-01, /specs/agent-operating-contract.json remains a projection and docs/AGENTS.md remains the live operating contract until an explicit promotion PR supplies authority-cohesion evidence.",
       "files_count_estimated": 4,
       "prerequisite_for_operational": [
         "constitution.json schema",

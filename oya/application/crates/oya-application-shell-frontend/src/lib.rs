@@ -80,4 +80,34 @@ mod tests {
         assert!(html.contains("data-island=\"render-envelope-dashboard\""));
         assert!(html.contains("Selective WASM islands"));
     }
+
+    #[test]
+    fn static_dashboard_shows_ops_cluster_health_from_typed_api() {
+        let html = crate::app::static_dashboard_html();
+
+        assert!(html.contains("data-ops-cluster-health-source=\"typed-api\""));
+        assert!(html.contains("GET /ops/v1/clusters/{cluster_id}/health"));
+        assert!(html.contains("cell-us-east-2"));
+        assert!(html.contains("role=\"status\" aria-live=\"polite\""));
+        assert!(html.contains("class=\"ds-remediation-route\""));
+        assert!(html.contains("yellow · observed 2026-07-01T05:00:00Z · typed ops API"));
+        assert!(html.contains("traceparent fixture only"));
+        assert!(!html.to_ascii_lowercase().contains("ssh"));
+    }
+
+    #[test]
+    fn static_dashboard_exposes_developer_portal_approved_template_story() {
+        let html = crate::app::static_dashboard_html();
+
+        assert!(html.contains("Approved service template provisioning"));
+        assert!(html.contains("Rust API + Leptos Shell Service"));
+        assert!(html.contains("Quota and cost preview"));
+        assert!(html.contains("Submit provisioning request"));
+        assert!(html.contains("op-devportal-001a"));
+        assert!(html.contains("developer_portal.provisioning.requested"));
+        assert!(html.contains("policy denied fixture"));
+        assert!(html.contains("Platform engineer"));
+        assert!(html.contains("Security reviewer"));
+        assert!(html.contains("Tenant admin"));
+    }
 }

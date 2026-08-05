@@ -1,8 +1,9 @@
 //! Telemetry middleware — Layer 4.
 //!
-//! Records per-route counters + total latency for every dispatched request.
-//! Pure std-only (Mutex + BTreeMap); a production cell wires this output to
-//! a Prometheus-compatible exporter via the OTel adapter (separate slice).
+//! Records per-route counters + total latency for every dispatched request and
+//! emits one structured wide event per unit of work. Pure std-only (Mutex +
+//! BTreeMap); a production cell wires this output to a Prometheus-compatible
+//! exporter / structured log sink via the OTel adapter (separate slice).
 //!
 //! Counter labels (low-cardinality only per OTel conventions):
 //!   - route  (the matched_template from the router — STATIC, NEVER the raw
@@ -22,7 +23,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
@@ -34,6 +35,28 @@ pub struct TelemetrySample {
     pub status_class: String,
     pub count: u64,
     pub total_latency_us: u64,
+}
+
+/// Structured per-request wide event emitted by [`TelemetryMiddleware`].
+///
+/// RED fields are explicit so downstream adapters can project them into
+/// counters/histograms without re-inferring semantics from status codes:
+/// `red_rate_count` is always 1 for the completed unit of work,
+/// `red_error_count` is 1 for server-error responses and 0 otherwise, and
+/// `red_duration_us` is the measured request duration.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct WideEvent {
+    pub schema_version: u16,    // data_class: PUBLIC
+    pub event_name: String,     // data_class: PUBLIC
+    pub tenant_id: String,      // data_class: INTERNAL_ONLY
+    pub correlation_id: String, // data_class: INTERNAL_ONLY
+    pub method: String,         // data_class: PUBLIC
+    pub route: String,          // data_class: PUBLIC (static route template only)
+    pub status_code: u16,       // data_class: PUBLIC
+    pub status_class: String,   // data_class: PUBLIC
+    pub red_rate_count: u64,    // data_class: INTERNAL_ONLY
+    pub red_error_count: u64,   // data_class: INTERNAL_ONLY
+    pub red_duration_us: u64,   // data_class: INTERNAL_ONLY
 }
 
 /// In-memory metrics sink. Production swaps for an OTel adapter.
@@ -91,6 +114,40 @@ impl InMemoryMetrics {
     }
 }
 
+/// In-memory wide-event sink. Production swaps for a structured JSON / OTel
+/// logs adapter, but this slice gives deterministic request-level evidence.
+#[derive(Debug, Default)]
+pub struct InMemoryWideEvents {
+    events: Mutex<Vec<WideEvent>>,
+}
+
+impl InMemoryWideEvents {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn record(&self, event: WideEvent) {
+        self.events
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .push(event);
+    }
+
+    pub fn snapshot(&self) -> Vec<WideEvent> {
+        self.events
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clone()
+    }
+
+    pub fn count(&self) -> usize {
+        self.events
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .len()
+    }
+}
+
 fn status_class(status: u16) -> &'static str {
     match status {
         100..=199 => "1xx",
@@ -105,20 +162,84 @@ fn status_class(status: u16) -> &'static str {
 /// direct-handler invocations in unit tests). Keeps cardinality bounded by
 /// using a sentinel rather than the raw path.
 pub const UNMATCHED_ROUTE_LABEL: &str = "/_unmatched";
+pub const WIDE_EVENT_SCHEMA_VERSION: u16 = 1;
+pub const HTTP_REQUEST_COMPLETED_EVENT: &str = "http.request.completed";
+pub const TENANT_ID_CAPTURE_KEY: &str = "tenant_id";
+pub const TENANT_ID_HEADER: &str = "x-tenant-id";
+pub const CORRELATION_ID_HEADER: &str = "x-correlation-id";
+pub const REQUEST_ID_HEADER: &str = "x-request-id";
+pub const TRACEPARENT_HEADER: &str = "traceparent";
+pub const UNKNOWN_TENANT_ID: &str = "_unknown_tenant";
+pub const MISSING_CORRELATION_ID: &str = "_missing_correlation_id";
 
 #[derive(Clone, Debug)]
 pub struct TelemetryMiddleware {
-    metrics: std::sync::Arc<InMemoryMetrics>,
+    metrics: Arc<InMemoryMetrics>,
+    wide_events: Arc<InMemoryWideEvents>,
 }
 
 impl TelemetryMiddleware {
-    pub fn new(metrics: std::sync::Arc<InMemoryMetrics>) -> Self {
-        Self { metrics }
+    pub fn new(metrics: Arc<InMemoryMetrics>) -> Self {
+        Self {
+            metrics,
+            wide_events: Arc::new(InMemoryWideEvents::new()),
+        }
     }
 
-    pub fn metrics(&self) -> std::sync::Arc<InMemoryMetrics> {
+    pub fn with_wide_events(
+        metrics: Arc<InMemoryMetrics>,
+        wide_events: Arc<InMemoryWideEvents>,
+    ) -> Self {
+        Self {
+            metrics,
+            wide_events,
+        }
+    }
+
+    pub fn metrics(&self) -> Arc<InMemoryMetrics> {
         self.metrics.clone()
     }
+
+    pub fn wide_events(&self) -> Arc<InMemoryWideEvents> {
+        self.wide_events.clone()
+    }
+}
+
+fn route_label(request: &HttpRequest) -> String {
+    request
+        .matched_template
+        .clone()
+        .unwrap_or_else(|| UNMATCHED_ROUTE_LABEL.to_string())
+}
+
+fn non_empty_header(request: &HttpRequest, name: &str) -> Option<String> {
+    request
+        .headers
+        .get(name)
+        .map(|value| value.trim())
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+}
+
+fn tenant_id(request: &HttpRequest) -> String {
+    request
+        .path_captures
+        .get(TENANT_ID_CAPTURE_KEY)
+        .filter(|value| !value.trim().is_empty())
+        .cloned()
+        .or_else(|| non_empty_header(request, TENANT_ID_HEADER))
+        .unwrap_or_else(|| UNKNOWN_TENANT_ID.to_string())
+}
+
+fn correlation_id(request: &HttpRequest) -> String {
+    non_empty_header(request, CORRELATION_ID_HEADER)
+        .or_else(|| non_empty_header(request, REQUEST_ID_HEADER))
+        .or_else(|| non_empty_header(request, TRACEPARENT_HEADER))
+        .unwrap_or_else(|| MISSING_CORRELATION_ID.to_string())
+}
+
+fn red_error_count(status: u16) -> u64 {
+    if status >= 500 { 1 } else { 0 }
 }
 
 impl Middleware<HttpRequest, HttpResponse> for TelemetryMiddleware {
@@ -132,15 +253,28 @@ impl Middleware<HttpRequest, HttpResponse> for TelemetryMiddleware {
         // sentinel. Never the raw path — that re-introduces S6 (label
         // injection) and unbounded label cardinality. Never reconstruct
         // from path_captures — that's the F-MULTI-Q1 heuristic class.
-        let route = request
-            .matched_template
-            .clone()
-            .unwrap_or_else(|| UNMATCHED_ROUTE_LABEL.to_string());
+        let route = route_label(&request);
+        let tenant_id = tenant_id(&request);
+        let correlation_id = correlation_id(&request);
         let start = Instant::now();
         let response = next.run(request);
         let latency_us = start.elapsed().as_micros() as u64;
+        let status_class = status_class(response.status).to_string();
         self.metrics
             .record(&method, &route, response.status, latency_us);
+        self.wide_events.record(WideEvent {
+            schema_version: WIDE_EVENT_SCHEMA_VERSION,
+            event_name: HTTP_REQUEST_COMPLETED_EVENT.to_string(),
+            tenant_id,
+            correlation_id,
+            method,
+            route,
+            status_code: response.status,
+            status_class,
+            red_rate_count: 1,
+            red_error_count: red_error_count(response.status),
+            red_duration_us: latency_us,
+        });
         response
     }
 }
@@ -172,6 +306,21 @@ mod tests {
         req_with_template(method, path, None)
     }
 
+    fn req_with_headers_and_template(
+        method: HttpMethod,
+        path: &str,
+        headers: &[(&str, &str)],
+        matched_template: Option<&str>,
+    ) -> HttpRequest {
+        let mut request = req_with_template(method, path, matched_template);
+        for (key, value) in headers {
+            request
+                .headers
+                .insert((*key).to_string(), (*value).to_string());
+        }
+        request
+    }
+
     fn terminal_200(_req: HttpRequest) -> HttpResponse {
         HttpResponse::new(200)
     }
@@ -197,6 +346,70 @@ mod tests {
         assert_eq!(snap.len(), 1);
         assert_eq!(snap[0].count, 1);
         assert_eq!(snap[0].status_class, "2xx");
+    }
+
+    #[test]
+    fn wide_event_records_tenant_correlation_and_red_fields() {
+        let metrics = Arc::new(InMemoryMetrics::new());
+        let middleware = TelemetryMiddleware::new(metrics.clone());
+        let wide_events = middleware.wide_events();
+        let chain: MiddlewareChain<HttpRequest, HttpResponse> =
+            MiddlewareChain::new().push(Box::new(middleware));
+
+        let _ = chain.execute(
+            req_with_headers_and_template(
+                HttpMethod::Post,
+                "/messages/42",
+                &[
+                    ("x-tenant-id", "tenant-alpha"),
+                    ("x-correlation-id", "corr-123"),
+                ],
+                Some("/messages/{message_id}"),
+            ),
+            terminal_200,
+        );
+
+        let events = wide_events.snapshot();
+        assert_eq!(events.len(), 1);
+        let event = &events[0];
+        assert_eq!(event.tenant_id, "tenant-alpha");
+        assert_eq!(event.correlation_id, "corr-123");
+        assert_eq!(event.method, "POST");
+        assert_eq!(event.route, "/messages/{message_id}");
+        assert_eq!(event.status_code, 200);
+        assert_eq!(event.status_class, "2xx");
+        assert_eq!(event.red_rate_count, 1);
+        assert_eq!(event.red_error_count, 0);
+        assert!(event.red_duration_us < u64::MAX);
+    }
+
+    #[test]
+    fn wide_event_marks_server_error_and_request_id_fallback() {
+        let metrics = Arc::new(InMemoryMetrics::new());
+        let middleware = TelemetryMiddleware::new(metrics.clone());
+        let wide_events = middleware.wide_events();
+        let chain: MiddlewareChain<HttpRequest, HttpResponse> =
+            MiddlewareChain::new().push(Box::new(middleware));
+
+        let _ = chain.execute(
+            req_with_headers_and_template(
+                HttpMethod::Get,
+                "/healthz",
+                &[("x-tenant-id", "tenant-beta"), ("x-request-id", "req-99")],
+                Some("/healthz"),
+            ),
+            terminal_500,
+        );
+
+        let events = wide_events.snapshot();
+        assert_eq!(events.len(), 1);
+        let event = &events[0];
+        assert_eq!(event.tenant_id, "tenant-beta");
+        assert_eq!(event.correlation_id, "req-99");
+        assert_eq!(event.status_code, 500);
+        assert_eq!(event.status_class, "5xx");
+        assert_eq!(event.red_rate_count, 1);
+        assert_eq!(event.red_error_count, 1);
     }
 
     #[test]

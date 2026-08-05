@@ -44,26 +44,28 @@ These ADRs assumed an internal SaaS scope. With search and ads becoming first-cl
 
 ### 2.2 Decision
 
-#### 2.2.1 Data class taxonomy (exactly 12 classes)
+#### 2.2.1 Data class taxonomy (exactly 12 program classes)
 
-Every record in Oyatie's stores carries exactly one `data_class` annotation. The annotation is propagated via schema (proto/SQL/event-schema) and enforced at the boundary by lint and runtime check.
+Every record in Oyatie's stores carries exactly one privacy-program `data_class` annotation. The annotation is propagated via schema (proto/SQL/event-schema) and enforced at the boundary by lint and runtime check. ADR-0008 and this section own the **program doctrine**; the current executable vocabulary is projected by `libs/oya-data-boundary-kernel/src/lib.rs` and its retention defaults by `libs/oya-data-boundary-kernel/src/retention_policy.rs`.
 
-| # | Class | Examples | Default ad rule | Default analytics rule |
-|---|---|---|---|---|
-| 1 | `INTERNAL_ONLY` | crypto keys, audit-chain entries, capability registry internals | DENY | DENY |
-| 2 | `PHI` | clinical record, lab result, prescription, diagnosis | **HARD DENY** (no consent override) | DP-only after 5+ aggregation |
-| 3 | `PII_IDENTIFYING` | name + phone + RRN + address + face image | DENY (consent required for analytics; never for ads) | DP-only |
-| 4 | `PII_QUASI_IDENTIFIER` | birthdate + ZIP + gender (k-anonymity threshold) | DENY without aggregation | k-anonymous (k≥10) |
-| 5 | `PCI` | card PAN, CVV, account number | **HARD DENY** | **HARD DENY** |
-| 6 | `FINANCIAL_KR` | KR credit score, loan history (`신용정보`) | **HARD DENY** | DP-only with FSC consent flow |
-| 7 | `BEHAVIORAL_TENANT_PRODUCT` | which workflow tenant ran, which feature | DENY for ads outside tenant; per-tenant analytics OK | per-tenant + cross-tenant DP |
-| 8 | `BEHAVIORAL_ADS` | impression / click / conversion (ads-axis-internal) | OK for first-party attribution; cross-tenant retargeting requires separate consent | OK |
-| 9 | `DECLARED_PREFERENCE` | tenant-declared interest categories, opted-in segments | OK for ad targeting | OK |
-| 10 | `SEARCH_QUERY` | what a user searched | DP-aggregated only; never per-user ads tied | DP only |
-| 11 | `PUBLIC` | open-web crawled pages, public legal corpus | OK for both | OK |
-| 12 | `SENSITIVE_PIPA_ART23` (KR Art 23 — health, sex life, race, religion, political views, biometric, criminal record) | as KR-PIPA Article 23 enumerates | **HARD DENY** (KR-PIPA forbids ad use) | DP-only with explicit purpose-bound consent |
+| # | Program class | Current Rust privacy label(s) | Examples | Default ad rule | Default analytics rule |
+|---|---|---|---|---|---|
+| 1 | `INTERNAL_ONLY` | `INTERNAL_ONLY` | crypto keys, audit-chain entries, capability registry internals | DENY | DENY |
+| 2 | `PHI` | `PHI` | clinical record, lab result, prescription, diagnosis | **HARD DENY** (no consent override) | DP-only after 5+ aggregation |
+| 3 | `PII_IDENTIFYING` | `PII_IDENTIFYING` | name + phone + RRN + address + face image | DENY (consent required for analytics; never for ads) | DP-only |
+| 4 | `PII_QUASI_IDENTIFIER` | `PII_QUASI_IDENTIFIER`; compatibility alias `PII_SENSITIVE` / `PiiSensitive` | birthdate + ZIP + gender (k-anonymity threshold) | DENY without aggregation | k-anonymous (k≥10) |
+| 5 | `PCI` | `PCI` | card PAN, CVV, account number | **HARD DENY** | **HARD DENY** |
+| 6 | regulated financial program class (`FINANCIAL_KR` doctrine family) | `FINANCIAL`, `FINANCIAL_REGULATED_CREDIT` | KR credit score, loan history (`신용정보`), regulated-credit facts | **HARD DENY** for regulated credit; DENY by default for financial | DP-only with FSC consent flow |
+| 7 | `BEHAVIORAL_TENANT_PRODUCT` | `BEHAVIORAL_TENANT_PRODUCT`; compatibility alias `USAGE` / `Usage` | which workflow tenant ran, which feature | DENY for ads outside tenant; per-tenant analytics OK | per-tenant + cross-tenant DP |
+| 8 | `BEHAVIORAL_ADS` | `BEHAVIORAL_ADS` | impression / click / conversion (ads-axis-internal) | OK for first-party attribution; cross-tenant retargeting requires separate consent | OK |
+| 9 | `DECLARED_PREFERENCE` | `DECLARED_PREFERENCE` | tenant-declared interest categories, opted-in segments | OK for ad targeting | OK |
+| 10 | `SEARCH_QUERY` | `SEARCH_QUERY` | what a user searched | DP-aggregated only; never per-user ads tied | DP only |
+| 11 | `PUBLIC` | `PUBLIC` | open-web crawled pages, public legal corpus | OK for both | OK |
+| 12 | `SENSITIVE_PIPA_ART23` (KR Art 23 — health, sex life, race, religion, political views, biometric, criminal record) | `SENSITIVE_PIPA_ART23`; compatibility alias `PIPA_ARTICLE_23` / `PipaArticle23` | as KR-PIPA Article 23 enumerates | **HARD DENY** (KR-PIPA forbids ad use) | DP-only with explicit purpose-bound consent |
 
 **HARD DENY** = no consent override is honored; the path is structurally impossible. Implementation forces this via compile-time class annotation + tenant-ads-gate refusal + ad-side schema rejection.
+
+**Projection and compatibility boundary.** `PRIVACY_PROGRAM_DATA_CLASS_LABELS` currently exposes thirteen Rust privacy labels because the financial program family is split into `FINANCIAL` and `FINANCIAL_REGULATED_CREDIT` wire labels. That split is an implementation projection, not a thirteenth program class or permission to collapse KR regulated-credit handling into untyped financial data. `PiiSensitive`, `PipaArticle23`, and `Usage` are bootstrap/import aliases that map to `PII_QUASI_IDENTIFIER`, `SENSITIVE_PIPA_ART23`, and `BEHAVIORAL_TENANT_PRODUCT`. `AUDIT` and `SECRET` are operational markers (`OperationalDataClass`); `CHILDREN` is a subject marker / `SubjectClass`. Downstream implementation workers consume the kernel types (`PrivacyDataClass`, `DataClassification`, `Purpose`, `ConsentScope`, `DataUseAttributes`) instead of copying stale strings from older standards.
 
 > **Subject and legal-capacity attributes are orthogonal to data class** (Codex review 2026-05-09). Child status, jurisdiction, residency, lawful basis, etc. are attributes attached to the **subject** of a record, not the **content** of a record. Every record carries:
 >
@@ -128,11 +130,11 @@ These tiers are UI presets only. The consent service expands each preset into ex
 
 | UI tier | Purpose rows emitted | Default data-class ceiling | Hard-deny floor | Revocation cascade |
 |---|---|---|---|---|
-| Essential | `service_operation`, `security_fraud_prevention`, `regulatory_compliance` | Minimum classes needed for subscribed service | PHI/PCI/PIPA-Art23/CHILDREN remain purpose-limited; never ads | Service stops or degrades to legal minimum; derived caches purged within 30 days |
+| Essential | `service_operation`, `security_fraud_prevention`, `regulatory_compliance` | Minimum classes needed for subscribed service | PHI/PCI/SENSITIVE_PIPA_ART23 remain purpose-limited; minor subjects are blocked by `subject_class`, never by a privacy class named CHILDREN | Service stops or degrades to legal minimum; derived caches purged within 30 days |
 | Tenant analytics | `tenant_analytics_first_party` | Tenant-owned classes excluding HARD_DENY ad floors | PCI and raw HARD_DENY classes remain blocked from non-compliance analytics | Analytics aggregates invalidated; DP budgets closed |
 | Cross-tenant aggregate | `cross_tenant_aggregate_anonymous` | k-anonymous / DP aggregates only (`k≥10`, `k≥25` for PIPA Art 23) | No row-level export, no individual linking | Aggregate cohorts re-keyed or removed within 30 days |
 | Personalization | `personalization_in_oya_saas` | Per-user personalization inside Oyatie SaaS surfaces | Does not grant ads, model training, cross-device, or cross-tenant individual use | Profiles and derived recommendations purged within 30 days |
-| Declared ads | `ad_targeting_declared` | `DECLARED_PREFERENCE` only | PHI, PII identifying, PCI, FINANCIAL_KR, SEARCH_QUERY, PIPA Art 23, and minors always blocked | Audiences removed and active campaigns re-evaluated immediately |
+| Declared ads | `ad_targeting_declared` | `DECLARED_PREFERENCE` only | PHI, PII identifying, PCI, `FINANCIAL`/`FINANCIAL_REGULATED_CREDIT`, SEARCH_QUERY, SENSITIVE_PIPA_ART23, and minor subjects always blocked | Audiences removed and active campaigns re-evaluated immediately |
 | First-party ads attribution | `ad_targeting_behavioral` | `BEHAVIORAL_ADS` first-party signal only | No tenant product behavior, PHI/PII/PCI/financial/sensitive classes | Attribution windows closed; future decisions denied |
 | Cross-device linking | `cross_device_linking` | Identity-link metadata needed for the declared service | Does not grant cross-tenant individual linking or ads | Link graph edge deleted; dependent caches purged |
 | Model training — Oyatie | `model_training_oya` | De-identified, lineage-tracked records allowed by class and tenant policy | No HARD_DENY classes; no minors; no raw regulated identifiers | Training corpus exclusion attestation emitted; derived artifacts quarantined if needed |
@@ -228,7 +230,7 @@ The proof-of-erasure record is published back to the user / tenant via the trust
 
 #### 2.2.10 Class transitions
 
-A record can only **weaken** its data-class via explicit human approval (e.g., a tenant decides a previously `PII_QUASI` field is now `PUBLIC`). **Tightening** (consent withdrawal, escalation discovery, regulatory shift) is automatic and cascades.
+A record can only **weaken** its data-class via explicit human approval (e.g., a tenant decides a previously `PII_QUASI_IDENTIFIER` field is now `PUBLIC`). **Tightening** (consent withdrawal, escalation discovery, regulatory shift) is automatic and cascades.
 
 ### 2.3 Consequences
 
@@ -358,5 +360,7 @@ Per ADR-0050 governance umbrella + Issue #1577:
 - `/Users/jasonlee/oyatie/docs/raw/greenfield-search.md` Section H (Safety + Compliance) and L (KR-Launch)
 - `.omx/ultragoal/brief.md`, `goals.json`
 - User directives 2026-05-08, 2026-05-09 (axes + cohesion + privacy)
+- `libs/oya-data-boundary-kernel/src/lib.rs`, `libs/oya-data-boundary-kernel/src/retention_policy.rs` (current executable labels, aliases, operational/subject markers, retention value defaults)
+- `specs/cloud-production-quality-kits-target.json` QK-03 and `specs/capability-tier-schema.json` (target/evidence and tier-shape inputs; not production-readiness proof)
 
 *Footer regenerated whenever this doc is edited.*

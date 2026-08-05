@@ -9,6 +9,22 @@
 
 use crate::{CapacityClass, RegionId};
 
+const CAPACITY_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/capacity/";
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CapacityResourceContract {
+    pub identity_ref: String,              // data_class: INTERNAL_ONLY
+    pub lifecycle_states: Vec<String>,     // data_class: PUBLIC
+    pub policy_hook: String,               // data_class: INTERNAL_ONLY
+    pub quota_cost_inputs: Vec<String>,    // data_class: INTERNAL_ONLY
+    pub billing_meter_inputs: Vec<String>, // data_class: FINANCIAL
+    pub audit_event_inputs: Vec<String>,   // data_class: AUDIT
+    pub evidence_ref: String,              // data_class: AUDIT
+    pub observability_inputs: Vec<String>, // data_class: INTERNAL_ONLY
+    pub rollback_transitions: Vec<String>, // data_class: INTERNAL_ONLY
+    pub reconciliation_ref: String,        // data_class: INTERNAL_ONLY
+}
+
 // ── ReservedCapacity ─────────────────────────────────────────────────────────
 
 /// A pre-purchased capacity block tied to a region and class.
@@ -17,11 +33,12 @@ use crate::{CapacityClass, RegionId};
 /// owning region's quota before activation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReservedCapacity {
-    pub id: ReservedCapacityId, // data_class: INTERNAL_ONLY
-    pub region: RegionId,       // data_class: INTERNAL_ONLY
-    pub class: CapacityClass,   // data_class: INTERNAL_ONLY
-    pub reserved_units: u64,    // data_class: INTERNAL_ONLY
-    pub term: ReservationTerm,  // data_class: INTERNAL_ONLY
+    pub id: ReservedCapacityId,             // data_class: INTERNAL_ONLY
+    pub region: RegionId,                   // data_class: INTERNAL_ONLY
+    pub class: CapacityClass,               // data_class: INTERNAL_ONLY
+    pub reserved_units: u64,                // data_class: INTERNAL_ONLY
+    pub term: ReservationTerm,              // data_class: INTERNAL_ONLY
+    pub contract: CapacityResourceContract, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -48,6 +65,7 @@ pub enum ReservedCapacityError {
     EmptyId,
     EmptyRegionId,
     ZeroUnits,
+    InvalidContractMetadata,
 }
 
 impl ReservedCapacityError {
@@ -56,6 +74,7 @@ impl ReservedCapacityError {
             Self::EmptyId => "reserved capacity id is empty",
             Self::EmptyRegionId => "region id is empty",
             Self::ZeroUnits => "reserved capacity requests zero units",
+            Self::InvalidContractMetadata => "reserved capacity contract metadata is incomplete",
         }
     }
 }
@@ -70,6 +89,8 @@ pub fn validate_reserved_capacity(rc: &ReservedCapacity) -> Result<(), ReservedC
     if rc.reserved_units == 0 {
         return Err(ReservedCapacityError::ZeroUnits);
     }
+    validate_capacity_resource_contract(&rc.contract)
+        .map_err(|()| ReservedCapacityError::InvalidContractMetadata)?;
     Ok(())
 }
 
@@ -79,12 +100,13 @@ pub fn validate_reserved_capacity(rc: &ReservedCapacity) -> Result<(), ReservedC
 /// guaranteed minimum spend or usage over a fixed term.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CommittedUseContract {
-    pub id: CommittedUseContractId, // data_class: INTERNAL_ONLY
-    pub region: RegionId,           // data_class: INTERNAL_ONLY
-    pub class: CapacityClass,       // data_class: INTERNAL_ONLY
-    pub committed_units: u64,       // data_class: INTERNAL_ONLY
-    pub discount_bps: u32,          // data_class: INTERNAL_ONLY  (basis points, 0–10000)
-    pub term: ReservationTerm,      // data_class: INTERNAL_ONLY
+    pub id: CommittedUseContractId,         // data_class: INTERNAL_ONLY
+    pub region: RegionId,                   // data_class: INTERNAL_ONLY
+    pub class: CapacityClass,               // data_class: INTERNAL_ONLY
+    pub committed_units: u64,               // data_class: INTERNAL_ONLY
+    pub discount_bps: u32,                  // data_class: INTERNAL_ONLY  (basis points, 0–10000)
+    pub term: ReservationTerm,              // data_class: INTERNAL_ONLY
+    pub contract: CapacityResourceContract, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -97,6 +119,7 @@ pub enum CommittedUseError {
     ZeroCommittedUnits,
     DiscountExceedsFull { discount_bps: u32 },
     ZeroListRate,
+    InvalidContractMetadata,
 }
 
 impl CommittedUseError {
@@ -111,6 +134,9 @@ impl CommittedUseError {
                 format!("discount_bps={discount_bps} exceeds 10000 (100%)")
             }
             Self::ZeroListRate => "list_rate_micros must be non-zero".to_owned(),
+            Self::InvalidContractMetadata => {
+                "committed-use contract metadata is incomplete".to_owned()
+            }
         }
     }
 }
@@ -132,6 +158,8 @@ pub fn validate_committed_use_contract(
             discount_bps: cuc.discount_bps,
         });
     }
+    validate_capacity_resource_contract(&cuc.contract)
+        .map_err(|()| CommittedUseError::InvalidContractMetadata)?;
     Ok(())
 }
 
@@ -179,9 +207,7 @@ pub fn committed_coverage_bps(reserved_units: u64, demand_units: u64) -> u32 {
     if demand_units == 0 {
         return 0;
     }
-    let coverage = (reserved_units as u128)
-        .saturating_mul(10_000)
-        / demand_units as u128;
+    let coverage = (reserved_units as u128).saturating_mul(10_000) / demand_units as u128;
     coverage.min(10_000) as u32
 }
 
@@ -193,11 +219,12 @@ pub fn committed_coverage_bps(reserved_units: u64, demand_units: u64) -> u32 {
 /// tracks available and in-use units; admission prevents over-subscription.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SpotPool {
-    pub id: SpotPoolId,       // data_class: INTERNAL_ONLY
-    pub region: RegionId,     // data_class: INTERNAL_ONLY
-    pub class: CapacityClass, // data_class: INTERNAL_ONLY
-    pub total_units: u64,     // data_class: INTERNAL_ONLY
-    pub in_use_units: u64,    // data_class: INTERNAL_ONLY
+    pub id: SpotPoolId,                     // data_class: INTERNAL_ONLY
+    pub region: RegionId,                   // data_class: INTERNAL_ONLY
+    pub class: CapacityClass,               // data_class: INTERNAL_ONLY
+    pub total_units: u64,                   // data_class: INTERNAL_ONLY
+    pub in_use_units: u64,                  // data_class: INTERNAL_ONLY
+    pub contract: CapacityResourceContract, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -217,6 +244,7 @@ pub enum SpotPoolError {
     ZeroRequestedUnits,
     InUseExceedsTotal { total: u64, in_use: u64 },
     SpotExhausted { available: u64, requested: u64 },
+    InvalidContractMetadata,
 }
 
 impl SpotPoolError {
@@ -235,6 +263,7 @@ impl SpotPoolError {
             } => {
                 format!("spot exhausted: requested={requested} available={available}")
             }
+            Self::InvalidContractMetadata => "spot pool contract metadata is incomplete".to_owned(),
         }
     }
 }
@@ -255,6 +284,8 @@ pub fn validate_spot_pool(pool: &SpotPool) -> Result<(), SpotPoolError> {
             in_use: pool.in_use_units,
         });
     }
+    validate_capacity_resource_contract(&pool.contract)
+        .map_err(|()| SpotPoolError::InvalidContractMetadata)?;
     Ok(())
 }
 
@@ -270,6 +301,51 @@ pub fn admit_spot_request(pool: &SpotPool, requested_units: u64) -> Result<(), S
         });
     }
     Ok(())
+}
+
+fn validate_capacity_resource_contract(contract: &CapacityResourceContract) -> Result<(), ()> {
+    if !valid_contract_field(&contract.identity_ref)
+        || !contract.identity_ref.starts_with("orn:oya:")
+    {
+        return Err(());
+    }
+    if !valid_contract_field(&contract.policy_hook)
+        || !contract.policy_hook.starts_with("cap.cloud.capacity.")
+    {
+        return Err(());
+    }
+    if !valid_contract_field(&contract.evidence_ref)
+        || !contract.evidence_ref.starts_with(CAPACITY_EVIDENCE_PREFIX)
+    {
+        return Err(());
+    }
+    if !valid_contract_field(&contract.reconciliation_ref)
+        || !contract
+            .reconciliation_ref
+            .starts_with("reconciliation/cloud-ops/capacity/")
+    {
+        return Err(());
+    }
+    for values in [
+        &contract.lifecycle_states,
+        &contract.quota_cost_inputs,
+        &contract.billing_meter_inputs,
+        &contract.audit_event_inputs,
+        &contract.observability_inputs,
+        &contract.rollback_transitions,
+    ] {
+        if values.is_empty() || values.iter().any(|value| !valid_contract_field(value)) {
+            return Err(());
+        }
+    }
+    Ok(())
+}
+
+fn valid_contract_field(value: &str) -> bool {
+    !value.is_empty()
+        && !value
+            .chars()
+            .any(|ch| ch.is_control() || ch.is_whitespace() || matches!(ch, '\\' | '?' | '#'))
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -288,6 +364,26 @@ mod tests {
             class,
             reserved_units: units,
             term: ReservationTerm::OneYear,
+            contract: kernel_contract("reserved_capacity"),
+        }
+    }
+
+    fn kernel_contract(resource: &str) -> CapacityResourceContract {
+        CapacityResourceContract {
+            identity_ref: format!("orn:oya:kr1:acct_alpha:cloud-capacity:{resource}/rc-1"),
+            lifecycle_states: vec!["requested".to_string(), "active".to_string()],
+            policy_hook: format!("cap.cloud.capacity.{resource}.mutate"),
+            quota_cost_inputs: vec!["reserved_units".to_string(), "region_quota".to_string()],
+            billing_meter_inputs: vec![format!("{resource}_unit_seconds")],
+            audit_event_inputs: vec![format!("{resource}.requested")],
+            evidence_ref: format!(
+                "evidence/cloud-ops/capacity/ten_alpha/kr1/cell-kr1-a-001/{resource}/contract"
+            ),
+            observability_inputs: vec!["headroom_bps".to_string()],
+            rollback_transitions: vec!["active->cancelled".to_string()],
+            reconciliation_ref: format!(
+                "reconciliation/cloud-ops/capacity/ten_alpha/kr1/cell-kr1-a-001/{resource}"
+            ),
         }
     }
 
@@ -342,6 +438,7 @@ mod tests {
             committed_units: units,
             discount_bps: bps,
             term: ReservationTerm::ThreeYear,
+            contract: kernel_contract("committed_use_contract"),
         }
     }
 
@@ -402,6 +499,7 @@ mod tests {
             class,
             total_units: total,
             in_use_units: in_use,
+            contract: kernel_contract("spot_pool"),
         }
     }
 
@@ -511,7 +609,10 @@ mod tests {
     #[test]
     fn discount_partial_bps_applies_correctly() {
         // 20% discount on 10_000_000 micros -> 8_000_000
-        assert_eq!(effective_discounted_rate(10_000_000, 2_000).unwrap(), 8_000_000);
+        assert_eq!(
+            effective_discounted_rate(10_000_000, 2_000).unwrap(),
+            8_000_000
+        );
     }
 
     #[test]
@@ -538,10 +639,33 @@ mod tests {
             committed_units: 100,
             discount_bps: 10_001,
             term: ReservationTerm::OneYear,
+            contract: kernel_contract("committed_use_contract"),
         };
         assert!(matches!(
             validate_committed_use_contract(&contract),
             Err(CommittedUseError::DiscountExceedsFull { .. })
+        ));
+    }
+
+    #[test]
+    fn reserved_capacity_contract_metadata_requires_operational_facets() {
+        let mut reserved = rc("rc-1", "kr1", CapacityClass::Cpu, 100);
+        reserved.contract.reconciliation_ref.clear();
+
+        assert!(matches!(
+            validate_reserved_capacity(&reserved),
+            Err(ReservedCapacityError::InvalidContractMetadata)
+        ));
+    }
+
+    #[test]
+    fn committed_use_contract_metadata_requires_evidence_ref() {
+        let mut contract = cuc("cuc-1", "kr1", CapacityClass::Cpu, 10, 2_000);
+        contract.contract.evidence_ref = "audit-only/no-capacity-evidence".to_string();
+
+        assert!(matches!(
+            validate_committed_use_contract(&contract),
+            Err(CommittedUseError::InvalidContractMetadata)
         ));
     }
 
@@ -576,7 +700,10 @@ mod tests {
 
     #[test]
     fn amortization_zero_total_returns_zero() {
-        assert_eq!(amortized_monthly_commit_micros(0, ReservationTerm::OneYear), 0);
+        assert_eq!(
+            amortized_monthly_commit_micros(0, ReservationTerm::OneYear),
+            0
+        );
     }
 
     // ── committed_coverage_bps tests ──────────────────────────────────────────

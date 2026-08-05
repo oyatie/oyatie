@@ -2,6 +2,19 @@ asyncapi: 3.1.0
 info:
   title: managed-k8s-sla-observability
   version: 0.1.0
-  description: Placeholder AsyncAPI surface for the managed-k8s-sla-observability microservice; live event surfaces tracked in ADR-0376 follow-on lanes.
+  description: >-
+    Placeholder AsyncAPI surface for the managed-k8s-sla-observability
+    microservice. No live event stream is implemented or claimed by this
+    contract; ADR-0376 follow-on lanes must provide implementation, tests, and
+    review evidence before these planned channels become authority.
+x-source-authority: cloud/managed-k8s-sla-observability/contracts/asyncapi-v1.yaml
+x-claim-ceiling: target-only-placeholder-no-live-event-surface
+x-planned-event-surfaces:
+  - channel: managed-k8s.sla.observation.accepted.v1
+    purpose: Accepted normalized SLA observation snapshot with window and freshness metadata.
+  - channel: managed-k8s.sla.burn-rate-verdict.v1
+    purpose: Kernel-derived page/ticket/none burn-rate verdict for a tenant cluster.
+  - channel: managed-k8s.sla.evidence-held.v1
+    purpose: Stale, missing, or disagreeing evidence hold used by rollout or rollback policy.
 channels: {}
 operations: {}

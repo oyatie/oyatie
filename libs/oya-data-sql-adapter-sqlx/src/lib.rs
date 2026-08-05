@@ -32,6 +32,8 @@ use oya_shared_postgres_command_kernel::{PostgresPoolConfig, SET_LOCAL_TENANT_SQ
 use sqlx::postgres::{PgPoolOptions, PgRow};
 use sqlx::{Column, PgPool, Postgres, Row, Transaction, TypeInfo, ValueRef};
 
+pub mod envelope;
+
 /// Enable flag for the live containerized-Postgres RLS harness.
 pub const LIVE_DATA_POSTGRES_ENABLE_ENV: &str = "OYA_DATA_LIVE_POSTGRES";
 /// Admin (schema-owning) connection URL for the live harness.

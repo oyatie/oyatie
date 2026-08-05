@@ -136,7 +136,7 @@ doc_status: published
 1. Disable auto-purchase: `oya flags set oya.cloud_billing.reservation.auto_purchase=false --global --reason $INCIDENT_ID`.
 2. Mark stale in tenant UI: `oya billing reservations mark-stale --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
 3. Hold recommendation exports: `oya billing reservations export hold --tenant $TENANT --period $PERIOD --reason $INCIDENT_ID`.
-4. Hold recommender deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+4. Hold recommender deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 5. Refresh utilization inputs: `oya billing reservations inputs refresh --tenant $TENANT --period $PERIOD --dry-run`.
 6. Confirm input refresh: `oya billing reservations inputs refresh --tenant $TENANT --period $PERIOD --confirm $INCIDENT_ID`.
 7. Drain queue dry-run: `oya billing reservations recommender drain --tenant $TENANT --period $PERIOD --limit 100 --dry-run`.
@@ -168,7 +168,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-billing-reservations --production-snapshot --period $PERIOD`.
 12. Verify fresh recommendations: `oya billing reservations recommender status --tenant $TENANT --period $PERIOD --expect fresh`.
 13. Release export hold: `oya billing reservations export unhold --tenant $TENANT --period $PERIOD --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_BILLING_RESERVATION_RECOMMENDER_STALL_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

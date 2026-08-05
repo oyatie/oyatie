@@ -137,7 +137,7 @@ VERIFY-001: Static read confirms this file cites ADR-0346 by exact ID.
 VERIFY-002: Static read confirms this file cites ADR-0347 by exact ID.
 VERIFY-003: Static read confirms this file cites ADR-0348 by exact ID.
 VERIFY-004: Static read confirms this file cites ADR-0349 by exact ID.
-VERIFY-005: Static read confirms at least one ADR-0346 enforced_by lane appears.
+VERIFY-005: Static read confirms ADR-0346 verifier lanes, if present, are labeled historical/local-feedback after ADR-0515.
 VERIFY-006: Static read confirms at least one ADR-0347 enforced_by lane appears.
 VERIFY-007: Static read confirms at least one ADR-0348 enforced_by lane appears.
 VERIFY-008: Static read confirms at least one ADR-0349 enforced_by lane appears.
@@ -148,7 +148,7 @@ VERIFY-012: Static read confirms sharding role is service-specific.
 VERIFY-013: Static read confirms owner team is service-specific.
 VERIFY-014: Static read confirms bounded context is service-specific.
 VERIFY-015: Static read confirms capacity or placement input is service-specific.
-VERIFY-016: Downstream implementation must run ADR-0346 full mirror before push.
+VERIFY-016: Downstream implementation must provide ADR-0515 `oya-ci-required` evidence before push/merge; ADR-0346 legacy local-feedback output is optional provenance only.
 VERIFY-017: Downstream implementation must prove autosharding mode is control_plane_driven.
 VERIFY-018: Downstream implementation must prove auto_rebalance honors residency.
 VERIFY-019: Downstream implementation must prove compliance-pack filtering before migration.
@@ -178,7 +178,7 @@ ACCEPT-010: The file includes rollback_path as a section heading.
 ACCEPT-011: The file keeps this wave documentation-only.
 ACCEPT-012: The file does not edit another agent slot artifact type.
 ACCEPT-013: The file cites governance lane vocabulary from ADR-0347.
-ACCEPT-014: The file cites full CI mirror expectations from ADR-0346.
+ACCEPT-014: The file cites ADR-0346 only as legacy local-feedback provenance amended by ADR-0515.
 ACCEPT-015: The file cites historical self-hosted CI plus ArgoCD substrate expectations from ADR-0349.
 ACCEPT-016: The file declares microservice-specific owner and role context.
 ACCEPT-017: The file names bounded context evidence from the manifest when present.

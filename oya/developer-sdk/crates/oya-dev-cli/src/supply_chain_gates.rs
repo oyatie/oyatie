@@ -7,8 +7,10 @@ use oya_check_release_pack::{
     ReleaseEvidencePackRecord, validate_release_evidence_packs,
 };
 use oya_check_supply_chain::{
-    ReleaseArtifact, ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
-    validate_pre_release_supply_chain, validate_release_supply_chain, validate_supply_chain,
+    ImagePromotionRecord, ImagePromotionTier, ImagePromotionVerifier, ReleaseArtifact,
+    ReleaseSupplyChainEvidence, SupplyChainDependencyRecord, SupplyChainEvidence,
+    SupplyChainRecord, validate_image_promotion_pipeline, validate_pre_release_supply_chain,
+    validate_release_supply_chain, validate_supply_chain_with_dependency_ledger,
 };
 use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
 
@@ -81,8 +83,9 @@ pub(crate) fn parse_supply_chain_validate_args(
 
 pub(crate) fn validate_supply_chain_gate(
     args: SupplyChainValidateArgs,
-) -> Result<(usize, usize), String> {
+) -> Result<(usize, usize, usize), String> {
     let records = read_supply_chain_records(&args.registry_dir)?;
+    let dependency_records = read_supply_chain_dependency_records(&args.registry_dir)?;
     // Canonical catalog replaces the legacy `scripts/check.sh` file read
     // (audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
     // row B-1, .sh-removal chain IP-C). The catalog substring-matches the
@@ -132,9 +135,15 @@ pub(crate) fn validate_supply_chain_gate(
         signed_commit_policy_wired: signed_commit_policy_wired(&args.branch_protection_path)?,
         admission_policy_wired: admission_policy_wired(&args.admission_policy_path)?,
     };
-    let report = validate_supply_chain(records, evidence)
-        .map_err(|error| format!("supply chain invalid: {error:?}"))?;
-    Ok((report.records_checked, report.source_only_records))
+    let dependency_record_count = dependency_records.len();
+    let report =
+        validate_supply_chain_with_dependency_ledger(records, dependency_records, evidence)
+            .map_err(|error| format!("supply chain invalid: {error:?}"))?;
+    Ok((
+        report.records_checked,
+        report.source_only_records,
+        dependency_record_count,
+    ))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -155,6 +164,19 @@ pub(crate) struct ReleaseSupplyChainGateReport {
     pub(crate) artifacts: usize,
     pub(crate) evidence: usize,
     pub(crate) phase: ReleaseSupplyChainPhase,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ImagePromotionValidateArgs {
+    promotion_dir: PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct ImagePromotionGateReport {
+    pub(crate) artifacts: usize,
+    pub(crate) promotion_records: usize,
+    pub(crate) kubewarden_verifier_records: usize,
+    pub(crate) kyverno_verifier_records: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -206,6 +228,35 @@ pub(crate) fn validate_release_supply_chain_gate(
         artifacts: report.artifacts_checked,
         evidence: report.evidence_records_checked,
         phase: args.phase,
+    })
+}
+
+pub(crate) fn parse_image_promotion_validate_args(
+    args: Vec<String>,
+) -> Result<ImagePromotionValidateArgs, String> {
+    let mut parsed = ImagePromotionValidateArgs {
+        promotion_dir: PathBuf::from("registry/release/image-promotions"),
+    };
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
+        match flag.as_str() {
+            "--promotion-dir" => parsed.promotion_dir = PathBuf::from(next_arg(&mut iter)?),
+            _ => return Err(usage()),
+        }
+    }
+    Ok(parsed)
+}
+
+pub(crate) fn validate_image_promotion_gate(
+    args: ImagePromotionValidateArgs,
+) -> Result<ImagePromotionGateReport, String> {
+    let report = validate_image_promotion_pipeline(read_image_promotion_records(&args.promotion_dir)?)
+        .map_err(|error| format!("image promotion invalid: {error:?}"))?;
+    Ok(ImagePromotionGateReport {
+        artifacts: report.artifacts_checked,
+        promotion_records: report.promotion_records_checked,
+        kubewarden_verifier_records: report.kubewarden_verifier_records,
+        kyverno_verifier_records: report.kyverno_verifier_records,
     })
 }
 
@@ -348,6 +399,95 @@ fn parse_release_supply_chain_evidence(
         )?,
         signed: parse_bool_field(path, "signed", &required_field(path, &fields, "signed")?)?,
     })
+}
+
+fn read_image_promotion_records(promotion_dir: &Path) -> Result<Vec<ImagePromotionRecord>, String> {
+    if !promotion_dir.is_dir() {
+        return Err(format!(
+            "image promotion directory missing: {}",
+            promotion_dir.display()
+        ));
+    }
+    let mut records = Vec::new();
+    for entry in fs::read_dir(promotion_dir)
+        .map_err(|error| format!("image promotion directory unreadable: {error}"))?
+    {
+        let entry = entry.map_err(|error| format!("image promotion entry unreadable: {error}"))?;
+        let path = entry.path();
+        if path.is_dir()
+            || !matches!(
+                path.extension().and_then(|extension| extension.to_str()),
+                Some("yaml") | Some("yml")
+            )
+        {
+            continue;
+        }
+        let contents = fs::read_to_string(&path).map_err(|error| {
+            format!("image promotion record unreadable {}: {error}", path.display())
+        })?;
+        records.push(parse_image_promotion_record(&path, &contents)?);
+    }
+    records.sort_by(|left, right| {
+        left.artifact_digest
+            .cmp(&right.artifact_digest)
+            .then(left.tier.cmp(&right.tier))
+    });
+    Ok(records)
+}
+
+fn parse_image_promotion_record(
+    path: &Path,
+    contents: &str,
+) -> Result<ImagePromotionRecord, String> {
+    let mut fields = BTreeMap::new();
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        insert_scalar_field(path, &mut fields, trimmed)?;
+    }
+    Ok(ImagePromotionRecord {
+        artifact_ref: required_field(path, &fields, "artifact_ref")?,
+        artifact_digest: required_field(path, &fields, "artifact_digest")?,
+        tier: parse_image_promotion_tier(path, &required_field(path, &fields, "tier")?)?,
+        cosign_identity: required_field(path, &fields, "cosign_identity")?,
+        verifier: parse_image_promotion_verifier(
+            path,
+            &required_field(path, &fields, "verifier")?,
+        )?,
+        verifier_ref: required_field(path, &fields, "verifier_ref")?,
+        provenance_attestation_ref: required_field(path, &fields, "provenance_attestation_ref")?,
+        runner_kill_switch_ref: required_field(path, &fields, "runner_kill_switch_ref")?,
+        audit_event_type: required_field(path, &fields, "audit_event_type")?,
+        signed: parse_bool_field(path, "signed", &required_field(path, &fields, "signed")?)?,
+    })
+}
+
+fn parse_image_promotion_tier(path: &Path, value: &str) -> Result<ImagePromotionTier, String> {
+    match value {
+        "dev" => Ok(ImagePromotionTier::Dev),
+        "staging" => Ok(ImagePromotionTier::Staging),
+        "prod" | "production" => Ok(ImagePromotionTier::Prod),
+        _ => Err(format!(
+            "{}: image promotion tier must be one of dev, staging, prod: {value}",
+            path.display()
+        )),
+    }
+}
+
+fn parse_image_promotion_verifier(
+    path: &Path,
+    value: &str,
+) -> Result<ImagePromotionVerifier, String> {
+    match value {
+        "kubewarden" => Ok(ImagePromotionVerifier::Kubewarden),
+        "kyverno" => Ok(ImagePromotionVerifier::Kyverno),
+        _ => Err(format!(
+            "{}: image promotion verifier must be kubewarden or kyverno: {value}",
+            path.display()
+        )),
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -557,6 +697,134 @@ fn read_supply_chain_records(registry_dir: &Path) -> Result<Vec<SupplyChainRecor
             })
         })
         .collect()
+}
+
+fn read_supply_chain_dependency_records(
+    registry_dir: &Path,
+) -> Result<Vec<SupplyChainDependencyRecord>, String> {
+    let entries = fs::read_dir(registry_dir)
+        .map_err(|error| format!("registry directory unreadable: {error}"))?;
+    let mut dependency_records = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|error| format!("registry entry unreadable: {error}"))?;
+        let path = entry.path();
+        if path.extension().and_then(|extension| extension.to_str()) != Some("yaml") {
+            continue;
+        }
+        let crate_id = path
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .ok_or_else(|| format!("catalog path has invalid file name: {}", path.display()))?;
+        let contents = fs::read_to_string(&path)
+            .map_err(|error| format!("catalog record unreadable {}: {error}", path.display()))?;
+        dependency_records.extend(parse_supply_chain_dependency_records(crate_id, &contents)?);
+    }
+    Ok(dependency_records)
+}
+
+fn parse_supply_chain_dependency_records(
+    crate_id: &str,
+    contents: &str,
+) -> Result<Vec<SupplyChainDependencyRecord>, String> {
+    let mut records = Vec::new();
+    let mut in_external_deps = false;
+    let mut fields = BTreeMap::new();
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if !in_external_deps {
+            if trimmed == "external_deps:" {
+                in_external_deps = true;
+            }
+            continue;
+        }
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if !line.starts_with(char::is_whitespace) {
+            break;
+        }
+        if let Some(rest) = trimmed.strip_prefix("- ") {
+            push_supply_chain_dependency_record(crate_id, &mut records, &mut fields);
+            if !rest.trim().is_empty() {
+                insert_dependency_ledger_field(crate_id, &mut fields, rest)?;
+            }
+            continue;
+        }
+        if !fields.is_empty() {
+            insert_dependency_ledger_field(crate_id, &mut fields, trimmed)?;
+        }
+    }
+    push_supply_chain_dependency_record(crate_id, &mut records, &mut fields);
+    Ok(records)
+}
+
+fn insert_dependency_ledger_field(
+    crate_id: &str,
+    fields: &mut BTreeMap<String, String>,
+    line: &str,
+) -> Result<(), String> {
+    let Some((key, value)) = line.split_once(':') else {
+        return Err(format!(
+            "catalog dependency ledger for {crate_id} has malformed line: {line}"
+        ));
+    };
+    let key = key.trim();
+    if !is_dependency_ledger_field(key) {
+        return Ok(());
+    }
+    if fields
+        .insert(key.to_string(), clean_scalar_value(value.trim()))
+        .is_some()
+    {
+        return Err(format!(
+            "catalog dependency ledger for {crate_id} has duplicate field {key}"
+        ));
+    }
+    Ok(())
+}
+
+fn push_supply_chain_dependency_record(
+    crate_id: &str,
+    records: &mut Vec<SupplyChainDependencyRecord>,
+    fields: &mut BTreeMap<String, String>,
+) {
+    if fields.is_empty() {
+        return;
+    }
+    records.push(SupplyChainDependencyRecord {
+        subject: crate_id.to_string(),
+        dependency: fields.remove("name").unwrap_or_default(),
+        license: fields.remove("license").unwrap_or_default(),
+        license_tier: fields.remove("license_tier").unwrap_or_default(),
+        maturity: fields.remove("maturity").unwrap_or_default(),
+        isolation: fields.remove("isolation").unwrap_or_default(),
+        replacement_plan: fields.remove("replacement_plan").unwrap_or_default(),
+        owning_team: fields.remove("owning_team").unwrap_or_default(),
+        sbom_spdx_ref: fields.remove("sbom_spdx_ref").unwrap_or_default(),
+        sbom_cyclonedx_ref: fields.remove("sbom_cyclonedx_ref").unwrap_or_default(),
+        cosign_attestation_ref: fields.remove("cosign_attestation_ref").unwrap_or_default(),
+        trivy_scan_ref: fields.remove("trivy_scan_ref").unwrap_or_default(),
+        signed_commit_ref: fields.remove("signed_commit_ref").unwrap_or_default(),
+    });
+    fields.clear();
+}
+
+fn is_dependency_ledger_field(key: &str) -> bool {
+    matches!(
+        key,
+        "name"
+            | "license"
+            | "license_tier"
+            | "maturity"
+            | "isolation"
+            | "replacement_plan"
+            | "owning_team"
+            | "sbom_spdx_ref"
+            | "sbom_cyclonedx_ref"
+            | "cosign_attestation_ref"
+            | "trivy_scan_ref"
+            | "signed_commit_ref"
+    )
 }
 
 fn supply_chain_attestation_id(

@@ -58,6 +58,7 @@ that informed it where one exists.
 | [`data-class.md`](data-class.md) | Every kernel struct field carries `oyatie.data_class`; cross-pillar flow rules; DSR cascade integration | `oya-governance-data-class`, `-dsr-cascade` | Tier 2 |
 | [`autonomy-ceiling.md`](autonomy-ceiling.md) | T1/T2/T3/T4 binding + Cedar policy + per-capability autonomy record + config-flag uplift forbidden | `oya-governance-autonomy-ceiling` | Tier 2 |
 | [`agent-instructions-discipline.md`](agent-instructions-discipline.md) | `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences + banned-token grep scope + documented-rationale flow | `oya-governance-agent-instructions-fence`, `-banned-primitives` | Tier 2 |
+| [`autonomous-kanban-lifecycle.md`](autonomous-kanban-lifecycle.md) | Hermes Kanban lifecycle spine, card fields, Review/fix child-card handoff, bounded active work, and duplicate/no-action handling | `planned: hermes-kanban-lifecycle-steward` | Tier 2 |
 
 ## Forward-reference resolution map
 
@@ -104,8 +105,9 @@ Sanctioned-primitive ADRs landing in parallel: ADR-0053 (sanctioned primitives),
 - [`decision-principles.json`](../../specs/decision-principles.json), [`forbidden-operations.json`](../../specs/forbidden-operations.json), [`docs/AGENTS.md`](../AGENTS.md),
   [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md),
   [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md).
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Compound principles
-  (Directives 1-12).
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
-  (Domain 2 + Domain 3).
-- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).
+- Historical `.omc/plans/MASTERPLAN.md` §2 Compound principles (Directives 1-12;
+  retired from the tracked tree and preserved as git-history provenance only).
+- Historical `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` (Domain 2 +
+  Domain 3; retired from the tracked tree and preserved as git-history provenance only).
+- Historical `.omc/scratch/lts-versions-verified-2026-05-12.md` (retired from the
+  tracked tree and preserved as git-history provenance only).

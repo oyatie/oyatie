@@ -24,5 +24,14 @@
     target:toolchains//...->prelude//platforms:default \
     target:third-party//...->prelude//platforms:default
 
+[cache]
+  # CI and laptop performance: keep Buck2 artifacts in a reusable local artifact cache.
+  # This path is stable across runs when combined with CI-level restore keys, so
+  # repeated action graph work can avoid re-downloading compiler outputs.
+  mode = dir
+  dir = ~/.cache/oya-buck2
+  dir_mode = readwrite
+  dir_max_size = 20GB
+
 [build]
   execution_platforms = prelude//platforms:default

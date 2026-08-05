@@ -139,7 +139,7 @@ doc_status: published
 3. Disable unsafe tool: `oya ops intelligence tool-policy disable --tenant $TENANT --tool <tool> --ttl 30m --reason $INCIDENT_ID`.
 4. Quarantine RAG chunk: `oya ops intelligence rag chunk quarantine --tenant $TENANT --chunk <chunk-id> --reason $INCIDENT_ID`.
 5. Contain output: `oya ops intelligence output contain --tenant $TENANT --incident $INCIDENT_ID --confirm`.
-6. Hold prompt/policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+6. Hold prompt/policy deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 7. Increase refusal strictness: `oya flags set oya.intelligence.prompt_fence.strict_mode=true --tenant $TENANT --pack $PACK --reason $INCIDENT_ID`.
 8. Keep audit tap required: `oya flags set oya.intelligence.audit_tap.required=true --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
 9. Run safety replay confirmed: `oya ops intelligence safety replay --tenant $TENANT --incident $INCIDENT_ID --confirm`.
@@ -169,7 +169,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-prompt-fence --production-snapshot --cell $CELL`.
 12. Verify eval set: `oya ops intelligence eval run --pack $PACK --suite prompt-fence-critical --expect pass`.
 13. Remove temporary deny only after permanent policy lands: `oya ops intelligence tool-policy deny-fragment remove --tenant $TENANT --tool <tool> --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 15. Seal audit: `oya audit-chain emit --event-class EVT_INTELLIGENCE_PROMPT_FENCE_BYPASS_DETECTION_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

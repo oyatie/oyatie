@@ -1,11 +1,14 @@
-apiVersion: v2
-name: oya-global-trade
-description: Oyatie global-trade microservice Kubernetes chart.
-type: application
-version: 0.1.0
-appVersion: "0.1.0"
-annotations:
-  oyatie.com/adr-0181: signed-image-promotion-required
-  oyatie.com/adr-0254: kubernetes-everywhere
-  oyatie.com/adr-0349: argocd-application-source
-  oyatie.com/license-class: internal
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/k8s/helm/Chart.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

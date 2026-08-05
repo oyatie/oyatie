@@ -1,8 +1,10 @@
 # PRD — `oya-managed-k8s-control-plane-host`
 
-**Status:** wave-3 design-spec + foundation crates (ADR-0376 lane). Maturity is
-**design-spec + tested foundation**, NOT runtime GA — the live Kamaji/Talos CRD
-reconciliation is honest-deferred (see §7).
+**Status:** wave-3 design-spec + live adapter foundation (ADR-0376 lane).
+Maturity is **not runtime GA**: hosted Kamaji dynamic-object create/read/delete
+and dedicated Talos reference resolution exist behind the management-cluster
+boundary; sandbox/live cluster proof, billing, public SLA, and external GA remain
+separate gates.
 
 **Owner:** council-architecture + ops-platform
 **Authority:** ADR-0376 (managed-Kubernetes product surface), ADR-0375 (Talos +
@@ -18,7 +20,7 @@ hosted:
 
 - **Hosted (DEFAULT)** — the tenant control plane runs as pods inside Oyatie's
   shared MANAGEMENT cluster via **Kamaji** (a `TenantControlPlane` on
-  `controlplane.cluster.x-k8s.io` + a per-tenant datastore). Dense, provisions in
+  `kamaji.clastix.io/v1alpha1` + a per-tenant datastore). Dense, provisions in
   seconds, collapses the ~$73/tenant/month standing dedicated-control-plane tax.
 - **Dedicated (PREMIUM)** — a full per-tenant **Talos spoke** (its own etcd + 3
   control-plane nodes), the ADR-0375 spoke promoted to a product SKU. For
@@ -47,8 +49,9 @@ In-scope and BUILT:
 - The shared `ControlPlaneProvisioning` port + DTOs (`-api`): `provision(request)
   -> ControlPlaneRef`, `status(control_plane_ref)`, `teardown(control_plane_ref)`.
 - A kube-rs CAPI adapter (`-adapter-capi`) that holds the management-cluster
-  client + the Kamaji `TenantControlPlane` dynamic descriptor. **Live reconcile
-  honest-deferred** (§7).
+  client + the Kamaji `TenantControlPlane` dynamic descriptor and performs
+  hosted-tier DynamicObject create/read/delete. Dedicated tier resolves an opaque
+  Talos/CAPI reference and does not create a hosted Kamaji object.
 - A deterministic in-memory adapter (`-adapter-inmemory`) for tests + bring-up.
 - A composition root (`-app`): axum admin/status API + fail-closed `[[bin]]` main.
 
@@ -98,21 +101,23 @@ Only the platform / control-plane-operator principals may `provision` /
 cluster as a resource via the cluster-lifecycle API, never the control-plane host
 directly). See `cedar/policies.cedar`.
 
-## 7. Honest-deferred: live Kamaji/Talos reconciliation
+## 7. Live Kamaji/Talos reconciliation boundary
 
-The `-adapter-capi` crate does NOT implement the live CRD reconcile. Every port
-method returns `ProvisioningError::Unimplemented(KamajiProviderLiveIntegration)`
-— a typed boundary surfaced as HTTP 501 by the app — rather than a fake success.
-Tracked at
-`registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration`;
-the concrete Kamaji / CAPI-provider version pin lands in `registry/lts-pins.yaml`
-when the follow-on ADR wires the reconcile. The in-memory adapter is the
-deterministic reference that exercises the full lifecycle end-to-end today.
+The `-adapter-capi` crate uses kube-rs dynamic APIs to create/read/delete the
+hosted Kamaji `TenantControlPlane` GVK pinned in `registry/lts-pins.yaml`:
+`kamaji.clastix.io/v1alpha1`, kind `TenantControlPlane`, plural
+`tenantcontrolplanes`. It maps provider conditions into kernel lifecycle statuses
+without synthesizing endpoints from names, refuses foreign objects that lack the
+Oyatie owner label, and exposes a rollback switch that blocks new live provisions
+while preserving status/teardown for existing objects. Dedicated Talos provisions
+record an opaque ADR-0375 CAPI reference path only; this service never stores
+tenant kubeconfig material.
 
 ## 8. Acceptance criteria
 
 See `implementation-ready-acceptance-criteria.md`. Summary: kernel state machine
 rejects illegal transitions; the in-memory adapter drives both tiers to `active`
-and tears down to `deleted`; the app's admin API returns 201/200/204 on the happy
-path and 400/501 on fail-closed/deferred paths; the production `[[bin]]` fails
-closed without `$OYA_MGMT_KUBECONFIG`.
+and tears down to `deleted`; the live CAPI adapter builds the LTS-pinned Kamaji
+dynamic object, maps provider status, guards teardown ownership, records the
+dedicated Talos reference path, and honors the rollback switch; the production
+`[[bin]]` fails closed without `$OYA_MGMT_KUBECONFIG`.

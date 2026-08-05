@@ -43,4 +43,4 @@ source_adrs:
 
 ### Residual Risk
 - Residual risk is medium until Wave 15-ZA/ZB/ZD/ZE implementation PRs land branch-protected cloud-ci evidence, governance rename, sharding automation bodies, and ArgoCD/GitOps substrate evidence; Jenkins/local verifier outputs remain non-authoritative unless reconciled by the current SSOT.
-- Residual risk becomes low when the ADR-0346, ADR-0347, ADR-0348, and ADR-0349 enforcement lanes promote from advisory/report-only to BLOCKER and pass for this microservice.
+- Residual risk becomes low when ADR-0346 references are provenance-only, ADR-0347/ADR-0348 lanes pass, and ADR-0515 `oya-ci-required` evidence is present for this microservice.

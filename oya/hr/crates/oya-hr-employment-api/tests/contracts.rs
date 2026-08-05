@@ -11,7 +11,7 @@ use oya_hr_employment_app::{
     onboard_employee, plan_labor_compliance_workflows, plan_leave_payroll_impact_envelope,
     prepare_sensitive_hr_read_envelope,
 };
-use serde_json::json;
+use serde_json::{Value, json};
 
 #[test]
 fn onboard_employee_request_uses_camel_case_and_stable_enums() {
@@ -73,6 +73,37 @@ fn leave_payroll_impact_request_uses_camel_case_and_converts_to_domain_input() {
     assert_eq!(response_body["payrollImpactKind"], "PAID_LEAVE");
     assert_eq!(response_body["payloadDataClass"], "FINANCIAL");
     assert_eq!(response_body["schemaVersion"], 1);
+    assert_eq!(
+        response_body["sourceTopic"],
+        "integration.hr.payroll.leave-impact"
+    );
+    assert_eq!(
+        response_body["sourceHrIdempotencyKey"],
+        "ten_acme:leave_001:Approved:2026-06"
+    );
+    assert_eq!(response_body["tenantId"], "ten_acme");
+    assert_eq!(response_body["legalEntityId"], "le_kr_001");
+    assert_eq!(response_body["employeeId"], "emp_001");
+    assert_eq!(response_body["leaveRequestId"], "leave_001");
+    assert_eq!(
+        response_body["decisionEvidenceRef"],
+        "audit/hr/leave/leave_001/decision"
+    );
+    assert_eq!(
+        response_body["routingEvidenceRef"],
+        "audit/hr/leave/leave_001/delegation"
+    );
+    assert_eq!(
+        response_body["payrollImpactEvidenceRef"],
+        "audit/hr/leave/leave_001/payroll-impact"
+    );
+    assert_eq!(response_body["hrRulepackRef"], "rulepack/kr-labor-2026");
+    assert_eq!(response_body["hrRulepackEffectiveDate"], "2026-01-01");
+    assert_eq!(response_body["payrollCalculationAttached"], false);
+    assert_eq!(response_body["payrollNetworkCall"], false);
+    assert_eq!(response_body["workflowExecution"], false);
+    assert_eq!(response_body["storageAttached"], false);
+    assert_eq!(response_body["runtimeAuditEmission"], false);
 }
 
 #[test]
@@ -89,6 +120,24 @@ fn sensitive_read_policy_request_uses_camel_case_and_converts_to_domain_input() 
         body["consentEvidenceRef"],
         "audit/hr/privacy/emp_001/consent"
     );
+    assert_eq!(
+        body["tenantRbacScopeEvidenceRef"],
+        "audit/tenant-rbac/hr-sensitive-read/entset_hr_privacy_kr"
+    );
+    assert_eq!(
+        body["auditEmissionContractRef"],
+        "audit-event-class/HrSensitiveReadPolicyEvaluated"
+    );
+
+    let runtime_input = request.clone().into_runtime_boundary_input();
+    assert_eq!(
+        runtime_input.tenant_rbac_scope_evidence_ref.as_deref(),
+        Some("audit/tenant-rbac/hr-sensitive-read/entset_hr_privacy_kr")
+    );
+    assert_eq!(
+        runtime_input.audit_emission_contract_ref.as_deref(),
+        Some("audit-event-class/HrSensitiveReadPolicyEvaluated")
+    );
 
     let outcome = prepare_sensitive_hr_read_envelope(request.into_domain_input())
         .expect("app accepts sensitive read policy DTO");
@@ -102,6 +151,59 @@ fn sensitive_read_policy_request_uses_camel_case_and_converts_to_domain_input() 
     );
     assert_eq!(response_body["payloadDataClass"], "PHI");
     assert_eq!(response_body["schemaVersion"], 1);
+}
+
+#[test]
+fn sensitive_read_openapi_contract_declares_runtime_evidence_fields() {
+    let contract: Value = serde_json::from_str(include_str!("../../../contracts/openapi-v1.yaml"))
+        .expect("parse HR OpenAPI preview contract as JSON-compatible YAML");
+    let sensitive_read_schema = &contract["components"]["schemas"]["SensitiveHrReadPolicyRequest"];
+    let required = sensitive_read_schema["required"]
+        .as_array()
+        .expect("SensitiveHrReadPolicyRequest required array");
+
+    for field in ["tenantRbacScopeEvidenceRef", "auditEmissionContractRef"] {
+        assert!(
+            required.iter().any(|value| value.as_str() == Some(field)),
+            "SensitiveHrReadPolicyRequest must require runtime-boundary field {field}"
+        );
+    }
+
+    let properties = &sensitive_read_schema["properties"];
+    assert_eq!(
+        properties["tenantRbacScopeEvidenceRef"]["pattern"],
+        "^audit/tenant-rbac/hr-sensitive-read/[A-Za-z0-9_-][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*$"
+    );
+    assert_eq!(
+        properties["tenantRbacScopeEvidenceRef"]["x-data-class"],
+        "INTERNAL_ONLY"
+    );
+    assert_eq!(
+        properties["auditEmissionContractRef"]["const"],
+        "audit-event-class/HrSensitiveReadPolicyEvaluated"
+    );
+    assert_eq!(
+        properties["auditEmissionContractRef"]["x-data-class"],
+        "INTERNAL_ONLY"
+    );
+    assert_eq!(
+        sensitive_read_schema["x-oyatie-runtime-boundary"]["status"],
+        "preview-not-deployed"
+    );
+    assert!(
+        sensitive_read_schema["x-oyatie-non-claims"]
+            .as_array()
+            .expect("sensitive-read non-claims")
+            .iter()
+            .any(|claim| claim
+                .as_str()
+                .is_some_and(|text| text.contains("runtime audit-chain emission")))
+    );
+
+    let metadata = include_str!("../../../contracts/openapi-v1.meta.yaml");
+    assert!(metadata.contains("CS-ENT-HR-010"));
+    assert!(metadata.contains("runtime-boundary tenant/RBAC scope evidence"));
+    assert!(metadata.contains("does not claim sensitive HR data retrieval"));
 }
 
 #[test]
@@ -174,6 +276,12 @@ fn sensitive_read_request() -> SensitiveHrReadPolicyRequest {
         consent_evidence_ref: Some("audit/hr/privacy/emp_001/consent".to_owned()),
         request_evidence_ref: "audit/hr/privacy/emp_001/request".to_owned(),
         read_log_evidence_ref: "audit/hr/privacy/emp_001/read-log".to_owned(),
+        tenant_rbac_scope_evidence_ref: Some(
+            "audit/tenant-rbac/hr-sensitive-read/entset_hr_privacy_kr".to_owned(),
+        ),
+        audit_emission_contract_ref: Some(
+            "audit-event-class/HrSensitiveReadPolicyEvaluated".to_owned(),
+        ),
         evaluated_at_epoch_seconds: 1_779_534_000,
     }
 }

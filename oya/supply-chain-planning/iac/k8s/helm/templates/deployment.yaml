@@ -1,3 +1,4 @@
+{{/* Claim boundary: target/provenance template only; do not render/apply as live deployment evidence. */}}
 {{- $imageDigest := .Values.image.digest | default "" -}}
 {{- if and .Values.image.cosign.required (not (and (regexMatch "^sha256:[0-9a-f]{64}$" $imageDigest) (regexMatch "[1-9a-f]" (trimPrefix "sha256:" $imageDigest)))) -}}
 {{- fail "image.digest must be set to a real non-zero sha256 digest when image.cosign.required=true" -}}
@@ -10,7 +11,8 @@ metadata:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
     app.kubernetes.io/part-of: oyatie-microservices
     app.kubernetes.io/managed-by: Helm
-    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/claim-boundary: {{ .Values.claimBoundary.classification | quote }}
+    oyatie.com/adr-0349: argocd-target-provenance
     oyatie.com/cargo-package: {{ .Values.microservice.cargoPackage | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -28,7 +30,9 @@ spec:
         cosign.sigstore.dev/required: {{ .Values.image.cosign.required | quote }}
         oyatie.com/image-digest: {{ $imageDigest | quote }}
         oyatie.com/image-promotion-policy: {{ .Values.image.cosign.policy | quote }}
-        oyatie.com/audit-chain-event: "microservice-deployment"
+        oyatie.com/audit-chain-event-target: {{ .Values.config.auditChainTargetClass | quote }}
+        oyatie.com/no-runtime-audit-chain-emission: {{ .Values.claimBoundary.noRuntimeAuditChainEmission | quote }}
+        oyatie.com/no-measured-readiness: {{ .Values.claimBoundary.noMeasuredSloReadiness | quote }}
     spec:
       runtimeClassName: {{ .Values.podRuntime.runtimeClassName | quote }}
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}

@@ -9,7 +9,7 @@
     "ADR-0196 (SeaweedFS canonical object storage — remote build cache backend)",
     "ADR-0198 (Karpenter node autoscaling — elastic agent capacity)",
     "ADR-0338 (pod runtime tiering — Kata/Cloud-Hypervisor for untrusted CI workloads)",
-    "ADR-0346 (oya verify mirrors full CI matrix — lane parity authority)",
+    "ADR-0346 (legacy local mirror provenance; live full-matrix authority is cloud-ci/oya-ci behind oya-ci-required)",
     "ADR-0348 (autosharding/auto-rebalance — lane sharding analogue)"
   ],
   "status": "Accepted-foundation",
@@ -28,7 +28,7 @@
       "travis",
       "buildkite-saas"
     ],
-    "github_actions_parity": "RETIRED per ADR-0361: GitHub Actions removed entirely; cloud-ci is the sole CI. No Actions<->cloud-ci parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) remains the lane authority."
+    "github_actions_parity": "RETIRED per ADR-0361: GitHub Actions removed entirely; cloud-ci is the sole CI. No Actions<->cloud-ci parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) is legacy local-feedback/provenance only; live lane authority is the cloud-ci/oya-ci required context behind oya-ci-required."
   },
   "ephemeral_agents": {
     "provider": "cloud-ci kubernetes plugin clouds",
@@ -69,20 +69,20 @@
       "cargo check",
       "cargo clippy -D warnings",
       "cargo nextest run (profile ci)",
-      "scoped oya gate validate",
+      "scoped cloud-ci/Rust gate packet",
       "cosign-verified image build (ADR-0181)"
     ],
     "shared_library": "oya-ci-shared global library carries the cache-wiring and gate-invocation steps so lanes inherit them rather than duplicating."
   },
   "merge_queue_integration": {
     "admission": "Parallel lane branches fan in through the ADR-0111 merge-queue projected state; the merge queue serializes admission so concurrent lanes never corrupt trunk.",
-    "fan_in_verify": "A single serial ./bin/oya verify --ci-required runs the whole-workspace mirror at fan-in; cross-cutting failures route back to the owning lane.",
+    "fan_in_verify": "A single cloud-ci/oya-ci required-context fan-in packet runs the whole-workspace mirror at fan-in; legacy ./bin/oya verify --ci-required is local-feedback/provenance only and cannot satisfy merge authority.",
     "deploy_audit": "ArgoCD-driven deploy emits audit-chain rows (ADR-0349 E.5 / ADR-0263)."
   },
   "ci_lane": {
     "parity_gate": "RETIRED (ADR-0361): no Actions<->cloud-ci parity; cloud-ci is the sole CI",
     "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/pipeline.yaml and the cloud-ci agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
-    "verify_mirror": "ADR-0346 oya verify --ci-required"
+    "verify_mirror": "ADR-0346 legacy local mirror is provenance/local feedback only; live CI authority is the cloud-ci/oya-ci required context behind oya-ci-required"
   },
   "deployment": {
     "scope": "This IS the CI, deployed now on a single local node (colima/k3s). One CI, run locally for now — not a throwaway PoC, and not a separate 'local CI' distinct from production. The only gap to full production posture is SCALE/HA, not a different system.",

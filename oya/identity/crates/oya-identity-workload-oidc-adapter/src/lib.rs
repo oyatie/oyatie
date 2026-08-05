@@ -48,9 +48,9 @@
 #[cfg(test)]
 mod eddsa;
 
+use aws_lc_rs::signature::{self, ED25519};
 use base64::Engine as _;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use aws_lc_rs::signature::{self, ED25519};
 use serde::Deserialize;
 
 use oya_identity_workload_domain::{
@@ -137,6 +137,38 @@ impl From<WorkloadIdentityError> for OidcValidationError {
         Self::Domain(error)
     }
 }
+
+/// Errors produced while parsing an issuer-published JWKS document into the
+/// static verifier keyset.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum JwksError {
+    /// The document was not valid JWKS JSON.
+    DecodeError,
+    /// A required JWK member was absent or empty.
+    MissingComponent(&'static str),
+    /// The JWK `use` member was present but not `sig`.
+    UnsupportedKeyUse(String),
+    /// The JWK `kty` member was absent or outside the supported asymmetric set.
+    UnsupportedKeyType(String),
+    /// The JWK `crv` member was absent or unsupported for the key type.
+    UnsupportedCurve(String),
+}
+
+impl std::fmt::Display for JwksError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DecodeError => f.write_str("JWKS JSON decode failed"),
+            Self::MissingComponent(name) => write!(f, "JWK missing required member: {name}"),
+            Self::UnsupportedKeyUse(key_use) => {
+                write!(f, "unsupported JWK use '{key_use}' (expected 'sig')")
+            }
+            Self::UnsupportedKeyType(kty) => write!(f, "unsupported JWK kty '{kty}'"),
+            Self::UnsupportedCurve(crv) => write!(f, "unsupported JWK curve '{crv}'"),
+        }
+    }
+}
+
+impl std::error::Error for JwksError {}
 
 /// Supported JWS signature algorithms. Symmetric (`HS*`) algorithms are
 /// intentionally unsupported: workload tokens are issuer-signed with asymmetric
@@ -311,6 +343,31 @@ impl Jwks {
         Self { keys }
     }
 
+    /// Parse an issuer-published RFC 7517 JWKS JSON document into the static
+    /// verifier keyset used by [`validate_workload_token`]. This is deliberately
+    /// a pure parse/normalization step: callers fetch/cache the JWKS outside
+    /// the hot path, then pass this immutable keyset to the verifier. No
+    /// synchronous introspection or header-directed key fetch is performed here.
+    ///
+    /// # Errors
+    /// Returns [`JwksError`] when the document is malformed or includes a key
+    /// shape this verifier does not support.
+    pub fn from_jwks_json(document: &str) -> Result<Self, JwksError> {
+        let parsed: JwksDocument =
+            serde_json::from_str(document).map_err(|_| JwksError::DecodeError)?;
+        let mut keys = Vec::with_capacity(parsed.keys.len());
+        for key in parsed.keys {
+            keys.push(key.into_jwk()?);
+        }
+        Ok(Self { keys })
+    }
+
+    /// Borrow the normalized keys in this static verifier keyset.
+    #[must_use]
+    pub fn keys(&self) -> &[Jwk] {
+        &self.keys
+    }
+
     /// Add a key (builder).
     #[must_use]
     pub fn add_key(mut self, key: Jwk) -> Self {
@@ -320,6 +377,83 @@ impl Jwks {
 
     fn find(&self, kid: &str) -> Option<&Jwk> {
         self.keys.iter().find(|key| key.kid == kid)
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct JwksDocument {
+    keys: Vec<JwkDocumentKey>,
+}
+
+#[derive(Debug, Deserialize)]
+struct JwkDocumentKey {
+    kid: Option<String>,
+    kty: Option<String>,
+    #[serde(default)]
+    alg: Option<String>,
+    #[serde(default, rename = "use")]
+    key_use: Option<String>,
+    #[serde(default)]
+    n: Option<String>,
+    #[serde(default)]
+    e: Option<String>,
+    #[serde(default)]
+    x: Option<String>,
+    #[serde(default)]
+    y: Option<String>,
+    #[serde(default)]
+    crv: Option<String>,
+}
+
+impl JwkDocumentKey {
+    fn into_jwk(self) -> Result<Jwk, JwksError> {
+        if let Some(key_use) = self.key_use.as_deref()
+            && key_use != "sig"
+        {
+            return Err(JwksError::UnsupportedKeyUse(key_use.to_owned()));
+        }
+
+        let kid = required_jwk_member(self.kid, "kid")?;
+        let kty = required_jwk_member(self.kty, "kty")?;
+        let mut jwk = match kty.as_str() {
+            "RSA" => Jwk::rsa(
+                kid,
+                required_jwk_member(self.n, "n")?,
+                required_jwk_member(self.e, "e")?,
+            ),
+            "EC" => {
+                let crv = required_jwk_member(self.crv, "crv")?;
+                if crv != "P-256" {
+                    return Err(JwksError::UnsupportedCurve(crv));
+                }
+                Jwk::ec_p256(
+                    kid,
+                    required_jwk_member(self.x, "x")?,
+                    required_jwk_member(self.y, "y")?,
+                )
+            }
+            "OKP" => {
+                let crv = required_jwk_member(self.crv, "crv")?;
+                if crv != "Ed25519" {
+                    return Err(JwksError::UnsupportedCurve(crv));
+                }
+                Jwk::okp_ed25519(kid, required_jwk_member(self.x, "x")?)
+            }
+            other => return Err(JwksError::UnsupportedKeyType(other.to_owned())),
+        };
+        if let Some(alg) = self.alg
+            && !alg.trim().is_empty()
+        {
+            jwk = jwk.with_alg(alg);
+        }
+        Ok(jwk)
+    }
+}
+
+fn required_jwk_member(value: Option<String>, name: &'static str) -> Result<String, JwksError> {
+    match value {
+        Some(value) if !value.trim().is_empty() => Ok(value),
+        _ => Err(JwksError::MissingComponent(name)),
     }
 }
 
@@ -810,9 +944,8 @@ mod tests {
         let rng = SystemRandom::new();
         let pkcs8 = EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng)
             .expect("generate pkcs8");
-        let key_pair =
-            EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
-                .expect("load key");
+        let key_pair = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
+            .expect("load key");
 
         // Public point is 0x04 || X || Y (65 bytes); split into JWK coords.
         let public = key_pair.public_key().as_ref();
@@ -842,9 +975,8 @@ mod tests {
         let rng = SystemRandom::new();
         let pkcs8 = EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng)
             .expect("generate pkcs8");
-        let key_pair =
-            EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
-                .expect("load key");
+        let key_pair = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
+            .expect("load key");
         let public = key_pair.public_key().as_ref();
         let x = &public[1..33];
         let y = &public[33..65];

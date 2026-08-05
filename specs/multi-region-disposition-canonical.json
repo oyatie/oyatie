@@ -70,7 +70,7 @@
   "manifest_field": {
     "path": "microservices/<ms>/manifest.json#multi_region_disposition",
     "required": true,
-    "validator": "oya gate validate multi-region-disposition"
+    "validator": "cloud-ci/Rust gate packet: multi-region-disposition"
   },
   "doc_field": {
     "path": "microservices/<ms>/multi-region.md",
@@ -83,7 +83,7 @@
   "sovereign_tenant_pin_overlay": {
     "description": "Per-pack tenant residency overrides per-µservice disposition. A pack-ksa tenant in strict_ksa residency is pinned to KSA cell regardless of µservice disposition.",
     "enforcement_point": "api-gateway µservice (ADR-0157) rejects mismatched cells at edge with 421 Misdirected Request + Location header.",
-    "validator": "oya gate validate sovereign-tenant-pin",
+    "validator": "cloud-ci/Rust gate packet: sovereign-tenant-pin",
     "behaviors": {
       "active_active_with_sovereign_pin": "Only the sovereign cell's replica handles the tenant.",
       "active_passive_with_sovereign_pin": "Only the sovereign cell handles; failover intra-sovereign-region only.",

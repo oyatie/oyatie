@@ -1,9 +1,14 @@
+# Preview planning inventory only. Governing authority is
+# specs/microservices/treasury.json (status: preview, metadata-only).
+# This file is not deployment authority and does not claim cloud deployment,
+# durable persistence, runtime audit-chain emission, measured SLO/DR, or
+# production readiness for treasury.
 microservice:
   id: treasury
   cargoPackage: oya-treasury-cash-app
   tenantClass: contributor
 
-replicaCount: 2
+replicaCount: 0
 
 podRuntime:
   runtimeClassName: runc
@@ -29,8 +34,8 @@ service:
   targetPort: 8080
 
 config:
-  environment: production
-  auditChainEnabled: true
+  environment: preview-planning
+  auditChainEnabled: false
   imagePromotionPolicy: cosign-required
 
 cedar:
@@ -38,8 +43,8 @@ cedar:
   policyConfigMapName: oya-treasury-cedar
 
 otel:
-  enabled: true
-  endpoint: http://otel-collector.observability.svc.cluster.local:4317
+  enabled: false
+  endpoint: ""
 
 resources:
   requests:

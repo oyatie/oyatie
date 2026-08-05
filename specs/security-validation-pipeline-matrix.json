@@ -1,0 +1,2063 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/security-validation-pipeline-matrix.json",
+  "title": "SecurityValidationPipelineMatrix",
+  "description": "Productized, runner-neutral security validation pipeline matrix for Oyatie SCM/CI/CD. It defines the universal lane contract, evidence records, pass/fail policy, cadence, false-positive and VEX handling, and continuous-control evidence required before security validation can be claimed as mechanically enforced or production-ready.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-SECURITY-VALIDATION-PIPELINE-MATRIX",
+    "version": "0.2.0",
+    "status": "planning-gate-matrix",
+    "owner_team": "platform-security + platform-toolchain + ops-sre-reliability + council-architecture",
+    "created_at": "2026-06-30T00:00:00Z",
+    "updated_at": "2026-07-01T13:29:46Z",
+    "source_request": "REGSEC-002: define a productized universal pipeline matrix for chaos engineering, security scanners, SAST, DAST, IAST, BAS, automated pentesting, NIST SSDF, OWASP ASVS/SAMM/WSTG, SLSA, and existing oya-check supply-chain evidence without mutating product code or assuming a GitHub Actions north star.",
+    "claim_boundary": "Planning/gate matrix only. This spec does not claim any lane is implemented, wired to branch protection, or production-ready. Mechanically-enforced claims require a Rust gate/controller, RED/GREEN fixtures, live required-context evidence, and audit-chain records per the claim contract.",
+    "related_specs": [
+      "/specs/bespoke-cloud-toolchain-services.json",
+      "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "/specs/phase0-automation-matrix.json",
+      "/specs/phase0-ci-enforcement-baseline.json",
+      "/specs/toolchain-tenant-isolation-fixtures.json"
+    ],
+    "related_code": [
+      "/libs/oya-check-supply-chain/src/lib.rs"
+    ],
+    "related_decisions": [
+      "ADR-0039",
+      "ADR-0361 (superseded; retained only for license-vetted security-tool stack provenance)",
+      "ADR-0515"
+    ],
+    "primary_external_references": [
+      {
+        "name": "NIST SP 800-218 Secure Software Development Framework",
+        "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+        "used_for": "Secure-development practice groups, vulnerability response, artifact/evidence language, and recurrence prevention."
+      },
+      {
+        "name": "OWASP Application Security Verification Standard",
+        "url": "https://owasp.org/www-project-application-security-verification-standard/",
+        "used_for": "Application/API verification categories and severity expectations for product security gates."
+      },
+      {
+        "name": "OWASP Software Assurance Maturity Model",
+        "url": "https://owasp.org/www-project-samm/",
+        "used_for": "Governance, design, implementation, verification, and operations maturity streams."
+      },
+      {
+        "name": "OWASP Web Security Testing Guide",
+        "url": "https://owasp.org/www-project-web-security-testing-guide/",
+        "used_for": "DAST and automated penetration-test test-family coverage."
+      },
+      {
+        "name": "SLSA Specification",
+        "url": "https://slsa.dev/spec/v1.2/",
+        "used_for": "Source/build/provenance tracks for supply-chain evidence and release promotion."
+      },
+      {
+        "name": "OpenVEX",
+        "url": "https://github.com/openvex/spec",
+        "used_for": "Machine-readable VEX status for component vulnerabilities where exploitability is refuted with evidence."
+      },
+      {
+        "name": "CSAF VEX",
+        "url": "https://docs.oasis-open.org/csaf/csaf/v2.0/csaf-v2.0.html",
+        "used_for": "Alternative standards-based VEX interchange format for vulnerability exception evidence."
+      }
+    ]
+  },
+  "non_negotiables": [
+    "Pipeline lanes are product contracts, not one-off scripts or operator checklists.",
+    "The permanent contract is runner-neutral: the same canonical security validation matrix must execute under the live pipeline runner and any future owned runner without changing policy semantics.",
+    "No new oya CLI, shell, or local-only invocation can satisfy a blocking security-validation claim.",
+    "Candidate PR bytes are untrusted input; gate definitions, severity policy, exception policy, and allowlists come from trusted trunk/controller state.",
+    "Every blocking lane emits typed API evidence records and audit-chain references before it can contribute to a green aggregate status.",
+    "False-positive and VEX decisions are time-bound evidence records, never path-wide suppressions or comments in scanner output.",
+    "Secrets exposure is never VEXed; it requires removal, revocation/rotation evidence, and tenant/customer impact analysis.",
+    "BAS, security-chaos, and automated pen-test lanes must be safety-bounded and tenant-scoped before execution against shared or production-like environments."
+  ],
+  "runner_boundary": {
+    "canonical_context": "security-validation is a constituent of the one canonical pipeline aggregator; this matrix does not name a runner as the north star.",
+    "trusted_inputs": [
+      "security-validation-pipeline-matrix.json from trusted base",
+      "service inventory and tenant classification from trusted base",
+      "gate severity policy from trusted base",
+      "exception and VEX records from approved evidence stores",
+      "scanner/ruleset manifests pinned by digest/version"
+    ],
+    "untrusted_inputs": [
+      "candidate source tree bytes",
+      "candidate-generated scanner configuration unless explicitly allowlisted by trusted policy",
+      "candidate-supplied suppressions",
+      "candidate-supplied timestamps or evidence URLs"
+    ],
+    "allowed_execution_substrates": [
+      "Rust gate binary or controller that normalizes scanner output into the evidence API",
+      "license-vetted scanner/tool adapter behind a product port",
+      "declarative policy-as-code bundle pinned by trusted digest",
+      "sandboxed dynamic-test environment with explicit tenant/cell blast radius"
+    ],
+    "disallowed_execution_substrates": [
+      "shell-only check treated as merge authority",
+      "local developer command treated as merge authority",
+      "proprietary SaaS scanner as the sole authoritative gate",
+      "scanner exit code without typed evidence normalization",
+      "candidate PR disabling or weakening its own gate"
+    ]
+  },
+  "matrix_contract": {
+    "required_lane_ids": [
+      "sast",
+      "dast",
+      "iast",
+      "sca",
+      "secrets",
+      "iac",
+      "container",
+      "fuzzing",
+      "api_fuzzing",
+      "bas_purple_team",
+      "security_chaos",
+      "automated_pen_test",
+      "continuous_control_evidence"
+    ],
+    "required_row_fields": [
+      "id",
+      "name",
+      "scope",
+      "cadence",
+      "pass_fail_policy",
+      "false_positive_vex_handling",
+      "api_evidence_record",
+      "standards_mapping",
+      "productization_requirements"
+    ],
+    "severity_order": [
+      "info",
+      "low",
+      "medium",
+      "high",
+      "critical"
+    ],
+    "default_blocking_thresholds": {
+      "pre_merge": [
+        "critical",
+        "high_when_exploitable_or_tenant_boundary_relevant",
+        "policy_forbidden_license_or_secret"
+      ],
+      "pre_release": [
+        "critical",
+        "high",
+        "medium_when_authz_tenant_boundary_or_supply_chain_integrity_related"
+      ],
+      "post_deploy_or_continuous": [
+        "critical",
+        "high_with_active_exploit_or_control_drift",
+        "stale_required_control_evidence"
+      ]
+    },
+    "aggregate_status_rule": "The security-validation aggregate is green only when every applicable lane for the changed subject is pass, not_applicable_with_policy_reason, or waived_by_unexpired_approved_exception. Unknown applicability, missing evidence, stale evidence, duplicate lane records, and suppressions without evidence are red."
+  },
+  "evidence_api_contract": {
+    "record_types": [
+      "security_validation_run.v1",
+      "security_validation_lane_result.v1",
+      "security_validation_finding.v1",
+      "security_validation_exception.v1",
+      "security_validation_vex.v1",
+      "security_control_snapshot.v1"
+    ],
+    "common_required_fields": [
+      "record_id",
+      "record_type",
+      "schema_version",
+      "tenant_id",
+      "pipeline_run_id",
+      "lane_id",
+      "subject_kind",
+      "subject_ref",
+      "scope_ref",
+      "source_revision",
+      "work_area_hash_or_artifact_digest",
+      "policy_version",
+      "owner_ref",
+      "scanner_or_control_id",
+      "scanner_or_control_version",
+      "ruleset_version",
+      "adapter_provenance",
+      "started_at_trusted",
+      "ended_at_trusted",
+      "result",
+      "finding_or_gap_state",
+      "severity_summary",
+      "findings_ref",
+      "exception_refs",
+      "remediation_ref",
+      "freshness_checked_at_trusted",
+      "audit_event_ref",
+      "producer_identity",
+      "retention_until"
+    ],
+    "allowed_results": [
+      "pass",
+      "fail",
+      "warn",
+      "not_applicable",
+      "blocked_missing_evidence",
+      "blocked_stale_evidence"
+    ],
+    "finding_required_fields": [
+      "finding_id",
+      "lane_id",
+      "fingerprint",
+      "severity",
+      "confidence",
+      "category",
+      "asset_ref",
+      "evidence_ref",
+      "introduced_by_ref",
+      "reproduction_or_trace_ref",
+      "remediation_ref",
+      "first_seen_at_trusted",
+      "last_seen_at_trusted"
+    ],
+    "exception_required_fields": [
+      "exception_id",
+      "finding_fingerprint",
+      "lane_id",
+      "exception_type",
+      "decision",
+      "justification",
+      "approver_role",
+      "approver_identity_ref",
+      "expires_at_trusted",
+      "review_cadence",
+      "compensating_controls",
+      "audit_event_ref"
+    ],
+    "vex_required_fields": [
+      "vex_id",
+      "component_purl_or_artifact_ref",
+      "vulnerability_id",
+      "status",
+      "justification",
+      "impact_statement",
+      "evidence_ref",
+      "expires_at_trusted",
+      "approver_role",
+      "audit_event_ref"
+    ],
+    "storage_and_access": {
+      "write_path": "security-validation evidence API owned by cloud-ci/security-validation control plane",
+      "read_path": "tenant-scoped evidence API plus audit-chain references; tenant admins only read their tenant evidence",
+      "immutability": "append-only records; correction records supersede prior records without mutation",
+      "minimum_retention": "per compliance pack; default 400 days for gate evidence and 7 years for regulated release/security-control evidence"
+    },
+    "shared_evidence_field_contract": {
+      "purpose": "REGVAL-001 fixture/schema contract: every security-validation lane result carries the same normalized evidence fields before lane-specific fields are interpreted.",
+      "claim_boundary": "Schema and fixture contract only; does not implement the evidence API, scanner adapters, aggregate gate, or runtime security-validation enforcement.",
+      "required_for_every_lane_result": [
+        "scope_ref",
+        "work_area_hash_or_artifact_digest",
+        "source_revision",
+        "policy_version",
+        "owner_ref",
+        "finding_or_gap_state",
+        "remediation_ref",
+        "freshness_checked_at_trusted",
+        "adapter_provenance"
+      ],
+      "field_meanings": {
+        "scope_ref": "Tenant/cell/service/artifact or change-scope reference from trusted policy or inventory, not candidate-supplied prose.",
+        "work_area_hash_or_artifact_digest": "Immutable digest for the work area, artifact, image, SBOM, corpus, contract, scenario pack, or control snapshot under validation.",
+        "source_revision": "Trusted revision identifier for the candidate source or controlled runtime snapshot being evaluated.",
+        "policy_version": "Trusted gate policy, matrix, exception, and severity-policy version used for the verdict.",
+        "owner_ref": "Responsible service/control/security owner for the result, finding, or gap and its remediation SLA.",
+        "finding_or_gap_state": "Normalized state for a discovered finding, applicability gap, stale evidence gap, or no-finding result.",
+        "remediation_ref": "Remediation issue, patch, rotation, compensating-control, exception, or explicit no_remediation_required reference.",
+        "freshness_checked_at_trusted": "Trusted-clock freshness evaluation time; candidate-provided timestamps are never accepted as freshness proof.",
+        "adapter_provenance": "Adapter, ruleset, normalization, and producer metadata proving how raw scanner/control output became this evidence record."
+      },
+      "allowed_finding_or_gap_states": [
+        "no_findings",
+        "open_findings",
+        "remediated",
+        "accepted_exception_active",
+        "not_applicable_with_policy_reason",
+        "blocked_missing_evidence",
+        "blocked_stale_evidence",
+        "blocked_candidate_weakened_policy",
+        "blocked_adapter_untrusted"
+      ],
+      "adapter_provenance_required_fields": [
+        "adapter_id",
+        "adapter_version",
+        "adapter_digest",
+        "normalization_version",
+        "ruleset_version",
+        "producer_identity",
+        "trusted_policy_ref"
+      ]
+    }
+  },
+  "false_positive_and_vex_policy": {
+    "false_positive_policy": {
+      "allowed_for": [
+        "sast",
+        "dast",
+        "iast",
+        "iac",
+        "container",
+        "fuzzing",
+        "api_fuzzing",
+        "bas_purple_team",
+        "security_chaos",
+        "automated_pen_test"
+      ],
+      "not_allowed_for": [
+        "secrets_verified_exposure"
+      ],
+      "requires": [
+        "deterministic finding fingerprint",
+        "reproduction or refutation evidence",
+        "rule or scanner version",
+        "bounded asset/scope, never path-wide or repo-wide wildcard",
+        "owner and approver distinct from the author when severity is high or critical",
+        "expiry date and revalidation cadence"
+      ],
+      "default_expiry_days": 30,
+      "maximum_expiry_days": 90
+    },
+    "vex_policy": {
+      "allowed_for": [
+        "sca",
+        "container"
+      ],
+      "allowed_statuses": [
+        "not_affected",
+        "fixed",
+        "under_investigation",
+        "affected_with_mitigation"
+      ],
+      "requires": [
+        "component purl or immutable artifact digest",
+        "CVE/GHSA/OSV identifier",
+        "exploitability analysis tied to actual build/runtime configuration",
+        "compensating controls when affected_with_mitigation",
+        "expiry no later than the next release train or 30 days for critical exploited vulnerabilities",
+        "audit-chain event and approver identity"
+      ],
+      "forbidden": [
+        "VEX for a missing SBOM/provenance/signature",
+        "VEX for an exposed secret",
+        "VEX without component identity and vulnerability id",
+        "indefinite VEX without re-review"
+      ]
+    }
+  },
+  "lane_groups": [
+    {
+      "id": "static_shift_left",
+      "lanes": ["sast", "sca", "secrets", "iac"],
+      "purpose": "Fast deterministic pre-merge and nightly coverage over code, dependencies, secrets, and declarative infrastructure."
+    },
+    {
+      "id": "artifact_integrity",
+      "lanes": ["container"],
+      "purpose": "Image/file-system/package scanning, signatures, SBOM, provenance, and admission evidence for promotable artifacts."
+    },
+    {
+      "id": "dynamic_runtime_validation",
+      "lanes": ["dast", "iast", "fuzzing", "api_fuzzing", "automated_pen_test"],
+      "purpose": "Runtime and protocol validation against deployed or instrumented candidates."
+    },
+    {
+      "id": "adversarial_resilience",
+      "lanes": ["bas_purple_team", "security_chaos"],
+      "purpose": "Control-plane, detection, prevention, recovery, and fail-closed validation through bounded adversarial and fault-injection scenarios."
+    },
+    {
+      "id": "continuous_assurance",
+      "lanes": ["continuous_control_evidence"],
+      "purpose": "Ongoing evidence that controls remain present, fresh, effective, and tenant-scoped after merge and deployment."
+    }
+  ],
+  "security_validation_lanes": [
+    {
+      "id": "sast",
+      "name": "Static Application Security Testing",
+      "scope": {
+        "covers": [
+          "source code for Rust, TypeScript/JavaScript, Python, policy code, and generated-code inputs",
+          "taint flows across request, tenant, policy, persistence, shell, file, network, and serialization boundaries",
+          "security-sensitive code paths including authn/authz, secrets, payments, DSR/privacy, cryptography, deserialization, and sandbox/tool invocation"
+        ],
+        "applicability": "pre-merge for code and policy changes; nightly full-repo sweep; required pre-release for services with externally reachable or tenant-bound surfaces"
+      },
+      "cadence": {
+        "pre_merge": "changed-target and reverse-dependency SAST from trusted ruleset",
+        "nightly": "full-repo SAST and rule drift scan",
+        "pre_release": "full SAST for release candidate service set"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "critical finding of any confidence except explicitly refuted false positive",
+          "high-confidence high finding on authz, tenant isolation, secrets, injection, path traversal, SSRF, deserialization, sandbox escape, or command execution path",
+          "scanner/ruleset evidence missing, stale, or candidate-weakened",
+          "new nosec/allow suppression lacks approved exception record"
+        ],
+        "warns_when": [
+          "medium findings outside security-sensitive surfaces with owner and remediation SLA"
+        ],
+        "pass_requires": [
+          "typed lane result",
+          "ruleset digest",
+          "finding fingerprints",
+          "exception refs for every suppressed blocking finding"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "finding fingerprint",
+          "source span or data-flow trace",
+          "refutation evidence tied to the current revision",
+          "expiry <= 90 days"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "language_set",
+          "ruleset_digest",
+          "taint_sources_and_sinks_version",
+          "changed_targets",
+          "finding_fingerprints"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: secure implementation and vulnerability review practices",
+        "OWASP ASVS: application control verification categories",
+        "OWASP SAMM: implementation and verification streams"
+      ],
+      "productization_requirements": [
+        "Repo-owned ruleset bundle versioned independently of candidate PR bytes",
+        "Adapter output normalized by Rust security-validation gate",
+        "Tenant/security-sensitive path classifier maintained as trusted policy data"
+      ]
+    },
+    {
+      "id": "dast",
+      "name": "Dynamic Application Security Testing",
+      "scope": {
+        "covers": [
+          "running web/API surfaces in isolated preview, staging, canary, or release-candidate environments",
+          "authentication, authorization, session, input validation, browser/API behavior, headers, TLS, and common web attack classes",
+          "tenant-bound routes and compliance-pack overlays"
+        ],
+        "applicability": "pre-release for externally reachable services; nightly or weekly against stable preprod; post-deploy canary for high-risk internet-facing changes"
+      },
+      "cadence": {
+        "pre_release": "authenticated and unauthenticated scan of service candidate",
+        "scheduled": "weekly full scan and nightly smoke scan for internet-facing surfaces",
+        "post_deploy": "bounded canary scan on newly promoted endpoints"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "critical or high exploitable vulnerability is confirmed",
+          "auth bypass, tenant data exposure, SSRF to internal metadata/control plane, injection, or unsafe file access is detected",
+          "target inventory or credential fixture missing for an applicable service",
+          "scanner cannot prove it reached the intended deployment target"
+        ],
+        "warns_when": [
+          "low/medium hardening findings with remediation owner and SLA"
+        ],
+        "pass_requires": [
+          "target allowlist",
+          "auth persona coverage",
+          "request/response evidence redacted of secrets/PII",
+          "typed lane result"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "request/response replay evidence or controlled manual retest",
+          "environment identity",
+          "asset scope",
+          "expiry <= 30 days for high/critical"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "target_environment_ref",
+          "base_url_or_service_ref",
+          "auth_persona_set",
+          "crawl_coverage_summary",
+          "sanitized_replay_refs"
+        ]
+      },
+      "standards_mapping": [
+        "OWASP WSTG: dynamic test methodology",
+        "OWASP ASVS: verification categories for web/API controls",
+        "NIST SSDF: vulnerability verification and response evidence"
+      ],
+      "productization_requirements": [
+        "DAST targets are provisioned through tenant-scoped preview/staging environments",
+        "Credentials and seed data come from OpenBao/test-fixture authority, not candidate code",
+        "Results link to service inventory and exposure classification"
+      ]
+    },
+    {
+      "id": "iast",
+      "name": "Interactive Application Security Testing",
+      "scope": {
+        "covers": [
+          "instrumented application/API runtime during integration and end-to-end tests",
+          "runtime data flows, library calls, unsafe deserialization, injection, crypto misuse, and authz boundary violations",
+          "test personas and fixtures exercising tenant, compliance-pack, and policy domains"
+        ],
+        "applicability": "pre-release for services with runtime instrumentation support; nightly for high-risk services; required before production-ready claim for internet-facing services"
+      },
+      "cadence": {
+        "pre_release": "instrumented integration/e2e suite",
+        "nightly": "instrumented smoke/regression suite for high-risk surfaces",
+        "on_demand": "security reviewer-triggered run for auth, secrets, DSR/privacy, sandbox, or payment changes"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "confirmed runtime exploit path with high or critical severity",
+          "authz/tenant isolation violation is observed",
+          "instrumentation coverage is below lane policy for the changed service",
+          "runtime evidence is missing for a claimed IAST gate"
+        ],
+        "warns_when": [
+          "coverage gap outside changed/high-risk paths with owner and next-run SLA"
+        ],
+        "pass_requires": [
+          "instrumentation version",
+          "covered route/use-case list",
+          "runtime trace refs",
+          "finding or no-finding summary"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "runtime trace ref",
+          "test case id",
+          "instrumentation version",
+          "expiry <= 30 days for blocking findings"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "instrumentation_version",
+          "test_suite_ref",
+          "runtime_trace_refs",
+          "covered_routes_or_use_cases",
+          "coverage_gap_refs"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: verification with tool-based analysis and regression evidence",
+        "OWASP ASVS: runtime verification of application controls",
+        "OWASP SAMM: verification practice maturity"
+      ],
+      "productization_requirements": [
+        "IAST agents/adapters run only in approved test environments unless explicitly risk-accepted",
+        "Runtime traces are redacted and tenant-scoped before evidence publication",
+        "Coverage policy is machine-readable per service class"
+      ]
+    },
+    {
+      "id": "sca",
+      "name": "Software Composition Analysis",
+      "scope": {
+        "covers": [
+          "Cargo.lock, package manifests, container package inventories, vendored tools, build plugins, generated SBOMs, and transitive dependency metadata",
+          "vulnerability databases, license allow/deny policy, dependency maturity, stale direct dependencies, and known-exploited vulnerability overlays",
+          "existing oya-check-supply-chain evidence fields for cargo-deny, cargo-audit, Trivy/osv, SBOM, Cosign/Rekor, and provenance posture"
+        ],
+        "applicability": "pre-merge for dependency/lockfile/build-tool changes; nightly for vulnerability database drift; release for artifact SBOM and provenance"
+      },
+      "cadence": {
+        "pre_merge": "changed dependency graph and policy diff",
+        "nightly": "full graph re-scan against fresh vulnerability/license intelligence",
+        "release": "artifact SBOM/provenance/VEX reconciliation"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "forbidden license appears without ADR-approved exception",
+          "critical/high vulnerability is reachable/exploitable without unexpired VEX or fixed version path",
+          "known-exploited vulnerability lacks fix, mitigation, or approved short-lived exception",
+          "SBOM/provenance/signature evidence is missing for release artifacts",
+          "dependency scanner evidence is stale or candidate-weakened"
+        ],
+        "warns_when": [
+          "medium vulnerability with owner/SLA and no known exploitation",
+          "dependency freshness advisory outside release path"
+        ],
+        "pass_requires": [
+          "component identity purl/name/version",
+          "license classification",
+          "vulnerability IDs",
+          "SBOM refs where applicable",
+          "VEX/exception refs for non-fixed blocking vulns"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": true,
+        "requires": [
+          "OpenVEX or CSAF VEX record for component vulnerabilities",
+          "component purl or immutable artifact digest",
+          "vulnerability id",
+          "exploitability analysis tied to actual build/runtime config",
+          "expiry <= 30 days for critical known-exploited vulnerabilities"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "dependency_graph_ref",
+          "sbom_refs",
+          "vulnerability_database_versions",
+          "license_policy_version",
+          "vex_refs",
+          "provenance_refs"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: third-party component and vulnerability response practices",
+        "SLSA: source/build/provenance tracks",
+        "OWASP SAMM: implementation/dependency management maturity"
+      ],
+      "productization_requirements": [
+        "Reuses and extends oya-check-supply-chain evidence concepts instead of duplicating supply-chain policy",
+        "SBOM and provenance records are immutable release artifacts",
+        "VEX decisions are API records, not scanner inline suppressions"
+      ]
+    },
+    {
+      "id": "secrets",
+      "name": "Secret and Credential Exposure Detection",
+      "scope": {
+        "covers": [
+          "source diffs, full tracked history windows, config, IaC, container layers, logs/evidence bundles, notebooks, fixtures, and generated artifacts where applicable",
+          "tokens, private keys, passwords, cloud credentials, signing materials, webhook secrets, database URLs, and high-entropy credential-shaped strings",
+          "secret reference policy such as sref:// OpenBao references without raw secret bytes"
+        ],
+        "applicability": "every pre-merge change, every release artifact, and scheduled full-history rescans after rule updates"
+      },
+      "cadence": {
+        "pre_merge": "diff and changed-file scan before merge",
+        "nightly": "full tracked corpus and evidence/log redaction scan",
+        "release": "artifact and container-layer secret scan"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "verified credential or secret material is present",
+          "credential-shaped finding cannot be classified before merge",
+          "raw secret bytes appear where only sref:// or sealed refs are allowed",
+          "revocation/rotation evidence is missing for confirmed exposure"
+        ],
+        "warns_when": [
+          "low-confidence high-entropy string is refuted and recorded with a short recheck SLA"
+        ],
+        "pass_requires": [
+          "secret scanner version and ruleset digest",
+          "redacted finding fingerprints",
+          "classification outcome",
+          "rotation/revocation ref for confirmed exposure"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "redacted fingerprint",
+          "classification reason",
+          "evidence that the value is not a credential",
+          "expiry <= 30 days"
+        ],
+        "confirmed_secret_handling": [
+          "remove secret material",
+          "rotate or revoke credential",
+          "record tenant/customer impact analysis",
+          "emit audit-chain event"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "redacted_secret_fingerprints",
+          "secret_type_classifier_version",
+          "revocation_or_rotation_refs",
+          "raw_secret_bytes_stored",
+          "impact_assessment_ref"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: protect source and credentials used by the build/deployment process",
+        "OWASP ASVS: secret management and credential storage controls",
+        "SLSA: build and provenance integrity requiring protected credentials"
+      ],
+      "productization_requirements": [
+        "Findings are always redacted in evidence API responses",
+        "Confirmed exposure opens a rotation workflow, not merely a lint failure",
+        "sref:// and sealed-reference patterns are treated as allowlisted references, not secrets"
+      ]
+    },
+    {
+      "id": "iac",
+      "name": "Infrastructure-as-Code and Policy-as-Code Security",
+      "scope": {
+        "covers": [
+          "OpenTofu/Terraform, Kubernetes YAML, Helm/Kustomize manifests, Argo CD app manifests, NetworkPolicy, Pod Security, Kubewarden/Kyverno policy, Cedar policy, cloud resource specs, and branch/protection declarative state",
+          "public exposure, encryption, IAM, service account, network egress, tenant isolation, drift, admission, and breakglass controls"
+        ],
+        "applicability": "pre-merge for infrastructure/policy/config changes; deploy-time for rendered manifests; scheduled drift/control scan"
+      },
+      "cadence": {
+        "pre_merge": "static IaC and policy scan over changed declarative assets and rendered plans where available",
+        "deploy_time": "admission/policy evaluation of rendered manifests and plans",
+        "continuous": "drift and control snapshot scan"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "public exposure, broad IAM/admin role, wildcard secret access, or unencrypted storage appears without approved exception",
+          "tenant isolation, network policy, pod security, or admission policy is weakened",
+          "policy code fails default-deny or deny-overrides-permit invariants",
+          "rendered plan evidence is missing for applicable deploy-time resource changes"
+        ],
+        "warns_when": [
+          "non-critical hardening recommendation with owner/SLA"
+        ],
+        "pass_requires": [
+          "source manifest refs",
+          "rendered plan refs when applicable",
+          "policy bundle version",
+          "resource diff summary",
+          "drift/control evidence refs"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "resource ref",
+          "rendered plan or manifest excerpt",
+          "policy/rule id",
+          "compensating control evidence",
+          "expiry <= 90 days"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "resource_refs",
+          "rendered_plan_refs",
+          "policy_bundle_version",
+          "admission_verdict_refs",
+          "drift_snapshot_ref"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: secure configuration and infrastructure evidence",
+        "OWASP SAMM: design and operations control maturity",
+        "OWASP ASVS: deployment and configuration verification controls"
+      ],
+      "productization_requirements": [
+        "IaC scanners run against source and rendered artifacts where rendering is deterministic",
+        "Admission policy engines provide deploy-time evidence consumed by the same security-validation API",
+        "Exceptions must name specific resources and cannot suppress an entire IaC directory"
+      ]
+    },
+    {
+      "id": "container",
+      "name": "Container, Image, and Artifact Security",
+      "scope": {
+        "covers": [
+          "Dockerfiles/Containerfiles, base images, OS packages, language packages, filesystem layers, image metadata, runtime user/capabilities, SBOMs, signatures, provenance, and admission verifier records",
+          "release artifacts and deployable OCI images for every service/cell/tenant tier"
+        ],
+        "applicability": "build and promotion for deployable artifacts; nightly re-scan of retained images; deploy-time admission verification"
+      },
+      "cadence": {
+        "build_time": "filesystem/container scan and SBOM generation for every promotable artifact",
+        "release": "signature/provenance/admission evidence before promotion",
+        "nightly": "retained image re-scan against updated vulnerability data",
+        "deploy_time": "admission verification of signature/provenance/policy"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "critical/high exploitable vulnerability lacks fixed version, mitigation, or unexpired VEX",
+          "image runs as root or carries forbidden capabilities without exception",
+          "base image is unpinned, unapproved, end-of-life, or license-forbidden",
+          "SBOM, signature, Rekor/transparency, provenance, or admission record missing for release/promotion",
+          "runtime hardening policy is weakened"
+        ],
+        "warns_when": [
+          "medium vulnerability with owner/SLA and no known exploitation"
+        ],
+        "pass_requires": [
+          "image digest",
+          "SBOM refs",
+          "scan refs",
+          "signature/provenance refs",
+          "admission verifier refs",
+          "VEX/exception refs for remaining blocking vulnerabilities"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": true,
+        "requires": [
+          "image digest and component purl",
+          "vulnerability id",
+          "runtime reachability or non-applicability analysis",
+          "compensating control for affected_with_mitigation",
+          "expiry <= 30 days for critical/high release blockers"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "image_digest",
+          "base_image_digest",
+          "sbom_refs",
+          "container_scan_refs",
+          "signature_refs",
+          "provenance_refs",
+          "admission_verifier_refs",
+          "runtime_policy_refs"
+        ]
+      },
+      "standards_mapping": [
+        "SLSA: artifact provenance and build integrity",
+        "NIST SSDF: release integrity and vulnerability response",
+        "OWASP SAMM: operations/deployment assurance"
+      ],
+      "productization_requirements": [
+        "Integrates with oya-check-supply-chain release evidence fields",
+        "Admission verifier records are required for deployment, not optional release notes",
+        "Re-scans can turn a previously passing image red when fresh vulnerability intelligence changes risk"
+      ]
+    },
+    {
+      "id": "fuzzing",
+      "name": "Implementation Fuzzing",
+      "scope": {
+        "covers": [
+          "parsers, serializers/deserializers, protocol handlers, policy parsers, cryptographic envelope handling, document/markdown parsers, webhook/event decoders, and any boundary accepting untrusted bytes",
+          "memory safety, panics, hangs, resource exhaustion, differential behavior, and sanitizer findings where supported"
+        ],
+        "applicability": "nightly for fuzz target corpus; pre-merge smoke for changed fuzz-covered targets; pre-release for security-sensitive parsers/protocols"
+      },
+      "cadence": {
+        "pre_merge": "bounded changed-target fuzz smoke with corpus regression replay",
+        "nightly": "time-budgeted fuzz campaign and corpus minimization",
+        "pre_release": "extended fuzz budget for security-sensitive changed components"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "new crash, panic, sanitizer violation, data corruption, infinite loop, or excessive memory/CPU case is found",
+          "known crashing corpus input is not replayed in regression tests",
+          "fuzz target coverage drops for a boundary classified as untrusted input"
+        ],
+        "warns_when": [
+          "coverage growth stalls below target without new crash for non-critical boundary"
+        ],
+        "pass_requires": [
+          "fuzz target manifest",
+          "corpus digest",
+          "budget and coverage summary",
+          "crash artifact refs or no-crash statement"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "crash/repro artifact ref",
+          "root-cause note proving non-security or unreachable condition",
+          "regression replay decision",
+          "expiry <= 90 days"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "fuzz_target_ids",
+          "corpus_digest",
+          "execution_budget",
+          "coverage_summary_ref",
+          "crash_artifact_refs",
+          "regression_replay_refs"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: test executable code and prevent recurring vulnerabilities",
+        "OWASP SAMM: verification depth and security regression testing"
+      ],
+      "productization_requirements": [
+        "Every untrusted-byte parser has an owner and fuzz-target applicability row",
+        "Crash artifacts are stored in restricted evidence with sanitized metadata exposed through the API",
+        "Fixes add corpus regression replay before the finding can close"
+      ]
+    },
+    {
+      "id": "api_fuzzing",
+      "name": "API Contract and Protocol Fuzzing",
+      "scope": {
+        "covers": [
+          "OpenAPI, AsyncAPI, gRPC/proto, GraphQL, webhook, event, and internal service boundary contracts",
+          "schema validity, negative inputs, auth persona permutations, tenant context confusion, rate-limit/quotas, idempotency, and error-shape invariants"
+        ],
+        "applicability": "pre-release for API contract changes and internet/tenant-facing APIs; nightly against stable preprod contracts; pre-merge smoke for high-risk schema changes"
+      },
+      "cadence": {
+        "pre_merge": "schema-derived negative smoke for changed contracts",
+        "pre_release": "auth-aware, tenant-aware fuzz campaign against candidate environment",
+        "nightly": "full contract fuzz against stable preprod"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "authz bypass, tenant escape, privilege confusion, rate-limit bypass, unsafe state mutation, or schema-inconsistent success is detected",
+          "unexpected 5xx or panic occurs for generated valid/invalid inputs above policy threshold",
+          "contract or environment evidence is missing for an applicable API surface"
+        ],
+        "warns_when": [
+          "non-security 4xx/validation inconsistency with owner/SLA"
+        ],
+        "pass_requires": [
+          "contract digest",
+          "persona/tenant matrix",
+          "request corpus digest",
+          "response classification summary",
+          "replay refs for failures"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "request replay ref",
+          "contract digest",
+          "auth persona and tenant fixture id",
+          "expiry <= 30 days for auth/tenant findings"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "contract_refs",
+          "contract_digests",
+          "persona_tenant_matrix_ref",
+          "request_corpus_digest",
+          "response_classification_summary_ref",
+          "failure_replay_refs"
+        ]
+      },
+      "standards_mapping": [
+        "OWASP ASVS: API and access-control verification",
+        "OWASP WSTG: dynamic test methodology",
+        "NIST SSDF: security testing and vulnerability response"
+      ],
+      "productization_requirements": [
+        "Contract fuzzing consumes API contracts as product inputs, not hand-written ad hoc curl scripts",
+        "Tenant/persona fixtures are centrally governed",
+        "Replay artifacts are stable enough for developer reproduction and auditor evidence"
+      ]
+    },
+    {
+      "id": "bas_purple_team",
+      "name": "Breach and Attack Simulation / Purple-Team Validation",
+      "scope": {
+        "covers": [
+          "bounded MITRE ATT&CK-style adversary emulation scenarios for identity, secrets, lateral movement, exfiltration, persistence, CI/CD abuse, cloud control plane abuse, and tenant-isolation attempts",
+          "expected prevention, detection, alerting, audit-chain, response, and recovery controls",
+          "blue-team and purple-team evidence showing which control observed or stopped the scenario"
+        ],
+        "applicability": "monthly/quarterly for high-risk control sets; before production-ready claim for regulated or internet-facing services; after major identity/network/security-control changes"
+      },
+      "cadence": {
+        "monthly": "critical control smoke scenarios",
+        "quarterly": "full purple-team scenario pack for regulated and internet-facing systems",
+        "pre_release": "targeted scenario pack for high-risk security-control changes"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "required prevention or detection control fails for a scenario classified release-blocking",
+          "scenario produces cross-tenant access, secret disclosure, policy bypass, or unlogged privileged action",
+          "expected alert/audit evidence is absent or stale",
+          "scenario blast-radius controls are missing"
+        ],
+        "warns_when": [
+          "detection latency or enrichment misses target but no prevention/control failure occurs"
+        ],
+        "pass_requires": [
+          "scenario id and version",
+          "blast-radius approval",
+          "expected controls",
+          "observed control evidence",
+          "purple-team verdict"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "scenario replay ref",
+          "expected-vs-observed control comparison",
+          "control owner approval",
+          "expiry <= 90 days"
+        ],
+        "risk_acceptance_required_when": [
+          "required control truly absent",
+          "detection/prevention intentionally disabled",
+          "scenario cannot be safely run before release"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "scenario_pack_ref",
+          "attack_technique_refs",
+          "blast_radius_ref",
+          "expected_control_refs",
+          "observed_detection_refs",
+          "response_timeline_ref",
+          "purple_team_verdict_ref"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: verify and respond; reduce recurrence through controls",
+        "OWASP SAMM: operations and verification maturity",
+        "OWASP ASVS: defense-in-depth control validation"
+      ],
+      "productization_requirements": [
+        "BAS scenarios are cataloged, versioned, and safe-by-default",
+        "Control evidence joins to continuous-control snapshots",
+        "Purple-team verdicts are evidence records, not meeting notes"
+      ]
+    },
+    {
+      "id": "security_chaos",
+      "name": "Security Chaos Engineering",
+      "scope": {
+        "covers": [
+          "bounded fault injection into identity provider, PDP/policy engine, audit-chain sink, secrets/KMS, signing/provenance, admission controller, network policy, rate-limit, and detection pipeline dependencies",
+          "fail-closed behavior, degraded-mode policy, control-plane recovery, tenant isolation under partial failure, and audit continuity"
+        ],
+        "applicability": "quarterly for critical control planes; pre-release for changes touching identity, policy, audit, secrets, signing, admission, or tenant isolation; post-incident regression"
+      },
+      "cadence": {
+        "pre_release": "targeted chaos scenario for changed security-control dependency",
+        "quarterly": "critical control-plane scenario pack",
+        "post_incident": "regression scenario matching incident failure mode"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "system fails open when a security dependency degrades",
+          "tenant isolation, policy enforcement, audit emission, or secret protection is bypassed during fault",
+          "rollback/recovery evidence is missing for release-blocking scenario",
+          "blast-radius controls or abort criteria are missing"
+        ],
+        "warns_when": [
+          "recovery objective missed without security bypass and with approved remediation plan"
+        ],
+        "pass_requires": [
+          "fault scenario id",
+          "blast-radius and abort policy",
+          "expected fail-closed assertions",
+          "observed telemetry/audit refs",
+          "recovery verdict"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "fault injection trace",
+          "control telemetry refs",
+          "proof that observed behavior is safe and expected",
+          "expiry <= 90 days"
+        ],
+        "risk_acceptance_required_when": [
+          "release proceeds with a known fail-open or missing-audit behavior"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "fault_scenario_ref",
+          "blast_radius_ref",
+          "abort_policy_ref",
+          "fail_closed_assertion_refs",
+          "telemetry_refs",
+          "audit_continuity_refs",
+          "recovery_verdict_ref"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: verify security requirements and prevent recurrence",
+        "OWASP SAMM: operations/control validation maturity",
+        "Hyperscaler readiness: chaos/fault-injection evidence for production/hyperscaler claims"
+      ],
+      "productization_requirements": [
+        "Security chaos scenarios are declared as data and executed by a controller with abort semantics",
+        "Production-like execution requires tenant/cell allowlist and blast-radius approval",
+        "Fail-open behavior is red unless explicitly approved as a bounded risk exception"
+      ]
+    },
+    {
+      "id": "automated_pen_test",
+      "name": "Automated Penetration Test and Exploit-Chain Validation",
+      "scope": {
+        "covers": [
+          "automated exploit-chain tests across web/API/business logic/authz/tenant boundaries using safe payloads and replayable scenarios",
+          "internet-facing, regulated, tenant-admin, privileged operator, and CI/CD control-plane surfaces",
+          "abuse cases that require multi-step setup rather than single scanner findings"
+        ],
+        "applicability": "pre-release for internet-facing or regulated service changes; quarterly for high-risk surfaces; before production-ready or hyperscaler-grade claim"
+      },
+      "cadence": {
+        "pre_release": "targeted scenario pack for changed/high-risk surfaces",
+        "quarterly": "full automated pen-test scenario pack",
+        "on_demand": "security reviewer triggered run for major authz/tenant/security changes"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "verified high/critical exploit chain succeeds",
+          "tenant escape, privilege escalation, data exfiltration, unsafe state mutation, or CI/CD control-plane abuse succeeds",
+          "test harness cannot prove safe target and payload boundaries",
+          "manual-only pen-test claim lacks API evidence record"
+        ],
+        "warns_when": [
+          "low/medium abuse path requires unrealistic preconditions but remains owner-tracked"
+        ],
+        "pass_requires": [
+          "scenario pack version",
+          "target scope approval",
+          "safe payload manifest",
+          "exploit replay refs",
+          "finding closure refs"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "exploit replay evidence",
+          "precondition analysis",
+          "target environment ref",
+          "security reviewer approval",
+          "expiry <= 30 days for high/critical"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_validation_lane_result.v1",
+        "lane_specific_fields": [
+          "scenario_pack_ref",
+          "target_scope_ref",
+          "safe_payload_manifest_ref",
+          "exploit_replay_refs",
+          "business_logic_abuse_refs",
+          "closure_or_exception_refs"
+        ]
+      },
+      "standards_mapping": [
+        "OWASP WSTG: penetration-test family coverage",
+        "OWASP ASVS: application and API control verification",
+        "NIST SSDF: vulnerability verification and response"
+      ],
+      "productization_requirements": [
+        "Automated pen-test packs are versioned product assets and can be rerun by the pipeline",
+        "Scenarios use safe payloads and do not rely on uncontrolled third-party targets",
+        "Manual analyst notes can enrich but cannot replace typed evidence records"
+      ]
+    },
+    {
+      "id": "continuous_control_evidence",
+      "name": "Continuous Control Evidence and Compliance Drift",
+      "scope": {
+        "covers": [
+          "runtime and post-deploy evidence that required security controls remain present, configured, fresh, tenant-scoped, and effective",
+          "mTLS, service mesh, PDP/Cedar, admission policy, audit-chain, logging/alerting, secret lease/rotation, image admission, branch/protection, SLO/security alert, and compliance-pack controls",
+          "control snapshots for tenant-facing service claims and regulated pack obligations"
+        ],
+        "applicability": "continuous for deployed control planes and tenant-facing services; daily snapshot for release posture; required before production-ready/hyperscaler security claims"
+      },
+      "cadence": {
+        "continuous": "control event stream and drift detector",
+        "daily": "signed posture snapshot for each service/cell/tenant tier",
+        "release": "snapshot pinned to release evidence packet",
+        "post_deploy": "canary/ring control confirmation before wider promotion"
+      },
+      "pass_fail_policy": {
+        "blocks_when": [
+          "required control evidence is missing, stale, unsigned, or not tenant-scoped",
+          "control drift weakens authz, tenant isolation, secrets, audit, admission, or image provenance",
+          "release packet cites a control snapshot older than policy allows",
+          "security exception expires without renewal or remediation"
+        ],
+        "warns_when": [
+          "non-release posture degradation has owner/SLA and does not weaken a blocking control"
+        ],
+        "pass_requires": [
+          "control snapshot id",
+          "control inventory version",
+          "freshness timestamp from trusted clock",
+          "policy decision summary",
+          "exception/VEX refs where applicable"
+        ]
+      },
+      "false_positive_vex_handling": {
+        "false_positive_allowed": true,
+        "vex_allowed": false,
+        "requires": [
+          "control id",
+          "snapshot ref",
+          "policy reason",
+          "compensating control or corrected inventory evidence",
+          "expiry <= 30 days for blocking controls"
+        ],
+        "risk_acceptance_required_when": [
+          "required runtime control is absent or stale for a release or production-ready claim"
+        ]
+      },
+      "api_evidence_record": {
+        "record_type": "security_control_snapshot.v1",
+        "lane_specific_fields": [
+          "control_inventory_version",
+          "control_ids",
+          "service_cell_tenant_scope",
+          "freshness_window",
+          "policy_decision_refs",
+          "drift_refs",
+          "release_packet_refs"
+        ]
+      },
+      "standards_mapping": [
+        "NIST SSDF: ongoing vulnerability response and secure operations evidence",
+        "OWASP SAMM: operations and governance maturity",
+        "SLSA: continuous provenance and artifact integrity evidence where controls cover build/release"
+      ],
+      "productization_requirements": [
+        "Control evidence is produced continuously, not assembled manually at release time",
+        "Snapshots are tenant/cell/service scoped and queryable by evidence API",
+        "Freshness and exception expiry are enforced by the aggregate security-validation status"
+      ]
+    }
+  ],
+  "applicability_model": {
+    "subject_kinds": [
+      "source_change",
+      "dependency_graph",
+      "api_contract",
+      "service_deployment",
+      "container_image",
+      "iac_plan_or_manifest",
+      "policy_bundle",
+      "release_candidate",
+      "runtime_control_plane",
+      "tenant_facing_service"
+    ],
+    "service_classifiers": [
+      "internal_only",
+      "tenant_facing",
+      "internet_facing",
+      "regulated_pack_bound",
+      "security_control_plane",
+      "ci_cd_control_plane",
+      "data_plane",
+      "operator_privileged"
+    ],
+    "minimum_lane_applicability": [
+      {
+        "when": "any source or policy change",
+        "lanes": ["sast", "secrets"]
+      },
+      {
+        "when": "dependency manifest, lockfile, build tooling, vendored code, or release artifact changes",
+        "lanes": ["sca", "secrets", "container"]
+      },
+      {
+        "when": "IaC, policy-as-code, branch protection, admission, network, identity, or secret configuration changes",
+        "lanes": ["iac", "secrets", "continuous_control_evidence"]
+      },
+      {
+        "when": "API/webhook/event contract or tenant-facing API behavior changes",
+        "lanes": ["api_fuzzing", "dast", "iast"]
+      },
+      {
+        "when": "untrusted-byte parser, protocol decoder, document parser, or sandbox/tool boundary changes",
+        "lanes": ["fuzzing", "sast"]
+      },
+      {
+        "when": "identity, policy, audit, secrets, admission, CI/CD, or tenant-isolation control changes",
+        "lanes": ["bas_purple_team", "security_chaos", "continuous_control_evidence"]
+      },
+      {
+        "when": "production-ready, hyperscaler-grade, secure, isolated, or regulated release claim is made",
+        "lanes": [
+          "sast",
+          "dast",
+          "iast",
+          "sca",
+          "secrets",
+          "iac",
+          "container",
+          "fuzzing",
+          "api_fuzzing",
+          "bas_purple_team",
+          "security_chaos",
+          "automated_pen_test",
+          "continuous_control_evidence"
+        ]
+      }
+    ]
+  },
+  "product_api_surface": {
+    "purpose": "Target API record shapes for the security-validation product surface. This section is a contract target only; it does not implement endpoints.",
+    "target_resources": [
+      {
+        "resource": "SecurityValidationPolicy",
+        "key_fields": ["policy_id", "version", "tenant_scope", "lane_applicability", "severity_policy", "exception_policy"]
+      },
+      {
+        "resource": "SecurityValidationRun",
+        "key_fields": ["run_id", "pipeline_run_id", "subject_ref", "source_revision", "applicable_lanes", "aggregate_result"]
+      },
+      {
+        "resource": "SecurityValidationLaneResult",
+        "key_fields": ["run_id", "lane_id", "result", "severity_summary", "findings_ref", "exception_refs", "audit_event_ref"]
+      },
+      {
+        "resource": "SecurityValidationFinding",
+        "key_fields": ["finding_id", "fingerprint", "lane_id", "severity", "asset_ref", "evidence_ref", "remediation_ref"]
+      },
+      {
+        "resource": "SecurityValidationException",
+        "key_fields": ["exception_id", "finding_fingerprint", "decision", "justification", "approver_identity_ref", "expires_at_trusted"]
+      },
+      {
+        "resource": "SecurityControlSnapshot",
+        "key_fields": ["snapshot_id", "service_cell_tenant_scope", "control_inventory_version", "freshness_window", "policy_decision_refs"]
+      }
+    ],
+    "tenant_isolation": "Every API resource carries tenant_id and service/cell scope. Cross-tenant reads are denied by default; Oyatie internal dogfood runs use tenant_id=oyatie-internal without privileged sharing.",
+    "audit_chain": "Every create/update/supersede action emits an audit-chain event with actor, producer_identity, trusted timestamp, subject, result, exception refs, and previous_record_ref when applicable."
+  },
+  "evidence_schema_fixtures": {
+    "claim_boundary": "REGVAL-001 schema fixtures only; these fixture records do not prove any scanner/control lane is implemented, wired to branch protection, or production-ready.",
+    "positive_fixture": {
+      "fixture_id": "REGVAL-001-GOOD-all-13-lanes-share-common-evidence-fields",
+      "expected_verdict": "GREEN_SCHEMA_ONLY",
+      "covers_lane_ids": [
+        "sast",
+        "secrets",
+        "sca",
+        "iac",
+        "container",
+        "dast",
+        "iast",
+        "fuzzing",
+        "api_fuzzing",
+        "bas_purple_team",
+        "security_chaos",
+        "automated_pen_test",
+        "continuous_control_evidence"
+      ],
+      "must_include_common_fields": [
+        "scope_ref",
+        "work_area_hash_or_artifact_digest",
+        "source_revision",
+        "policy_version",
+        "owner_ref",
+        "finding_or_gap_state",
+        "remediation_ref",
+        "freshness_checked_at_trusted",
+        "adapter_provenance"
+      ],
+      "lane_result_records": [
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-sast",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "sast",
+          "subject_kind": "source_change",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/sast",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:sast-rust-ts-policy",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "sast-rust-ts-policy",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:7361737400000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/sast/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/sast",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-secrets",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "secrets",
+          "subject_kind": "source_change",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/secrets",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:secret-scan-redacted",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "secret-scan-redacted",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:7365637265747300000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/secrets/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/secrets",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-sca",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "sca",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/sca",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:sca-sbom-vex",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "sca-sbom-vex",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:7363610000000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/sca/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/sca",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-iac",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "iac",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/iac",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:iac-policy-plan",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "iac-policy-plan",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6961630000000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/iac/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/iac",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-container",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "container",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/container",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:container-image-admission",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "container-image-admission",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:636f6e7461696e65720000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/container/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/container",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-dast",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "dast",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/dast",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:dast-authenticated-preview",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "dast-authenticated-preview",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6461737400000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/dast/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/dast",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-iast",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "iast",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/iast",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:0707070707070707070707070707070707070707070707070707070707070707",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:iast-runtime-trace",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "iast-runtime-trace",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6961737400000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/iast/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/iast",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-fuzzing",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "fuzzing",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/fuzzing",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:1818181818181818181818181818181818181818181818181818181818181818",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:fuzz-corpus-replay",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "fuzz-corpus-replay",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:66757a7a696e6700000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/fuzzing/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/fuzzing",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-api_fuzzing",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "api_fuzzing",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/api_fuzzing",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:2929292929292929292929292929292929292929292929292929292929292929",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:api-contract-negative-corpus",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "api-contract-negative-corpus",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6170695f66757a7a696e67000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/api_fuzzing/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/api_fuzzing",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-bas_purple_team",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "bas_purple_team",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/bas_purple_team",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:bas-purple-team-scenario",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "bas-purple-team-scenario",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6261735f707572706c655f7465616d0000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/bas_purple_team/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/bas_purple_team",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-security_chaos",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "security_chaos",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/security_chaos",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:security-chaos-fail-closed",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "security-chaos-fail-closed",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:73656375726974795f6368616f73000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/security_chaos/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/security_chaos",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-automated_pen_test",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "automated_pen_test",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/automated_pen_test",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:automated-pen-test-safe-payload",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "automated-pen-test-safe-payload",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6175746f6d617465645f70656e5f746573740000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/automated_pen_test/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/automated_pen_test",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-continuous_control_evidence",
+          "record_type": "security_control_snapshot.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "continuous_control_evidence",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/continuous_control_evidence",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:continuous-control-snapshot",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "continuous-control-snapshot",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:636f6e74696e756f75735f636f6e74726f6c5f65766964656e63650000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/continuous_control_evidence/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/continuous_control_evidence",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        }
+      ]
+    },
+    "negative_fixtures": [
+      {
+        "fixture_id": "REGVAL-001-BAD-missing-policy-version",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-sast",
+        "remove_field": "policy_version",
+        "expected_violation": "Every lane result must cite the trusted policy/matrix version used for the verdict."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-missing-adapter-provenance",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-sca",
+        "remove_field": "adapter_provenance",
+        "expected_violation": "Scanner/control output is not trusted until adapter identity, digest, ruleset, normalization version, producer, and trusted policy ref are present."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-stale-freshness",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-continuous_control_evidence",
+        "set_fields": {
+          "result": "blocked_stale_evidence",
+          "finding_or_gap_state": "blocked_stale_evidence",
+          "freshness_checked_at_trusted": "2026-01-01T00:00:00Z"
+        },
+        "expected_violation": "Freshness is a trusted-clock gate; stale evidence cannot contribute to an aggregate green status."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-missing-remediation-ref",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-dast",
+        "remove_field": "remediation_ref",
+        "expected_violation": "Open findings, gaps, exceptions, and no-finding records must still carry a remediation or explicit no-remediation-required reference."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-candidate-supplied-scope",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-api_fuzzing",
+        "set_fields": {
+          "scope_ref": "candidate://untrusted/pr-provided-scope"
+        },
+        "expected_violation": "Scope must resolve to trusted policy/inventory data rather than candidate-supplied claims."
+      }
+    ]
+  },
+  "initial_gate_catalog_targets": [
+    {
+      "gate_id": "cloud-ci-security-validation-matrix-shape",
+      "purpose": "Validate this matrix has all required lane ids and required row fields.",
+      "promotion_target": "blocking before any security-validation aggregate can claim mechanical enforcement",
+      "fixtures_required": [
+        "good matrix with all 13 lanes",
+        "bad matrix missing a lane",
+        "bad lane missing pass_fail_policy",
+        "bad VEX on secrets lane"
+      ]
+    },
+    {
+      "gate_id": "cloud-ci-security-validation-evidence-api",
+      "purpose": "Validate lane result/finding/exception/VEX/control snapshot records before the aggregate status consumes them.",
+      "promotion_target": "blocking for security-validation aggregate",
+      "fixtures_required": [
+        "good lane result with typed REGVAL-001 shared evidence fields",
+        "bad stale evidence",
+        "bad candidate-supplied suppression",
+        "bad missing audit_event_ref"
+      ]
+    },
+    {
+      "gate_id": "cloud-ci-security-validation-applicability",
+      "purpose": "Map changed subjects and service classifiers to required lanes, refusing unknown applicability as false green.",
+      "promotion_target": "blocking for pipeline aggregate",
+      "fixtures_required": [
+        "good API contract change requiring api_fuzzing+dast+iast",
+        "bad production-ready claim without all 13 lanes",
+        "bad IaC change missing continuous-control evidence"
+      ]
+    }
+  ],
+  "known_gaps_before_green": [
+    "No Rust validator/gate is added by this planning matrix task.",
+    "REGVAL-001 adds schema fixtures only; no Rust validator/gate, evidence API, adapter, runner wiring, or aggregate enforcement is added by this task.",
+    "Existing oya-check-supply-chain covers a subset of SCA/container/release evidence but does not cover the full universal security-validation matrix.",
+    "BAS, security-chaos, automated pen-test, DAST, IAST, fuzzing, and API fuzzing require safe sandbox/preview environment contracts before any live execution claim.",
+    "Continuous-control evidence requires runtime control inventory and trusted-clock freshness before it can block release or production-ready claims."
+  ]
+}

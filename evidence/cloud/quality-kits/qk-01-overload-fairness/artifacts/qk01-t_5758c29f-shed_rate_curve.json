@@ -1,0 +1,774 @@
+{
+  "output_key": "shed_rate_curve",
+  "points": [
+    {
+      "admitted_request_rate": 240.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 0.8,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 0.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 240.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 0.8,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 0.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 240.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 0.8,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 0.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 0.0,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 0.0,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 0.0,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 0.0,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 0.0,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 0.0,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 0.0,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 0.0,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 0,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 0.0,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 0.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 0.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 1.0,
+      "queue_depth": 0,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 0.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 279.25,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 1.1,
+      "queue_depth": 2,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 50.75,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 283.503,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 1.1,
+      "queue_depth": 2,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 46.497,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 287.756,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 1.1,
+      "queue_depth": 2,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 42.244,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 295.5,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.25,
+      "queue_depth": 6,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 79.5,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.25,
+      "queue_depth": 6,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 75.0,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 304.5,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.25,
+      "queue_depth": 6,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 70.5,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 257.073,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.3,
+      "queue_depth": 7,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 132.927,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 260.988,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.3,
+      "queue_depth": 7,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 129.012,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 264.903,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.3,
+      "queue_depth": 7,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 125.097,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 274.821,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.4,
+      "queue_depth": 9,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 145.179,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 279.006,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.4,
+      "queue_depth": 9,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 140.994,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 283.191,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.4,
+      "queue_depth": 9,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 136.809,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 295.515,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.5,
+      "queue_depth": 12,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 154.485,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.015,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.5,
+      "queue_depth": 12,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 149.985,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 304.515,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.5,
+      "queue_depth": 12,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 145.485,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 295.5,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.6,
+      "queue_depth": 14,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 184.5,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.6,
+      "queue_depth": 14,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 180.0,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 304.5,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 1,
+      "offered_load_ratio": 1.6,
+      "queue_depth": 14,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 175.5,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 270.365,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.7,
+      "queue_depth": 16,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 239.635,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 274.482,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.7,
+      "queue_depth": 16,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 235.518,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 278.599,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.7,
+      "queue_depth": 16,
+      "request_cost_class": "retry",
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "shed_request_rate": 231.401,
+      "source_scenario": "retry storms",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 242.334,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.8,
+      "queue_depth": 19,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 297.666,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 246.024,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.8,
+      "queue_depth": 19,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 293.976,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 249.714,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 1.8,
+      "queue_depth": 19,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 290.286,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 295.5,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 2.0,
+      "queue_depth": 24,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 304.5,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 300.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 2.0,
+      "queue_depth": 24,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 300.0,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 304.5,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 2.0,
+      "queue_depth": 24,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "shed_request_rate": 295.5,
+      "source_scenario": "sustained > capacity",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 236.4,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 2.0,
+      "queue_depth": 24,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 363.6,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 240.0,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 2.0,
+      "queue_depth": 24,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 360.0,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 243.6,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 3,
+      "offered_load_ratio": 2.0,
+      "queue_depth": 24,
+      "request_cost_class": "expensive",
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "shed_request_rate": 356.4,
+      "source_scenario": "expensive-request floods",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    },
+    {
+      "admitted_request_rate": 295.47,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 2.2,
+      "queue_depth": 24,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 364.53,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-alpha"
+    },
+    {
+      "admitted_request_rate": 299.97,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 2.2,
+      "queue_depth": 24,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 360.03,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-beta"
+    },
+    {
+      "admitted_request_rate": 304.47,
+      "evidence_window": {
+        "ended_at": "2026-07-01T14:30:16Z",
+        "started_at": "2026-07-01T14:24:16Z"
+      },
+      "measurement_step": 2,
+      "offered_load_ratio": 2.2,
+      "queue_depth": 24,
+      "request_cost_class": "mixed",
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "shed_request_rate": 355.53,
+      "source_scenario": "burst spikes",
+      "tenant_class": "dogfood-cell-tenant",
+      "tenant_id": "tenant-gamma"
+    }
+  ],
+  "run_id": "qk01-t_5758c29f"
+}

@@ -3,6 +3,31 @@
   "microservice": "crm",
   "title": "Customer Relationship Management",
   "status": "reserved-wave-3-g-anchor",
+  "claim_boundary": {
+    "source_authority": "specs/microservices/crm.json",
+    "source_authority_status": "preview metadata-only with explicit non-goals",
+    "inventory_root": "oya/crm",
+    "legacy_microservices_crm_paths": "historical/provenance only; not current path authority in this checkout",
+    "non_claims": [
+      "no GA or production-readiness claim",
+      "no live sales-force automation runtime",
+      "no CPQ pricing engine runtime",
+      "no customer data platform runtime",
+      "no service-routing engine runtime",
+      "no omnichannel messaging runtime",
+      "no loyalty wallet or reward settlement runtime",
+      "no marketing journey runtime",
+      "no durable persistence or customer profile unification",
+      "no Workflow execution or runtime audit-chain emission",
+      "no cloud deployment or cloud runtime readiness claim",
+      "no SAP Oracle Microsoft Salesforce or HubSpot exhaustive CRM parity claim"
+    ],
+    "benchmark_fields_are_provenance_only": [
+      "hyperscaler_benchmark",
+      "sap_module_parity",
+      "enterprise_benchmarks"
+    ]
+  },
   "date": "2026-05-20",
   "tier": "product",
   "tier_subtype": "erp-parity-single-concern",
@@ -234,6 +259,7 @@
   ],
   "audit_chain": {
     "enabled": true,
+    "non_claim": "Target seal-event inventory only; no runtime audit-chain emission is claimed by this manifest.",
     "seal_events": [
       "EVT-CRM-ACCOUNT_MASTER-CHANGED",
       "EVT-CRM-OPPORTUNITY-CHANGED",
@@ -267,7 +293,7 @@
   "hyperscaler_benchmark": "SAP CRM Customer Relationship Management; Oracle Fusion Sales and Service; Workday customer and service-workflow counterpart; NetSuite CRM; Microsoft Dynamics 365 Customer Engagement; SAP CRM",
   "owner_team": "axis-crm + axis-erp-parity",
   "tier_classification": "product / erp-parity-single-concern",
-  "data_classification": "tenant-scoped operational records with audit evidence",
+  "data_classification": "target tenant-scoped operational metadata/audit-evidence inventory; no durable-record runtime claim",
   "compliance_packs_applicable": [
     "SOX-404",
     "soc2",
@@ -302,7 +328,40 @@
     },
     "scaling_dimension": "per_user",
     "cell_placement_class": "Tier-3",
-    "notes": "Customer accounts, opportunities, quotes, and service-case state scale with active CRM seats plus sales motion volume; this is a first-party product surface, not a tenant-code executor."
+    "notes": "Target capacity inventory for future customer accounts, opportunities, quotes, and service-case state; no current durable persistence, runtime scaling, or cloud deployment claim."
+  },
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.34,
+      "memory_watts_per_gib_second": 0.0021,
+      "storage_watts_per_gib_hour": 0.00058,
+      "network_watts_per_gib": 0.088,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/manifest.json#provider-sku-pricing-advisory-binding",
+      "pin_window_hours": 24
+    },
+    "workload_signal_source": {
+      "signal_family": "per_request",
+      "source_ref": "oya/crm/manifest.json#audit_chain.seal_events:EVT-CRM-ACCOUNT_MASTER-CHANGED+EVT-CRM-OPPORTUNITY-CHANGED+EVT-CRM-SERVICE_CASE-CHANGED"
+    },
+    "emission_path_tests": [
+      "oya/crm/crates/oya-crm-customer-engagement-domain/tests/customer_engagement.rs",
+      "SPEC-FINOPS-EMISSION-BATCH-ERP-OPS-001 fixture-only: CRM engagement, opportunity, quote, and service-case assertions must add cost/co2/watt_hours/provider/region before any live FinOps claim"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 4.9,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.00196,
+      "tolerance_pct": 20
+    }
   },
   "sharding_automation": {
     "autosharding": "control_plane_driven",
@@ -336,11 +395,11 @@
     "replication_shape": "backup-restore-cross-region-warm"
   },
   "pod_runtime_tier": 2,
-  "pod_runtime_tier_justification": "CRM is a first-party tenant application that stores and serves tenant business data but does not execute tenant-customer code or operate shared cryptographic, identity, or data substrate. Tier 2 keeps it on the product runtime lane while preserving audit and isolation controls.",
+  "pod_runtime_tier_justification": "Inventory/provenance classification only: CRM is modeled as a future first-party tenant application that would handle tenant business data without executing tenant-customer code or operating shared cryptographic, identity, or data substrate. This does not claim current durable persistence, service runtime, cloud deployment, runtime audit emission, or measured isolation controls.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/crm/PRD.md",
-    "microservices/crm/ARCHITECTURE.md",
-    "microservices/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md"
+    "specs/microservices/crm.json",
+    "oya/crm/README.md",
+    "oya/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -353,13 +412,13 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/crm/contracts/openapi-v1.yaml"
+        "2026-05-21": "oya/crm/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/crm/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "oya/crm/contracts/asyncapi-v1.yaml"
       },
       "proto": {
-        "2026-05-21": "microservices/crm/contracts/crm-v1.proto"
+        "2026-05-21": "oya/crm/contracts/crm-v1.proto"
       }
     }
   },

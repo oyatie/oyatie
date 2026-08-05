@@ -1,14 +1,14 @@
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: oya-global-trade-pqc
-spec:
-  secretName: oya-global-trade-tls
-  commonName: global-trade.svc.oyatie.example
-  privateKey:
-    algorithm: Ed25519
-  usages: [server auth, client auth]
-  subject:
-    organizations: [Oyatie]
-  additionalOutputFormats:
-    - type: CombinedPEM
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/pqc-cert.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

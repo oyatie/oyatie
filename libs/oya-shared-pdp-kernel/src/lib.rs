@@ -158,6 +158,10 @@ pub enum PdpError {
     /// A decision id could not be minted; the decision is not emitted
     /// because it would be unattributable in the audit chain.
     DecisionIdUnavailable { detail: String },
+    /// The PDP reached a decision but could not durably append the signed
+    /// audit-chain event. Callers must fail closed rather than use an
+    /// unaudited authorization outcome.
+    AuditChainEmission { detail: String },
 }
 
 impl fmt::Display for PdpError {
@@ -181,11 +185,17 @@ impl fmt::Display for PdpError {
             ),
             Self::BundleRejected { detail } => write!(f, "policy bundle rejected: {detail}"),
             Self::UnknownAction { action } => {
-                write!(f, "action {action:?} has no engine mapping in the loaded bundle")
+                write!(
+                    f,
+                    "action {action:?} has no engine mapping in the loaded bundle"
+                )
             }
             Self::Evaluation { detail } => write!(f, "evaluation failed: {detail}"),
             Self::DecisionIdUnavailable { detail } => {
                 write!(f, "decision id unavailable: {detail}")
+            }
+            Self::AuditChainEmission { detail } => {
+                write!(f, "audit-chain emission failed: {detail}")
             }
         }
     }
@@ -200,14 +210,14 @@ impl std::error::Error for PdpError {}
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DecisionAuditRecord {
-    pub decision_id: String, // data_class: INTERNAL_ONLY
-    pub request_id: String,  // data_class: INTERNAL_ONLY
-    pub tenant_id: String,   // data_class: TENANT_SCOPED
-    pub principal: EntityRef, // data_class: TENANT_SCOPED
-    pub action: String,      // data_class: INTERNAL_ONLY
-    pub resource: EntityRef, // data_class: TENANT_SCOPED
-    pub decision: Decision,  // data_class: INTERNAL_ONLY
-    pub policy_version: PolicyVersion, // data_class: INTERNAL_ONLY
+    pub decision_id: String,                 // data_class: INTERNAL_ONLY
+    pub request_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: TENANT_SCOPED
+    pub principal: EntityRef,                // data_class: TENANT_SCOPED
+    pub action: String,                      // data_class: INTERNAL_ONLY
+    pub resource: EntityRef,                 // data_class: TENANT_SCOPED
+    pub decision: Decision,                  // data_class: INTERNAL_ONLY
+    pub policy_version: PolicyVersion,       // data_class: INTERNAL_ONLY
     pub determining_policy_ids: Vec<String>, // data_class: INTERNAL_ONLY
     /// Whether the decision content was served from the decision cache.
     pub cache_hit: bool, // data_class: INTERNAL_ONLY

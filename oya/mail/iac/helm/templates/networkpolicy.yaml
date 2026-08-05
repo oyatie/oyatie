@@ -11,19 +11,25 @@ spec:
   policyTypes: [Ingress, Egress]
   ingress:
 {{- if eq .Values.bc "inbound-smtp" }}
-    # Public SMTP receive (RFC 5321 :25 + :465 STARTTLS)
-    - from: [{ipBlock: {cidr: 0.0.0.0/0}}]
+    # Edge-owned SMTP receive (RFC 5321 :25 + :465) from api-gateway/mail protocol edge only.
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: api-gateway}}
+          podSelector: {matchLabels: {oyatie.com/protocol-edge: mail}}
       ports: [{port: 25, protocol: TCP}, {port: 465, protocol: TCP}]
 {{- end }}
 {{- if eq .Values.bc "outbound-smtp" }}
-    # SMTP submission (:587) from authenticated tenant clients
-    - from: [{ipBlock: {cidr: 0.0.0.0/0}}]
+    # SMTP submission (:587) from authenticated edge-owned protocol listener only.
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: api-gateway}}
+          podSelector: {matchLabels: {oyatie.com/protocol-edge: mail}}
       ports: [{port: 587, protocol: TCP}]
 {{- end }}
 {{- if eq .Values.bc "imap-frontend" }}
-    # IMAP/JMAP/REST/IMAPS (:143 + :993 + :443)
-    - from: [{ipBlock: {cidr: 0.0.0.0/0}}]
-      ports: [{port: 143, protocol: TCP}, {port: 993, protocol: TCP}, {port: 443, protocol: TCP}, {port: 4190, protocol: TCP}]
+    # IMAP/IMAPS/ManageSieve from edge-owned protocol listener only; JMAP/REST stays on api-gateway HTTP routes.
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: api-gateway}}
+          podSelector: {matchLabels: {oyatie.com/protocol-edge: mail}}
+      ports: [{port: 143, protocol: TCP}, {port: 993, protocol: TCP}, {port: 4190, protocol: TCP}]
 {{- end }}
     # Mesh-internal (sidecar)
     - from: [{namespaceSelector: {matchLabels: {linkerd.io/is-control-plane: "true"}}}]

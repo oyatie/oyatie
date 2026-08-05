@@ -1,0 +1,21 @@
+# Opt-in READ-ONLY buck2 overlay — NativeLink CAS warm cache.
+#
+# This file is for CI-only, out-of-band warm-cache pilots. It must only be used
+# when all CI config is explicitly opted in (no automatic merge into root
+# `.buckconfig`); default CI behavior is unchanged when this file is not copied.
+[buck2_re_client]
+  # Reader endpoint + per-tenant namespace.
+  # In practice the value is often overridden by CI via:
+  #   OYA_CI_RE_ENDPOINT=grpc://... infra/ci/warm-buck2-cache.sh
+  engine_address = grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052
+  cas_address = grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052
+  action_cache_address = grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052
+  instance_name = main
+  tls = true
+
+[oya_cache]
+  remote_cache_enabled = true
+  allow_cache_uploads = false
+
+[build]
+  execution_platforms = toolchains//cache:cache-platform

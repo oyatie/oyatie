@@ -9,10 +9,30 @@
     "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
     "spec_id": "EXE-TOOLCHAIN-TENANT-ISOLATION-FIXTURES",
     "status": "fixture-contract-not-live-enforcement",
-    "updated_at": "2026-06-02T15:03:11Z",
-    "version": "0.1.0"
+    "updated_at": "2026-07-01T21:54:16Z",
+    "version": "0.5.1"
   },
-  "claim_boundary": "Specifies RED/GREEN tenant-isolation fixtures for cloud-ci/cloud-cd toolchain lanes; does not claim live tenant isolation until the cloud-ci required context runs these fixtures on candidate SHAs.",
+  "authority": {
+    "current_destination_authority": "/specs/bespoke-cloud-toolchain-services.json#tenant_isolation_contract",
+    "current_destination_authority_lines": [
+      "specs/bespoke-cloud-toolchain-services.json:224-249",
+      "specs/bespoke-cloud-toolchain-services.json:297-303"
+    ],
+    "masterplan_isolation_clause": "specs/masterplan.json:419-435",
+    "root_hub_pointer": "specs/root-hub-pointers.json:173-179",
+    "superseded_provenance_only": "specs/root-hub-pointers.json:264-269 marks /specs/cloud-toolchain-target.json as superseded bridge target/provenance, not destination authority."
+  },
+  "bridge_destination_boundary": {
+    "bridge_current_state": [
+      "GitHub Actions plus branch protection produce the current protected oya-ci-required context until explicit owned-runner cutover.",
+      "GitHub repository, pull request, and status objects are bridge/current-state shapes for SCM; they are not a tenant-facing cloud-scm destination claim.",
+      "Argo remains a CD bridge/reference shape until oya-cd parity, isolation, rollback, audit, and cutover evidence are green."
+    ],
+    "destination_product": "First-party Rust cloud-scm, cloud-ci, and cloud-cd service contracts and fixture harnesses.",
+    "non_claim": "This spec is a RED/GREEN fixture contract only. It does not assert live tenant isolation, production readiness, hyperscaler grade, or tenant-facing SCM/CI/CD exposure.",
+    "blocking_rule": "T-ISOLATION-0 remains blocking before SCM/CI/CD are exposed as cloud services. tenant=oyatie-internal is modeled as an ordinary tenant identity and has no implicit bypass."
+  },
+  "claim_boundary": "Specifies RED/GREEN tenant-isolation fixtures for SCM/CI/CD toolchain lanes; does not claim live tenant isolation until the required cloud-ci context runs these fixtures on candidate SHAs and downstream T-ISOLATION-0 evidence is reviewed.",
   "description": "Fixture corpus for the P0.0 tenant-pipeline isolation baseline. This is a fixture contract, not a production-readiness or tenant-facing claim.",
   "fixtures": [
     {
@@ -38,11 +58,21 @@
       ]
     },
     {
+      "expected_verdict": "RED",
+      "expected_violations": [
+        "missing or incomplete object-level fixture rows for repositories, ChangeSets, CI runs, artifacts, caches, logs, evidence, status callbacks, deployment manifests, release ledgers, secret leases, or audit-chain events",
+        "any row that omits denied tenant-a to tenant-b actions, expected DENY audit/evidence records, or the oyatie-internal no-bypass variant"
+      ],
+      "fixture_id": "T-ISOLATION-0-BAD-object-level-cross-tenant-access",
+      "matrix_ref": "#/object_level_t_isolation_0_matrix",
+      "red_guard": "Static checks must fail when this object-level matrix is absent, incomplete, green-by-default, or contains a shared/global tenant bypass."
+    },
+    {
       "breakglass": "TTL-bound, reviewer-acked, audit-chain event required",
       "expected_verdict": "GREEN",
       "expected_violations": [],
       "fixture_id": "T-ISOLATION-0-GOOD-separated-pipeline-surfaces",
-      "separation_model": "per-tenant identity, secret lease, runner/workspace/cache/artifact/log/evidence namespace, release ledger, deploy target, status callback identity, and audit event partition",
+      "separation_model": "per-tenant repository namespace, ChangeSet ownership, CI run/job identity, secret lease, runner/workspace/cache/artifact/log/evidence namespace, status callback identity, deployment manifest, release ledger/rollback handle, and audit-chain event partition",
       "tenant_ids": [
         "oyatie-internal",
         "customer-a",
@@ -50,17 +80,1891 @@
       ]
     }
   ],
+  "object_level_t_isolation_0_matrix": [
+    {
+      "surface": "repositories",
+      "object_type": "Repository",
+      "service_owner": "cloud-scm",
+      "bridge_current_state": "GitHub repository metadata is bridge/current-state only; no destination cloud-scm tenant exposure claim.",
+      "destination_product_surface": "cloud-scm repository namespace",
+      "required_tenant_fields": [
+        "tenant_id",
+        "repo_id",
+        "region_cell",
+        "policy_domain",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b repository refs or metadata",
+        "tenant-a write tenant-b repository refs or metadata"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.repository.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "repo_id",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer repository objects without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "changesets",
+      "object_type": "ChangeSet",
+      "service_owner": "cloud-scm",
+      "bridge_current_state": "GitHub pull request/change metadata is bridge/current-state only; no destination cloud-scm tenant exposure claim.",
+      "destination_product_surface": "cloud-scm ChangeSet/change graph",
+      "required_tenant_fields": [
+        "tenant_id",
+        "changeset_id",
+        "scm_change_id",
+        "work_area_hash",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b ChangeSet or change graph edge",
+        "tenant-a write tenant-b ChangeSet or change graph edge",
+        "tenant-a status-update tenant-b ChangeSet"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.changeset.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "changeset_id",
+          "scm_change_id",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot observe, mutate, or status-update customer ChangeSets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "ci_runs",
+      "object_type": "CiRun",
+      "service_owner": "cloud-ci",
+      "bridge_current_state": "GitHub Actions runs are current protected-context producers, not destination oya-ci tenant-service exposure.",
+      "destination_product_surface": "oya-ci run/job controller",
+      "required_tenant_fields": [
+        "tenant_id",
+        "pipeline_id",
+        "ci_run_id",
+        "runner_identity",
+        "workspace_id"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b CI run or job",
+        "tenant-a write/cancel/retry tenant-b CI run or job",
+        "tenant-a status-update tenant-b CI run"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.ci_run.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "pipeline_id",
+          "ci_run_id",
+          "runner_identity",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, cancel, retry, or status-update customer CI runs without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "artifacts",
+      "object_type": "ArtifactCasSbomProvenance",
+      "service_owner": "cloud-ci + cloud-cd",
+      "bridge_current_state": "GitHub Actions artifacts are bridge/current-state evidence only; they are not destination artifact-service tenant exposure.",
+      "destination_product_surface": "tenant-scoped artifact/CAS/SBOM/provenance namespace",
+      "required_tenant_fields": [
+        "tenant_id",
+        "artifact_digest",
+        "artifact_namespace",
+        "policy_label",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b artifact",
+        "tenant-a write into tenant-b artifact namespace",
+        "tenant-a fetch/use tenant-b SBOM or provenance"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.artifact.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "artifact_digest",
+          "artifact_namespace",
+          "policy_label",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, write, or fetch customer artifacts/SBOM/provenance without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "caches",
+      "object_type": "CacheEntry",
+      "service_owner": "cloud-ci",
+      "bridge_current_state": "Existing remote-cache patterns are bridge/reference only until tenant cache-key partition evidence is green.",
+      "destination_product_surface": "tenant-scoped cache namespace and cache-key policy",
+      "required_tenant_fields": [
+        "tenant_id",
+        "cache_namespace",
+        "work_area_hash",
+        "toolchain_digest",
+        "policy_label"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a cache-hit tenant-b cache entry",
+        "tenant-a read tenant-b cache entry",
+        "tenant-a write tenant-b cache namespace"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.cache.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "cache_namespace",
+          "work_area_hash",
+          "toolchain_digest",
+          "policy_label",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot receive a cache hit from customer data or write customer cache namespaces without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "logs",
+      "object_type": "LogStream",
+      "service_owner": "cloud-ci + cloud-cd",
+      "bridge_current_state": "GitHub/Argo logs are bridge/current-state evidence only; they are not destination log-service tenant exposure.",
+      "destination_product_surface": "tenant-scoped log namespace",
+      "required_tenant_fields": [
+        "tenant_id",
+        "log_id",
+        "log_namespace",
+        "actor",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b log stream",
+        "tenant-a fetch tenant-b logs",
+        "tenant-a write tenant-b log namespace"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.log.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "log_id",
+          "log_namespace",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot fetch customer logs or see tenant evidence details beyond aggregate health without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "evidence",
+      "object_type": "EvidenceRecord",
+      "service_owner": "cloud-ci + cloud-cd + shared audit",
+      "bridge_current_state": "Current required-context evidence is bridge/current-state only until destination read models and tenant partitions are proven.",
+      "destination_product_surface": "tenant-scoped evidence read model",
+      "required_tenant_fields": [
+        "tenant_id",
+        "evidence_id",
+        "evidence_namespace",
+        "actor",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b evidence record",
+        "tenant-a fetch tenant-b evidence bundle",
+        "tenant-a write/status-update tenant-b evidence record"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.evidence.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "evidence_id",
+          "evidence_namespace",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot fetch or mutate customer evidence records without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "status_callbacks",
+      "object_type": "StatusCallback",
+      "service_owner": "cloud-scm + cloud-ci + cloud-cd",
+      "bridge_current_state": "GitHub commit statuses and checks are bridge/current-state only; destination status callbacks require scoped identities.",
+      "destination_product_surface": "tenant-scoped status callback identity",
+      "required_tenant_fields": [
+        "tenant_id",
+        "callback_identity",
+        "pipeline_id",
+        "changeset_id",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a status-update tenant-b ChangeSet or pipeline",
+        "tenant-a read tenant-b callback payload",
+        "tenant-a write tenant-b callback identity"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.status_callback.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "callback_identity",
+          "pipeline_id",
+          "changeset_id",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot post or consume customer status callbacks without scoped identity, approved TTL breakglass, reviewer acknowledgment, and audit-chain event."
+    },
+    {
+      "surface": "deployment_manifests",
+      "object_type": "DeploymentManifest",
+      "service_owner": "cloud-cd",
+      "bridge_current_state": "Argo Application/Rollout manifests are bridge/reference shapes only until oya-cd parity and isolation evidence are green.",
+      "destination_product_surface": "oya-cd tenant deployment manifest and deploy target",
+      "required_tenant_fields": [
+        "tenant_id",
+        "deploy_target_id",
+        "manifest_digest",
+        "region_cell",
+        "policy_domain",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b deployment manifest",
+        "tenant-a write tenant-b deployment manifest",
+        "tenant-a deploy to tenant-b deploy target"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.deployment_manifest.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "deploy_target_id",
+          "manifest_digest",
+          "region_cell",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer manifests or deploy to customer targets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "release_ledgers",
+      "object_type": "ReleaseLedger",
+      "service_owner": "cloud-cd",
+      "bridge_current_state": "Argo/Rollouts release observations are bridge/reference evidence only; destination release ledgers are oya-cd-owned.",
+      "destination_product_surface": "oya-cd release ledger and rollback handle",
+      "required_tenant_fields": [
+        "tenant_id",
+        "release_id",
+        "rollback_pointer",
+        "artifact_digest",
+        "policy_verdict",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b release ledger",
+        "tenant-a write tenant-b release ledger",
+        "tenant-a fetch tenant-b rollback handle"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.release_ledger.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "release_id",
+          "rollback_pointer",
+          "artifact_digest",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer release ledgers or fetch rollback handles without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "secret_leases",
+      "object_type": "SecretLease",
+      "service_owner": "shared identity/secrets",
+      "bridge_current_state": "Any existing CI/CD secret handling is bridge/current-state only; destination secret access requires per-tenant workload identity and leases.",
+      "destination_product_surface": "tenant-scoped workload identity and OpenBao/KMS secret lease",
+      "required_tenant_fields": [
+        "tenant_id",
+        "workload_identity",
+        "secret_scope",
+        "lease_id",
+        "ttl",
+        "reviewer_id",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b secret lease",
+        "tenant-a write/renew tenant-b secret lease",
+        "tenant-a fetch/use tenant-b secret material"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.secret_lease.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "workload_identity",
+          "secret_scope",
+          "lease_id",
+          "ttl",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot assume a customer workload identity or fetch customer secrets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    },
+    {
+      "surface": "audit_chain_events",
+      "object_type": "AuditChainEvent",
+      "service_owner": "shared evidence/audit",
+      "bridge_current_state": "Current repository and workflow audit trails are bridge/current-state evidence only until destination audit-chain partitions are proven.",
+      "destination_product_surface": "tenant-scoped SCM/CI/CD audit-chain event stream",
+      "required_tenant_fields": [
+        "tenant_id",
+        "actor",
+        "workload_identity",
+        "source_revision",
+        "artifact_digest",
+        "policy_verdict",
+        "rollback_pointer",
+        "audit_chain_ref"
+      ],
+      "denied_cross_tenant_actions": [
+        "tenant-a read tenant-b audit-chain event",
+        "tenant-a write tenant-b audit-chain event",
+        "tenant-a emit event missing tenant_id or object identity"
+      ],
+      "expected_verdict": "DENY",
+      "expected_audit_evidence_record": {
+        "event_type": "toolchain.audit_chain.tenant_boundary_denied",
+        "must_include": [
+          "tenant_id",
+          "actor_tenant_id",
+          "target_tenant_id",
+          "actor",
+          "workload_identity",
+          "source_revision",
+          "action",
+          "policy_verdict=DENY",
+          "reason_code=TENANT_BOUNDARY",
+          "audit_chain_ref"
+        ]
+      },
+      "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer audit-chain events or omit tenant/object identity without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+    }
+  ],
+  "scm_t_isolation_0_fixture_harness": {
+    "stage_class": "future Build/fixture-harness after RED; no bespoke SCM runtime/storage implementation claim",
+    "claim_boundary": [
+      "These fixtures reconcile SCM object-surface isolation only; they do not assert a live cloud-scm service, native SCM storage, virtual filesystem runtime, or tenant-facing exposure.",
+      "GitHub repositories, pull requests, statuses, checks, and git wire identifiers remain bridge/current-state reference shapes until a later protected cutover authority proves parity and isolation.",
+      "Destination product claims remain blocked until the T-ISOLATION-0 fan-in card validates SCM, CI, CD, identity, secret, evidence, and audit fixture evidence together."
+    ],
+    "source_contracts": [
+      "/specs/bespoke-cloud-toolchain-services.json#tenant_isolation_contract",
+      "/specs/work-area-content-hash-contract.json#output_aliases",
+      "/specs/work-area-content-hash-contract.json#consumer_contracts.scm",
+      "/specs/bespoke-scm-virtual-materialization-plan.json#virtual_materialization_model.stage_boundary",
+      "docs/decisions/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md"
+    ],
+    "required_scm_surfaces": [
+      "repository_namespace",
+      "changeset_change_graph",
+      "work_area_hash_scm_change_id_ownership",
+      "status_callback_identity",
+      "scm_audit_evidence",
+      "tenant_internal_no_bypass"
+    ],
+    "ownership_fields": [
+      "tenant_id",
+      "actor_tenant_id",
+      "target_tenant_id",
+      "repository_id",
+      "changeset_id",
+      "scm_change_id",
+      "work_area_hash",
+      "callback_identity",
+      "audit_chain_ref"
+    ],
+    "fixtures": [
+      {
+        "fixture_id": "T-ISOLATION-SCM-BAD-cross-tenant-repository-read-write",
+        "expected_verdict": "RED",
+        "surface": "repository_namespace",
+        "bridge_current_state": "GitHub repository refs/metadata are bridge/current-state only and are modeled as reference inputs for tenant-boundary fixtures.",
+        "destination_product_surface": "cloud-scm repository namespace",
+        "actor_tenant_id": "tenant-a",
+        "target_tenant_id": "tenant-b",
+        "denied_actions": [
+          "read_repository_refs",
+          "read_repository_metadata",
+          "write_repository_refs",
+          "write_repository_metadata"
+        ],
+        "required_denial_evidence": {
+          "event_type": "toolchain.scm.repository.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "repository_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        }
+      },
+      {
+        "fixture_id": "T-ISOLATION-SCM-BAD-cross-tenant-changeset-change-graph",
+        "expected_verdict": "RED",
+        "surface": "changeset_change_graph",
+        "bridge_current_state": "GitHub pull requests, checks, and status refs are bridge/current-state reference shapes only.",
+        "destination_product_surface": "cloud-scm ChangeSet and typed change graph",
+        "actor_tenant_id": "tenant-a",
+        "target_tenant_id": "tenant-b",
+        "denied_actions": [
+          "read_changeset",
+          "read_change_graph_edge",
+          "write_changeset",
+          "write_change_graph_edge",
+          "status_update_changeset"
+        ],
+        "required_denial_evidence": {
+          "event_type": "toolchain.scm.changeset.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "repository_id",
+            "changeset_id",
+            "scm_change_id",
+            "work_area_hash",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        }
+      },
+      {
+        "fixture_id": "T-ISOLATION-SCM-BAD-work-area-hash-scm-change-id-tenant-spoof",
+        "expected_verdict": "RED",
+        "surface": "work_area_hash_scm_change_id_ownership",
+        "bridge_current_state": "Git commit SHA, pull request id, and check-run ids are adapter-local bridge facts; destination ownership is tenant-scoped work_area_hash/scm_change_id plus audit evidence.",
+        "destination_product_surface": "ADR-0518 DECLARE→OBSERVE stage envelope identity",
+        "actor_tenant_id": "tenant-a",
+        "target_tenant_id": "tenant-b",
+        "denied_actions": [
+          "declare_changeset_with_tenant_b_scm_change_id",
+          "reuse_tenant_b_work_area_hash_as_owned_change",
+          "attach_tenant_b_work_area_hash_to_tenant_a_changeset",
+          "omit_target_tenant_id_from_change_identity_audit"
+        ],
+        "required_denial_evidence": {
+          "event_type": "toolchain.scm.change_identity.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "repository_id",
+            "changeset_id",
+            "scm_change_id",
+            "work_area_hash",
+            "change_unit_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        }
+      },
+      {
+        "fixture_id": "T-ISOLATION-SCM-BAD-status-callback-identity-spoof-or-consume",
+        "expected_verdict": "RED",
+        "surface": "status_callback_identity",
+        "bridge_current_state": "GitHub commit statuses, checks, and webhooks are bridge/current-state only; destination callbacks require tenant-scoped callback identities.",
+        "destination_product_surface": "cloud-scm/cloud-ci status fanout identity",
+        "actor_tenant_id": "tenant-a",
+        "target_tenant_id": "tenant-b",
+        "denied_actions": [
+          "post_status_with_tenant_b_callback_identity",
+          "consume_tenant_b_status_callback_payload",
+          "fanout_status_to_tenant_b_changeset",
+          "reuse_global_or_unscoped_callback_identity"
+        ],
+        "required_denial_evidence": {
+          "event_type": "toolchain.scm.status_callback.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "repository_id",
+            "changeset_id",
+            "scm_change_id",
+            "callback_identity",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        }
+      },
+      {
+        "fixture_id": "T-ISOLATION-SCM-BAD-oyatie-internal-implicit-repository-changeset-bypass",
+        "expected_verdict": "RED",
+        "surface": "tenant_internal_no_bypass",
+        "bridge_current_state": "Internal GitHub organization/admin visibility is not a destination cloud-scm authorization model.",
+        "destination_product_surface": "cloud-scm tenant-boundary policy for tenant=oyatie-internal",
+        "actor_tenant_id": "oyatie-internal",
+        "target_tenant_id": "tenant-b",
+        "denied_actions": [
+          "read_customer_repository_without_ttl_breakglass",
+          "write_customer_repository_without_reviewer_ack",
+          "observe_customer_changeset_without_audit_chain_event",
+          "post_customer_status_without_scoped_callback_identity"
+        ],
+        "required_breakglass_fields_when_exception_is_approved": [
+          "breakglass_id",
+          "expires_at",
+          "reviewer_id",
+          "reviewer_acknowledged_at",
+          "scope=single_repository_or_changeset",
+          "audit_chain_ref"
+        ],
+        "required_denial_evidence": {
+          "event_type": "toolchain.scm.internal_bypass.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "tenant_id=oyatie-internal",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "repository_id",
+            "changeset_id",
+            "callback_identity",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        }
+      },
+      {
+        "fixture_id": "T-ISOLATION-SCM-BAD-missing-or-cross-tenant-audit-evidence",
+        "expected_verdict": "RED",
+        "surface": "scm_audit_evidence",
+        "bridge_current_state": "GitHub audit trails and webhook delivery logs are bridge/current-state evidence only; destination audit evidence must be tenant-scoped and object-scoped.",
+        "destination_product_surface": "cloud-scm tenant-scoped audit evidence stream",
+        "actor_tenant_id": "tenant-a",
+        "target_tenant_id": "tenant-b",
+        "denied_actions": [
+          "emit_repository_event_without_tenant_id",
+          "emit_changeset_event_to_wrong_tenant_partition",
+          "emit_status_fanout_event_without_callback_identity",
+          "read_tenant_b_scm_audit_evidence"
+        ],
+        "required_denial_evidence": {
+          "event_type": "toolchain.scm.audit_evidence.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "repository_id",
+            "changeset_id",
+            "scm_change_id",
+            "work_area_hash",
+            "callback_identity",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        }
+      },
+      {
+        "fixture_id": "T-ISOLATION-SCM-GOOD-tenant-scoped-declare-observe-handoff-reference-only",
+        "expected_verdict": "GREEN",
+        "surface": "tenant_scoped_declare_observe_reference_fixture",
+        "claim_boundary": "Reference fixture only; a GREEN here means fixture shape is complete, not live SCM runtime readiness.",
+        "tenant_ids": [
+          "oyatie-internal",
+          "tenant-a",
+          "tenant-b"
+        ],
+        "required_stage_envelope_fields": [
+          "schema_id",
+          "stage_id",
+          "stage_ordinal",
+          "tenant_id",
+          "repository_id",
+          "changeset_id",
+          "scm_change_id",
+          "change_unit_id",
+          "work_area_hash",
+          "callback_identity",
+          "audit_chain_ref"
+        ],
+        "required_positive_evidence": [
+          "repository_id is tenant scoped",
+          "changeset_id and scm_change_id owner tenant matches tenant_id",
+          "change_unit_id equals work_area_hash while tenant ownership wraps, not rewrites, digest bytes",
+          "status callback identity is tenant scoped and cannot be global/shared",
+          "audit evidence records actor_tenant_id and target_tenant_id for every denied cross-tenant attempt"
+        ]
+      }
+    ],
+    "structural_assertions": [
+      "All required_scm_surfaces have at least one RED fixture or the reference-only GREEN fixture where explicitly applicable.",
+      "Every RED fixture includes actor_tenant_id, target_tenant_id, denied_actions, bridge_current_state, destination_product_surface, and required_denial_evidence.must_include.",
+      "The work_area_hash/scm_change_id fixture proves tenant ownership wraps the digest and cannot be spoofed by aliasing another tenant's work_area_hash.",
+      "The status callback fixture proves both spoofing and consuming another tenant's callback identity are DENY cases.",
+      "The oyatie-internal fixture proves internal work is an ordinary tenant and cannot bypass repository, ChangeSet, status callback, or audit evidence requirements.",
+      "No fixture treats GitHub/Git wire shapes as destination cloud-scm product exposure or live isolation evidence."
+    ]
+  },
+  "ci_side_t_isolation_0_fixture_harness": {
+    "stage_class": "future Build/fixture-harness after RED; fixture-contract-not-live-enforcement",
+    "claim_boundary": "CI-side fixture harness only. It does not claim owned-runner cutover, production readiness, tenant-facing CI exposure, or branch-protection authority changes.",
+    "source_contracts": [
+      "specs/bespoke-cloud-toolchain-services.json:224-249",
+      "specs/bespoke-cloud-toolchain-services.json:291-303",
+      "specs/masterplan.json:419-435",
+      "kanban:t_403ceb5e#cache-artifact-log-partitioning",
+      "kanban:t_bef50749#object-level-red-contract"
+    ],
+    "current_live_authority_preserved": {
+      "live_authority": "GitHub Actions plus branch protection produce exactly the protected oya-ci-required context until explicit owned-runner cutover.",
+      "owned_runner_boundary": "Destination oya-ci runner/controller fixtures consume the same gate semantics but cannot add, rename, or replace the live required context in this stage.",
+      "candidate_pr_code_trust_boundary": "Candidate PR bytes are untrusted data and cannot modify gate definitions, branch-protection mapping, runner isolation, cache namespace policy, callback identity, or audit partition rules.",
+      "non_mutation_rule": "This CI-side fixture harness does not edit GitHub workflow files, branch-protection configuration, cloud-ci runtime or package code, secrets, generated JSON, CLI authority surfaces, root manifests, or the live oya-ci-required status context."
+    },
+    "fixture_matrix": [
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-ci-run-tenant-run-read-model",
+        "surface": "ci_runs",
+        "object_type": "CiRun",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "pipeline_id",
+          "ci_run_id",
+          "run_attempt_id",
+          "work_area_hash",
+          "policy_domain"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b CI run/read-model row",
+          "tenant-a cancel, retry, or mutate tenant-b CI run",
+          "tenant-a status-update tenant-b CI run"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_run.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "pipeline_id",
+            "ci_run_id",
+            "run_attempt_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, mutate, cancel, retry, or status-update customer CI runs without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-runner-identity-quota",
+        "surface": "runner_identity_quota",
+        "object_type": "RunnerLease",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "runner_pool_id",
+          "runner_identity",
+          "runner_quota_bucket",
+          "namespace",
+          "workload_identity"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a acquire tenant-b runner identity",
+          "tenant-a consume tenant-b runner quota bucket",
+          "tenant-a schedule untrusted PR workload onto tenant-b runner pool"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_runner.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "runner_identity",
+            "runner_quota_bucket",
+            "workload_identity",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot borrow a customer runner identity, quota, namespace, service account, or workload identity except through audited TTL breakglass with reviewer approval."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-workspace-volume",
+        "surface": "workspace_volumes",
+        "object_type": "WorkspaceVolume",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "workspace_id",
+          "volume_id",
+          "pipeline_id",
+          "ci_run_id",
+          "work_area_hash"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a mount tenant-b workspace volume",
+          "tenant-a read tenant-b workspace files",
+          "tenant-a write tenant-b workspace volume from untrusted PR code"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_workspace.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "workspace_id",
+            "volume_id",
+            "ci_run_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot mount or inspect customer workspace volumes without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-cache-namespace-key",
+        "surface": "caches",
+        "object_type": "CacheEntry",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "cache_namespace",
+          "cache_key_digest",
+          "work_area_hash",
+          "toolchain_digest",
+          "policy_label"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a cache-hit tenant-b cache entry",
+          "tenant-a read tenant-b cache payload",
+          "tenant-a write tenant-b cache namespace"
+        ],
+        "public_content_addressed_exception_guard": "Only explicitly public, content-addressed, policy-labeled artifacts with no tenant secrets or environment influence may be shared; the fixture remains DENY for tenant-owned cache entries.",
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cache.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "cache_namespace",
+            "cache_key_digest",
+            "work_area_hash",
+            "toolchain_digest",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot receive customer cache hits, read customer cache payloads, or write customer cache namespaces without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-artifact-cas-sbom-provenance",
+        "surface": "artifacts",
+        "object_type": "ArtifactCasSbomProvenance",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "artifact_namespace",
+          "artifact_digest",
+          "sbom_digest",
+          "provenance_digest",
+          "policy_label"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b artifact",
+          "tenant-a use tenant-b artifact as build input",
+          "tenant-a fetch tenant-b SBOM or provenance evidence"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.artifact.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "artifact_namespace",
+            "artifact_digest",
+            "sbom_digest",
+            "provenance_digest",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, use, or promote customer artifacts, SBOMs, or provenance records without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-log-namespace",
+        "surface": "logs",
+        "object_type": "CiLogStream",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "log_namespace",
+          "log_stream_id",
+          "pipeline_id",
+          "ci_run_id",
+          "retention_policy_id"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b CI log stream",
+          "tenant-a fetch tenant-b raw log archive",
+          "tenant-a write tenant-b log namespace"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_log.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "log_namespace",
+            "log_stream_id",
+            "ci_run_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal sees aggregate health only and cannot fetch customer CI logs without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-evidence-namespace",
+        "surface": "evidence",
+        "object_type": "CiEvidenceBundle",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "evidence_namespace",
+          "evidence_bundle_id",
+          "gate_catalog_digest",
+          "scm_facts_digest",
+          "audit_chain_ref"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b evidence bundle",
+          "tenant-a fetch tenant-b evidence artifact refs",
+          "tenant-a write or status-update tenant-b evidence bundle"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_evidence.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "evidence_namespace",
+            "evidence_bundle_id",
+            "gate_catalog_digest",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot fetch or mutate customer CI evidence bundles without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-status-callback-identity",
+        "surface": "status_callbacks",
+        "object_type": "StatusCallbackIdentity",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "tenant_id",
+          "callback_identity",
+          "pipeline_id",
+          "ci_run_id",
+          "changeset_id",
+          "status_context=oya-ci-required"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a status-update tenant-b ChangeSet or CI run",
+          "tenant-a sign callback as tenant-b callback identity",
+          "tenant-a read tenant-b callback payload"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.status_callback.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "callback_identity",
+            "status_context=oya-ci-required",
+            "changeset_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot post, sign, or consume customer status callbacks without scoped identity, approved TTL breakglass, reviewer acknowledgment, and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-gate-definition-integrity",
+        "surface": "gate_definition_integrity",
+        "object_type": "GateDefinitionSnapshot",
+        "service_owner": "cloud-ci",
+        "partition_keys": [
+          "trusted_trunk_revision",
+          "gate_catalog_digest",
+          "gate_definition_digest",
+          "branch_protection_mapping_digest",
+          "status_context=oya-ci-required",
+          "tenant_id"
+        ],
+        "denied_cross_tenant_actions": [
+          "candidate PR code weakens its own gate definition",
+          "candidate PR code renames, removes, or adds required status contexts",
+          "tenant-a changes tenant-b runner isolation or gate catalog mapping"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_gate_definition.trust_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "trusted_trunk_revision",
+            "gate_definition_digest",
+            "branch_protection_mapping_digest",
+            "status_context=oya-ci-required",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=PR_CODE_UNTRUSTED_OR_TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal dogfood PRs cannot weaken their own gate definitions, branch-protection mapping, or runner isolation without the same trusted-controller path and reviewed audit-chain evidence required for any tenant."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CI-DENY-audit-event-partition",
+        "surface": "audit_event_partition",
+        "object_type": "CiAuditChainEvent",
+        "service_owner": "cloud-ci + shared audit",
+        "partition_keys": [
+          "tenant_id",
+          "audit_partition_id",
+          "audit_chain_ref",
+          "ci_run_id",
+          "source_revision",
+          "policy_verdict"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b CI audit event",
+          "tenant-a write tenant-b CI audit partition",
+          "tenant-a emit CI audit event missing tenant_id or object identity"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.ci_audit_chain.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "audit_partition_id",
+            "ci_run_id",
+            "source_revision",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer CI audit-chain partitions or omit tenant/object identity without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      }
+    ],
+    "required_static_assertions": {
+      "required_surfaces": [
+        "ci_runs",
+        "runner_identity_quota",
+        "workspace_volumes",
+        "caches",
+        "artifacts",
+        "logs",
+        "evidence",
+        "status_callbacks",
+        "gate_definition_integrity",
+        "audit_event_partition"
+      ],
+      "must_fail_if": [
+        "ci_side_t_isolation_0_fixture_harness is absent",
+        "any required CI-side surface is missing from fixture_matrix",
+        "any row lacks tenant_id in partition_keys or expected_audit_evidence_record.must_include",
+        "any row lacks tenant-a to tenant-b denied actions",
+        "caches row lacks cache-hit denial",
+        "artifacts row lacks read/use/fetch denial for artifacts, SBOM, or provenance",
+        "logs/evidence rows lack fetch/read denial",
+        "status_callbacks row lacks status-update denial and status_context=oya-ci-required",
+        "runner_identity_quota row omits runner identity or quota denial",
+        "workspace_volumes row omits mount/read/write denial",
+        "gate_definition_integrity row omits candidate PR code as untrusted data",
+        "audit_event_partition row omits missing-tenant-id denial",
+        "any row omits oyatie_internal_no_bypass_case"
+      ]
+    }
+  },
+  "cd_side_t_isolation_0_fixture_harness": {
+    "stage_class": "future Build/fixture-harness after RED; fixture-contract-not-live-enforcement; no runtime deploy/reconciler or production rollout mutation",
+    "claim_boundary": [
+      "CD-side fixture harness only. It does not claim a live oya-cd service, production rollout, tenant-facing CD exposure, Argo cutover, controller parity, or hyperscaler-grade isolation.",
+      "Argo CD/Rollouts/Application/AnalysisTemplate objects remain bridge/reference shapes until oya-cd parity, isolation, reliability, rollback, audit, cutover approval, and T-ISOLATION-0 fan-in evidence are green.",
+      "Destination product claims remain blocked until the T-ISOLATION-0 fan-in validates SCM, CI, CD, identity, secret, evidence, and audit fixture evidence together."
+    ],
+    "source_contracts": [
+      "specs/bespoke-cloud-toolchain-services.json:195-221",
+      "specs/bespoke-cloud-toolchain-services.json:224-249",
+      "specs/bespoke-cloud-toolchain-services.json:296-303",
+      "specs/masterplan.json:419-435",
+      "kanban:t_f4b671ca#oya-cd-release-ledger-progressive-delivery-plan",
+      "kanban:t_bef50749#object-level-red-contract",
+      "kanban:t_e7eed0bf#approve-review-fix-handoff"
+    ],
+    "bridge_current_state_preserved": {
+      "argo_boundary": "Argo Application, Rollout, AnalysisTemplate, Events, Workflows, and status observations are bridge/reference adapter inputs or outputs only; they are not tenant-facing product authority.",
+      "non_mutation_rule": "These fixtures do not edit Argo/controller/runtime deployment state, production manifests, secrets, branch protection, generated JSON, release-governance files, or live clusters.",
+      "exposure_gate": "No tenant-facing cloud-cd exposure or secure/live isolation claim is permitted before parity, isolation, reliability, cutover approval, rollback/observability evidence, and T-ISOLATION-0 fan-in."
+    },
+    "fixture_matrix": [
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-deployment-manifest-tenant-ownership",
+        "surface": "deployment_manifests",
+        "object_type": "DeploymentManifest",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "deploy_target_id",
+          "manifest_digest",
+          "desired_state_ref",
+          "region_cell",
+          "policy_domain",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo Application/Rollout manifests are bridge/reference shapes only until oya-cd parity and isolation evidence are green.",
+        "destination_product_surface": "oya-cd tenant deployment manifest and deploy target",
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b deployment manifest",
+          "tenant-a write tenant-b deployment manifest",
+          "tenant-a deploy tenant-a artifact to tenant-b deploy target",
+          "tenant-a bind tenant-b desired_state_ref to its release"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.deployment_manifest.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "deploy_target_id",
+            "manifest_digest",
+            "desired_state_ref",
+            "region_cell",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer manifests or deploy to customer targets without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-release-ledger-partition",
+        "surface": "release_ledgers",
+        "object_type": "ReleaseLedger",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "release_id",
+          "ledger_partition_id",
+          "source_revision",
+          "artifact_digest",
+          "ci_evidence_ref",
+          "deploy_target_id",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo/Rollouts release observations are bridge/reference evidence only; destination release ledgers are oya-cd-owned.",
+        "destination_product_surface": "oya-cd immutable tenant release ledger",
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b release ledger",
+          "tenant-a write tenant-b release ledger transition",
+          "tenant-a append promotion evidence to tenant-b ledger",
+          "tenant-a use tenant-b CI evidence ref as release proof"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.release_ledger.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "release_id",
+            "ledger_partition_id",
+            "artifact_digest",
+            "ci_evidence_ref",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, append, or rewrite customer release-ledger transitions without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-rollback-handle-isolation",
+        "surface": "rollback_handles",
+        "object_type": "RollbackHandle",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "release_id",
+          "rollback_handle_id",
+          "rollback_pointer",
+          "last_known_good_manifest_digest",
+          "policy_domain",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo abort/rollback operations are bridge actions behind Oya CD policy decisions; handles are not Argo-native tenant product authority.",
+        "destination_product_surface": "oya-cd rollback controller and rollback handle store",
+        "denied_cross_tenant_actions": [
+          "tenant-a fetch tenant-b rollback handle",
+          "tenant-a execute rollback using tenant-b rollback pointer",
+          "tenant-a bind tenant-b last-known-good manifest to its release",
+          "tenant-a mutate tenant-b rollback cause or evidence"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.rollback_handle.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "release_id",
+            "rollback_handle_id",
+            "rollback_pointer",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot fetch or execute a customer rollback handle without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-desired-live-reconciliation-evidence",
+        "surface": "desired_live_reconciliation",
+        "object_type": "DesiredLiveReconciliationEvidence",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "release_id",
+          "desired_state_ref",
+          "live_state_snapshot_ref",
+          "drift_evidence_id",
+          "tenant_cell_id",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo desired/live status can feed adapter evidence only; Oya CD owns tenant-scoped reconciliation records before product exposure.",
+        "destination_product_surface": "oya-cd desired/live reconciliation read model and evidence callback",
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b live state snapshot",
+          "tenant-a mutate tenant-b desired state",
+          "tenant-a attach tenant-b drift evidence to tenant-a release",
+          "tenant-a reconcile against tenant-b tenant_cell_id"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.reconciliation.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "release_id",
+            "desired_state_ref",
+            "live_state_snapshot_ref",
+            "tenant_cell_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot inspect or reconcile customer desired/live state beyond aggregate health without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-progressive-delivery-status",
+        "surface": "progressive_delivery_status",
+        "object_type": "ProgressiveDeliveryStatus",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "release_id",
+          "rollout_plan_id",
+          "stage_id",
+          "slo_evidence_ref",
+          "policy_verdict",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo Rollouts canary/blue-green and AnalysisTemplate verdicts are reference/adapter semantics; Oya CD owns the tenant-scoped rollout status contract.",
+        "destination_product_surface": "oya-cd progressive rollout controller and canary evaluator status",
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b rollout stage status",
+          "tenant-a promote tenant-b rollout stage",
+          "tenant-a attach tenant-b SLO evidence to its rollout",
+          "tenant-a override tenant-b HOLD/ROLLBACK verdict"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.progressive_delivery.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "release_id",
+            "rollout_plan_id",
+            "stage_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot promote, override, or inspect customer progressive-delivery status without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-status-evidence-callback-identity",
+        "surface": "status_evidence_callbacks",
+        "object_type": "CdStatusEvidenceCallback",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "callback_identity",
+          "release_id",
+          "rollout_plan_id",
+          "evidence_bundle_id",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo Events/Workflows may feed bridge callbacks where selected; destination callbacks require tenant-scoped identities.",
+        "destination_product_surface": "oya-cd tenant-scoped release status and evidence callback identity",
+        "denied_cross_tenant_actions": [
+          "tenant-a post release status with tenant-b callback identity",
+          "tenant-a consume tenant-b evidence callback payload",
+          "tenant-a write tenant-b evidence bundle",
+          "tenant-a fan out rollback status to tenant-b release"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.status_evidence_callback.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "callback_identity",
+            "release_id",
+            "evidence_bundle_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot post, consume, or fan out customer CD status/evidence callbacks without scoped identity, approved TTL breakglass, reviewer acknowledgment, and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-breakglass-record-ttl-reviewer-audit",
+        "surface": "breakglass_records",
+        "object_type": "CdBreakglassRecord",
+        "service_owner": "cloud-cd + shared audit",
+        "partition_keys": [
+          "tenant_id",
+          "breakglass_id",
+          "target_tenant_id",
+          "expires_at",
+          "reviewer_id",
+          "reviewer_acknowledged_at",
+          "scope",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Manual Argo/operator action is bridge breakglass evidence only, never a normal product path.",
+        "destination_product_surface": "oya-cd audited breakglass authorization record",
+        "denied_cross_tenant_actions": [
+          "tenant-a approve tenant-b deploy breakglass without reviewer acknowledgment",
+          "tenant-a execute breakglass after TTL expiry",
+          "tenant-a create breakglass with global or multi-tenant scope",
+          "tenant-a omit audit-chain evidence for tenant-b breakglass"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.breakglass.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "breakglass_id",
+            "expires_at",
+            "reviewer_id",
+            "reviewer_acknowledged_at",
+            "scope",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY_OR_BREAKGLASS_INVALID",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot use CD breakglass without TTL, reviewer acknowledgment, single-tenant/cell scope, reason, and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-tenant-cell-region-policy",
+        "surface": "tenant_cell_region_policy",
+        "object_type": "TenantCellRegionPolicyDecision",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "tenant_cell_id",
+          "region",
+          "compliance_pack_id",
+          "data_residency_policy_id",
+          "deploy_target_id",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo namespaces/service accounts are implementation details under the adapter and do not substitute for Oya CD tenant-cell/region policy.",
+        "destination_product_surface": "oya-cd tenant isolation gate for cell, region, compliance pack, data residency, quota, deploy target, and secret scope",
+        "denied_cross_tenant_actions": [
+          "tenant-a deploy to tenant-b tenant_cell_id",
+          "tenant-a bypass tenant-b region or data-residency policy",
+          "tenant-a reuse tenant-b deploy_target_id under a different policy domain",
+          "tenant-a promote release when compliance-pack policy verdict is DENY"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.tenant_cell_region_policy.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "tenant_cell_id",
+            "region",
+            "compliance_pack_id",
+            "deploy_target_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot bypass a customer tenant-cell, region, compliance-pack, data-residency, quota, deploy-target, or secret-scope policy without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CD-DENY-argo-adapter-boundary",
+        "surface": "argo_adapter_boundary",
+        "object_type": "ArgoAdapterBoundary",
+        "service_owner": "cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "adapter_request_id",
+          "argo_application_ref",
+          "argo_rollout_ref",
+          "service_account_identity",
+          "release_id",
+          "audit_chain_ref"
+        ],
+        "bridge_current_state": "Argo CD/Rollouts are bridge/reference adapters with deletion/parity criteria; adapter-local identity cannot become product authority.",
+        "destination_product_surface": "oya-cd argo adapter request boundary and tenant-scoped bridge command envelope",
+        "denied_cross_tenant_actions": [
+          "tenant-a invoke Argo adapter against tenant-b Application or Rollout",
+          "tenant-a reuse tenant-b Argo service account identity",
+          "tenant-a treat Argo status as sole release authority",
+          "tenant-a omit Oya CD release ledger or audit reference for bridge action"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.cd.argo_adapter_boundary.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "adapter_request_id",
+            "argo_application_ref",
+            "argo_rollout_ref",
+            "service_account_identity",
+            "release_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY_OR_BRIDGE_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot invoke the Argo adapter against customer Argo objects or service accounts without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      }
+    ],
+    "required_static_assertions": {
+      "required_surfaces": [
+        "deployment_manifests",
+        "release_ledgers",
+        "rollback_handles",
+        "desired_live_reconciliation",
+        "progressive_delivery_status",
+        "status_evidence_callbacks",
+        "breakglass_records",
+        "tenant_cell_region_policy",
+        "argo_adapter_boundary"
+      ],
+      "must_fail_if": [
+        "cd_side_t_isolation_0_fixture_harness is absent",
+        "any required CD-side surface is missing from fixture_matrix",
+        "any row lacks tenant_id in partition_keys or expected_audit_evidence_record.must_include",
+        "any row lacks tenant-a to tenant-b denied actions",
+        "deployment_manifests row lacks read/write/deploy denial for tenant-b manifests or deploy targets",
+        "release_ledgers row lacks read/write/append denial and CI evidence reference partitioning",
+        "rollback_handles row lacks fetch/execute/use denial for tenant-b rollback handles",
+        "desired_live_reconciliation row lacks desired/live/drift evidence tenant partitioning",
+        "progressive_delivery_status row lacks promotion/override/SLO evidence denial",
+        "status_evidence_callbacks row lacks callback identity and evidence bundle denial",
+        "breakglass_records row omits TTL, reviewer acknowledgment, scope, or audit-chain evidence",
+        "tenant_cell_region_policy row omits cell, region, compliance pack, deploy target, or policy verdict enforcement",
+        "argo_adapter_boundary row treats Argo status or identity as destination product authority",
+        "any row omits oyatie_internal_no_bypass_case",
+        "any row claims production-ready, tenant-facing, live isolation, runtime deploy/reconciler mutation, or Argo cutover readiness"
+      ]
+    }
+  },
+  "shared_identity_secret_audit_fixture_harness": {
+    "stage_class": "future Build/fixture-harness after RED; fixture-contract-not-live-enforcement",
+    "claim_boundary": [
+      "Shared identity/secret/audit fixture harness only. It does not claim live OIDC, OpenBao, KMS, cluster, account, or breakglass mutation.",
+      "The harness defines per-tenant identity, secret-scope, time-bound credential, breakglass, and audit-chain evidence records that SCM/CI/CD Build cards must cite before T-ISOLATION-0 fan-in.",
+      "Destination product claims remain blocked until the fan-in card validates SCM, CI, CD, identity, secret, evidence, and audit fixture evidence together."
+    ],
+    "source_contracts": [
+      "specs/bespoke-cloud-toolchain-services.json:224-249",
+      "specs/bespoke-cloud-toolchain-services.json:297-303",
+      "specs/masterplan.json:419-435",
+      "kanban:t_a904f657#secret_lease_workload_identity",
+      "kanban:t_bef50749#object-level-red-contract"
+    ],
+    "required_shared_surfaces": [
+      "per_tenant_oidc_workload_identity",
+      "openbao_kms_secret_scope",
+      "time_bound_job_credentials",
+      "audited_breakglass_ttl_reviewer_approval",
+      "tenant_scoped_audit_chain_event",
+      "service_specific_evidence_handoff"
+    ],
+    "evidence_record_contract": {
+      "record_type": "toolchain.t_isolation_0.identity_secret_audit_evidence.v1",
+      "required_for_service_build_cards": [
+        "cloud-scm fixture harness",
+        "cloud-ci fixture harness",
+        "cloud-cd fixture harness",
+        "T-ISOLATION-0 fan-in evidence packet"
+      ],
+      "must_include": [
+        "task_id",
+        "service_build_task_id",
+        "service_owner",
+        "fixture_id",
+        "tenant_id",
+        "actor",
+        "actor_tenant_id",
+        "target_tenant_id",
+        "object_id",
+        "workload_identity",
+        "identity_provider",
+        "oidc_audience",
+        "secret_scope",
+        "lease_id",
+        "credential_ttl_seconds",
+        "expires_at",
+        "breakglass_id",
+        "reviewer_id",
+        "reviewer_acknowledged_at",
+        "source_revision",
+        "artifact_digest",
+        "policy_verdict=DENY",
+        "reason_code=TENANT_BOUNDARY",
+        "rollback_pointer",
+        "audit_chain_ref",
+        "bridge_current_state",
+        "destination_product_surface",
+        "claim_boundary"
+      ],
+      "must_not_include": [
+        "real secret material",
+        "live cloud account id",
+        "live cluster credential",
+        "long-lived shared tenant credential",
+        "unreviewed breakglass approval"
+      ]
+    },
+    "fixtures": [
+      {
+        "fixture_id": "T-ISOLATION-0-IDENTITY-DENY-cross-tenant-oidc-workload-identity",
+        "surface": "per_tenant_oidc_workload_identity",
+        "object_type": "WorkloadIdentityBinding",
+        "service_owner": "shared identity/secrets",
+        "partition_keys": [
+          "tenant_id",
+          "workload_identity",
+          "identity_provider",
+          "oidc_audience",
+          "policy_domain",
+          "audit_chain_ref"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a assume tenant-b workload identity",
+          "tenant-a mint token with tenant-b OIDC audience",
+          "tenant-a use unscoped or global workload identity for tenant-b pipeline"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.identity.workload_identity.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "workload_identity",
+            "identity_provider",
+            "oidc_audience",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot assume a customer workload identity or mint a customer OIDC audience token without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-SECRET-DENY-cross-tenant-openbao-kms-secret-scope",
+        "surface": "openbao_kms_secret_scope",
+        "object_type": "SecretScopeLease",
+        "service_owner": "shared identity/secrets",
+        "partition_keys": [
+          "tenant_id",
+          "secret_scope",
+          "kms_key_scope",
+          "lease_id",
+          "workload_identity",
+          "audit_chain_ref"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b secret scope",
+          "tenant-a fetch or use tenant-b secret material",
+          "tenant-a renew, write, or revoke tenant-b secret lease",
+          "tenant-a use a shared long-lived secret credential for tenant-b pipeline"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.secret_scope.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "workload_identity",
+            "secret_scope",
+            "kms_key_scope",
+            "lease_id",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read, fetch, use, renew, write, or revoke customer secret leases without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-CREDENTIAL-DENY-long-lived-or-unbound-job-credential",
+        "surface": "time_bound_job_credentials",
+        "object_type": "JobCredentialLease",
+        "service_owner": "shared identity/secrets + cloud-ci + cloud-cd",
+        "partition_keys": [
+          "tenant_id",
+          "pipeline_id",
+          "ci_run_id",
+          "workload_identity",
+          "lease_id",
+          "credential_ttl_seconds",
+          "source_revision",
+          "artifact_digest"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a use tenant-b job credential",
+          "tenant-a use a credential after its TTL expires",
+          "tenant-a issue a long-lived shared credential for a tenant job",
+          "tenant-a present a credential not bound to source revision, artifact digest, workload identity, and tenant"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.job_credential.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "workload_identity",
+            "lease_id",
+            "credential_ttl_seconds",
+            "source_revision",
+            "artifact_digest",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot mint, reuse, or extend customer job credentials outside a reviewed TTL-scoped breakglass event tied to source revision, artifact digest, and audit-chain reference."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-BREAKGLASS-DENY-unapproved-or-overbroad-internal-assumption",
+        "surface": "audited_breakglass_ttl_reviewer_approval",
+        "object_type": "BreakglassApproval",
+        "service_owner": "shared identity/secrets + shared audit",
+        "partition_keys": [
+          "tenant_id",
+          "breakglass_id",
+          "target_tenant_id",
+          "workload_identity",
+          "scope",
+          "expires_at",
+          "reviewer_id",
+          "audit_chain_ref"
+        ],
+        "denied_cross_tenant_actions": [
+          "oyatie-internal assume customer tenant without breakglass_id",
+          "oyatie-internal assume customer tenant without reviewer acknowledgment",
+          "oyatie-internal use expired or overbroad breakglass scope",
+          "oyatie-internal omit the breakglass audit-chain event"
+        ],
+        "required_breakglass_fields_when_exception_is_approved": [
+          "breakglass_id",
+          "target_tenant_id",
+          "scope=single_repository_ci_run_deploy_target_or_secret_scope",
+          "expires_at",
+          "reviewer_id",
+          "reviewer_acknowledged_at",
+          "audit_chain_ref"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.breakglass.tenant_boundary_denied",
+          "must_include": [
+            "tenant_id=oyatie-internal",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "breakglass_id",
+            "workload_identity",
+            "scope",
+            "expires_at",
+            "reviewer_id",
+            "reviewer_acknowledged_at",
+            "action",
+            "policy_verdict=DENY",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "This fixture is the explicit no-bypass guard: internal access is DENY unless TTL, reviewer approval, single-object scope, and audit-chain event are all present."
+      },
+      {
+        "fixture_id": "T-ISOLATION-0-AUDIT-DENY-missing-tenant-object-workload-or-rollback-fields",
+        "surface": "tenant_scoped_audit_chain_event",
+        "object_type": "ToolchainAuditChainEvent",
+        "service_owner": "shared evidence/audit",
+        "partition_keys": [
+          "tenant_id",
+          "audit_partition_id",
+          "actor",
+          "workload_identity",
+          "source_revision",
+          "artifact_digest",
+          "policy_verdict",
+          "rollback_pointer"
+        ],
+        "denied_cross_tenant_actions": [
+          "tenant-a read tenant-b audit-chain event",
+          "tenant-a write tenant-b audit partition",
+          "tenant-a emit audit event missing tenant_id, object_id, actor, or workload identity",
+          "tenant-a emit deploy or release audit event without artifact digest, policy verdict, or rollback pointer where applicable"
+        ],
+        "expected_verdict": "DENY",
+        "expected_audit_evidence_record": {
+          "event_type": "toolchain.audit_chain.required_field_or_partition_denied",
+          "must_include": [
+            "tenant_id",
+            "actor_tenant_id",
+            "target_tenant_id",
+            "actor",
+            "workload_identity",
+            "object_id",
+            "source_revision",
+            "artifact_digest",
+            "policy_verdict=DENY",
+            "rollback_pointer",
+            "action",
+            "reason_code=TENANT_BOUNDARY",
+            "audit_chain_ref"
+          ]
+        },
+        "oyatie_internal_no_bypass_case": "tenant=oyatie-internal cannot read/write customer audit partitions or emit audit-chain events missing tenant/object/workload identity fields without approved TTL breakglass plus reviewer acknowledgment and audit-chain event."
+      }
+    ],
+    "required_static_assertions": {
+      "required_surfaces": [
+        "per_tenant_oidc_workload_identity",
+        "openbao_kms_secret_scope",
+        "time_bound_job_credentials",
+        "audited_breakglass_ttl_reviewer_approval",
+        "tenant_scoped_audit_chain_event"
+      ],
+      "must_fail_if": [
+        "shared_identity_secret_audit_fixture_harness is absent",
+        "any required shared identity/secret/audit surface is missing from fixtures",
+        "any fixture lacks tenant-a to tenant-b denied actions or an explicit oyatie-internal no-bypass case",
+        "any identity fixture omits workload_identity, identity_provider, or oidc_audience",
+        "any secret fixture omits secret_scope, lease_id, ttl/expiry semantics, or the no-real-secret-material guard",
+        "any job credential fixture permits long-lived shared tenant credentials",
+        "any breakglass fixture omits TTL, reviewer_id, reviewer_acknowledged_at, scope, or audit_chain_ref",
+        "any audit-chain fixture omits tenant_id, actor, workload_identity, source_revision, artifact_digest, policy_verdict, rollback_pointer where applicable, or audit_chain_ref",
+        "the evidence_record_contract omits service_build_task_id or claim_boundary fields required by service-specific SCM/CI/CD Build cards"
+      ]
+    }
+  },
+  "red_static_assertions": {
+    "required_matrix_ref": "#/object_level_t_isolation_0_matrix",
+    "required_surfaces": [
+      "repositories",
+      "changesets",
+      "ci_runs",
+      "artifacts",
+      "caches",
+      "logs",
+      "evidence",
+      "status_callbacks",
+      "deployment_manifests",
+      "release_ledgers",
+      "secret_leases",
+      "audit_chain_events"
+    ],
+    "must_fail_if": [
+      "any required surface is missing",
+      "any row lacks a tenant-a to tenant-b denied action",
+      "any row lacks expected_audit_evidence_record.must_include with tenant_id, actor_tenant_id, target_tenant_id, action, policy_verdict=DENY, reason_code=TENANT_BOUNDARY, and audit_chain_ref",
+      "any row lacks an oyatie_internal_no_bypass_case",
+      "any shared/global tenant bypass fixture has expected_verdict=GREEN",
+      "any row omits bridge_current_state or destination_product_surface and thereby blurs bridge/current-state with destination product authority"
+    ],
+    "pre_repair_gap_observed_by_task_t_bef50749": "The prior fixture contract contained only broad shared-pipeline fixtures and no object_level_t_isolation_0_matrix; the RED static assertion reported all required object-level surfaces missing."
+  },
   "required_separation_surfaces": [
     "identity",
-    "secrets",
+    "repositories",
+    "changesets",
+    "ci_runs",
     "runners",
     "workspaces",
     "caches",
     "artifacts",
+    "logs",
+    "evidence",
     "logs_evidence",
     "release_ledgers",
+    "deployment_manifests",
     "deploy_targets",
     "status_callbacks",
+    "secret_leases",
+    "secrets",
+    "audit_chain_events",
     "audit_events"
   ],
   "title": "ToolchainTenantIsolationFixtures"
