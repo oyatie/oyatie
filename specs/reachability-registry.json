@@ -206,8 +206,8 @@
       "prefix": "infra/arc/live-postgres-admission-bootstrap.json"
     },
     {
-      "anchor": "ADR-0560 D1: dark NativeLink CAS/AC declaration with keyed mTLS and a bounded filesystem tier; activation requires a later reviewed GitOps Application plus #1551/#1534 live proof, so this reachability row grants no deployment claim; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
-      "prefix": "infra/nativelink/"
+      "anchor": "ADR-0560 D1: dark NativeLink CAS/AC declaration with keyed mTLS and a bounded filesystem tier; activation requires a later reviewed GitOps Application plus #1551/#1534 live proof, so this reachability row grants no deployment claim; ownership seed storage/adapters/nativelink/OWNERS (cloud-ci-platform); rehomed from infra/nativelink/ by CAS Lane 3A (specs/reorg/nativelink-storage-move-plan.json)",
+      "prefix": "storage/adapters/nativelink/"
     },
     {
       "anchor": "ADR-0560 D3: opt-in buck2 cache overlays — selected ONLY by the oya-cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)",
