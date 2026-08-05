@@ -48,7 +48,7 @@ template:
       # Selects the Kubernetes-native default-deny egress allowlist that keeps
       # candidate code away from shared/private cluster namespaces.
       oya.io/ci-cell: general
-      # REQUIRED for the CAS to be reachable AT ALL. infra/nativelink's
+      # REQUIRED for the CAS to be reachable AT ALL. storage/adapters/nativelink's
       # NetworkPolicy `nativelink-cas-ingress` admits :50051 only from pods
       # labelled writer=true and :50052 only from reader=true, matching the
       # SOURCE pod in any namespace. Without these the connection is refused at

@@ -15,7 +15,7 @@ members = [
   # capability — present or future — is a member by construction and needs ZERO edit here.
   #
   # Measured on the tree at the time of this change: the four globs select 466 directories, of
-  # which 465 hold a [package] manifest. The single non-crate match is carried in `exclude`
+  # which 465 hold a [package] manifest. Non-crate layer-glob matches are carried in `exclude`
   # below. The old `<cap>/*/*` form matched EVERY non-crate subdir (`<cap>/observability/`,
   # `<cap>/slos/`, ...), and cargo errors on a matched directory with no manifest — which is
   # why each satellite dir needed a hand-written exclude entry. Under the layer globs those
@@ -48,21 +48,24 @@ members = [
   "os/harness/*",
 ]
 exclude = [
-  # Only THREE exclusions remain, and none of them is per-move churn.
+  # Workspace carve-outs and non-crate directories the layer globs over-match.
   #
   # `kernel` and `cloud/cloud-kernel` are their own workspaces (ADR-0512 carve-out) — excluded
   # because they are separate roots, not because a glob over-matched them.
   #
-  # `ci/facade/automation-language-policy` is the single directory the layer globs match that
-  # holds no [package] manifest.
+  # `ci/facade/automation-language-policy` and `storage/adapters/nativelink` are directories the
+  # layer globs match that hold no [package] manifest (automation-language-policy is a
+  # buck2-only gate home; nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
+  # seed rehomed by CAS Lane 3A / specs/reorg/nativelink-storage-move-plan.json).
   #
   # The ~23 `<cap>/observability`-shaped entries that used to live here are GONE, not relocated:
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
-  # an exclusion, so this array stops being a merge surface.
+  # an exclusion for satellite dirs outside the four faces.
   "ci/facade/automation-language-policy",
   "cloud/cloud-kernel",
   "kernel",
+  "storage/adapters/nativelink",
 ]
 resolver = "2"
 
