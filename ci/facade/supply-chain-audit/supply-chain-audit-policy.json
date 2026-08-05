@@ -1,8 +1,27 @@
 {
-  "_comment": "cloud-ci-supply-chain-audit gate policy (owned RustSec advisory scan; replaces the reverted #974 shell cargo-audit/deny). R0 pack-shaped DATA — the Rust engine is neutral. The gate matches the workspace Cargo.lock against a VENDORED, content-addressed RustSec advisory snapshot (advisory-mirror/{advisories.json,mirror-manifest.json}, produced by libs/oya-advisory-mirror-kernel from a pinned rustsec/advisory-db checkout). A locked crate is affected by an advisory iff its semver Version satisfies NO patched and NO unaffected VersionReq. Security advisories block as SCA-VULN; unmaintained advisories block as SCA-UNMAINTAINED (gated by unmaintained_policy=all). The mirror is integrity-checked (content_hash + count) to fail closed against a truncated/desynced snapshot (SCA-MIRROR-MALFORMED/SCA-MIRROR-UNDERFLOW). No shell, no network, no clock — the network/clock-bearing refresh is a separate owned reconciler (deferred Slice D). The three time-boxed ignores below moved here from the reverted #974 deny.toml [advisories].ignore; the unmaintained=all posture moved from deny.toml [advisories].unmaintained. The ignore list is SHRINK-ONLY (run the gate binary --write to drop stale entries via SCA-STALE-IGNORE); a new affected advisory must be FIXED, never auto-ignored.",
+  "_comment": "cloud-ci-supply-chain-audit gate policy (owned RustSec advisory scan; replaces the reverted #974 shell cargo-audit/deny). R1 pack-shaped DATA: lockfile_corpus is the authoritative, reviewed set of workspace-owned lockfiles, pairing each repo-relative Cargo.toml workspace root with its sibling Cargo.lock. The collector independently projects workspace-owned locks from scm_facts_path#tracked_paths: a tracked Cargo.lock is owned exactly when its tracked sibling Cargo.toml declares [workspace]. That exact projection must equal lockfile_corpus, so a newly tracked workspace lock fails until declared while orphan and member-local locks cannot expand the scan. The collector then reads only declared locks and the vendored content-addressed RustSec mirror; it never recursively walks mutable filesystem state. Normalized relative paths, sibling ownership, regular-file type, no-symlink containment, strict non-empty [[package]] rows, and the min_lockfiles shrink floor are validated fail-closed. The legacy single lockfile_path shape remains engine-compatible for adopters. Security advisories block as SCA-VULN; unmaintained advisories block as SCA-UNMAINTAINED (gated by unmaintained_policy=all). Mirror content_hash/count/min_advisories fail closed. No shell, network, or clock.",
   "gate_id": "cloud-ci-supply-chain-audit",
-  "schema_version": "1.0.0",
-  "lockfile_path": "Cargo.lock",
+  "schema_version": "1.2.0",
+  "lockfile_corpus": [
+    {
+      "manifest_path": "Cargo.toml",
+      "lockfile_path": "Cargo.lock"
+    },
+    {
+      "manifest_path": "cloud/cloud-kernel/Cargo.toml",
+      "lockfile_path": "cloud/cloud-kernel/Cargo.lock"
+    },
+    {
+      "manifest_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.toml",
+      "lockfile_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.lock"
+    },
+    {
+      "manifest_path": "kernel/Cargo.toml",
+      "lockfile_path": "kernel/Cargo.lock"
+    }
+  ],
+  "min_lockfiles": 4,
+  "scm_facts_path": "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
   "mirror_dir": "ci/facade/supply-chain-audit/advisory-mirror",
   "unmaintained_policy": "all",
   "min_advisories": 1000,
@@ -27,9 +46,9 @@
     }
   ],
   "product_contract": {
-    "born_blocking": "Born-blocking: matches the live Cargo.lock against the committed advisory mirror. Green today because quinn-proto is on the patched 0.11.15 and the only other live affected advisories are the three unmaintained ids in ignore[]. Any NEW affected security advisory (or a new unmaintained crate) blocks.",
-    "pack_shaped": "Neutral engine; every repo-specific is DATA in this file + the vendored mirror. A different repo adopts the gate by repointing lockfile_path/mirror_dir and revendoring.",
-    "hermetic": "Pure Rust predicate: serde_json + toml + semver only (no rustsec/git2/libgit2, no shell, no network, no clock). Deterministic + buck2-cacheable. Mirror integrity (content_hash + count + min floor) fails closed against a vacuously-green truncated snapshot.",
+    "born_blocking": "Born-blocking: the exact workspace-owned lock projection from the materialized tracked-tree facts must equal lockfile_corpus, then every declared lock is matched against the advisory mirror. A fifth workspace lock or any affected security advisory/unmaintained crate in the root, kernel, cloud-kernel, or detached host-test lockfile blocks.",
+    "pack_shaped": "Neutral engine; repo-specific workspace/lockfile pairs, scm_facts_path, min_lockfiles, mirror_dir, and ignores are DATA here. Legacy adopters using one lockfile_path remain supported without multi-workspace projection.",
+    "hermetic": "Pure Rust predicate: serde_json + toml + semver only (no rustsec/git2/libgit2, shell, network, clock, or recursive filesystem discovery). The separately materialized scm-facts tracked-path universe supplies totality; only tracked sibling manifests are parsed to identify explicit [workspace] owners. Declared paths are normalized repo-relative sibling pairs; symlinks, missing files, type errors, malformed manifests, zero-package locks, malformed package rows, projection mismatch, and policy underflow fail closed. The collected JSON schema remains locked/name/version + advisories + manifest.",
     "remediation_doctrine": "Upgrade the affected crate to a patched version, or — for an unmaintained dep with no maintained drop-in — add a time-boxed ignore[] entry with reason/pull_chain/remove_by."
   }
 }

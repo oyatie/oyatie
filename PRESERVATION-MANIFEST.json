@@ -1,0 +1,10 @@
+{
+  "base_head": "ee389362f76681a2ab45a2f531f09180a1993460",
+  "captured_at": "2026-08-05",
+  "preserved_dirty_path_count": 9,
+  "recovery": "Inspect the snapshot commit relative to base_head. Curate through a fresh origin/dev isolated-worktree PR; never merge wholesale.",
+  "schema": "oyatie-prewipe-dirty-worktree-snapshot/v1",
+  "source_branch": "restack/pr1533-20260803",
+  "source_worktree": "/Users/jasonlee/Developer/oyatie-pr1533-restack",
+  "status": "quarantine-recovery-only-not-implementation-or-merge-authority"
+}
