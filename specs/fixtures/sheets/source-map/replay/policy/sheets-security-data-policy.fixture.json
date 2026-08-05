@@ -1,0 +1,67 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/sheets-source-map-replay-artifact.schema.json",
+  "artifact_id": "sheets-security-data-policy.fixture",
+  "replay_artifact_path": "specs/fixtures/sheets/source-map/replay/policy/sheets-security-data-policy.fixture.json",
+  "parent_fixture_id": "sheets_security_data_policy_fixture",
+  "fixture_kind": "security_data_policy_contract",
+  "source_map_ref": "specs/microservices/sheets.json",
+  "red_gate_task": "t_48991095",
+  "build_task": "t_10bf9a15",
+  "status": "SOURCE_BACKED_REPLAY_PASS",
+  "red_status_closed": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS",
+  "replay_family": "sheets-policy-data-security",
+  "contract_surface": "Cedar/data-class/legal-hold/human-control source-backed policy evidence",
+  "source_authority_refs": [
+    "specs/microservices/sheets.json#evidence_expectations.security_data_policy",
+    "oya/sheets/cedar/policies.cedar",
+    "oya/sheets/policy/tenant-scope.cedar",
+    "oya/sheets/policy/auditor-scope.cedar"
+  ],
+  "source_paths": [
+    "specs/microservices/sheets.json",
+    "oya/sheets/cedar/policies.cedar",
+    "oya/sheets/policy/tenant-scope.cedar",
+    "oya/sheets/policy/auditor-scope.cedar",
+    "oya/sheets/capabilities/T0-suggest.yaml",
+    "oya/sheets/capabilities/T1-assist.yaml",
+    "oya/sheets/capabilities/T2-auto.yaml"
+  ],
+  "assertions_covered": [
+    "tenant/RBAC",
+    "Cedar policy refusal",
+    "cross-tenant workbook access",
+    "data-class preservation",
+    "legal hold/retention",
+    "export boundary",
+    "T2 automation human-control",
+    "audit-chain"
+  ],
+  "rejections_covered": [
+    "cross-tenant workbook access",
+    "formula value without data-class",
+    "export without retention/legal-hold decision",
+    "T2 automation without human-control and audit"
+  ],
+  "replay_steps": [
+    "Replay source-lock policy assertions against sheets Cedar policy and capability inventory paths.",
+    "Confirm cross-tenant workbook refusal, data-class preservation, export/legal-hold boundary, and T2 human-control assertions remain explicit.",
+    "Reject retired Foundry live-authority, T2 auto without human control, prompt-injection bypass, and unredacted PII claims."
+  ],
+  "api_contract_replay_evidence": {
+    "openapi": false,
+    "asyncapi": false,
+    "proto": false,
+    "notes": "Source-backed static contract replay artifact; no handler/runtime or generated face is created by this slice."
+  },
+  "browser_user_story_accessibility_evidence": {
+    "applicable": false,
+    "runtime_ui_changed": false,
+    "n_a_rationale": "No browser/UI runtime path changes in t_10bf9a15; future user-visible slices must supply keyboard, screen-reader, grid, formula-error, collaboration-conflict, protected-range, and import/export evidence."
+  },
+  "non_claims": [
+    "No runtime readiness, product readiness, production readiness, GA, customer availability, live SLO, or hyperscaler maturity claim is made.",
+    "No generated JSON hand edits are made.",
+    "No legacy microservices/sheets/manifest.json restoration is authorized.",
+    "Green CI alone is not UI readiness evidence."
+  ]
+}

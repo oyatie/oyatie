@@ -1,0 +1,222 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/community-fd001-red-fixtures.schema.json",
+  "fixture_plan_id": "COMMUNITY-FD001-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_f07b0559",
+  "parent_plan_spec_task": "t_3321dc87",
+  "review_fix_parent_task": "t_74fea7bb",
+  "status": "red-fixture-plan-contract-only",
+  "created_at_utc": "2026-07-01T13:27:25Z",
+  "source_commit_at_authoring": "c52bdb09ea33",
+  "claim_boundary": "metadata/fixture-only RED contract plan; no runtime handlers, storage, deployment, generated JSON hand edits, production readiness, GA, measured SLO, or hyperscaler maturity claim",
+  "source_authority_refs": [
+    "specs/microservices/community.json",
+    "plan/community/community-fd001-service-boundary-plan-spec.md",
+    "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+    "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md",
+    "specs/microservices/social.json",
+    "specs/microservices/anonymous.json"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/community/manifest.json",
+    "registry/catalog/oya-community-*.yaml",
+    "tasks/community-*.md",
+    "specs/proto/backbone/community/community_post_store.proto",
+    "oya/community/contracts/*"
+  ],
+  "global_non_claims": [
+    "No community runtime implementation is created or approved by this fixture plan.",
+    "No handler, storage adapter, queue, search index, moderation engine, Workflow execution, Ontology projection, deployment, live SLO, production readiness, hyperscaler maturity, GA, or customer-availability claim is made.",
+    "No social, anonymous, messenger, mail, workflow-engine, ops-dashboard/control-center, ontology, intelligence, or infra conflation is authorized.",
+    "No standalone network or shorts service fanout is authorized.",
+    "No generated JSON hand edits are authorized."
+  ],
+  "required_contract_families": {
+    "rest_openapi": [
+      "community-spaces-v1",
+      "community-posts-v1",
+      "community-comments-v1",
+      "community-votes-v1",
+      "community-moderation-v1",
+      "community-professional-profile-v1",
+      "community-import-export-v1"
+    ],
+    "grpc_proto": [
+      "community.post_store.v1",
+      "community.thread_tree.v1",
+      "community.vote_tally.v1",
+      "community.moderation_queue.v1",
+      "community.professional_profile.v1"
+    ],
+    "asyncapi_event_topics": [
+      "community.post.published.v1",
+      "community.post.updated.v1",
+      "community.comment.published.v1",
+      "community.vote.cast.v1",
+      "community.vote.retracted.v1",
+      "community.moderation.case.opened.v1",
+      "community.moderation.decision.recorded.v1",
+      "community.boundary.denied.v1",
+      "audit.community.policy.v1"
+    ],
+    "json_schema_registry": [
+      "request/response envelopes",
+      "data-class tags",
+      "policy-basis references",
+      "idempotency keys",
+      "retention/legal-hold fields",
+      "boundary-denial reason codes",
+      "compatibility/version metadata"
+    ]
+  },
+  "future_contract_root": "contracts/community-fd001/",
+  "expected_red_failure": "RED until future Build cards create source-backed API/data/event/schema contract artifacts under contracts/community-fd001/ and the checker is replaced or extended with real contract replay.",
+  "fixtures": [
+    {
+      "fixture_id": "community_fd001_authority_boundary_fixture",
+      "fixture_kind": "authority_boundary",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-318",
+      "source_authority_refs": ["specs/microservices/community.json", "docs/decisions/ADR-0217-vertical-slice-rollout-order.md", "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md", "specs/masterplan.json#first_deliverable", "specs/root-hub-pointers.json#entry_points.prd_community"],
+      "future_contract_artifacts": ["contracts/community-fd001/authority/community-fd001-authority-boundary.fixture.json"],
+      "must_reject": ["build fanout without community.json", "build fanout without parent Plan/Spec t_3321dc87", "runtime authority claim from inventory/proto/catalog rows"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_inventory_provenance_rejection_fixture",
+      "fixture_kind": "authority_non_claim",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:315-319",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md", "specs/microservices/community.json"],
+      "future_contract_artifacts": ["contracts/community-fd001/authority/community-fd001-inventory-provenance-rejection.fixture.json"],
+      "must_reject": ["oya/community/manifest.json as live implementation authority", "registry/catalog/oya-community-*.yaml as live implementation authority", "tasks/community-*.md as live implementation authority", "specs/proto/backbone/community/community_post_store.proto as live implementation authority"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_mode_normalization_fixture",
+      "fixture_kind": "mode_boundary",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-320",
+      "source_authority_refs": ["specs/microservices/community.json#mode_normalization", "specs/microservices/social.json", "specs/microservices/anonymous.json"],
+      "future_contract_artifacts": ["contracts/community-fd001/boundary/community-fd001-mode-normalization.fixture.json"],
+      "must_reject": ["community-core without community.json authority", "community-network without community successor authority", "community-social without social.json authority", "community-shorts without social.json authority", "community-anonymous without anonymous.json authority"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_retired_network_shorts_successor_fixture",
+      "fixture_kind": "retired_authority_successor",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-321",
+      "source_authority_refs": ["specs/microservices/community.json#mode_normalization[community-network]", "specs/microservices/social.json", "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"],
+      "future_contract_artifacts": ["contracts/community-fd001/boundary/community-fd001-retired-network-shorts-successor.fixture.json"],
+      "must_reject": ["standalone network service fanout", "standalone shorts service fanout", "shorts PRD as live authority", "network as duplicate product wrapper"],
+      "allowed_successors": ["community-network through specs/microservices/community.json", "community-shorts through specs/microservices/social.json"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_messenger_mail_separation_fixture",
+      "fixture_kind": "cross_service_separation",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-322",
+      "source_authority_refs": ["specs/microservices/community.json#separate_fd001_surfaces_not_covered", "specs/microservices/messenger.json", "specs/microservices/mail.json"],
+      "future_contract_artifacts": ["contracts/community-fd001/boundary/community-fd001-messenger-mail-separation.fixture.json"],
+      "must_reject": ["messenger thread delivery as community coverage", "mailbox records as community coverage", "message delivery owned by community", "mail import without source-backed workflow/export contract"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_workflow_ops_ontology_separation_fixture",
+      "fixture_kind": "cross_service_separation",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-323",
+      "source_authority_refs": ["specs/microservices/community.json#separate_fd001_surfaces_not_covered", "specs/microservices/workflow.json", "specs/microservices/ontology.json", "specs/deployment-ops-contract.json"],
+      "future_contract_artifacts": ["contracts/community-fd001/boundary/community-fd001-workflow-ops-ontology-separation.fixture.json"],
+      "must_reject": ["workflow-engine execution owned by community", "workflow-studio authoring owned by community", "ops-dashboard/control-center operations owned by community", "ontology schema administration owned by community", "intelligence model/router behavior owned by community", "infra control-plane behavior owned by community"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_tenant_rbac_context_isolation_fixture",
+      "fixture_kind": "data_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-324",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md#tenant-rbac-and-context-isolation-model", "specs/microservices/community.json#plan_spec_requirements_before_build"],
+      "future_contract_artifacts": ["contracts/community-fd001/data/community-fd001-tenant-rbac-context-isolation.fixture.json"],
+      "required_fields": ["tenant_id", "community_id", "context_kind", "ownership_pillar", "actor_ref", "role_grants_snapshot_ref", "policy_basis_ref", "retention_policy_id", "legal_hold_ids", "region_pack_ref", "audit_chain_ref", "schema_version", "idempotency_key"],
+      "must_reject": ["state-changing record missing tenant_id", "state-changing record missing context_kind", "authorization inferred from URL shape alone", "cross-context projection without consent/workflow/ontology mediation"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_data_class_retention_legal_hold_fixture",
+      "fixture_kind": "data_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-325",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md#data-ownership-classes-and-planned-entities", "specs/microservices/community.json#plan_spec_requirements_before_build"],
+      "future_contract_artifacts": ["contracts/community-fd001/data/community-fd001-data-class-retention-legal-hold.fixture.json"],
+      "required_data_classes": ["community_public_content", "community_restricted_content", "community_personal_content", "community_professional_profile", "community_moderation_evidence", "community_anonymous_content", "community_media_metadata", "community_audit_evidence"],
+      "must_reject": ["write without data-class tag", "delete without retention/legal-hold/audit semantics", "export without chain-of-custody", "import without source digest/provenance"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_anonymity_privacy_fixture",
+      "fixture_kind": "mode_privacy_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-326",
+      "source_authority_refs": ["specs/microservices/anonymous.json", "plan/community/community-fd001-service-boundary-plan-spec.md#compliance-and-threat-model"],
+      "future_contract_artifacts": ["contracts/community-fd001/privacy/community-fd001-anonymity-privacy.fixture.json"],
+      "must_reject": ["real identity in routine anonymous post store", "real identity in routine anonymous query store", "personal anonymous boards", "employer individual attribution", "moderator real-identity reveal", "legal reveal without four-eyes sealed audit package"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_social_media_privacy_fixture",
+      "fixture_kind": "mode_privacy_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-327",
+      "source_authority_refs": ["specs/microservices/social.json", "plan/community/community-fd001-service-boundary-plan-spec.md#slo-runbook-rollback-observability-capacity-and-cost-plan"],
+      "future_contract_artifacts": ["contracts/community-fd001/privacy/community-fd001-social-media-privacy.fixture.json"],
+      "must_reject": ["personal/work feed blending", "cross-context feed joins", "ad-signal cross-context targeting", "biometric persistence from AR effects", "shorts standalone service claim"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_api_schema_event_contract_fixture",
+      "fixture_kind": "api_schema_event_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-328",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md#api-schema-and-event-contract-plan", "specs/microservices/community.json#downstream_lifecycle_gates.red_fixture_gate"],
+      "future_contract_artifacts": ["contracts/community-fd001/openapi/community-spaces-v1.fixture.json", "contracts/community-fd001/proto/community.post_store.v1.fixture.json", "contracts/community-fd001/asyncapi/community.post.published.v1.fixture.json", "contracts/community-fd001/schema/community-request-response-envelope.fixture.json"],
+      "must_reject": ["handler before REST/OpenAPI contract", "handler before gRPC/proto contract", "event producer missing tenant/context/policy/idempotency/schema/audit fields", "state-changing command without idempotency_key", "boundary denial missing reason code"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_observability_slo_runbook_fixture",
+      "fixture_kind": "observability_slo_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-329",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md#slo-runbook-rollback-observability-capacity-and-cost-plan", "docs/decisions/ADR-0217-vertical-slice-rollout-order.md"],
+      "future_contract_artifacts": ["contracts/community-fd001/ops/community-fd001-observability-slo-runbook.fixture.json"],
+      "must_reject": ["readiness claim without SLO families", "readiness claim without golden signals", "readiness claim without runbooks", "rollback deletes source records", "metrics include raw PII/content payloads", "social/anonymous containment tied to messenger/mail/workflow-engine/ops-dashboard"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_localization_kr_fixture",
+      "fixture_kind": "localization_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-330",
+      "source_authority_refs": ["docs/decisions/ADR-0217-vertical-slice-rollout-order.md", "specs/microservices/social.json#regional_packs", "specs/microservices/anonymous.json#regional_packs", "plan/community/community-fd001-service-boundary-plan-spec.md#localization-and-korea-pack"],
+      "future_contract_artifacts": ["contracts/community-fd001/localization/community-fd001-localization-kr.fixture.json"],
+      "must_reject": ["Korea pack readiness claim without Korean copy", "Korea pack readiness claim without PIPA/privacy copy", "Korea pack readiness claim without regional retention/legal-hold overlays", "Korea pack readiness claim without support/runbook routing"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_ux_accessibility_evidence_fixture",
+      "fixture_kind": "ux_accessibility_contract",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-331",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md#ux-and-browser-evidence-requirements", "specs/microservices/social.json#frontend_components", "specs/microservices/anonymous.json#frontend_components"],
+      "future_contract_artifacts": ["contracts/community-fd001/ux/community-fd001-ux-accessibility-evidence.fixture.json"],
+      "must_reject": ["UI Build card without browser/user-story evidence", "context switch story leaks artifacts", "moderation UX not accessible/localized", "community-social UX without feed/story/AR/privacy evidence", "community-anonymous UX without work-only/anonymity/employer aggregate evidence"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_generated_face_no_hand_edit_fixture",
+      "fixture_kind": "generated_face_policy",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-332",
+      "source_authority_refs": ["AGENTS.md#generated_faces_policy", "plan/community/community-fd001-service-boundary-plan-spec.md#single-writer-path-and-dependency-policy"],
+      "future_contract_artifacts": ["contracts/community-fd001/policy/community-fd001-generated-face-no-hand-edit.fixture.json"],
+      "must_reject": ["hand edit to *.generated.json", "generated face diff without materializer/gate ownership", "fixture plan under generated JSON"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "community_fd001_build_parentage_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_plan_spec_lines": "plan/community/community-fd001-service-boundary-plan-spec.md:313-333",
+      "source_authority_refs": ["plan/community/community-fd001-service-boundary-plan-spec.md#single-writer-path-and-dependency-policy", "kanban:t_3321dc87", "kanban:t_f07b0559"],
+      "future_contract_artifacts": ["contracts/community-fd001/policy/community-fd001-build-parentage.fixture.json"],
+      "must_reject": ["Build card without parent Plan/Spec t_3321dc87", "Build card without RED fixture gate t_f07b0559 or approved direct successor", "Build card without allowed path prefixes", "Build card without forbidden shared roots", "Build card without generated-face policy"],
+      "expected_red_status": "RED_UNTIL_CONTRACT_ARTIFACT_EXISTS"
+    }
+  ]
+}

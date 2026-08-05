@@ -117,7 +117,7 @@ Use the issue forms under `.github/ISSUE_TEMPLATE/`:
   [`AGENTS.md`](../AGENTS.md)).
 
 Security issues: do **not** open a public issue. See
-[`docs/security-program/security-program.json`](../docs/security-program/security-program.json) and report privately to
+[`docs/SECURITY-PROGRAM.md`](../docs/SECURITY-PROGRAM.md) and report privately to
 the maintainers.
 
 ## Code of Conduct

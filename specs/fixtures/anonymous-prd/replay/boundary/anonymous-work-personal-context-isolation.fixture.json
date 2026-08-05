@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/anonymous-prd-replay-fixture.schema.json",
+  "allowed_successors": [],
+  "assertions_satisfied": [
+    "anonymous context_model is work-only",
+    "tenant context switcher renders work variant only for CommunityAnonymous",
+    "no_cross_feed is true",
+    "no_cross_search is true",
+    "no_cross_suggest is true",
+    "anonymous crate lives under oya/community/**",
+    "source authority remains specs/microservices/anonymous.json plus PLAN/SPEC and RED parents"
+  ],
+  "build_task": "t_956bcd9c",
+  "claim_boundary": "Build-slice contract replay and pure domain crate only; no standalone anonymous service root, no microservices/anonymous restoration, no generated JSON hand edits, no UI runtime, no deployment, no live SLO, no GA, and no production readiness claim.",
+  "fixture_id": "anonymous_prd_work_personal_context_isolation_fixture",
+  "fixture_kind": "context_isolation_contract",
+  "implementation_evidence": {
+    "crate": "oya-community-anonymous",
+    "library": "oya_community_anonymous",
+    "source": "oya/community/crates/oya-community-anonymous/src/lib.rs",
+    "tests": [
+      "work_context_routes_through_workflow_and_ontology_without_personal_leakage"
+    ],
+    "verification_commands": [
+      "rustc --edition=2024 --test oya/community/crates/oya-community-anonymous/src/lib.rs -o /tmp/oya-community-anonymous-test && /tmp/oya-community-anonymous-test --nocapture",
+      "python3 scripts/tests/anonymous_prd_red_fixture_contract_check.py"
+    ]
+  },
+  "implementation_home": "oya/community/crates/oya-community-anonymous",
+  "negative_cases": [
+    "personal anonymous boards",
+    "personal feeds containing work anonymous posts",
+    "personal search containing work anonymous posts",
+    "personal suggestions from work anonymous topics",
+    "work/personal context leakage",
+    "personal-to-work anonymous post conversion",
+    "standalone oya/anonymous service root remains absent",
+    "microservices/anonymous manifest restoration remains absent",
+    "generated JSON hand edits remain absent"
+  ],
+  "parent_plan_spec_task": "t_8da1d130",
+  "parent_red_task": "t_fe98ab0a",
+  "privacy_invariants": [
+    "anonymous posts and salary entries expose anonymous_author_token only",
+    "identity/user_id/employee_id/identity_fk inputs are rejected before persistence",
+    "verification vault token has no post foreign key and is one-time/24h bounded",
+    "HR/employer access returns aggregates only with k>=10 and individual attribution denied",
+    "moderators receive anonymous_author_token only; legal reveal is four-eyes/court-order/HSM/audit gated",
+    "work context is isolated from personal feeds/search/suggestions through Workflow/Ontology mediation"
+  ],
+  "replay_status": "green_after_build_slice_contract_replay",
+  "source_authority_refs": [
+    "specs/microservices/anonymous.json",
+    "specs/microservices/anonymous.json#implementation_source_lock",
+    "specs/microservices/manifests-index.json#microservices[name=anonymous]",
+    "oya/community/manifest.json",
+    "kanban:t_8da1d130#PLAN/SPEC-ANON-001",
+    "oya/community/crates/oya-community-anonymous/src/lib.rs",
+    "oya/community/crates/oya-community-anonymous/Cargo.toml",
+    "kanban:t_956bcd9c#BUILD-ANON-001",
+    "specs/microservices/anonymous.json#identity.context_model",
+    "specs/microservices/anonymous.json#dual_context_isolation",
+    "specs/microservices/anonymous.json#scope.out_of_scope",
+    "specs/design-system/tenant-context-switcher.json"
+  ]
+}

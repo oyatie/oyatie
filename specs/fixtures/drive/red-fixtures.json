@@ -1,0 +1,613 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/drive-red-fixtures.schema.json",
+  "fixture_plan_id": "DRIVE-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_d9d9add5",
+  "review_fix_parent_task": "t_3425d88d",
+  "status": "red-fixture-contract-replay-pending",
+  "created_at_utc": "2026-07-01T14:10:00Z",
+  "source_commit_at_authoring": "c52bdb09ea33",
+  "claim_boundary": "metadata/fixture-only RED contract plan; no runtime handlers, storage, deployment, generated JSON hand edits, production readiness, live SLO, UI readiness, GA, customer availability, or hyperscaler maturity claim",
+  "source_authority_refs": [
+    "specs/microservices/drive.json",
+    "specs/microservices/drive.json#source_authority",
+    "specs/microservices/manifests-index.json#microservices[name=drive]",
+    "oya/drive/manifest.json",
+    "kanban:t_3425d88d#drive-source-lock-review",
+    "kanban:t_d9d9add5#drive-red-contract-fixtures"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/drive/manifest.json",
+    "oya/drive/contracts/*",
+    "oya/drive/catalog/*",
+    "oya/drive/IPs/*",
+    "microservices/drive/contracts/*",
+    "microservices/drive/capabilities/*",
+    "microservices/drive/IP-*.md",
+    "microservices/drive/slos/*",
+    "microservices/drive/manifest.json"
+  ],
+  "required_prd_acceptance_criteria": [
+    "AC-DRIVE-01",
+    "AC-DRIVE-02",
+    "AC-DRIVE-03",
+    "AC-DRIVE-04",
+    "AC-DRIVE-05",
+    "AC-DRIVE-06",
+    "AC-DRIVE-07"
+  ],
+  "required_produced_contracts": [
+    "drive.file.v1",
+    "drive.folder.v1",
+    "drive.upload_session.v1",
+    "drive.share_link.v1",
+    "drive.permission.v1",
+    "drive.scan_verdict.v1",
+    "drive.sync_delta.v1",
+    "drive.preview.v1",
+    "drive.immutability_record.v1",
+    "audit.drive.policy.v1"
+  ],
+  "contract_replay_expectations": {
+    "openapi": {
+      "source_path": "oya/drive/contracts/openapi/drive.yaml",
+      "legacy_manifest_pointer": "microservices/drive/contracts/openapi/drive.yaml",
+      "future_replay_family": "drive-openapi-v1",
+      "must_assert": [
+        "file/folder CRUD endpoints carry tenant/context metadata and forbid legal-hold bypass",
+        "multipart upload, tus offset, download Range, signed URL TTL, and 206 Content-Range are replayed",
+        "permission grants and share-links expose deny/no-token, revocation, expiry, and view-cap states",
+        "search, preview, scan, sync, immutability, legal-hold, and policy denial responses are source-backed"
+      ],
+      "must_reject": [
+        "legacy microservices/drive/contracts/openapi/drive.yaml as live source authority",
+        "handler before OpenAPI replay",
+        "policy-denied share/download producing usable token or bytes",
+        "cross-tenant metadata leak",
+        "expired share link returning 200"
+      ]
+    },
+    "asyncapi": {
+      "source_path": "oya/drive/contracts/asyncapi/drive-events.yaml",
+      "legacy_manifest_pointer": "microservices/drive/contracts/asyncapi/drive-events.yaml",
+      "future_replay_family": "drive-asyncapi-v1",
+      "must_assert": [
+        "file lifecycle, file access, share-link, permission, sync, scan, immutability, legal-hold, and quota channels are replayed",
+        "CloudEvent envelopes carry tenant hash, pack tag, audit_chain_seal_id, and signature",
+        "policy denial, scan verdict, legal-hold, and sync conflict events preserve idempotency and audit-chain linkage",
+        "Workflow/Ontology handoff uses typed events and never direct cross-product database reads"
+      ],
+      "must_reject": [
+        "legacy microservices/drive/contracts/asyncapi/drive-events.yaml as live source authority",
+        "event producer before AsyncAPI replay",
+        "event without tenant hash or audit_chain_seal_id",
+        "stale scan event treated clean",
+        "cross-tenant event subject leak"
+      ]
+    },
+    "proto": {
+      "source_path": "oya/drive/contracts/proto/drive.proto",
+      "legacy_manifest_pointer": "microservices/drive/contracts/proto/drive.proto",
+      "future_replay_family": "drive-proto-v1",
+      "must_assert": [
+        "FileStore, FolderHierarchy, Upload, Download, Sync, ShareLinkService, Permissions, Search, Preview, Scan, and Immutability services are replayed",
+        "personal/professional FileContext is structurally preserved with tenant scope",
+        "upload chunk hashes, download ranges, share TTL/view caps, permission inheritance, and legal-hold release fields are covered",
+        "scan verdict, sync conflict, immutability, and legal-hold messages preserve audit-compatible fields"
+      ],
+      "must_reject": [
+        "legacy microservices/drive/contracts/proto/drive.proto as live source authority",
+        "gRPC handler before proto replay",
+        "missing tenant/context boundary",
+        "legal-hold deletion without denial",
+        "preview sandbox escape without policy refusal"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/drive/replay/",
+  "expected_red_failure": "RED until future Build cards create source-backed OpenAPI/AsyncAPI/proto/API replay fixtures under specs/fixtures/drive/replay/ and extend or replace this checker with real replay against implementation seams.",
+  "browser_user_story_accessibility_gate": [
+    "Employee uploads a file, sees scan/sync/retention/share state, and cannot share before policy and scan gates allow it.",
+    "Workspace admin configures tenant/regional share policy and sees policy-denied share/download outcomes with audit-safe explanations.",
+    "Compliance officer applies legal hold, attempts protected deletion, and verifies immutable chain-of-custody evidence.",
+    "End user searches, previews, downloads by range, and resolves deterministic sync conflicts without unauthorized snippets, thumbnails, or metadata side channels.",
+    "If no UI is touched, Build records explicit N/A rationale and still replays API/contract paths; green CI alone is insufficient for UI-facing readiness.",
+    "Any Drive UI path must carry WCAG 2.2 AA, keyboard traversal, screen-reader status, policy-denied state, legal-hold conflict state, responsive breakpoint, and loading/error evidence."
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "drive_authority_source_map_fixture",
+      "fixture_kind": "authority_source_map",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#_meta",
+        "specs/microservices/drive.json#source_authority",
+        "specs/microservices/manifests-index.json#microservices[name=drive]",
+        "oya/drive/manifest.json",
+        "kanban:t_3425d88d",
+        "kanban:t_d9d9add5"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/authority/drive-authority-source-map.fixture.json"
+      ],
+      "must_assert": [
+        "PRD-DRIVE",
+        "source_lock_reviewed_for_red_fixture_fanout",
+        "canonical_service_root oya/drive/",
+        "inventory/provenance only",
+        "review gate t_3425d88d"
+      ],
+      "must_reject": [
+        "runtime readiness from oya/drive/manifest.json",
+        "canonical microservices/drive/manifest.json",
+        "Build without Review/fix t_3425d88d and RED gate t_d9d9add5",
+        "generated JSON hand edit"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_file_folder_crud_contract_fixture",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-01]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1files",
+        "oya/drive/contracts/proto/drive.proto#FileStore",
+        "oya/drive/contracts/proto/drive.proto#FolderHierarchy"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/crud/drive-file-folder-crud.fixture.json"
+      ],
+      "must_assert": [
+        "file create stores tenant/context metadata",
+        "folder create preserves tenant/context and tree boundary",
+        "content_hash and object_version_ref are immutable",
+        "delete is soft-delete unless legal-hold/WORM denies mutation",
+        "audit-chain event emitted before visibility"
+      ],
+      "must_reject": [
+        "file visible before scan verdict",
+        "folder move across tenant boundary",
+        "metadata update without expected version",
+        "legal-hold delete succeeds"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_upload_download_range_multipart_fixture",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-01]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1upload~1sessions",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1download~1{file_id}",
+        "oya/drive/contracts/proto/drive.proto#Upload",
+        "oya/drive/contracts/proto/drive.proto#Download"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/upload-download/drive-upload-download-range-multipart.fixture.json"
+      ],
+      "must_assert": [
+        "multipart upload session records chunk hash",
+        "tus Upload-Offset advances deterministically",
+        "download Range returns 206 Content-Range",
+        "signed URL ttl_seconds maximum is enforced",
+        "upload commit records audit event before visibility"
+      ],
+      "must_reject": [
+        "chunk hash mismatch accepted",
+        "out-of-order offset accepted without deterministic 409 or 422",
+        "range download before clean scan verdict",
+        "signed URL without policy basis"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_permissions_acl_inheritance_fixture",
+      "fixture_kind": "authorization_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#bounded_contexts.permissions",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1permissions",
+        "oya/drive/contracts/proto/drive.proto#Permissions",
+        "specs/microservices/drive.json#data_model.entities_ref.PermissionGrant"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/permissions/drive-acl-inheritance.fixture.json"
+      ],
+      "must_assert": [
+        "folder ACL inheritance is explicit",
+        "file override cannot bypass deny-by-default",
+        "principal_ref and resource_ref are tenant scoped",
+        "policy_basis is recorded",
+        "permission change emits audit-chain evidence"
+      ],
+      "must_reject": [
+        "cross-tenant grant",
+        "grant without Cedar policy basis",
+        "inherited permission crosses personal/work context",
+        "ownership transfer without explicit Workflow/policy basis"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_share_link_ttl_revocation_view_cap_fixture",
+      "fixture_kind": "share_link_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-03]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1share-links",
+        "oya/drive/contracts/proto/drive.proto#ShareLinkService",
+        "specs/microservices/drive.json#data_model.entities_ref.ShareLink"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/share-link/drive-share-link-ttl-revocation-view-cap.fixture.json"
+      ],
+      "must_assert": [
+        "no link token is materialized on policy deny",
+        "ttl_expires_at is enforced",
+        "revocation cascades to derived preview/download tokens",
+        "view_cap decrements and exhausts deterministically",
+        "ShareLinkRevoked event is emitted"
+      ],
+      "must_reject": [
+        "expired share link returns usable bytes",
+        "revoked share link returns 200",
+        "view cap exhausted still allows access",
+        "policy-denied share mints signed_url",
+        "regional policy mismatch is ignored"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_preview_sandbox_fixture",
+      "fixture_kind": "preview_sandbox_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#bounded_contexts.preview",
+        "specs/microservices/drive.json#privacy_and_threat_boundaries.attacker_models.compromised_scanner_or_preview_worker",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1preview~1{file_id}",
+        "oya/drive/contracts/proto/drive.proto#Preview"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/preview/drive-preview-sandbox.fixture.json"
+      ],
+      "must_assert": [
+        "sandboxed workers",
+        "least-privilege object tokens",
+        "content-type allowlists",
+        "preview inherits source-file authorization",
+        "preview derivative carries retention and scan state"
+      ],
+      "must_reject": [
+        "unreviewed preview sandbox escape",
+        "preview before scan verdict",
+        "thumbnail side-channel for unauthorized principal",
+        "preview derivative without policy check"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_dlp_virus_scan_fixture",
+      "fixture_kind": "scan_quarantine_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-02]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1scan~1{file_id}~1verdict",
+        "oya/drive/contracts/asyncapi/drive-events.yaml#channels/drive.scan.v1",
+        "oya/drive/contracts/proto/drive.proto#Scan"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/scan/drive-dlp-virus-scan.fixture.json"
+      ],
+      "must_assert": [
+        "scan-pending quarantine blocks download preview search and sync",
+        "clean verdict records scanner_verdict_id",
+        "DLP flagged verdict creates policy exception workflow",
+        "DriveScanVerdictRecorded event is replayable",
+        "verdict evidence is signed"
+      ],
+      "must_reject": [
+        "stale virus/DLP scan treated as clean",
+        "malicious file visible",
+        "DLP flagged file searchable",
+        "scan evidence missing signature",
+        "policy exception without audit"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_search_index_authorization_fixture",
+      "fixture_kind": "search_authorization_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-06]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1search",
+        "oya/drive/contracts/proto/drive.proto#Search",
+        "specs/microservices/drive.json#patterns.authorization_trimmed_derivative"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/search/drive-search-index-authorization.fixture.json"
+      ],
+      "must_assert": [
+        "authorization-trimmed index",
+        "no unauthorized snippets",
+        "no unauthorized metadata",
+        "search index purge or tombstone follows delete or hold release",
+        "query context is tenant and personal/professional scoped"
+      ],
+      "must_reject": [
+        "cross-tenant search hit",
+        "unauthorized snippet",
+        "thumbnail or OCR side channel",
+        "stale index row after legal hold/delete conflict",
+        "personal/work context leakage"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_sync_conflict_resolution_fixture",
+      "fixture_kind": "sync_conflict_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-05]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1sync~1sessions",
+        "oya/drive/contracts/asyncapi/drive-events.yaml#channels/drive.sync.v1",
+        "oya/drive/contracts/proto/drive.proto#Sync"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/sync/drive-sync-conflict-resolution.fixture.json"
+      ],
+      "must_assert": [
+        "deterministic conflict artifacts",
+        "both object versions are preserved",
+        "stable tie-break labels",
+        "SyncConflictDetected event emitted",
+        "offline reconciliation never loses data"
+      ],
+      "must_reject": [
+        "last-writer-wins data loss",
+        "sync metadata leaks unauthorized file content",
+        "conflict event missing audit ref",
+        "device cursor crosses principal or tenant boundary"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_immutability_legal_hold_fixture",
+      "fixture_kind": "immutability_legal_hold_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-04]",
+        "oya/drive/contracts/openapi/drive.yaml#/paths/~1immutability~1files~1{file_id}",
+        "oya/drive/contracts/asyncapi/drive-events.yaml#channels/audit.drive.legal_hold.v1",
+        "oya/drive/contracts/proto/drive.proto#Immutability"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/immutability/drive-immutability-legal-hold.fixture.json"
+      ],
+      "must_assert": [
+        "WORM compliance mode blocks overwrite delete and retention expiry",
+        "legal hold relationship remains intact",
+        "protected object version is referenced",
+        "release requires two-person legal process",
+        "immutable audit event references protected object version"
+      ],
+      "must_reject": [
+        "legal-hold deletion succeeds",
+        "retention-expiry purges held evidence",
+        "overwrite mutates protected object version",
+        "release without two_person_approver_id",
+        "folder move bypasses hold"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_audit_chain_emission_fixture",
+      "fixture_kind": "audit_chain_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#data_model.events_emitted",
+        "specs/microservices/drive.json#contracts.produces.audit.drive.policy.v1",
+        "oya/drive/contracts/asyncapi/drive-events.yaml#components/schemas/CloudEventEnvelope",
+        "specs/audit-event-schema.json"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/audit/drive-audit-chain-emission.fixture.json"
+      ],
+      "must_assert": [
+        "DriveFileUploaded",
+        "DriveScanVerdictRecorded",
+        "DrivePermissionChanged",
+        "DriveShareLinkRevoked",
+        "DriveLegalHoldApplied",
+        "DrivePolicyDenied",
+        "audit_chain_seal_id",
+        "signature_ed25519"
+      ],
+      "must_reject": [
+        "mutation without audit-chain event",
+        "policy denial without audit event",
+        "event without tenant_id_hashed",
+        "event without pack_tag",
+        "unsigned event"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_ontology_projection_lag_fixture",
+      "fixture_kind": "ontology_projection_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#ontology_projections",
+        "specs/ontology-projection-schema.json",
+        "oya/drive/manifest.json#ontology_projections"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/ontology/drive-ontology-projection-lag.fixture.json"
+      ],
+      "must_assert": [
+        "File projection lag_budget_seconds 60",
+        "Folder projection lag_budget_seconds 60",
+        "ShareLink projection lag_budget_seconds 60",
+        "Permission projection lag_budget_seconds 60",
+        "ImmutabilityRecord projection lag_budget_seconds 60",
+        "LegalHold projection lag_budget_seconds 60"
+      ],
+      "must_reject": [
+        "projection lag exceeds 60 seconds without SLO evidence",
+        "direct cross-product database read",
+        "stale ontology projection after revocation",
+        "projection without source event idempotency"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_policy_denied_share_download_negative_fixture",
+      "fixture_kind": "negative_policy_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-03]",
+        "specs/microservices/drive.json#privacy_and_threat_boundaries.default_policy",
+        "specs/microservices/drive.json#best_practices.BP-DRIVE-01"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/negative/drive-policy-denied-share-download.fixture.json"
+      ],
+      "must_assert": [
+        "Cedar-backed authorization denies grant",
+        "no usable link token",
+        "download bytes are not returned",
+        "audit-safe policy denied explanation",
+        "DrivePolicyDenied emitted"
+      ],
+      "must_reject": [
+        "policy-denied share/download returns 200",
+        "denied response includes signed_url",
+        "denied response leaks file name snippet or thumbnail",
+        "denial lacks audit ref"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_cross_tenant_leakage_negative_fixture",
+      "fixture_kind": "negative_tenant_isolation_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#privacy_and_threat_boundaries",
+        "specs/microservices/drive.json#data_model.entities_ref",
+        "oya/drive/contracts/openapi/drive.yaml#security"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/negative/drive-cross-tenant-leakage.fixture.json"
+      ],
+      "must_assert": [
+        "tenant_or_person_scope immutable",
+        "tenant_id_hashed only in events",
+        "minimum disclosure on denied read",
+        "personal files never become employer-visible",
+        "work files remain tenant-scoped"
+      ],
+      "must_reject": [
+        "cross-tenant leakage",
+        "tenant B lists tenant A file",
+        "tenant B search reveals tenant A snippet",
+        "event subject reveals raw tenant_id",
+        "sync cursor crosses tenant"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_stale_scan_negative_fixture",
+      "fixture_kind": "negative_scan_freshness_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-02]",
+        "specs/microservices/drive.json#risks.R-DRIVE-02",
+        "specs/microservices/drive.json#best_practices.BP-DRIVE-02"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/negative/drive-stale-scan.fixture.json"
+      ],
+      "must_assert": [
+        "stale virus/DLP scan blocks access",
+        "scan-pending or quarantined files are invisible",
+        "remediation workflow is the only allowed exception",
+        "DLP/virus verdict freshness is source-backed"
+      ],
+      "must_reject": [
+        "stale virus/DLP scan",
+        "scan-pending preview",
+        "scan-pending search",
+        "scan-pending sync",
+        "quarantined download"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_residency_pack_mismatch_negative_fixture",
+      "fixture_kind": "negative_residency_pack_contract",
+      "source_authority_refs": [
+        "specs/microservices/drive.json#regional_packs",
+        "specs/microservices/drive.json#contracts.api_surfaces.REST/OpenAPI",
+        "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-03]",
+        "oya/drive/manifest.json#regulatory_packs"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/negative/drive-residency-pack-mismatch.fixture.json"
+      ],
+      "must_assert": [
+        "KR EU US JP SG AU IN BR AE KSA packs are represented",
+        "residency-sensitive enterprise file policy denies mismatched share",
+        "pack tag is preserved in CloudEvent envelope",
+        "regional policy denial is audit-safe"
+      ],
+      "must_reject": [
+        "residency/pack mismatch",
+        "cross-border transfer without policy basis",
+        "pack variable missing",
+        "pack_tag missing",
+        "regional policy mismatch ignored"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_generated_face_no_hand_edit_fixture",
+      "fixture_kind": "generated_face_policy",
+      "source_authority_refs": [
+        "AGENTS.md#generated_faces_policy",
+        "specs/microservices/drive.json#source_authority.claim_boundary",
+        "kanban:t_d9d9add5"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/policy/drive-generated-face-no-hand-edit.fixture.json"
+      ],
+      "must_assert": [
+        "RED fixture paths are not generated JSON",
+        "future Build declares generated-face policy",
+        "materializer owns generated faces",
+        "no generated JSON hand edits"
+      ],
+      "must_reject": [
+        "*.generated.json hand edit",
+        "hand edit to materialized generated face",
+        "fixture plan emitted as generated JSON",
+        "generated-face diff without materializer/gate ownership"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "drive_build_parentage_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_authority_refs": [
+        "kanban:t_3425d88d",
+        "kanban:t_d9d9add5",
+        "specs/microservices/drive.json#production_readiness_gates",
+        "specs/microservices/drive.json#scope.out_of_scope"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/drive/replay/policy/drive-build-parentage.fixture.json"
+      ],
+      "must_assert": [
+        "Build is parented behind Review/fix t_3425d88d",
+        "Build is parented behind RED t_d9d9add5",
+        "Build declares allowed path prefixes",
+        "Build preserves generated-face policy",
+        "Build remains gated on implementation Review/fix"
+      ],
+      "must_reject": [
+        "Build without source-lock review parent",
+        "Build without RED fixture parent",
+        "Build without allowed path prefixes",
+        "runtime handler in RED card",
+        "Release Please metadata edit",
+        "generated-face hand edit"
+      ],
+      "expected_red_status": "RED_UNTIL_DRIVE_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

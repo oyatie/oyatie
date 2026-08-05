@@ -1,0 +1,23 @@
+[package]
+name = "oya-cloud-ci-tenant-environment-tier-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# tenant-environment-tier: pure readiness gate packet for env-tier isolation fixtures.
+
+[lib]
+name = "oya_cloud_ci_tenant_environment_tier_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

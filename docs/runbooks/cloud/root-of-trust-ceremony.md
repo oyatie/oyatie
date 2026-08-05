@@ -17,11 +17,10 @@ related_runbooks:
   - RB-META-TRUST-ROOT-RECOVERY
 related_adrs: [ADR-0536, ADR-0537, ADR-0510, ADR-0515]
 diataxis_class: how-to
-claim_ceiling: "founder/HSM-gated draft; no production, regulated, or HSM-backed root-of-trust readiness claim until OQ-005 ratification and HSM evidence exist"
 authority_chain_declaration: |
   ADR-0537 step 0 + ADR-0536 D-1/D-8/D-9/D-16 + OQ-005 founder decision packet > this runbook.
   This runbook is specification-only until founder ratifies the OQ-005 custody posture and HSM procurement path.
-doc_status: draft
+doc_status: published
 ---
 
 # Runbook RB-CLOUD-ROOT-OF-TRUST-CEREMONY: Run the offline root-of-trust ceremony without exposing root secrets

@@ -1,0 +1,374 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/microservices/sheets.json",
+  "title": "MicroservicePrdSourceMap:Sheets",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-SHEETS-SOURCE-MAP",
+    "version": "0.1.0",
+    "status": "Accepted",
+    "owner_team": "axis-sheets",
+    "created_at": "2026-07-01T13:45:08Z",
+    "authority_lock_task": "t_0820889c",
+    "purpose": "Sheets workplace app source-authority lock and PRD/source map before RED, Build, runtime, or implementation fanout. This artifact maps oya/sheets inventory/provenance into a bounded source map and records the evidence gates required before downstream work treats sheets artifacts as live readiness evidence."
+  },
+  "authority_resolution": {
+    "current_authority": "specs/microservices/sheets.json",
+    "manifest_index_ref": "specs/microservices/manifests-index.json#microservices[name=sheets]",
+    "manifest_inventory_ref": "oya/sheets/manifest.json",
+    "source_lock_task": "t_0820889c",
+    "upstream_plan_spec_task": "t_206f2483",
+    "upstream_source_disposition_task": "t_ae08d222",
+    "review_gate_task": "t_0b31b98c",
+    "prior_state_recorded": {
+      "specific_spec_before_this_task": "absent: specs/microservices/sheets.json did not exist before t_0820889c",
+      "legacy_manifest_before_this_task": "absent: microservices/sheets/manifest.json did not exist before t_0820889c",
+      "canonical_inventory_before_this_task": "present: oya/sheets/manifest.json existed and was treated as inventory/provenance only"
+    },
+    "root_boundary": {
+      "canonical_service_home": "oya/sheets/",
+      "legacy_root": "microservices/sheets/",
+      "adr_refs": [
+        "docs/decisions/ADR-0131-per-microservice-flat-layout.md#accepted-amended-2026-06-02",
+        "docs/decisions/ADR-0512-canonical-monorepo-pattern.md#decision-layout"
+      ],
+      "decision": "ADR-0131 amended by ADR-0512 makes {oya,cloud}/<service>/ canonical. microservices/ is legacy/removal-candidate and must not be restored as the canonical sheets home."
+    },
+    "claim_boundary": "Source authority for Plan/Spec, RED fixture, and review-gated decomposition only. This file makes no handler, storage, deployment, live SLO, production readiness, hyperscaler maturity, FD-001 materiality, GA, or customer availability claim."
+  },
+  "identity": {
+    "product_id": "sheets",
+    "owning_axis": "axis-sheets",
+    "product_class": "workplace_app_service",
+    "fd001_material": false,
+    "user_facing_surface": true,
+    "context_model": [
+      "work",
+      "tenant-scoped collaboration"
+    ],
+    "service_boundary": "Tenant-scoped spreadsheet/workbook surface covering workbook sessions, cell/range read-write, formulas/recalculation, charts/pivots/data validation, collaboration CRDT, sharing/range ACL, XLSX import/export, connected-sheets queries, comments/version history, embed/trigger bridges, and AI formula assistance through reviewed Intelligence-era boundaries.",
+    "canonical_inventory_scope": {
+      "bounded_contexts": [
+        "sheets"
+      ],
+      "declared_layers_from_manifest": [
+        "domain",
+        "kernel",
+        "rest",
+        "worker"
+      ],
+      "runtime_crate_inventory_observed": [
+        "oya/sheets/crates/oya-sheets-domain"
+      ],
+      "capability_tiers_declared_by_manifest": [
+        "T0:t0-suggest",
+        "T1:t1-assist",
+        "T2:t2-auto"
+      ],
+      "data_classes_observed": [
+        "INTERNAL_ONLY",
+        "AUDIT",
+        "PII_QUASI_IDENTIFIER",
+        "PII_IDENTIFYING",
+        "PHI",
+        "SECRET"
+      ]
+    }
+  },
+  "source_inventory_map": {
+    "manifest_source": {
+      "path": "oya/sheets/manifest.json",
+      "status": "inventory_provenance_only",
+      "must_not_be_used_as": [
+        "implementation-readiness evidence",
+        "runtime-readiness evidence",
+        "product-readiness evidence",
+        "FD-001 materiality evidence",
+        "permission to restore microservices/sheets/manifest.json"
+      ]
+    },
+    "canonical_path_map": [
+      {
+        "manifest_or_inventory_path": "microservices/sheets/contracts/openapi/sheets.yaml",
+        "canonical_path": "oya/sheets/contracts/openapi/sheets.yaml",
+        "observed_state": "present",
+        "fanout_status": "candidate contract source; require review and API contract replay before implementation use"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/contracts/asyncapi/sheets-events.yaml",
+        "canonical_path": "oya/sheets/contracts/asyncapi/sheets-events.yaml",
+        "observed_state": "present",
+        "fanout_status": "candidate event contract source; require review and event replay before implementation use"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/contracts/proto/sheets.proto",
+        "canonical_path": "oya/sheets/contracts/proto/sheets.proto",
+        "observed_state": "present",
+        "fanout_status": "candidate gRPC contract source; require review and contract replay before implementation use"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/capabilities/T0-suggest.yaml",
+        "canonical_path": "oya/sheets/capabilities/T0-suggest.yaml",
+        "observed_state": "present",
+        "fanout_status": "capability inventory only until policy/security review"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/capabilities/T1-assist.yaml",
+        "canonical_path": "oya/sheets/capabilities/T1-assist.yaml",
+        "observed_state": "present",
+        "fanout_status": "capability inventory only until policy/security review"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/capabilities/T2-auto.yaml",
+        "canonical_path": "oya/sheets/capabilities/T2-auto.yaml",
+        "observed_state": "present",
+        "fanout_status": "capability inventory only; automation requires Cedar, audit, human-control, and Intelligence-boundary review before build"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/slos/formula-engine-correctness.openslo.yaml",
+        "canonical_path": "oya/sheets/slos/formula-engine-correctness.openslo.yaml",
+        "observed_state": "present",
+        "fanout_status": "SLO target inventory only; no measured-live-SLO claim"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/sheets/runbooks/formula-engine-rollback.md",
+        "canonical_path": "oya/sheets/runbooks/formula-engine-rollback.md",
+        "observed_state": "present",
+        "fanout_status": "operations/runbook inventory only; no rollout readiness claim"
+      }
+    ],
+    "stale_or_retired_reference_handling": [
+      {
+        "reference": "manifest and contract text still contain microservices/sheets/... path strings",
+        "disposition": "treat as stale legacy provenance; downstream Plan/Spec or Build cards must either source-map to oya/sheets/... or create a serialized path-repair card before relying on the path"
+      },
+      {
+        "reference": "foundry / foundry-runtime AI assistance wording in sheets inventory and contracts",
+        "disposition": "retired/absorbed AI-substrate terminology; route live AI/agentic assistance authority through intelligence per root-hub/ADR retirement markers before implementation fanout"
+      },
+      {
+        "reference": "dirty-tree oya/sheets runtime-looking files",
+        "disposition": "inventory/provenance only until this source map, independent review, RED fixtures, Build, Review/fix, and rollout/E2E gates complete"
+      }
+    ]
+  },
+  "plan_spec_scope": {
+    "source_map_inputs": [
+      "specs/microservices/manifests-index.json#microservices[name=sheets]",
+      "oya/sheets/manifest.json",
+      "oya/sheets/README.md",
+      "oya/sheets/contracts/openapi/sheets.yaml",
+      "oya/sheets/contracts/asyncapi/sheets-events.yaml",
+      "oya/sheets/contracts/proto/sheets.proto",
+      "oya/sheets/crates/oya-sheets-domain/src/lib.rs",
+      "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_206f2483/sheets-source-map-and-backlog.md",
+      "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_ae08d222/workplace-app-source-authority-disposition.md"
+    ],
+    "in_scope_for_future_prd_elaboration": [
+      "workbook/session CRUD and workbook load/save",
+      "cell/range read-write, formula authoring, formula correctness, recalculation, dependency graph, and error semantics",
+      "charts, pivots, conditional formatting, data validation, named ranges, and protected ranges",
+      "collaborative editing with CRDT conflict surfacing and no silent data loss",
+      "sharing, tenant/RBAC, Cedar, per-range ACL, audit-chain, legal hold, and data-class policy",
+      "import/export including XLSX fidelity, malware scanning, and sandbox boundaries",
+      "connected-sheets/data-source refresh and Workflow/Ontology mediated integration",
+      "AI formula/smart-fill assistance routed through current intelligence authority and human-control gates",
+      "browser grid UX, keyboard navigation, formula bar, import/export affordances, collaboration presence, error states, and accessibility semantics",
+      "SLO, observability, rollback, runbook, capacity, autosharding, dynamic sharding, and regional/compliance-pack posture"
+    ],
+    "out_of_scope_for_this_lock": [
+      "runtime or product code changes",
+      "generated JSON hand edits",
+      "shared specs/microservices/manifests-index.json edits",
+      "microservices/sheets/manifest.json restoration",
+      "cloud/runtime surface changes",
+      "oya/CLI merge-authority or legacy gate expansion",
+      "Release Please metadata",
+      "FD-001 materiality claim",
+      "production, GA, live-SLO, or hyperscaler maturity claim"
+    ]
+  },
+  "allowed_paths": {
+    "this_task_write_paths": [
+      "specs/microservices/sheets.json"
+    ],
+    "this_task_read_paths": [
+      "specs/microservices/manifests-index.json",
+      "oya/sheets/manifest.json",
+      "oya/sheets/**",
+      "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_206f2483/sheets-source-map-and-backlog.md",
+      "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_ae08d222/workplace-app-source-authority-disposition.md"
+    ],
+    "future_plan_spec_allowed_prefixes": [
+      "specs/microservices/sheets.json",
+      "plan/sheets/",
+      "oya/sheets/specs/",
+      "oya/sheets/decisions/",
+      "evidence/sheets/"
+    ],
+    "future_build_allowed_prefixes_conditioned_on_review_and_red": [
+      "oya/sheets/",
+      "specs/fixtures/sheets/",
+      "scripts/tests/sheets_*.py"
+    ],
+    "conflict_class": "product-spec-authority-sheets-workplace-app",
+    "generated_faces_policy": "Never hand-edit *.generated.json; materializers own generated faces."
+  },
+  "evidence_expectations": {
+    "api_contract_replay": {
+      "required_before_build_or_rollout": true,
+      "surfaces": [
+        "oya/sheets/contracts/openapi/sheets.yaml",
+        "oya/sheets/contracts/asyncapi/sheets-events.yaml",
+        "oya/sheets/contracts/proto/sheets.proto"
+      ],
+      "minimum_scenarios": [
+        "open workbook session with tenant/RBAC header and license decision",
+        "read/write cell and range with per-range ACL",
+        "formula authoring, recalculation, circular/error cases, and dependency graph correctness",
+        "CRDT/collaboration merge and conflict-surfaced event flow",
+        "XLSX import/export request lifecycle",
+        "connected-query refresh and Workflow-trigger dispatch through explicit contracts"
+      ]
+    },
+    "browser_user_story_accessibility": {
+      "required_for_user_visible_slices": true,
+      "minimum_scenarios": [
+        "browser keyboard-only workbook open and grid navigation",
+        "formula entry with accessible error announcement",
+        "collaboration presence/conflict visibility without silent overwrite",
+        "range selection, protected range denial, and per-range ACL disclosure",
+        "import/export affordance and progress/error states",
+        "screen-reader and focus-order evidence for grid, formula bar, toolbar, comments, and dialogs"
+      ]
+    },
+    "security_data_policy": {
+      "required_for_data_or_policy_slices": true,
+      "minimum_scenarios": [
+        "tenant/RBAC and Cedar policy refusal for cross-tenant workbook access",
+        "data-class preservation for formulas, values, titles, paths, exports, and audit events",
+        "legal hold/retention and export boundary evidence",
+        "T2 automation human-control and audit-chain evidence before auto actions"
+      ]
+    },
+    "observability_slo": {
+      "required_when_performance_or_collaboration_touched": true,
+      "themes": [
+        "sheet open latency",
+        "cell edit render latency",
+        "formula engine correctness",
+        "recalculation latency at 100k and 1m cells",
+        "collab cursor sync latency",
+        "CRDT merge no silent loss",
+        "export XLSX latency",
+        "chart render latency"
+      ],
+      "claim_boundary": "These are target/inventory themes only until measured evidence exists."
+    }
+  },
+  "red_fixture_plan": {
+    "red_gate_task": "t_48991095",
+    "fanout_blocked_until_review_task_complete": "t_0b31b98c",
+    "fixture_objective": "Create failing checks that prove sheets source-map, legacy-path refusal, retired-AI terminology handling, API/event/proto contract mapping, and no-runtime-readiness claims are enforced before Build work starts.",
+    "candidate_fixture_paths": [
+      "specs/fixtures/sheets/source-map/valid-sheets-source-map.json",
+      "specs/fixtures/sheets/source-map/rejects-legacy-microservices-manifest.json",
+      "specs/fixtures/sheets/source-map/rejects-runtime-readiness-claim.json",
+      "scripts/tests/sheets_source_map_authority_check.py"
+    ],
+    "must_fail_when": [
+      "specs/microservices/sheets.json is missing or invalid JSON",
+      "the source map restores or prefers microservices/sheets/manifest.json",
+      "the source map treats oya/sheets/manifest.json or dirty oya/sheets/** inventory as runtime/product readiness",
+      "the source map omits API/AsyncAPI/proto replay expectations",
+      "the source map omits browser/user-story/accessibility expectations for UI slices",
+      "the source map allows Build fanout before independent Review/fix"
+    ]
+  },
+  "downstream_lifecycle_gates": {
+    "review_fix_source_lock": {
+      "task": "t_0b31b98c",
+      "required_before": [
+        "t_48991095",
+        "t_10bf9a15"
+      ],
+      "lenses": [
+        "authority/source-map fidelity",
+        "ADR-0131/ADR-0512 canonical path boundary",
+        "retired/legacy terminology handling",
+        "no runtime/product-readiness false claim",
+        "API/event/proto replay sufficiency",
+        "browser/user-story/accessibility sufficiency",
+        "security/data/policy and automation-control sufficiency"
+      ]
+    },
+    "red_fixture_contract": {
+      "task": "t_48991095",
+      "required_before": [
+        "t_10bf9a15"
+      ],
+      "exit": "Failing RED fixtures/checkers exist before Build touches runtime/product paths."
+    },
+    "future_build": {
+      "task": "t_10bf9a15",
+      "status": "blocked_pending_review_and_red",
+      "exit": "Build scope is narrowed to reviewed source map plus GREENing RED fixtures; no shared manifest-index or legacy microservices root edits."
+    },
+    "review_fix_build": {
+      "task": "t_84c542b5",
+      "exit": "Independent multispectrum review fixes or approves Build evidence before merge/rollout."
+    },
+    "merge_rollout_e2e": {
+      "task": "t_33ce3591",
+      "exit": "Protected PR, reviewer approval, oya-ci-required green, rollback note, observability check, API/contract replay, and browser/user-story/accessibility evidence where UI exists."
+    },
+    "learning_observation_harvest": {
+      "task": "t_eed75dd6",
+      "exit": "Agent observations, maturity gaps, follow-ups, and defects are converted into durable cards or documented duplicates."
+    }
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-SHEETS-SOURCE-LOCK-01",
+      "given": "a worker decomposes sheets RED or Build work",
+      "when": "it chooses source authority",
+      "then": "it cites specs/microservices/sheets.json plus the reviewed source-lock gate, not oya/sheets/manifest.json alone"
+    },
+    {
+      "id": "AC-SHEETS-SOURCE-LOCK-02",
+      "given": "legacy microservices/sheets paths appear in manifests, contracts, runbooks, SLOs, or catalog rows",
+      "when": "downstream work needs a live artifact path",
+      "then": "the worker maps to oya/sheets paths or creates a serialized path-repair card; it does not restore microservices/sheets/manifest.json"
+    },
+    {
+      "id": "AC-SHEETS-SOURCE-LOCK-03",
+      "given": "dirty oya/sheets inventory, contracts, crates, policy, IaC, SLOs, or runbooks exist",
+      "when": "a worker assesses readiness",
+      "then": "the artifacts are treated as provenance/inventory only until Review/fix, RED, Build, Review/fix Build, and rollout/E2E gates produce evidence"
+    },
+    {
+      "id": "AC-SHEETS-SOURCE-LOCK-04",
+      "given": "AI formula, smart-fill, foundry, or automation references appear",
+      "when": "a worker creates downstream implementation scope",
+      "then": "retired Foundry terminology is routed through current intelligence authority and T0/T1/T2 human-control, policy, and audit gates before implementation"
+    },
+    {
+      "id": "AC-SHEETS-SOURCE-LOCK-05",
+      "given": "a user-visible sheets slice is proposed",
+      "when": "the slice exits Review/fix or rollout",
+      "then": "browser/user-story/accessibility evidence covers keyboard grid navigation, formula errors, collaboration visibility, ACL disclosure, and import/export states"
+    }
+  ],
+  "non_claims": [
+    "No runtime or product code is created, approved, or made production-ready by this source map.",
+    "No handler, storage adapter, queue, collaboration server, formula engine, XLSX pipeline, AI formula runtime, cloud deployment, live SLO, GA/customer availability, FD-001 materiality, or hyperscaler maturity claim is made.",
+    "No generated JSON hand edits are authorized.",
+    "No specs/microservices/manifests-index.json edit is authorized by this task.",
+    "No microservices/sheets/manifest.json restoration is authorized.",
+    "No legacy oya CLI or local bridge output is promoted to merge authority."
+  ]
+}

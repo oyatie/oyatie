@@ -1,0 +1,23 @@
+[package]
+name = "oya-cloud-ci-load-balancer-inventory-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# load-balancer-inventory: pure readiness gate packet for tenant-facing Service.type=LoadBalancer taxonomy.
+
+[lib]
+name = "oya_cloud_ci_load_balancer_inventory_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

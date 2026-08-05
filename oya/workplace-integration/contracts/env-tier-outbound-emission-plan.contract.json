@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "workplace-integration-env-tier-outbound-emission-plan-v1",
+  "status": "metadata_only_plan_spec_red_guardrail",
+  "doc_class": "Machine-Readable-Contract",
+  "kanban_task": "t_b9a76f37",
+  "parent_plan_spec_task": "t_cf19286a",
+  "related_task_refs": [
+    "t_cf19286a",
+    "t_732855bf",
+    "t_86da510f"
+  ],
+  "source_authority_refs": [
+    "specs/root-hub-pointers.json#entry_points.agent_operating_contract",
+    "specs/tenant-environment-tiers-canonical.json#tier_definitions",
+    "kanban:t_cf19286a#workplace-integration-requirements",
+    "kanban:t_732855bf#tenancy-api-cedar-env-tier-contract",
+    "kanban:t_86da510f#outbound-effect-inventory",
+    "oya/workplace-integration/manifest.json#contracts",
+    "oya/workplace-integration/contracts/openapi-v1.yaml",
+    "oya/workplace-integration/contracts/asyncapi-v1.yaml",
+    "oya/workplace-integration/contracts/workplace-integration-v1.proto"
+  ],
+  "claim_boundary": [
+    "metadata-only contract and RED fixture guardrail",
+    "no live e-sign provider call",
+    "no workplace external delivery",
+    "no payment execution",
+    "no webhook delivery",
+    "no production traffic",
+    "no runtime audit-chain emission",
+    "no outbound delivery worker",
+    "no hyperscaler maturity claim",
+    "no generated JSON hand edits"
+  ],
+  "canonical_tier_mapping": {
+    "test": {
+      "env_tier": "test",
+      "derived_outbound_mode": "intercept",
+      "allowed_destination_binding_ref": null,
+      "required_behavior": "intercept/log-only metadata capture; no external e-sign, workplace notification, offer, roster, payment-adjacent webhook, provider, URL, email, or object-store delivery",
+      "audit_chain_tag": "env_tier=test"
+    },
+    "staging": {
+      "env_tier": "staging",
+      "derived_outbound_mode": "test_recipients",
+      "allowed_destination_binding_ref_prefixes": [
+        "workplace-integration-destination/{tenant_id}/staging/qa/",
+        "workplace-integration-destination/{tenant_id}/staging/test/",
+        "workplace-integration-destination/{tenant_id}/staging/sandbox/"
+      ],
+      "required_behavior": "tenant-configured QA/test e-sign recipient, offer recipient, roster endpoint, workplace endpoint, or payment-adjacent webhook sandbox only; absence of that binding fails closed",
+      "audit_chain_tag": "env_tier=staging"
+    },
+    "prod": {
+      "env_tier": "prod",
+      "derived_outbound_mode": "live",
+      "allowed_destination_binding_ref_prefixes": [
+        "workplace-integration-destination/{tenant_id}/prod/live/"
+      ],
+      "required_behavior": "live metadata plan is admissible only with tenancy/env-tier policy evidence plus consent or authorization evidence; runtime delivery remains out of scope",
+      "audit_chain_tag": "env_tier=prod"
+    }
+  },
+  "emission_plan_metadata_contract": {
+    "required_fields": [
+      "tenant_id",
+      "env_tier",
+      "outbound_mode",
+      "action_class",
+      "destination_binding_ref",
+      "consent_policy_evidence_ref",
+      "tenancy_env_tier_evidence_ref",
+      "runtime_delivery_authorized",
+      "claim_boundary"
+    ],
+    "env_tier_enum": [
+      "test",
+      "staging",
+      "prod"
+    ],
+    "action_class_enum": [
+      "esign_session_initiation",
+      "esign_signature_capture",
+      "offer_generation",
+      "roster_binding",
+      "workplace_external_notification",
+      "payment_adjacent_webhook"
+    ],
+    "outbound_mode_is_derived_from_env_tier": true,
+    "destination_binding_ref_value_rule": "null only for test/intercept plans; staging and prod require tenant-scoped metadata references matching their tier-specific prefixes",
+    "consent_policy_evidence_ref_prefix": "policy-evidence/workplace-integration/{tenant_id}/{env_tier}/",
+    "tenancy_env_tier_evidence_ref_prefix": "tenancy-evidence/workplace-integration/{tenant_id}/{env_tier}/env-tier/",
+    "metadata_only_ref_rules": [
+      "references must be stable metadata handles, not URLs, credentials, tokens, API keys, headers, secret names, or inline payloads",
+      "references must bind the same tenant_id as the emission plan unless an explicit reviewed cross-tenant policy evidence ref is added by a future card",
+      "fixtures must never contain real recipient addresses, live endpoints, signed URLs, object-store credentials, bearer tokens, OpenBao paths, e-sign provider keys, webhook signing secrets, or payment credentials"
+    ]
+  },
+  "secret_like_markers_forbidden_in_fixtures": [
+    "secret",
+    "token",
+    "api_key",
+    "api-key",
+    "bearer",
+    "authorization:",
+    "password",
+    "credential",
+    "private_key",
+    "client_secret",
+    "webhook-secret",
+    "signing-secret",
+    "provider-key",
+    "sk_"
+  ],
+  "fail_closed_validation_rules": [
+    {
+      "rule_id": "WPI-ENV-TIER-REQUIRED",
+      "denial_reason": "missing_env_tier",
+      "must_block_before": "workplace/e-sign/offer/roster/payment-adjacent emission plan admission"
+    },
+    {
+      "rule_id": "WPI-OUTBOUND-MODE-DERIVED",
+      "denial_reason": "outbound_mode_not_derived_from_env_tier",
+      "must_block_before": "any destination binding or runtime adapter selection"
+    },
+    {
+      "rule_id": "WPI-TEST-INTERCEPT-ONLY",
+      "denial_reason": "test_tier_external_delivery_forbidden",
+      "must_block_before": "external e-sign, workplace, offer, roster, payment-adjacent webhook, provider, email, URL, or object-store delivery"
+    },
+    {
+      "rule_id": "WPI-STAGING-QA-DESTINATION-REQUIRED",
+      "denial_reason": "staging_qa_destination_required",
+      "must_block_before": "staging e-sign/offer/roster/workplace/payment-adjacent webhook metadata admission"
+    },
+    {
+      "rule_id": "WPI-STAGING-NO-LIVE-DESTINATION",
+      "denial_reason": "staging_destination_must_be_qa_or_test",
+      "must_block_before": "staging destination binding admission"
+    },
+    {
+      "rule_id": "WPI-PROD-LIVE-DESTINATION-REQUIRED",
+      "denial_reason": "prod_destination_must_be_live",
+      "must_block_before": "prod destination binding admission"
+    },
+    {
+      "rule_id": "WPI-EVIDENCE-REF-SCOPE-REQUIRED",
+      "denial_reason": "evidence_ref_must_match_tenant_and_env_tier",
+      "must_block_before": "consent/policy or tenancy/env-tier evidence reference admission"
+    },
+    {
+      "rule_id": "WPI-PROD-TENANCY-ENV-TIER-EVIDENCE-REQUIRED",
+      "denial_reason": "prod_tenancy_env_tier_evidence_required",
+      "must_block_before": "prod live workplace/e-sign/offer/roster/payment-adjacent metadata admission"
+    },
+    {
+      "rule_id": "WPI-PROD-CONSENT-AUTHORIZATION-EVIDENCE-REQUIRED",
+      "denial_reason": "prod_consent_authorization_evidence_required",
+      "must_block_before": "prod live workplace/e-sign/offer/roster/payment-adjacent metadata admission"
+    },
+    {
+      "rule_id": "WPI-CROSS-TENANT-DESTINATION-DENIED",
+      "denial_reason": "cross_tenant_destination_forbidden",
+      "must_block_before": "destination binding admission"
+    },
+    {
+      "rule_id": "WPI-SECRET-LIKE-REF-DENIED",
+      "denial_reason": "secret_like_destination_or_evidence_ref_forbidden",
+      "must_block_before": "fixture or metadata reference acceptance"
+    },
+    {
+      "rule_id": "WPI-RUNTIME-CLAIM-FORBIDDEN",
+      "denial_reason": "runtime_delivery_claim_forbidden_in_metadata_lane",
+      "must_block_before": "runtime delivery, e-sign provider call, workplace external delivery, payment execution, webhook delivery, production traffic, audit-chain writer, or hyperscaler claim"
+    }
+  ],
+  "red_fixture_contract": {
+    "fixture_file": "oya/workplace-integration/contracts/fixtures/env-tier-outbound-emission-plan/red-fixtures.json",
+    "required_negative_cases": [
+      "missing_env_tier_denied",
+      "derived_outbound_mode_mismatch_denied",
+      "test_intercept_external_delivery_denied",
+      "staging_without_qa_destination_denied",
+      "staging_live_destination_denied",
+      "staging_live_destination_with_qa_label_denied",
+      "prod_non_live_destination_denied",
+      "evidence_ref_wrong_tenant_denied",
+      "evidence_ref_wrong_env_tier_denied",
+      "prod_without_tenancy_env_tier_policy_evidence_denied",
+      "prod_without_consent_authorization_evidence_denied",
+      "cross_tenant_destination_denied",
+      "cross_tenant_destination_with_matching_suffix_denied",
+      "secret_like_destination_or_evidence_ref_denied",
+      "runtime_delivery_claim_denied"
+    ],
+    "required_positive_cases": [
+      "test_intercept_log_only_metadata_preserved",
+      "staging_test_recipients_qa_destination_preserved",
+      "prod_live_with_policy_and_consent_evidence_metadata_preserved"
+    ],
+    "green_owner": "oya/workplace-integration/crates/oya-workplace-integration-outbound-metadata-domain"
+  },
+  "serialization_requirements": [
+    "shared env-tier schemas and API gateway routing remain outside this lane",
+    "tenancy API/Cedar/env-tier policy surfaces from t_732855bf remain upstream dependencies",
+    "runtime e-sign provider, workplace external delivery, payment execution, webhook delivery, production traffic, and audit-chain emission workers remain separate implementation lanes",
+    "generated *.generated.json materialization remains producer/materializer-owned and must not be hand-edited"
+  ],
+  "verification_plan": [
+    "json-parse this contract and the RED fixture suite",
+    "run the Rust guardrail tests for oya-workplace-integration-outbound-metadata-domain",
+    "re-run exact env_tier/outbound_mode/test_recipients/sk_* search before and after across oya/workplace-integration/**",
+    "run scoped Cargo/Buck/YAML/proto checks for touched workplace-integration paths"
+  ]
+}

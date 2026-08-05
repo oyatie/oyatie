@@ -1,0 +1,103 @@
+schema_version: 1.0
+doc_class: Plan/Spec/RED contract
+contract_id: PLAN-SPEC-ENV-TIER-WORKFLOW-STUDIO-001
+task_id: t_37183522
+status: readiness-only
+owner: axis-workflow-studio
+authority:
+  accepted_spec: /specs/tenant-environment-tiers-canonical.json#workflow_studio_integration
+  upstream_tenancy_contract_card: t_732855bf
+  readiness_parent: t_86da510f
+  source_readiness_map: t_90f6a9d8
+  authority_freshness_parent: t_9e9a32a5
+non_claim_boundary:
+  - This contract is metadata-only Plan/Spec/RED evidence.
+  - It does not create tenant environments.
+  - It does not enable live workflow promotion.
+  - It does not execute workflows or deliver outbound effects.
+  - It does not claim production or hyperscaler readiness.
+  - It does not authorize hand edits to generated *.generated.json outputs.
+default_new_flow_tier_contract:
+  field: env_tier
+  allowed_values: [test, staging, prod]
+  required_on_persisted_definition: true
+  default_for_new_definition: test
+  default_source: tenancy env-tier API/Cedar contract from t_732855bf
+  default_rule: >-
+    Workflow Studio definition creation resolves env_tier from the tenancy env-tier
+    authority; if the caller omits env_tier, the persisted definition MUST carry
+    env_tier=test. If a caller attempts to create a new definition directly in
+    staging or prod, Studio MUST reject the request unless a later runtime lane adds
+    an approved import/promotion path with ChangeSet evidence.
+  audit_chain_tag_format: env_tier=<test|staging|prod>
+studio_save_publish_contract:
+  save:
+    requires:
+      - definition_id
+      - version_sha
+      - env_tier
+      - tenancy_env_tier_policy_ref
+      - audit_chain_tag
+    fail_closed_when:
+      - env_tier is missing
+      - env_tier is not one of test/staging/prod
+      - authenticated tenant_id does not match definition tenant_id
+      - tenancy_env_tier_policy_ref tenant_id or env_tier does not match the definition
+      - prod save lacks cedar_preview_acknowledged=true and prod_destructive_acknowledged=true when destructive or outbound-producing steps are present
+  publish:
+    semantics: >-
+      Publish binds a saved version to the current env_tier but does not execute it.
+      Publishing to staging or prod is a promotion-sensitive state transition and
+      MUST carry ChangeSet-style approval/evidence references.
+    fail_closed_when:
+      - published env_tier does not equal the saved definition env_tier
+      - staging publish lacks test_recipient_policy_ref when outbound-capable nodes are present
+      - prod publish lacks changeset_approval_ref, live_policy_evidence_ref, and outbound_acknowledged=true when outbound-capable nodes are present
+promotion_ladder_contract:
+  ordered_ladder: [test, staging, prod]
+  allowed_transitions:
+    - from: test
+      to: staging
+      requires:
+        - changeset_approval_ref
+        - test_recipient_policy_ref when outbound-capable nodes are present
+        - audit_chain_tag=env_tier=staging
+    - from: staging
+      to: prod
+      requires:
+        - changeset_approval_ref
+        - live_policy_evidence_ref
+        - prod_destructive_acknowledged=true when destructive operations are present
+        - outbound_acknowledged=true when outbound-capable nodes are present
+        - audit_chain_tag=env_tier=prod
+  forbidden_transitions:
+    - test -> prod
+    - prod -> staging
+    - prod -> test
+    - staging -> test
+  demotion_policy: >-
+    Demotion is forbidden in this Plan/Spec lane. Future rollback must be modeled as a
+    new ChangeSet and new version in the target tier, not mutation of a prod definition
+    into a lower tier.
+engine_handoff_contract:
+  handoff_surface: workflow-engine spec-store
+  required_fields:
+    - env_tier
+    - tenancy_env_tier_policy_ref
+    - promotion_evidence_ref when env_tier is staging or prod
+    - audit_chain_tag
+  engine_obligation: >-
+    Studio MUST submit env_tier and evidence metadata to workflow-engine; engine is
+    responsible for preserving and validating the metadata before run start.
+red_fixture_contract:
+  metadata_fixture: /Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_37183522/workflow-env-tier-red-fixtures.json
+  required_red_cases:
+    - missing env_tier
+    - invalid direct test->prod promotion
+    - invalid demotion
+    - cross-tenant tier mismatch
+    - prod action without required evidence
+serialization_requirements:
+  - Serialize edits to oya/workflow-studio/contracts/**, oya/workflow-studio/policy/**, and oya/workflow-studio/manifest.json.
+  - Runtime tenancy API/Cedar implementation remains owned by t_732855bf descendants and must not be mutated here.
+  - Cloud-ci tenant-environment-tier packet, root-hub/masterplan shared roots, API gateway routing, and generated outputs require separate serialized lanes.

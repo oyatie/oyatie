@@ -227,62 +227,20 @@
       "superseded"
     ],
     "allowed_transitions": [
-      [
-        "requested",
-        "authorized"
-      ],
-      [
-        "authorized",
-        "opened"
-      ],
-      [
-        "opened",
-        "material_generated"
-      ],
-      [
-        "material_generated",
-        "shares_issued"
-      ],
-      [
-        "shares_issued",
-        "seed_signed"
-      ],
-      [
-        "seed_signed",
-        "sealed"
-      ],
-      [
-        "sealed",
-        "published_refs"
-      ],
-      [
-        "requested",
-        "aborted"
-      ],
-      [
-        "authorized",
-        "aborted"
-      ],
-      [
-        "opened",
-        "aborted"
-      ],
-      [
-        "material_generated",
-        "aborted"
-      ],
-      [
-        "shares_issued",
-        "aborted"
-      ],
-      [
-        "seed_signed",
-        "aborted"
-      ],
-      [
-        "published_refs",
-        "superseded"
-      ]
+      ["requested", "authorized"],
+      ["authorized", "opened"],
+      ["opened", "material_generated"],
+      ["material_generated", "shares_issued"],
+      ["shares_issued", "seed_signed"],
+      ["seed_signed", "sealed"],
+      ["sealed", "published_refs"],
+      ["requested", "aborted"],
+      ["authorized", "aborted"],
+      ["opened", "aborted"],
+      ["material_generated", "aborted"],
+      ["shares_issued", "aborted"],
+      ["seed_signed", "aborted"],
+      ["published_refs", "superseded"]
     ],
     "transition_rules": [
       "Every transition appends an audit event id to audit_chain_event_ids.",
@@ -454,26 +412,12 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "participant_id",
-            "roles"
-          ],
+          "required": ["participant_id", "roles"],
           "properties": {
-            "participant_id": {
-              "type": "string"
-            },
-            "roles": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "jurisdiction": {
-              "type": "string"
-            },
-            "witness_signature_ref": {
-              "type": "string"
-            }
+            "participant_id": {"type": "string"},
+            "roles": {"type": "array", "items": {"type": "string"}},
+            "jurisdiction": {"type": "string"},
+            "witness_signature_ref": {"type": "string"}
           }
         }
       },
@@ -481,82 +425,29 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "root_ca_public_certificate_ref": {
-            "type": "string"
-          },
-          "root_ca_fingerprint": {
-            "type": "string"
-          },
-          "kms_domain_id": {
-            "type": "string"
-          },
-          "kms_root_id": {
-            "type": "string"
-          },
-          "public_wrapping_key_fingerprint": {
-            "type": "string"
-          },
-          "hsm_attestation_ref": {
-            "type": "string"
-          },
-          "bootstrap_exception_ref": {
-            "type": "string"
-          },
-          "threshold": {
-            "type": "integer",
-            "minimum": 2
-          },
-          "share_count": {
-            "type": "integer",
-            "minimum": 2
-          },
-          "holder_receipt_refs": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "jurisdiction_distribution": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          "sealed_media_inventory_refs": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "credential_set_id": {
-            "type": "string"
-          },
-          "public_credential_hashes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "dns_seed_snapshot_digest": {
-            "type": "string"
-          },
-          "dns_seed_signature_digest": {
-            "type": "string"
-          },
-          "manifest_digest": {
-            "type": "string"
-          },
-          "secret_scan_summary_ref": {
-            "type": "string"
-          }
+          "root_ca_public_certificate_ref": {"type": "string"},
+          "root_ca_fingerprint": {"type": "string"},
+          "kms_domain_id": {"type": "string"},
+          "kms_root_id": {"type": "string"},
+          "public_wrapping_key_fingerprint": {"type": "string"},
+          "hsm_attestation_ref": {"type": "string"},
+          "bootstrap_exception_ref": {"type": "string"},
+          "threshold": {"type": "integer", "minimum": 2},
+          "share_count": {"type": "integer", "minimum": 2},
+          "holder_receipt_refs": {"type": "array", "items": {"type": "string"}},
+          "jurisdiction_distribution": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+          "sealed_media_inventory_refs": {"type": "array", "items": {"type": "string"}},
+          "credential_set_id": {"type": "string"},
+          "public_credential_hashes": {"type": "array", "items": {"type": "string"}},
+          "dns_seed_snapshot_digest": {"type": "string"},
+          "dns_seed_signature_digest": {"type": "string"},
+          "manifest_digest": {"type": "string"},
+          "secret_scan_summary_ref": {"type": "string"}
         }
       },
       "audit_chain_event_ids": {
         "type": "array",
-        "items": {
-          "type": "string"
-        }
+        "items": {"type": "string"}
       },
       "secret_redaction_attestation": {
         "type": "object",
@@ -567,19 +458,9 @@
           "scanner_summary_ref"
         ],
         "properties": {
-          "contains_secret_material": {
-            "const": false
-          },
-          "reviewer_ids": {
-            "type": "array",
-            "minItems": 2,
-            "items": {
-              "type": "string"
-            }
-          },
-          "scanner_summary_ref": {
-            "type": "string"
-          }
+          "contains_secret_material": {"const": false},
+          "reviewer_ids": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+          "scanner_summary_ref": {"type": "string"}
         }
       }
     }

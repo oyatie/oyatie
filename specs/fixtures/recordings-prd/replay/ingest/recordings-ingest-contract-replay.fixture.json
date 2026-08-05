@@ -1,0 +1,97 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/recordings-prd-replay-artifact.schema.json",
+  "slice_id": "recordings_ingest_idempotency_domain_slice",
+  "fixture_id": "recordings_ingest_contract_replay_fixture",
+  "status": "bounded-slice-green",
+  "kanban_task": "t_d519e221",
+  "claim_boundary": "Bounded non-UI domain/kernel slice only: source-locked ingest request validation, content-hash verification, and idempotency classification. No HTTP handler, no gRPC server, object storage adapter, transcript pipeline, deployment, product readiness, measured SLO, customer availability, or broader recordings implementation claim; no broader recordings slice is claimed here.",
+  "source_authority_refs": [
+    "specs/microservices/recordings.json#acceptance_criteria[AC-REC-01]",
+    "specs/microservices/recordings.json#test_fixture_plan.required_fixtures[name=recordings_ingest_contract_replay]",
+    "specs/fixtures/recordings-prd/red-fixtures.json#fixtures[recordings_ingest_contract_replay_fixture]",
+    "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1ingest~1presign",
+    "oya/recordings/contracts/openapi/recordings.yaml#/paths/~1ingest~1finalize",
+    "oya/recordings/contracts/asyncapi/recordings-events.yaml#channels/meet.session.ended.v1",
+    "oya/recordings/contracts/asyncapi/recordings-events.yaml#channels/messenger.huddle.ended.v1",
+    "oya/recordings/contracts/asyncapi/recordings-events.yaml#channels/recordings.recording.ingested.v1",
+    "oya/recordings/contracts/proto/recordings.proto#RecordingIngestRequest",
+    "oya/recordings/contracts/proto/recordings.proto#RecordingIngestResponse",
+    "oya/recordings/contracts/proto/recordings.proto#RecordingsIngest.Ingest",
+    "oya/recordings/crates/oya-recordings-domain/src/lib.rs#RecordingIngestRequest",
+    "oya/recordings/crates/oya-recordings-domain/src/lib.rs#RecordingIngestReceipt",
+    "oya/recordings/crates/oya-recordings-domain/src/lib.rs#classify_idempotent_ingest"
+  ],
+  "replayed_contract_surfaces": {
+    "openapi_paths": [
+      "POST /ingest/presign",
+      "POST /ingest/finalize"
+    ],
+    "asyncapi_channels": [
+      "meet.session.ended.v1",
+      "messenger.huddle.ended.v1",
+      "recordings.recording.ingested.v1"
+    ],
+    "proto_symbols": [
+      "oyatie.recordings.v1.RecordingIngestRequest",
+      "oyatie.recordings.v1.RecordingIngestResponse",
+      "RecordingsIngest.Ingest"
+    ],
+    "rust_symbols": [
+      "RecordingIngestRequestCreate",
+      "RecordingIngestRequest",
+      "RecordingIngestReceipt",
+      "RecordingIngestDecision",
+      "classify_idempotent_ingest"
+    ]
+  },
+  "must_assert": [
+    "tenant_id",
+    "source_kind",
+    "content_hash",
+    "context_kind",
+    "consent_banner_confirmed",
+    "cell_id",
+    "parent_audit_chain_ref",
+    "idempotency_key",
+    "producer_spiffe_id",
+    "content_hash_verified",
+    "ingest_audit_chain_ref",
+    "same tenant plus idempotency key plus same content hash returns AlreadyAccepted",
+    "no UI path touched; browser/user-story/accessibility evidence N/A for this non-UI kernel slice"
+  ],
+  "must_reject": [
+    "ingest finalize without consent banner",
+    "ingest without content_hash",
+    "malformed content_hash that does not match ^sha256:[0-9a-f]{64}$",
+    "duplicate idempotency key with mismatched content hash",
+    "producer without mTLS/SPIFFE spiffe:// identity",
+    "missing or malformed audit-chain: parent audit-chain reference",
+    "ended_at later than ingested_at",
+    "HTTP handler readiness from domain-only slice",
+    "gRPC server readiness from proto/domain-only slice",
+    "object storage or transcript pipeline readiness",
+    "UI readiness from green CI alone"
+  ],
+  "observability_slo_evidence": {
+    "runtime_path": false,
+    "rationale": "Domain validation/idempotency classifier has no running service, HTTP/gRPC handler, queue, storage adapter, or measured SLO path in this bounded slice. Future handler/adapter slices must add runtime OTel/SLO evidence before readiness claims."
+  },
+  "ui_accessibility_evidence": {
+    "runtime_ui_path": false,
+    "rationale": "No UI/user path touched. AC-REC-06 browser/user-story/accessibility evidence remains required for future recordings UI slices."
+  },
+  "verification_commands": [
+    {
+      "command": "CARGO_TARGET_DIR=/tmp/oyatie-t_d519e221-recordings-target CARGO_BUILD_JOBS=1 cargo test -p oya-recordings-domain ingest_ --lib -- --nocapture",
+      "expected": "2 ingest/idempotency tests pass"
+    },
+    {
+      "command": "python3 scripts/tests/recordings_prd_red_fixture_contract_check.py --slice ingest",
+      "expected": "ingest replay slice passes against source map, RED manifest, OpenAPI, AsyncAPI, proto, Rust symbols, and this replay artifact"
+    },
+    {
+      "command": "python3 scripts/tests/recordings_prd_red_fixture_contract_check.py",
+      "expected": "remaining RED for future non-ingest replay artifacts; not a full recordings readiness claim"
+    }
+  ]
+}

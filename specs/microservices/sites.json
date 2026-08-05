@@ -1,0 +1,690 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/microservices/sites.schema.json",
+  "title": "MicroservicePrd:Sites",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-SITES",
+    "version": "1.0.0",
+    "status": "Draft",
+    "owner_team": "axis-sites",
+    "created_at": "2026-07-01T00:00:00Z",
+    "source_lock_task": "t_2d3ff6c7",
+    "purpose": "Sites workplace-app PRD/source-authority lock: tenant-scoped website authoring, page/block editing, CMS collections, SEO validation, domain binding, publish/CDN handoff, search indexing, and audit/policy evidence expectations. This file is a planning/source-lock artifact only and must not be treated as runtime, production-readiness, measured-SLO, fd001_material=true, or implementation evidence."
+  },
+  "identity": {
+    "product_id": "sites",
+    "owning_axis": "workspace-productivity",
+    "product_class": "service",
+    "user_facing_surface": true,
+    "context_model": [
+      "work",
+      "tenant-public"
+    ],
+    "canonical_service_root": "oya/sites/",
+    "source_authority_path": "specs/microservices/sites.json",
+    "inventory_manifest_path": "oya/sites/manifest.json",
+    "manifest_role": "inventory_and_provenance_only",
+    "bounded_contexts": [
+      "site",
+      "page",
+      "block",
+      "cms-collection",
+      "search",
+      "domain-binding",
+      "cdn-delivery"
+    ],
+    "planned_crate_refs": [
+      "oya-sites-site-kernel",
+      "oya-sites-site-app",
+      "oya-sites-page-kernel",
+      "oya-sites-page-app",
+      "oya-sites-page-adapter-postgres",
+      "oya-sites-block-adapter-loro",
+      "oya-sites-cms-collection-adapter-postgres",
+      "oya-sites-search-adapter-meilisearch",
+      "oya-sites-domain-binding-app",
+      "oya-sites-domain-binding-adapter-acme",
+      "oya-sites-domain-binding-adapter-cert-manager",
+      "oya-sites-cdn-delivery-app"
+    ],
+    "ops_surface": "Future runtime work is managed through canonical cloud-ci/Rust gate packets, OpenTofu/Kubernetes/IaC artifacts under oya/sites, and protected PR governance; legacy oya CLI output is local-feedback/provenance only."
+  },
+  "authority_and_source_refs": {
+    "accepted_authorities": [
+      "specs/root-hub-pointers.json",
+      "docs/AGENTS.md",
+      "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "specs/microservices/manifests-index.json#microservices[name=sites]"
+    ],
+    "neighboring_source_lock_examples": [
+      "specs/microservices/calendar.json",
+      "specs/microservices/anonymous.json",
+      "specs/microservices/social.json"
+    ],
+    "inventory_and_contract_provenance": [
+      "oya/sites/manifest.json",
+      "oya/sites/contracts/openapi/sites.yaml",
+      "oya/sites/contracts/proto/sites.proto",
+      "oya/sites/contracts/asyncapi/sites-events.yaml",
+      "oya/sites/policy/tenant-scope.cedar",
+      "oya/sites/policy/public-read.cedar",
+      "oya/sites/policy/auditor-scope.cedar",
+      "oya/sites/policy/ci-scope.cedar",
+      "oya/sites/cedar/policies.cedar",
+      "oya/sites/runbooks/",
+      "oya/sites/slos/",
+      "oya/sites/dashboards/"
+    ],
+    "retired_or_historical_sources": [
+      {
+        "path": "microservices/sites/manifest.json",
+        "disposition": "retired_absent_provenance_only",
+        "replacement_authority": "oya/sites/manifest.json as inventory/provenance plus specs/microservices/sites.json as source-lock PRD",
+        "must_not_recreate": true
+      },
+      {
+        "path": "microservices/sites/**",
+        "disposition": "legacy_path_references_from_pre-ADR-0512_inventory; normalize to oya/sites/** when an equivalent current artifact exists, otherwise treat as historical/provenance only",
+        "must_not_recreate": true
+      }
+    ],
+    "source_map_decision": "PRD-SITES is the machine-readable source-authority lock for downstream Plan/Spec/RED fanout. oya/sites/manifest.json and colocated contracts are inspected inputs only and do not by themselves prove live implementation readiness."
+  },
+  "target_users": [
+    {
+      "persona": "workspace_content_author",
+      "interface": "site editor, page/block composer, CMS collection editor",
+      "billing": "workspace seat plus publish/build usage units"
+    },
+    {
+      "persona": "marketing_or_internal_comms_owner",
+      "interface": "templates, navigation, SEO checks, publish queue, rollback controls",
+      "billing": "workspace seat plus public traffic/CDN usage"
+    },
+    {
+      "persona": "enterprise_it_admin",
+      "interface": "domain binding, access policy, legal hold, audit/export console",
+      "billing": "tenant admin entitlement"
+    },
+    {
+      "persona": "compliance_or_auditor",
+      "interface": "audit-chain events, legal-hold state, publication history, policy denials",
+      "billing": "compliance entitlement"
+    },
+    {
+      "persona": "public_or_intranet_reader",
+      "interface": "published site, search, sitemap, robots, public/intranet content",
+      "billing": "tenant traffic/CDN consumption"
+    },
+    {
+      "persona": "workflow_or_app_integrator",
+      "interface": "REST/gRPC APIs, AsyncAPI events, Workflow/Ontology handoff contracts",
+      "billing": "API and workflow execution units"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "tenant-scoped site create/read/update/delete planning contract",
+        "page draft lifecycle with portable block model",
+        "publish refusal contract for WCAG/SEO failures",
+        "custom domain binding and ACME challenge planning contract",
+        "contract replay fixtures across OpenAPI, gRPC, and AsyncAPI",
+        "legal-hold and tenant-policy refusal fixtures"
+      ],
+      "stable": [
+        "CMS collections and entries scoped to a site",
+        "publish queue and rollback/revert semantics",
+        "CDN cache purge cascade and signed purge refusals",
+        "site search indexing and public/intranet/private visibility filtering",
+        "audit-chain seal pointer in every lifecycle event envelope",
+        "regional pack overlays for KR, US, EU, and regulated tenant classes"
+      ],
+      "GA": [
+        "domain and certificate lifecycle automation with measured renewal evidence",
+        "browser/user-story accessibility evidence for create-edit-publish-bind-domain flows",
+        "measured SLOs, rollout/rollback, observability, and release-governance evidence",
+        "safe assisted page-build only where autonomy tier and regulatory overlay permit it"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "runtime implementation or production readiness from this source-lock slice",
+        "why": "This task authors planning/source authority only; RED, Build, Review, Merge, Rollout, and live E2E remain downstream gates."
+      },
+      {
+        "item": "promotion of inventory manifest claims to fd001_material=true or production evidence",
+        "why": "manifests-index.json explicitly marks sites inventory/provenance only and forbids readiness claims without Plan/Spec/RED gates."
+      },
+      {
+        "item": "restoring or depending on legacy microservices/sites/** paths",
+        "why": "ADR-0131 and ADR-0512 establish oya/sites/ as current service home; old paths are historical/provenance only."
+      },
+      {
+        "item": "unreviewed AI-generated or autonomous publication in sensitive contexts",
+        "why": "high-risk HR/legal/medical/employment/credit contexts require refusal or higher-governance work before build."
+      },
+      {
+        "item": "shared manifest/index mutations",
+        "why": "the allowed edit path for this card is specs/microservices/sites.json only."
+      }
+    ],
+    "allowed_paths_for_this_source_lock": [
+      "specs/microservices/sites.json"
+    ],
+    "forbidden_paths_for_this_source_lock": [
+      "specs/microservices/manifests-index.json",
+      "microservices/sites/manifest.json",
+      "microservices/sites/**",
+      "oya/sites/** runtime or inventory promotion edits",
+      "cloud/**",
+      "*.generated.json",
+      "Release Please metadata"
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-SITES-01",
+      "given": "a workspace author creates a site",
+      "when": "the site is persisted or represented in a RED fixture",
+      "then": "tenant_id, owner_user_id, visibility, version, created_at, updated_at, and legal_hold_open are present; tenant policy denies cross-tenant reads",
+      "verification_command": "future RED: contract replay + tenant-policy refusal fixture for SiteCreateRequest/Site"
+    },
+    {
+      "id": "AC-SITES-02",
+      "given": "a page draft contains blocks and SEO metadata",
+      "when": "publish is requested",
+      "then": "WCAG 2.2 AA and SEO metadata checks can refuse publish with a typed 422/error; no published_version advances on refusal",
+      "verification_command": "future RED: WCAG/SEO publish-refusal fixture plus browser accessibility journey"
+    },
+    {
+      "id": "AC-SITES-03",
+      "given": "a page or site is under legal hold",
+      "when": "delete, purge, or retention expiry is requested",
+      "then": "the operation is refused or requires approved legal-hold release, and an audit-chain event records the refusal/release path",
+      "verification_command": "future RED: legal-hold delete/purge refusal and two-person approval fixture"
+    },
+    {
+      "id": "AC-SITES-04",
+      "given": "a custom domain is bound",
+      "when": "DNS verification and ACME challenge run",
+      "then": "domain lifecycle events include tenant_id, pack_tag, domain, certificate metadata, audit_chain_seal_pointer, and revocation/retry semantics",
+      "verification_command": "future RED: domain-binding/ACME fixture across REST, gRPC, and AsyncAPI"
+    },
+    {
+      "id": "AC-SITES-05",
+      "given": "a published page changes or reverts",
+      "when": "the publish/revert event is emitted",
+      "then": "search indexing and CDN purge cascade fixtures can verify content_hash, route, version, and signed purge scope without allowing broad '/' invalidation",
+      "verification_command": "future RED: CDN/cache purge cascade and search reindex event fixture"
+    },
+    {
+      "id": "AC-SITES-06",
+      "given": "a site exposes public, intranet, private, and draft visibility states",
+      "when": "read/search/sitemap/robots endpoints are called",
+      "then": "public readers see only public content, intranet readers require tenant policy, private/draft content is never indexed publicly, and robots/sitemap reflect visibility",
+      "verification_command": "future RED: visibility/search/sitemap/robots contract replay fixture"
+    },
+    {
+      "id": "AC-SITES-07",
+      "given": "a CMS collection backs page content or newsletter/form integrations",
+      "when": "collection schema or entry content changes",
+      "then": "schema_hash/fields_hash/version evidence is emitted and downstream forms/mail/docs/community integrations route through contracts, not direct product crate calls",
+      "verification_command": "future RED: CMS collection event envelope and cross-service mediation guard"
+    },
+    {
+      "id": "AC-SITES-08",
+      "given": "T2 assisted page build is requested",
+      "when": "the context overlay is HR, legal, medical, employment, credit, or otherwise high-risk under regional policy",
+      "then": "the request is refused with policy citation; allowed low-risk assists remain reversible, user-accepted, and audit logged",
+      "verification_command": "future RED: autonomy-tier/regulatory refusal fixture for AiPageBuildRequest"
+    }
+  ],
+  "contracts": {
+    "consumes": [
+      "tenant_rbac.context.v1",
+      "identity.principal.v1",
+      "workflow.event_bus.v1",
+      "ontology.SiteContentArtifact",
+      "audit_chain.seal_pointer.v1",
+      "regional.policy_overlay.v1",
+      "forms.form_binding.v1",
+      "drive.asset_ref.v1"
+    ],
+    "produces": [
+      "sites.site.lifecycle.v1",
+      "sites.page.lifecycle.v1",
+      "sites.domain.lifecycle.v1",
+      "sites.domain.cert.v1",
+      "sites.cms.collection.v1",
+      "sites.forms.binding.v1",
+      "sites.ai.page_build.v1",
+      "audit.sites.legal_hold.v1"
+    ],
+    "contract_artifacts": {
+      "openapi": "oya/sites/contracts/openapi/sites.yaml",
+      "grpc_proto": "oya/sites/contracts/proto/sites.proto",
+      "asyncapi": "oya/sites/contracts/asyncapi/sites-events.yaml"
+    },
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow",
+        "Ontology",
+        "typed API/event contracts"
+      ],
+      "claim_boundary": "Planning contract only until RED and Build gates ship contract replay and dependency guards."
+    }
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "Site",
+        "fields": [
+          "site_id",
+          "tenant_id",
+          "name",
+          "visibility",
+          "owner_user_id",
+          "version",
+          "legal_hold_open",
+          "created_at",
+          "updated_at"
+        ],
+        "invariants": [
+          "tenant_id immutable",
+          "visibility controls all public/intranet/private/draft projections",
+          "legal_hold_open blocks destructive operations"
+        ]
+      },
+      {
+        "entity": "Page",
+        "fields": [
+          "page_id",
+          "site_id",
+          "tenant_id",
+          "route",
+          "title",
+          "page_state",
+          "draft_version",
+          "published_version",
+          "legal_hold_open",
+          "blocks",
+          "seo_meta"
+        ],
+        "invariants": [
+          "route unique per site/version",
+          "published_version advances only after policy/accessibility/SEO gates pass",
+          "draft content is not publicly indexed"
+        ]
+      },
+      {
+        "entity": "Block",
+        "fields": [
+          "block_id",
+          "kind",
+          "portable_text",
+          "version"
+        ],
+        "invariants": [
+          "block kind determines validator family",
+          "embedded forms/assets route through forms/drive contracts"
+        ]
+      },
+      {
+        "entity": "Domain",
+        "fields": [
+          "domain",
+          "site_id",
+          "tenant_id",
+          "dns_verified",
+          "dns_verified_at",
+          "cert_serial",
+          "cert_not_after"
+        ],
+        "invariants": [
+          "domain ownership proof required before bind",
+          "cert lifecycle emits audit-chain events",
+          "unbind/revoke requires reason and policy authorization"
+        ]
+      },
+      {
+        "entity": "CollectionType",
+        "fields": [
+          "collection_id",
+          "site_id",
+          "name",
+          "schema_version",
+          "schema_hash",
+          "fields"
+        ],
+        "invariants": [
+          "schema migrations are versioned",
+          "entry writes carry fields_hash evidence"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "SitePublished",
+        "topic": "sites.site.lifecycle.v1",
+        "idempotency_key": "site_id+version"
+      },
+      {
+        "event": "PagePublished",
+        "topic": "sites.page.lifecycle.v1",
+        "idempotency_key": "page_id+version"
+      },
+      {
+        "event": "PageReverted",
+        "topic": "sites.page.lifecycle.v1",
+        "idempotency_key": "page_id+reverted_to_version"
+      },
+      {
+        "event": "DomainBound",
+        "topic": "sites.domain.lifecycle.v1",
+        "idempotency_key": "tenant_id+domain"
+      },
+      {
+        "event": "CertRenewed",
+        "topic": "sites.domain.cert.v1",
+        "idempotency_key": "domain+cert_serial"
+      },
+      {
+        "event": "CmsEntryWritten",
+        "topic": "sites.cms.collection.v1",
+        "idempotency_key": "entry_id+fields_hash"
+      },
+      {
+        "event": "AiPageBuildAccepted",
+        "topic": "sites.ai.page_build.v1",
+        "idempotency_key": "build_id+accepted_by_user_id"
+      },
+      {
+        "event": "LegalHoldApplied",
+        "topic": "audit.sites.legal_hold.v1",
+        "idempotency_key": "page_id+hold_id"
+      }
+    ],
+    "persistence_planning": [
+      {
+        "aggregate": "Site/Page/CMS",
+        "store": "Postgres/RLS planning target",
+        "sharding_key": "tenant_id+site_id",
+        "retention": "tenant policy plus legal-hold overlay"
+      },
+      {
+        "aggregate": "Assets/published render output",
+        "store": "object storage plus CDN planning target",
+        "sharding_key": "tenant_id+site_id+content_hash",
+        "retention": "versioned rollback window plus legal hold where applicable"
+      },
+      {
+        "aggregate": "Search index",
+        "store": "Meilisearch or successor search adapter planning target",
+        "sharding_key": "tenant_id+visibility+site_id",
+        "retention": "mirrors publish/delete/revert events"
+      }
+    ]
+  },
+  "policy_compliance_overlays": {
+    "data_classification": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_QUASI"
+    ],
+    "regional_packs": [
+      "KR",
+      "US",
+      "EU",
+      "US-HEALTHCARE",
+      "JP",
+      "SG",
+      "AU",
+      "IN",
+      "BR",
+      "AE",
+      "KSA"
+    ],
+    "required_policy_checks": [
+      "tenant-scope read/write authorization",
+      "public-read projection boundary",
+      "auditor/eDiscovery scoped access",
+      "ci-scope fixture-only access",
+      "legal-hold delete/purge refusal",
+      "regional pack retention and high-risk AI refusal"
+    ],
+    "autonomy_ceiling": {
+      "default": "T1/T2 assistance planning only",
+      "high_risk_contexts_refused": [
+        "HR",
+        "legal",
+        "medical",
+        "employment",
+        "credit",
+        "regulated compliance assertion"
+      ],
+      "reversibility_required": true,
+      "audit_required": true
+    },
+    "security_and_privacy_requirements": [
+      "Cedar default-deny for tenant and public-read boundaries",
+      "audit-chain seal pointer in every emitted lifecycle/audit event",
+      "no cross-tenant content, search, CDN, or domain leakage",
+      "no unapproved public indexing of draft/private/intranet content",
+      "secrets referenced through approved secrets substrate, never embedded in specs or contracts"
+    ]
+  },
+  "evidence_expectations": {
+    "source_lock_verification": [
+      "python3 -m json.tool specs/microservices/sites.json",
+      "targeted assertions for PRD-SITES, Machine-Readable-Spec, source refs, honest claim boundaries, and retired-path disposition",
+      "exact duplicate search for PRD-SITES/specs/microservices/sites.json/source-lock follow-up before downstream card creation",
+      "retired-authority guard proving no legacy microservices/sites/manifest.json authority promotion"
+    ],
+    "deferred_red_fixture_families": [
+      "API/contract replay across OpenAPI, gRPC proto, and AsyncAPI CloudEvents envelopes",
+      "tenant/policy/legal-hold denial fixtures",
+      "WCAG/SEO publish refusal fixtures",
+      "domain-binding ACME lifecycle fixtures",
+      "CDN/cache purge cascade and broad-purge refusal fixtures",
+      "audit-chain seal pointer/event envelope fixtures",
+      "browser/user-story/accessibility checks for create, draft, publish, WCAG/SEO refusal, custom-domain, search/sitemap/robots visibility, and rollback/revert paths; include keyboard traversal, screen-reader semantics, a11y assertions, and WCAG/SEO refusal evidence",
+      "source-path/claim-boundary guard against inventory-only readiness claims"
+    ],
+    "deferred_build_review_rollout_gates": [
+      "independent Review/fix child must approve this source-lock before RED/Build fanout",
+      "RED fixtures must fail before implementation and pass only after intended behavior exists",
+      "future Build work must include productization, contract/API/security/policy/data-governance, UX/accessibility, and over-engineering review lenses as applicable",
+      "merge requires protected PR governance and oya-ci-required green; local legacy oya CLI evidence is never merge authority",
+      "rollout/E2E requires API or browser user-story proof, observability check, rollback note, and Oyatie release-governance/release-note impact"
+    ]
+  },
+  "metrics_and_slos_planning": {
+    "claim_boundary": "Targets below are planning expectations sourced from inventory/provenance and PRD analysis. They are not measured SLOs or production-readiness evidence until future Build/Rollout gates attach current telemetry and cloud-ci evidence.",
+    "planned_metrics": [
+      {
+        "name": "sites_publish_latency_p95",
+        "target": "planning target from inventory: publish job p95 tracked per size class",
+        "verification_ref": "future measured SLO evidence, not this PRD"
+      },
+      {
+        "name": "sites_page_render_latency_p95",
+        "target": "planning target from inventory: page render latency tracked per route/cache state",
+        "verification_ref": "future benchmark/observability evidence, not this PRD"
+      },
+      {
+        "name": "sites_wcag_aa_validation_correctness",
+        "target": "planning target: 100% publish-gated conformance for required checks",
+        "verification_ref": "future WCAG/SEO RED and browser accessibility evidence"
+      },
+      {
+        "name": "sites_acme_renewal_success_and_latency",
+        "target": "planning target: certificate lifecycle observable and renewable before expiry",
+        "verification_ref": "future domain-binding/ACME fixture and measured runbook evidence"
+      }
+    ]
+  },
+  "competitive_and_product_bar": {
+    "competitors_or_reference_products": [
+      {
+        "competitor": "Google Sites",
+        "observed_strengths": [
+          "fast collaborative site creation",
+          "workspace integration",
+          "simple publish UX"
+        ],
+        "we_beat_on": [
+          "explicit tenant/policy/legal-hold publication boundary",
+          "audit-chain evidence for lifecycle changes",
+          "contract-first source authority before build"
+        ],
+        "claim_boundary": "Benchmark target, not shipped behavior."
+      },
+      {
+        "competitor": "Notion/Super-style site publishing",
+        "observed_strengths": [
+          "rapid page-to-site publishing",
+          "block-based authoring",
+          "friendly CMS flow"
+        ],
+        "we_beat_on": [
+          "enterprise-grade legal hold and eDiscovery",
+          "Cedar policy refusal and regional overlays",
+          "reversible publish/CDN/event evidence"
+        ],
+        "claim_boundary": "Benchmark target, not shipped behavior."
+      },
+      {
+        "competitor": "Webflow/Contentful",
+        "observed_strengths": [
+          "CMS collections",
+          "custom domains",
+          "SEO controls"
+        ],
+        "we_beat_on": [
+          "tenant-scoped compliance overlays",
+          "Workflow/Ontology integration through typed events",
+          "source-locked contract replay before implementation"
+        ],
+        "claim_boundary": "Benchmark target, not shipped behavior."
+      }
+    ]
+  },
+  "best_practices": [
+    {
+      "id": "BP-SITES-01",
+      "rule": "Inventory and contracts may seed PRD content but never prove runtime or production readiness.",
+      "planned_enforcement_ref": "source-path/claim-boundary guard"
+    },
+    {
+      "id": "BP-SITES-02",
+      "rule": "Publish is a policy/accessibility/SEO-gated state transition with typed refusal, not a best-effort side effect.",
+      "planned_enforcement_ref": "WCAG/SEO publish-refusal RED fixture"
+    },
+    {
+      "id": "BP-SITES-03",
+      "rule": "Every externally visible lifecycle event carries tenant_id, pack_tag where applicable, content/version identity, and audit_chain_seal_pointer.",
+      "planned_enforcement_ref": "AsyncAPI CloudEvents envelope replay fixture"
+    },
+    {
+      "id": "BP-SITES-04",
+      "rule": "Legacy microservices/sites/** references are normalized to oya/sites/** or retained only as historical/provenance notes; the old tree is not recreated.",
+      "planned_enforcement_ref": "retired-authority guard"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "inventory_readiness_promotion",
+      "why_forbidden": "turns manifest/catalog presence into a false-green product claim",
+      "detection_lane": "source-path/claim-boundary guard"
+    },
+    {
+      "anti_pattern": "legacy_microservices_sites_recreation",
+      "why_forbidden": "violates ADR-0131/ADR-0512 current service-root authority",
+      "detection_lane": "retired-authority guard"
+    },
+    {
+      "anti_pattern": "publish_without_policy_or_accessibility_gate",
+      "why_forbidden": "can expose inaccessible, noncompliant, or private content publicly",
+      "detection_lane": "WCAG/SEO/policy publish-refusal fixture"
+    },
+    {
+      "anti_pattern": "broad_cdn_purge_without_scope_or_signature",
+      "why_forbidden": "can cause tenant-wide or cross-tenant availability incidents",
+      "detection_lane": "CDN/cache purge refusal fixture"
+    },
+    {
+      "anti_pattern": "ai_page_build_in_high_risk_context",
+      "why_forbidden": "regulated contexts require explicit refusal or separate governed product work before autonomous assistance",
+      "detection_lane": "autonomy-tier/regional-policy refusal fixture"
+    }
+  ],
+  "downstream_fanout_policy": {
+    "review_required_before_red_or_build": true,
+    "existing_review_child": "t_225dbc02",
+    "allowed_immediate_children": [
+      "Review/fix: sites PRD/source map source-authority lock"
+    ],
+    "deferred_until_review_approves": [
+      "RED fixture/contract plan",
+      "Build implementation",
+      "Merge/Rollout/E2E",
+      "Learning/observation harvest"
+    ],
+    "downstream_card_requirements": [
+      "cite specs/microservices/sites.json#_meta.spec_id=PRD-SITES",
+      "cite accepted authorities and inventory/provenance inputs",
+      "declare allowed paths and conflict class",
+      "include red-capable verification command and claim-boundary guard",
+      "avoid shared manifests, generated JSON, and legacy microservices/sites/** recreation"
+    ]
+  },
+  "claim_boundaries": {
+    "fd001_material": false,
+    "production_ready": false,
+    "runtime_implemented_by_this_artifact": false,
+    "measured_slos_available": false,
+    "live_e2e_verified": false,
+    "inventory_manifest_promoted": false,
+    "release_ready": false,
+    "boundary_statement": "This PRD/source-lock creates source authority for planning and downstream RED/Build gates only. Any future readiness, production, SLO, rollout, or E2E claim must cite current implementation, tests, cloud-ci required context, independent review, and live-surface evidence."
+  },
+  "decision_log": [
+    {
+      "date": "2026-07-01",
+      "decision": "Author specs/microservices/sites.json as PRD-SITES because manifests-index.json explicitly records no sites PRD/source-authority file and forbids RED/Build fanout until one is locked.",
+      "drivers": [
+        "t_f1275471 source map/backlog artifact",
+        "specs/microservices/manifests-index.json sites authority_boundary",
+        "ADR-0131 and ADR-0512 current service-root authority"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "Treat oya/sites/manifest.json and oya/sites/contracts/** as inventory/provenance inputs, not readiness evidence.",
+      "drivers": [
+        "manifest row states inventory/provenance only",
+        "neighbor PRD examples keep explicit planning/claim boundaries",
+        "Kanban task non-goals forbid runtime/readiness claims"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+    "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+    "specs/microservices/manifests-index.json",
+    "specs/microservices/calendar.json",
+    "specs/microservices/anonymous.json",
+    "specs/microservices/social.json",
+    "oya/sites/manifest.json",
+    "oya/sites/contracts/openapi/sites.yaml",
+    "oya/sites/contracts/proto/sites.proto",
+    "oya/sites/contracts/asyncapi/sites-events.yaml",
+    "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_f1275471/sites-source-map-backlog.md"
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/calendar-user-story-red-fixtures.schema.json",
+  "fixture_plan_id": "CALENDAR-USER-STORY-RED-001",
+  "kanban_task": "t_fa36f517",
+  "parent_learning_task": "t_310e7906",
+  "source_contract_pr": "https://github.com/jason931225/oyatie/pull/1145",
+  "source_contract_merge_commit": "a3c764dd2acc7d033b8871a0f549e1d3055a0be8",
+  "created_at_utc": "2026-07-09T13:55:34Z",
+  "status": "expected-red-browser-user-story-accessibility-seed",
+  "claim_boundary": "RED fixture/story-test seed only; no runtime, no UI readiness, no production, no GA, no customer-availability claim, no handler/storage/deployment/live-SLO/customer-visible rollout, and no generated JSON hand edit.",
+  "source_authority_refs": [
+    "specs/microservices/calendar.json#acceptance_criteria[AC-01..AC-05]",
+    "specs/microservices/calendar.json#user_experience",
+    "specs/microservices/calendar.json#target_users",
+    "specs/fixtures/calendar-prd/red-fixtures.json#browser_user_story_accessibility_checklist",
+    "github:pr#1145",
+    "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/calendar_prd_replay_check.py",
+    "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/ux/calendar-browser-accessibility-evidence.fixture.json"
+  ],
+  "existing_api_contract_replay_evidence": {
+    "pr": 1145,
+    "merge_commit": "a3c764dd2acc7d033b8871a0f549e1d3055a0be8",
+    "browser_live_ui_accessibility_status": "explicit_no_ui_NA",
+    "artifact_refs": [
+      "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/calendar_prd_replay_check.py",
+      "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/openapi/calendar-openapi-v1-replay.fixture.json",
+      "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/asyncapi/calendar-asyncapi-v1-replay.fixture.json",
+      "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/proto/calendar-proto-v1-replay.fixture.json",
+      "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/ux/calendar-browser-accessibility-evidence.fixture.json"
+    ],
+    "notes": [
+      "PR #1145 is API/contract-only and links OpenAPI, AsyncAPI, and proto replay fixtures.",
+      "PR #1145 records browser/live UI/WCAG evidence as explicit no-UI N/A, not as UI readiness.",
+      "API/contract-only replay remains supporting evidence for this future user-story seed."
+    ]
+  },
+  "required_personas": [
+    "employee_end_user",
+    "personal_user",
+    "manager_or_approver",
+    "compliance_officer",
+    "scheduler_integrator"
+  ],
+  "required_prd_acceptance_criteria": ["AC-01", "AC-02", "AC-03", "AC-04", "AC-05"],
+  "runtime_evidence_policy": [
+    "No UI exists in this lane; the fixture remains fail-closed and records explicit N/A for live/browser execution until a future UI shell or story replay exists.",
+    "A future UI/story Build must add browser and Playwright evidence for employee, personal user, manager/approver, compliance officer, and scheduler-integrator paths before closing this RED status.",
+    "Green CI alone is insufficient for user-facing calendar readiness; API/contract replay evidence from PR #1145 cannot be promoted into browser/live UI evidence."
+  ],
+  "accessibility_i18n_responsive_checklist": [
+    "WCAG 2.2 AA keyboard traversal across create/update event form, context switch, approval card, legal-hold verification, policy-denied dialog, and replay/error states.",
+    "Deterministic focus order, visible focus, escape/enter behavior, and no keyboard trap for modal, drawer, date/time, attendee, resource, action-card, and legal-hold affordances.",
+    "Screen-reader labels and descriptions for work/personal context, retention/legal-hold disclosure, policy basis, free/busy projection, 403 denial, audit link, Workflow handoff, loading, and error states.",
+    "Responsive coverage for mobile-portrait, mobile-landscape, tablet, desktop, and wide-desktop without hiding policy/audit/legal-hold context.",
+    "Loading, empty, policy-denied, validation-error, legal-hold-conflict, offline/sync, and retry states are visible and audit-safe.",
+    "KR and en-US i18n strings exist for form labels, actions, denial reasons, policy-basis disclosure, retention/legal-hold context, Workflow handoff, and accessibility announcements.",
+    "Green CI alone is insufficient; browser/user-story/accessibility evidence or explicit no-UI N/A must be recorded per slice."
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "calendar_user_story_employee_work_event_crud_fixture",
+      "fixture_kind": "browser_crud_story_seed",
+      "persona": "employee_end_user",
+      "prd_acceptance_criteria": ["AC-01", "AC-05"],
+      "source_authority_refs": [
+        "specs/microservices/calendar.json#acceptance_criteria[AC-01]",
+        "specs/microservices/calendar.json#acceptance_criteria[AC-05]",
+        "specs/microservices/calendar.json#user_experience",
+        "specs/fixtures/calendar-prd/red-fixtures.json#browser_user_story_accessibility_checklist"
+      ],
+      "future_story_replay_artifacts": [
+        "specs/fixtures/calendar-prd/user-story-replay/employee/calendar-employee-work-event-crud-browser.fixture.json"
+      ],
+      "must_assert": [
+        "AC-01 work event create path is Org pillar, tenant-DEK backed, retention-classed, and audit logged.",
+        "AC-01 work event update path preserves attendee accept/change audit history.",
+        "AC-05 selected KR/EU/US retention window and legal hold context remain visible before save.",
+        "Employee sees visible audit, retention, legal hold, attendee/resource, validation, loading, error, and policy-denied context before and after create/update."
+      ],
+      "must_reject": [
+        "Runtime handler or storage implementation in this RED seed.",
+        "Production-ready UI or customer-visible calendar readiness claim from this fixture.",
+        "Green CI alone used as browser/user-story evidence."
+      ],
+      "expected_red_status": "RED_UNTIL_BROWSER_USER_STORY_REPLAY_EXISTS"
+    },
+    {
+      "fixture_id": "calendar_user_story_personal_freebusy_privacy_fixture",
+      "fixture_kind": "privacy_boundary_story_seed",
+      "persona": "personal_user",
+      "prd_acceptance_criteria": ["AC-02"],
+      "source_authority_refs": [
+        "specs/microservices/calendar.json#acceptance_criteria[AC-02]",
+        "specs/microservices/calendar.json#patterns.availability_projection",
+        "specs/microservices/calendar.json#risks.R-01"
+      ],
+      "future_story_replay_artifacts": [
+        "specs/fixtures/calendar-prd/user-story-replay/privacy/calendar-personal-freebusy-privacy-browser.fixture.json"
+      ],
+      "must_assert": [
+        "AC-02 personal event details remain hidden while work scheduling sees minimum necessary disclosure.",
+        "Org/admin/scheduler sees only allowed free/busy projection or a 403 denial.",
+        "Free/busy projection expiry, recipient scope, policy denial reason, and audit-safe explanation are visible without exposing details."
+      ],
+      "must_reject": [
+        "Personal title visible to org admin or scheduler.",
+        "Personal description visible to org admin or scheduler.",
+        "Personal location visible to org admin or scheduler.",
+        "Personal attendees visible to org admin or scheduler.",
+        "Silent personal availability mining."
+      ],
+      "expected_red_status": "RED_UNTIL_BROWSER_USER_STORY_REPLAY_EXISTS"
+    },
+    {
+      "fixture_id": "calendar_user_story_manager_action_card_workflow_fixture",
+      "fixture_kind": "workflow_handoff_story_seed",
+      "persona": "manager_or_approver",
+      "prd_acceptance_criteria": ["AC-03"],
+      "source_authority_refs": [
+        "specs/microservices/calendar.json#acceptance_criteria[AC-03]",
+        "specs/microservices/calendar.json#patterns.action_card_handoff",
+        "specs/microservices/calendar.json#contracts.consumes.workflow.handoff.v1"
+      ],
+      "future_story_replay_artifacts": [
+        "specs/fixtures/calendar-prd/user-story-replay/workflow/calendar-manager-action-card-workflow-browser.fixture.json"
+      ],
+      "must_assert": [
+        "AC-03 approval is explicit action card interaction, not implicit Workflow inference.",
+        "policy_basis, Workflow handoff target, consent/policy disclosure, and audit_ref are visible before approval.",
+        "Workflow receives policy-gated handoff and the story links event, action, consent/policy basis, and WorkflowHandoffAuditLog."
+      ],
+      "must_reject": [
+        "Implicit Workflow inference from calendar details.",
+        "Workflow handoff without policy_basis.",
+        "Workflow handoff without audit_ref."
+      ],
+      "expected_red_status": "RED_UNTIL_BROWSER_USER_STORY_REPLAY_EXISTS"
+    },
+    {
+      "fixture_id": "calendar_user_story_compliance_legal_hold_fixture",
+      "fixture_kind": "compliance_chain_of_custody_story_seed",
+      "persona": "compliance_officer",
+      "prd_acceptance_criteria": ["AC-04"],
+      "source_authority_refs": [
+        "specs/microservices/calendar.json#acceptance_criteria[AC-04]",
+        "specs/microservices/calendar.json#patterns.jurisdiction_bounded_retention",
+        "specs/microservices/calendar.json#data_model.entities_ref.CalendarEvent.legal_hold_ids"
+      ],
+      "future_story_replay_artifacts": [
+        "specs/fixtures/calendar-prd/user-story-replay/compliance/calendar-compliance-legal-hold-chain-browser.fixture.json"
+      ],
+      "must_assert": [
+        "AC-04 legal hold preserves event, attendee history, action cards, and audit chain through retention expiry.",
+        "Compliance officer can verify legal hold scope, chain-of-custody, retention expiry override, action-card preservation, and audit export state.",
+        "Chain-of-custody evidence remains visible without leaking unrelated personal event detail."
+      ],
+      "must_reject": [
+        "Purge while legal hold is active.",
+        "Hard delete of attendee history, action cards, or audit chain under hold.",
+        "Chain-of-custody gap hidden by a green status."
+      ],
+      "expected_red_status": "RED_UNTIL_BROWSER_USER_STORY_REPLAY_EXISTS"
+    },
+    {
+      "fixture_id": "calendar_user_story_accessibility_i18n_responsive_fixture",
+      "fixture_kind": "accessibility_i18n_responsive_story_seed",
+      "persona": "employee_end_user + manager_or_approver + compliance_officer + personal_user",
+      "prd_acceptance_criteria": ["AC-01", "AC-02", "AC-03", "AC-04", "AC-05"],
+      "source_authority_refs": [
+        "specs/microservices/calendar.json#user_experience",
+        "specs/microservices/calendar.json#frontend_components",
+        "specs/design-system/tenant-context-switcher.json",
+        "specs/design-system/policy-disclosure-banner.json"
+      ],
+      "future_story_replay_artifacts": [
+        "specs/fixtures/calendar-prd/user-story-replay/accessibility/calendar-user-story-wcag-i18n-responsive.fixture.json"
+      ],
+      "must_assert": [
+        "WCAG 2.2 AA checks cover keyboard traversal, visible focus, focus order, screen-reader labels, contrast, reduced motion, and audit-safe announcements.",
+        "Responsive behavior preserves policy, audit, retention, free/busy, action-card, and legal-hold context across mobile-portrait, mobile-landscape, tablet, desktop, and wide-desktop.",
+        "Loading, validation error, policy-denied, legal-hold conflict, offline/sync, and retry states are represented.",
+        "KR and en-US labels, help text, denial messages, and screen-reader announcements are captured."
+      ],
+      "must_reject": [
+        "Green CI alone used to close user-facing readiness.",
+        "Keyboard traversal missing from the CRUD story.",
+        "Screen-reader labels missing from policy, audit, retention, denial, or legal-hold states."
+      ],
+      "expected_red_status": "RED_UNTIL_BROWSER_USER_STORY_REPLAY_EXISTS"
+    },
+    {
+      "fixture_id": "calendar_user_story_pr1145_api_replay_link_fixture",
+      "fixture_kind": "existing_api_replay_link",
+      "persona": "scheduler_integrator",
+      "prd_acceptance_criteria": ["AC-01", "AC-02", "AC-03", "AC-04", "AC-05"],
+      "source_authority_refs": [
+        "github:pr#1145",
+        "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/calendar_prd_replay_check.py",
+        "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/openapi/calendar-openapi-v1-replay.fixture.json",
+        "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/asyncapi/calendar-asyncapi-v1-replay.fixture.json",
+        "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/proto/calendar-proto-v1-replay.fixture.json",
+        "git:a3c764dd2acc7d033b8871a0f549e1d3055a0be8:specs/fixtures/calendar-prd/replay/ux/calendar-browser-accessibility-evidence.fixture.json"
+      ],
+      "future_story_replay_artifacts": [
+        "specs/fixtures/calendar-prd/user-story-replay/api-link/calendar-pr1145-api-contract-link.fixture.json"
+      ],
+      "must_assert": [
+        "PR #1145 supplies existing OpenAPI replay evidence for API/contract-only calendar semantics.",
+        "PR #1145 supplies existing AsyncAPI replay evidence for calendar event, availability projection, action card, and workflow handoff families.",
+        "PR #1145 supplies existing proto replay evidence for structural personal/work separation.",
+        "PR #1145 records explicit no-UI N/A for browser/live UI/accessibility evidence because it was API/contract-only."
+      ],
+      "must_reject": [
+        "Browser evidence from API-only PR #1145 replay.",
+        "UI readiness inferred from OpenAPI, AsyncAPI, or proto replay.",
+        "Customer availability or rollout claim from contract-only evidence."
+      ],
+      "expected_red_status": "RED_UNTIL_BROWSER_USER_STORY_REPLAY_EXISTS"
+    }
+  ]
+}

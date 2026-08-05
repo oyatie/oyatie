@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/slides-prd-red-case.schema.json",
+  "fixture_id": "rejects_legacy_microservices_slides_manifest_fixture",
+  "fixture_kind": "negative_control",
+  "source_map_ref": "specs/microservices/slides.json",
+  "kanban_task": "t_7e63e03d",
+  "expected_checker_decision": "REJECT",
+  "must_reject": [
+    "microservices/slides/manifest.json restoration",
+    "legacy microservices/slides canonical home",
+    "using microservices/slides/** as live authority"
+  ]
+}

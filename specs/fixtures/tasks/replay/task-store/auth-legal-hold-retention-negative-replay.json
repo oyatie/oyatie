@@ -1,0 +1,57 @@
+{
+  "replay_artifact_id": "TASKS-REPLAY-TASK-STORE-AUTH-LEGAL-HOLD-001",
+  "parent_fixture_id": "tasks_task_store_lifecycle_contract_fixture",
+  "plan_slice_id": "TASKS-PS-01",
+  "replay_artifact_path": "specs/fixtures/tasks/replay/task-store/auth-legal-hold-retention-negative-replay.json",
+  "red_gate_task": "t_91fc5a1f",
+  "build_task": "t_4221a299",
+  "status": "PASSED_SELECTED_SLICE_REPLAY",
+  "red_status_closed": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS",
+  "source_map_ref": "specs/microservices/tasks.json",
+  "source_paths": [
+    "specs/microservices/tasks.json#data_privacy_security_notes",
+    "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-01",
+    "specs/fixtures/tasks/red-fixtures.json#tasks_task_store_lifecycle_contract_fixture",
+    "oya/tasks/contracts/openapi/tasks.yaml#/paths/~1tasks~1{task_id}~1legal-hold",
+    "oya/tasks/contracts/proto/tasks.proto#OpenLegalHoldRequest",
+    "oya/tasks/policy/tenant-scope.cedar",
+    "oya/tasks/policy/auditor-scope.cedar"
+  ],
+  "assertions_covered": [
+    "create/read/update/archive/delete lifecycle replay",
+    "idempotency key and optimistic-version conflict behavior",
+    "tenant mismatch denial, Cedar deny-by-default, RLS/tenant-DEK expectation, legal-hold and retention refusal",
+    "audit metadata for task create/update/archive/legal-hold"
+  ],
+  "rejections_covered": [
+    "malformed custom fields",
+    "cross-tenant task read or write",
+    "hard delete while legal hold is open",
+    "task-store readiness without OpenAPI/proto replay evidence"
+  ],
+  "api_contract_replay": {
+    "surfaces": ["OpenAPI", "proto", "Cedar policy"],
+    "negative_cases": [
+      "tenant mismatch denial via Cedar deny-by-default",
+      "cross-tenant task read or write refused",
+      "hard delete while legal hold is open refused",
+      "legal-hold and retention refusal emits audit metadata",
+      "RLS/tenant-DEK expectation recorded as storage-adapter acceptance criterion, not runtime readiness"
+    ],
+    "legal_hold_controls": [
+      "POST /tasks/{task_id}/legal-hold opens a hold with opened_by and reason",
+      "OpenLegalHoldRequest carries task_id, opened_by_user_id, reason, and related_matter_id",
+      "release/destructive paths require explicit approval evidence before future runtime implementation"
+    ]
+  },
+  "browser_user_story_accessibility_evidence": {
+    "runtime_ui_changed": false,
+    "rationale": "API/contract replay artifact only; no UI runtime path changed in this selected slice"
+  },
+  "non_claims": [
+    "no runtime readiness",
+    "no generated JSON hand edits",
+    "no production readiness claim",
+    "deferred fixtures remain RED"
+  ]
+}

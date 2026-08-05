@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/sheets-source-map-red-case.schema.json",
+  "fixture_id": "rejects_runtime_readiness_claim_fixture",
+  "fixture_kind": "source_map_negative_control",
+  "source_map_ref": "specs/microservices/sheets.json",
+  "kanban_task": "t_48991095",
+  "expected_checker_decision": "REJECT",
+  "must_reject": [
+    "runtime readiness from oya/sheets/manifest.json",
+    "product readiness from dirty oya/sheets inventory",
+    "implementation readiness from existing contract files without replay",
+    "UI readiness from green CI alone",
+    "live SLO or production readiness without measured evidence"
+  ],
+  "reason": "The accepted source map is a Plan/Spec and RED source lock only; runtime/product readiness requires Build, Review/fix, and rollout/E2E evidence."
+}

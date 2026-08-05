@@ -1,0 +1,459 @@
+{
+  "$id": "https://docs.oyatie.com/evidence/conformance/conf-001-release-candidate-conformance-20260702.json",
+  "schema_version": "0.1.0",
+  "artifact_id": "CONF-001-RELEASE-CANDIDATE-CONFORMANCE-20260702",
+  "task_id": "t_7dd07ee9",
+  "created_at": "2026-07-02T00:30:26Z",
+  "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+  "artifact_type": "release_candidate_conformance_evidence_gate_fixture",
+  "purpose": "Attach a machine-checkable quality, performance, OpenSLO/error-budget, maturity-claim, and six-axis conformance evidence packet to one bounded release candidate without mutating product/cloud runtime surfaces or claiming readiness.",
+  "release_candidate": {
+    "id": "rc-conf-001-governance-evidence-20260702",
+    "candidate_kind": "governance_evidence_gate_slice",
+    "candidate_scope": "one release-candidate evidence packet for claim-control and conformance validation only",
+    "source_commit": "c52bdb09ea337de103b05317de0c120f2b7a3e45",
+    "attached_evidence_sections": [
+      "competitor_benchmark_row",
+      "performance_target",
+      "load_test_section",
+      "openslo_error_budget_policy",
+      "maturity_claim_evidence",
+      "six_axis_hyperscaler_conformance_fixture"
+    ],
+    "non_goals": [
+      "no product or cloud runtime mutation",
+      "no public SLO or SLA publication",
+      "no measured dogfood telemetry assertion",
+      "no production-readiness or hyperscaler-maturity promotion",
+      "no branch-protection or required-context mutation"
+    ]
+  },
+  "claim_ceiling": {
+    "current_claim_tier": "target_non_claim",
+    "spec_ready_scope": "evidence gate shape only",
+    "no_product_runtime_change": true,
+    "no_cloud_runtime_change": true,
+    "no_measured_slo_claim": true,
+    "no_public_sla_slo_claim": true,
+    "no_production_readiness_claim": true,
+    "no_hyperscaler_maturity_claim": true,
+    "no_branch_protection_claim": true,
+    "can_claim_now": [
+      "CONF-001 has one release-candidate evidence packet that names the required benchmark, performance, load-test, OpenSLO/error-budget, claim-control, and six-axis conformance inputs.",
+      "The packet is validated by scripts/tests/conf_001_hyperscaler_conformance_check.py for shape, source-backed benchmark citations, blocked claims, and ADR-0134 advisory treatment."
+    ],
+    "cannot_claim_yet": [
+      "production-ready service evidence",
+      "hyperscaler-grade maturity evidence",
+      "measured SLO windows",
+      "public SLA/SLO commitment",
+      "tenant workload readiness",
+      "branch-protected required context enforcement"
+    ]
+  },
+  "authority": [
+    {
+      "id": "ADR-0062",
+      "path": "docs/decisions/ADR-0062-quality-performance-scalability-bar.md",
+      "status": "Accepted",
+      "used_for": [
+        "competitive benchmark section requirement",
+        "performance target requirement",
+        "implementation-plan load-test section requirement"
+      ]
+    },
+    {
+      "id": "ADR-0123",
+      "path": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md",
+      "status": "Accepted",
+      "used_for": [
+        "maturity claim stays blocked until required evidence is present",
+        "competitor claims require official-source references"
+      ]
+    },
+    {
+      "id": "ADR-0128",
+      "path": "docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md",
+      "status": "Accepted",
+      "used_for": [
+        "architecture invariant evidence is advisory until validators and protected CI context exist",
+        "SLO/error-budget and performance-capacity evidence are part of the invariant vocabulary"
+      ]
+    },
+    {
+      "id": "ADR-0133",
+      "path": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md",
+      "status": "Accepted",
+      "used_for": [
+        "six-axis conformance fixture",
+        "industry-baseline citation requirements"
+      ]
+    },
+    {
+      "id": "ADR-0134",
+      "path": "docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
+      "status": "Proposed",
+      "authority_use": "advisory_remediation_backlog_only",
+      "used_for": [
+        "candidate backlog vocabulary for error-budget burn-rate and product-SLO remediation items only"
+      ],
+      "not_used_for": [
+        "binding merge authority",
+        "branch-protection status checks",
+        "claim promotion"
+      ]
+    },
+    {
+      "id": "EXE-HYPERSCALER-PRODUCTION-READINESS-CLAIM-CONTRACT",
+      "path": "specs/hyperscaler-production-readiness-claim-contract.json",
+      "status": "proposed-for-masterplan-refinement",
+      "used_for": [
+        "claim tiers and evidence domains",
+        "performance-capacity minimum evidence fields",
+        "OpenSLO/error-budget production and hyperscaler evidence requirements"
+      ]
+    },
+    {
+      "id": "EXE-CLOUD-OBSERVABILITY-SLO-EVIDENCE-CONTRACT",
+      "path": "specs/cloud-observability-slo-evidence-contract.json",
+      "status": "Proposed-target",
+      "used_for": [
+        "OpenTelemetry, OpenSLO, measured-window, and burn-rate evidence vocabulary",
+        "explicit nonclaim boundary for measured SLO and public SLA/SLO language"
+      ]
+    }
+  ],
+  "competitor_benchmark_row": {
+    "benchmark_id": "CONF-001-BENCH-REL-SLO-GATE",
+    "dimension": "release-candidate evidence gates for performance, SLO/error-budget, reliability, and claim control",
+    "industry_references": [
+      {
+        "provider": "aws",
+        "title": "AWS Well-Architected Framework definitions",
+        "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/definitions.html",
+        "source_status": "official",
+        "observed_strength": "pillar-based operational, reliability, performance, cost, security, and sustainability review language"
+      },
+      {
+        "provider": "google_sre",
+        "title": "Google SRE book: Service Level Objectives",
+        "url": "https://sre.google/sre-book/service-level-objectives/",
+        "source_status": "official",
+        "observed_strength": "SLIs, SLOs, and error budgets govern reliability and release decisions"
+      },
+      {
+        "provider": "google_sre",
+        "title": "Google SRE workbook: Canarying Releases",
+        "url": "https://sre.google/workbook/canarying-releases/",
+        "source_status": "official",
+        "observed_strength": "release candidates are evaluated with progressive rollout, monitoring, and rollback criteria"
+      },
+      {
+        "provider": "azure",
+        "title": "Azure Well-Architected Framework",
+        "url": "https://learn.microsoft.com/en-us/azure/well-architected/what-is-well-architected-framework",
+        "source_status": "official",
+        "observed_strength": "iterative review across reliability, security, cost, operational excellence, and performance efficiency"
+      },
+      {
+        "provider": "openslo",
+        "title": "OpenSLO specification",
+        "url": "https://openslo.com/spec/",
+        "source_status": "official",
+        "observed_strength": "portable SLO document model suitable for release-candidate evidence attachments"
+      }
+    ],
+    "oyatie_adopt_decisions": [
+      "Attach benchmark evidence to the release candidate before any maturity or readiness language is allowed.",
+      "Require OpenSLO/error-budget policy and load-test receipt shape even when the current slice is metadata-only.",
+      "Keep ADR-0134 remediation items advisory until future validators, fixtures, workflows, and protected contexts exist."
+    ],
+    "oyatie_improve_beyond_actions": [
+      "Make the release-candidate packet machine-checkable by a repo-local stdlib Python validator.",
+      "Record explicit nonclaim language next to each target so future promotion work cannot confuse target shape with measured evidence.",
+      "Bind the six ADR-0133 conformance axes into the same release-candidate fixture instead of scattering them across chat or prose-only docs."
+    ],
+    "claim_boundary": "source-backed benchmark row only; no superiority, parity, readiness, or measured performance claim"
+  },
+  "performance_target": {
+    "target_id": "CONF-001-PERF-TARGET-CONTROL-PLANE-API",
+    "source_adr": "ADR-0062",
+    "target_surface": "control-plane API and evidence-gate release candidate",
+    "measurement_status": "target_not_measured_in_this_slice",
+    "latency_budget": {
+      "read_only_p99_ms": 50,
+      "mutation_p99_ms": 200,
+      "p50_required_before_claim": true,
+      "p95_required_before_claim": true,
+      "p99_required_before_claim": true,
+      "p999_required_before_claim": true
+    },
+    "throughput_budget": {
+      "per_cell_baseline_rps": 10000,
+      "aggregate_via_cell_sharding_rps": 100000,
+      "measurement_window_required_before_claim": true
+    },
+    "error_budget_allocation": {
+      "openslo_policy_required": true,
+      "fast_burn_threshold_required": true,
+      "slow_burn_threshold_required": true,
+      "release_freeze_or_throttle_required_on_exhaustion": true
+    },
+    "capacity_and_scalability_targets": [
+      "state strategy declared before release promotion",
+      "active-active compatibility or explicit exception declared before release promotion",
+      "per-cell capacity envelope declared before release promotion",
+      "scale-out trigger metrics declared before release promotion",
+      "cross-region story declared before release promotion"
+    ]
+  },
+  "load_test_section": {
+    "section_id": "CONF-001-LOAD-TEST-SECTION",
+    "source_adr": "ADR-0062",
+    "status": "receipt_shape_required_no_runtime_run_in_this_slice",
+    "accepted_tools": [
+      "k6",
+      "locust",
+      "vegeta"
+    ],
+    "required_before_any_positive_readiness_claim": [
+      "tool and script path",
+      "release_candidate_id",
+      "source_commit",
+      "dogfood_environment",
+      "target_surface",
+      "p50_p95_p99_p999_latency_results",
+      "throughput_results",
+      "capacity_breakpoint",
+      "error_budget_impact",
+      "rollback_or_fail_shed_decision_rule",
+      "reviewer"
+    ],
+    "explicit_na_for_this_slice": {
+      "runtime_load_test_run": "N/A: this task is evidence/gate only and does not mutate or run product/cloud runtime surfaces",
+      "measured_latency": "N/A: future release-candidate runtime run must attach values",
+      "measured_throughput": "N/A: future release-candidate runtime run must attach values"
+    },
+    "future_receipt_pattern": "evidence/conformance/releases/<release_candidate_id>/load-test-<run_id>.json"
+  },
+  "openslo_error_budget_policy": {
+    "policy_id": "CONF-001-OPENSLO-ERROR-BUDGET-POLICY",
+    "source_specs": [
+      "specs/cloud-observability-slo-evidence-contract.json",
+      "specs/hyperscaler-production-readiness-claim-contract.json"
+    ],
+    "document_format": "OpenSLO",
+    "telemetry_standard": "OpenTelemetry",
+    "measurement_status": "policy_shape_only_not_measured",
+    "required_slo_fields": [
+      "slo_id",
+      "indicator",
+      "objective",
+      "window_start",
+      "window_end",
+      "numerator_query",
+      "denominator_query",
+      "sample_count",
+      "datasource",
+      "query_digest",
+      "measured_value",
+      "error_budget_remaining",
+      "burn_rate",
+      "evidence_digest",
+      "reviewer"
+    ],
+    "burn_rate_windows": [
+      "5m",
+      "30m",
+      "1h",
+      "2h",
+      "6h",
+      "1d",
+      "3d"
+    ],
+    "release_decision_rules": [
+      "fast-burn threshold pages and freezes or throttles release promotion",
+      "slow-burn threshold opens owner action and rollback review",
+      "error-budget exhaustion blocks positive readiness or maturity language until recovery evidence is attached",
+      "external hyperscaler console screenshots do not satisfy Oyatie-owned dogfood telemetry evidence"
+    ],
+    "nonclaim_boundary": "OpenSLO/error-budget policy shape only; no measured SLO, public SLA/SLO, production-readiness, tenant-workload readiness, or hyperscaler-maturity claim"
+  },
+  "maturity_claim_evidence": {
+    "evidence_id": "CONF-001-MATURITY-CLAIM-EVIDENCE",
+    "source_specs": [
+      "specs/hyperscaler-gates.json",
+      "specs/hyperscaler-production-readiness-claim-contract.json"
+    ],
+    "current_tier": "target_non_claim",
+    "blocked_claim_patterns": [
+      "hyperscaler mature",
+      "AWS-grade",
+      "production mature",
+      "99.95% availability achieved",
+      "beats competitor on latency",
+      "better than competitor without source-backed evidence"
+    ],
+    "required_before_mechanically_enforced": [
+      "cloud_ci_required_context",
+      "branch_protection_mapping",
+      "Rust_gate_or_controller",
+      "known_BAD_fixture_RED",
+      "known_GOOD_fixture_GREEN",
+      "candidate_PR_cannot_weaken_gate",
+      "audit_event",
+      "current_SHA_status"
+    ],
+    "required_before_production_ready": [
+      "service_inventory_record",
+      "SLOs_and_error_budget_policy",
+      "golden_signals_dashboard",
+      "alert_runbook_mapping",
+      "canary_or_one_box_pipeline",
+      "automatic_rollback",
+      "load_capacity_breakpoint",
+      "performance_regression_guard",
+      "tenant_isolation_negative_tests",
+      "SSDF_control_evidence",
+      "SLSA_or_equivalent_provenance",
+      "30_day_sustained_green_window_or_explicit_new_service_exception"
+    ],
+    "required_before_hyperscaler_grade": [
+      "all_production_ready_evidence",
+      "multi_region_or_cell_isolation",
+      "cell_or_ring_rollout_evidence",
+      "error_budget_release_policy_enforced",
+      "capacity_model_N_plus_2_or_documented_equivalent",
+      "peak_load_or_capacity_drill",
+      "chaos_or_fault_injection_drills",
+      "regional_or_cell_failover_drill",
+      "tenant_isolation_per_plane",
+      "90_day_sustained_SLO_window",
+      "executive_exception_register_empty_or_explicitly_accepted"
+    ],
+    "review_rule": "Any future PR that upgrades this fixture from target_non_claim must attach current-head CI, dogfood runtime evidence, reviewer approval, and explicit rollback/observability evidence."
+  },
+  "six_axis_hyperscaler_conformance_fixture": {
+    "fixture_id": "CONF-001-ADR-0133-SIX-AXIS-FIXTURE",
+    "source_adr": "ADR-0133",
+    "fixture_status": "attached_to_release_candidate_shape_valid",
+    "axes": [
+      {
+        "axis_id": "axis-1-pipeline",
+        "name": "Pipeline conformance",
+        "industry_baseline": [
+          "SLSA Level 3",
+          "NIST SSDF",
+          "Google Cloud Build pipeline",
+          "AWS CodePipeline patterns",
+          "GitHub Actions Hardening Guide",
+          "CNCF cloud-native CI/CD",
+          "OpenSSF Best Practices Badge"
+        ],
+        "release_candidate_requirement": "map release evidence through build, test, security-scan, SBOM, sign, deploy, verify, and promote stages before promotion claims"
+      },
+      {
+        "axis_id": "axis-2-directory",
+        "name": "Directory conformance",
+        "industry_baseline": [
+          "AWS service-team folder",
+          "Google google3 per-service",
+          "Microsoft Engineering Playbook",
+          "Oracle OCI per-service template",
+          "Stripe monorepo per-service layout"
+        ],
+        "release_candidate_requirement": "new evidence artifacts stay under evidence/conformance and runtime/product files are not modified by this gate slice"
+      },
+      {
+        "axis_id": "axis-3-naming",
+        "name": "Naming conformance",
+        "industry_baseline": [
+          "Rust API guidelines",
+          "Domain-Driven Design",
+          "conventional-commits 1.0.0"
+        ],
+        "release_candidate_requirement": "artifact, section, and validator IDs use deterministic CONF-001 names and stable evidence keys"
+      },
+      {
+        "axis_id": "axis-4-standards",
+        "name": "Standards conformance",
+        "industry_baseline": [
+          "OpenTelemetry semantic conventions",
+          "OpenSLO",
+          "Google SRE Workbook",
+          "OWASP ASVS",
+          "Diátaxis"
+        ],
+        "release_candidate_requirement": "release-candidate packet cites source standards for observability, SLO, security, docs, review, and testing expectations"
+      },
+      {
+        "axis_id": "axis-5-practices",
+        "name": "Practices conformance for agentic development",
+        "industry_baseline": [
+          "semantic changeset claim",
+          "parallel-safe operations",
+          "idempotent operations",
+          "audit-chain state transitions",
+          "fail-closed gates",
+          "smallest-actionable artifact format"
+        ],
+        "release_candidate_requirement": "validator fails closed on missing evidence sections, blocked-claim omissions, proposed-ADR elevation, and incomplete six-axis rows"
+      },
+      {
+        "axis_id": "axis-6-policies",
+        "name": "Policies conformance",
+        "industry_baseline": [
+          "Cedar policy patterns",
+          "AWS IAM least privilege",
+          "OPA Rego patterns",
+          "tenant-isolation server-side enforcement",
+          "default-deny policy posture"
+        ],
+        "release_candidate_requirement": "policy and tenant-isolation evidence remain prerequisites before any positive readiness or maturity language"
+      }
+    ],
+    "fixture_assertions": [
+      "all six ADR-0133 axes are present exactly once",
+      "each axis names at least one industry baseline and one release-candidate requirement",
+      "ADR-0134 is treated as Proposed/advisory only",
+      "positive claim language remains blocked until future measured/runtime and branch-protected evidence exists"
+    ]
+  },
+  "acceptance_criteria_trace": [
+    {
+      "criterion": "competitor benchmark row",
+      "section": "competitor_benchmark_row",
+      "status": "attached"
+    },
+    {
+      "criterion": "performance target",
+      "section": "performance_target",
+      "status": "attached"
+    },
+    {
+      "criterion": "load-test section",
+      "section": "load_test_section",
+      "status": "attached"
+    },
+    {
+      "criterion": "OpenSLO/error-budget policy",
+      "section": "openslo_error_budget_policy",
+      "status": "attached"
+    },
+    {
+      "criterion": "maturity-claim evidence",
+      "section": "maturity_claim_evidence",
+      "status": "attached"
+    },
+    {
+      "criterion": "6-axis hyperscaler conformance fixture",
+      "section": "six_axis_hyperscaler_conformance_fixture",
+      "status": "attached"
+    }
+  ],
+  "validation": {
+    "command": "python3 scripts/tests/conf_001_hyperscaler_conformance_check.py",
+    "self_test_command": "python3 scripts/tests/conf_001_hyperscaler_conformance_check.py --self-test",
+    "expected_result": "shape_valid_nonclaim"
+  }
+}

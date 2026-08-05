@@ -1,0 +1,345 @@
+{
+  "schema_version": "1.0",
+  "fixture_suite_id": "finops-portal-env-tier-outbound-emission-plan-red-fixtures-v1",
+  "status": "metadata_only_red_guardrail",
+  "kanban_task": "t_490d38b0",
+  "parent_plan_spec_task": "t_cf19286a",
+  "contract_under_test": "oya/finops-portal/contracts/env-tier-outbound-emission-plan.contract.json",
+  "source_authority_refs": [
+    "specs/tenant-environment-tiers-canonical.json#tier_definitions",
+    "kanban:t_cf19286a#oya-finops-portal-requirements",
+    "kanban:t_732855bf#tenancy-env-tier-policy-evidence",
+    "kanban:t_86da510f#outbound-effect-inventory",
+    "oya/finops-portal/manifest.json",
+    "oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+    "oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+    "oya/finops-portal/contracts/cost-allocation-policy-internal.proto"
+  ],
+  "claim_ceiling": [
+    "known-good and known-bad metadata fixtures only",
+    "no live portal UI",
+    "no invoice PDF delivery",
+    "no FOCUS export runtime",
+    "no OpenCost ingest",
+    "no regulator submission",
+    "no database",
+    "no audit-chain runtime",
+    "no production delivery",
+    "no hyperscaler maturity claim"
+  ],
+  "red_until": "A later implementation lane converts these fixture cases into reviewed runtime/domain/schema enforcement if it owns the corresponding runtime path.",
+  "positive_fixtures": [
+    {
+      "name": "test_intercept_log_only_metadata_preserved",
+      "fixture_kind": "positive_metadata_contract",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "test",
+        "outbound_mode": "intercept",
+        "action_class": "tenant_report_export_plan",
+        "destination_binding_ref": null,
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/tenant_report_export_plan/test-intercept-report.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/test/env-tier/intercept-log-only",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only intercept/log-only report export plan; no external delivery"
+      },
+      "expected_outcome": {
+        "policy_verdict": "PASS_METADATA_ONLY",
+        "derived_outbound_mode": "intercept",
+        "must_remain_runtime_authorized": false
+      }
+    },
+    {
+      "name": "staging_test_recipients_qa_destination_preserved",
+      "fixture_kind": "positive_metadata_contract",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "focus_export_metadata_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/qa/focus-export-sandbox",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/focus_export_metadata_plan/staging-qa-export.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/staging/env-tier/qa-export-endpoint",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only staging QA export endpoint plan; no FOCUS export runtime"
+      },
+      "expected_outcome": {
+        "policy_verdict": "PASS_METADATA_ONLY",
+        "derived_outbound_mode": "test_recipients",
+        "must_remain_runtime_authorized": false
+      }
+    },
+    {
+      "name": "prod_live_with_policy_evidence_metadata_preserved",
+      "fixture_kind": "positive_metadata_contract",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "regulator_evidence_emission_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/regulator-evidence-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/regulator_evidence_emission_plan/prod-regulator-evidence.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/prod/env-tier/regulator-evidence-live-allow",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only prod live regulator evidence plan with policy evidence; no regulator submission runtime"
+      },
+      "expected_outcome": {
+        "policy_verdict": "PASS_METADATA_ONLY",
+        "derived_outbound_mode": "live",
+        "must_remain_runtime_authorized": false
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "missing_env_tier_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "outbound_mode": "intercept",
+        "action_class": "invoice_emission_plan",
+        "destination_binding_ref": null,
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/invoice_emission_plan/missing-env-tier.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/test/env-tier/missing-env-tier",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-ENV-TIER-REQUIRED",
+        "reason": "missing_env_tier",
+        "deny_before": [
+          "invoice emission plan admission",
+          "report/export/regulator-evidence metadata admission"
+        ]
+      },
+      "future_test_ref": "finops_portal::env_tier_required_before_emission_plan_admission"
+    },
+    {
+      "name": "derived_outbound_mode_mismatch_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "prod",
+        "outbound_mode": "intercept",
+        "action_class": "invoice_emission_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/invoice-email-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/invoice_emission_plan/prod-mismatched-mode.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/prod/env-tier/invoice-live-allow",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-OUTBOUND-MODE-DERIVED",
+        "reason": "outbound_mode_not_derived_from_env_tier",
+        "deny_before": [
+          "destination binding selection",
+          "runtime adapter selection"
+        ]
+      },
+      "future_test_ref": "finops_portal::outbound_mode_is_derived_from_env_tier"
+    },
+    {
+      "name": "test_intercept_external_delivery_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "test",
+        "outbound_mode": "intercept",
+        "action_class": "tenant_report_export_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/report-email-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/tenant_report_export_plan/test-external-delivery.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/test/env-tier/intercept-log-only",
+        "requested_external_delivery": true,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture; test tier must remain intercept/log-only"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-TEST-INTERCEPT-ONLY",
+        "reason": "test_tier_external_delivery_forbidden",
+        "deny_before": [
+          "external invoice/report/export delivery",
+          "email, URL, webhook, object-store, or regulator-evidence delivery"
+        ]
+      },
+      "future_test_ref": "finops_portal::test_tier_external_delivery_is_denied"
+    },
+    {
+      "name": "staging_without_qa_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "focus_export_metadata_plan",
+        "destination_binding_ref": null,
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/focus_export_metadata_plan/staging-missing-qa-destination.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/staging/env-tier/qa-export-endpoint",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-STAGING-QA-DESTINATION-REQUIRED",
+        "reason": "staging_qa_destination_required",
+        "deny_before": [
+          "staging invoice/report/export/regulator-evidence metadata admission"
+        ]
+      },
+      "future_test_ref": "finops_portal::staging_requires_qa_destination_binding"
+    },
+    {
+      "name": "staging_live_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "invoice_emission_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/invoice-email-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/invoice_emission_plan/staging-live-destination.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/staging/env-tier/qa-invoice-recipient",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-STAGING-NO-LIVE-DESTINATION",
+        "reason": "staging_destination_must_be_qa_or_test",
+        "deny_before": [
+          "staging destination binding admission"
+        ]
+      },
+      "future_test_ref": "finops_portal::staging_rejects_live_destination_binding"
+    },
+    {
+      "name": "prod_without_policy_evidence_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "regulator_evidence_emission_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/regulator-evidence-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/regulator_evidence_emission_plan/prod-missing-policy.json",
+        "policy_evidence_ref": null,
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-PROD-POLICY-EVIDENCE-REQUIRED",
+        "reason": "prod_policy_evidence_required",
+        "deny_before": [
+          "prod invoice/report/regulator evidence emission metadata admission"
+        ]
+      },
+      "future_test_ref": "finops_portal::prod_requires_tenancy_env_tier_policy_evidence"
+    },
+    {
+      "name": "cross_tenant_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_beta",
+        "region": "region-alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "tenant_report_export_plan",
+        "destination_binding_ref": "finops-destination/ten_beta/region-alpha/live/report-recipient-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/tenant_report_export_plan/prod-cross-tenant-destination.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/prod/env-tier/report-live-allow",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-CROSS-TENANT-DESTINATION-DENIED",
+        "reason": "cross_tenant_destination_forbidden",
+        "deny_before": [
+          "invoice/report destination binding admission",
+          "cross-tenant export recipient leakage"
+        ]
+      },
+      "future_test_ref": "finops_portal::cross_tenant_invoice_report_destination_is_denied"
+    },
+    {
+      "name": "secret_like_destination_or_evidence_ref_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "invoice_emission_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/sk_live_forbidden-marker-not-a-real-key",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/invoice_emission_plan/bearer-token-marker.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/prod/env-tier/invoice-live-allow",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture; contains forbidden marker strings only, not secret material"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-SECRET-LIKE-REF-DENIED",
+        "reason": "secret_like_destination_or_evidence_ref_forbidden",
+        "deny_before": [
+          "fixture acceptance",
+          "destination or evidence metadata reference admission"
+        ]
+      },
+      "future_test_ref": "finops_portal::secret_like_destination_or_evidence_refs_are_denied"
+    },
+    {
+      "name": "runtime_delivery_claim_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "recipient_tenant_id": "ten_alpha",
+        "region": "region-alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "focus_export_metadata_plan",
+        "destination_binding_ref": "finops-destination/ten_alpha/region-alpha/live/focus-export-binding",
+        "report_export_invoice_evidence_ref": "evidence/finops-portal/ten_alpha/region-alpha/focus_export_metadata_plan/prod-runtime-claim.json",
+        "policy_evidence_ref": "policy-evidence/ten_alpha/prod/env-tier/focus-export-live-allow",
+        "requested_external_delivery": false,
+        "runtime_delivery_authorized": true,
+        "claim_boundary": "metadata-only negative fixture attempting to claim FOCUS export runtime delivery"
+      },
+      "expected_denial": {
+        "rule_id": "FINOPS-RUNTIME-CLAIM-FORBIDDEN",
+        "reason": "runtime_delivery_claim_forbidden_in_metadata_lane",
+        "deny_before": [
+          "FOCUS export runtime",
+          "invoice PDF delivery",
+          "regulator submission",
+          "database or audit-chain runtime claim"
+        ]
+      },
+      "future_test_ref": "finops_portal::metadata_lane_rejects_runtime_delivery_claims"
+    }
+  ]
+}

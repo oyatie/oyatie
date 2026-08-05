@@ -1,0 +1,1157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/microservices/slides.schema.json",
+  "title": "MicroservicePrd:Slides",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-SLIDES",
+    "version": "1.0.0",
+    "status": "Draft",
+    "owner_team": "axis-slides",
+    "created_at": "2026-07-01T00:00:00Z",
+    "authority_lock_task": "t_228dc16e",
+    "purpose": "Slides microservice PRD/source-authority lock for workplace presentation authoring, collaboration, present/broadcast, import/export, accessibility, ACL, versioning, and intelligence-assisted design/content. This source map uses oya/slides/manifest.json and the slides source-lock artifact as provenance, but it does not treat inventory, stale legacy paths, or existing service-home artifacts as runtime or product-readiness evidence."
+  },
+  "authority_resolution": {
+    "current_authority": "/specs/microservices/slides.json",
+    "prd_status_disposition": "Draft source-authority candidate for Plan/Spec and Review/fix. RED and Build remain blocked until the dedicated Review/fix card approves this source lock.",
+    "canonical_service_home": "oya/slides",
+    "manifest_index_ref": "/specs/microservices/manifests-index.json#microservices[name=slides]",
+    "manifest_index_pointer_state": "The manifests-index slides row points at oya/slides/manifest.json and explicitly says that manifest is tracked service inventory/provenance only, with no runtime/product-readiness claim and no implementation-readiness evidence without Plan/Spec/RED gates.",
+    "manifest_inventory_ref": "/oya/slides/manifest.json",
+    "manifest_inventory_state": "Inventory/provenance seed only. It may describe contracts, SLOs, capabilities, regulatory packs, and dependency names, but it cannot substitute for this PRD/source map and cannot authorize Build fanout.",
+    "layout_authority": {
+      "adr_0131": "/docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "adr_0512": "/docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "rule": "ADR-0131 is amended by ADR-0512: current service homes are {oya,cloud}/<service>/; microservices/slides/** is legacy/provenance unless a later accepted authority explicitly reintroduces it."
+    },
+    "retired_authority_mapping": {
+      "retired_name": "foundry",
+      "successor_authority": "intelligence",
+      "reason": "The manifest dependency list contains the retired Foundry term; per manifests-index retirement authority and ADR-0335-era absorption, Slides AI/design/content boundaries route through intelligence and must not revive Foundry."
+    },
+    "claim_boundary": "This artifact is a source-authority PRD/source map only. It makes no runtime, production, GA, hyperscaler, rollout, measured-SLO, CI-green, or product-readiness claim. Later RED/Build/Merge/Rollout/E2E cards must prove those claims with fixtures, contract replay, tests, browser/accessibility evidence, review approval, and protected oya-ci-required evidence where applicable."
+  },
+  "source_reference_map": {
+    "primary_inputs": [
+      "$ref:specs/microservices/manifests-index.json#microservices[name=slides]",
+      "$ref:oya/slides/manifest.json",
+      "$ref:/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_e842c2ba/slides-source-lock.md"
+    ],
+    "layout_and_authority_inputs": [
+      "$ref:specs/root-hub-pointers.json",
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+    ],
+    "service_home_inputs_read_as_provenance": [
+      "$ref:oya/slides/README.md",
+      "$ref:oya/slides/contracts/openapi/slides.yaml",
+      "$ref:oya/slides/contracts/asyncapi/slides-events.yaml",
+      "$ref:oya/slides/contracts/proto/slides.proto",
+      "$ref:oya/slides/dpia/dpia.md",
+      "$ref:oya/slides/decisions/ADR-SLD-001-svg-first-render-pipeline-vs-canvas.md",
+      "$ref:oya/slides/runbooks/broadcast-mode-degraded.md",
+      "$ref:oya/slides/slos/crdt-merge-no-silent-loss.openslo.yaml"
+    ],
+    "neighboring_prd_shape_inputs": [
+      "$ref:specs/microservices/calendar.json",
+      "$ref:specs/microservices/social.json",
+      "$ref:specs/microservices/anonymous.json"
+    ],
+    "stale_path_quarantine": {
+      "legacy_prefix": "microservices/slides/",
+      "current_home_remap_prefix": "oya/slides/",
+      "rule": "Legacy microservices/slides/** references found in oya/slides/manifest.json and service-home documents are provenance only. When a current-home counterpart exists under oya/slides/**, downstream cards should cite the current path. Missing legacy IP/PRD/capacity-model references remain non-evidence and must not be recreated as canonical authority by this PRD/source-lock lane.",
+      "present_current_home_counterparts": [
+        "oya/slides/contracts/openapi/slides.yaml",
+        "oya/slides/contracts/asyncapi/slides-events.yaml",
+        "oya/slides/contracts/proto/slides.proto",
+        "oya/slides/capabilities/T0-suggest.yaml",
+        "oya/slides/capabilities/T1-assist.yaml",
+        "oya/slides/capabilities/T2-auto.yaml",
+        "oya/slides/slos/broadcast-mode-availability.openslo.yaml",
+        "oya/slides/slos/collab-cursor-sync-latency.openslo.yaml",
+        "oya/slides/slos/crdt-merge-no-silent-loss.openslo.yaml",
+        "oya/slides/slos/deck-open-latency.openslo.yaml",
+        "oya/slides/slos/export-mp4-latency.openslo.yaml",
+        "oya/slides/slos/export-pdf-latency.openslo.yaml",
+        "oya/slides/slos/export-pptx-latency.openslo.yaml",
+        "oya/slides/slos/present-mode-transition-latency.openslo.yaml",
+        "oya/slides/slos/save-latency.openslo.yaml",
+        "oya/slides/slos/slide-render-latency.openslo.yaml"
+      ],
+      "absent_legacy_refs_that_are_not_evidence": [
+        "microservices/slides/PRD.md",
+        "microservices/slides/capacity-model.md",
+        "microservices/slides/IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md",
+        "microservices/slides/IP-002-presentation-slide-kernel-domain.md",
+        "microservices/slides/IP-003-slide-layout-text-box-shape-kernel-domain.md",
+        "microservices/slides/IP-004-asset-bcs-image-video-audio-adapters.md",
+        "microservices/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md",
+        "microservices/slides/IP-006-real-time-collaboration-worker-sdk.md",
+        "microservices/slides/IP-007-chart-embed-bridge-to-sheets.md",
+        "microservices/slides/IP-008-themes-templates-master-slide-editor.md",
+        "microservices/slides/IP-009-animations-transitions-reduced-motion.md",
+        "microservices/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md",
+        "microservices/slides/IP-011-import-export-pptx-pdf-mp4-pipeline.md",
+        "microservices/slides/IP-012-accessibility-ai-design-ai-content-generation.md",
+        "microservices/slides/IP-013-acl-comments-version-history-embed-bridge.md",
+        "microservices/slides/IP-014-visual-canvas-leptos-wasm-rest-sdk-app.md",
+        "microservices/slides/IP-015-hg-slides-registration-and-branch-protection.md"
+      ]
+    }
+  },
+  "identity": {
+    "product_id": "slides",
+    "owning_axis": "workspace-productivity",
+    "product_class": "service",
+    "user_facing_surface": true,
+    "canonical_service_home": "oya/slides",
+    "context_model": [
+      "work"
+    ],
+    "owner_team": "axis-slides",
+    "crate_refs_planned": [
+      "oya-slides-presentation-kernel",
+      "oya-slides-presentation-domain",
+      "oya-slides-slide-kernel",
+      "oya-slides-slide-domain",
+      "oya-slides-real-time-collaboration-kernel",
+      "oya-slides-real-time-collaboration-domain",
+      "oya-slides-real-time-collaboration-worker",
+      "oya-slides-acl-kernel",
+      "oya-slides-acl-domain",
+      "oya-slides-presentation-rest"
+    ],
+    "naming_justification": "slides is the BNF-compatible workspace presentation service slug. Future Build work must keep bounded-context crates under oya/slides/crates/ per ADR-0512 and must not write new canonical artifacts under legacy microservices/slides/**."
+  },
+  "target_users": [
+    {
+      "persona": "employee_deck_author",
+      "interface": "browser/desktop/mobile deck editor",
+      "needs": [
+        "create and edit decks",
+        "collaborate in real time",
+        "share with tenant-scoped ACLs",
+        "present confidently with accessible fallbacks"
+      ]
+    },
+    {
+      "persona": "team_reviewer_or_commenter",
+      "interface": "comments, suggestions, version history, and share notifications",
+      "needs": [
+        "review deck drafts",
+        "see change/version provenance",
+        "avoid over-broad access"
+      ]
+    },
+    {
+      "persona": "presenter_or_broadcaster",
+      "interface": "presenter view, audience view, broadcast session controls, polls/Q&A/reactions",
+      "needs": [
+        "low-latency slide navigation",
+        "broadcast degradation banners",
+        "audience engagement without leaking tenant data"
+      ]
+    },
+    {
+      "persona": "compliance_or_records_officer",
+      "interface": "audit/eDiscovery/export and legal-hold views",
+      "needs": [
+        "retention/legal-hold enforcement",
+        "chain-of-custody for exports and share links",
+        "AI provenance and watermark visibility"
+      ]
+    },
+    {
+      "persona": "workspace_integrator",
+      "interface": "REST, AsyncAPI/WS, proto/gRPC, and Workflow/Ontology events",
+      "needs": [
+        "contract-stable deck/slide/ACL/import/export/broadcast APIs",
+        "replayable boundary fixtures",
+        "clear rejection cases for unready sibling services"
+      ]
+    }
+  ],
+  "user_stories": [
+    {
+      "id": "US-SLIDES-001",
+      "theme": "deck authoring",
+      "story": "As an employee deck author, I can create, open, save, rename, duplicate, delete, and restore decks so that presentation work remains durable and versioned.",
+      "acceptance_refs": [
+        "AC-SLIDES-001",
+        "AC-SLIDES-002"
+      ]
+    },
+    {
+      "id": "US-SLIDES-002",
+      "theme": "slide/object authoring",
+      "story": "As a deck author, I can add and edit slides, text boxes, shapes, tables, equations, images, videos, audio, themes, templates, master slides, and slide sorter ordering so that rich presentations can be authored without leaving Oyatie.",
+      "acceptance_refs": [
+        "AC-SLIDES-003",
+        "AC-SLIDES-004"
+      ]
+    },
+    {
+      "id": "US-SLIDES-003",
+      "theme": "collaboration",
+      "story": "As collaborators, multiple users can edit the same deck with cursor presence, CRDT conflict surfacing, comments, suggestions, and no silent data loss.",
+      "acceptance_refs": [
+        "AC-SLIDES-005"
+      ]
+    },
+    {
+      "id": "US-SLIDES-004",
+      "theme": "present and broadcast",
+      "story": "As a presenter, I can enter present mode and optionally broadcast through the messenger LiveKit boundary while viewers see degraded-state messaging instead of silent failure.",
+      "acceptance_refs": [
+        "AC-SLIDES-006"
+      ]
+    },
+    {
+      "id": "US-SLIDES-005",
+      "theme": "import/export",
+      "story": "As a deck owner, I can import PPTX, ODP, Keynote, and PDF files and export PPTX, ODP, PDF/PDF-A, PNG-per-slide, and MP4 artifacts through sandboxed, policy-gated jobs.",
+      "acceptance_refs": [
+        "AC-SLIDES-007"
+      ]
+    },
+    {
+      "id": "US-SLIDES-006",
+      "theme": "accessibility",
+      "story": "As a keyboard or assistive-technology user, I can navigate and present decks with semantic objects, reading order, alt-text, contrast checks, reduced-motion support, and an accessibility bridge for Canvas/WebGL fallback.",
+      "acceptance_refs": [
+        "AC-SLIDES-008"
+      ]
+    },
+    {
+      "id": "US-SLIDES-007",
+      "theme": "ACL and sharing",
+      "story": "As a deck owner, I can set deck-level and per-slide ACLs, share restricted links, preview Cedar effects before changing access, and prevent public-link or export egress when policy forbids it.",
+      "acceptance_refs": [
+        "AC-SLIDES-009"
+      ]
+    },
+    {
+      "id": "US-SLIDES-008",
+      "theme": "versioning and audit",
+      "story": "As a reviewer or records officer, I can inspect version history, restore versions, and trace share/export/ACL/AI events into immutable audit evidence.",
+      "acceptance_refs": [
+        "AC-SLIDES-010"
+      ]
+    },
+    {
+      "id": "US-SLIDES-009",
+      "theme": "intelligence assistance",
+      "story": "As a deck author, I can ask for T0/T1/T2 design, content, and accessibility assistance with human-review, risk-class, provenance, watermark, and refusal semantics handled through intelligence boundaries.",
+      "acceptance_refs": [
+        "AC-SLIDES-011"
+      ]
+    },
+    {
+      "id": "US-SLIDES-010",
+      "theme": "integration boundaries",
+      "story": "As an integrator, I can use sheets chart links, drive media/assets, messenger broadcast, social/community publishing, mail notifications, identity principals, and intelligence assistance through explicit contracts without assuming those sibling services are already ready.",
+      "acceptance_refs": [
+        "AC-SLIDES-012"
+      ]
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "plan_spec": [
+        "source-authority PRD/source map under specs/microservices/slides.json",
+        "stale legacy path quarantine and current-service-home remap rules",
+        "contract and fixture family declaration without implementation-readiness claims",
+        "explicit Review/fix gate before RED/Build"
+      ],
+      "red_fixture_planning": [
+        "deck CRUD/open/save fixtures",
+        "slide/object authoring fixtures",
+        "collaboration and CRDT no-silent-loss fixtures",
+        "ACL/share/version-history fixtures",
+        "present/broadcast fixtures",
+        "import/export fixtures",
+        "accessibility/reduced-motion fixtures",
+        "AI tier disclosure/provenance fixtures",
+        "cross-service boundary acceptance and rejection fixtures"
+      ],
+      "future_build_after_review": [
+        "bounded-context crates under oya/slides/crates/",
+        "REST/AsyncAPI/proto contract replay",
+        "browser/user-story and accessibility evidence",
+        "targeted domain/app tests and cloud-ci gate packets"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "runtime implementation changes",
+        "why": "This Plan/Spec card writes only specs/microservices/slides.json. Build remains blocked until Review/fix approves the source lock."
+      },
+      {
+        "item": "manual edits to generated JSON or generated faces",
+        "why": "Generated outputs remain producer/materializer-owned and are not part of this PRD/source-authority write path."
+      },
+      {
+        "item": "manifests-index or oya/slides/manifest.json mutation",
+        "why": "Allowed write path is specs/microservices/slides.json only. Manifests-index and service manifest remain inspected provenance."
+      },
+      {
+        "item": "legacy microservices/slides/** resurrection",
+        "why": "ADR-0131 amended by ADR-0512 makes oya/slides the current service home; legacy paths are stale/provenance only."
+      },
+      {
+        "item": "Release Please metadata or release-note mutation",
+        "why": "This lane is source-authority planning only and does not ship a release artifact."
+      },
+      {
+        "item": "claiming sibling service readiness",
+        "why": "sheets, drive, messenger, social/community, mail, identity, and intelligence boundaries are declared as contracts/dependencies, not proof that those services are implementation-ready."
+      }
+    ]
+  },
+  "contract_surfaces": {
+    "rest_openapi": {
+      "source_ref": "$ref:oya/slides/contracts/openapi/slides.yaml",
+      "families": [
+        "deck CRUD/list/open/save/delete",
+        "slide list/insert/update/delete",
+        "deck and per-slide ACL",
+        "editor sessions",
+        "Cedar policy preview",
+        "comments and version history/restore",
+        "charts bind",
+        "themes/templates",
+        "import/export jobs",
+        "broadcast sessions",
+        "AI design/content and accessibility suggestions",
+        "health/readiness"
+      ],
+      "fixture_expectations": [
+        "HTTP happy-path and policy-denied replay fixtures",
+        "schema-validation failure fixtures",
+        "Cedar-preview rejection fixtures",
+        "rate-limit and dependent-service-unavailable fixtures",
+        "no product-readiness claim until contract replay passes in RED/Build"
+      ]
+    },
+    "asyncapi_ws_and_workflow_events": {
+      "source_ref": "$ref:oya/slides/contracts/asyncapi/slides-events.yaml",
+      "families": [
+        "collab-stream CRDT ops, conflicts, and cursor presence",
+        "present-mode navigation/cursor/reactions/questions/polls",
+        "broadcast LiveKit signaling",
+        "workflow-bus-out deck/collab/present/ACL/chart/AI/export/import events",
+        "workflow-bus-in sheets, docs, forms, messenger, tenant, and ontology updates"
+      ],
+      "fixture_expectations": [
+        "ordered and duplicate event replay cases",
+        "CRDT no-silent-loss and conflict-surfacing cases",
+        "broadcast degradation and messenger LiveKit termination cases",
+        "sibling-service unavailable and policy rejection cases"
+      ]
+    },
+    "proto_grpc_streaming": {
+      "source_ref": "$ref:oya/slides/contracts/proto/slides.proto",
+      "families": [
+        "Deck, Slide, ACL, ExportJob, ImportJob, BroadcastSession, AI, ChartBinding messages",
+        "SlidesService deck/slide/ACL/export/import/broadcast/AI/chart RPCs",
+        "StreamCollabOps bidirectional CRDT stream"
+      ],
+      "fixture_expectations": [
+        "binary compatibility and proto reflection fixtures",
+        "SDK boundary replay for sheets, drive, messenger, mail, identity, and intelligence clients",
+        "stream cancellation/backpressure/duplicate op fixtures"
+      ]
+    }
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "Deck",
+        "fields": [
+          "deck_id",
+          "tenant_id",
+          "pack",
+          "title",
+          "owner_oidc_sub",
+          "created_at",
+          "updated_at",
+          "version_sha",
+          "share_link_scope",
+          "contains_special_category",
+          "ai_risk_class"
+        ],
+        "invariants": [
+          "tenant scope immutable",
+          "policy gates all read/edit/export/broadcast operations",
+          "version history records every persisted deck mutation"
+        ]
+      },
+      {
+        "entity": "SlideObject",
+        "fields": [
+          "tenant_id",
+          "deck_id",
+          "slide_id",
+          "object_id",
+          "object_type",
+          "geometry",
+          "style_ref",
+          "content_ref",
+          "z_index",
+          "accessibility_label",
+          "reading_order"
+        ],
+        "invariants": [
+          "canonical content is typed vector/media object data, not Canvas draw commands",
+          "object identifiers survive SVG/Canvas/WebGL render-tier fallback"
+        ]
+      },
+      {
+        "entity": "CrdtOpEnvelope",
+        "fields": [
+          "author_oidc_sub",
+          "sequence_num",
+          "op_payload",
+          "hmac",
+          "emitted_at"
+        ],
+        "invariants": [
+          "op envelope is authenticated",
+          "silent loss count is zero",
+          "conflicts surface to users instead of being hidden"
+        ]
+      },
+      {
+        "entity": "AclEntry",
+        "fields": [
+          "principal_id",
+          "principal_kind",
+          "role",
+          "scope",
+          "policy_basis"
+        ],
+        "invariants": [
+          "Cedar default-deny",
+          "public-link guardrails",
+          "auditor scope cannot escalate to edit rights"
+        ]
+      },
+      {
+        "entity": "ImportExportJob",
+        "fields": [
+          "job_id",
+          "deck_id",
+          "format",
+          "status",
+          "scan_verdict",
+          "output_url",
+          "error_code"
+        ],
+        "invariants": [
+          "sandboxed conversion",
+          "malware/suspicious input refusal",
+          "egress/retention policy checked before output release"
+        ]
+      },
+      {
+        "entity": "AiAssistanceRecord",
+        "fields": [
+          "deck_id",
+          "request_id",
+          "tier",
+          "risk_class",
+          "provenance_watermark",
+          "human_review_required"
+        ],
+        "invariants": [
+          "intelligence is the authority boundary for model/capability execution",
+          "human-review and watermark expectations survive export/version history"
+        ]
+      }
+    ],
+    "events_emitted": [
+      "DeckOpened",
+      "DeckSaved",
+      "CollabMerged",
+      "CollabConflictSurfaced",
+      "PresentModeStarted",
+      "PresentModeEnded",
+      "AclChanged",
+      "ChartLinkBound",
+      "ChartLinkRevoked",
+      "AiDesignSuggested",
+      "AiContentGenerated",
+      "ExportJobCompleted",
+      "ImportJobCompleted",
+      "EVT-SLIDES-RENDER-TIER-SELECTED",
+      "EVT-SLIDES-VISUAL-REGRESSION-DETECTED",
+      "EVT-SLIDES-EXPORT-RASTERIZED-EFFECT"
+    ],
+    "persistence_expectations": [
+      {
+        "aggregate": "Deck and SlideObject",
+        "store": "Postgres/RLS plus object storage for media/export artifacts",
+        "sharding_key": "tenant_id+deck_id",
+        "retention": "per tenant pack, legal hold, and export/eDiscovery policy"
+      },
+      {
+        "aggregate": "CRDT session state",
+        "store": "Valkey/Loro-backed session worker plus durable deck version writes",
+        "sharding_key": "tenant_id+deck_id+session_id",
+        "retention": "session-bounded ephemeral ops plus audit/version checkpoints"
+      },
+      {
+        "aggregate": "Audit/evidence rows",
+        "store": "audit-chain references only; no tenant payload copied into governance evidence",
+        "sharding_key": "tenant_id+event_type+time_bucket",
+        "retention": "immutable under legal basis, with export/access request projections"
+      }
+    ]
+  },
+  "service_dependencies": {
+    "normative_boundaries": [
+      {
+        "service": "sheets",
+        "boundary": "chart live-link and cell-range embeds",
+        "authority_refs": [
+          "$ref:specs/microservices/manifests-index.json#microservices[name=sheets]",
+          "$ref:specs/microservices/sheets.json if present in the local branch"
+        ],
+        "readiness_status": "boundary declared only; slides must support sibling-unready and ACL-revoked rejection fixtures"
+      },
+      {
+        "service": "drive",
+        "boundary": "asset/media storage, deck attachments, exported artifact storage, restore paths, and share provenance",
+        "authority_refs": [
+          "$ref:specs/microservices/manifests-index.json#microservices[name=drive]"
+        ],
+        "readiness_status": "manifest/provenance boundary only unless a later drive PRD/source lock is approved"
+      },
+      {
+        "service": "messenger",
+        "boundary": "broadcast-mode LiveKit reuse, presence/session health, degraded broadcast runbook dependencies",
+        "authority_refs": [
+          "$ref:specs/microservices/manifests-index.json#microservices[name=messenger]"
+        ],
+        "readiness_status": "boundary declared; broadcast fixtures must cover messenger unavailable, room terminated, and per-pack degradation"
+      },
+      {
+        "service": "social/community",
+        "boundary": "embed, publishing, feed/share, comment/reaction, and audience community surfaces outside deck-native comments",
+        "authority_refs": [
+          "$ref:specs/microservices/social.json",
+          "$ref:specs/microservices/community.json if present"
+        ],
+        "readiness_status": "social PRD exists as Draft; slides must keep deck-native comments/versioning separate from social/community publishing"
+      },
+      {
+        "service": "mail",
+        "boundary": "share notifications, export delivery, eDiscovery/legal-hold notifications, and tenant policy notices",
+        "authority_refs": [
+          "$ref:specs/microservices/manifests-index.json#microservices[name=mail]"
+        ],
+        "readiness_status": "manifest/provenance boundary only; mail failure cannot block deck save/version history"
+      },
+      {
+        "service": "identity",
+        "boundary": "OIDC subject, tenant/user authn/authz, Cedar principal/role mapping, auditor/regulator role claims",
+        "authority_refs": [
+          "$ref:specs/microservices/manifests-index.json#microservices[name=identity]"
+        ],
+        "readiness_status": "identity is a required policy boundary; Build must use explicit authn/authz contract fixtures before implementation-readiness claims"
+      },
+      {
+        "service": "intelligence",
+        "boundary": "AI design/content/accessibility assistance, capability tier disclosure, provenance/watermarking, safety and risk-class decisions",
+        "authority_refs": [
+          "$ref:specs/microservices/manifests-index.json#microservices[name=intelligence]",
+          "$ref:specs/microservices/intelligence.json if present"
+        ],
+        "readiness_status": "successor for retired Foundry dependency; no Foundry runtime revival, no autonomous deck mutation without T2 policy and human-review semantics"
+      }
+    ],
+    "ancillary_context_dependencies_from_manifest": [
+      {
+        "service": "workflow-studio",
+        "use": "workflow surface for deck/action automation and event-bus context",
+        "normative_for_first_slice": false
+      },
+      {
+        "service": "docs",
+        "use": "quote/embed/import context through workflow events",
+        "normative_for_first_slice": false
+      },
+      {
+        "service": "forms",
+        "use": "poll/Q&A embed bridge for broadcast/audience engagement",
+        "normative_for_first_slice": false
+      },
+      {
+        "service": "ontology",
+        "use": "typed deck/slide/action projections and schema descriptors",
+        "normative_for_first_slice": false
+      },
+      {
+        "service": "tenancy",
+        "use": "tenant scope, pack, quota, and seat limits",
+        "normative_for_first_slice": true
+      },
+      {
+        "service": "audit-chain",
+        "use": "immutable evidence rows for privileged operations, export, ACL, AI, and incident events",
+        "normative_for_first_slice": true
+      },
+      {
+        "service": "observability",
+        "use": "SLO, trace, metric, dashboard, and incident signals",
+        "normative_for_first_slice": true
+      },
+      {
+        "service": "application",
+        "use": "shell/navigation host context",
+        "normative_for_first_slice": false
+      }
+    ],
+    "unresolved_or_non_normative_manifest_names": [
+      {
+        "name": "network",
+        "disposition": "common infrastructure noun; no slides product scope inferred without current authority lookup"
+      },
+      {
+        "name": "cell",
+        "disposition": "cell placement/control-plane context only; not a product dependency in this first source-lock slice"
+      },
+      {
+        "name": "shorts",
+        "disposition": "not made normative by this PRD because no allowed current authority was inspected"
+      },
+      {
+        "name": "detection",
+        "disposition": "not made normative by this PRD because no allowed current authority was inspected"
+      }
+    ]
+  },
+  "data_and_compliance": {
+    "data_classes": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_QUASI"
+    ],
+    "compliance_packs_applicable": [
+      "kr",
+      "eu",
+      "us",
+      "us-healthcare",
+      "jp",
+      "sg",
+      "au",
+      "in",
+      "br",
+      "ae",
+      "ksa",
+      "iso27001",
+      "SOC 2 Type 2",
+      "gdpr",
+      "hipaa",
+      "lgpd",
+      "PCI-DSS",
+      "fedramp",
+      "soc2",
+      "cn-pipl-2021",
+      "il5"
+    ],
+    "processing_boundaries": [
+      "Deck content, comments, version history, imports, exports, and AI prompt/output data remain tenant-scoped product data, not governance evidence payloads.",
+      "DPIA automation evidence may include identifiers, decision ids, verifier run ids, status URLs, ArgoCD sync ids, governance lane ids, and audit-chain references, but it must not copy tenant payload, PHI, payment-card data, message bodies, document bodies, or secrets into governance evidence.",
+      "Export/import jobs must enforce malware scanning, sandboxing, egress policy, retention/legal hold, and jurisdiction pack constraints before output release.",
+      "AI assistance records must retain provenance/watermark/risk-class metadata and human-review state for regulated contexts."
+    ],
+    "retention_and_legal_hold": [
+      "Decks, slides, comments, version history, share/ACL events, import/export jobs, and audit-chain pointers are retained per tenant pack and legal-hold policy.",
+      "Legal hold preserves deck content, version history, export job lineage, share-link changes, and AI provenance even when normal retention expires.",
+      "Access/export requests receive scoped projections rather than raw audit-chain mutation or payload leakage."
+    ],
+    "regulatory_notes": [
+      "EU: GDPR storage limitation, data-subject access/export, cross-border transfer, and AI-risk disclosure for content generation.",
+      "KR: PIPA-compatible retention, pack-localized export/egress controls, and Korean input/search/accessibility evidence where applicable.",
+      "US and US-healthcare: employment discovery, HIPAA overlays when PHI is embedded, and audit/eDiscovery packet integrity.",
+      "PCI-DSS applicability is limited to cases where payment/card artifacts are embedded or exported; slides must not claim card-processing scope by default."
+    ]
+  },
+  "security_and_policy": {
+    "authn_authz": [
+      "OIDC bearer identity for API access",
+      "tenant_id and pack scoping on every deck/slide/import/export/broadcast operation",
+      "Cedar default-deny for deck read/edit/present/broadcast/export/admin/audit actions",
+      "deck-level and per-slide ACLs with Cedar-preview before access-expanding mutations",
+      "auditor and regulator roles use scoped read/export projections, never implicit edit rights"
+    ],
+    "policy_guardrails": [
+      "Public links are restricted by tenant policy and cannot bypass pack, retention, legal-hold, or export controls.",
+      "Export/egress is refused when pack policy, malware verdict, legal hold, or data-class rules block release.",
+      "Canvas/WebGL fallback cannot remove accessibility semantics or policy hooks from the canonical slide model.",
+      "AI T2 content generation requires provenance, risk-class, policy evaluation, and human-review semantics where required.",
+      "Broadcast viewer identities may be pseudonymized for audience interactions but presenter/admin/audit identity remains traceable."
+    ],
+    "secrets_and_sandbox": [
+      "OpenBao-style secret references remain pointers only; secrets are never embedded in this source map or governance evidence.",
+      "Import/export workers run in sandboxed conversion pools and must not execute tenant-provided code outside approved conversion primitives.",
+      "CRDT session HMAC keys are session scoped and never logged."
+    ]
+  },
+  "observability_and_slo": {
+    "slo_refs": [
+      "$ref:oya/slides/slos/broadcast-mode-availability.openslo.yaml",
+      "$ref:oya/slides/slos/collab-cursor-sync-latency.openslo.yaml",
+      "$ref:oya/slides/slos/crdt-merge-no-silent-loss.openslo.yaml",
+      "$ref:oya/slides/slos/deck-open-latency.openslo.yaml",
+      "$ref:oya/slides/slos/export-mp4-latency.openslo.yaml",
+      "$ref:oya/slides/slos/export-pdf-latency.openslo.yaml",
+      "$ref:oya/slides/slos/export-pptx-latency.openslo.yaml",
+      "$ref:oya/slides/slos/present-mode-transition-latency.openslo.yaml",
+      "$ref:oya/slides/slos/save-latency.openslo.yaml",
+      "$ref:oya/slides/slos/slide-render-latency.openslo.yaml"
+    ],
+    "target_families": [
+      {
+        "name": "deck_open_latency",
+        "evidence_expectation": "browser/user-story and API trace evidence for opening policy-allowed decks"
+      },
+      {
+        "name": "deck_save_latency",
+        "evidence_expectation": "REST/CRDT persistence replay, conflict, and version-history evidence"
+      },
+      {
+        "name": "slide_render_latency",
+        "evidence_expectation": "SVG-first reference deck browser evidence across Chromium, Firefox, and WebKit where available"
+      },
+      {
+        "name": "present_transition_latency",
+        "evidence_expectation": "present-mode frame budget and reduced-motion evidence"
+      },
+      {
+        "name": "export_latency",
+        "evidence_expectation": "sandboxed PDF/PPTX/MP4 job lifecycle and timeout evidence"
+      },
+      {
+        "name": "broadcast_availability",
+        "evidence_expectation": "messenger LiveKit dependency degradation and viewer reconnect evidence"
+      },
+      {
+        "name": "collab_cursor_sync_latency",
+        "evidence_expectation": "WebSocket presence replay and backpressure evidence"
+      },
+      {
+        "name": "crdt_merge_no_silent_loss",
+        "evidence_expectation": "100% correctness invariant with any silent loss as Sev-1/page/release-blocking event"
+      }
+    ],
+    "audit_chain_events": [
+      "DeckSaved",
+      "AclChanged",
+      "ChartLinkBound",
+      "ChartLinkRevoked",
+      "AiDesignSuggested",
+      "AiContentGenerated",
+      "ExportJobCompleted",
+      "ImportJobCompleted",
+      "EVT-SLIDES-RENDER-TIER-SELECTED",
+      "EVT-SLIDES-VISUAL-REGRESSION-DETECTED",
+      "EVT-SLIDES-EXPORT-RASTERIZED-EFFECT"
+    ],
+    "rollback_signals": [
+      "force SVG render tier if Canvas/WebGL fallback regresses accessibility or fidelity",
+      "disable expensive filters during editor/present performance incidents",
+      "pin previous export worker image for export/reference-diff regressions",
+      "pause new broadcast sessions and show degradation banner when messenger LiveKit health drops"
+    ]
+  },
+  "ai_automation_bounds": {
+    "capability_tiers": [
+      {
+        "tier": "T0",
+        "name": "suggest",
+        "examples": [
+          "formatting hints",
+          "contrast warnings",
+          "template recommendations"
+        ],
+        "control": "advisory only; user chooses whether to apply"
+      },
+      {
+        "tier": "T1",
+        "name": "assist",
+        "examples": [
+          "layout/color/font suggestions",
+          "alt-text suggestions",
+          "copy rewrite suggestions"
+        ],
+        "control": "requires visible diff/provenance and user acceptance before persistence"
+      },
+      {
+        "tier": "T2",
+        "name": "auto",
+        "examples": [
+          "full-deck-from-prompt generation",
+          "bulk restyling",
+          "audience-tailored variants"
+        ],
+        "control": "policy-gated via intelligence, risk-classed, watermarked, human-review-required in regulated/high-risk contexts"
+      }
+    ],
+    "intelligence_boundary": "All model/capability execution, risk classification, evaluation, provenance, watermarking, and refusal semantics route through intelligence. Slides owns deck UX, policy preview, persistence, and audit linkage; it does not own model runtime authority.",
+    "retired_dependency_rewrite": "Any legacy Foundry wording in manifest/proto/source artifacts is historical/provenance or comments only; active scope must say intelligence and must not revive a Foundry service/runtime.",
+    "eu_ai_act_notes": [
+      "AI design suggestions and alt-text suggestions are usually low/medium risk when user-reviewed.",
+      "T2 content generation in employment, educational, legal, medical, credit, or similarly consequential contexts requires high-risk policy review, human oversight, provenance, and refusal paths.",
+      "Exported decks that include AI-generated content must preserve visible or inspectable provenance/watermark metadata according to tenant and jurisdiction policy."
+    ],
+    "fixture_expectations": [
+      "T0/T1 suggestion accepted/rejected cases",
+      "T2 generation human-review-required cases",
+      "high-risk context refusal cases",
+      "provenance/watermark retained through export and version restore",
+      "intelligence unavailable/retry/degrade cases"
+    ]
+  },
+  "accessibility_ux_evidence": {
+    "minimum_standard": "WCAG 2.2 AA minimum before user-facing readiness claims",
+    "coverage_expectations": [
+      "keyboard navigation for deck list, editor canvas, object selection, text editing, comments, version history, ACL dialog, import/export dialogs, present controls, and broadcast controls",
+      "screen-reader labels and reading order for slide objects and presenter/audience controls",
+      "semantic object model preserved for SVG-first editor and bridged for Canvas/WebGL fallback",
+      "reduced-motion mode for transitions, animations, and broadcast audience effects",
+      "contrast check and color-blind-safe report for deck themes and object styles",
+      "alt-text suggestion/review flow for image/video assets",
+      "browser/user-story evidence on critical paths before UI readiness claims"
+    ],
+    "rendering_contract": {
+      "default_editor": "SVG-first render pipeline with typed vector/media object source of truth",
+      "fallbacks": [
+        "Canvas 2D only for measured present-mode or thumbnail pressure",
+        "WebGL only for high-complexity present-mode cases with explicit tier decision",
+        "fallbacks must maintain a parallel accessibility tree and never become persisted canonical content"
+      ],
+      "browser_quirk_evidence": [
+        "Chromium fractional transform tests",
+        "Firefox SVG text metrics tests",
+        "WebKit/Safari foreignObject avoidance and canvas font metrics tests"
+      ]
+    },
+    "critical_user_journeys": [
+      "create deck from template and share with a coworker",
+      "co-edit deck while conflict is surfaced and resolved without silent loss",
+      "present and broadcast with LiveKit degradation banner",
+      "import PPTX, inspect conversion warnings, and export PDF/MP4",
+      "set per-slide ACL after Cedar preview",
+      "use T1 alt-text/design suggestion and preserve provenance through version restore"
+    ]
+  },
+  "fixture_plan": {
+    "red_fixture_families": [
+      {
+        "id": "FIX-SLIDES-001",
+        "family": "deck CRUD/open/save/versioning",
+        "cases": [
+          "create/open/update/delete/restore deck",
+          "soft-delete retention",
+          "concurrent save conflict",
+          "version restore audit"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-002",
+        "family": "slide and object authoring",
+        "cases": [
+          "insert/reorder/delete slides",
+          "edit text/shape/table/equation/media objects",
+          "theme/template/master-slide application",
+          "layout engine deterministic output"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-003",
+        "family": "collaboration and CRDT",
+        "cases": [
+          "cursor presence",
+          "out-of-order op replay",
+          "duplicate op idempotency",
+          "conflict surfaced",
+          "zero silent loss invariant"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-004",
+        "family": "present and broadcast",
+        "cases": [
+          "present-mode navigation",
+          "presenter cursor",
+          "audience reactions/questions/polls",
+          "messenger LiveKit unavailable",
+          "broadcast session ended by dependency"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-005",
+        "family": "import/export",
+        "cases": [
+          "PPTX/ODP/Keynote/PDF import",
+          "PDF/PDF-A/PPTX/ODP/MP4/PNG export",
+          "malware/suspicious input refusal",
+          "sandbox timeout",
+          "policy egress denial"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-006",
+        "family": "ACL/share/version history",
+        "cases": [
+          "deck ACL change",
+          "per-slide ACL change",
+          "Cedar preview rejection",
+          "public-link disabled by policy",
+          "auditor projection read",
+          "version restore under legal hold"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-007",
+        "family": "chart/sibling-service boundaries",
+        "cases": [
+          "sheets cell range bound",
+          "sheets ACL revoked",
+          "drive media unavailable",
+          "mail notification failure",
+          "social/community publishing disabled",
+          "identity principal missing or role denied"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-008",
+        "family": "accessibility and rendering",
+        "cases": [
+          "keyboard traversal",
+          "screen-reader reading order",
+          "contrast report",
+          "reduced motion",
+          "SVG-first object identity",
+          "Canvas/WebGL accessibility bridge",
+          "reference deck visual diff"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-009",
+        "family": "AI and intelligence boundary",
+        "cases": [
+          "T0 suggestion",
+          "T1 assist accepted/rejected",
+          "T2 content generation human-review-required",
+          "high-risk refusal",
+          "provenance/watermark retained through export",
+          "intelligence unavailable"
+        ]
+      },
+      {
+        "id": "FIX-SLIDES-010",
+        "family": "data class, retention, and audit",
+        "cases": [
+          "tenant pack retention",
+          "legal hold preserves deck and export history",
+          "audit-chain event emitted for ACL/export/AI/render-tier",
+          "no tenant payload copied into governance evidence"
+        ]
+      }
+    ],
+    "fixture_non_claims": [
+      "Fixture families are required planning inputs for RED/Build; this PRD does not create or pass those fixtures.",
+      "Existing contract files under oya/slides/** are provenance for expected replay families, not proof that implementation passes replay."
+    ]
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-SLIDES-001",
+      "given": "a tenant user creates or opens a deck",
+      "when": "the request passes OIDC and Cedar checks",
+      "then": "the deck is tenant scoped, versioned, audit-linked, and returned without leaking inaccessible decks",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-001 deck CRUD/open/save replay"
+    },
+    {
+      "id": "AC-SLIDES-002",
+      "given": "a user restores an older deck version",
+      "when": "legal hold or retention overlays apply",
+      "then": "the restore creates a new version, preserves chain-of-custody, and does not delete held history",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-001 and FIX-SLIDES-010"
+    },
+    {
+      "id": "AC-SLIDES-003",
+      "given": "a user edits slide objects",
+      "when": "text, shape, table, equation, media, theme, template, or master-slide changes are saved",
+      "then": "canonical typed object state is persisted and render-tier fallback never becomes canonical content",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-002 and FIX-SLIDES-008"
+    },
+    {
+      "id": "AC-SLIDES-004",
+      "given": "the editor renders a complex deck",
+      "when": "SVG, Canvas, or WebGL tier selection is needed",
+      "then": "SVG remains default for authoring, fallback is measured and audited, and accessibility semantics are preserved",
+      "verification_ref": "future browser/accessibility evidence: render reference decks across supported engines"
+    },
+    {
+      "id": "AC-SLIDES-005",
+      "given": "multiple collaborators edit the same deck",
+      "when": "CRDT operations arrive out of order or conflict",
+      "then": "operations are authenticated, no silent loss occurs, conflicts are surfaced, and cursor/presence remains bounded by tenant policy",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-003"
+    },
+    {
+      "id": "AC-SLIDES-006",
+      "given": "a presenter starts present or broadcast mode",
+      "when": "messenger LiveKit or audience engagement dependencies degrade",
+      "then": "Slides shows explicit degradation, refuses unsafe new broadcast sessions when needed, and leaves local present mode usable",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-004"
+    },
+    {
+      "id": "AC-SLIDES-007",
+      "given": "a user imports or exports a deck",
+      "when": "the file conversion pipeline runs",
+      "then": "sandboxing, malware scan verdict, pack/retention/legal-hold/egress policy, and audit linkage are enforced before output release",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-005"
+    },
+    {
+      "id": "AC-SLIDES-008",
+      "given": "a keyboard or assistive-technology user works with slides",
+      "when": "they navigate editor, present, comments, ACL, import/export, or AI suggestion flows",
+      "then": "WCAG 2.2 AA user paths, semantic object labels, reading order, contrast, alt-text, and reduced-motion behavior are verified",
+      "verification_ref": "future browser/user-story/accessibility evidence: FIX-SLIDES-008"
+    },
+    {
+      "id": "AC-SLIDES-009",
+      "given": "a deck owner changes access",
+      "when": "deck-level, per-slide, public-link, auditor, or export permissions are updated",
+      "then": "Cedar default-deny and preview semantics prevent unintended access expansion and audit the policy basis",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-006"
+    },
+    {
+      "id": "AC-SLIDES-010",
+      "given": "a records officer reviews deck history",
+      "when": "version history, comments, ACL changes, export jobs, or AI assistance are inspected",
+      "then": "the evidence shows chain-of-custody, legal-hold state, and provenance without exposing data outside policy scope",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-010"
+    },
+    {
+      "id": "AC-SLIDES-011",
+      "given": "a user requests AI assistance",
+      "when": "T0/T1/T2 capability paths are invoked",
+      "then": "intelligence boundary, risk class, human-review state, refusal semantics, and provenance/watermark retention are enforced",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-009"
+    },
+    {
+      "id": "AC-SLIDES-012",
+      "given": "Slides integrates with sibling services",
+      "when": "sheets, drive, messenger, social/community, mail, identity, or intelligence is unavailable, denies access, or reports stale state",
+      "then": "Slides degrades or rejects safely without treating sibling inventory as readiness evidence",
+      "verification_ref": "future RED/Build fixture: FIX-SLIDES-007"
+    },
+    {
+      "id": "AC-SLIDES-013",
+      "given": "this source-authority artifact is ready for lifecycle fanout",
+      "when": "Review/fix evaluates the source lock",
+      "then": "Review/fix must approve this file before RED or Build workers start implementation; absent approval keeps RED/Build blocked",
+      "verification_ref": "Kanban lifecycle: t_228dc16e -> t_62dcb74a before downstream RED/Build cards"
+    }
+  ],
+  "evidence_expectations": {
+    "review_fix": [
+      "Validate that specs/microservices/slides.json is the source-authority PRD/source map and that oya/slides/manifest.json remains inventory/provenance only.",
+      "Check that stale microservices/slides/** references are quarantined and not made canonical.",
+      "Check retired Foundry dependency mapping to intelligence and no active Foundry revival.",
+      "Check required user stories, contract families, fixture families, service boundaries, data/security/accessibility/AI/readiness fields are present."
+    ],
+    "red_build_future": [
+      "JSON/source-spec checker and neighbor-shape checker",
+      "API/contract replay fixtures for REST/OpenAPI, AsyncAPI/WebSocket/workflow events, and proto/gRPC/streaming surfaces",
+      "targeted domain/app tests for deck, slide, ACL, collaboration, import/export, broadcast, AI, and audit paths",
+      "browser/user-story/accessibility evidence for editor, present, ACL, import/export, and AI flows",
+      "observability/SLO dashboard and alert evidence where runtime claims are made",
+      "protected oya-ci-required evidence for merge readiness where a PR ships code or operational behavior"
+    ],
+    "non_evidence": [
+      "The manifest inventory alone",
+      "stale legacy IP/PRD/capacity-model paths",
+      "local README/DPIA doctrine propagation text without runtime verification",
+      "legacy oya CLI examples in runbooks",
+      "unreviewed PRD/source map content before Review/fix approval"
+    ]
+  },
+  "verification_commands": [
+    "python3 -m json.tool specs/microservices/slides.json",
+    "python3 - <<'PY'\nimport json, pathlib\nroot=pathlib.Path('.')\ndata=json.load(open(root/'specs/microservices/slides.json'))\nrequired=['authority_resolution','source_reference_map','identity','user_stories','scope','contract_surfaces','fixture_plan','data_and_compliance','security_and_policy','service_dependencies','observability_and_slo','ai_automation_bounds','accessibility_ux_evidence','acceptance_criteria','downstream_lifecycle']\nmissing=[k for k in required if k not in data]\nassert not missing, missing\nassert data['authority_resolution']['canonical_service_home']=='oya/slides'\nassert 'RED and Build remain blocked' in data['authority_resolution']['prd_status_disposition']\nprint('slides focused shape ok')\nPY",
+    "python3 ~/.hermes/skills/productivity/doc-grounded-kanban-population/scripts/retired_authority_guard.py --repo /Users/jasonlee/Developer/oyatie --candidate-json specs/microservices/slides.json --fail-on-blocked",
+    "git diff --check -- specs/microservices/slides.json"
+  ],
+  "downstream_lifecycle": {
+    "current_card": "t_228dc16e",
+    "review_fix_card": "t_62dcb74a",
+    "planned_chain": [
+      "t_228dc16e",
+      "t_62dcb74a",
+      "t_7e63e03d",
+      "t_14ab9752",
+      "t_db09e60d",
+      "t_8a2dbc3f",
+      "t_da1e4dc0"
+    ],
+    "red_build_gate": "RED/Build remains blocked until t_62dcb74a Review/fix approves this source lock. This artifact alone is not implementation-readiness evidence."
+  },
+  "decision_log": [
+    {
+      "date": "2026-07-01",
+      "decision": "Author specs/microservices/slides.json as the slides PRD/source-authority artifact while keeping oya/slides/manifest.json as inventory/provenance only.",
+      "drivers": [
+        "t_e842c2ba source-lock artifact",
+        "manifests-index slides authority boundary",
+        "ADR-0131 amended by ADR-0512 service-home rule",
+        "Kanban lifecycle requiring Plan/Spec before Review/fix, RED, and Build"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "Map legacy Foundry dependency wording to intelligence and quarantine stale microservices/slides/** references.",
+      "drivers": [
+        "manifests-index retired foundry row",
+        "source-lock retired_dependency_rewrite finding",
+        "ADR-0512 canonical oya/slides service home"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "$ref:specs/root-hub-pointers.json",
+    "$ref:specs/microservices/manifests-index.json",
+    "$ref:specs/microservices/manifest-schema.json",
+    "$ref:specs/microservices/calendar.json",
+    "$ref:specs/microservices/social.json",
+    "$ref:specs/microservices/anonymous.json",
+    "$ref:oya/slides/manifest.json",
+    "$ref:oya/slides/README.md",
+    "$ref:oya/slides/contracts/openapi/slides.yaml",
+    "$ref:oya/slides/contracts/asyncapi/slides-events.yaml",
+    "$ref:oya/slides/contracts/proto/slides.proto",
+    "$ref:oya/slides/dpia/dpia.md",
+    "$ref:oya/slides/decisions/ADR-SLD-001-svg-first-render-pipeline-vs-canvas.md",
+    "$ref:oya/slides/runbooks/broadcast-mode-degraded.md",
+    "$ref:oya/slides/slos/crdt-merge-no-silent-loss.openslo.yaml",
+    "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+    "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+    "$ref:/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_e842c2ba/slides-source-lock.md"
+  ],
+  "enforcement_status": {
+    "source_authority_locked_by_this_file": true,
+    "review_fix_required_before_red_build": true,
+    "runtime_readiness_claim": false,
+    "product_readiness_claim": false,
+    "generated_json_hand_edit_required": false,
+    "allowed_write_path_observed": "specs/microservices/slides.json"
+  }
+}

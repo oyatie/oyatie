@@ -162,7 +162,7 @@ Machine-readable ledger: `evidence/audits/ci-011-shell-cli-retirement-inventory-
 | `oya/warehouse/crates/oya-warehouse-fulfillment-app/src/main.rs` | `oya-warehouse-fulfillment` | `product_service_entrypoint` | `migrate_to_console_api` | Container/service entrypoint with declarative config; operator interaction through console/API. |
 | `oya/whiteboard/crates/oya-whiteboard-canvas-collaboration-app/src/main.rs` | `oya-whiteboard-canvas-collaboration` | `product_service_entrypoint` | `migrate_to_console_api` | Container/service entrypoint with declarative config; operator interaction through console/API. |
 | `tools/oya-buck-test-wiring-app/src/main.rs` | `oya-buck-test-wiring` | `local_tool_cli` | `migrate_to_console_api` | Buck2/cloud-ci generator/controller API; no manual operator CLI authority. |
-| `tools/oya-lane-supervisor-app/src/main.rs` | `oya-lane-supervisor` | `local_agent_bridge_cli` | `migrate_to_console_api` | retired external agent harness Kanban / cloud-ci lane-state controller; remove local .omc JSONL bridge authority. |
+| `tools/oya-lane-supervisor-app/src/main.rs` | `oya-lane-supervisor` | `local_agent_bridge_cli` | `migrate_to_console_api` | Hermes Kanban / cloud-ci lane-state controller; remove local .omc JSONL bridge authority. |
 | `tools/oya-xtask-metadata-augment-app/src/main.rs` | `` | `local_tool_cli` | `migrate_to_console_api` | Buck2/cloud-ci generator/controller API; no manual operator CLI authority. |
 
 ## Internal `oya-dev-cli` command-family classification

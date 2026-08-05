@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/translate-source-map-red-case.schema.json",
+  "fixture_id": "rejects_retired_ai_substrate_live_owner_fixture",
+  "fixture_kind": "retired_authority_negative_control",
+  "source_map_ref": "specs/microservices/translate.json",
+  "kanban_task": "t_a966bab0",
+  "expected_checker_decision": "REJECT",
+  "must_reject": [
+    "Foundry as active product authority",
+    "foundry-runtime as live owner",
+    "model/provider routing without current intelligence authority",
+    "T2 auto-translation without human-control and policy review",
+    "retired AI-substrate vocabulary used as Build permission"
+  ],
+  "allowed_when": [
+    "Foundry/foundry-runtime appears only as retired/provenance terminology",
+    "live model-provider authority is normalized to intelligence with policy, residency, data-use, and audit gates"
+  ]
+}
