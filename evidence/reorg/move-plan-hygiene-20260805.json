@@ -1,0 +1,424 @@
+{
+  "schema": "oyatie/reorg-move-plan-hygiene/v1",
+  "bead": "oyatie-oso.19",
+  "generated_at": "2026-08-05T11:59:49Z",
+  "authority": {
+    "branch": "agent/rr-moveplan-hygiene-20260805",
+    "head": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "origin_dev": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "doctrine": ".grok/programs/REORG-DOCTRINE.md (delete class OK with consumer proof)",
+    "adrs": [
+      "ADR-0614",
+      "ADR-0562/0615",
+      "ADR-0563"
+    ],
+    "precedents": {
+      "billing_spent_delete": "26fdfed09 (delete billing-move-plan when superseded)",
+      "unsafe_stale_delete_rolled_back": "c538536bd deleted ci+iam; cfcbcf967 restored load-bearing ci-move-plan",
+      "g030_h_retention_note": "G030-H (2026-08-02) classified landed as GRAPH_WIRED not delete-queue; superseded for non-load-bearing rows by REORG-DOCTRINE delete class + this hygiene bead"
+    }
+  },
+  "codemod_discovery_notes": {
+    "active_glob": "specs/reorg/*-move-plan.json (suffix exact; PARKED/BLOCKED suffixes do not match)",
+    "landed_probe": "plan_is_landed: every old_path (moves+artifacts) absent at merge-base origin/dev",
+    "multi_active_guard": "MultipleMovePlans fail-closed only among non-landed active plans"
+  },
+  "summary": {
+    "plans_inventoried": 11,
+    "by_status": {
+      "landed": 9,
+      "parked": 1,
+      "blocked": 1
+    },
+    "delete_count": 8,
+    "keep_count": 3
+  },
+  "plans": [
+    {
+      "path": "specs/reorg/ci-move-plan.json",
+      "filename": "ci-move-plan.json",
+      "capability": "ci",
+      "status": "landed",
+      "disposition": "keep",
+      "reason": "landed but load-bearing: gate_registration.rs + gate-disposition reference; cfcbcf967 restored after unsafe delete c538536bd",
+      "counts": {
+        "moves": {
+          "old_gone": 46,
+          "old_present": 0,
+          "new_present": 46,
+          "new_gone": 0,
+          "n": 46
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 47,
+          "old_present": 0,
+          "new_present": 47,
+          "new_gone": 0,
+          "n": 47
+        }
+      },
+      "hard_consumers": [
+        "ci/facade/baseline-ratchet/tests/gate_registration.rs (ci_move_new_dir reads file as SSOT)",
+        "libs/oya-ci-config/src/bundled/gate-disposition.json (reference field)",
+        "specs/reorg/ci-graph-additions.json (companion contract names this plan)"
+      ],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/governance-check-move-plan.json",
+      "filename": "governance-check-move-plan.json",
+      "capability": "governance",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 56,
+          "old_present": 0,
+          "new_present": 56,
+          "new_gone": 0,
+          "n": 56
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 112,
+          "old_present": 0,
+          "new_present": 112,
+          "new_gone": 0,
+          "n": 112
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/iam-pdp-cedar-move-plan.json",
+      "filename": "iam-pdp-cedar-move-plan.json",
+      "capability": "iam",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 1,
+          "old_present": 0,
+          "new_present": 1,
+          "new_gone": 0,
+          "n": 1
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 1,
+          "old_present": 0,
+          "new_present": 1,
+          "new_gone": 0,
+          "n": 1
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/intelligence-move-plan.json",
+      "filename": "intelligence-move-plan.json",
+      "capability": "intelligence",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 15,
+          "old_present": 0,
+          "new_present": 15,
+          "new_gone": 0,
+          "n": 15
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 30,
+          "old_present": 0,
+          "new_present": 30,
+          "new_gone": 0,
+          "n": 30
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/intelligence-remainder-move-plan.PARKED.json",
+      "filename": "intelligence-remainder-move-plan.PARKED.json",
+      "capability": "intelligence",
+      "status": "parked",
+      "disposition": "keep",
+      "reason": "filename marker PARKED/BLOCKED \u2014 out of active glob; residual design inventory",
+      "counts": {
+        "moves": {
+          "old_gone": 0,
+          "old_present": 78,
+          "new_present": 0,
+          "new_gone": 78,
+          "n": 78
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 0,
+          "old_present": 156,
+          "new_present": 0,
+          "new_gone": 156,
+          "n": 156
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": true,
+        "blocked": false,
+        "matches_active_glob": false
+      }
+    },
+    {
+      "path": "specs/reorg/intelligence-sinkbatch-move-plan.json",
+      "filename": "intelligence-sinkbatch-move-plan.json",
+      "capability": "intelligence",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 10,
+          "old_present": 0,
+          "new_present": 10,
+          "new_gone": 0,
+          "n": 10
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 20,
+          "old_present": 0,
+          "new_present": 20,
+          "new_gone": 0,
+          "n": 20
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/intelligence-supervisor-move-plan.json",
+      "filename": "intelligence-supervisor-move-plan.json",
+      "capability": "intelligence",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 8,
+          "old_present": 0,
+          "new_present": 8,
+          "new_gone": 0,
+          "n": 8
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 16,
+          "old_present": 0,
+          "new_present": 16,
+          "new_gone": 0,
+          "n": 16
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/kernel-move-plan.BLOCKED.json",
+      "filename": "kernel-move-plan.BLOCKED.json",
+      "capability": "kernel",
+      "status": "blocked",
+      "disposition": "keep",
+      "reason": "filename marker PARKED/BLOCKED \u2014 out of active glob; residual design inventory",
+      "counts": {
+        "moves": {
+          "old_gone": 0,
+          "old_present": 7,
+          "new_present": 0,
+          "new_gone": 7,
+          "n": 7
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 0,
+          "old_present": 17,
+          "new_present": 3,
+          "new_gone": 14,
+          "n": 17
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": true,
+        "matches_active_glob": false
+      }
+    },
+    {
+      "path": "specs/reorg/messaging-boundary-kernels-move-plan.json",
+      "filename": "messaging-boundary-kernels-move-plan.json",
+      "capability": "messaging",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 3,
+          "old_present": 0,
+          "new_present": 3,
+          "new_gone": 0,
+          "n": 3
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 3,
+          "old_present": 0,
+          "new_present": 3,
+          "new_gone": 0,
+          "n": 3
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/messaging-substrate-kernel-move-plan.json",
+      "filename": "messaging-substrate-kernel-move-plan.json",
+      "capability": "messaging",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 1,
+          "old_present": 0,
+          "new_present": 1,
+          "new_gone": 0,
+          "n": 1
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 1,
+          "old_present": 0,
+          "new_present": 1,
+          "new_gone": 0,
+          "n": 1
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    },
+    {
+      "path": "specs/reorg/os-move-plan.json",
+      "filename": "os-move-plan.json",
+      "capability": "os",
+      "status": "landed",
+      "disposition": "delete",
+      "reason": "all old_paths GONE, all new_paths PRESENT; no live hard consumers; matches billing-plan spent retirement (26fdfed09) and doctrine delete class with consumer-absence proof",
+      "counts": {
+        "moves": {
+          "old_gone": 41,
+          "old_present": 0,
+          "new_present": 41,
+          "new_gone": 0,
+          "n": 41
+        },
+        "moves_plus_artifacts": {
+          "old_gone": 41,
+          "old_present": 0,
+          "new_present": 41,
+          "new_gone": 0,
+          "n": 41
+        }
+      },
+      "hard_consumers": [],
+      "filename_markers": {
+        "parked": false,
+        "blocked": false,
+        "matches_active_glob": true
+      }
+    }
+  ],
+  "companions": [
+    {
+      "path": "specs/reorg/ci-graph-additions.json",
+      "filename": "ci-graph-additions.json",
+      "status": "companion",
+      "disposition": "keep",
+      "reason": "not a move-plan; ADR-0563 Cargo.lock graph-mutation companion to ci-move-plan; G030-H POLICY_PROTECTED",
+      "hard_consumers": [
+        "ADR-0563 / lockfile-move transform contract"
+      ]
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "R1",
+      "action": "delete_now",
+      "paths": [
+        "specs/reorg/governance-check-move-plan.json",
+        "specs/reorg/iam-pdp-cedar-move-plan.json",
+        "specs/reorg/intelligence-move-plan.json",
+        "specs/reorg/intelligence-sinkbatch-move-plan.json",
+        "specs/reorg/intelligence-supervisor-move-plan.json",
+        "specs/reorg/messaging-boundary-kernels-move-plan.json",
+        "specs/reorg/messaging-substrate-kernel-move-plan.json",
+        "specs/reorg/os-move-plan.json"
+      ],
+      "note": "Clearly spent; no live hard consumers; safe under REORG-DOCTRINE delete class"
+    },
+    {
+      "id": "R2",
+      "action": "keep_load_bearing",
+      "paths": [
+        "specs/reorg/ci-move-plan.json",
+        "specs/reorg/ci-graph-additions.json"
+      ],
+      "note": "ci-move-plan is SSOT for gate_registration rename map; do not delete without migrating that consumer to an owned rename table or inlining NEW dirs"
+    },
+    {
+      "id": "R3",
+      "action": "keep_residual",
+      "paths": [
+        "specs/reorg/intelligence-remainder-move-plan.PARKED.json",
+        "specs/reorg/kernel-move-plan.BLOCKED.json"
+      ],
+      "note": "PARKED residual (PRESENT old_paths) and BLOCKED design; not delete targets"
+    },
+    {
+      "id": "R4",
+      "action": "follow_up",
+      "note": "Optional later: migrate gate_registration off ci-move-plan then retire ci-move-plan + decide ci-graph-additions retention (historical lockfile contract vs live reader)"
+    }
+  ]
+}
