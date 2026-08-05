@@ -10,7 +10,7 @@ license = "Apache-2.0"
 # PathId identities of the self-referential CI gates' movable self-locations, the compiled
 # CURRENT-canonical seed table (never read from a candidate-tree data file — the
 # candidate-repointable anchor is the removed guard), and the two ports the adapter needs
-# (MoveBijection over the committed move-manifest, FrozenRefSource over the git merge-base
+# (MoveBijection over the de-committed move-manifest, FrozenRefSource over the git merge-base
 # seam). The concrete git/manifest implementations live in ci/adapters/path-resolver.
 
 [lib]

@@ -13,17 +13,19 @@
 //! No single compiled literal is correct for both. This crate replaces the movable location
 //! consts with a stable logical [`PathId`] resolved through a move-aware resolver: the
 //! CANDIDATE side is a compiled CURRENT-canonical seed (rebased NEW when a move lands, in the
-//! same reviewed PR), and the MERGE-BASE side is driven by the committed move-manifest bijection
-//! ([`MoveBijection`]) over the immutable git history ([`FrozenRefSource`]).
+//! same reviewed PR), and the MERGE-BASE side is driven by the de-committed move-manifest bijection
+//! ([`MoveBijection`]; ADR-0614: materialize-on-demand, never a contributor merge surface) over the
+//! immutable git history ([`FrozenRefSource`]).
 //!
 //! SECURITY (why this cannot launder ratchet debt): the merge-base resolution reads the frozen
 //! reference from IMMUTABLE MERGE-BASE HISTORY, at a name chosen by a TRUSTED COMPILED SEED
 //! (never a candidate-tree data file — MUST-PASS #1) bridged by a manifest that is itself
-//! REGENERATED-FROM-THE-COMMITTED-PLAN-BEFORE-READ (registry-drift/freshness byte-bind it to the
-//! codemod's deterministic output, so a hand-forged pair REDs before the firewall consumes the
-//! snapshot). It is NOT a gate-ordering / registry-drift trick and NOT a candidate fallback: a
-//! name the manifest declares but that is absent from BOTH sides of history is a HARD ERROR, never
-//! an empty/bootstrap/candidate fallback (that is the laundering vector this crate exists to close).
+//! REGENERATED-FROM-THE-COMMITTED-PLAN-BEFORE-READ (registry-drift regenerate-twice determinism
+//! binds it to the codemod's deterministic output, so a hand-forged pair REDs before the firewall
+//! consumes the snapshot). It is NOT a gate-ordering / registry-drift trick and NOT a candidate
+//! fallback: a name the manifest declares but that is absent from BOTH sides of history is a HARD
+//! ERROR, never an empty/bootstrap/candidate fallback (that is the laundering vector this crate
+//! exists to close).
 #![forbid(unsafe_code)]
 
 /// A logical, move-stable identity for one self-referential gate self-location. The variant —
@@ -35,8 +37,9 @@ pub enum PathId {
     /// candidate-vs-merge-base split: candidate `repo_root.join` read of the local policy
     /// (supplies `out_path`) vs the frozen `show_file(merge_base, .)` read (frozen-policy-wins).
     RatchetPolicy,
-    /// The committed accounting `scm-facts.generated.json` face (candidate WRITE target — the
-    /// emitter's `--out` default). Candidate-only; never read at the merge-base.
+    /// The de-committed accounting `scm-facts.generated.json` face (candidate WRITE target — the
+    /// emitter's `--out` default; materialize-on-demand, not-tracked-in-git). Candidate-only; never
+    /// read at the merge-base.
     ScmFactsFace,
     /// The untracked, gitignored `scm-volatile-facts.generated.json` snapshot (candidate WRITE
     /// target — the emitter's `--volatile-out` default). Candidate-only.
@@ -58,8 +61,9 @@ impl PathId {
 /// there is no candidate-repointable anchor an attacker could aim the merge-base read through.
 /// The value is the file's CURRENT canonical location: when a strangler move lands, this const is
 /// rebased OLD->NEW in the SAME reviewed PR that lands the move (a code edit, the same review class
-/// as editing the workflow), and the committed move-manifest supplies the NEW->OLD bridge that the
-/// merge-base read needs for the single PR whose merge-base still predates the move.
+/// as editing the workflow), and the materialized (de-committed, ADR-0614) move-manifest supplies
+/// the NEW->OLD bridge that the merge-base read needs for the single PR whose merge-base still
+/// predates the move.
 pub const fn canonical_current(id: PathId) -> &'static str {
     match id {
         PathId::RatchetPolicy => "ci/facade/baseline-ratchet/ratchet-policy.json",
@@ -84,9 +88,10 @@ pub enum MergeBaseName {
     Absent,
 }
 
-/// The old<->new bijection loaded from the committed move-manifest. FAIL-CLOSED EMPTY => identity
-/// (no pending move). Injective on BOTH sides (MUST-PASS #3): `new_to_old` must be a well-defined
-/// function, so a manifest whose new-side is non-injective is rejected to the empty bijection.
+/// The old<->new bijection loaded from the de-committed move-manifest (materialized on demand).
+/// FAIL-CLOSED EMPTY => identity (no pending move). Injective on BOTH sides (MUST-PASS #3):
+/// `new_to_old` must be a well-defined function, so a manifest whose new-side is non-injective is
+/// rejected to the empty bijection.
 pub trait MoveBijection {
     /// The pre-move OLD path a pending move declares for `new_path`; `None` => not a pending move.
     fn new_to_old(&self, new_path: &str) -> Option<&str>;
