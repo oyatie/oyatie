@@ -234,3 +234,9 @@ _ralplan_workflow.js
 # committed fragment is always read. Ignore the machine-local file; keep the
 # committed-fragment door open.
 /.buckconfig.local
+
+# Multi-model harness local run journals (not source of truth)
+.grok/mm-runs/
+
+.grok/memory/
+.grok/skills/
