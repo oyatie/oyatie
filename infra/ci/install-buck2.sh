@@ -3,6 +3,25 @@
 # Also ensures rustup exists on GitHub-hosted runners (baked ARC images already have it).
 set -euo pipefail
 
+# Hosted GHA + large monorepo: concurrent PR jobs hit Linux inotify defaults and buck2 fails
+# with "OS file watch limit reached" / DaemonStateData (fleet-wide reds on 1566–1572).
+# Raise watches early so every job that sources this installer can start buck2d. Best-effort:
+# non-root / restricted runners skip without failing the install.
+if [ "$(uname -s)" = "Linux" ]; then
+  if command -v sysctl >/dev/null 2>&1; then
+    if [ "$(id -u)" -eq 0 ]; then
+      sysctl -w fs.inotify.max_user_watches=524288 >/dev/null 2>&1 || true
+      sysctl -w fs.inotify.max_user_instances=1024 >/dev/null 2>&1 || true
+    elif command -v sudo >/dev/null 2>&1; then
+      sudo -n sysctl -w fs.inotify.max_user_watches=524288 >/dev/null 2>&1 || true
+      sudo -n sysctl -w fs.inotify.max_user_instances=1024 >/dev/null 2>&1 || true
+    fi
+  fi
+  if [ -n "${GITHUB_ACTIONS:-}" ]; then
+    echo "buck2-preflight: fs.inotify max_user_watches=$(sysctl -n fs.inotify.max_user_watches 2>/dev/null || echo unknown) max_user_instances=$(sysctl -n fs.inotify.max_user_instances 2>/dev/null || echo unknown)"
+  fi
+fi
+
 # W1 hosted runners: ubuntu-latest has no rustup; ARC images ship it under /opt/rust.
 # Always pin RUSTUP_HOME for later steps that use set -u and pass --env RUSTUP_HOME=${RUSTUP_HOME}
 # (ARC bakes RUSTUP_HOME=/opt/rust/rustup; GHA needs an explicit default or the var is unbound).
