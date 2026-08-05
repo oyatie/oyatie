@@ -1,0 +1,924 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "kind": "ultragoal_story_reconciliation_receipt",
+  "version": "1.1.0",
+  "story": {
+    "id": "G038-reconcile-legacy-stage-1-and-bind-th",
+    "title": "Reconcile legacy Stage-1 and bind the approved CAS/RE execution baseline",
+    "status": "review_pending_final"
+  },
+  "captured_at_utc": "2026-08-05T07:26:07Z",
+  "fresh_baseline": {
+    "origin_dev_sha": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+    "origin_dev_commit_time": "2026-08-05T00:59:25-04:00",
+    "primary_checkout": {
+      "path": "/Users/jasonlee/Developer/oyatie",
+      "branch": "agent/cas-live-proof-20260804",
+      "head_sha": "06b5018067a317d1b0f1b45d0c780fa9807da69d",
+      "relative_to_origin_dev": {
+        "ahead": 17,
+        "behind": 614
+      },
+      "dirty_entry_count_at_capture": 1765,
+      "rule": "Do not reset, clean, rebase, or use this dirty legacy lane as an implementation base."
+    },
+    "representative_worktree": {
+      "path": "/Users/jasonlee/Developer/oyatie-lanes-20260805/cas-proof-bootstrap",
+      "branch": "feat/cas-proof-bootstrap-20260805",
+      "head_sha": "54b22d0c6470d8008012542eb37d0ff32b72e1b5",
+      "remote_backed": true,
+      "pr": 1558
+    }
+  },
+  "legacy_stage_1": {
+    "conclusion": "PRs #1361-#1364 are merged; stale G019 remains audit-visible as superseded.",
+    "pull_requests": [
+      {
+        "number": 1361,
+        "title": "feat(ci): materialize history-only retirement facts",
+        "url": "https://github.com/jason931225/oyatie/pull/1361",
+        "state": "MERGED",
+        "draft": false,
+        "base": "dev",
+        "head_ref": "codex/archive-e7-retirement-materializer-final-20260722",
+        "head_sha": "ece0ed57618495bc618d3e1913a8c17de717ce48",
+        "merge_sha": "e4e7b3c82752d56e0c96c772e23057e4b5f7354f",
+        "merged_at": "2026-07-24T15:30:47Z",
+        "review_decision": "NONE",
+        "required_check": "SUCCESS",
+        "failed_checks": []
+      },
+      {
+        "number": 1362,
+        "title": "fix(governance): de-commit active artifact graph projection",
+        "url": "https://github.com/jason931225/oyatie/pull/1362",
+        "state": "MERGED",
+        "draft": false,
+        "base": "dev",
+        "head_ref": "codex/adr0620-graph-decommit-20260722",
+        "head_sha": "40cceeec149c71ff6328531a99054db10ca6ccad",
+        "merge_sha": "cf72c1b50affb667ea78812230b21b0c69bb9c5a",
+        "merged_at": "2026-07-24T17:39:42Z",
+        "review_decision": "NONE",
+        "required_check": "SUCCESS",
+        "failed_checks": []
+      },
+      {
+        "number": 1363,
+        "title": "docs(governance): preserve FixupTask v2 proposal without binding admission",
+        "url": "https://github.com/jason931225/oyatie/pull/1363",
+        "state": "MERGED",
+        "draft": false,
+        "base": "dev",
+        "head_ref": "codex/fixuptask-v2-foundation-20260721",
+        "head_sha": "934a28c84678570a6a0315cd088796b3c6d39614",
+        "merge_sha": "70144ea9d1f68fcfe6c91d82546d58ccf756ee84",
+        "merged_at": "2026-07-24T22:47:13Z",
+        "review_decision": "NONE",
+        "required_check": "SUCCESS",
+        "failed_checks": []
+      },
+      {
+        "number": 1364,
+        "title": "docs(governance): preserve nonbinding ADR-0623 proposal",
+        "url": "https://github.com/jason931225/oyatie/pull/1364",
+        "state": "MERGED",
+        "draft": false,
+        "base": "dev",
+        "head_ref": "codex/stage1-closure-foundation-20260722",
+        "head_sha": "7747be8a8f5a7c304f9c628b4449e93aded0123d",
+        "merge_sha": "b29b92ec96b5e656993e1331cc8d324c4543096c",
+        "merged_at": "2026-07-25T00:44:58Z",
+        "review_decision": "NONE",
+        "required_check": "SUCCESS",
+        "failed_checks": []
+      }
+    ]
+  },
+  "current_open_pull_requests_to_dev": [
+    {
+      "number": 1558,
+      "title": "infra: add isolated CAS proof-cell prerequisites",
+      "url": "https://github.com/jason931225/oyatie/pull/1558",
+      "state": "OPEN",
+      "draft": true,
+      "base": "dev",
+      "head_ref": "feat/cas-proof-bootstrap-20260805",
+      "head_sha": "54b22d0c6470d8008012542eb37d0ff32b72e1b5",
+      "merge_sha": null,
+      "merged_at": null,
+      "review_decision": "NONE",
+      "required_check": "FAILURE",
+      "failed_checks": [
+        "buck2 (hermetic build + affected gate tests)",
+        "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+        "gate · affected-set (ADR-0554, binding workspace coverage)",
+        "oya-ci-required"
+      ],
+      "mergeable": "MERGEABLE",
+      "merge_state_status": "BLOCKED",
+      "merge_state_interpretation": "Git can synthesize a merge commit, but protected admission is blocked by draft status, missing independent approval, and failing required checks. MERGEABLE is not merge-ready."
+    },
+    {
+      "number": 1559,
+      "title": "docs(adr): record amenders on Accepted ADRs that claimed currency",
+      "url": "https://github.com/jason931225/oyatie/pull/1559",
+      "state": "OPEN",
+      "draft": false,
+      "base": "dev",
+      "head_ref": "agent/adr-boundary-contradictions-20260804",
+      "head_sha": "4d652c652e82c400793fa425e341fe6f470d2fbc",
+      "merge_sha": null,
+      "merged_at": null,
+      "review_decision": "NONE",
+      "required_check": "SUCCESS",
+      "failed_checks": []
+    }
+  ],
+  "relevant_open_issues": [
+    {
+      "number": 1534,
+      "title": "W3: activate NativeLink Buck2 remote action cache on ARC (cache-only; no RE)",
+      "url": "https://github.com/jason931225/oyatie/issues/1534",
+      "state": "OPEN",
+      "updated_at": "2026-08-05T05:01:42Z"
+    },
+    {
+      "number": 1541,
+      "title": "security incident: revoke exposed Talos machine-config credentials and purge dangling object",
+      "url": "https://github.com/jason931225/oyatie/issues/1541",
+      "state": "OPEN",
+      "updated_at": "2026-08-04T23:59:40Z"
+    },
+    {
+      "number": 1549,
+      "title": "blocker(ci): redesign NativeLink RE worker sandbox before canary",
+      "url": "https://github.com/jason931225/oyatie/issues/1549",
+      "state": "OPEN",
+      "updated_at": "2026-08-04T11:59:52Z"
+    },
+    {
+      "number": 1560,
+      "title": "Approved plan: owned ephemeral CI + CAS-first build fabric",
+      "url": "https://github.com/jason931225/oyatie/issues/1560",
+      "state": "OPEN",
+      "updated_at": "2026-08-05T06:59:16Z"
+    }
+  ],
+  "approved_program_authority": {
+    "local_plan_path": ".omx/plans/cas-re-hyperscaler-capability-reorg-20260805.md",
+    "local_plan_sha256": "8833df33de2600f0bd960518f2402dce20b27ef828cb3cbf27878b4caeaebae5",
+    "github_issue_url": "https://github.com/jason931225/oyatie/issues/1560",
+    "github_comment_parts": 3,
+    "github_reconstructed_plan_sha256": "8833df33de2600f0bd960518f2402dce20b27ef828cb3cbf27878b4caeaebae5",
+    "byte_exact_match": true,
+    "architect_review": {
+      "path": ".omx/plans/cas-re-hyperscaler-architect-review-final-approved-20260805.md",
+      "sha256": "33589b031928fd35ec3e9684bdb43b10717189a0f0624af3a3afdb9700a48da4",
+      "verdict": "APPROVE"
+    },
+    "critic_review": {
+      "path": ".omx/plans/cas-re-hyperscaler-critic-review-approved-20260805.md",
+      "sha256": "420876781fd9e417b237b776e246c906d8b3d254c501fec366864c20459d3e78",
+      "verdict": "APPROVE"
+    },
+    "claim_ceiling": "Execution handoff only; not PR approval, CAS/RE activation, credential authority, bridge deletion, or production mutation."
+  },
+  "authority_classes": {
+    "accepted": {
+      "ADR-0515": "single canonical protected oya-ci-required admission context",
+      "ADR-0562": "capability-first placement: provider adapters under storage; Buck2/toolchain machinery under build",
+      "ADR-0614": "one committed move plan; generated move manifest derived on demand",
+      "ADR-0615": "storage capability boundary clarification"
+    },
+    "proposed_design_input_only": {
+      "ADR-0560": "NativeLink CAS/cache-only design",
+      "ADR-0612": "NativeLink RE scheduler/worker design",
+      "ADR-0630": "interim ARC runner-fleet design"
+    },
+    "future_decisions": [
+      "NativeLink FSL legal and architecture approval, or an approved substitute, before warm activation.",
+      "Accepted RE authority plus every quantitative reopening trigger before RE activation.",
+      "Production CAS durability, HA, repair, retention, and autoscaling after proof-cell evidence."
+    ]
+  },
+  "operational_facts": [
+    "PR #1558 adds infra/gitops/local-path-storage.yaml and infra/talos/qemu-cilium.patch.yaml; neither exists on origin/dev.",
+    "origin/dev GitOps references the absent local-path file, while NativeLink, registry, and SeaweedFS request storageClassName local-path.",
+    "infra/arc/ci-workspace-storage.yaml is a separate ARC-scoped provisioner and must not be repurposed silently.",
+    "storage/OWNERS exists and names axis-cloud-platform; build/ does not yet exist; toolchains/cache/OWNERS names cloud-ci-platform."
+  ],
+  "boundary_map": [
+    {
+      "id": "pilot-local-path",
+      "lane": "representative #1558 pilot",
+      "source": "PR #1558:infra/gitops/local-path-storage.yaml@54b22d0c6470d8008012542eb37d0ff32b72e1b5 (absent on origin/dev)",
+      "target": "storage/adapters/local-path/local-path-storage.yaml",
+      "owner": "axis-cloud-platform via storage/OWNERS; no redundant leaf OWNERS",
+      "consumers": [
+        "infra/gitops/bootstrap-sync.yaml Application/local-path-storage: spec.source.path infra/gitops -> storage/adapters/local-path; directory.include remains local-path-storage.yaml",
+        "infra/nativelink/nativelink-cas.k8s.yaml storageClassName=local-path",
+        "infra/registry/registry.k8s.yaml storageClassName=local-path",
+        "infra/seaweedfs/seaweedfs.k8s.yaml storageClassName=local-path",
+        "oya/observability/iac/k8s/helm/values.yaml grafana.persistence.storageClassName=local-path"
+      ],
+      "test_target": "Buck2 rust_test //storage/adapters/local-path:local-path-contract; its verdict target binds the six live YAML inputs and one probe through resources plus env $(location ...), while canonical corpus_yaml_facts_shards declarations index each YAML-owning package.",
+      "dependencies": [
+        "independent approval of this map",
+        "fresh exact-head PR/failure requery",
+        "proof-cell use still present",
+        "one committed move plan and non-vacuous population query"
+      ],
+      "disposition": "Move the live generic local-path behavior directly to storage, update GitOps in the same PR, and never merge the infra/gitops path as a temporary second home.",
+      "move_plan": "specs/reorg/local-path-storage-move-plan.json (artifact-only, explicit --plan required)",
+      "population_contract": "pilot-local-path-population/v1; N_pre=N_post=N_promoted=6; positive probe 6->7->6"
+    },
+    {
+      "id": "pilot-qemu-cilium-duplicate",
+      "lane": "representative #1558 pilot",
+      "source": "PR #1558:infra/talos/qemu-cilium.patch.yaml@54b22d0c6470d8008012542eb37d0ff32b72e1b5 (absent on origin/dev)",
+      "target": null,
+      "owner": "none after deletion",
+      "consumers": [],
+      "dependencies": [
+        "Only an exact tracked QEMU command/config consumer may reverse deletion."
+      ],
+      "disposition": "Delete from #1558; do not retain duplicate settings for a structural test."
+    },
+    {
+      "id": "pilot-arc-test-split",
+      "lane": "representative #1558 pilot",
+      "source": "PR #1558 additions to infra/arc/tests/ci_workspace_capacity.rs",
+      "target": "infra/arc/tests/ci_workspace_capacity.rs keeps ARC capacity assertions only",
+      "owner": "cloud-ci-platform via infra/arc/OWNERS",
+      "dependencies": [
+        "Local-path validation moves to the adapter-local test target above."
+      ],
+      "disposition": "Remove QEMU and generic-storage assertions from the ARC test; storage tests must not depend on ARC fixtures."
+    },
+    {
+      "id": "lane-3a-nativelink",
+      "lane": "3A NativeLink CAS provider rehome",
+      "source": [
+        "infra/nativelink/nativelink-cas.k8s.yaml",
+        "infra/nativelink/OWNERS"
+      ],
+      "target": [
+        "storage/adapters/nativelink/nativelink-cas.k8s.yaml",
+        "storage/adapters/nativelink/OWNERS"
+      ],
+      "owner": "storage capability root axis-cloud-platform; leaf cloud-ci-platform retained for distinct NativeLink operations by moving OWNERS unchanged",
+      "consumers": [
+        "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+        "infra/arc/tests/ci_workspace_capacity.rs",
+        "infra/external-secrets/RUNBOOK.md",
+        "infra/arc/runner-scale-set-arm64-values.yaml",
+        "specs/reachability-registry.json",
+        "all GitOps/validation references found by the full pre-edit query"
+      ],
+      "test_target": "storage/adapters/nativelink/tests/nativelink_manifest_contract.rs with a Buck2 rust_test and explicit manifest input",
+      "dependencies": [
+        "#1558 representative pilot promoted and post-merge proven",
+        "fresh promoted-dev start",
+        "specs/reorg/nativelink-storage-move-plan.json is the only active move plan"
+      ],
+      "disposition": "Atomic move, consumer rewrite, and source deletion; no alias, copy, symlink, identity change, behavior change, or topology change."
+    },
+    {
+      "id": "lane-3b-buck2-cache-package",
+      "lane": "3B complete cache package move",
+      "source": [
+        "toolchains/cache/BUCK",
+        "toolchains/cache/defs.bzl",
+        "toolchains/cache/OWNERS",
+        "infra/ci/buckconfig/warm-cache-ro.buckconfig",
+        "infra/ci/buckconfig/warm-cache-rw.buckconfig"
+      ],
+      "target": [
+        "build/buck2/cache/BUCK",
+        "build/buck2/cache/defs.bzl",
+        "build/buck2/cache/OWNERS",
+        "build/buck2/cache/warm-cache-ro.buckconfig",
+        "build/buck2/cache/warm-cache-rw.buckconfig"
+      ],
+      "owner": "cloud-ci-platform as sole temporal migration owner; OWNERS moves with the package",
+      "consumers": [
+        "both overlay execution-platform labels",
+        "ci/facade/build-cache-policy resolver constants and conformance tests",
+        "bounded cache-integrity and oya-ci-required workflow adapters",
+        "specs/reachability-registry.json",
+        "all active BUCK/runtime/CI/workflow/test references found by the pre-edit query"
+      ],
+      "dependencies": [
+        "exact promoted and post-merge-proven 3A head",
+        "specs/reorg/buck2-cache-move-plan.json is the only active move plan"
+      ],
+      "disposition": "Atomic full move; rewrite every active label to //build/buck2/cache:cache-platform; delete old directories; no alias, copy, forwarding target, symlink, dual home, or root .buckconfig activation."
+    },
+    {
+      "id": "lane-3c-ci-cache-behavior",
+      "lane": "3C behavior-only CI cache closure",
+      "source": "ci/facade/build-cache-policy/ on exact promoted and proven 3B head",
+      "target": "ci/facade/build-cache-policy/ (no move)",
+      "owner": "cloud-ci-platform via ci/OWNERS after 3B proof",
+      "consumers": [
+        "canonical build/buck2/cache overlays",
+        "bounded bridge workflows in place",
+        "specs/cache-warm-license.json",
+        "specs/cache-warmth-policy.json"
+      ],
+      "dependencies": [
+        "3B promoted and post-merge proven",
+        "pre-edit scan finds zero active toolchains/cache, infra/ci/buckconfig, or toolchains//cache references"
+      ],
+      "disposition": "Behavior-only daemon lifecycle, policy semantics, cleanup, no-inheritance, and regression work; no move plan, scheduler/worker directories, or old-path repair."
+    }
+  ],
+  "common_move_gate": {
+    "population": "N_pre = N_post = N_promoted = 6 > 0 for the pilot under pilot-local-path-population/v1; later lanes define their own versioned non-vacuous contracts.",
+    "positive_probe": "Committed differently shaped StatefulSet fixture produces 6 -> 7 -> 6 in the Rust contract test when explicitly included then excluded.",
+    "other": "Source deletion, consumer resolution, codemod reverse proof, targeted Buck2 tests, independent approval, exact-head oya-ci-required, squash merge, and promoted-head proof."
+  },
+  "dependency_order": [
+    "G038 map -> independent map review",
+    "#1558 local-path-only pilot -> promoted proof",
+    "3A NativeLink move -> promoted proof",
+    "3B atomic cache-package move -> promoted proof",
+    "3C behavior-only closure -> promoted proof",
+    "#1541 preparation may run in parallel, but rotation/rebuild/purge gates live CAS deployment and new credentials",
+    "#1559 is off-path and independently needs review plus exact-head oya-ci-required"
+  ],
+  "selected_representative": {
+    "pr": 1558,
+    "scope": "one local-path storage prerequisite only",
+    "decision": "Revise the draft at a freshly re-queried exact head, or close/supersede if present need fails; never merge its current three-concern shape.",
+    "current_gate": "STOP",
+    "reasons": [
+      "Git reports MERGEABLE, meaning no current content-level merge conflict.",
+      "GitHub protected merge state is BLOCKED because the PR is draft, has no independent approval, and required checks fail.",
+      "oya-ci-required failure",
+      "cloud-ci-firewall failure",
+      "Buck2 failure",
+      "affected-set failure"
+    ],
+    "mergeability": "MERGEABLE",
+    "protected_merge_state": "BLOCKED"
+  },
+  "non_effects": [
+    "No implementation files changed.",
+    "No credentials read, emitted, rotated, or reused.",
+    "No Talos, Kubernetes, OpenBao, or NativeLink cluster mutation.",
+    "No PR approval, CAS/RE activation, or bridge-deletion claim."
+  ],
+  "independent_review": {
+    "status": "review_pending_final",
+    "reviewer": null,
+    "verdict": null,
+    "artifact": ".omx/ultragoal/evidence/G038-independent-review-20260805.json",
+    "history": [
+      {
+        "sequence": 1,
+        "role": "architect",
+        "verdict": "APPROVE",
+        "scope": "Initial G038 boundary-map architecture review",
+        "preservation": "Recorded in the independent-review artifact; approval did not waive later execution-specific review findings."
+      },
+      {
+        "sequence": 2,
+        "role": "code-reviewer",
+        "verdict": "ITERATE",
+        "scope": "Execution-readiness review",
+        "preservation": "All five findings and their remediation mapping are recorded in the independent-review artifact."
+      },
+      {
+        "sequence": 3,
+        "role": "executor",
+        "verdict": "REMEDIATED_AWAITING_REVIEW",
+        "scope": "Receipt-only remediation",
+        "preservation": "No self-approval; final reviewer and verdict remain unset."
+      },
+      {
+        "sequence": 4,
+        "role": "architect",
+        "verdict": "BLOCK",
+        "scope": "Remediation regression review",
+        "preservation": "No architecture regression; authority source/acceptance dates required correction before final approval."
+      },
+      {
+        "sequence": 5,
+        "role": "code-reviewer",
+        "verdict": "ITERATE",
+        "scope": "Second execution-readiness review",
+        "preservation": "Found undeclared Buck inputs, incomplete ownership, authority/evidence defects, an inexact observability pointer, and comment-command drift."
+      },
+      {
+        "sequence": 6,
+        "role": "executor",
+        "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+        "scope": "Evidence-only correction after independent review",
+        "preservation": "Final reviewer and verdict remain unset; expected corpus counts are explicitly not execution proof."
+      },
+      {
+        "sequence": 7,
+        "role": "code-reviewer",
+        "verdict": "ITERATE",
+        "scope": "Final command-safety review",
+        "preservation": "Promoted commands targeted the PR worktree and stage-head evidence was not fail-closed; corrected with clean/signature/ancestry/SHA binding and detached-worktree execution."
+      },
+      {
+        "sequence": 8,
+        "role": "executor",
+        "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+        "scope": "Command-safety evidence remediation",
+        "preservation": "Final independent verdict remains unset."
+      },
+      {
+        "sequence": 9,
+        "role": "code-reviewer",
+        "verdict": "ITERATE",
+        "scope": "Fail-closed shell review",
+        "findings": [
+          "Buck2 test logs required pipefail so tee cannot mask failure.",
+          "Exact-head check lookup required an explicit non-empty assertion."
+        ]
+      },
+      {
+        "sequence": 10,
+        "role": "executor",
+        "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+        "scope": "Fail-closed shell evidence remediation",
+        "non_effects": [
+          "No implementation/source/GitHub/credential/cluster mutation.",
+          "Final verdict remains unset."
+        ]
+      },
+      {
+        "sequence": 11,
+        "role": "code-reviewer",
+        "verdict": "APPROVE",
+        "scope": "Final G038 execution-readiness review",
+        "preservation": "APPROVE bound to receipt SHA 44a0764e7565f197f4bc434f333f3c7f98606a6068c1f0c9c22f46180b0506b7; all prior findings resolved."
+      },
+      {
+        "sequence": 12,
+        "role": "architect",
+        "verdict": "CLEAR",
+        "scope": "Final G038 architecture-invariant review",
+        "preservation": "CLEAR bound to receipt SHA 44a0764e7565f197f4bc434f333f3c7f98606a6068c1f0c9c22f46180b0506b7; no architecture blocker remains."
+      },
+      {
+        "sequence": 13,
+        "role": "code-reviewer",
+        "verdict": "ITERATE",
+        "scope": "Clean-worktree command replay review",
+        "preservation": "The ignored evidence directory was not created before redirects and story status was stale."
+      },
+      {
+        "sequence": 14,
+        "role": "executor",
+        "verdict": "REMEDIATED_AWAITING_FINAL_REVIEW",
+        "scope": "Idempotent evidence-directory and status remediation",
+        "preservation": "mkdir -p now precedes every phase; current review state is pending until fresh approval."
+      }
+    ],
+    "architect_status": null,
+    "reviewed_at_utc": null,
+    "reviewed_receipt_sha256": "44a0764e7565f197f4bc434f333f3c7f98606a6068c1f0c9c22f46180b0506b7"
+  },
+  "raw_evidence": {
+    "origin_dev_boundary_scan": {
+      "path": ".omx/tmp/g038/origin-dev-boundaries.txt",
+      "sha256": "38a2d7a7a9188aadc476effd2731cd9fe2f0280de3e9a5928283f7e91700c8e8"
+    },
+    "pr_snapshots": {
+      "1361": "1a2911f65de44c2d7b9b6ecec61c938ec156c25fce1c8c51332ac693f980e4f8",
+      "1362": "610c045c65bd840f8cd284114848d499d105616384af622ac456d5e6db1555b1",
+      "1363": "7d21803f9e7052030b55285e5d7c01997bc9fd4dd0e098b3e110898efb6536fc",
+      "1364": "b7ec61e0b15275d5ec40e309d60570189aa66a72e343c776046aaf38e2b3d240",
+      "1558": "abcb75f25f0529e473932f125b7e0ea33bd80dc214d64cda9f3a2961ad79f87b",
+      "1559": "9c976f591c12ad098859c8adf3066d82a48288730e26b47cf6e34b77029ed84e"
+    },
+    "issue_snapshots": {
+      "1534": "8086aeddc62a8119996159eb11521280b4aba861da443e0d0657c39e65266b75",
+      "1541": "512a5f05590837bc9d1fa0df3d3518ebf3c23260337d042cc357fff6053c676c",
+      "1549": "89172ab53461f89167ff0ac4e066a8cd5775527c9d54b9485d076ccd865903d7",
+      "1560": "af7d34841ff624430a2badaaf417f391e4e7121f9403a10e47ed544eb6cec060"
+    }
+  },
+  "authority_traceability": [
+    {
+      "authority": "ADR-0515",
+      "classification": "Accepted",
+      "primary_source": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+      "applicability": "Current bridge admission and declarative GitOps changes until an accepted owned-admission cutover supersedes it.",
+      "control": "A protected PR to dev requires independent approval and the single exact-head oya-ci-required context green; local Rust/Buck2/codemod output is evidence only.",
+      "owner": "founder + council-architecture",
+      "evidence": [
+        ".github/branch-protection.yaml",
+        "infra/branch-protection/dev.json",
+        "PR #1558 exact-head check rollup"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP merge while draft, without independent APPROVE, or while oya-ci-required is not SUCCESS.",
+      "source_date": "2026-06-07",
+      "accepted_effective_date": "2026-06-07"
+    },
+    {
+      "authority": "ADR-0562",
+      "classification": "Accepted",
+      "primary_source": "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+      "applicability": "Placement of the generic local-path provider adapter and later NativeLink/cache reorganization lanes.",
+      "control": "Provider-owned storage behavior lands under storage/adapters; only irreducible live behavior moves, with no temporary second home.",
+      "owner": "founder",
+      "evidence": [
+        "specs/capability-registry.json",
+        "storage/OWNERS"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP if present need is not proved, the destination violates the closed capability registry, or the move leaves an alias/copy.",
+      "source_date": "2026-06-14",
+      "accepted_effective_date": "2026-07-10"
+    },
+    {
+      "authority": "ADR-0614",
+      "classification": "Accepted",
+      "primary_source": "docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
+      "applicability": "The representative artifact-only move and later rehome lanes.",
+      "control": "Commit exactly one executable move plan; derive move-manifest.generated.json on demand and never hand-edit or re-track it.",
+      "owner": "cloud-ci-platform",
+      "evidence": [
+        "tools/oya-reorg-codemod-app",
+        "registry/generated-artifact-control-plane.json"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP on zero or multiple applicable artifact mappings, a tracked generated manifest, or a codemod dry-run/reverse-proof failure.",
+      "source_date": "2026-07-09",
+      "accepted_effective_date": "2026-08-01"
+    },
+    {
+      "authority": "ADR-0615",
+      "classification": "Accepted",
+      "primary_source": "docs/decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md",
+      "applicability": "Storage capability boundary and build-versus-CI ownership decisions.",
+      "control": "The local-path implementation belongs to storage; later Buck2 static machinery belongs to build while CI behavior remains under ci.",
+      "owner": "council-architecture",
+      "evidence": [
+        "specs/capability-registry.json",
+        "specs/substrate-dependency-dag.json"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP if a relocation preserves infra as the authority, mixes later cache/CI lanes into the pilot, or creates an unapproved boundary.",
+      "source_date": "2026-07-10",
+      "accepted_effective_date": "2026-07-10"
+    },
+    {
+      "authority": "ADR-0560",
+      "classification": "Proposed design input only",
+      "primary_source": "docs/decisions/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md",
+      "applicability": "CAS proof design input; it does not activate warm cache or select a production provider.",
+      "control": "Use only for cold/cache-only test shape after security, legal, identity, and accepted-authority gates.",
+      "owner": "council-architecture",
+      "evidence": [
+        "specs/cache-warmth-policy.json",
+        "specs/cache-warm-license.json",
+        "https://github.com/jason931225/oyatie/issues/1534"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP live CAS and warm identity issuance until #1541, legal/architecture approval, and accepted activation authority close.",
+      "source_date": "2026-06-12",
+      "accepted_effective_date": null
+    },
+    {
+      "authority": "ADR-0612",
+      "classification": "Proposed design input only",
+      "primary_source": "docs/decisions/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md",
+      "applicability": "Optional future RE design only.",
+      "control": "No scheduler, worker, remote_enabled=true, or RE identity may activate without a later Accepted decision and every quantitative reopening trigger.",
+      "owner": "council-architecture",
+      "evidence": [
+        "https://github.com/jason931225/oyatie/issues/1549"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP all RE implementation and activation; CAS-only remains a valid terminal state.",
+      "source_date": "2026-07-08",
+      "accepted_effective_date": null
+    },
+    {
+      "authority": "ADR-0630",
+      "classification": "Proposed design input only",
+      "primary_source": "docs/decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
+      "applicability": "Current ARC bridge inventory only; not north-star permanence or capacity authority.",
+      "control": "Do not expand or entrench ARC in this storage pilot; preserve only the bounded bridge until owned admission parity is proved.",
+      "owner": "council-architecture",
+      "evidence": [
+        "infra/arc/OWNERS",
+        "infra/arc/BUCK"
+      ],
+      "review_date": "2026-08-05",
+      "activation_stop": "STOP any ARC permanence, runner-count, or bridge-deletion claim from this receipt.",
+      "source_date": "2026-07-29",
+      "accepted_effective_date": null
+    }
+  ],
+  "pilot_execution_contract": {
+    "scope": "Representative #1558 local-path artifact-only move; no QEMU, CAS activation, RE, credential, or cluster mutation.",
+    "move_plan": {
+      "path": "specs/reorg/local-path-storage-move-plan.json",
+      "exact_shape": {
+        "capability": "storage",
+        "moves": [],
+        "artifacts": [
+          {
+            "old_path": "infra/gitops/local-path-storage.yaml",
+            "new_path": "storage/adapters/local-path/local-path-storage.yaml"
+          }
+        ]
+      },
+      "selection_caveat": "Because origin/dev never contained the branch-only old_path, automatic merge-base selection can classify this artifact-only plan as already landed. The executor must pass --plan explicitly to apply, dry-run, reverse dry-run, and materialization. A post-move CI-derived manifest may be empty for that reason and is not population evidence."
+    },
+    "population_contract": {
+      "version": "pilot-local-path-population/v1",
+      "implementation_pattern": "The Rust verdict target //storage/adapters/local-path:local-path-contract declares every observed YAML and the probe through Buck2 resources plus env $(location ...); it performs no repository-root filesystem reads. New YAML-owning packages separately use the canonical corpus_yaml_facts_shards declaration so the corpus graph owns their complete YAML sets. The extraction genrules are indexing siblings, not an implied dependency of the Rust verdict.",
+      "test_target": "//storage/adapters/local-path:local-path-contract",
+      "count_semantics": [
+        {
+          "id": "provider_storage_class",
+          "count": 1,
+          "rule": "Exactly one structurally parsed StorageClass/local-path provider exists in either infra/gitops/local-path-storage.yaml (pre) or storage/adapters/local-path/local-path-storage.yaml (post/promoted); never both."
+        },
+        {
+          "id": "runtime_storage_class_edges",
+          "count": 4,
+          "rule": "Exactly one structurally parsed storageClassName=local-path edge in each of infra/nativelink/nativelink-cas.k8s.yaml, infra/registry/registry.k8s.yaml, infra/seaweedfs/seaweedfs.k8s.yaml, and oya/observability/iac/k8s/helm/values.yaml."
+        },
+        {
+          "id": "gitops_application_edge",
+          "count": 1,
+          "rule": "The metadata.name=local-path-storage Application in infra/gitops/bootstrap-sync.yaml has spec.source.path equal to the phase path and spec.source.directory.include exactly local-path-storage.yaml. Do not count generic path: infra/gitops text because another Application uses it."
+        }
+      ],
+      "expected": {
+        "N_pre": 6,
+        "N_post": 6,
+        "N_promoted": 6,
+        "invariant": "N_pre = N_post = N_promoted = 6 > 0"
+      },
+      "positive_probe": {
+        "path": "storage/adapters/local-path/tests/fixtures/positive-probe-statefulset.yaml",
+        "shape": "A committed differently shaped StatefulSet values-style fixture with one nested volumeClaimTemplates[*].spec.storageClassName=local-path edge; it is not a copy of the provider manifest or GitOps Application.",
+        "mechanism": "The Rust test asserts live inputs=6, live inputs plus the explicit probe fixture=7, and live inputs after probe exclusion=6. corpus_yaml_facts_shards keeps YAML in the Buck graph; Rust supplies the verdict.",
+        "required_delta": {
+          "baseline": 6,
+          "with_probe": 7,
+          "after_removal": 6
+        }
+      },
+      "buck_input_contract": {
+        "package_indexing": [
+          {
+            "path": "infra/gitops/BUCK",
+            "declaration": "canonical corpus_yaml_facts_shards(glob([\"**/*.yaml\", \"**/*.yml\"]), shard_size=256)",
+            "exports": [
+              "//infra/gitops:bootstrap-sync.yaml",
+              "//infra/gitops:local-path-storage.yaml (pre stage only)"
+            ]
+          },
+          {
+            "path": "infra/nativelink/BUCK",
+            "declaration": "canonical corpus_yaml_facts_shards(glob([\"**/*.yaml\", \"**/*.yml\"]), shard_size=256)",
+            "exports": [
+              "//infra/nativelink:nativelink-cas.k8s.yaml"
+            ]
+          },
+          {
+            "path": "infra/registry/BUCK",
+            "declaration": "canonical corpus_yaml_facts_shards(glob([\"**/*.yaml\", \"**/*.yml\"]), shard_size=256)",
+            "exports": [
+              "//infra/registry:registry.k8s.yaml"
+            ]
+          },
+          {
+            "path": "infra/seaweedfs/BUCK",
+            "declaration": "canonical corpus_yaml_facts_shards(glob([\"**/*.yaml\", \"**/*.yml\"]), shard_size=256)",
+            "exports": [
+              "//infra/seaweedfs:seaweedfs.k8s.yaml"
+            ]
+          },
+          {
+            "path": "oya/BUCK",
+            "declaration": "retain the existing canonical corpus_yaml_facts_shards declaration",
+            "exports": [
+              "//oya:observability-grafana-values (one-file PUBLIC filegroup over observability/iac/k8s/helm/values.yaml)"
+            ]
+          },
+          {
+            "path": "storage/adapters/local-path/BUCK",
+            "declaration": "canonical corpus_yaml_facts_shards(glob([\"**/*.yaml\", \"**/*.yml\"]), shard_size=256)",
+            "exports": [
+              ":positive-probe-statefulset (one-file filegroup)",
+              ":local-path-storage.yaml (post stage only)"
+            ]
+          }
+        ],
+        "verdict_binding": {
+          "mechanism": "rust_test resources plus one env $(location <label>) per input; no ambient path discovery",
+          "stable_inputs": [
+            "//infra/gitops:bootstrap-sync.yaml",
+            "//infra/nativelink:nativelink-cas.k8s.yaml",
+            "//infra/registry:registry.k8s.yaml",
+            "//infra/seaweedfs:seaweedfs.k8s.yaml",
+            "//oya:observability-grafana-values",
+            ":positive-probe-statefulset"
+          ],
+          "pre_provider": "//infra/gitops:local-path-storage.yaml",
+          "post_provider": ":local-path-storage.yaml",
+          "assertion": "the same Rust logic derives live=6, live+probe=7, after probe exclusion=6 solely from declared inputs"
+        },
+        "stage_heads": [
+          {
+            "stage": "pre_harness",
+            "base": "PR #1558 current head 54b22d0c6470d8008012542eb37d0ff32b72e1b5",
+            "requirement": "SSH-signed immutable commit; old provider exists only at infra/gitops and the verdict binds the pre_provider label",
+            "evidence": "record exact commit SHA and test output before the move; this is evidence, not merge authority",
+            "fail_closed": "clean tree; parent exactly 54b22d0...; SSH signature verified using the common-dir allowed_signers file; SHA recorded before the SHA-named test log"
+          },
+          {
+            "stage": "post_move",
+            "requirement": "later SSH-signed immutable commit; codemod moves the provider, old export is removed, post_provider label is bound, source path is absent",
+            "evidence": "record exact commit SHA, reverse dry-run, post test, exact-head CI, and independent approval",
+            "fail_closed": "clean tree; parent exactly the recorded pre-harness SHA; SSH signature verified; post SHA recorded before the SHA-named test log"
+          }
+        ],
+        "expected_corpus_ratchet_after_post_move": {
+          "status": "expected values only; executor must measure and update the source policy from live output before claiming proof",
+          "policy_path": "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+          "baseline_unpackaged_yaml_files": {
+            "before": 448,
+            "expected_after": 438
+          },
+          "measured_expected": {
+            "yaml_packages_total": 37,
+            "yaml_packages_indexed": 19,
+            "yaml_files_total": 5855,
+            "yaml_files_indexed": 5363,
+            "yaml_files_unpackaged": 438,
+            "package_coverage_bps": 5135,
+            "file_coverage_bps": 9159
+          },
+          "reason": "four infra packages adopt ten existing YAML files; the final storage package owns the new provider and probe; the unconsumed QEMU candidate is deleted",
+          "stop": "Do not hard-code these expected values if the live gate measures different counts; reconcile the actual corpus without raising a ceiling."
+        },
+        "promoted_proof": {
+          "fail_closed": "fresh detached origin/dev worktree; clean tree; detached SHA equals fetched origin/dev; tests execute inside that worktree; exact promoted SHA and successful oya-ci-required URL are recorded",
+          "warning": "Creating a detached worktree without changing directory is not proof; every promoted command must execute with cd or git -C against ../g039-promoted-proof."
+        }
+      }
+    },
+    "bootstrap_sync_rewrite": {
+      "application_selector": {
+        "kind": "Application",
+        "metadata.name": "local-path-storage"
+      },
+      "pre": {
+        "spec.source.path": "infra/gitops",
+        "spec.source.directory.include": "local-path-storage.yaml"
+      },
+      "post": {
+        "spec.source.path": "storage/adapters/local-path",
+        "spec.source.directory.include": "local-path-storage.yaml"
+      },
+      "unchanged": [
+        "repoURL",
+        "targetRevision",
+        "destination",
+        "syncPolicy",
+        "sync wave",
+        "local cell label"
+      ],
+      "observability_values_consumer": "oya/observability/iac/k8s/helm/values.yaml#/grafana/persistence/storageClassName=local-path"
+    },
+    "commands": {
+      "pre": [
+        "mkdir -p .omx/tmp/g039",
+        "test -z \"$(git status --porcelain)\"",
+        "test \"$(git rev-parse HEAD^)\" = \"54b22d0c6470d8008012542eb37d0ff32b72e1b5\"",
+        "COMMON_GIT_DIR=$(git rev-parse --git-common-dir); git -c gpg.ssh.allowedSignersFile=\"$COMMON_GIT_DIR/omx-local/allowed_signers\" verify-commit HEAD",
+        "git rev-parse HEAD > .omx/tmp/g039/pre-harness-head.txt",
+        "set -o pipefail; PRE_SHA=$(git rev-parse HEAD); buck2 test //storage/adapters/local-path:local-path-contract 2>&1 | tee \".omx/tmp/g039/${PRE_SHA}.pre-local-path-contract.log\"",
+        "buck2 run //tools/oya-reorg-codemod-app:oya-reorg-codemod -- dry-run --plan specs/reorg/local-path-storage-move-plan.json --repo-root \"$PWD\"",
+        "buck2 run //tools/oya-reorg-codemod-app:oya-reorg-codemod -- manifest --plan specs/reorg/local-path-storage-move-plan.json --repo-root \"$PWD\" --out .omx/tmp/g039/local-path-move-manifest.pre.generated.json"
+      ],
+      "apply": "buck2 run //tools/oya-reorg-codemod-app:oya-reorg-codemod -- apply --plan specs/reorg/local-path-storage-move-plan.json --repo-root \"$PWD\"",
+      "post": [
+        "mkdir -p .omx/tmp/g039",
+        "test -z \"$(git status --porcelain)\"",
+        "test \"$(git rev-parse HEAD^)\" = \"$(cat .omx/tmp/g039/pre-harness-head.txt)\"",
+        "COMMON_GIT_DIR=$(git rev-parse --git-common-dir); git -c gpg.ssh.allowedSignersFile=\"$COMMON_GIT_DIR/omx-local/allowed_signers\" verify-commit HEAD",
+        "git rev-parse HEAD > .omx/tmp/g039/post-move-head.txt",
+        "set -o pipefail; POST_SHA=$(git rev-parse HEAD); buck2 test //storage/adapters/local-path:local-path-contract 2>&1 | tee \".omx/tmp/g039/${POST_SHA}.post-local-path-contract.log\"",
+        "buck2 run //tools/oya-reorg-codemod-app:oya-reorg-codemod -- dry-run --revert --plan specs/reorg/local-path-storage-move-plan.json --repo-root \"$PWD\"",
+        "buck2 run //tools/oya-reorg-codemod-app:oya-reorg-codemod -- manifest --plan specs/reorg/local-path-storage-move-plan.json --repo-root \"$PWD\" --out .omx/tmp/g039/local-path-move-manifest.post.generated.json",
+        "buck2 test //ci/facade/corpus-index-coverage:ci-corpus-index-coverage-gate"
+      ],
+      "promoted": [
+        "mkdir -p .omx/tmp/g039",
+        "git fetch origin dev",
+        "test ! -e ../g039-promoted-proof",
+        "git worktree add --detach ../g039-promoted-proof origin/dev",
+        "test -z \"$(git -C ../g039-promoted-proof status --porcelain)\"",
+        "test \"$(git -C ../g039-promoted-proof rev-parse HEAD)\" = \"$(git rev-parse origin/dev)\"",
+        "git -C ../g039-promoted-proof rev-parse HEAD > .omx/tmp/g039/promoted-head.txt",
+        "(cd ../g039-promoted-proof && buck2 test //storage/adapters/local-path:local-path-contract)",
+        "(cd ../g039-promoted-proof && buck2 test //ci/facade/corpus-index-coverage:ci-corpus-index-coverage-gate)",
+        "PROMOTED_SHA=$(cat .omx/tmp/g039/promoted-head.txt) && CHECK_URL=$(gh api \"repos/jason931225/oyatie/commits/${PROMOTED_SHA}/check-runs\" --jq '[.check_runs[] | select(.name==\"oya-ci-required\" and .conclusion==\"success\")][-1].html_url // empty') && test -n \"$CHECK_URL\" && printf '%s\\n' \"$CHECK_URL\" | tee \".omx/tmp/g039/${PROMOTED_SHA}.oya-ci-required-url.txt\""
+      ],
+      "authority_note": "Rust/Buck2 tests and the codemod are reproducible local evidence. Only independent review plus exact-head protected oya-ci-required is merge authority."
+    }
+  },
+  "touched_path_ownership": [
+    {
+      "paths": [
+        "infra/gitops/local-path-storage.yaml",
+        "infra/gitops/bootstrap-sync.yaml",
+        "infra/gitops/BUCK"
+      ],
+      "pre_owner": "cloud-ci-platform via root OWNERS (no nearer OWNERS)",
+      "migration_writer": "single #1558 implementation lane only",
+      "required_approval": "cloud-ci-platform approves source deletion, exact named Application rewrite, package indexing, and pre-only export removal",
+      "post_owner": "cloud-ci-platform via root OWNERS; deleted source has none"
+    },
+    {
+      "paths": [
+        "storage/adapters/local-path/local-path-storage.yaml",
+        "storage/adapters/local-path/BUCK",
+        "storage/adapters/local-path/tests/local_path_contract.rs",
+        "storage/adapters/local-path/tests/fixtures/positive-probe-statefulset.yaml"
+      ],
+      "pre_owner": "axis-cloud-platform via storage/OWNERS approves the destination and harness before write",
+      "migration_writer": "single #1558 implementation lane only after destination approval",
+      "required_approval": "axis-cloud-platform approves provider behavior, declared-input Rust verdict, and probe fixture",
+      "post_owner": "axis-cloud-platform via storage/OWNERS"
+    },
+    {
+      "paths": [
+        "specs/reorg/local-path-storage-move-plan.json",
+        "specs/reachability-registry.json"
+      ],
+      "pre_owner": "council-architecture via specs/OWNERS",
+      "migration_writer": "single #1558 implementation lane only after plan approval",
+      "required_approval": "council-architecture approves exact artifact bijection and narrow reachability change",
+      "post_owner": "council-architecture via specs/OWNERS"
+    },
+    {
+      "paths": [
+        "infra/arc/tests/ci_workspace_capacity.rs"
+      ],
+      "pre_owner": "cloud-ci-platform via infra/arc/OWNERS",
+      "migration_writer": "single #1558 implementation lane only",
+      "required_approval": "cloud-ci-platform approves removal of generic storage/QEMU assertions while ARC-only capacity assertions remain",
+      "post_owner": "cloud-ci-platform via infra/arc/OWNERS"
+    },
+    {
+      "paths": [
+        "infra/talos/qemu-cilium.patch.yaml"
+      ],
+      "pre_owner": "cloud-ci-platform via root OWNERS (no nearer OWNERS)",
+      "migration_writer": "single #1558 implementation lane deletes it",
+      "required_approval": "cloud-ci-platform approves deletion; only an exact tracked QEMU consumer may reverse the disposition",
+      "post_owner": "none after deletion"
+    },
+    {
+      "paths": [
+        "infra/nativelink/BUCK",
+        "infra/nativelink/nativelink-cas.k8s.yaml"
+      ],
+      "pre_owner": "cloud-ci-platform via infra/nativelink/OWNERS",
+      "migration_writer": "single #1558 lane adds only the BUCK declaration/export; manifest content is read-only",
+      "required_approval": "cloud-ci-platform approves package indexing/export; any manifest-content diff is RED and separately scoped",
+      "post_owner": "cloud-ci-platform via infra/nativelink/OWNERS"
+    },
+    {
+      "paths": [
+        "infra/registry/BUCK",
+        "infra/registry/registry.k8s.yaml",
+        "infra/seaweedfs/BUCK",
+        "infra/seaweedfs/seaweedfs.k8s.yaml",
+        "oya/BUCK",
+        "oya/observability/iac/k8s/helm/values.yaml"
+      ],
+      "pre_owner": "cloud-ci-platform via root OWNERS (no nearer OWNERS)",
+      "migration_writer": "single #1558 lane adds only package/export wiring; YAML content is read-only",
+      "required_approval": "cloud-ci-platform approves declared-input wiring; any consumer-YAML content diff is RED and separately scoped",
+      "post_owner": "unchanged cloud-ci-platform ownership"
+    },
+    {
+      "paths": [
+        "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json"
+      ],
+      "pre_owner": "cloud-ci-platform via ci/OWNERS",
+      "migration_writer": "single #1558 lane updates shrink-only measured values after live gate output",
+      "required_approval": "cloud-ci-platform approves only a measured ceiling decrease; raising or fabricating a count is RED",
+      "post_owner": "cloud-ci-platform via ci/OWNERS"
+    }
+  ]
+}
