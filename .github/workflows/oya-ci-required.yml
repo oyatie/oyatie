@@ -577,7 +577,7 @@ jobs:
             buck2 test //ci/... \
               //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential \
               --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json \
-              -- --env "RUSTUP_HOME=${RUSTUP_HOME}"
+              -- --env "RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}"
       # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
       # structured counters from buck2's invocation record — never log-grep — labeled with this
       # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode
@@ -868,7 +868,7 @@ jobs:
             # failures cannot enter only one side of the per-target ratchet. Exit code not propagated
             # (pre-existing test debt is the baseline).
             "${ci_step_telemetry}" --phase materialize-merge-base-test-health-baseline -- \
-              buck2 test //... --keep-going -- --env "RUSTUP_HOME=${RUSTUP_HOME}" \
+              buck2 test //... --keep-going -- --env "RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}" \
                 > "${RUNNER_TEMP}/merge-base-test-console.log" 2>&1 || true
             "${RUNNER_TEMP}/oya-cloud-ci-build-health" \
               --normalize-test-console "${RUNNER_TEMP}/merge-base-test-console.log" \

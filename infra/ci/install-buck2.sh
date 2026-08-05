@@ -4,6 +4,8 @@
 set -euo pipefail
 
 # W1 hosted runners: ubuntu-latest has no rustup; ARC images ship it under /opt/rust.
+# Always pin RUSTUP_HOME for later steps that use set -u and pass --env RUSTUP_HOME=${RUSTUP_HOME}
+# (ARC bakes RUSTUP_HOME=/opt/rust/rustup; GHA needs an explicit default or the var is unbound).
 if ! command -v rustup >/dev/null 2>&1; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
   # shellcheck disable=SC1091
@@ -15,6 +17,12 @@ if ! command -v rustup >/dev/null 2>&1; then
     echo "PATH=${HOME}/.cargo/bin:${PATH}" >> "${GITHUB_ENV}"
   fi
   export PATH="${HOME}/.cargo/bin:${PATH}"
+fi
+if [ -z "${RUSTUP_HOME:-}" ]; then
+  export RUSTUP_HOME="${HOME}/.rustup"
+fi
+if [ -n "${GITHUB_ENV:-}" ]; then
+  echo "RUSTUP_HOME=${RUSTUP_HOME}" >> "${GITHUB_ENV}"
 fi
 
 BUCK2_RELEASE="${BUCK2_RELEASE:-2026-07-15}"
