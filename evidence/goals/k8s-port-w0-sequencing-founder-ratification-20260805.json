@@ -1,0 +1,61 @@
+{
+  "record_class": "founder-ratification-decision",
+  "record_id": "k8s-port-w0-sequencing-founder-ratification-20260805",
+  "recorded_at": "2026-08-05T00:00:00Z",
+  "decision": {
+    "decision_status": "ratified",
+    "approved_by": "founder",
+    "subject": "Zero-based MPV2 sequencing for Kubernetes Go-to-Rust port W0-A through W0-H",
+    "required_before": "execution-wave-dispatch",
+    "dispatch_state_at_ratification": "No masterplan execution wave is recorded as dispatched; the separate pre-planning authority hold remains open.",
+    "scope_limit": "This record authorizes W0-A through W0-H only. It does not authorize W1 or later corpus expansion."
+  },
+  "ratification_authority": {
+    "basis": "Founder approval of the consensus Kubernetes Go-to-Rust rewrite plan through the structured ralplan execution gate on 2026-08-05, durably expressed by ADR-0637 and ADR-0638.",
+    "decision_refs": [
+      "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+      "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md"
+    ],
+    "scope_limit": "This ratification binds only to the exact sequencing content identified by ratified_sequencing_digest. Mutation of a dependency endpoint pair, work-item order, or execution-wave membership requires fresh re-derivation and fresh founder ratification before dispatch. Relationship labels remain outside the digest."
+  },
+  "ratified_sequencing_digest": "sha256:b96b6c480fbbab6a1c72e63ed6e460972ccc7e9cdf6702ded2fd640398a4c3de",
+  "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs from masterplan_v2.dependency_edges, \"execution_waves\": the work_item_ids arrays of masterplan_v2.sequencing.execution_waves in wave order, \"work_item_order\": the work_item_id strings of masterplan_v2.sequencing.work_item_order in index order}",
+  "derivation": {
+    "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",
+    "source_of_truth": "/specs/masterplan.json#masterplan_v2.dependency_edges",
+    "repository_baseline": "origin/dev@b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+    "work_item_count": 53,
+    "dependency_edge_count": 43,
+    "wave_count": 8,
+    "wave_sizes": [24, 16, 5, 3, 2, 1, 1, 1],
+    "wave_rule": "wave(n) = 0 when n has no prerequisite edges; otherwise 1 + max(wave(prerequisite)). Within a wave, work-item ids sort lexicographically; work_item_order is the wave-major concatenation with contiguous zero-based indices.",
+    "added_work_items": [
+      "MPV2-0045",
+      "MPV2-0046",
+      "MPV2-0047",
+      "MPV2-0048",
+      "MPV2-0049",
+      "MPV2-0050",
+      "MPV2-0051",
+      "MPV2-0052"
+    ]
+  },
+  "accepted_adr_contradiction_review": {
+    "reviewed_decisions": [
+      "ADR-0217",
+      "ADR-0515",
+      "ADR-0537",
+      "ADR-0562",
+      "ADR-0633",
+      "ADR-0634",
+      "ADR-0636"
+    ],
+    "outcome": "no-contradiction",
+    "rationale": "The new chain encodes only the approved W0 phase order. It preserves the k8s capability rung above os, keeps the single oya-ci-required merge authority, leaves ADR-0634 class-G automatic admission unavailable pending its own acceptance conditions, and does not dispatch any existing masterplan wave."
+  },
+  "verification": {
+    "validator": "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_sequencing",
+    "ratification_digest_validator": "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_ratification_digest",
+    "fail_closed_contract": "Absent, malformed, or mismatched ratification data emits masterplan_execution_wave_dispatch_unratified. The pre-planning authority hold remains an independent blocker."
+  }
+}

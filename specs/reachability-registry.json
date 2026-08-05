@@ -440,6 +440,18 @@
     {
       "anchor": "CAS proof-cell bootstrap / PR #1558: exact Talos QEMU Cilium machine-config patch required by the isolated CAS proof-cell network boundary; declarative repository evidence only — no live cluster mutation authority.",
       "prefix": "infra/talos/qemu-cilium.patch.yaml"
+    },
+    {
+      "anchor": "ADR-0637 + ADR-0638 §Records: the lane-first Kubernetes port program records (operations, reusable prescriptions, and doctrine) are the R-DOC-governed procedural memory for mechanical upstream absorption; chronology is secondary and binding doctrine graduates to ADRs.",
+      "prefix": "docs/programs/k8s-port/"
+    },
+    {
+      "anchor": "ADR-0560 D1: dark NativeLink CAS/AC declaration with keyed mTLS and a bounded filesystem tier; activation requires a later reviewed GitOps Application plus #1551/#1534 live proof, so this reachability row grants no deployment claim; ownership seed infra/nativelink/OWNERS (cloud-ci-platform)",
+      "prefix": "infra/nativelink/"
+    },
+    {
+      "anchor": "ADR-0637 + ADR-0638: the machine-readable Kubernetes Go-to-Rust W0 policy corpus (immutable upstream pin, whole-corpus scope, governed divergence ledger, and fail-closed licensing requirements) is the reviewed source of truth for the oya-port program and its R-DOC/gate consumers.",
+      "prefix": "specs/k8s-port/"
     }
   ]
 }
