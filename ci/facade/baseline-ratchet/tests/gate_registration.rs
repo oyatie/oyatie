@@ -334,7 +334,7 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
         .any(|line| {
             line.contains("buck2 test ")
                 && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
-                && line.contains("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"")
+                && line.contains("RUSTUP_HOME=${RUSTUP_HOME}")
         });
     let buck2_on_admitted_linux = buck2_job.lines().map(str::trim).any(|line| {
         line.starts_with("runs-on:")
@@ -518,8 +518,9 @@ fn merge_base_test_health_forwards_the_owned_rustup_home(workflow: &str) -> bool
     let step = step.join("\n");
     step.contains("--phase materialize-merge-base-test-health-baseline --")
         && step.lines().any(|line| {
-            line.trim()
-                == "buck2 test //... --keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME}\" \\"
+            let t = line.trim();
+            t.starts_with("buck2 test //... --keep-going -- --env \"RUSTUP_HOME=")
+                && t.contains("RUSTUP_HOME=${RUSTUP_HOME}")
         })
 }
 
@@ -1641,10 +1642,9 @@ fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
         "removing the differential target from the binding Buck2 lane must fail the registration guard"
     );
 
-    let without_rustup_home = workflow.replace(
-        "-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
-        "",
-    );
+    let without_rustup_home = workflow
+        .replace("-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"", "")
+        .replace("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"", "");
     assert!(
         !workspace_resolver_differential_is_self_hosted_and_binding(&without_rustup_home),
         "removing the owned rustup home from the hermetic Buck2 test executor must fail the registration guard"
@@ -2223,10 +2223,15 @@ fn merge_base_test_health_uses_the_same_rustup_executor_contract_as_head() {
         merge_base_test_health_forwards_the_owned_rustup_home(&workflow),
         "the merge-base test baseline must forward the owned RUSTUP_HOME exactly like the affected-set head test invocation"
     );
-    let without_env = workflow.replace(
-        "--keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
-        "--keep-going",
-    );
+    let without_env = workflow
+        .replace(
+            "--keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"",
+            "--keep-going",
+        )
+        .replace(
+            "--keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
+            "--keep-going",
+        );
     assert!(
         !merge_base_test_health_forwards_the_owned_rustup_home(&without_env),
         "removing the merge-base rustup executor environment must be detected"

@@ -184,7 +184,7 @@ template:
           name: nativelink-server-ca
           optional: true
       # W2: mTLS client leaf+key (projected). Ops copies secret from oya-ci → arc-runners
-      # via infra/arc/nativelink-client-certs.k8s.yaml apply. optional so scale set still
+      # via ops PEM sync in docs/ideas/hosted-ci-lab-cas-agent-fleet.md. optional so scale set still
       # schedules when secret absent (warm overlay then stays off).
       - name: nativelink-client-reader
         secret:
