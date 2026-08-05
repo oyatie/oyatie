@@ -13,15 +13,17 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 ROOT_MARKER = ".grok/harness/pipeline.json"
+CRITIC_STAGE_DEFAULTS = ("CRITIC_PLAN", "CRITIC_DIFF")
 
 
 def now() -> str:
@@ -45,6 +47,432 @@ def load_json(path: Path) -> Any:
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def load_parallelism(repo: Path) -> dict:
+    path = repo / ".grok/harness/parallelism.v1.json"
+    if path.is_file():
+        try:
+            return load_json(path)
+        except Exception:
+            return {}
+    return {}
+
+
+def dual_critic_stages(pipeline: dict, par: dict) -> List[dict]:
+    """Return pipeline stages of kind dual_critic (or configured critic stage ids)."""
+    configured = (par.get("critics") or {}).get("stages") or list(CRITIC_STAGE_DEFAULTS)
+    out: List[dict] = []
+    for st in pipeline.get("stages") or []:
+        if not isinstance(st, dict):
+            continue
+        if st.get("kind") == "dual_critic" or st.get("id") in configured:
+            out.append(st)
+    if not out:
+        # synthetic from config when pipeline snapshot is thin
+        for sid in configured:
+            out.append(
+                {
+                    "id": sid,
+                    "kind": "dual_critic",
+                    "role": "CRITIC",
+                    "instances": int((par.get("critics") or {}).get("default_instances") or 2),
+                }
+            )
+    return out
+
+
+def resolve_critic_instances(stage: dict, par: dict) -> int:
+    critics = par.get("critics") or {}
+    n = stage.get("instances")
+    if n is None:
+        n = critics.get("default_instances", 2)
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        n = 2
+    max_n = critics.get("max_instances", 4)
+    try:
+        max_n = int(max_n)
+    except (TypeError, ValueError):
+        max_n = 4
+    if n < 1:
+        n = 1
+    if n > max_n:
+        n = max_n
+    return n
+
+
+def critic_labels(n: int, par: dict) -> List[str]:
+    prefix = str((par.get("critics") or {}).get("label_prefix") or "c")
+    return [f"{prefix}{i}" for i in range(n)]
+
+
+def parse_iso_ms(ts: Optional[str]) -> Optional[float]:
+    """Parse ISO-ish timestamps to epoch ms; None if unknown."""
+    if not ts or not isinstance(ts, str):
+        return None
+    s = ts.strip()
+    if not s:
+        return None
+    # normalize trailing Z
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+    # drop subsecond noise if too long
+    try:
+        dt = datetime.fromisoformat(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.timestamp() * 1000.0
+    except ValueError:
+        pass
+    # compact form used by mm-pipeline role dirs: 20260805T082509Z
+    m = re.match(r"^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z?$", s.replace(":", ""))
+    if m:
+        try:
+            dt = datetime(
+                int(m.group(1)),
+                int(m.group(2)),
+                int(m.group(3)),
+                int(m.group(4)),
+                int(m.group(5)),
+                int(m.group(6)),
+                tzinfo=timezone.utc,
+            )
+            return dt.timestamp() * 1000.0
+        except ValueError:
+            return None
+    return None
+
+
+def plan_critic_spawn(repo: Path, run_dir: Path, stage: dict, par: dict) -> dict:
+    """Plan dual-critic spawn for one stage; write critic_spawn_plan.json."""
+    stage_id = str(stage.get("id") or "CRITIC")
+    n = resolve_critic_instances(stage, par)
+    labels = critic_labels(n, par)
+    packet = str((par.get("critics") or {}).get("packet_name") or "critique.json")
+    parallel = bool((par.get("critics") or {}).get("parallel", True))
+    role = str(stage.get("role") or "CRITIC")
+    metrics_cfg = par.get("metrics") or {}
+    plan_name = metrics_cfg.get("critic_spawn_plan_filename") or "critic_spawn_plan.json"
+
+    paths = [f"stages/{stage_id}/{lab}/{packet}" for lab in labels]
+    plan = {
+        "version": "1.0.0",
+        "kind": "plan",
+        "stage": stage_id,
+        "planned_at": now(),
+        "parallel": parallel,
+        "role": role,
+        "labels": labels,
+        "counts": {
+            "planned": n,
+            "recorded": 0,
+            "with_duration": 0,
+            "admit": 0,
+            "reject": 0,
+            "revise": 0,
+            "other": 0,
+        },
+        "duration_ms": {
+            "wall_span_ms": None,
+            "sum_agent_ms": None,
+            "max_agent_ms": None,
+            "min_agent_ms": None,
+            "parallel_efficiency": None,
+        },
+        "paths": paths,
+        "critics": [
+            {
+                "label": lab,
+                "path": f"stages/{stage_id}/{lab}/{packet}",
+                "started_at": None,
+                "finished_at": None,
+                "duration_ms": None,
+                "admit_recommendation": None,
+            }
+            for lab in labels
+        ],
+        "source": {
+            "pipeline": "harness/pipeline.json",
+            "parallelism": "harness/parallelism.v1.json",
+            "stage_kind": stage.get("kind") or "dual_critic",
+        },
+        "notes": [
+            "Kit 2.2 parallel critic spawn plan",
+            "not merge authority",
+            "packet paths are relative to run journal root",
+        ],
+    }
+    out = run_dir / "stages" / stage_id / plan_name
+    write_json(out, plan)
+    plan["_path"] = str(out)
+    return plan
+
+
+def _discover_critique_packets(stage_dir: Path, packet_name: str) -> List[Path]:
+    if not stage_dir.is_dir():
+        return []
+    found = sorted(stage_dir.rglob(packet_name))
+    # prefer direct child dirs (c0/critique.json) over deeper noise
+    preferred = [p for p in found if p.parent.parent == stage_dir or p.parent == stage_dir]
+    return preferred if preferred else found
+
+
+def _duration_from_meta(meta_path: Path) -> Tuple[Optional[str], Optional[str], Optional[float]]:
+    if not meta_path.is_file():
+        return None, None, None
+    try:
+        meta = load_json(meta_path)
+    except Exception:
+        return None, None, None
+    started = meta.get("started_at") or meta.get("start") or meta.get("created_at")
+    finished = meta.get("finished_at") or meta.get("end") or meta.get("completed_at")
+    dur = meta.get("duration_ms")
+    if dur is not None:
+        try:
+            return started, finished, float(dur)
+        except (TypeError, ValueError):
+            pass
+    t0 = parse_iso_ms(started if isinstance(started, str) else None)
+    t1 = parse_iso_ms(finished if isinstance(finished, str) else None)
+    if t0 is not None and t1 is not None and t1 >= t0:
+        return started, finished, t1 - t0
+    return (
+        started if isinstance(started, str) else None,
+        finished if isinstance(finished, str) else None,
+        None,
+    )
+
+
+def record_critic_spawn(
+    repo: Path,
+    run_dir: Path,
+    stage: dict,
+    par: dict,
+    *,
+    planned: Optional[dict] = None,
+) -> dict:
+    """Record dual-critic spawn metrics from on-disk packets + optional meta timestamps."""
+    stage_id = str(stage.get("id") or "CRITIC")
+    stage_dir = run_dir / "stages" / stage_id
+    critics_cfg = par.get("critics") or {}
+    metrics_cfg = par.get("metrics") or {}
+    packet_name = str(critics_cfg.get("packet_name") or "critique.json")
+    metrics_name = metrics_cfg.get("critic_spawn_metrics_filename") or "critic_spawn_metrics.json"
+    plan_name = metrics_cfg.get("critic_spawn_plan_filename") or "critic_spawn_plan.json"
+    parallel = bool(critics_cfg.get("parallel", True))
+
+    if planned is None:
+        plan_path = stage_dir / plan_name
+        if plan_path.is_file():
+            try:
+                planned = load_json(plan_path)
+            except Exception:
+                planned = None
+
+    planned_n = resolve_critic_instances(stage, par)
+    if planned and isinstance(planned.get("counts"), dict) and planned["counts"].get("planned"):
+        try:
+            planned_n = int(planned["counts"]["planned"])
+        except (TypeError, ValueError):
+            pass
+
+    packets = _discover_critique_packets(stage_dir, packet_name)
+    critics_out: List[dict] = []
+    admit = reject = revise = other = 0
+    durations: List[float] = []
+    starts: List[float] = []
+    finishes: List[float] = []
+    paths: List[str] = []
+
+    for p in packets:
+        try:
+            rel = str(p.relative_to(run_dir))
+        except ValueError:
+            rel = str(p)
+        paths.append(rel)
+        label = p.parent.name if p.parent != stage_dir else p.stem
+        started, finished, dur_ms = _duration_from_meta(p.parent / "meta.json")
+        rec: Optional[str] = None
+        try:
+            cj = load_json(p)
+            if isinstance(cj, dict):
+                rec = cj.get("admit_recommendation")
+        except Exception:
+            rec = None
+        if rec == "admit":
+            admit += 1
+        elif rec == "reject":
+            reject += 1
+        elif rec == "revise":
+            revise += 1
+        else:
+            other += 1
+        if dur_ms is not None:
+            durations.append(float(dur_ms))
+        t0 = parse_iso_ms(started)
+        t1 = parse_iso_ms(finished)
+        if t0 is not None:
+            starts.append(t0)
+        if t1 is not None:
+            finishes.append(t1)
+        critics_out.append(
+            {
+                "label": label,
+                "path": rel,
+                "started_at": started,
+                "finished_at": finished,
+                "duration_ms": dur_ms,
+                "admit_recommendation": rec,
+            }
+        )
+
+    recorded_n = len(packets)
+    with_duration = len(durations)
+    wall_span = None
+    if starts and finishes:
+        wall_span = max(finishes) - min(starts)
+        if wall_span < 0:
+            wall_span = None
+    sum_agent = sum(durations) if durations else None
+    max_agent = max(durations) if durations else None
+    min_agent = min(durations) if durations else None
+    parallel_eff = None
+    if (
+        parallel
+        and wall_span is not None
+        and wall_span > 0
+        and sum_agent is not None
+        and recorded_n > 0
+    ):
+        # ideal parallel wall ≈ max_agent; efficiency = ideal_serial / (wall * n) inverted:
+        # parallel_efficiency = sum_agent / (wall_span * n) capped to [0, 1+]
+        # higher means more concurrent overlap (sum work vs wall*n)
+        parallel_eff = round(sum_agent / (wall_span * recorded_n), 4)
+    elif parallel and max_agent is not None and sum_agent is not None and sum_agent > 0:
+        # no wall span: approximate as max/sum (Amdahl-ish serial fraction inverse)
+        parallel_eff = round(max_agent / sum_agent, 4)
+
+    metrics = {
+        "version": "1.0.0",
+        "kind": "record",
+        "stage": stage_id,
+        "planned_at": (planned or {}).get("planned_at"),
+        "recorded_at": now(),
+        "parallel": parallel,
+        "role": str(stage.get("role") or "CRITIC"),
+        "labels": [c["label"] for c in critics_out],
+        "counts": {
+            "planned": planned_n,
+            "recorded": recorded_n,
+            "with_duration": with_duration,
+            "admit": admit,
+            "reject": reject,
+            "revise": revise,
+            "other": other,
+        },
+        "duration_ms": {
+            "wall_span_ms": wall_span,
+            "sum_agent_ms": sum_agent,
+            "max_agent_ms": max_agent,
+            "min_agent_ms": min_agent,
+            "parallel_efficiency": parallel_eff,
+        },
+        "paths": paths,
+        "critics": critics_out,
+        "source": {
+            "pipeline": "harness/pipeline.json",
+            "parallelism": "harness/parallelism.v1.json",
+            "stage_kind": stage.get("kind") or "dual_critic",
+        },
+        "notes": [
+            "Kit 2.2 parallel critic spawn record",
+            "duration null when meta timestamps absent",
+            "not merge authority",
+        ],
+    }
+    out = stage_dir / metrics_name
+    write_json(out, metrics)
+    metrics["_path"] = str(out)
+    return metrics
+
+
+def aggregate_critic_spawn(run_dir: Path, stage_metrics: List[dict], par: dict) -> dict:
+    """Run-level rollup of per-stage critic spawn metrics."""
+    metrics_cfg = par.get("metrics") or {}
+    agg_name = metrics_cfg.get("run_aggregate_filename") or "critic_spawn_metrics.json"
+    planned = sum(int((m.get("counts") or {}).get("planned") or 0) for m in stage_metrics)
+    recorded = sum(int((m.get("counts") or {}).get("recorded") or 0) for m in stage_metrics)
+    with_dur = sum(int((m.get("counts") or {}).get("with_duration") or 0) for m in stage_metrics)
+    admit = sum(int((m.get("counts") or {}).get("admit") or 0) for m in stage_metrics)
+    reject = sum(int((m.get("counts") or {}).get("reject") or 0) for m in stage_metrics)
+    revise = sum(int((m.get("counts") or {}).get("revise") or 0) for m in stage_metrics)
+    other = sum(int((m.get("counts") or {}).get("other") or 0) for m in stage_metrics)
+    paths: List[str] = []
+    for m in stage_metrics:
+        paths.extend(m.get("paths") or [])
+    effs = [
+        (m.get("duration_ms") or {}).get("parallel_efficiency")
+        for m in stage_metrics
+        if (m.get("duration_ms") or {}).get("parallel_efficiency") is not None
+    ]
+    avg_eff = round(sum(effs) / len(effs), 4) if effs else None
+    walls = [
+        (m.get("duration_ms") or {}).get("wall_span_ms")
+        for m in stage_metrics
+        if (m.get("duration_ms") or {}).get("wall_span_ms") is not None
+    ]
+    sums = [
+        (m.get("duration_ms") or {}).get("sum_agent_ms")
+        for m in stage_metrics
+        if (m.get("duration_ms") or {}).get("sum_agent_ms") is not None
+    ]
+    agg = {
+        "version": "1.0.0",
+        "kind": "aggregate",
+        "stage": "ALL_CRITIC",
+        "recorded_at": now(),
+        "parallel": bool((par.get("critics") or {}).get("parallel", True)),
+        "role": "CRITIC",
+        "labels": [m.get("stage") for m in stage_metrics],
+        "counts": {
+            "planned": planned,
+            "recorded": recorded,
+            "with_duration": with_dur,
+            "admit": admit,
+            "reject": reject,
+            "revise": revise,
+            "other": other,
+        },
+        "duration_ms": {
+            "wall_span_ms": sum(walls) if walls else None,
+            "sum_agent_ms": sum(sums) if sums else None,
+            "max_agent_ms": max(sums) if sums else None,
+            "min_agent_ms": min(sums) if sums else None,
+            "parallel_efficiency": avg_eff,
+        },
+        "paths": paths,
+        "stages": [
+            {
+                "stage": m.get("stage"),
+                "path": m.get("_path"),
+                "counts": m.get("counts"),
+                "parallel_efficiency": (m.get("duration_ms") or {}).get("parallel_efficiency"),
+            }
+            for m in stage_metrics
+        ],
+        "source": {
+            "pipeline": "harness/pipeline.json",
+            "parallelism": "harness/parallelism.v1.json",
+            "stage_kind": "dual_critic",
+        },
+        "notes": ["run-level aggregate of per-stage critic_spawn_metrics", "not merge authority"],
+    }
+    out = run_dir / agg_name
+    write_json(out, agg)
+    agg["_path"] = str(out)
+    return agg
 
 
 def run_preflight(repo: Path, out: Path, allow_diverged: bool = False) -> dict:
@@ -241,6 +669,33 @@ def cmd_admit_plan(args: argparse.Namespace) -> int:
             "plan text appears to skip/weaken tests"
         ]
 
+    # Kit 2.2: record parallel critic spawn metrics when packets exist (or plan was written).
+    par = load_parallelism(repo)
+    pipe = (
+        load_json(run_dir / "pipeline.snapshot.json")
+        if (run_dir / "pipeline.snapshot.json").is_file()
+        else load_json(repo / ".grok/harness/pipeline.json")
+    )
+    critic_stage = next(
+        (s for s in dual_critic_stages(pipe, par) if s.get("id") == "CRITIC_PLAN"),
+        {"id": "CRITIC_PLAN", "kind": "dual_critic", "role": "CRITIC", "instances": 2},
+    )
+    if (par.get("metrics") or {}).get("record_critic_spawn", True):
+        # ensure plan exists even if callers only admit
+        if not (run_dir / "stages" / "CRITIC_PLAN" / (
+            (par.get("metrics") or {}).get("critic_spawn_plan_filename") or "critic_spawn_plan.json"
+        )).is_file():
+            plan_critic_spawn(repo, run_dir, critic_stage, par)
+        stage_metrics = record_critic_spawn(repo, run_dir, critic_stage, par)
+        agg = aggregate_critic_spawn(run_dir, [stage_metrics], par)
+        admission["critic_spawn_metrics"] = {
+            "stage_path": stage_metrics.get("_path"),
+            "aggregate_path": agg.get("_path"),
+            "counts": stage_metrics.get("counts"),
+            "paths": stage_metrics.get("paths"),
+            "duration_ms": stage_metrics.get("duration_ms"),
+        }
+
     write_json(run_dir / "stages" / "ADMIT_PLAN" / "admission.json", admission)
     run["admitted_plan"] = bool(admission["admitted"])
     run["stage_pointer"] = "ADMIT_PLAN"
@@ -252,6 +707,133 @@ def cmd_admit_plan(args: argparse.Namespace) -> int:
     write_json(run_dir / "run.json", run)
     print(json.dumps(admission, indent=2))
     return 0 if admission["admitted"] else 2
+
+
+def _select_critic_stages(pipe: dict, par: dict, stage_arg: str) -> List[dict]:
+    stages = dual_critic_stages(pipe, par)
+    if not stage_arg or stage_arg in ("all", "*"):
+        return stages
+    wanted = {s.strip() for s in stage_arg.split(",") if s.strip()}
+    selected = [s for s in stages if s.get("id") in wanted]
+    if not selected:
+        # allow explicit stage id even if not in pipeline snapshot
+        for sid in wanted:
+            selected.append(
+                {
+                    "id": sid,
+                    "kind": "dual_critic",
+                    "role": "CRITIC",
+                    "instances": int((par.get("critics") or {}).get("default_instances") or 2),
+                }
+            )
+    return selected
+
+
+def cmd_plan_critics(args: argparse.Namespace) -> int:
+    """Plan dual/parallel critic spawn; write critic_spawn_plan.json per stage."""
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    par = load_parallelism(repo)
+    pipe = (
+        load_json(run_dir / "pipeline.snapshot.json")
+        if (run_dir / "pipeline.snapshot.json").is_file()
+        else load_json(repo / ".grok/harness/pipeline.json")
+    )
+    selected = _select_critic_stages(pipe, par, args.stage)
+    plans = []
+    for st in selected:
+        plans.append(plan_critic_spawn(repo, run_dir, st, par))
+    # lightweight aggregate noting planned counts
+    if plans and (par.get("metrics") or {}).get("record_critic_spawn", True):
+        aggregate_critic_spawn(
+            run_dir,
+            [
+                {
+                    "stage": p.get("stage"),
+                    "counts": p.get("counts"),
+                    "paths": p.get("paths"),
+                    "duration_ms": p.get("duration_ms"),
+                    "_path": p.get("_path"),
+                }
+                for p in plans
+            ],
+            par,
+        )
+    run.setdefault("notes", []).append(f"plan-critics at {now()} stages={[p.get('stage') for p in plans]}")
+    write_json(run_dir / "run.json", run)
+    print(
+        json.dumps(
+            {
+                "run_id": args.run_id,
+                "planned": [
+                    {
+                        "stage": p.get("stage"),
+                        "counts": p.get("counts"),
+                        "parallel": p.get("parallel"),
+                        "paths": p.get("paths"),
+                        "path": p.get("_path"),
+                    }
+                    for p in plans
+                ],
+                "aggregate": str(run_dir / ((par.get("metrics") or {}).get("run_aggregate_filename") or "critic_spawn_metrics.json")),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def cmd_record_critics(args: argparse.Namespace) -> int:
+    """Record dual/parallel critic spawn metrics from critique packets on disk."""
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    par = load_parallelism(repo)
+    pipe = (
+        load_json(run_dir / "pipeline.snapshot.json")
+        if (run_dir / "pipeline.snapshot.json").is_file()
+        else load_json(repo / ".grok/harness/pipeline.json")
+    )
+    selected = _select_critic_stages(pipe, par, args.stage)
+    recorded = []
+    for st in selected:
+        # ensure plan exists so planned count is stable
+        plan_name = (par.get("metrics") or {}).get("critic_spawn_plan_filename") or "critic_spawn_plan.json"
+        if not (run_dir / "stages" / str(st.get("id")) / plan_name).is_file():
+            plan_critic_spawn(repo, run_dir, st, par)
+        recorded.append(record_critic_spawn(repo, run_dir, st, par))
+    agg = aggregate_critic_spawn(run_dir, recorded, par) if recorded else {}
+    run.setdefault("notes", []).append(
+        f"record-critics at {now()} stages={[m.get('stage') for m in recorded]} "
+        f"recorded={sum(int((m.get('counts') or {}).get('recorded') or 0) for m in recorded)}"
+    )
+    write_json(run_dir / "run.json", run)
+    print(
+        json.dumps(
+            {
+                "run_id": args.run_id,
+                "recorded": [
+                    {
+                        "stage": m.get("stage"),
+                        "counts": m.get("counts"),
+                        "duration_ms": m.get("duration_ms"),
+                        "paths": m.get("paths"),
+                        "path": m.get("_path"),
+                    }
+                    for m in recorded
+                ],
+                "aggregate": {
+                    "counts": agg.get("counts"),
+                    "duration_ms": agg.get("duration_ms"),
+                    "paths": agg.get("paths"),
+                    "path": agg.get("_path"),
+                }
+                if agg
+                else None,
+            },
+            indent=2,
+        )
+    )
+    return 0
 
 
 def cmd_human_admit(args: argparse.Namespace) -> int:
@@ -409,6 +991,32 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--run-id", required=True)
     sp.add_argument("--critic-json", nargs="*", default=[])
     sp.set_defaults(func=cmd_admit_plan)
+
+    sp = sub.add_parser(
+        "plan-critics",
+        parents=[common],
+        help="plan dual/parallel critic spawn metrics (counts + packet paths)",
+    )
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument(
+        "--stage",
+        default="all",
+        help="CRITIC_PLAN, CRITIC_DIFF, comma list, or all (default)",
+    )
+    sp.set_defaults(func=cmd_plan_critics)
+
+    sp = sub.add_parser(
+        "record-critics",
+        parents=[common],
+        help="record dual/parallel critic spawn metrics from critique packets",
+    )
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument(
+        "--stage",
+        default="all",
+        help="CRITIC_PLAN, CRITIC_DIFF, comma list, or all (default)",
+    )
+    sp.set_defaults(func=cmd_record_critics)
 
     sp = sub.add_parser("human-admit", parents=[common], help="record human admit for high/critical plans")
     sp.add_argument("--run-id", required=True)

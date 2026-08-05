@@ -140,7 +140,7 @@ The workflow is **continuously evaluated** across:
 
 | Axis | What we measure |
 |------|-----------------|
-| Concurrent throughput | Wall clock, parallel critics, serial fraction, path-overlap |
+| Concurrent throughput | Wall clock, parallel critics, spawn metrics, serial fraction, path-overlap |
 | Outcome quality | Grade, dual admit, hard fails, evidence |
 | Delivery pipeline fit | origin/dev preflight, required CI context, no CLI merge authority |
 | Prompt engineering | Lens packs, tool-use commands, orthogonal critics |
@@ -152,6 +152,20 @@ The workflow is **continuously evaluated** across:
 .grok/bin/mm-evaluate static --cwd .
 .grok/bin/mm-evaluate full --run-id <id> --cwd .
 ```
+
+### Parallel critic spawn metrics (kit 2.2)
+
+When dual-critic work is planned or recorded, emit measurable metrics (counts, duration if meta timestamps exist, packet paths):
+
+```bash
+.grok/bin/mm-pipeline plan-critics --run-id <id>          # writes stages/*/critic_spawn_plan.json
+.grok/bin/mm-pipeline record-critics --run-id <id>        # writes stages/*/critic_spawn_metrics.json + run aggregate
+# admit-plan also records CRITIC_PLAN metrics automatically
+.grok/bin/mm-learn from-run --run-id <id>                 # surfaces critic_spawn in trajectory/JSON
+```
+
+Config: `harness/parallelism.v1.json` · schema: `harness/schemas/critic_spawn_metrics.v1.json`  
+Static evaluate checks spawn schema + parallel critic policy under `dual_critic_packet`.
 
 Config: `harness/evaluation.v1.json` · narrative: `harness/LIFECYCLE-AND-GAPS.md`
 

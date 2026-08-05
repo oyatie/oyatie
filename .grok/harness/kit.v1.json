@@ -85,6 +85,7 @@
       "workflow-evaluation.md",
       "trajectory.jsonl",
       "findings.json",
+      "critic_spawn_metrics.json",
       "evidence/admission-packet.md"
     ]
   }

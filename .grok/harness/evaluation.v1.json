@@ -40,7 +40,11 @@
         "parallel_panels",
         "avg_agent_duration_ms",
         "serial_fraction",
-        "path_overlap_violations"
+        "path_overlap_violations",
+        "critic_spawn_planned",
+        "critic_spawn_recorded",
+        "critic_spawn_parallel_efficiency",
+        "critic_packet_paths"
       ],
       "fail_closed_if": [
         "path_overlap_violations > 0 on execute"
@@ -147,15 +151,20 @@
       "slo": {
         "require_agent_dual_critic_policy": true,
         "critique_schema_present": true,
-        "packet_globs_configured": true
+        "packet_globs_configured": true,
+        "critic_spawn_metrics_schema": true,
+        "parallel_critics_configured": true
       },
       "metrics": [
         "drive_require_agent_dual_critic",
         "dual_critic_packet_globs",
         "critique_schema_present",
-        "pipeline_dual_critic_both_must_confirm"
+        "pipeline_dual_critic_both_must_confirm",
+        "parallelism_critics_parallel",
+        "critic_spawn_metrics_schema",
+        "pipeline_dual_critic_instances"
       ],
-      "note": "Static contract only \u2014 not live packet contents; not merge authority"
+      "note": "Static contract only \u2014 not live packet contents; spawn metrics wired via mm-pipeline plan-critics/record-critics (kit 2.2); not merge authority"
     }
   },
   "lifecycle_map": {
@@ -214,7 +223,7 @@
       "area": "concurrent_throughput",
       "symptom": "Most multi-model stages run serial; only dual critics parallel in Rhai",
       "impact": "Wall clock grows linearly with slices",
-      "close_gap": "Path-disjoint executor shards + parallel critic spawn in mm-pipeline; measure parallel_efficiency"
+      "close_gap": "Path-disjoint executor shards (2.3) + parallel critic spawn metrics (2.2: mm-pipeline plan-critics/record-critics → critic_spawn_metrics.json; measure parallel_efficiency when timestamps present)"
     },
     {
       "id": "F-GROK-ONLY-WORKFLOW",

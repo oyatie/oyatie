@@ -13,7 +13,10 @@
     "workflow-evaluation.md",
     "workflow-evaluation.json",
     "trajectory.jsonl",
+    "critic_spawn_metrics.json",
     "evidence/admission-packet.md",
-    "stages/"
+    "stages/",
+    "stages/*/critic_spawn_plan.json",
+    "stages/*/critic_spawn_metrics.json"
   ]
 }

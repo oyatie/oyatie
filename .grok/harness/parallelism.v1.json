@@ -4,7 +4,10 @@
   "critics": {
     "default_instances": 2,
     "max_instances": 4,
-    "parallel": true
+    "parallel": true,
+    "label_prefix": "c",
+    "packet_name": "critique.json",
+    "stages": ["CRITIC_PLAN", "CRITIC_DIFF"]
   },
   "executors": {
     "default_shards": 1,
@@ -18,6 +21,13 @@
   },
   "metrics": {
     "record_parallel_panels": true,
-    "record_serial_fraction": true
+    "record_serial_fraction": true,
+    "record_critic_spawn": true,
+    "critic_spawn_plan_filename": "critic_spawn_plan.json",
+    "critic_spawn_metrics_filename": "critic_spawn_metrics.json",
+    "run_aggregate_filename": "critic_spawn_metrics.json",
+    "schema": "harness/schemas/critic_spawn_metrics.v1.json",
+    "cli": "mm-pipeline plan-critics | record-critics",
+    "note": "Kit 2.2: emit counts, duration if available, packet paths when dual-critic work is planned or recorded."
   }
 }

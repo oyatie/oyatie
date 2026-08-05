@@ -33,7 +33,7 @@ See session plan (first principles + gap close). No gjc/omc/omx/hermes.
 ## Phase 2 — Throughput
 - [x] 2.1 parallelism.v1.json + mm-paths overlap checker
 - [x] D4 briefs path-overlap (mm-drive briefs/tick/status; fail-closed)
-- [ ] 2.2 parallel critic spawn metrics
+- [x] 2.2 parallel critic spawn metrics
 - [ ] 2.3 optional multi-shard EXECUTOR
 
 ## Drive outer loop (D3–D4)
