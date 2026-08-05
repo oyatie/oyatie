@@ -5,9 +5,10 @@ Ultragoal/Ralph behaviors without gjc/omc/omx/hermes:
   - classify workstreams (resolvable vs human_blocked vs waiting_ci …)
   - Stop-hook adapter (block continue when resolvable work remains)
   - checkpoint-check fail-closed quality gate before goal complete
+  - packet: R3 post-merge product-completion packet (fail-closed)
   - never merge authority; never false-complete ultragoal from draft/local green
 
-Commands: status | tick | briefs | stop-hook | checkpoint-check
+Commands: status | tick | briefs | stop-hook | checkpoint-check | merge-check | merge | packet
 """
 
 from __future__ import annotations
@@ -1401,6 +1402,85 @@ def cmd_checkpoint_check(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_packet(args: argparse.Namespace) -> int:
+    """R3 post-merge product-completion packet (delegates to mm-packet).
+
+    Fail-closed if PR not MERGED or trunk oya-ci-required not SUCCESS on
+    exact promoted SHA. Never claims ultragoal complete. Not merge authority.
+    """
+    packet_bin = Path(__file__).resolve().parent / "mm-packet"
+    if not packet_bin.is_file():
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "reasons": ["mm_packet_missing"],
+                    "expected": str(packet_bin),
+                    "ultragoal_complete": False,
+                },
+                indent=2,
+            )
+        )
+        return 1
+    # Rebuild argv for mm-packet from known flags (ignore drive-only --offline/--json noise).
+    argv: List[str] = [sys.executable, str(packet_bin), "--cwd", str(args.cwd)]
+    if getattr(args, "pr", None) is not None:
+        argv.extend(["--pr", str(args.pr)])
+    if getattr(args, "sha", None):
+        argv.extend(["--sha", str(args.sha)])
+    if getattr(args, "program", None):
+        argv.extend(["--program", str(args.program)])
+    if getattr(args, "out", None):
+        argv.extend(["--out", str(args.out)])
+    if getattr(args, "dry_run", False):
+        argv.append("--dry-run")
+    if getattr(args, "force", False):
+        argv.append("--force")
+    if getattr(args, "closed", False):
+        argv.append("--closed")
+    if getattr(args, "no_merge_existing", False):
+        argv.append("--no-merge-existing")
+    if getattr(args, "timeout", None):
+        argv.extend(["--timeout", str(args.timeout)])
+    if getattr(args, "title", None):
+        argv.extend(["--title", str(args.title)])
+    if getattr(args, "rollout_class", None):
+        argv.extend(["--rollout-class", str(args.rollout_class)])
+    if getattr(args, "rollout_verification", None):
+        argv.extend(["--rollout-verification", str(args.rollout_verification)])
+    if getattr(args, "rollback_note", None):
+        argv.extend(["--rollback-note", str(args.rollback_note)])
+    if getattr(args, "observability_check", None):
+        argv.extend(["--observability-check", str(args.observability_check)])
+    if getattr(args, "browser_user_story", None):
+        argv.extend(["--browser-user-story", str(args.browser_user_story)])
+    if getattr(args, "release_impact", None):
+        argv.extend(["--release-impact", str(args.release_impact)])
+    if getattr(args, "harvest_cards", None):
+        argv.extend(["--harvest-cards", str(args.harvest_cards)])
+    if getattr(args, "harvest_rationale", None):
+        argv.extend(["--harvest-rationale", str(args.harvest_rationale)])
+
+    try:
+        p = subprocess.run(argv, check=False)
+    except OSError as e:
+        print(json.dumps({"ok": False, "reasons": [f"mm_packet_exec_failed:{e}"], "ultragoal_complete": False}, indent=2))
+        return 1
+
+    # Ledger only when we can parse stdout would require capture; keep simple event.
+    grok = find_grok(Path(args.cwd))
+    append_ledger(
+        grok,
+        {
+            "event": "packet",
+            "pr": getattr(args, "pr", None),
+            "sha": getattr(args, "sha", None) or None,
+            "exit": p.returncode,
+        },
+    )
+    return int(p.returncode)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="mm-drive: ultragoal/Ralph outer loop (no omc/omx/gjc)")
     common = argparse.ArgumentParser(add_help=False)
@@ -1474,6 +1554,51 @@ def main() -> int:
     sp.add_argument("--pr", type=int, required=True)
     sp.add_argument("--dry-run", action="store_true")
     sp.set_defaults(func=cmd_merge)
+
+    sp = sub.add_parser(
+        "packet",
+        parents=[common],
+        help=(
+            "R3: fill post-merge product-completion packet from MERGED PR or promoted SHA "
+            "(fail-closed unless trunk oya-ci-required SUCCESS on exact promoted SHA; "
+            "never claims ultragoal complete)"
+        ),
+    )
+    sp.add_argument("--pr", type=int, default=None, help="merged PR number")
+    sp.add_argument(
+        "--sha",
+        default="",
+        help="promoted commit SHA (defaults to PR merge commit when --pr set)",
+    )
+    sp.add_argument(
+        "--program",
+        default="",
+        help="program id under .grok/programs/ (default hyperscaler-delivery-lanes)",
+    )
+    sp.add_argument(
+        "--out",
+        default="",
+        help="output JSON path (default programs/<program>/evidence/<pr>-post-merge-completion-packet.json)",
+    )
+    sp.add_argument("--dry-run", action="store_true", help="print only; do not write")
+    sp.add_argument("--force", action="store_true")
+    sp.add_argument(
+        "--closed",
+        action="store_true",
+        help="set completion_packet_closed when gates + human fields present",
+    )
+    sp.add_argument("--no-merge-existing", action="store_true")
+    sp.add_argument("--timeout", type=int, default=45)
+    sp.add_argument("--title", default="")
+    sp.add_argument("--rollout-class", default="")
+    sp.add_argument("--rollout-verification", default="")
+    sp.add_argument("--rollback-note", default="")
+    sp.add_argument("--observability-check", default="")
+    sp.add_argument("--browser-user-story", default="")
+    sp.add_argument("--release-impact", default="")
+    sp.add_argument("--harvest-cards", default="")
+    sp.add_argument("--harvest-rationale", default="")
+    sp.set_defaults(func=cmd_packet)
 
     args = ap.parse_args()
     return int(args.func(args))
