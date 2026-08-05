@@ -1,5 +1,5 @@
 ---
-purpose: Cross-agent tool-name mapping for Claude Code, Codex (OpenAI Codex CLI), Gemini (Gemini CLI), and OMC subagents.
+purpose: Cross-agent tool-name mapping for Claude Code, Codex (OpenAI Codex CLI), and Gemini (Gemini CLI). OMC columns are historical/compatibility-only.
 doc_status: published
 ---
 
@@ -12,13 +12,11 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Cross-agent tool-name mapping for Claude Code, Codex (OpenAI Codex CLI),
-  Gemini (Gemini CLI), and OMC subagents. Names the sanctioned tool surface
-  per agent, documents tool-name differences (Codex/Gemini use different
-  names than Claude Code), and codifies delegation patterns when one agent
-  hands off to another. Resolves the
-  `standards/multi-agent-tool-map.md` wave-2 forward-reference sentinel in
-  `docs/AGENTS.md` §Per-agent appendices (Gemini).
-canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
+  and Gemini (Gemini CLI). OMC subagent columns and `.omc/` state paths are
+  historical/compatibility-only under ADR-0619. Names the sanctioned tool
+  surface per live agent, documents tool-name differences, and codifies
+  delegation patterns when one agent hands off to another.
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json + docs/AGENTS.md
 planned_enforcement_ref: oya-governance-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
@@ -26,22 +24,29 @@ companion_docs:
   - docs/standards/agent-instructions-discipline.md
 related_adrs:
   - ADR-0053
-  - ADR-0052
-  - ADR-0054
+  - ADR-0116
+  - ADR-0515
+  - ADR-0619
 ---
 
 # Multi-Agent Tool Map
 
+> **Harness-brand note (ADR-0619 / RR-HARNESS-0619):** OMC / OMX / GJC / Hermes
+> are **not** live coordination authority. Columns and sections that mention
+> OMC are retained as historical/compatibility mapping only. Live operating
+> contract: [`docs/AGENTS.md`](../AGENTS.md). Merge admission: [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md).
+> Optional local multi-model delivery kit: `.grok/` (mm-delivery; not merge
+> authority). The former [`claude-code-harness.md`](claude-code-harness.md) is a retirement tombstone.
+
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-Multiple agent harnesses operate on this repository (Claude Code, Codex,
-Gemini, OMC subagents). Each harness exposes slightly different tool names
-for the same underlying operation. This standard names the canonical surface
-and the per-harness mapping so cross-harness instructions (e.g., the agent
-fences in IPs) work without translation drift.
+Multiple agent runtimes may operate on this repository (Claude Code, Codex,
+Gemini). Each exposes slightly different tool names for the same underlying
+operation. This standard names the canonical surface and the per-runtime
+mapping so cross-runtime instructions work without translation drift.
 
 The agent operating contract is [`docs/AGENTS.md`](../AGENTS.md); the
-per-harness appendices live in its §"Per-agent appendices". This standard is
+per-agent appendices live in its §"Per-agent appendices". This standard is
 the **reference table** those appendices point at.
 
 ## 1. Canonical operation set
@@ -115,52 +120,48 @@ human readers.
 
 When one agent hands off to another:
 
-### 5.1 Claude Code → OMC subagent
+### 5.1 Claude Code → residual OMC subagent (compatibility only)
 
-Inside a Claude Code session, delegate via the `Skill` or `Task` tool:
-
-```
-Skill(skill="oh-my-claudecode:planner", args="…")
-Task(subagent="executor", task="…")
-```
-
-The subagent inherits the parent session's environment (cwd, hooks,
-sanctioned tools) but writes outputs to `.omc/state/`. Cancellation
-propagates downward.
+**Not a forward pattern.** Prefer plain git worktrees + protected PR, or
+optional `.grok/` mm-delivery dual-critic stages. Residual OMC Skill/Task
+delegation may still appear in old sessions; do not invent new OMC-owned
+state under `.omc/` as shared authority.
 
 ### 5.2 Claude Code → Codex / Gemini
 
-Two patterns:
+Forward patterns:
 
-1. **Parallel review via `omc ask`**: dispatch the question to Codex or
-   Gemini via the `omc ask` skill (sanctioned per
-   [`/oh-my-claudecode:ask`](../STANDARDS-AND-TEMPLATES.md));
-   capture artifacts to `.omc/state/`.
-2. **Process-based tmux team**: launch a Codex or Gemini CLI in a tmux
-   pane via `/oh-my-claudecode:omc-teams`; the orchestrator reads the
-   pane state at handoff.
+1. **Isolated worktrees + PR**: each runtime works on its own branch; share
+   via git, not external harness state.
+2. **Optional `.grok/` mm-delivery kit**: multi-model roles and dual-critic
+   stages when the operator kit is present (not merge authority).
+3. **Process-based tmux / parallel CLI**: launch Codex or Gemini in a
+   separate process; hand off via PR diffs or tracked evidence paths under
+   `/evidence` / PR body — not `.omc/state/`.
 
-`.omc/state/`.
+Historical `omc ask` / `/oh-my-claudecode:*` team skills are compatibility
+residue only (ADR-0619).
 
 ### 5.3 Codex / Gemini → Claude Code
 
-The reverse direction requires the user to bring the artifact (e.g., a
-generated patch) back into the Claude Code session manually OR via a
-shared state file `.omc/state/<task-id>.md`. Cross-harness session
-inheritance is not assumed.
+Bring artifacts back via git/PR (patch, review comments, evidence links).
+Do not require a shared `.omc/state/<task-id>.md` file. Cross-runtime
+session inheritance is not assumed.
 
 ## 6. Memory & state interop
 
-| Surface | Shared across harnesses? | Notes |
+| Surface | Shared across runtimes? | Notes |
 |---|---|---|
-| `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json` | YES | Repo-checked-in (or session-scoped per file); all harnesses read |
-| `.omc/plans/` | YES | Working drafts of plans / IPs; all harnesses read+write |
+| `/specs`, `/registry`, `/evidence`, `/templates` | YES | Live machine-readable authority |
+| `.grok/` mm-delivery kit (when present) | Operator-local | Process kit only; not merge authority; not required for contribution |
+| `.omc/state/`, `.omc/plans/`, `.omx/`, `.gjc/` | NO (provenance) | Gitignored residual; do not treat as shared authority (ADR-0619) |
 | Claude Code skill / hook state | NO | Lives under `~/.claude/`; not portable |
-| Codex `.codex/skills/`, `.codex/worktree_init.sh` | YES (repo-local) | Codex-specific tooling |
+| Codex `.codex/skills/` | YES (repo-local when checked in) | Codex-specific tooling |
 | Gemini per-session config | NO | Gemini-specific |
 
-Cross-harness sharing rule: **state lives under `.omc/`**, harness-specific
-config lives under per-harness directories (`~/.claude/`, `.codex/`, …).
+Cross-runtime sharing rule: **shared truth is git + machine-readable
+specs/evidence**; optional local kits (`.grok/`) and residual harness dirs
+are not admission or plan authority.
 
 ## 7. MCP server interop
 
@@ -180,11 +181,10 @@ contract forbids.
 ## 9. Reviewer-agent verdicts in cross-harness PRs
 
 When a PR is authored by Codex or Gemini and reviewed by Claude Code (or
-vice versa), the merge-gate hook still requires the reviewer-agent
-verdict in `## Code Review` (per AGENTS.md D8). The reviewing harness is
-free to spawn its own per-change-class reviewer agent (the OMC subagent
-catalog is the canonical pool, but Gemini may use its own equivalents
-named in `agent-instructions-discipline.md` §6).
+vice versa), merge admission still requires reviewer APPROVE plus the
+single protected `oya-ci-required` context (ADR-0515). The reviewing
+runtime may spawn its own per-change-class reviewer; residual OMC
+subagent catalog names are historical inventory only.
 
 ## 10. Anti-patterns
 
@@ -200,5 +200,6 @@ named in `agent-instructions-discipline.md` §6).
 - [Anthropic — Claude Code tools](https://docs.anthropic.com/en/docs/claude-code/).
 - [OpenAI Codex CLI docs](https://github.com/openai/codex).
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli).
-- [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Codex, Gemini, OMC).
-- [`docs/standards/claude-code-harness.md`](claude-code-harness.md).
+- [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Codex, Gemini; OMC legacy only).
+- [`docs/standards/claude-code-harness.md`](claude-code-harness.md) (retirement tombstone).
+- [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md), [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md).

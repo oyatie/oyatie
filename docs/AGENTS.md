@@ -344,7 +344,7 @@ Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `super
 
 Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `no-cargo-enforcer.sh`, `stale-tool-suggester.sh`. PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
 
-Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. The former harness standard [`standards/claude-code-harness.md`](standards/claude-code-harness.md) is a **retirement tombstone** (ADR-0619 / RR-HARNESS-0619) — not live procedure; use this contract + ADR-0515, and optionally the local `.grok/` mm-delivery kit (not merge authority).
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
@@ -372,15 +372,17 @@ Build / test commands: same as Codex appendix.
 
 Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
-### Legacy OMC (oh-my-claudecode subagents)
+### Legacy OMC (oh-my-claudecode subagents) — compatibility / provenance only
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new agentic closeout routes through plain `git`, GitHub (interim) branch protection, cloud-ci/oya-ci required checks, and reviewer governance evidence. Jenkins/`oya gate` evidence is transitional until P0.0/P1 cutover.
+**Not live authority** (ADR-0619, ADR-0116). Do not open new work that depends on OMC/OMX/GJC/Hermes brands as coordination primitives. New agentic closeout routes through plain `git`, GitHub (interim) branch protection, cloud-ci/oya-ci required checks (`oya-ci-required` per ADR-0515), and reviewer governance evidence. Optional local multi-model delivery uses `.grok/` (mm-delivery) when present — process kit only, never merge authority.
 
-Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
+OMC subagents (when still running inside an existing Claude Code session) use `Skill` / `Agent` tool calls. Catalog names below are historical inventory for residual sessions, not a forward skill map.
 
-Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
+Subagent catalog (historical): `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`.
 
-State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat `.omc/` and `.omx/` as local-only, gitignored session state/provenance; live machine-readable authority belongs under `/specs`, `/registry`, `/evidence`, and `/templates`.
+Skill catalog (historical): `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation for residual loops: see "Long-running loop rule" above.
+
+State: legacy OMC may write to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat `.omc/`, `.omx/`, and `.gjc/` as local-only, gitignored session state/provenance; live machine-readable authority belongs under `/specs`, `/registry`, `/evidence`, and `/templates`.
 
 ## Anti-overlap
 

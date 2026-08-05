@@ -22,7 +22,7 @@ planned_enforcement_ref: oya-governance-agent-instructions-fence
 enforcement_status:
   oya-governance-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-governance-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
-  oya-governance-banned-primitives: existing (via claude-code-harness.md)
+  oya-governance-banned-primitives: existing (via AGENTS.md + git-workflow.md; claude-code-harness.md is retired tombstone)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/doc-style.md
@@ -104,8 +104,9 @@ The grep is scoped to fence interiors only — banned tokens in the prose
 sections (e.g., "agents should not run `git --no-verify`") are
 intentional documentation and pass.
 
-Source: [MASTERPLAN](../../.omc/plans/MASTERPLAN.md) §2 Directive 12,
-[`git-workflow.md`](git-workflow.md).
+Source: [`docs/AGENTS.md`](../AGENTS.md) + [`git-workflow.md`](git-workflow.md);
+historical Directive-12 wording was under retired `.omc/plans/**` provenance
+(ADR-0619).
 
 ## 4. Dual-audience requirement
 
@@ -206,10 +207,9 @@ The following block is a complete, conformant directive:
 
 ## 11. Sources scanned
 
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12 +
-  §7 dual-audience contract.
+- [`docs/MASTERPLAN.md`](../MASTERPLAN.md) + [`/specs/masterplan.json`](../../specs/masterplan.json) (live plan authority); dual-audience via [`doc-style.md`](doc-style.md).
 - [`decision-principles.json`](../../specs/decision-principles.json) DP-04 (dual audience).
 - [`docs/AGENTS.md`](../AGENTS.md) §PR shape, §Per-agent appendices.
-- [`docs/standards/doc-style.md`](doc-style.md) §3 (dual-audience rule).
-- [`docs/standards/git-workflow.md`](git-workflow.md) §4 (revised lane).
-- `SST consolidation ralplan` §P4 (fence shape origin).
+- [`docs/standards/git-workflow.md`](git-workflow.md).
+- [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md) (no live external harness brand authority).
+- Historical fence-shape origin notes under retired harness plan paths are provenance only.

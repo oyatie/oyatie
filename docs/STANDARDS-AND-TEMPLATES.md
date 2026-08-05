@@ -20,7 +20,7 @@ This catalog is divided into seven kinds of artifact:
 | **Templates** | Author starting a new artifact (PR, ADR, capability, runbook, …) | `docs/templates/<artifact>.md` (or `.yaml`) |
 | **Checklists** | Author finishing or gating an artifact | `docs/checklists/<task>.md` |
 | **Hooks** | Claude Code / Codex / Gemini agent harnesses + git hooks | `.claude/hooks/`, `.git/hooks/`, `scripts/hooks/` |
-| **Skills** | Agents at runtime (slash commands) | `.claude/skills/<id>/SKILL.md`, `.codex/skills/`, `.omc/skills/` |
+| **Skills** | Agents at runtime (slash commands) | Installed runtime catalogs (Codex: `~/.codex/skills`; project `.claude/skills/<id>/SKILL.md` / `.codex/skills/` when checked in); optional local `.grok/` mm-delivery kit. `.omc/skills/` is retired residual, not live authority (ADR-0619). |
 | **Tools (CLIs)** | Humans + agents at runtime | `oya <persona> <subcommand>` per the persona-split CLI in [TOOLCHAIN §3](TOOLCHAIN.md) |
 | **Standardized guidance** | Anyone authoring (style / pattern / norm) | `docs/standards/<topic>.md` |
 | **Requirements + Specs** | Per-product or per-axis surface contracts | `products/<product>/PRD.md` + `contracts/openapi/**/*.yaml` |
@@ -204,7 +204,7 @@ This doc is the catalog OF the catalogs. The other catalogs are:
 | Standards | `standards/` (planned per §7) | every cross-cutting standard |
 | Templates | [templates/](templates/) | every artifact template |
 | Checklists | [checklists/](checklists/) | every common task |
-| Skills | `.claude/skills/` + `.codex/skills/` + `.omc/skills/` | every agent skill |
+| Skills | installed runtime + project `.claude/skills/` / `.codex/skills/` + optional `.grok/` (mm-delivery); not `.omc/skills/` | every agent skill |
 | Hooks | `.claude/hooks/` + `.git/hooks/` + `scripts/hooks/` | every gate |
 
 ---

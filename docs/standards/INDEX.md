@@ -50,7 +50,8 @@ that informed it where one exists.
 | [`testing.md`](testing.md) | Test pyramid 2.0 + nextest + proptest/quickcheck + cargo-mutants + cargo-fuzz + coverage budget + 14-day flaky SLA | `oya-governance-test-evidence`, `-fuzz-coverage`, `-flaky-sla` | Tier 2 |
 | [`security-review.md`](security-review.md) | OWASP + cargo-deny/audit/vet + Sigstore + SBOM + threat-modeling + data-class boundary + autonomy ceiling | `oya-governance-supply-chain`, `-security-review` | Tier 2 |
 | [`on-call.md`](on-call.md) | Rotation cadence + runbook discipline + escalation + blameless postmortem trigger + SLO-burn-rate alerting | `oya-governance-runbook-index-resolves`, `-error-budget-gate` | Tier 2 |
-| [`multi-agent-tool-map.md`](multi-agent-tool-map.md) | Claude Code / Codex / Gemini / OMC tool-name mapping + sanctioned tools per agent + delegation patterns | `oya-governance-tool-map-cohesion` | Tier 2 |
+| [`multi-agent-tool-map.md`](multi-agent-tool-map.md) | Claude Code / Codex / Gemini tool-name mapping + sanctioned tools per agent; OMC columns historical/compatibility-only (ADR-0619) | `oya-governance-tool-map-cohesion` | Tier 2 |
+| [`claude-code-harness.md`](claude-code-harness.md) | **RETIRED tombstone** — former Claude Code / external-harness brand standard; live ops via AGENTS.md + ADR-0515 + optional `.grok/` mm-delivery | n/a (retired) | Tier 4 |
 | [`observability.md`](observability.md) | OpenTelemetry mandatory + tracing/metrics/logs + `EVT-*` audit-chain emission + structured logging schema + Prometheus 3.11+ + exemplars | `oya-governance-otel-emit`, `-audit-emission` | Tier 2 |
 | [`release-management.md`](release-management.md) | Trunk-based + canary + feature flags + progressive delivery + SLO-burn-rate auto-rollback + Sigstore-signed releases | `oya-governance-flag-debt`, `-supply-chain`, `-error-budget-gate` | Tier 2 |
 | [`dependency-policy.md`](dependency-policy.md) | LTS pinning + license posture + cargo-vet + cargo-deny + owned oya-deps automation + provider-SDK ProviderAdapter trait | `oya-governance-lts-dependency`, `-cargo-vet`, `-license` | Tier 2 |
@@ -72,7 +73,7 @@ that satisfies it.
 | `standards/error-handling.md` | AGENTS.md §During-change discipline | `error-handling.md` |
 | `standards/testing.md` | AGENTS.md §During-change discipline | `testing.md` |
 | `standards/on-call.md` | AGENTS.md canonical doc map | `on-call.md` |
-| `standards/claude-code-harness.md` | AGENTS.md §Per-agent appendices (Claude Code) | `claude-code-harness.md` |
+| `standards/claude-code-harness.md` | AGENTS.md §Per-agent appendices (Claude Code) — **retired path**; tombstone only (ADR-0619) | `claude-code-harness.md` (no live authority) |
 | `standards/multi-agent-tool-map.md` | AGENTS.md §Per-agent appendices (Gemini) | `multi-agent-tool-map.md` |
 | `standards/prevention-doctrine.md` | forbidden-operations.json (anti-overlap, separate standard; not in this batch) | deferred — see §Out-of-scope |
 
@@ -80,8 +81,8 @@ that satisfies it.
 
 - `prevention-doctrine.md` — referenced in forbidden-operations.json but covers a different concern
   (the mechanical-prevention authoring guide); authored separately.
-- `commit-message.md`, `code-review.md` — referenced in
-  `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` adoption map; future ADR-PM
+- `commit-message.md`, `code-review.md` — historically referenced from a retired
+  local harness scratch path (`.omc/scratch/…` provenance only); future ADR-PM
   rollout will produce these alongside the small-CL discipline rollout.
 
 ## Authoring rules for this directory
@@ -105,8 +106,9 @@ Sanctioned-primitive ADRs landing in parallel: ADR-0053 (sanctioned primitives),
 - [`decision-principles.json`](../../specs/decision-principles.json), [`forbidden-operations.json`](../../specs/forbidden-operations.json), [`docs/AGENTS.md`](../AGENTS.md),
   [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md),
   [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md).
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Compound principles
-  (Directives 1-12).
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
-  (Domain 2 + Domain 3).
-- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).
+- Live plan authority: [`/specs/masterplan.json#masterplan_v2`](../../specs/masterplan.json);
+  human projection [`docs/MASTERPLAN.md`](../MASTERPLAN.md). Historical
+  `.omc/plans/**` and `.omc/scratch/**` paths are provenance only (ADR-0619;
+  do not treat as executable authority).
+- Merge admission: [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md);
+  harness-brand retirement: [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md).
