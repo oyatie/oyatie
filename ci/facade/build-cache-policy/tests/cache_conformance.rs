@@ -773,6 +773,24 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
         assert_eq!(oya["remote_cache_enabled"], "true", "{path}");
         assert_eq!(oya["allow_cache_uploads"], uploads, "{path}");
 
+        let default_upload = cfg
+            .get("buck2")
+            .and_then(|section| section.get("default_allow_cache_upload"))
+            .map(String::as_str);
+        if uploads == "true" {
+            assert_eq!(
+                default_upload,
+                Some("true"),
+                "{path}: locally executed writer actions must opt into Buck2 cache uploads"
+            );
+        } else {
+            assert_ne!(
+                default_upload,
+                Some("true"),
+                "{path}: the reader overlay must never enable cache uploads"
+            );
+        }
+
         let re = cfg
             .get("buck2_re_client")
             .unwrap_or_else(|| panic!("{path}: no [buck2_re_client]"));
