@@ -1,5 +1,6 @@
 ---
 doc_class: Program-Operations-Journal
+doc_status: published
 entry_id: W0-A-20260805-gjc-handoff
 wave: W0-A
 run_id: k8s-go-rust-rewrite-20260805

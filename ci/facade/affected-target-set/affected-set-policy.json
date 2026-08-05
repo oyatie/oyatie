@@ -211,6 +211,30 @@
     "specs/k8s-port/rules/**": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
+    "specs/k8s-port/upstream-pin.json": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+    ],
+    "specs/k8s-port/scope.json": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+    ],
+    "specs/k8s-port/divergence-ledger.json": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+    ],
+    "specs/k8s-port/licensing.json": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
+    ],
+    "evidence/goals/k8s-port-w0-sequencing-founder-ratification-20260805.json": [
+      "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate"
+    ],
     "docs/**": [],
     "**/*.md": [],
     "**/*.mdx": [],
