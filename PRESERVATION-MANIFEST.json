@@ -1,0 +1,10 @@
+{
+  "base_head": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+  "captured_at": "2026-08-05",
+  "preserved_dirty_path_count": 1,
+  "recovery": "Inspect the snapshot commit relative to base_head. Curate through a fresh origin/dev isolated-worktree PR; never merge wholesale.",
+  "schema": "oyatie-prewipe-dirty-worktree-snapshot/v1",
+  "source_branch": "agent/mm-harness-20260805",
+  "source_worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+  "status": "quarantine-recovery-only-not-implementation-or-merge-authority"
+}
