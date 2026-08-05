@@ -43,8 +43,9 @@ This file is a human compatibility projection only. It is not a live plan author
 - Canonical fragment for this consolidation: `/specs/masterplan.json#masterplan_v2`
 - Live work-item ID namespace: `MPV2-####`, validated by the cloud-ci cross-artifact agreement masterplan-v2 authority check.
 - Former plan surfaces (`/specs/master-plan-sequencing.json`, `/specs/planning-closure-contract.json`, `/specs/planning-closure-status-closure-ledger.json`, `docs/ROADMAP.md`, and legacy agent-harness runtime artifacts) are absorbed provenance or runtime data, not live plan authorities.
+- Harness brand retirement (ADR-0619 / ADR-0116): OMC / OMX / GJC / Hermes and the retired `docs/standards/claude-code-harness.md` body are **not** plan or coordination authority. Optional local multi-model delivery kit lives under `.grok/` (mm-delivery) when present; it is process tooling only and **never** merge authority. Merge admission remains ADR-0515 `oya-ci-required` plus reviewer APPROVE against `dev`.
 
-Historical `.omc`/`.omx` planning prompts and local runtime stores may be forensically read only when a gate or masterplan v2 evidence reference asks for them. They never override `/specs/masterplan.json`.
+Historical `.omc`/`.omx`/`.gjc` planning prompts and local runtime stores may be forensically read only when a gate or masterplan v2 evidence reference asks for them. They never override `/specs/masterplan.json`.
 
 ## Projection Contract
 

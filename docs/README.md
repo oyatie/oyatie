@@ -13,11 +13,12 @@ authority_chain_declaration: |
     > /specs/root-hub-pointers.json
     > docs/AGENTS.md (operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
     > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
-    > machine-readable specs and registries under .omc/
+    > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
     > docs/ authority files during markdown-retirement compatibility
-    > external/upstream skill documentation (informational only; not vendored into this repo)
+    > optional local multi-model delivery kit under .grok/ (mm-delivery; not merge authority; ADR-0515 owns oya-ci-required)
+    > installed agent-runtime skill docs and external/upstream skill documentation (informational only; not vendored into this repo)
     > repo-root Redirect-class files (non-authoritative; lane-thin)
-    > working drafts (never authoritative)
+    > working drafts and retired harness brand surfaces (.omc/.omx/.gjc residual, claude-code-harness tombstone; never authoritative)
 excludes:
   - path: docs/AGENTS.md
     reason: Agent operating contract; this hub points to it but does not duplicate it.
@@ -895,7 +896,7 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§2 Decisions]
 15. [cedar-policy-authoring.md](standards/cedar-policy-authoring.md) - Cedar Policy Authoring: normative rule shelf for implementation, docs, operations, or governance discipline.
 16. [cedar-policy-discipline.md](standards/cedar-policy-discipline.md) - Cedar Policy Discipline: normative rule shelf for implementation, docs, operations, or governance discipline.
 17. [ci-lanes.md](standards/ci-lanes.md) - Ci Lanes: normative rule shelf for implementation, docs, operations, or governance discipline.
-18. [claude-code-harness.md](standards/claude-code-harness.md) - Claude Code Harness: normative rule shelf for implementation, docs, operations, or governance discipline.
+18. [claude-code-harness.md](standards/claude-code-harness.md) - **RETIRED tombstone** (ADR-0619 / RR-HARNESS-0619): former Claude Code / external-harness brand standard; live authority is AGENTS.md + ADR-0515 + optional `.grok/` mm-delivery kit (not merge authority).
 19. [clean-architecture.md](standards/clean-architecture.md) - Clean Architecture: normative rule shelf for implementation, docs, operations, or governance discipline.
 20. [cloud-native-infrastructure-automation.md](standards/cloud-native-infrastructure-automation.md) - Cloud Native Infrastructure Automation: normative rule shelf for implementation, docs, operations, or governance discipline.
 21. [code-review.md](standards/code-review.md) - Code Review: normative rule shelf for implementation, docs, operations, or governance discipline.

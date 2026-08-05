@@ -33,21 +33,25 @@ related_adrs:
 
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-This standard codifies [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md)
-**Directive 12 — Pragmatic git/gh**: direct `git` / `gh` invocation is
-**permitted** when the documented rationale is logged and no sanctioned
-primitive exists. This standard names the rationale flow, the migration
-trigger, and the lane semantics.
+This standard codifies **pragmatic git/gh** under the live operating
+contract ([`docs/AGENTS.md`](../AGENTS.md)): direct `git` / `gh` invocation is
+the forward contribution path (isolated worktree → PR against `dev`).
+Merge admission is reviewer APPROVE plus [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md)
+`oya-ci-required`. Historical "Directive 12" wording lived under retired
+harness plan paths (`.omc/plans/**` provenance only; ADR-0619).
 
 ## 1. The default surface
 
-Per [`claude-code-harness.md`](claude-code-harness.md) §1, agent fences
-default to the **sanctioned-primitive triad**:
+Per [`docs/AGENTS.md`](../AGENTS.md) sanctioned-primitives guidance (the former
+[`claude-code-harness.md`](claude-code-harness.md) body is a **retirement
+tombstone** only), agent fences default to plain `git` / `gh` plus in-tree
+read/build tools:
 
-- `oya-tooling-agent-read` — in-tree composed read primitives.
+- plain `git` + `gh` for worktree, commit, push, and PR lifecycle;
+- `oya-tooling-agent-read` or equivalent in-tree composed read primitives when present.
 
-The triad covers ≥ 80% of agent-side git / gh use cases. For everything
-else, §2 applies.
+External harness locks (grit/icm/OMC claim cycles) are retired (ADR-0116 /
+ADR-0619). For everything else, §2 applies.
 
 ## 2. When direct `git` / `gh` is justified
 
@@ -197,8 +201,8 @@ scoped to the action.
 
 ## 11. Sources scanned
 
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
+- [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape; [`docs/MASTERPLAN.md`](../MASTERPLAN.md) projection + [`/specs/masterplan.json`](../../specs/masterplan.json).
 - [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json).
-- [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape.
-- [`docs/standards/claude-code-harness.md`](claude-code-harness.md).
+- [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md), [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md).
+- [`docs/standards/claude-code-harness.md`](claude-code-harness.md) (retirement tombstone only).
 - [Conventional Commits](https://www.conventionalcommits.org/) (advisory; not adopted verbatim).
