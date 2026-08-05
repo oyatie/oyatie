@@ -452,6 +452,10 @@
     {
       "anchor": "ADR-0637 + ADR-0638: the machine-readable Kubernetes Go-to-Rust W0 policy corpus (immutable upstream pin, whole-corpus scope, governed divergence ledger, and fail-closed licensing requirements) is the reviewed source of truth for the oya-port program and its R-DOC/gate consumers.",
       "prefix": "specs/k8s-port/"
+    },
+    {
+      "anchor": "ADR-0637 + ADR-0638: R-DOC fail-closed gate package for k8s program docs wave-registry and operating surface; reviewed W0-A admission corpus.",
+      "prefix": "ci/facade/k8s-program-docs/"
     }
   ]
 }
