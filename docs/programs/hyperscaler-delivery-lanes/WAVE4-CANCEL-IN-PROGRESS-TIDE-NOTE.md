@@ -1,16 +1,21 @@
 # Wave4 design note: cancel-in-progress + Tide / merge_group
 
-**Status:** prep complete (docs-only workflow citation) — behavior already live on `dev`  
+**Status:** prep complete (workflow citation + Tide note under docs/programs; dual-critic under evidence/ci) — behavior already live on `dev`  
 **Date:** 2026-08-05  
 **Bead:** `oyatie-oso.26`  
 **Authority:** ADR-0639 **D6** (PR #1569; Accepted on branch, not yet on `dev` trunk)  
 **Plan:** `PLAN-CI-PATH-TIER-AND-CAPACITY.md` § Wave 4  
-**PR:** draft [#1570](https://github.com/jason931225/oyatie/pull/1570) (comment/citation only)
-**Dual-critic:** APPROVE (see `evidence/pr-1570-dual-critic.json`)
+**PR:** [#1570](https://github.com/jason931225/oyatie/pull/1570) (comment/citation + accounting registration)
+**Dual-critic:** APPROVE (see `evidence/ci/pr-1570-dual-critic.json`)
 
 ---
 
 ## 1. Gate for this prep
+
+Homes: design note lives under allowlisted `docs/programs/` (not `.grok/`, which is outside
+`allowed_root_dirs` in `root-workspace-hygiene-policy.json`). Dual-critic packets live under
+`evidence/ci/` (owned + reachability-covered by the `evidence/` prefix).
+
 
 Wave4 prep was allowed because **PR #1569 exists** (ADR-0639 on branch).  
 Hard rule from dispatcher: do **not** path-filter other jobs; separate from Wave3 postgres (#1562).
