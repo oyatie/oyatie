@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # ci/adapters: the git + manifest implementations of the ci/ports move-aware path-resolution
-# contract. ManifestBijection loads the committed move-manifest fail-closed (both-side injective);
+# contract. ManifestBijection loads the de-committed move-manifest fail-closed (both-side injective);
 # GitCliFrozenRefSource is the live git merge-base seam; ManifestPathResolver is the fail-closed,
 # presence-verified, straddle-safe resolution. The single sanctioned git boundary (the scm-facts
 # emitter) consumes this; the firewall gate itself never calls git.

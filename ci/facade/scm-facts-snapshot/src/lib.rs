@@ -2751,7 +2751,7 @@ fn build_merge_base_baseline_snapshot(
 // reads as NEW debt because the frozen baseline is keyed by the OLD path — is fixed HERE, at
 // the single sanctioned git boundary, by a content-aware RELABEL of the FROZEN merge-base
 // snapshot's keys BEFORE build_merge_base_baseline_snapshot wraps it, driven by an
-// AUTHORITATIVE committed move-manifest emitted by the codemod.
+// AUTHORITATIVE de-committed move-manifest (ADR-0614) emitted by the codemod.
 //
 // The relabel can only ever REMOVE a false-RED for a proven pure-or-shrinking relocation; it
 // can NEVER manufacture a false-GREEN. Fail-closed everywhere: a missing/malformed manifest,
@@ -3164,9 +3164,10 @@ fn relabel_tier_dep_gate(
 ///    (policy absent at the merge-base) the reference is DECLARED empty and the regeneration is
 ///    ignored, preserving the fail-closed bootstrap invariant.
 /// 5. RENAME-AWARE RELABEL (task #64): before `build_merge_base_baseline_snapshot` wraps it, the
-///    frozen face's PATH-keyed keys are content-aware relabeled per the committed move-manifest
-///    (correction-faithful, fail-closed, strict no-op when there are no renames). `relabel` is
-///    `None` in the attack-recipe unit tests (which pin the frozen-policy-wins resolution alone).
+///    frozen face's PATH-keyed keys are content-aware relabeled per the de-committed move-manifest
+///    (ADR-0614; correction-faithful, fail-closed, strict no-op when there are no renames).
+///    `relabel` is `None` in the attack-recipe unit tests (which pin the frozen-policy-wins
+///    resolution alone).
 /// 6. PROVENANCE (ADR-0616): `provenance` (built by the caller from `git rev-parse <merge_base>^{{tree}}`)
 ///    is embedded so the firewall can audit which immutable merge-base tree the regeneration ran over.
 fn resolve_merge_base_baseline_snapshot<S, C>(
@@ -3245,9 +3246,9 @@ where
         _ => None,
     };
     // RENAME-AWARE RELABEL (task #64): relabel the PATH-keyed keys of the frozen face per the
-    // committed move-manifest, content-aware + fail-closed + strict-no-op. Applied here — the
-    // single sanctioned git boundary — so the firewall stays pure DATA-over-DATA. A relabel
-    // failure is fail-closed: keep the honest (un-relabeled) face.
+    // de-committed move-manifest (ADR-0614), content-aware + fail-closed + strict-no-op. Applied
+    // here — the single sanctioned git boundary — so the firewall stays pure DATA-over-DATA. A
+    // relabel failure is fail-closed: keep the honest (un-relabeled) face.
     let face = match (face, relabel) {
         (Some(face), Some(inputs)) => Some(
             relabel_frozen_face(
@@ -3271,10 +3272,10 @@ where
     ))
 }
 
-/// The candidate-tree relabel inputs (task #64): the committed move-manifest (the bijection),
-/// the candidate source (existence + content — correction #1), and the LIVE VocabPolicy
-/// (correction #2). Bundled so `resolve_merge_base_baseline_snapshot` can take an optional
-/// relabel without disturbing the attack-recipe unit tests that pass `None`.
+/// The candidate-tree relabel inputs (task #64): the de-committed move-manifest (the bijection;
+/// ADR-0614 materialize-on-demand), the candidate source (existence + content — correction #1),
+/// and the LIVE VocabPolicy (correction #2). Bundled so `resolve_merge_base_baseline_snapshot`
+/// can take an optional relabel without disturbing the attack-recipe unit tests that pass `None`.
 struct RelabelInputs<'a, C: CandidateSource> {
     manifest: &'a MoveManifest,
     candidate: &'a C,
