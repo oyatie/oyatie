@@ -1,0 +1,32 @@
+rust_library(
+    name = "ci-k8s-program-docs",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_k8s_program_docs",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_binary(
+    name = "ci-k8s-program-docs-bin",
+    srcs = ["src/main.rs"],
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-k8s-program-docs"],
+)
+
+rust_test(
+    name = "ci-k8s-program-docs-unittest",
+    srcs = ["src/lib.rs"],
+    crate = "ci_k8s_program_docs",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "ci-k8s-program-docs-gate",
+    srcs = ["tests/live_tree.rs"],
+    crate = "ci_k8s_program_docs_gate",
+    crate_root = "tests/live_tree.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-k8s-program-docs"],
+)

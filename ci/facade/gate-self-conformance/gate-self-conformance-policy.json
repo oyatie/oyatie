@@ -235,6 +235,7 @@
     "generated-artifact-policy": "Generated artifact policy findings require classifying artifact authority and generated-path ownership, not blind path edits.",
     "graphql-usage-policy": "GraphQL reintroduction requires an explicit reversing ADR or removal; the gate cannot author that decision automatically.",
     "hook-wiring": "Enforcement liveness failures require wiring real hook/settings/controller surfaces; the gate cannot safely invent enforcement.",
+    "k8s-program-docs": "R-DOC findings require choosing journal references, doctrine graduation to an ADR, wave-registry repairs, or baseline-header content; the gate must not invent program memory or rewrite wave completion state automatically.",
     "layer-dependency-acyclicity": "Tier dependency findings require topology changes across capability boundaries, not automatic rewrites.",
     "license-policy": "License policy findings require choosing an allowed license, removing the dependency, or recording reviewed license approval; the gate cannot synthesize that decision.",
     "lifecycle-status": "Lifecycle findings name an artifact whose declared stage is missing, unknown, or inconsistent with its supersession edge; repairing one means deciding what stage the artifact is actually in, which is exactly the judgement the lifecycle exists to record. A mechanical fix would stamp a default stage onto 1922 undeclared docs and convert a measured gap into fabricated compliance. The broken-lane findings are likewise a re-root-or-delete ruling per config, not a rewrite.",

@@ -1404,6 +1404,7 @@ version = "0.1.0"
 dependencies = [
  "reqwest 0.13.4",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -1457,7 +1458,12 @@ dependencies = [
 name = "ci-build-cache-policy"
 version = "0.1.0"
 dependencies = [
+ "prost",
+ "rcgen",
+ "reqwest 0.13.4",
+ "rustls",
  "serde_json",
+ "serde_yaml",
  "sha2",
 ]
 
@@ -1580,6 +1586,7 @@ name = "ci-dependency-graph-acyclicity"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -1654,6 +1661,10 @@ dependencies = [
 
 [[package]]
 name = "ci-inventory-registry-drift"
+version = "0.1.0"
+
+[[package]]
+name = "ci-k8s-program-docs"
 version = "0.1.0"
 
 [[package]]
