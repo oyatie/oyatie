@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 445,
-    "numbering": "ADR-0001..ADR-0636 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
+    "total_adrs": 447,
+    "numbering": "ADR-0001..ADR-0638 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0037, ADR-0041, ADR-0050, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0170, ADR-0224..ADR-0233, ADR-0247, ADR-0256, ADR-0259..ADR-0262, ADR-0264..ADR-0271, ADR-0274..ADR-0275, ADR-0277..ADR-0279, ADR-0281..ADR-0283, ADR-0285..ADR-0291, ADR-0322..ADR-0323, ADR-0327, ADR-0342, ADR-0345, ADR-0385..ADR-0386, ADR-0395..ADR-0396, ADR-0398..ADR-0475, ADR-0477, ADR-0483..ADR-0505, ADR-0574..ADR-0579, ADR-0583..ADR-0585, ADR-0594, ADR-0601..ADR-0602)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0170", "ADR-0224..ADR-0233", "ADR-0247", "ADR-0256", "ADR-0259..ADR-0262", "ADR-0264..ADR-0271", "ADR-0274..ADR-0275", "ADR-0277..ADR-0279", "ADR-0281..ADR-0283", "ADR-0285..ADR-0291", "ADR-0322..ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0385..ADR-0386", "ADR-0395..ADR-0396", "ADR-0398..ADR-0475", "ADR-0477", "ADR-0483..ADR-0505", "ADR-0574..ADR-0579", "ADR-0583..ADR-0585", "ADR-0594", "ADR-0601..ADR-0602"],
-    "next_adr": "ADR-0637",
+    "next_adr": "ADR-0639",
     "status_counts": {
-      "Accepted": 181,
+      "Accepted": 183,
       "Accepted (amendment)": 2,
       "Amended": 2,
       "Proposed": 155,
@@ -5365,6 +5365,30 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0556"]
+    },
+    {
+      "adr": "ADR-0637",
+      "number": 637,
+      "title": "Owned deterministic Go-to-Rust port engine",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-05",
+      "path": "decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0548", "ADR-0554", "ADR-0555", "ADR-0562", "ADR-0605", "ADR-0606", "ADR-0608", "ADR-0609", "ADR-0615", "ADR-0619", "ADR-0623", "ADR-0627", "ADR-0628", "ADR-0629", "ADR-0632", "ADR-0638"]
+    },
+    {
+      "adr": "ADR-0638",
+      "number": 638,
+      "title": "Mechanically maintained Kubernetes Rust port",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-05",
+      "path": "decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0243", "ADR-0607", "ADR-0609", "ADR-0619", "ADR-0623", "ADR-0628", "ADR-0629", "ADR-0631", "ADR-0632", "ADR-0636"]
     }
   ]
 }
