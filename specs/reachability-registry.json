@@ -424,6 +424,22 @@
     {
       "anchor": "ADR-0556 D2 + ADR-0560 / issues #1551 and #1534: exact suspended, zero-replica commissioning manifest for the CAS writer/reader network and workload-identity proof. It is repository-side evidence only until explicit activation after Cilium/Hubble and secret recovery; it grants no live apply, warm-read, or remote-execution authority.",
       "prefix": "infra/arc/cas-network-proof.k8s.yaml"
+    },
+    {
+      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Buck package marker that exposes reviewed GitOps declarative inputs (including local-path storage for the isolated CAS proof cell) to the repository corpus graph; indexing only — no live apply authority.",
+      "prefix": "infra/gitops/BUCK"
+    },
+    {
+      "anchor": "CAS proof-cell bootstrap / PR #1558: exact local-path-provisioner StorageClass + provisioner manifests consumed by the isolated CAS proof-cell workspace path; declarative repository evidence only until reviewed GitOps activation.",
+      "prefix": "infra/gitops/local-path-storage.yaml"
+    },
+    {
+      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Buck package marker that exposes reviewed Talos machine-config and runtime YAML (including the qemu-cilium patch) to the repository corpus graph; nested local/patches retain their own package; indexing only.",
+      "prefix": "infra/talos/BUCK"
+    },
+    {
+      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Talos QEMU Cilium machine-config patch required by the isolated CAS proof-cell network boundary; declarative repository evidence only — no live cluster mutation authority.",
+      "prefix": "infra/talos/qemu-cilium.patch.yaml"
     }
   ]
 }
