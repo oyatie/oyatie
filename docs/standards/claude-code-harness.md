@@ -1,5 +1,5 @@
 ---
-doc_status: retired
+doc_status: archived
 doc_class: Standard
 shape: tombstone
 length_cap: 120
