@@ -124,6 +124,17 @@ template:
             valueFrom:
               fieldRef:
                 fieldPath: spec.nodeName
+          # W2: mTLS client identity paths for cache-wiring (ADR-0560) when warm is licensed.
+          # Mode stays off until specs/cache-warm-license.json flips; certs optional so pods
+          # still schedule if secret is absent. Hosted ubuntu-latest has no these mounts (W3 tunnel).
+          - name: OYA_CACHE_TLS_CLIENT_CERT
+            value: /etc/nativelink/client/client.pem
+          - name: OYA_CACHE_TLS_CA_CERTS
+            value: /etc/nativelink/ca/ca.crt
+          - name: OYA_CACHE_TLS_SERVER_CA_CERT
+            value: /etc/nativelink/ca/ca.crt
+          - name: OYA_CI_RE_TLS_CLIENT_CERT
+            value: /etc/nativelink/client/client.pem
         volumeMounts:
           - name: workspace
             mountPath: /home/runner/_work
@@ -132,6 +143,9 @@ template:
             readOnly: true
           - name: nativelink-server-ca
             mountPath: /etc/nativelink/ca
+            readOnly: true
+          - name: nativelink-client-reader
+            mountPath: /etc/nativelink/client
             readOnly: true
         # General-purpose candidate runners receive no database administrative
         # credential. Live PostgreSQL coverage runs in the dedicated per-job
@@ -169,6 +183,16 @@ template:
         configMap:
           name: nativelink-server-ca
           optional: true
+      # W2: mTLS client leaf+key (projected). Ops copies secret from oya-ci → arc-runners
+      # via infra/arc/nativelink-client-certs.k8s.yaml apply. optional so scale set still
+      # schedules when secret absent (warm overlay then stays off).
+      - name: nativelink-client-reader
+        secret:
+          secretName: nativelink-client-reader
+          optional: true
+          items:
+            - key: client.pem
+              path: client.pem
       - name: workspace
         ephemeral:
           volumeClaimTemplate:

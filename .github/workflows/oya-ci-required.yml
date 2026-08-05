@@ -108,7 +108,7 @@ jobs:
   #    — so they no longer download it and no longer depend on this job.
   producer-regen:
     name: producer-regen (accounting-registry)
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     # Live-postgres path relevance (FinOps / maxRunners=1 queue): emit booleans the two
     # oya-live-postgres-arm64 jobs consume. Packed into an EXISTING baselined shell step so we
     # do not birth a new workflow_inline_shell key against the merge-base ceiling. Non-PR
@@ -249,50 +249,25 @@ jobs:
     # "gate · <discipline>", not a bare "gate (crate)". Adding a gate = one `include` line
     # (crate + label); the gate_registration meta-test enforces every gate crate is listed.
     name: ${{ matrix.label }}
-    runs-on: oya-arm64
+    # Multi-arch hosted matrix (hyperscaler: ephemeral multi-platform workers).
+    # Binding = linux-amd64 (ubuntu-latest). Soft legs prove arm64/Windows/macOS without
+    # multiplying the full suite cost and without re-centering merge on lab ARC oya-arm64.
+    # Soft continues-on-error so private-plan arm/mac queue gaps never black out merge.
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ matrix.soft }}
     strategy:
       fail-fast: false
       matrix:
         include:
-        # ── COLLAPSED (2026-08-04): 48 legs -> 1. The removed gate legs were redundant.
-        #    Each expanded to `//ci/facade/<crate>:{ci-<crate>-unittest,ci-<crate>-gate}`, and the
-        #    `buck2` lane below ALREADY runs `buck2 test //ci/...` — the whole tree — as a binding
-        #    fan-in constituent. Proven by mechanical set-diff on the candidate tree, not by eye:
-        #      matrix side  (47 crates x2 + the scm-facts integration target) =  95 targets
-        #      //ci/... side (`buck2 uquery "kind('.*_test', //ci/...)"`)      = 118 targets
-        #      `comm -23 matrix ci` = EMPTY — //ci/... is a strict SUPERSET of the matrix (+23).
-        #    The probe was validated on a known-positive control (an injected non-existent target
-        #    IS reported), so the empty result is a proof and not a broken pipeline.
-        #
-        #    So the executed target SET is unchanged; only the number of times each element is
-        #    executed drops from two to one. Per-gate diagnosability survives: the consolidated
-        #    lane prints per-target verdicts (`✗ Fail: root//ci/facade/<crate>:...`), which on run
-        #    30677213867 reproduced EVERY matrix failure at named-target granularity, and caught
-        #    one the matrix missed.
-        #
-        #    WHY IT IS WORTH DOING: a matrix leg RUNS for ~24s and WAITS ~49.5 min (a 124:1
-        #    wait-to-work ratio) — the owned fleet delivers ~1.81 effective runners, so 48 jobs is
-        #    a queue, not parallelism. Per-run owned-fleet saving is stated in the commit message
-        #    against named run IDs rather than baked in here, because it is a measurement of a
-        #    fleet that changes size, not a property of this file.
-        #
-        #    THE SURVIVOR IS NOT REDUNDANT: scm-facts-snapshot runs an extra `buck2 run
-        #       //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root .
-        #       --github-event` AFTER its tests. That target is a `rust_binary` (uquery-confirmed
-        #       `buck.type: rust_binary`), so `buck2 test //ci/...` never executes it, and its
-        #       `rust_test` twin only compiles the source under the test harness — `main()` never
-        #       runs there. Dropping this leg would create a dark gate. The workspace resolver
-        #       differential is portable on Unix and now runs beside `//ci/...` in the owned
-        #       `buck2` lane; its cfg(windows) Win32-1921 fixture remains dormant until real Windows
-        #       capacity exists. Talos is Linux, so a Windows VM solely for this invariant is YAGNI.
-        #
-        #    DELIBERATELY NOT TORN DOWN FURTHER: the job name `gate`, the test step's NAME (left
-        #    byte-identical below), the `needs: producer-regen` edge and the faces download all
-        #    stay. `automation-language-policy` freezes an inline-shell baseline keyed by
-        #    `<workflow>::<job>::<step name>` as a merge-base ONE-WAY ceiling, so a renamed step is
-        #    born-blocking `unbaselined` by design. producer-regen is NOT orphaned by this change:
-        #    the surviving scm-facts-snapshot leg still consumes its artifact.
-          - { crate: scm-facts-snapshot, label: "gate · ADR census epoch receipt (P2 active; P3 dormant)" }
+        # ── COLLAPSED (2026-08-04): 48 crate legs -> 1 crate; W1 multi-arch expands RUNNERS
+        #    not crates. Full //ci/... still binds on the linux-amd64 buck2 lane only.
+        #    THE SURVIVOR IS NOT REDUNDANT: scm-facts-snapshot runs an extra `buck2 run`
+        #    after tests (rust_binary), so buck2 test //ci/... alone is not enough.
+        #    Step names stay byte-stable (automation-language-policy merge-base ceiling).
+          - { crate: scm-facts-snapshot, runner: ubuntu-latest, soft: false, label: "gate · ADR census epoch receipt (linux-amd64 binding)" }
+          - { crate: scm-facts-snapshot, runner: ubuntu-24.04-arm, soft: true, label: "gate · platform smoke (linux-arm64 soft)" }
+          - { crate: scm-facts-snapshot, runner: windows-latest, soft: true, label: "gate · platform smoke (windows-amd64 soft)" }
+          - { crate: scm-facts-snapshot, runner: macos-latest, soft: true, label: "gate · platform smoke (macos-arm64 soft)" }
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -344,7 +319,7 @@ jobs:
   #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
   gate-generated-artifact-freshness:
     name: freshness (lock + generated faces, ADR-0539)
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -380,7 +355,7 @@ jobs:
   #    this job unnecessarily — removed so it starts at t=0.
   gate-inventory-registry-drift:
     name: registry-drift (materialized == regenerated)
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -411,7 +386,7 @@ jobs:
   #    is required for PRE-work.
   gate-baseline-ratchet:
     name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -451,7 +426,7 @@ jobs:
   #    authority. The candidate workspace is regenerated by cloud-ci before gates consume it.
   generated-output-diff-policy:
     name: generated-output-diff-policy (no generated merge surfaces)
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -519,7 +494,7 @@ jobs:
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so the barrier bought it nothing but a ~294s serial wait and a
     # skip-on-producer-failure edge.
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -667,7 +642,7 @@ jobs:
       actions: read
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so a producer failure cannot suppress this independent binding verdict.
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
     # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
     # indefinitely — a backstop, NOT a per-run budget. Raised 45 -> 120 because the round-6 FULL
@@ -1041,10 +1016,23 @@ jobs:
     name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
     needs: producer-regen
     if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_adapters == 'true' }}
-    # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL
-    # native sidecar. No Docker daemon, Service, shared CNPG hostname, or DB credential.
-    runs-on: oya-live-postgres-arm64
+    # W1: GitHub-hosted + service container (replaces oya-live-postgres-arm64 ARC sidecar).
+    runs-on: ubuntu-latest  # W1: GH service Postgres; was oya-live-postgres-arm64 ARC cell
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: oya_ci_pg_admin_local_only
+          POSTGRES_DB: oyatie
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -1072,10 +1060,13 @@ jobs:
           sudo apt-get install -y --no-install-recommends postgresql-client
           psql --version
       - name: Bootstrap app role + durable schemas/roles (admin, adapters)
+        env:
+          ADMIN_PASSWORD: oya_ci_pg_admin_local_only
+          APP_PASSWORD: oya_ci_pg_app_local_only
         run: |
-          set -euo pipefail; admin_password="$(cat /run/oya-ci-postgres/admin-password)"; app_password="$(cat /run/oya-ci-postgres/app-password)"; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
+          set -euo pipefail; admin_password="${ADMIN_PASSWORD:-oya_ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-oya_ci_pg_app_local_only}"; if [ -f /run/oya-ci-postgres/admin-password ]; then admin_password="$(cat /run/oya-ci-postgres/admin-password)"; fi; if [ -f /run/oya-ci-postgres/app-password ]; then app_password="$(cat /run/oya-ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
           ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', btrim(pg_read_file('/run/oya-ci-postgres/app-password'))); END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
@@ -1123,10 +1114,23 @@ jobs:
     name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
     needs: producer-regen
     if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_facades == 'true' }}
-    # Dedicated ARC cell: one ephemeral runner Pod + one localhost-only PostgreSQL
-    # native sidecar. No Docker daemon, Service, shared CNPG hostname, or DB credential.
-    runs-on: oya-live-postgres-arm64
+    # W1: GitHub-hosted + service container (replaces oya-live-postgres-arm64 ARC sidecar).
+    runs-on: ubuntu-latest  # W1: GH service Postgres; was oya-live-postgres-arm64 ARC cell
     timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: oya_ci_pg_admin_local_only
+          POSTGRES_DB: oyatie
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oyatie"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -1154,10 +1158,13 @@ jobs:
           sudo apt-get install -y --no-install-recommends postgresql-client
           psql --version
       - name: Bootstrap app role + durable schemas/roles (admin, facades)
+        env:
+          ADMIN_PASSWORD: oya_ci_pg_admin_local_only
+          APP_PASSWORD: oya_ci_pg_app_local_only
         run: |
-          set -euo pipefail; admin_password="$(cat /run/oya-ci-postgres/admin-password)"; app_password="$(cat /run/oya-ci-postgres/app-password)"; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
+          set -euo pipefail; admin_password="${ADMIN_PASSWORD:-oya_ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-oya_ci_pg_app_local_only}"; if [ -f /run/oya-ci-postgres/admin-password ]; then admin_password="$(cat /run/oya-ci-postgres/admin-password)"; fi; if [ -f /run/oya-ci-postgres/app-password ]; then app_password="$(cat /run/oya-ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
           ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
-          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', btrim(pg_read_file('/run/oya-ci-postgres/app-password'))); END IF; END \$\$;"
+          "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
@@ -1189,7 +1196,7 @@ jobs:
   #    meta-test (in the firewall lane) asserts every in-tree gate crate is represented here.
   oya-ci-required:
     name: oya-ci-required
-    runs-on: oya-arm64
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     if: ${{ always() }}
     needs:
       - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)

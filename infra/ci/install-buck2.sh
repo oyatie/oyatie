@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 # Install the digest-pinned Buck2 release used by the canonical cloud-ci bridge.
+# Also ensures rustup exists on GitHub-hosted runners (baked ARC images already have it).
 set -euo pipefail
+
+# W1 hosted runners: ubuntu-latest has no rustup; ARC images ship it under /opt/rust.
+if ! command -v rustup >/dev/null 2>&1; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+  # shellcheck disable=SC1091
+  source "${HOME}/.cargo/env"
+  if [ -n "${GITHUB_PATH:-}" ]; then
+    echo "${HOME}/.cargo/bin" >> "${GITHUB_PATH}"
+  fi
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "PATH=${HOME}/.cargo/bin:${PATH}" >> "${GITHUB_ENV}"
+  fi
+  export PATH="${HOME}/.cargo/bin:${PATH}"
+fi
 
 BUCK2_RELEASE="${BUCK2_RELEASE:-2026-07-15}"
 BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-}"
@@ -14,16 +29,28 @@ case "$(uname -s)-$(uname -m)" in
     BUCK2_BINARY_NAME="buck2"
     ;;
   Linux-aarch64 | Linux-arm64)
-    # Owned in-cluster ARC runners are aarch64 (ADR-0515 D5 destination; the Talos
-    # pool and the OCI A1.Flex host are both arm64). Same digest-pinned adapter edge
-    # as the x86_64 arm above: release tag selects the asset, SHA-256 pins the bytes,
-    # and the digest is verified before decompression. Bump both arms together.
+    # Hosted ubuntu-24.04-arm and lab ARC are both aarch64. Same digest-pinned adapter
+    # edge as x86_64: release tag selects the asset, SHA-256 pins the bytes.
     BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
     BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-unknown-linux-gnu.zst}"
     BUCK2_SHA256="${BUCK2_SHA256-e239bf72f40a7987db9024eb6d5e325642f6496c589dec6be54c1008d2618a19}"
     BUCK2_BINARY_NAME="buck2"
     ;;
-  MINGW*-x86_64)
+  Darwin-arm64 | Darwin-aarch64)
+    # GitHub macos-latest is Apple Silicon. Digests from facebook/buck2 2026-07-15 release API.
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-apple-darwin.zst}"
+    BUCK2_SHA256="${BUCK2_SHA256-088cacc72c400fa438be4052c36782f56b2af86287aadf13ece5e9772d72455c}"
+    BUCK2_BINARY_NAME="buck2"
+    ;;
+  Darwin-x86_64)
+    # macos-*-large / macos-15-intel class (Intel). Same pin discipline as other arms.
+    BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-x86_64-apple-darwin.zst}"
+    BUCK2_SHA256="${BUCK2_SHA256-46cc4bb1372ea3110c099240e05176bb9eff003e7e38233c1bb2ef268449dbb3}"
+    BUCK2_BINARY_NAME="buck2"
+    ;;
+  MINGW*-x86_64 | MSYS*-x86_64)
     windows_github_path=1
     if [ -z "${BUCK2_INSTALL_DIR}" ]; then
       if [ -z "${RUNNER_TEMP:-}" ] || ! command -v cygpath >/dev/null 2>&1; then
@@ -40,13 +67,31 @@ case "$(uname -s)-$(uname -m)" in
     BUCK2_SHA256="${BUCK2_SHA256-719324109a8c5f9f95d9f1f6895ec500505eebcc466b193fa46e05f243276e59}"
     BUCK2_BINARY_NAME="buck2.exe"
     ;;
+  MINGW*-ARM64 | MINGW*-aarch64 | MSYS*-ARM64 | MSYS*-aarch64)
+    # windows-11-arm hosted class (when available to the account).
+    windows_github_path=1
+    if [ -z "${BUCK2_INSTALL_DIR}" ]; then
+      if [ -z "${RUNNER_TEMP:-}" ] || ! command -v cygpath >/dev/null 2>&1; then
+        echo "Windows pinned Buck2 installation requires RUNNER_TEMP and cygpath." >&2
+        exit 1
+      fi
+      if ! runner_temp_posix="$(cygpath -u -- "${RUNNER_TEMP}")" || [ -z "${runner_temp_posix}" ]; then
+        echo "Failed to convert RUNNER_TEMP to a Git Bash path for Windows Buck2 installation." >&2
+        exit 1
+      fi
+      BUCK2_INSTALL_DIR="${runner_temp_posix}/oya-ci-buck2-${BUCK2_RELEASE}"
+    fi
+    BUCK2_ASSET="${BUCK2_ASSET-buck2-aarch64-pc-windows-msvc.exe.zst}"
+    BUCK2_SHA256="${BUCK2_SHA256-9939fda2913e27fcda30a70e8d51833523d7083b9f56459626fa5bc161f10a86}"
+    BUCK2_BINARY_NAME="buck2.exe"
+    ;;
   *)
     if [ "${OYA_CI_ALLOW_AMBIENT_BUCK2:-}" = "1" ] && command -v buck2 >/dev/null 2>&1; then
       echo "Using ambient buck2 only because OYA_CI_ALLOW_AMBIENT_BUCK2=1 was set." >&2
       buck2 --version
       exit 0
     fi
-    echo "Unsupported host for default pinned Buck2 install; set OYA_CI_ALLOW_AMBIENT_BUCK2=1 for local advisory use." >&2
+    echo "Unsupported host for default pinned Buck2 install ($(uname -s)-$(uname -m)); set OYA_CI_ALLOW_AMBIENT_BUCK2=1 for local advisory use." >&2
     exit 1
     ;;
 esac

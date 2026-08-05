@@ -1,0 +1,37 @@
+# W2: project NativeLink mTLS client material into the ARC runner namespace.
+# Source of truth remains oya-ci secrets (OpenBao/ESO). This is a copy for pod mounts.
+#
+# Ops apply (no repo shell bridge — automation-language-policy is shrink-only for new .sh):
+#   SRC_NS=oya-ci DST_NS=arc-runners
+#   for kind in reader writer; do
+#     src="nativelink-client-${kind}"
+#     kubectl -n "$SRC_NS" get secret "$src" -o jsonpath='{.data.client\.crt}' | base64 --decode >"/tmp/${kind}.crt"
+#     kubectl -n "$SRC_NS" get secret "$src" -o jsonpath='{.data.client\.key}' | base64 --decode >"/tmp/${kind}.key"
+#     cat "/tmp/${kind}.crt" "/tmp/${kind}.key" >"/tmp/${kind}.pem"
+#     kubectl -n "$DST_NS" create secret generic "$src" \
+#       --from-file=client.pem="/tmp/${kind}.pem" \
+#       --from-file=client.crt="/tmp/${kind}.crt" \
+#       --from-file=client.key="/tmp/${kind}.key" \
+#       --dry-run=client -o yaml | kubectl apply -f -
+#     shred -u "/tmp/${kind}.crt" "/tmp/${kind}.key" "/tmp/${kind}.pem" 2>/dev/null || rm -f "/tmp/${kind}".*
+#   done
+#   # then helm upgrade / GitOps reconcile so runner-scale-set-arm64-values.yaml mounts take effect
+#
+# Does not contain secret data. Does not activate warm license or RE.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nativelink-client-certs-apply-note
+  namespace: arc-runners
+  labels:
+    oya.io/ci-cell: general
+    app.kubernetes.io/part-of: oya-substrate
+data:
+  README: |
+    Client PEMs are applied by the ops procedure in this file's comments (not stored in git).
+    Required secret name: nativelink-client-reader (key: client.pem) in namespace arc-runners.
+    Optional: nativelink-client-writer for cache-writer uploads (W3+).
+    Runner env expects:
+      OYA_CACHE_TLS_CLIENT_CERT=/etc/nativelink/client/client.pem
+      OYA_CACHE_TLS_CA_CERTS=/etc/nativelink/ca/ca.crt
+      OYA_CACHE_TLS_SERVER_CA_CERT=/etc/nativelink/ca/ca.crt

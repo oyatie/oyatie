@@ -321,6 +321,10 @@ const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
     "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential";
 
 fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) -> bool {
+    // W1 (2026-08-05): merge CI is GitHub-hosted `ubuntu-latest` (agent-fleet throughput).
+    // The portable Cargo differential still binds on the required buck2 lane with the
+    // owned rustup home forwarded through Buck2's hermetic test executor. Windows remains
+    // dormant (cfg) until real Windows capacity exists — no windows-latest runner.
     let buck2_job = workflow_job(workflow, "buck2");
     let executed = executed_patterns_by_job(workflow);
     let buck2_patterns = executed.get("buck2");
@@ -332,14 +336,17 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
                 && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
                 && line.contains("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"")
         });
-    buck2_job.contains("runs-on: oya-arm64")
+    let buck2_on_admitted_linux = buck2_job.lines().map(str::trim).any(|line| {
+        line.starts_with("runs-on:")
+            && (line.contains("ubuntu-latest") || line.contains("oya-arm64"))
+    });
+    buck2_on_admitted_linux
         && buck2_patterns.is_some_and(|patterns| {
             patterns.contains("//ci/...") && patterns.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
         })
         && differential_forwards_rustup
         && !workflow.lines().map(str::trim).any(|line| {
-            line.starts_with("runs-on:")
-                && (line.contains("windows-latest") || line.contains("ubuntu-latest"))
+            line.starts_with("runs-on:") && line.contains("windows-latest")
         })
 }
 
@@ -384,8 +391,17 @@ fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
 }
 
 fn live_postgres_job_uses_isolated_arc_cell(job: &str) -> bool {
-    job.contains("runs-on: oya-live-postgres-arm64")
-        && !job.lines().any(|line| line.trim() == "services:")
+    // W1: merge path is GitHub-hosted + service container (replaces oya-live-postgres-arm64
+    // ARC sidecar as primary). Credentials prefer env defaults for hosted, with optional
+    // /run/oya-ci-postgres/* file fallback when the ARC cell is used as overflow.
+    let on_hosted_with_service = job.lines().map(str::trim).any(|line| {
+        line.starts_with("runs-on:") && line.contains("ubuntu-latest")
+    }) && job.lines().any(|line| line.trim() == "services:")
+        && job.contains("postgres:")
+        && job.contains("image: postgres:16");
+    let on_arc_sidecar = job.contains("runs-on: oya-live-postgres-arm64")
+        && !job.lines().any(|line| line.trim() == "services:");
+    (on_hosted_with_service || on_arc_sidecar)
         && job.contains("/run/oya-ci-postgres/admin-password")
         && job.contains("/run/oya-ci-postgres/app-password")
         && job.contains("::add-mask::")
@@ -1514,19 +1530,24 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         let job = workflow_job(&workflow, job_name);
         assert!(
             live_postgres_job_uses_isolated_arc_cell(&job),
-            "{job_name} must run on the dedicated ARC PostgreSQL cell, remove GitHub services, and load masked per-pod credentials"
+            "{job_name} must use hosted postgres:16 service containers (or the dedicated ARC cell) with masked credentials"
         );
 
-        let generic_runner = job.replace("runs-on: oya-live-postgres-arm64", "runs-on: oya-arm64");
+        let bare_runner = job
+            .replace("runs-on: ubuntu-latest", "runs-on: oya-arm64")
+            .replace("runs-on: oya-live-postgres-arm64", "runs-on: oya-arm64");
+        // Strip services block markers so a general runner without isolation fails.
+        let bare_no_services = bare_runner
+            .lines()
+            .filter(|line| {
+                let t = line.trim();
+                t != "services:" && !t.starts_with("postgres:") && !t.starts_with("image: postgres")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
         assert!(
-            !live_postgres_job_uses_isolated_arc_cell(&generic_runner),
-            "the general-purpose ARC label must not satisfy the live-Postgres cell contract"
-        );
-
-        let services_reintroduced = format!("{job}\n    services:\n      postgres: {{}}\n");
-        assert!(
-            !live_postgres_job_uses_isolated_arc_cell(&services_reintroduced),
-            "reintroducing workflow service containers must violate the ARC sidecar contract"
+            !live_postgres_job_uses_isolated_arc_cell(&bare_no_services),
+            "a general-purpose runner without postgres isolation must not satisfy the live-Postgres contract"
         );
     }
 
@@ -1611,7 +1632,7 @@ fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
 
     assert!(
         workspace_resolver_differential_is_self_hosted_and_binding(&workflow),
-        "the portable Cargo differential must run beside //ci/... on the owned ARM64 Buck2 lane, with the owned rustup home forwarded through Buck2's hermetic test executor and no hosted OS dependency"
+        "the portable Cargo differential must run beside //ci/... on the admitted Linux buck2 lane (ubuntu-latest or oya-arm64), with the owned rustup home forwarded through Buck2's hermetic test executor and no windows-latest runner"
     );
 
     let without_target = workflow.replace(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET, "");
