@@ -141,7 +141,7 @@ Destructive operations include: DSR delete, tenant offboarding, bulk delete > 10
 ### Operational
 
 1. `tenancy` µservice PRD updated with per-tier contract (Companion).
-2. CI lane `oya gate validate tenant-environment-tier` enforces (a) every µservice that performs outbound side effects checks env_tier, (b) every API-key issuance flow validates Cedar tier-grant, (c) every prod-tier destructive op carries the acknowledgment header.
+2. Protected merge gate `cloud-ci-tenant-environment-tier` is aggregated by `oya-ci-required` and enforces (a) every µservice that performs outbound side effects checks env_tier, (b) every API-key issuance flow validates Cedar tier-grant, (c) every prod-tier destructive op carries the acknowledgment header. Legacy `oya gate validate tenant-environment-tier` wording is historical/local-feedback provenance only.
 3. Per-tier RLS policies authored in tenancy µservice's `policy/tenant-scope.cedar` fragments.
 4. Companion spec `specs/tenant-environment-tiers-canonical.json` declares the prefix scheme + Cedar conditions + outbound mode matrix.
 5. api-gateway tier reads prefix; routes to env-tier-specific schema.

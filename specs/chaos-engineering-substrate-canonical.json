@@ -127,5 +127,5 @@
     "audit_chain_seal": "ChaosScenarioFailed",
     "on_call_paged": true
   },
-  "ci_lane": "chaos-engineering-catalog (oya gate validate chaos-engineering-catalog)"
+  "ci_lane": "chaos-engineering-catalog (cloud-ci/Rust gate packet: chaos-engineering-catalog)"
 }

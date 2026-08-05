@@ -60,6 +60,7 @@ Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). 
 ### Cloud
 - `cloud/iam-key-rotation.md`
 - `cloud/kms-emergency-rotation.md`
+- `cloud/root-of-trust-ceremony.md`
 - `cloud/region-failover.md`
 - `cloud/cell-isolation-breach.md`
 - `cloud/billing-event-stream-stuck.md`

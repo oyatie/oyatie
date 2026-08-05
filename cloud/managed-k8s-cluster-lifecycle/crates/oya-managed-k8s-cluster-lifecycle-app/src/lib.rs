@@ -178,6 +178,16 @@ fn lifecycle_error_response(error: &LifecycleError) -> (StatusCode, axum::Json<s
             "invalid_request",
             error.to_string(),
         ),
+        LifecycleError::InvalidOperation(_) => error_response(
+            StatusCode::BAD_REQUEST,
+            "invalid_operation",
+            error.to_string(),
+        ),
+        LifecycleError::LedgerUnavailable(_) => error_response(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "operation_ledger_unavailable",
+            error.to_string(),
+        ),
         LifecycleError::QuotaDenied(_) => {
             error_response(StatusCode::FORBIDDEN, "quota_denied", error.to_string())
         }

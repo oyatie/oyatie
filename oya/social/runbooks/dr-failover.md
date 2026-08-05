@@ -8,7 +8,7 @@
 ## Authority
 
 - ADR-0343 DR matrix.
-- Manifest `dr` block in `microservices/social/manifest.json`.
+- Manifest `dr` block in `oya/social/manifest.json`; legacy `microservices/social/manifest.json` wording is historical/provenance only and must not be restored.
 - Compliance-pack floors in `specs/compliance-pack-floors.json`.
 
 ## Procedure

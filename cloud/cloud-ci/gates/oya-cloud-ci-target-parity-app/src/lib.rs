@@ -16,15 +16,23 @@
 
 use std::collections::BTreeSet;
 
+use oya_ci_gate_contract::{
+    Finding as ContractFinding, Gate as ContractGate, GateCode, GateManifest, NewFile, Remediation,
+    RemediationTier,
+};
 use serde_json::Value;
 
 /// The gate id, matching the buck2 target + firewall baseline gate-id.
 pub const GATE_ID: &str = "cloud-ci-target-parity";
 
+pub const MEMBER_MISSING_BUCK_CODE: &str = "member_missing_buck";
+pub const MEMBER_TEST_CODE_WITHOUT_RUST_TEST_TARGET_CODE: &str =
+    "member_test_code_without_rust_test_target";
+
 /// The blocking violation codes for ADR-0540's target-parity contract.
 pub const VIOLATION_CODES: [&str; 2] = [
-    "member_missing_buck",
-    "member_test_code_without_rust_test_target",
+    MEMBER_MISSING_BUCK_CODE,
+    MEMBER_TEST_CODE_WITHOUT_RUST_TEST_TARGET_CODE,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,6 +68,47 @@ impl Report {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct TargetParityGate {
+    manifest: GateManifest,
+}
+
+impl TargetParityGate {
+    pub fn new() -> Result<Self, oya_ci_gate_contract::ContractError> {
+        Ok(Self {
+            manifest: GateManifest::new(
+                GATE_ID,
+                vec![
+                    GateCode::new(MEMBER_MISSING_BUCK_CODE, RemediationTier::AutoGenerate),
+                    GateCode::new(
+                        MEMBER_TEST_CODE_WITHOUT_RUST_TEST_TARGET_CODE,
+                        RemediationTier::Block {
+                            rationale: "adding or changing a rust_test target requires humans to review the build graph target name, deps, and test coverage boundary".to_owned(),
+                        },
+                    ),
+                ],
+            )?,
+        })
+    }
+}
+
+impl ContractGate for TargetParityGate {
+    fn manifest(&self) -> &GateManifest {
+        &self.manifest
+    }
+
+    fn evaluate_keyed(&self, face: &Value) -> BTreeSet<ContractFinding> {
+        evaluate_keyed(face)
+            .into_iter()
+            .map(|finding| ContractFinding::new(finding.code, finding.key))
+            .collect()
+    }
+
+    fn remediate(&self, finding: &ContractFinding, face: &Value) -> Remediation {
+        remediate_code(&finding.code, &finding.key, face)
+    }
+}
+
 fn bool_field(row: &Value, key: &str) -> bool {
     row.get(key).and_then(Value::as_bool).unwrap_or(false)
 }
@@ -80,6 +129,48 @@ impl Finding {
     }
 }
 
+/// Pure ADR-0528 remediation sibling for one ADR-0540 code.
+///
+/// The response is a described new-file proposal only. It never writes, and it returns
+/// [`Remediation::None`] once the same face reports the member has a BUCK file.
+pub fn remediate(finding: &Finding, face: &Value) -> Remediation {
+    remediate_code(&finding.code, &finding.key, face)
+}
+
+fn remediate_code(code: &str, member_path: &str, face: &Value) -> Remediation {
+    if code != MEMBER_MISSING_BUCK_CODE || !face_reports_missing_buck(member_path, face) {
+        return Remediation::None;
+    }
+
+    Remediation::AutoGenerate(NewFile::new(
+        format!("{member_path}/BUCK"),
+        buck_library_file_body(member_path),
+    ))
+}
+
+fn face_reports_missing_buck(member_path: &str, face: &Value) -> bool {
+    face.get("rows")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .any(|row| {
+            row.get("member_path").and_then(Value::as_str) == Some(member_path)
+                && !bool_field(row, "has_buck")
+        })
+}
+
+fn buck_library_file_body(member_path: &str) -> String {
+    let target_name = member_path
+        .rsplit('/')
+        .find(|segment| !segment.is_empty())
+        .unwrap_or(member_path);
+    let crate_name = target_name.replace('-', "_");
+
+    format!(
+        "rust_library(\n    name = \"{target_name}\",\n    srcs = glob([\"src/**/*.rs\", \"migrations/**/*.sql\", \"**/*.cedar\", \"**/*.sql\", \"**/*.json\", \"**/*.toml\", \"**/*.yaml\", \"**/*.yml\", \"**/*.proto\", \"**/*.graphql\", \"**/*.html\", \"**/*.css\", \"**/*.txt\"]),\n    crate = \"{crate_name}\",\n    crate_root = \"src/lib.rs\",\n    visibility = [\"PUBLIC\"],\n)\n"
+    )
+}
+
 /// Pure evaluator for producer-emitted target-parity rows.
 pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
@@ -93,11 +184,11 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
             continue;
         };
         if !bool_field(row, "has_buck") {
-            findings.insert(Finding::new("member_missing_buck", member_path));
+            findings.insert(Finding::new(MEMBER_MISSING_BUCK_CODE, member_path));
         }
         if bool_field(row, "has_test_code") && !bool_field(row, "has_rust_test_target") {
             findings.insert(Finding::new(
-                "member_test_code_without_rust_test_target",
+                MEMBER_TEST_CODE_WITHOUT_RUST_TEST_TARGET_CODE,
                 member_path,
             ));
         }
@@ -117,6 +208,7 @@ pub fn evaluate(input: &Value) -> Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_ci_gate_contract::{Gate as ContractGate, Remediation, RemediationTier};
     use serde_json::json;
 
     #[test]
@@ -164,6 +256,51 @@ mod tests {
             "remediation should point contributors at the fix and ADR-0540: {finding:?}"
         );
         assert_eq!(evaluate(&input).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn gate_manifest_declares_missing_buck_as_auto_generate() {
+        let gate = TargetParityGate::new().expect("target parity manifest is valid");
+        let manifest = ContractGate::manifest(&gate);
+
+        assert_eq!(manifest.gate_id, GATE_ID);
+        let missing_buck = manifest
+            .codes
+            .iter()
+            .find(|code| code.code == "member_missing_buck")
+            .expect("manifest declares member_missing_buck");
+        assert_eq!(missing_buck.remediation_tier, RemediationTier::AutoGenerate);
+    }
+
+    #[test]
+    fn missing_buck_remediate_auto_generates_buck_file_and_is_idempotent_after_fix() {
+        let finding = Finding::new("member_missing_buck", "libs/oya-new-domain");
+        let broken = json!({
+            "rows": [{
+                "member_path": "libs/oya-new-domain",
+                "has_buck": false,
+                "has_rust_test_target": false,
+                "has_test_code": false
+            }]
+        });
+        let fixed = json!({
+            "rows": [{
+                "member_path": "libs/oya-new-domain",
+                "has_buck": true,
+                "has_rust_test_target": false,
+                "has_test_code": false
+            }]
+        });
+
+        let remediation = remediate(&finding, &broken);
+        let Remediation::AutoGenerate(new_file) = remediation else {
+            panic!("expected AutoGenerate remediation for missing BUCK");
+        };
+        assert_eq!(new_file.path, "libs/oya-new-domain/BUCK");
+        assert!(new_file.body.contains("rust_library("));
+        assert!(new_file.body.contains("crate = \"oya_new_domain\""));
+
+        assert_eq!(remediate(&finding, &fixed), Remediation::None);
     }
 
     #[test]

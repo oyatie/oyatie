@@ -1,14 +1,24 @@
-# Managed K8s Tenant Quota — Audit Evidence Emission
+# Managed K8s SLA Observability — Audit Evidence Emission
 
-## Status: Unimplemented (wave follow-on)
+## Status: Target-only until live ingestion Review/fix
 
-Audit chain emission on quota check and quota set operations is tracked as:
-`registry/placeholder-debt/adr-follow-ups.yaml#adr-0376-audit-chain-emission`
+SLA evidence emission is not implemented by this source-authority cleanup. The
+current deterministic foundation can compute summaries from snapshots, but it
+does not claim sealed production audit events, live collector evidence, or public
+SLA proof.
 
-The `oya-managed-k8s-tenant-quota-app` crate exposes a typed
-`Unimplemented::AuditChainEmission` placeholder. No stubbed `Ok(())` is used.
+## Future Evidence Events
 
-## When Implemented
+When the live ingestion lane is implemented and reviewed, it should emit sealed
+evidence for:
 
-Each `POST /tenants/{id}/quota/check` decision and each `PUT /tenants/{id}/quota`
-change will emit a sealed audit event per ADR-0376 and the audit-chain substrate.
+- accepted SLA observation snapshots, including source type, window bounds,
+  freshness deadline, collector identity, and tenant/cluster scope;
+- summary reads and evidence reads, including authorization scope and result
+  freshness without leaking tenant secrets;
+- burn-rate verdicts (`page`, `ticket`, or `none`) derived from the kernel alert
+  verdict rather than recomputed in a web layer;
+- stale/missing/disagreeing evidence holds used for rollout or rollback policy.
+
+Until that lane lands, this file is a target contract and must not be cited as
+measured production evidence.

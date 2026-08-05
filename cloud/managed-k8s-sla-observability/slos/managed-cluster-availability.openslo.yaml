@@ -2,6 +2,9 @@ apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: managed-k8s-cluster-availability
+  annotations:
+    oyatie.com/source-authority: cloud/managed-k8s-sla-observability/slos/managed-cluster-availability.openslo.yaml
+    oyatie.com/claim-ceiling: target-only; not measured production SLO evidence until live ingestion review lands
 spec:
   service: managed-k8s-sla-observability
   indicator:

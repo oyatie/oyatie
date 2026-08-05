@@ -288,7 +288,7 @@
     "session_start": "Read doctrine → root-hub-pointers → task-specific specs.",
     "per_change_emit": "Multispectrum evidence per /specs/multispectrum-review.json#evidence_schema.",
     "iteration": "Per /specs/iterative-fix-loop.json.",
-    "promotion": "oya vcs done + oya vcs promote after seam lane sub-checks, provider evidence, multispectrum evidence, and audit-chain coverage pass; grit done is legacy compatibility/provenance only."
+    "promotion": "Plain git isolated worktree branch -> protected PR against dev -> reviewer approval + single protected oya-ci-required context -> post-merge product-completion packet. Legacy grit and retired VCS ratchet events are compatibility/provenance only."
   },
   "consumed_by": [
     "docs/AGENTS.md",

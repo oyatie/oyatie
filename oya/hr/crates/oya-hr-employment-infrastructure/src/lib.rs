@@ -1,15 +1,18 @@
 //! HR employment HTTP runtime adapter foundation.
 //!
 //! This crate binds HR API DTOs to the repo-native Hyper router/middleware
-//! foundation without introducing a deployed listener. It validates JSON,
-//! invokes HR app-layer metadata planners, and serializes OpenAPI-aligned
-//! responses. It does not persist HR records, retrieve sensitive data, execute
-//! Workflow, call Payroll, emit runtime audit-chain events, or deploy cloud I/O.
+//! foundation without claiming a production-deployed listener. It validates
+//! JSON, invokes HR app-layer metadata planners, and serializes OpenAPI-aligned
+//! responses. A bounded prebound listener harness proves the transport seam; it
+//! does not persist HR records, retrieve sensitive data, execute Workflow, call
+//! Payroll, emit runtime audit-chain events, or deploy cloud I/O.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use std::net::TcpListener;
+use std::sync::Arc;
 use std::time::Duration;
 
 use oya_hr_employment_api::{
@@ -18,14 +21,15 @@ use oya_hr_employment_api::{
     SensitiveReadPolicyDecisionResponse,
 };
 use oya_hr_employment_app::{
-    HrAppError, onboard_employee, plan_labor_compliance_workflows,
-    plan_leave_payroll_impact_envelope, prepare_sensitive_hr_read_envelope,
+    HrAppError, authorize_sensitive_hr_runtime_read_boundary, onboard_employee,
+    plan_labor_compliance_workflows, plan_leave_payroll_impact_envelope,
 };
 use oya_hr_employment_domain::HrDomainError;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{
     ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
+    serve_n_connections_on_std_listener,
 };
 use serde::Serialize;
 
@@ -51,6 +55,7 @@ pub struct HrRuntimeRoute {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum HrRuntimeError {
     Router(RouterError),
+    Listener(String),
 }
 
 impl From<RouterError> for HrRuntimeError {
@@ -63,6 +68,7 @@ impl std::fmt::Display for HrRuntimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             HrRuntimeError::Router(error) => write!(f, "hr router error: {error:?}"),
+            HrRuntimeError::Listener(error) => write!(f, "hr listener boundary error: {error}"),
         }
     }
 }
@@ -98,15 +104,18 @@ pub struct WorkflowDispatchResponse {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HrHealthResponse {
-    pub status: String,             // data_class: PUBLIC
-    pub service: String,            // data_class: PUBLIC
-    pub runtime_adapter: String,    // data_class: PUBLIC
-    pub deployed_listener: bool,    // data_class: PUBLIC
-    pub storage_attached: bool,     // data_class: PUBLIC
-    pub workflow_execution: bool,   // data_class: PUBLIC
-    pub payroll_network_call: bool, // data_class: PUBLIC
-    pub sensitive_data_fetch: bool, // data_class: PUBLIC
-    pub schema_version: u32,        // data_class: PUBLIC
+    pub status: String,               // data_class: PUBLIC
+    pub service: String,              // data_class: PUBLIC
+    pub runtime_adapter: String,      // data_class: PUBLIC
+    pub listener_boundary: String,    // data_class: PUBLIC
+    pub deployed_listener: bool,      // data_class: PUBLIC
+    pub storage_attached: bool,       // data_class: PUBLIC
+    pub workflow_execution: bool,     // data_class: PUBLIC
+    pub payroll_network_call: bool,   // data_class: PUBLIC
+    pub sensitive_data_fetch: bool,   // data_class: PUBLIC
+    pub runtime_audit_emission: bool, // data_class: PUBLIC
+    pub cloud_deployment: bool,       // data_class: PUBLIC
+    pub schema_version: u32,          // data_class: PUBLIC
 }
 
 pub fn hr_runtime_routes() -> Vec<HrRuntimeRoute> {
@@ -200,6 +209,20 @@ pub fn dispatch_hr_request(request: HttpRequest) -> HttpResponse {
     }
 }
 
+pub fn serve_hr_runtime_n_connections_on_std_listener(
+    listener: TcpListener,
+    max_connections: usize,
+) -> Result<(), HrRuntimeError> {
+    serve_n_connections_on_std_listener(
+        listener,
+        Arc::new(hr_runtime_router()?),
+        Arc::new(hr_runtime_chain()),
+        hr_server_config(),
+        max_connections,
+    )
+    .map_err(|error| HrRuntimeError::Listener(error.to_string()))
+}
+
 struct OnboardEmployeeHandler;
 struct LaborComplianceHandler;
 struct SensitiveReadHandler;
@@ -257,11 +280,12 @@ impl oya_http_middleware_kernel::Handler for SensitiveReadHandler {
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
         let request: SensitiveHrReadPolicyRequest = parse_json(&req.body)?;
-        let outcome = prepare_sensitive_hr_read_envelope(request.into_domain_input())
-            .map_err(app_error_response)?;
+        let outcome =
+            authorize_sensitive_hr_runtime_read_boundary(request.into_runtime_boundary_input())
+                .map_err(app_error_response)?;
         Ok(json_response(
             200,
-            &SensitiveReadPolicyDecisionResponse::from_outcome(&outcome),
+            &SensitiveReadPolicyDecisionResponse::from_runtime_boundary_outcome(&outcome),
         ))
     }
 }
@@ -289,12 +313,15 @@ impl oya_http_middleware_kernel::Handler for HealthHandler {
             &HrHealthResponse {
                 status: "ok".to_owned(),
                 service: SERVICE_NAME.to_owned(),
-                runtime_adapter: "router-ready".to_owned(),
+                runtime_adapter: "listener-boundary-ready".to_owned(),
+                listener_boundary: "prebound-std-tcp-listener".to_owned(),
                 deployed_listener: false,
                 storage_attached: false,
                 workflow_execution: false,
                 payroll_network_call: false,
                 sensitive_data_fetch: false,
+                runtime_audit_emission: false,
+                cloud_deployment: false,
                 schema_version: 1,
             },
         ))
@@ -315,7 +342,11 @@ where
 
 fn app_error_response(error: HrAppError) -> HttpResponse {
     let status = match error {
-        HrAppError::Domain(HrDomainError::DisallowedSensitiveReadPurpose) => 403,
+        HrAppError::Domain(HrDomainError::DisallowedSensitiveReadPurpose)
+        | HrAppError::MissingTenantRbacScopeEvidence
+        | HrAppError::InvalidTenantRbacScopeEvidence
+        | HrAppError::MissingSensitiveReadAuditContract
+        | HrAppError::InvalidSensitiveReadAuditContract => 403,
         _ => 400,
     };
     json_response(

@@ -1,6 +1,8 @@
 pub mod asyncapi;
+pub mod cedar;
 pub mod grpc;
 pub mod http;
+pub mod repository;
 
 use crate::error::Result;
 use serde::Serialize;

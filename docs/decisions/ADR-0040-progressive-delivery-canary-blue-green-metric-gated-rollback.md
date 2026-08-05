@@ -119,7 +119,11 @@ If 1h burn-rate ≥ 14.4× during a rollout:
 
 ### Pre-release verification gate
 
-A release-candidate cut requires (per `/oya-release-verify`):
+A release-candidate cut uses the cloud-ci/oya-ci release packet and protected
+`oya-ci-required` evidence as authority. Legacy `/oya-release-verify` output,
+when present, is advisory local bridge/provenance evidence only and does not
+independently authorize release or protected-branch promotion. Required readiness
+evidence remains:
 
 - `oya-governance-cohesion` PASS (per ADR-0001).
 - `oya-governance-supply-chain` PASS (per ADR-0039).

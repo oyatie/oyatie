@@ -26,7 +26,7 @@
 
 use std::time::Instant;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, MiddlewareChain, Next};
 
 #[derive(Clone, Debug)]
 pub struct LatencyBudgetReporter {
@@ -41,6 +41,22 @@ impl LatencyBudgetReporter {
     pub fn budget_ms(&self) -> u64 {
         self.budget_ms
     }
+}
+
+/// Build the honest post-hoc latency evidence composition.
+///
+/// The provided observer middleware is registered outside the reporter so it
+/// sees the final response after [`LatencyBudgetReporter`] has converted a slow
+/// inner 200 into a 504. This is loopback/runtime transcript composition only:
+/// it does not cancel in-flight work and it does not constitute measured SLO,
+/// production-ready, or hyperscaler-readiness evidence.
+pub fn latency_budget_runtime_evidence_chain(
+    outcome_observer: Box<dyn Middleware<HttpRequest, HttpResponse>>,
+    reporter: LatencyBudgetReporter,
+) -> MiddlewareChain<HttpRequest, HttpResponse> {
+    MiddlewareChain::new()
+        .push(outcome_observer)
+        .push(Box::new(reporter))
 }
 
 /// Public so callers / tests can inspect the budget-exceeded body shape.
@@ -195,5 +211,79 @@ mod tests {
         let body = std::str::from_utf8(&response.body).unwrap();
         assert!(body.contains("latency-budget-exceeded"));
         assert!(!body.contains("deadline-exceeded"));
+    }
+
+    #[test]
+    fn slow_504_is_single_telemetry_red_outcome_without_cancellation_claim() {
+        use oya_http_telemetry_middleware_infrastructure::{
+            HTTP_REQUEST_COMPLETED_EVENT, InMemoryMetrics, InMemoryWideEvents, TelemetryMiddleware,
+        };
+        use std::sync::Arc;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        let metrics = Arc::new(InMemoryMetrics::new());
+        let wide_events = Arc::new(InMemoryWideEvents::new());
+        let telemetry = TelemetryMiddleware::with_wide_events(metrics.clone(), wide_events.clone());
+        let handler_side_effects = Arc::new(AtomicUsize::new(0));
+        let handler_side_effects_for_terminal = handler_side_effects.clone();
+        let terminal = move |_req: HttpRequest| -> HttpResponse {
+            handler_side_effects_for_terminal.fetch_add(1, Ordering::SeqCst);
+            sleep(Duration::from_millis(20));
+            HttpResponse::new(200).with_body(b"work-done".to_vec())
+        };
+
+        let chain = latency_budget_runtime_evidence_chain(
+            Box::new(telemetry),
+            LatencyBudgetReporter::new(1),
+        );
+        let response = chain.execute(
+            HttpRequest {
+                method: HttpMethod::Post,
+                path: "/messages/42".into(),
+                headers: BTreeMap::new(),
+                body: Vec::new(),
+                path_captures: BTreeMap::new(),
+                matched_template: Some("/messages/{message_id}".into()),
+            },
+            terminal,
+        );
+
+        assert_eq!(response.status, 504);
+        assert_eq!(
+            response
+                .headers
+                .get("x-latency-budget-ms")
+                .map(String::as_str),
+            Some("1")
+        );
+        let elapsed_ms = response
+            .headers
+            .get("x-latency-elapsed-ms")
+            .and_then(|value| value.parse::<u64>().ok())
+            .expect("latency transcript includes numeric elapsed milliseconds");
+        assert!(elapsed_ms >= 1);
+        let body = std::str::from_utf8(&response.body).unwrap();
+        assert!(body.contains("\"error\":\"latency-budget-exceeded\""));
+        assert!(body.contains("\"budget_ms\":1"));
+        assert!(body.contains("\"elapsed_ms\":"));
+
+        assert_eq!(handler_side_effects.load(Ordering::SeqCst), 1);
+
+        let samples = metrics.snapshot();
+        assert_eq!(samples.len(), 1);
+        assert_eq!(samples[0].route, "/messages/{message_id}");
+        assert_eq!(samples[0].status_class, "5xx");
+        assert_eq!(samples[0].count, 1);
+
+        let events = wide_events.snapshot();
+        assert_eq!(events.len(), 1);
+        let event = &events[0];
+        assert_eq!(event.event_name, HTTP_REQUEST_COMPLETED_EVENT);
+        assert_eq!(event.route, "/messages/{message_id}");
+        assert_eq!(event.status_code, 504);
+        assert_eq!(event.status_class, "5xx");
+        assert_eq!(event.red_rate_count, 1);
+        assert_eq!(event.red_error_count, 1);
+        assert!(event.red_duration_us > 0);
     }
 }

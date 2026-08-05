@@ -9,6 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 oya-hr-employment-domain = { path = "../oya-hr-employment-domain" }
+oya-workflow-engine-execution-engine-usecase = { path = "../../../workflow-engine/crates/oya-workflow-engine-execution-engine-usecase" }
 
 [lib]
 name = "oya_hr_employment_app"

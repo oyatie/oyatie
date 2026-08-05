@@ -1,7 +1,12 @@
+# Claim boundary: stale target/provenance sample only; do not kubectl apply.
+# This file carries no live deployment, readiness, SLO, DR, audit-chain, or GA claim.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: oya-supply-chain-planning
+  annotations:
+    oyatie.com/claim-boundary: stale-target-provenance-only
+    oyatie.com/no-live-deployment: "true"
   labels:
     app: oya-supply-chain-planning
     sap-code: "SCM/APO"

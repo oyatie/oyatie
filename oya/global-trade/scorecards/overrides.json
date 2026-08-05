@@ -1,5 +1,19 @@
 {
   "schema_version": "1.0",
+  "_authority_boundary": {
+    "current_authority": "specs/microservices/global-trade.json",
+    "authority_status": "metadata-only PRD",
+    "inventory_status": "inventory/provenance/planned-only",
+    "non_claims": [
+      "no live denied-party or sanctions-provider network calls",
+      "no government list downloads or legal-ruling retrieval",
+      "no customs-authority filing or broker network submission",
+      "no document archive runtime or business-document mutation",
+      "no Workflow execution or runtime audit-chain emission",
+      "no cloud deployment, measured SLO, runtime dashboard, or on-call claim",
+      "no SAP/Oracle/Dynamics parity, certification, GA, or hyperscaler readiness claim"
+    ]
+  },
   "service": "global-trade",
   "date": "2026-05-21",
   "operating_bar_artifact_target": 100,

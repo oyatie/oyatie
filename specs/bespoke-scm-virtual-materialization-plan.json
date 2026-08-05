@@ -1,0 +1,433 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/bespoke-scm-virtual-materialization-plan.json",
+  "artifact_kind": "design-spike-prototype",
+  "schema_role": "contract_metadata",
+  "executable_validator": false,
+  "json_schema_metadata_note": "`$schema` and `$id` identify this machine-readable design spike/prototype. The artifact is not yet an executable validator or native SCM runtime implementation.",
+  "title": "BespokeScmVirtualMaterializationPlan",
+  "description": "W4-003 design spike/prototype for mapping a content-addressed WorkAreaTree into reversible materialized files during the ADR-0518 ISOLATE/AUTHOR stages, without claiming native virtual filesystem runtime availability.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-BESPOKE-SCM-VIRTUAL-MATERIALIZATION-PLAN",
+    "version": "0.1.0",
+    "status": "Design-spike-prototype",
+    "owner_team": "platform-scm + platform-toolchain",
+    "created_at": "2026-07-01T14:10:26Z",
+    "updated_at": "2026-07-01T14:10:26Z",
+    "source_kanban_task": "t_62a6e35a",
+    "source_adrs": [
+      "ADR-0518",
+      "ADR-0520"
+    ],
+    "context_adrs": [
+      "ADR-0510",
+      "ADR-0515",
+      "ADR-0516",
+      "ADR-0517",
+      "ADR-0521",
+      "ADR-0526"
+    ],
+    "related_specs": [
+      "/specs/work-area-content-hash-contract.json",
+      "/specs/bespoke-scm-declare-observe-contract.json",
+      "/specs/bespoke-cloud-toolchain-services.json",
+      "/specs/root-hub-pointers.json",
+      "/registry/artifact-capabilities-registry.json"
+    ],
+    "governance_registration": {
+      "root_hub_pointer_key": "bespoke_scm_virtual_materialization_plan",
+      "artifact_registry_capability_id": "bespoke-scm-virtual-materialization-plan",
+      "owning_registry_path": "/registry/artifact-capabilities-registry.json",
+      "required_update_policy": "Any materialization mapping, reversibility, fixture, or claim-boundary change MUST update this plan, its root-hub pointer, and artifact-capabilities registry row in the same PR."
+    },
+    "purpose": "Lock the virtual materialization seam before runtime implementation: map WorkAreaTree content-addressed nodes to concrete repo-relative file views, journal edits, and reverse the view back into a new WorkAreaTree/content frame."
+  },
+  "claim_boundary": {
+    "metadata_only": true,
+    "design_spike_only": true,
+    "no_native_scm_storage_claim": true,
+    "no_virtual_filesystem_runtime_claim": true,
+    "no_object_store_runtime_claim": true,
+    "no_parser_runtime_claim": true,
+    "no_cd_runtime_claim": true,
+    "git_and_github_remain_bridge_until_cutover_triggers": true,
+    "can_claim_now": [
+      "The repository has a W4 design spike/prototype contract for virtual materialization from a content-addressed WorkAreaTree to materialized files.",
+      "The prototype names the required inputs, deterministic mapping steps, reversible journal fields, and RED/GREEN fixtures for round-tripping a materialized view back to content-addressed work-area identity.",
+      "The seam is compatible with ADR-0520 transitional implementations behind a stable interface and ADR-0518 ISOLATE(virtual)/AUTHOR stage boundaries."
+    ],
+    "cannot_claim_yet": [
+      "native EdenFS-like filesystem mount availability",
+      "bespoke SCM storage server or lease scheduler availability",
+      "owned AST parser availability",
+      "object-store production durability or runtime throughput",
+      "automatic authoring/remediation or CD propagation readiness"
+    ]
+  },
+  "source_contracts": {
+    "work_area_tree": {
+      "source": "libs/oya-work-area-tree-kernel",
+      "required_surface": [
+        "WorkAreaTree::work_area_hash",
+        "WorkAreaTree::root_id",
+        "WorkAreaTree::node",
+        "WorkAreaTree::child_ids",
+        "WorkAreaNodeId",
+        "NodeLocator",
+        "SourceSpan"
+      ],
+      "rule": "Materialization consumes stable WorkAreaTree vocabulary only; parser internals and bridge git checkout paths are not materialization authority."
+    },
+    "work_area_hash": {
+      "source": "/specs/work-area-content-hash-contract.json",
+      "wire_format": "wa1:sha256:<64-lower-hex>",
+      "rule": "The materialization session subject MUST carry `work_area_hash`; downstream SCM change id, buck2/RBE key, and CD artifact hash remain byte-identical aliases."
+    },
+    "object_store": {
+      "source": "libs/oya-shared-object-store-kernel",
+      "required_surface": [
+        "ObjectStore",
+        "CasPayloadReader",
+        "CasPayloadSink",
+        "run_object_store_conformance_suite"
+      ],
+      "rule": "File bytes and large tree payloads are retrieved/stored by content-addressed object references behind the object-store-kernel seam; host temp paths are never source identity."
+    },
+    "scm_facts": {
+      "source": "ADR-0526 ScmFactsSource seam or bridge snapshot",
+      "rule": "Tracked-path universe, revision provenance, executable bits, generated-source flags, and ignored/untracked exclusions come from scm-facts evidence, not ambient filesystem walking."
+    }
+  },
+  "virtual_materialization_model": {
+    "model_id": "bespoke-scm-virtual-materialization-v1",
+    "stage_boundary": {
+      "enters_at": "ADR-0518 ISOLATE(virtual)",
+      "authoring_occurs_at": "ADR-0518 AUTHOR",
+      "exits_before": "ADR-0518 GATE",
+      "handoff_subject": "work_area_hash"
+    },
+    "input_record": {
+      "type": "VirtualMaterializationInput",
+      "required_fields": [
+        "tenant_id",
+        "repository_id",
+        "change_unit_id",
+        "work_area_hash",
+        "work_area_tree_root_id",
+        "work_area_tree_root_digest",
+        "scm_facts_ref",
+        "object_store_namespace",
+        "lease_ref",
+        "requested_view_mode"
+      ],
+      "forbidden_fields": [
+        "absolute_source_checkout",
+        "host_username",
+        "mtime",
+        "ctime",
+        "atime",
+        "untracked_file_glob",
+        "secret_material"
+      ],
+      "rules": [
+        "change_unit_id MUST equal work_area_hash.",
+        "requested_view_mode is one of read_only_snapshot, writable_overlay, gate_replay_snapshot.",
+        "lease_ref is required for writable_overlay and every AUTHOR round-trip."
+      ]
+    },
+    "materialized_entry": {
+      "type": "MaterializedPathEntry",
+      "required_fields": [
+        "repo_relative_path",
+        "entry_kind",
+        "work_area_node_id",
+        "node_content_hash",
+        "raw_content_ref",
+        "executable_bit",
+        "line_ending_policy",
+        "materialized_path_token",
+        "reverse_mapping_ref"
+      ],
+      "entry_kinds": [
+        "file",
+        "directory",
+        "symlink",
+        "generated_placeholder",
+        "tombstone"
+      ],
+      "path_rule": "repo_relative_path is normalized POSIX, sorted lexicographically, never absolute, and never contains `..`, backslashes, control characters, or generated output unless scm-facts marks it materializable.",
+      "materialized_path_token_rule": "A runtime may choose a host path or virtual inode, but the contract stores only an opaque token plus reverse_mapping_ref; host paths are diagnostics only and excluded from content identity."
+    },
+    "overlay_journal": {
+      "type": "AuthorOverlayJournal",
+      "required_fields": [
+        "materialization_session_id",
+        "base_work_area_hash",
+        "lease_ref",
+        "journal_entries",
+        "journal_digest",
+        "conflict_class",
+        "created_at_logical_clock"
+      ],
+      "journal_entry_types": [
+        "write_file",
+        "delete_file",
+        "rename_path",
+        "chmod_executable",
+        "create_directory",
+        "update_symlink",
+        "generated_output_refusal"
+      ],
+      "rule": "AUTHOR edits append deterministic journal entries against materialized_path_token/reverse_mapping_ref; the new WorkAreaTree frame is derived from journal content, not host filesystem metadata."
+    },
+    "output_record": {
+      "type": "VirtualMaterializationOutput",
+      "required_fields": [
+        "materialization_session_id",
+        "base_work_area_hash",
+        "result_work_area_hash",
+        "materialized_manifest_digest",
+        "overlay_journal_digest",
+        "changed_path_entries",
+        "reverse_roundtrip_evidence_ref",
+        "handoff_stage"
+      ],
+      "handoff_stage": "AUTHOR emits a new content-addressed frame for GATE; unchanged sessions preserve result_work_area_hash == base_work_area_hash."
+    }
+  },
+  "deterministic_mapping_steps": [
+    {
+      "ordinal": 1,
+      "step_id": "resolve-tree-frame",
+      "description": "Resolve input work_area_hash to a WorkAreaTree root and scm-facts snapshot; reject if the byte-identical work-area alias is missing or divergent.",
+      "reversible_state": [
+        "work_area_hash",
+        "work_area_tree_root_id",
+        "scm_facts_ref"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "step_id": "enumerate-materializable-members",
+      "description": "Traverse child_ids from root in canonical source order and emit sorted repo-relative MaterializedPathEntry records for file-like leaves plus required directories/tombstones.",
+      "reversible_state": [
+        "repo_relative_path",
+        "work_area_node_id",
+        "node_content_hash",
+        "entry_kind"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "step_id": "hydrate-content-by-cas",
+      "description": "Fetch raw bytes through object-store CAS refs; never treat a bridge checkout, mtime, or untracked file as source authority.",
+      "reversible_state": [
+        "raw_content_ref",
+        "raw_content_sha256",
+        "executable_bit"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "step_id": "project-view-tokens",
+      "description": "Create opaque materialized_path_token or virtual inode records for every entry; host paths are local diagnostics and excluded from hashes.",
+      "reversible_state": [
+        "materialized_path_token",
+        "reverse_mapping_ref",
+        "materialization_session_id"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "step_id": "capture-author-overlay",
+      "description": "Record writes/deletes/renames/chmod/symlink updates as deterministic overlay journal entries tied to reverse_mapping_ref and lease_ref.",
+      "reversible_state": [
+        "lease_ref",
+        "journal_entries",
+        "conflict_class",
+        "base_work_area_hash"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "step_id": "rebuild-content-frame",
+      "description": "Apply the overlay journal to the base materialized manifest, normalize paths and metadata, store new bytes through CAS, and construct the result WorkAreaTree frame.",
+      "reversible_state": [
+        "materialized_manifest_digest",
+        "overlay_journal_digest",
+        "result_work_area_tree_root_digest"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "step_id": "emit-roundtrip-proof",
+      "description": "Emit evidence that materialized files round-trip to the expected WorkAreaTree frame and that forbidden ambient inputs did not participate.",
+      "reversible_state": [
+        "base_work_area_hash",
+        "result_work_area_hash",
+        "reverse_roundtrip_evidence_ref",
+        "forbidden_input_audit"
+      ]
+    }
+  ],
+  "reversibility_invariants": [
+    {
+      "id": "VMAT-REV-001",
+      "severity": "error",
+      "rule": "Every materialized path entry MUST carry reverse_mapping_ref back to work_area_node_id or a declared tombstone/generated-output refusal."
+    },
+    {
+      "id": "VMAT-REV-002",
+      "severity": "error",
+      "rule": "Round-tripping an untouched materialized view MUST reproduce the exact base_work_area_hash."
+    },
+    {
+      "id": "VMAT-REV-003",
+      "severity": "error",
+      "rule": "A writable overlay MUST produce result_work_area_hash from canonical frame bytes, not from host path, mtime, ctime, atime, username, process id, or branch name."
+    },
+    {
+      "id": "VMAT-REV-004",
+      "severity": "error",
+      "rule": "Generated outputs are read-through only unless a generated-artifact control-plane row authorizes materialization; hand-edited generated JSON remains forbidden."
+    },
+    {
+      "id": "VMAT-REV-005",
+      "severity": "error",
+      "rule": "Materialization does not grant merge authority; GATE/ATTEST/INTEGRATE still require ADR-0515 oya-ci-required and the ADR-0518 downstream envelopes."
+    }
+  ],
+  "prototype_mapping_fixture": {
+    "fixture_id": "VMAT-GOOD-three-entry-roundtrip",
+    "expected_verdict": "GREEN",
+    "input": {
+      "tenant_id": "oyatie-internal",
+      "repository_id": "oyatie",
+      "change_unit_id": "wa1:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "work_area_hash": "wa1:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "work_area_tree_root_id": "node:root:1111",
+      "work_area_tree_root_digest": "sha256:1212121212121212121212121212121212121212121212121212121212121212",
+      "scm_facts_ref": "scm-facts:bridge:fixture-v1",
+      "object_store_namespace": "cas://oyatie-internal/oyatie/work-area",
+      "lease_ref": "lease:fixture:shard-a:0001",
+      "requested_view_mode": "writable_overlay"
+    },
+    "materialized_entries": [
+      {
+        "repo_relative_path": "docs/decisions/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md",
+        "entry_kind": "file",
+        "work_area_node_id": "node:file:adr-0518",
+        "node_content_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "raw_content_ref": "cas:sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "executable_bit": false,
+        "line_ending_policy": "preserve-raw-bytes",
+        "materialized_path_token": "vmat-token:0",
+        "reverse_mapping_ref": "reverse:0"
+      },
+      {
+        "repo_relative_path": "specs/work-area-content-hash-contract.json",
+        "entry_kind": "file",
+        "work_area_node_id": "node:file:work-area-content-hash-contract",
+        "node_content_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "raw_content_ref": "cas:sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "executable_bit": false,
+        "line_ending_policy": "preserve-raw-bytes",
+        "materialized_path_token": "vmat-token:1",
+        "reverse_mapping_ref": "reverse:1"
+      },
+      {
+        "repo_relative_path": "registry/generated-artifact-control-plane.json",
+        "entry_kind": "generated_placeholder",
+        "work_area_node_id": "node:file:generated-artifact-control-plane",
+        "node_content_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "raw_content_ref": "cas:sha256:7777777777777777777777777777777777777777777777777777777777777777",
+        "executable_bit": false,
+        "line_ending_policy": "preserve-raw-bytes",
+        "materialized_path_token": "vmat-token:2",
+        "reverse_mapping_ref": "reverse:2"
+      }
+    ],
+    "overlay_journal": [
+      {
+        "entry_type": "write_file",
+        "materialized_path_token": "vmat-token:1",
+        "reverse_mapping_ref": "reverse:1",
+        "new_raw_content_ref": "cas:sha256:8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      {
+        "entry_type": "generated_output_refusal",
+        "materialized_path_token": "vmat-token:2",
+        "reverse_mapping_ref": "reverse:2",
+        "reason": "generated artifacts require control-plane regeneration rather than hand edit"
+      }
+    ],
+    "output": {
+      "materialization_session_id": "vmat-session:fixture-v1",
+      "base_work_area_hash": "wa1:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "result_work_area_hash": "wa1:sha256:9999999999999999999999999999999999999999999999999999999999999999",
+      "materialized_manifest_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "overlay_journal_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "changed_path_entries": [
+        "specs/work-area-content-hash-contract.json"
+      ],
+      "reverse_roundtrip_evidence_ref": "evidence:fixture:VMAT-GOOD-three-entry-roundtrip",
+      "handoff_stage": "GATE"
+    }
+  },
+  "acceptance_fixtures": [
+    {
+      "fixture_id": "VMAT-GOOD-three-entry-roundtrip",
+      "expected_verdict": "GREEN",
+      "description": "A three-entry WorkAreaTree fixture maps to materialized path entries, records one accepted write and one generated-output refusal, then emits a new result_work_area_hash with roundtrip evidence."
+    },
+    {
+      "fixture_id": "VMAT-GOOD-untouched-view-preserves-hash",
+      "expected_verdict": "GREEN",
+      "description": "A read-only snapshot or writable overlay with no journal entries round-trips to the exact base_work_area_hash."
+    },
+    {
+      "fixture_id": "VMAT-BAD-host-metadata-input",
+      "expected_verdict": "RED",
+      "description": "Any materialization frame that includes absolute path, mtime, ctime, atime, username, pid, branch name, or untracked file content violates VMAT-REV-003."
+    },
+    {
+      "fixture_id": "VMAT-BAD-missing-reverse-mapping",
+      "expected_verdict": "RED",
+      "description": "A materialized path entry without reverse_mapping_ref cannot be reversed into a WorkAreaTree node/tombstone and violates VMAT-REV-001."
+    },
+    {
+      "fixture_id": "VMAT-BAD-generated-json-hand-edit",
+      "expected_verdict": "RED",
+      "description": "A direct write to a generated JSON materialized entry without a regeneration control-plane authorization violates VMAT-REV-004."
+    }
+  ],
+  "implementation_slices": [
+    {
+      "slice_id": "VMAT-IMPL-001-kernel-traits",
+      "status": "future-card-needed",
+      "description": "Add a std-only oya-bespoke-scm-virtual-materialization-kernel crate with input/output records, entry validation, and overlay journal traits; no runtime mount."
+    },
+    {
+      "slice_id": "VMAT-IMPL-002-fixture-validator",
+      "status": "future-card-needed",
+      "description": "Promote these RED/GREEN fixtures into a Rust cloud-ci gate or source-only Python checker until the Rust gate lands."
+    },
+    {
+      "slice_id": "VMAT-IMPL-003-bridge-adapter",
+      "status": "future-card-needed",
+      "description": "Implement a bridge adapter that projects a Git checkout/scm-facts snapshot into the same records for parity testing only; it must not become destination SCM authority."
+    },
+    {
+      "slice_id": "VMAT-IMPL-004-native-runtime",
+      "status": "cutover-gated-future",
+      "description": "Implement native virtual filesystem/materialization runtime after W2 parser, object-store, lease, and native SCM storage prerequisites are ready behind their stable interfaces."
+    }
+  ],
+  "verification_commands": [
+    "python3 -m json.tool specs/bespoke-scm-virtual-materialization-plan.json >/dev/null",
+    "python3 -m json.tool specs/root-hub-pointers.json >/dev/null",
+    "python3 -m json.tool registry/artifact-capabilities-registry.json >/dev/null",
+    "inline Python structural assertions: 7 deterministic steps, 5 reversibility invariants, 5 acceptance fixtures, required root-hub pointer, and artifact registry row"
+  ]
+}

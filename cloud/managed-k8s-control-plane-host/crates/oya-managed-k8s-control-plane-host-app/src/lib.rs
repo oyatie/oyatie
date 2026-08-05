@@ -13,7 +13,7 @@
 //!                                          ┌─────────┴──────────┐
 //!                                  in-memory fake         kube-rs CAPI adapter
 //!                                  (dev / test)           (mgmt cluster; live
-//!                                                          reconcile deferred)
+//!                                                          Kamaji dynamic API)
 //! ```
 //!
 //! ## Operational boundary (ADR-0376)
@@ -49,7 +49,9 @@ use oya_managed_k8s_control_plane_host_api::{
 };
 use oya_managed_k8s_control_plane_host_kernel::{ControlPlaneTier, DatastoreClass};
 
-pub use oya_managed_k8s_control_plane_host_adapter_capi::CapiControlPlaneHost;
+pub use oya_managed_k8s_control_plane_host_adapter_capi::{
+    CapiControlPlaneHost, LiveProvisioningPolicy,
+};
 
 // =====================================================================
 // App state
@@ -116,6 +118,9 @@ impl std::error::Error for BootError {}
 
 /// The env var carrying the management-cluster kubeconfig path.
 pub const MGMT_KUBECONFIG_ENV: &str = "OYA_MGMT_KUBECONFIG";
+/// Rollback switch for live provisioning. False/disabled blocks new live
+/// provisions while preserving status/teardown for existing objects.
+pub const LIVE_PROVISIONING_ENV: &str = "OYA_MK8S_CONTROL_PLANE_HOST_LIVE_PROVISIONING";
 
 // =====================================================================
 // API DTOs
@@ -211,9 +216,9 @@ async fn healthz_handler() -> impl IntoResponse {
     (StatusCode::OK, "ok")
 }
 
-/// Map a [`ProvisioningError`] to an HTTP status + JSON envelope. The deferred
-/// Kamaji boundary maps to 501 Not Implemented (honest — the caller sees the
-/// gap), malformed input to 400, not-found to 404, backend to 502.
+/// Map a [`ProvisioningError`] to an HTTP status + JSON envelope. Malformed
+/// input maps to 400, not-found to 404, backend to 502, and any explicit
+/// adapter deferral to 501.
 fn error_response(error: &ProvisioningError) -> (StatusCode, axum::Json<serde_json::Value>) {
     let (code, kind) = match error {
         ProvisioningError::InvalidClusterRef { .. } => {
@@ -338,7 +343,7 @@ pub fn build_state_in_memory() -> AppState {
 }
 
 /// Build [`AppState`] backed by the kube-rs CAPI adapter against the management
-/// cluster. The live reconcile is honest-deferred inside the adapter.
+/// cluster.
 #[must_use]
 pub fn build_state_capi(host: CapiControlPlaneHost) -> AppState {
     AppState::new(Arc::new(host))
@@ -383,6 +388,23 @@ pub fn mgmt_kubeconfig_path_from_env() -> Result<String, BootError> {
     }
 }
 
+/// Parse the live-provisioning rollback switch value.
+#[must_use]
+pub fn live_provisioning_policy_from_value(value: Option<&str>) -> LiveProvisioningPolicy {
+    match value.map(str::trim).map(str::to_ascii_lowercase).as_deref() {
+        Some("0" | "false" | "off" | "disabled" | "disable") => {
+            LiveProvisioningPolicy::new_provisions_disabled()
+        }
+        _ => LiveProvisioningPolicy::new_provisions_enabled(),
+    }
+}
+
+/// Resolve the live-provisioning rollback switch from the environment.
+#[must_use]
+pub fn live_provisioning_policy_from_env() -> LiveProvisioningPolicy {
+    live_provisioning_policy_from_value(std::env::var(LIVE_PROVISIONING_ENV).ok().as_deref())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -406,6 +428,19 @@ mod tests {
         // rename is a conscious, reviewed change (the deploy manifest depends
         // on it).
         assert_eq!(MGMT_KUBECONFIG_ENV, "OYA_MGMT_KUBECONFIG");
+    }
+
+    #[test]
+    fn live_provisioning_policy_env_value_is_rollback_switch() {
+        assert_eq!(
+            LIVE_PROVISIONING_ENV,
+            "OYA_MK8S_CONTROL_PLANE_HOST_LIVE_PROVISIONING"
+        );
+        assert!(live_provisioning_policy_from_value(None).allows_new_provisioning());
+        assert!(live_provisioning_policy_from_value(Some("true")).allows_new_provisioning());
+        let disabled = live_provisioning_policy_from_value(Some("disabled"));
+        assert!(!disabled.allows_new_provisioning());
+        assert!(disabled.allows_status_and_teardown());
     }
 
     #[tokio::test]

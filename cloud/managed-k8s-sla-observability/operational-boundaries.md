@@ -1,19 +1,30 @@
-# Managed K8s Tenant Quota — Operational Boundaries
+# Managed K8s SLA Observability — Operational Boundaries
 
 ## Capacity Model
 
-- `evaluate()` is O(1); sub-microsecond on the lifecycle hot path.
-- In-memory store: suitable for single-node bring-up only.
-- Production: Postgres-backed adapter (follow-on wave).
+- Deterministic summary math runs in the pure kernel over normalized snapshots;
+  the kernel has no clock, network, Kubernetes, Prometheus, or HTTP dependency.
+- The in-memory adapter is suitable for local/dev verification of the port and
+  summary contract only. It is not measured production SLO evidence.
+- Live collectors must normalize observations into `ControlPlaneSlaSnapshot`
+  before calling `SlaObservabilityPort::ingest_status_snapshot`; concrete
+  Kubernetes/Prometheus adapters remain follow-on work behind that port.
 
 ## Incident Response
 
-- On store failure: return `QuotaPortError::Persistence`; cluster-lifecycle
-  treats this as deny (fail-closed).
-- On Cedar boot failure: service exits non-zero; orchestrator restarts.
-- On quota not found: HTTP 404; caller must set quota first.
+- Missing or stale samples are unavailable/no-data for SLA evidence unless a
+  reviewed follow-on contract says otherwise; they never count as healthy.
+- If control-plane status and live scrape evidence disagree, the lower-claim,
+  higher-risk state wins for alerting and rollout/rollback hold decisions.
+- Unknown tenant or cluster reads return typed missing-cluster/read-denial
+  outcomes rather than guessed summaries.
+- Broad observability trace/OTLP outages prevent live-evidence claims but do not
+  invalidate deterministic local summary tests.
 
-## Multi-region
+## Multi-region and Cells
 
-- In-memory store is not replicated. Production Postgres adapter should use
-  per-cell Postgres (ADR-0339 shared IaC module library).
+- Observation windows, collection time, freshness deadline, collector identity,
+  region, and cell must be carried with live evidence records.
+- Tenant-zero/dogfood is an ordinary tenant value; there is no internal bypass.
+- Regional or cell-level rollups must be derived from tenant-scoped cluster
+  summaries and must not expose another tenant's evidence.

@@ -40,6 +40,23 @@ pub struct SupplyChainEvidence {
     pub admission_policy_wired: bool,          // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SupplyChainDependencyRecord {
+    pub subject: String,                // data_class: INTERNAL_ONLY
+    pub dependency: String,             // data_class: INTERNAL_ONLY
+    pub license: String,                // data_class: INTERNAL_ONLY
+    pub license_tier: String,           // data_class: INTERNAL_ONLY
+    pub maturity: String,               // data_class: INTERNAL_ONLY
+    pub isolation: String,              // data_class: INTERNAL_ONLY
+    pub replacement_plan: String,       // data_class: INTERNAL_ONLY
+    pub owning_team: String,            // data_class: INTERNAL_ONLY
+    pub sbom_spdx_ref: String,          // data_class: INTERNAL_ONLY
+    pub sbom_cyclonedx_ref: String,     // data_class: INTERNAL_ONLY
+    pub cosign_attestation_ref: String, // data_class: INTERNAL_ONLY
+    pub trivy_scan_ref: String,         // data_class: INTERNAL_ONLY
+    pub signed_commit_ref: String,      // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SupplyChainReport {
     pub records_checked: usize,     // data_class: INTERNAL_ONLY
@@ -79,6 +96,218 @@ pub struct ReleaseSupplyChainReport {
     pub evidence_records_checked: usize, // data_class: INTERNAL_ONLY
 }
 
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum ImagePromotionTier {
+    Dev,
+    Staging,
+    Prod,
+}
+
+impl ImagePromotionTier {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Dev => "dev",
+            Self::Staging => "staging",
+            Self::Prod => "prod",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ImagePromotionVerifier {
+    Kubewarden,
+    Kyverno,
+}
+
+impl ImagePromotionVerifier {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Kubewarden => "kubewarden",
+            Self::Kyverno => "kyverno",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ImagePromotionRecord {
+    pub artifact_ref: String,               // data_class: INTERNAL_ONLY
+    pub artifact_digest: String,            // data_class: INTERNAL_ONLY
+    pub tier: ImagePromotionTier,           // data_class: INTERNAL_ONLY
+    pub cosign_identity: String,            // data_class: INTERNAL_ONLY
+    pub verifier: ImagePromotionVerifier,   // data_class: INTERNAL_ONLY
+    pub verifier_ref: String,               // data_class: INTERNAL_ONLY
+    pub provenance_attestation_ref: String, // data_class: INTERNAL_ONLY
+    pub runner_kill_switch_ref: String,     // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,           // data_class: INTERNAL_ONLY
+    pub signed: bool,                       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ImagePromotionReport {
+    pub artifacts_checked: usize,           // data_class: INTERNAL_ONLY
+    pub promotion_records_checked: usize,   // data_class: INTERNAL_ONLY
+    pub kubewarden_verifier_records: usize, // data_class: INTERNAL_ONLY
+    pub kyverno_verifier_records: usize,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VulnerabilityProductSurface {
+    CloudNativeApi,
+    ScannerCli,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VulnerabilityAdvisoryFeed {
+    CveNvd,
+    Osv,
+    RustSec,
+    GitHubAdvisories,
+    VendorAdvisories,
+}
+
+impl VulnerabilityAdvisoryFeed {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::CveNvd => "cve-nvd",
+            Self::Osv => "osv",
+            Self::RustSec => "rustsec",
+            Self::GitHubAdvisories => "github-advisories",
+            Self::VendorAdvisories => "vendor-advisories",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum SbomFormat {
+    Spdx,
+    CycloneDx,
+}
+
+impl SbomFormat {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Spdx => "spdx",
+            Self::CycloneDx => "cyclonedx",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VexStatus {
+    Affected,
+    NotAffected,
+    Fixed,
+    UnderInvestigation,
+}
+
+impl VexStatus {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Affected => "affected",
+            Self::NotAffected => "not_affected",
+            Self::Fixed => "fixed",
+            Self::UnderInvestigation => "under_investigation",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum VulnerabilityPrioritySignal {
+    CisaKev,
+    Epss,
+    Cvss,
+    Ssvc,
+}
+
+impl VulnerabilityPrioritySignal {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::CisaKev => "cisa-kev",
+            Self::Epss => "epss",
+            Self::Cvss => "cvss",
+            Self::Ssvc => "ssvc",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum RemediationSlaClass {
+    KevOrActivelyExploited,
+    Critical,
+    High,
+    Medium,
+}
+
+impl RemediationSlaClass {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::KevOrActivelyExploited => "kev_or_actively_exploited",
+            Self::Critical => "critical",
+            Self::High => "high",
+            Self::Medium => "medium",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RemediationSla {
+    pub class: RemediationSlaClass, // data_class: INTERNAL_ONLY
+    pub max_days: u32,              // data_class: INTERNAL_ONLY
+    pub deployment_blocking: bool,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityExceptionPolicy {
+    pub max_ttl_days: u32,                // data_class: INTERNAL_ONLY
+    pub requires_owner: bool,             // data_class: INTERNAL_ONLY
+    pub requires_expiry: bool,            // data_class: INTERNAL_ONLY
+    pub requires_vex_justification: bool, // data_class: INTERNAL_ONLY
+    pub requires_audit_event: bool,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityAuditEvidencePolicy {
+    pub advisory_snapshot_signed: bool, // data_class: INTERNAL_ONLY
+    pub sbom_artifacts_signed: bool,    // data_class: INTERNAL_ONLY
+    pub vex_artifacts_signed: bool,     // data_class: INTERNAL_ONLY
+    pub audit_event_type: String,       // data_class: INTERNAL_ONLY
+    pub retention_days: u32,            // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityAdmissionPolicy {
+    pub block_missing_or_unsigned_sbom: bool, // data_class: INTERNAL_ONLY
+    pub block_missing_vex: bool,              // data_class: INTERNAL_ONLY
+    pub block_expired_exception: bool,        // data_class: INTERNAL_ONLY
+    pub block_kev_or_exploited: bool,         // data_class: INTERNAL_ONLY
+    pub block_fix_available_past_sla: bool,   // data_class: INTERNAL_ONLY
+    pub block_unknown_component_match: bool,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VulnerabilityIntelligenceContract {
+    pub lane_id: String,                                // data_class: INTERNAL_ONLY
+    pub canonical_surface: VulnerabilityProductSurface, // data_class: INTERNAL_ONLY
+    pub advisory_feeds: Vec<VulnerabilityAdvisoryFeed>, // data_class: INTERNAL_ONLY
+    pub sbom_formats: Vec<SbomFormat>,                  // data_class: INTERNAL_ONLY
+    pub vex_statuses: Vec<VexStatus>,                   // data_class: INTERNAL_ONLY
+    pub priority_signals: Vec<VulnerabilityPrioritySignal>, // data_class: INTERNAL_ONLY
+    pub remediation_slas: Vec<RemediationSla>,          // data_class: INTERNAL_ONLY
+    pub exception_policy: VulnerabilityExceptionPolicy, // data_class: INTERNAL_ONLY
+    pub audit_evidence: VulnerabilityAuditEvidencePolicy, // data_class: INTERNAL_ONLY
+    pub admission_policy: VulnerabilityAdmissionPolicy, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct VulnerabilityIntelligenceReport {
+    pub feeds_checked: usize,            // data_class: INTERNAL_ONLY
+    pub sbom_formats_checked: usize,     // data_class: INTERNAL_ONLY
+    pub vex_statuses_checked: usize,     // data_class: INTERNAL_ONLY
+    pub priority_signals_checked: usize, // data_class: INTERNAL_ONLY
+    pub remediation_slas_checked: usize, // data_class: INTERNAL_ONLY
+    pub admission_blocks_checked: usize, // data_class: INTERNAL_ONLY
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SupplyChainError {
     NoCatalogRecords,
@@ -100,6 +329,35 @@ pub enum SupplyChainError {
     },
     ReleaseManifestWithoutAdr0039Evidence {
         missing_evidence: &'static str,
+    },
+    MissingDependencyLedgerEvidence {
+        dependency: String,
+        missing_evidence: &'static str,
+    },
+    MissingDependencyLedgerField {
+        subject: String,
+        dependency: String,
+        field: &'static str,
+    },
+    InvalidDependencyLicenseTier {
+        subject: String,
+        dependency: String,
+        license_tier: String,
+    },
+    InvalidDependencyLicense {
+        subject: String,
+        dependency: String,
+        license: String,
+    },
+    InvalidDependencyMaturity {
+        subject: String,
+        dependency: String,
+        maturity: String,
+    },
+    InvalidDependencyEvidenceRef {
+        subject: String,
+        dependency: String,
+        field: &'static str,
     },
 }
 
@@ -166,12 +424,334 @@ pub enum ReleaseSupplyChainError {
     },
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ImagePromotionError {
+    NoPromotionRecords,
+    MissingField {
+        artifact_ref: String,
+        field: &'static str,
+    },
+    InvalidArtifactRef {
+        artifact_ref: String,
+    },
+    InvalidDigest {
+        artifact_ref: String,
+    },
+    DigestNotPinnedInArtifactRef {
+        artifact_ref: String,
+        artifact_digest: String,
+    },
+    TierTagMismatch {
+        artifact_ref: String,
+        tier: ImagePromotionTier,
+    },
+    DuplicateTierPromotion {
+        artifact_digest: String,
+        tier: ImagePromotionTier,
+    },
+    MissingTierPromotion {
+        artifact_digest: String,
+        tier: ImagePromotionTier,
+    },
+    MissingDefaultVerifier {
+        artifact_digest: String,
+    },
+    InvalidCosignIdentity {
+        artifact_ref: String,
+        tier: ImagePromotionTier,
+        cosign_identity: String,
+    },
+    InvalidVerifierRef {
+        artifact_ref: String,
+        verifier: ImagePromotionVerifier,
+        verifier_ref: String,
+    },
+    InvalidProvenanceRef {
+        artifact_ref: String,
+    },
+    InvalidRunnerKillSwitchRef {
+        artifact_ref: String,
+    },
+    UnsignedPromotion {
+        artifact_ref: String,
+    },
+    InvalidAuditEventType {
+        artifact_ref: String,
+        audit_event_type: String,
+    },
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum VulnerabilityIntelligenceError {
+    InvalidLaneId {
+        lane_id: String,
+    },
+    ScannerCliDeclaredAsCanonicalSurface,
+    MissingAdvisoryFeed {
+        feed: &'static str,
+    },
+    MissingSbomFormat {
+        format: &'static str,
+    },
+    MissingVexStatus {
+        status: &'static str,
+    },
+    MissingPrioritySignal {
+        signal: &'static str,
+    },
+    MissingRemediationSla {
+        class: &'static str,
+    },
+    RemediationSlaTooLoose {
+        class: &'static str,
+        max_days: u32,
+        allowed_days: u32,
+    },
+    SlaMustBlockDeployment {
+        class: &'static str,
+    },
+    ExceptionPolicyMissingOwner,
+    ExceptionPolicyMissingExpiry,
+    ExceptionPolicyMissingVexJustification,
+    ExceptionPolicyMissingAuditEvent,
+    ExceptionTtlTooLong {
+        max_ttl_days: u32,
+        allowed_days: u32,
+    },
+    MissingSignedAuditEvidence {
+        field: &'static str,
+    },
+    InvalidVulnerabilityAuditEvent {
+        audit_event_type: String,
+    },
+    AuditRetentionTooShort {
+        retention_days: u32,
+        required_days: u32,
+    },
+    MissingAdmissionBlock {
+        block: &'static str,
+    },
+}
+
+pub const VULNERABILITY_INTELLIGENCE_LANE_ID: &str = "security-pipeline/vulnerability-intelligence";
+pub const VULNERABILITY_DECISION_AUDIT_EVENT: &str =
+    "oya.audit.vulnerability_intelligence_decision";
+const VULNERABILITY_MIN_AUDIT_RETENTION_DAYS: u32 = 2_555;
+const VULNERABILITY_EXCEPTION_MAX_TTL_DAYS: u32 = 30;
+
+pub fn validate_vulnerability_intelligence_contract(
+    contract: &VulnerabilityIntelligenceContract,
+) -> Result<VulnerabilityIntelligenceReport, VulnerabilityIntelligenceError> {
+    if contract.lane_id.trim() != VULNERABILITY_INTELLIGENCE_LANE_ID {
+        return Err(VulnerabilityIntelligenceError::InvalidLaneId {
+            lane_id: contract.lane_id.clone(),
+        });
+    }
+    if contract.canonical_surface == VulnerabilityProductSurface::ScannerCli {
+        return Err(VulnerabilityIntelligenceError::ScannerCliDeclaredAsCanonicalSurface);
+    }
+
+    for feed in [
+        VulnerabilityAdvisoryFeed::CveNvd,
+        VulnerabilityAdvisoryFeed::Osv,
+        VulnerabilityAdvisoryFeed::RustSec,
+        VulnerabilityAdvisoryFeed::GitHubAdvisories,
+        VulnerabilityAdvisoryFeed::VendorAdvisories,
+    ] {
+        if !contract.advisory_feeds.contains(&feed) {
+            return Err(VulnerabilityIntelligenceError::MissingAdvisoryFeed { feed: feed.name() });
+        }
+    }
+
+    for format in [SbomFormat::Spdx, SbomFormat::CycloneDx] {
+        if !contract.sbom_formats.contains(&format) {
+            return Err(VulnerabilityIntelligenceError::MissingSbomFormat {
+                format: format.name(),
+            });
+        }
+    }
+
+    for status in [
+        VexStatus::Affected,
+        VexStatus::NotAffected,
+        VexStatus::Fixed,
+        VexStatus::UnderInvestigation,
+    ] {
+        if !contract.vex_statuses.contains(&status) {
+            return Err(VulnerabilityIntelligenceError::MissingVexStatus {
+                status: status.name(),
+            });
+        }
+    }
+
+    for signal in [
+        VulnerabilityPrioritySignal::CisaKev,
+        VulnerabilityPrioritySignal::Epss,
+        VulnerabilityPrioritySignal::Cvss,
+        VulnerabilityPrioritySignal::Ssvc,
+    ] {
+        if !contract.priority_signals.contains(&signal) {
+            return Err(VulnerabilityIntelligenceError::MissingPrioritySignal {
+                signal: signal.name(),
+            });
+        }
+    }
+
+    for (class, allowed_days, must_block) in [
+        (RemediationSlaClass::KevOrActivelyExploited, 7, true),
+        (RemediationSlaClass::Critical, 7, true),
+        (RemediationSlaClass::High, 14, true),
+        (RemediationSlaClass::Medium, 30, false),
+    ] {
+        validate_remediation_sla(&contract.remediation_slas, class, allowed_days, must_block)?;
+    }
+
+    validate_vulnerability_exception_policy(&contract.exception_policy)?;
+    validate_vulnerability_audit_evidence(&contract.audit_evidence)?;
+    let admission_blocks_checked =
+        validate_vulnerability_admission_policy(&contract.admission_policy)?;
+
+    Ok(VulnerabilityIntelligenceReport {
+        feeds_checked: contract.advisory_feeds.len(),
+        sbom_formats_checked: contract.sbom_formats.len(),
+        vex_statuses_checked: contract.vex_statuses.len(),
+        priority_signals_checked: contract.priority_signals.len(),
+        remediation_slas_checked: contract.remediation_slas.len(),
+        admission_blocks_checked,
+    })
+}
+
+fn validate_remediation_sla(
+    slas: &[RemediationSla],
+    class: RemediationSlaClass,
+    allowed_days: u32,
+    must_block: bool,
+) -> Result<(), VulnerabilityIntelligenceError> {
+    let Some(sla) = slas.iter().find(|sla| sla.class == class) else {
+        return Err(VulnerabilityIntelligenceError::MissingRemediationSla {
+            class: class.name(),
+        });
+    };
+    if sla.max_days == 0 || sla.max_days > allowed_days {
+        return Err(VulnerabilityIntelligenceError::RemediationSlaTooLoose {
+            class: class.name(),
+            max_days: sla.max_days,
+            allowed_days,
+        });
+    }
+    if must_block && !sla.deployment_blocking {
+        return Err(VulnerabilityIntelligenceError::SlaMustBlockDeployment {
+            class: class.name(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_vulnerability_exception_policy(
+    policy: &VulnerabilityExceptionPolicy,
+) -> Result<(), VulnerabilityIntelligenceError> {
+    if !policy.requires_owner {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingOwner);
+    }
+    if !policy.requires_expiry {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingExpiry);
+    }
+    if !policy.requires_vex_justification {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingVexJustification);
+    }
+    if !policy.requires_audit_event {
+        return Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingAuditEvent);
+    }
+    if policy.max_ttl_days == 0 || policy.max_ttl_days > VULNERABILITY_EXCEPTION_MAX_TTL_DAYS {
+        return Err(VulnerabilityIntelligenceError::ExceptionTtlTooLong {
+            max_ttl_days: policy.max_ttl_days,
+            allowed_days: VULNERABILITY_EXCEPTION_MAX_TTL_DAYS,
+        });
+    }
+    Ok(())
+}
+
+fn validate_vulnerability_audit_evidence(
+    evidence: &VulnerabilityAuditEvidencePolicy,
+) -> Result<(), VulnerabilityIntelligenceError> {
+    for (present, field) in [
+        (
+            evidence.advisory_snapshot_signed,
+            "advisory_snapshot_signed",
+        ),
+        (evidence.sbom_artifacts_signed, "sbom_artifacts_signed"),
+        (evidence.vex_artifacts_signed, "vex_artifacts_signed"),
+    ] {
+        if !present {
+            return Err(VulnerabilityIntelligenceError::MissingSignedAuditEvidence { field });
+        }
+    }
+    if evidence.audit_event_type != VULNERABILITY_DECISION_AUDIT_EVENT {
+        return Err(
+            VulnerabilityIntelligenceError::InvalidVulnerabilityAuditEvent {
+                audit_event_type: evidence.audit_event_type.clone(),
+            },
+        );
+    }
+    if evidence.retention_days < VULNERABILITY_MIN_AUDIT_RETENTION_DAYS {
+        return Err(VulnerabilityIntelligenceError::AuditRetentionTooShort {
+            retention_days: evidence.retention_days,
+            required_days: VULNERABILITY_MIN_AUDIT_RETENTION_DAYS,
+        });
+    }
+    Ok(())
+}
+
+fn validate_vulnerability_admission_policy(
+    policy: &VulnerabilityAdmissionPolicy,
+) -> Result<usize, VulnerabilityIntelligenceError> {
+    let blocks = [
+        (
+            policy.block_missing_or_unsigned_sbom,
+            "missing_or_unsigned_sbom",
+        ),
+        (policy.block_missing_vex, "missing_vex"),
+        (policy.block_expired_exception, "expired_exception"),
+        (policy.block_kev_or_exploited, "kev_or_exploited"),
+        (
+            policy.block_fix_available_past_sla,
+            "fix_available_past_sla",
+        ),
+        (
+            policy.block_unknown_component_match,
+            "unknown_component_match",
+        ),
+    ];
+    for (present, block) in blocks {
+        if !present {
+            return Err(VulnerabilityIntelligenceError::MissingAdmissionBlock { block });
+        }
+    }
+    Ok(blocks.len())
+}
+
 pub fn validate_supply_chain<R>(
     records: R,
     evidence: SupplyChainEvidence,
 ) -> Result<SupplyChainReport, SupplyChainError>
 where
     R: IntoIterator<Item = SupplyChainRecord>,
+{
+    validate_supply_chain_with_dependency_ledger(
+        records,
+        Vec::<SupplyChainDependencyRecord>::new(),
+        evidence,
+    )
+}
+
+pub fn validate_supply_chain_with_dependency_ledger<R, D>(
+    records: R,
+    dependency_records: D,
+    evidence: SupplyChainEvidence,
+) -> Result<SupplyChainReport, SupplyChainError>
+where
+    R: IntoIterator<Item = SupplyChainRecord>,
+    D: IntoIterator<Item = SupplyChainDependencyRecord>,
 {
     if !evidence.deny_config_present {
         return Err(SupplyChainError::MissingDenyConfig);
@@ -254,6 +834,8 @@ where
             }
         }
     }
+
+    validate_dependency_ledger(dependency_records, evidence)?;
 
     if records_checked == 0 {
         Err(SupplyChainError::NoCatalogRecords)
@@ -341,6 +923,216 @@ where
     }
 
     validate_release_supply_chain_maps(artifacts, evidence)
+}
+
+pub fn validate_image_promotion_pipeline<P>(
+    promotion_records: P,
+) -> Result<ImagePromotionReport, ImagePromotionError>
+where
+    P: IntoIterator<Item = ImagePromotionRecord>,
+{
+    let mut records_by_digest =
+        BTreeMap::<String, BTreeMap<ImagePromotionTier, ImagePromotionRecord>>::new();
+    let mut promotion_records_checked = 0usize;
+    let mut kubewarden_verifier_records = 0usize;
+    let mut kyverno_verifier_records = 0usize;
+
+    for record in promotion_records {
+        validate_image_promotion_record(&record)?;
+        promotion_records_checked += 1;
+        match record.verifier {
+            ImagePromotionVerifier::Kubewarden => kubewarden_verifier_records += 1,
+            ImagePromotionVerifier::Kyverno => kyverno_verifier_records += 1,
+        }
+
+        let tier_records = records_by_digest
+            .entry(record.artifact_digest.clone())
+            .or_default();
+        if tier_records.contains_key(&record.tier) {
+            return Err(ImagePromotionError::DuplicateTierPromotion {
+                artifact_digest: record.artifact_digest,
+                tier: record.tier,
+            });
+        }
+        tier_records.insert(record.tier, record);
+    }
+
+    if promotion_records_checked == 0 {
+        return Err(ImagePromotionError::NoPromotionRecords);
+    }
+
+    for (artifact_digest, tier_records) in &records_by_digest {
+        for tier in [
+            ImagePromotionTier::Dev,
+            ImagePromotionTier::Staging,
+            ImagePromotionTier::Prod,
+        ] {
+            if !tier_records.contains_key(&tier) {
+                return Err(ImagePromotionError::MissingTierPromotion {
+                    artifact_digest: artifact_digest.clone(),
+                    tier,
+                });
+            }
+        }
+        if !tier_records
+            .values()
+            .any(|record| record.verifier == ImagePromotionVerifier::Kubewarden)
+        {
+            return Err(ImagePromotionError::MissingDefaultVerifier {
+                artifact_digest: artifact_digest.clone(),
+            });
+        }
+    }
+
+    Ok(ImagePromotionReport {
+        artifacts_checked: records_by_digest.len(),
+        promotion_records_checked,
+        kubewarden_verifier_records,
+        kyverno_verifier_records,
+    })
+}
+
+fn validate_image_promotion_record(
+    record: &ImagePromotionRecord,
+) -> Result<(), ImagePromotionError> {
+    let artifact_ref =
+        required_image_promotion_field(record, &record.artifact_ref, "artifact_ref")?;
+    let artifact_digest =
+        required_image_promotion_field(record, &record.artifact_digest, "artifact_digest")?;
+    if !artifact_ref.contains('@') || !artifact_ref.contains("sha256:") {
+        return Err(ImagePromotionError::InvalidArtifactRef {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+    if !is_sha256_digest(artifact_digest) {
+        return Err(ImagePromotionError::InvalidDigest {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+    if !artifact_ref.contains(artifact_digest) {
+        return Err(ImagePromotionError::DigestNotPinnedInArtifactRef {
+            artifact_ref: record.artifact_ref.clone(),
+            artifact_digest: record.artifact_digest.clone(),
+        });
+    }
+    if !artifact_ref_matches_tier(artifact_ref, record.tier) {
+        return Err(ImagePromotionError::TierTagMismatch {
+            artifact_ref: record.artifact_ref.clone(),
+            tier: record.tier,
+        });
+    }
+
+    let cosign_identity =
+        required_image_promotion_field(record, &record.cosign_identity, "cosign_identity")?;
+    if !cosign_identity_matches_tier(cosign_identity, record.tier) {
+        return Err(ImagePromotionError::InvalidCosignIdentity {
+            artifact_ref: record.artifact_ref.clone(),
+            tier: record.tier,
+            cosign_identity: record.cosign_identity.clone(),
+        });
+    }
+
+    let verifier_ref =
+        required_image_promotion_field(record, &record.verifier_ref, "verifier_ref")?;
+    if !verifier_ref_matches(verifier_ref, record.verifier) {
+        return Err(ImagePromotionError::InvalidVerifierRef {
+            artifact_ref: record.artifact_ref.clone(),
+            verifier: record.verifier,
+            verifier_ref: record.verifier_ref.clone(),
+        });
+    }
+
+    let provenance_attestation_ref = required_image_promotion_field(
+        record,
+        &record.provenance_attestation_ref,
+        "provenance_attestation_ref",
+    )?;
+    if !provenance_ref_valid(provenance_attestation_ref) {
+        return Err(ImagePromotionError::InvalidProvenanceRef {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+
+    let runner_kill_switch_ref = required_image_promotion_field(
+        record,
+        &record.runner_kill_switch_ref,
+        "runner_kill_switch_ref",
+    )?;
+    if !runner_kill_switch_ref_valid(runner_kill_switch_ref) {
+        return Err(ImagePromotionError::InvalidRunnerKillSwitchRef {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+
+    if !record.signed {
+        return Err(ImagePromotionError::UnsignedPromotion {
+            artifact_ref: record.artifact_ref.clone(),
+        });
+    }
+    if record.audit_event_type != "oya.audit.image_promotion" {
+        return Err(ImagePromotionError::InvalidAuditEventType {
+            artifact_ref: record.artifact_ref.clone(),
+            audit_event_type: record.audit_event_type.clone(),
+        });
+    }
+    Ok(())
+}
+
+fn required_image_promotion_field<'a>(
+    record: &ImagePromotionRecord,
+    value: &'a str,
+    field: &'static str,
+) -> Result<&'a str, ImagePromotionError> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        Err(ImagePromotionError::MissingField {
+            artifact_ref: record.artifact_ref.clone(),
+            field,
+        })
+    } else {
+        Ok(trimmed)
+    }
+}
+
+fn artifact_ref_matches_tier(artifact_ref: &str, tier: ImagePromotionTier) -> bool {
+    artifact_ref.contains(&format!("-{}@", tier.name()))
+}
+
+fn cosign_identity_matches_tier(identity: &str, tier: ImagePromotionTier) -> bool {
+    let lower = identity.to_ascii_lowercase();
+    let tier_matches = lower.contains(tier.name())
+        || matches!(tier, ImagePromotionTier::Prod) && lower.contains("production");
+    tier_matches
+        && [
+            "oidc",
+            "fulcio",
+            "token.actions.githubusercontent.com",
+            "spiffe://",
+        ]
+        .into_iter()
+        .any(|marker| lower.contains(marker))
+}
+
+fn verifier_ref_matches(verifier_ref: &str, verifier: ImagePromotionVerifier) -> bool {
+    let lower = verifier_ref.to_ascii_lowercase();
+    lower.contains(verifier.name())
+        && (lower.contains("signed-image")
+            || lower.contains("signed-images")
+            || lower.contains("verify-image"))
+}
+
+fn provenance_ref_valid(provenance_ref: &str) -> bool {
+    let lower = provenance_ref.to_ascii_lowercase();
+    lower.contains("provenance") && (lower.contains("intoto") || lower.contains("slsa"))
+}
+
+fn runner_kill_switch_ref_valid(kill_switch_ref: &str) -> bool {
+    let lower = kill_switch_ref.to_ascii_lowercase();
+    lower.contains("kill-switch")
+        && lower.ends_with(".cedar")
+        && (lower.contains("bootstrap-runner")
+            || lower.contains("bootstrap-trust-roots")
+            || lower.contains("stage-1-runner"))
 }
 
 fn release_artifact_map<A>(
@@ -589,6 +1381,181 @@ fn require_adr0039_evidence(evidence: SupplyChainEvidence) -> Result<(), SupplyC
     Ok(())
 }
 
+fn validate_dependency_ledger<D>(
+    dependency_records: D,
+    evidence: SupplyChainEvidence,
+) -> Result<(), SupplyChainError>
+where
+    D: IntoIterator<Item = SupplyChainDependencyRecord>,
+{
+    for record in dependency_records {
+        validate_dependency_record(&record, evidence)?;
+    }
+    Ok(())
+}
+
+fn validate_dependency_record(
+    record: &SupplyChainDependencyRecord,
+    evidence: SupplyChainEvidence,
+) -> Result<(), SupplyChainError> {
+    let dependency = required_dependency_field(record, &record.dependency, "dependency")?;
+    for (present, missing_evidence) in [
+        (evidence.sbom_spdx_wired, "sbom_spdx_wired"),
+        (evidence.sbom_cyclonedx_wired, "sbom_cyclonedx_wired"),
+        (
+            evidence.cosign_release_signing_wired,
+            "cosign_release_signing_wired",
+        ),
+        (
+            evidence.cosign_rekor_verification_wired,
+            "cosign_rekor_verification_wired",
+        ),
+        (
+            evidence.trivy_dependency_scan_wired,
+            "trivy_dependency_scan_wired",
+        ),
+        (
+            evidence.signed_commit_policy_wired,
+            "signed_commit_policy_wired",
+        ),
+    ] {
+        if !present {
+            return Err(SupplyChainError::MissingDependencyLedgerEvidence {
+                dependency: dependency.to_string(),
+                missing_evidence,
+            });
+        }
+    }
+
+    let license = required_dependency_field(record, &record.license, "license")?;
+    let license_tier = required_dependency_field(record, &record.license_tier, "license_tier")?;
+    if !matches!(license_tier, "tier1" | "allowed") {
+        return Err(SupplyChainError::InvalidDependencyLicenseTier {
+            subject: record.subject.clone(),
+            dependency: dependency.to_string(),
+            license_tier: license_tier.to_string(),
+        });
+    }
+    if !is_allowed_dependency_license(license) {
+        return Err(SupplyChainError::InvalidDependencyLicense {
+            subject: record.subject.clone(),
+            dependency: dependency.to_string(),
+            license: license.to_string(),
+        });
+    }
+
+    let maturity = required_dependency_field(record, &record.maturity, "maturity")?;
+    if !matches!(
+        maturity,
+        "production-ready" | "stable" | "beta" | "alpha" | "research"
+    ) {
+        return Err(SupplyChainError::InvalidDependencyMaturity {
+            subject: record.subject.clone(),
+            dependency: dependency.to_string(),
+            maturity: maturity.to_string(),
+        });
+    }
+    required_dependency_field(record, &record.isolation, "isolation")?;
+    required_dependency_field(record, &record.replacement_plan, "replacement_plan")?;
+    required_dependency_field(record, &record.owning_team, "owning_team")?;
+
+    let sbom_spdx_ref = required_dependency_field(record, &record.sbom_spdx_ref, "sbom_spdx_ref")?;
+    if !sbom_spdx_ref.ends_with(".spdx.json") {
+        return invalid_dependency_ref(record, dependency, "sbom_spdx_ref");
+    }
+    let sbom_cyclonedx_ref =
+        required_dependency_field(record, &record.sbom_cyclonedx_ref, "sbom_cyclonedx_ref")?;
+    if !sbom_cyclonedx_ref.ends_with(".cyclonedx.json") {
+        return invalid_dependency_ref(record, dependency, "sbom_cyclonedx_ref");
+    }
+    let cosign_attestation_ref = required_dependency_field(
+        record,
+        &record.cosign_attestation_ref,
+        "cosign_attestation_ref",
+    )?;
+    let cosign_attestation_ref_lower = cosign_attestation_ref.to_ascii_lowercase();
+    if !(cosign_attestation_ref_lower.contains("cosign")
+        || cosign_attestation_ref_lower.contains("rekor://"))
+    {
+        return invalid_dependency_ref(record, dependency, "cosign_attestation_ref");
+    }
+    let trivy_scan_ref =
+        required_dependency_field(record, &record.trivy_scan_ref, "trivy_scan_ref")?;
+    if !trivy_scan_ref.to_ascii_lowercase().contains("trivy") {
+        return invalid_dependency_ref(record, dependency, "trivy_scan_ref");
+    }
+    let signed_commit_ref =
+        required_dependency_field(record, &record.signed_commit_ref, "signed_commit_ref")?;
+    if !is_git_sha(signed_commit_ref) {
+        return invalid_dependency_ref(record, dependency, "signed_commit_ref");
+    }
+    Ok(())
+}
+
+fn required_dependency_field<'a>(
+    record: &SupplyChainDependencyRecord,
+    value: &'a str,
+    field: &'static str,
+) -> Result<&'a str, SupplyChainError> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        Err(SupplyChainError::MissingDependencyLedgerField {
+            subject: record.subject.clone(),
+            dependency: record.dependency.clone(),
+            field,
+        })
+    } else {
+        Ok(trimmed)
+    }
+}
+
+fn invalid_dependency_ref<T>(
+    record: &SupplyChainDependencyRecord,
+    dependency: &str,
+    field: &'static str,
+) -> Result<T, SupplyChainError> {
+    Err(SupplyChainError::InvalidDependencyEvidenceRef {
+        subject: record.subject.clone(),
+        dependency: dependency.to_string(),
+        field,
+    })
+}
+
+fn is_allowed_dependency_license(license: &str) -> bool {
+    let license = license.trim();
+    if license == "Apache-2.0 WITH LLVM-exception" {
+        return true;
+    }
+    let identifiers = license
+        .split(|character: char| character.is_whitespace() || matches!(character, '(' | ')' | '/'))
+        .filter(|token| !token.is_empty())
+        .filter(|token| !matches!(*token, "AND" | "OR" | "WITH"))
+        .collect::<Vec<_>>();
+    !identifiers.is_empty() && identifiers.into_iter().all(is_allowed_spdx_identifier)
+}
+
+fn is_allowed_spdx_identifier(identifier: &str) -> bool {
+    matches!(
+        identifier,
+        "Apache-2.0"
+            | "Apache-2.0 WITH LLVM-exception"
+            | "MIT"
+            | "MIT-0"
+            | "BSD-2-Clause"
+            | "BSD-3-Clause"
+            | "BSD-3-Clause-Clear"
+            | "ISC"
+            | "0BSD"
+            | "Unlicense"
+            | "CC0-1.0"
+            | "MPL-2.0"
+            | "Unicode-DFS-2016"
+            | "Unicode-3.0"
+            | "Zlib"
+            | "libpng-2.0"
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -692,6 +1659,218 @@ mod tests {
     }
 
     #[test]
+    fn accepts_dependency_ledger_record_with_license_build_vs_buy_and_adr0039_evidence() {
+        assert_eq!(
+            validate_supply_chain_with_dependency_ledger(
+                [record("oya-check-supply-chain", "source-only")],
+                [dependency_record("oya-check-supply-chain", "trivy")],
+                full_adr0039_evidence()
+            ),
+            Ok(SupplyChainReport {
+                records_checked: 1,
+                source_only_records: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn accepts_dependency_ledger_record_with_adr0013_apache_llvm_exception_license() {
+        let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+        dependency.license = "Apache-2.0 WITH LLVM-exception".into();
+
+        assert_eq!(
+            validate_supply_chain_with_dependency_ledger(
+                [record("oya-check-supply-chain", "source-only")],
+                [dependency],
+                full_adr0039_evidence()
+            ),
+            Ok(SupplyChainReport {
+                records_checked: 1,
+                source_only_records: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_dependency_ledger_record_without_required_build_vs_buy_metadata() {
+        for missing_field in [
+            "license",
+            "license_tier",
+            "maturity",
+            "isolation",
+            "replacement_plan",
+            "owning_team",
+        ] {
+            let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+            match missing_field {
+                "license" => dependency.license.clear(),
+                "license_tier" => dependency.license_tier.clear(),
+                "maturity" => dependency.maturity.clear(),
+                "isolation" => dependency.isolation.clear(),
+                "replacement_plan" => dependency.replacement_plan.clear(),
+                "owning_team" => dependency.owning_team.clear(),
+                _ => unreachable!("test field list is closed"),
+            }
+
+            assert_eq!(
+                validate_supply_chain_with_dependency_ledger(
+                    [record("oya-check-supply-chain", "source-only")],
+                    [dependency],
+                    full_adr0039_evidence()
+                ),
+                Err(SupplyChainError::MissingDependencyLedgerField {
+                    subject: "oya-check-supply-chain".into(),
+                    dependency: "trivy".into(),
+                    field: missing_field,
+                })
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_dependency_ledger_record_when_adr0039_checks_are_unwired() {
+        for missing_evidence in [
+            "sbom_spdx_wired",
+            "sbom_cyclonedx_wired",
+            "cosign_release_signing_wired",
+            "cosign_rekor_verification_wired",
+            "trivy_dependency_scan_wired",
+            "signed_commit_policy_wired",
+        ] {
+            let mut evidence = full_adr0039_evidence();
+            evidence.require_adr0039_evidence = false;
+            evidence.release_manifest_present = false;
+            match missing_evidence {
+                "sbom_spdx_wired" => evidence.sbom_spdx_wired = false,
+                "sbom_cyclonedx_wired" => evidence.sbom_cyclonedx_wired = false,
+                "cosign_release_signing_wired" => evidence.cosign_release_signing_wired = false,
+                "cosign_rekor_verification_wired" => {
+                    evidence.cosign_rekor_verification_wired = false
+                }
+                "trivy_dependency_scan_wired" => evidence.trivy_dependency_scan_wired = false,
+                "signed_commit_policy_wired" => evidence.signed_commit_policy_wired = false,
+                _ => unreachable!("test evidence list is closed"),
+            }
+
+            assert_eq!(
+                validate_supply_chain_with_dependency_ledger(
+                    [record("oya-check-supply-chain", "source-only")],
+                    [dependency_record("oya-check-supply-chain", "trivy")],
+                    evidence
+                ),
+                Err(SupplyChainError::MissingDependencyLedgerEvidence {
+                    dependency: "trivy".into(),
+                    missing_evidence,
+                })
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_dependency_ledger_record_without_dependency_name() {
+        let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+        dependency.dependency.clear();
+
+        assert_eq!(
+            validate_supply_chain_with_dependency_ledger(
+                [record("oya-check-supply-chain", "source-only")],
+                [dependency],
+                full_adr0039_evidence()
+            ),
+            Err(SupplyChainError::MissingDependencyLedgerField {
+                subject: "oya-check-supply-chain".into(),
+                dependency: "".into(),
+                field: "dependency",
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_dependency_ledger_record_with_invalid_license_or_maturity_policy() {
+        let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+        dependency.license_tier = "requires-review".into();
+        assert_eq!(
+            validate_supply_chain_with_dependency_ledger(
+                [record("oya-check-supply-chain", "source-only")],
+                [dependency],
+                full_adr0039_evidence()
+            ),
+            Err(SupplyChainError::InvalidDependencyLicenseTier {
+                subject: "oya-check-supply-chain".into(),
+                dependency: "trivy".into(),
+                license_tier: "requires-review".into(),
+            })
+        );
+
+        let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+        dependency.license = "GPL-3.0-only".into();
+        assert_eq!(
+            validate_supply_chain_with_dependency_ledger(
+                [record("oya-check-supply-chain", "source-only")],
+                [dependency],
+                full_adr0039_evidence()
+            ),
+            Err(SupplyChainError::InvalidDependencyLicense {
+                subject: "oya-check-supply-chain".into(),
+                dependency: "trivy".into(),
+                license: "GPL-3.0-only".into(),
+            })
+        );
+
+        let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+        dependency.maturity = "unvetted".into();
+        assert_eq!(
+            validate_supply_chain_with_dependency_ledger(
+                [record("oya-check-supply-chain", "source-only")],
+                [dependency],
+                full_adr0039_evidence()
+            ),
+            Err(SupplyChainError::InvalidDependencyMaturity {
+                subject: "oya-check-supply-chain".into(),
+                dependency: "trivy".into(),
+                maturity: "unvetted".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_dependency_ledger_record_with_invalid_adr0039_evidence_refs() {
+        for (field, bad_ref) in [
+            ("sbom_spdx_ref", "artifact://supply-chain/trivy.json"),
+            ("sbom_cyclonedx_ref", "artifact://supply-chain/trivy.json"),
+            (
+                "cosign_attestation_ref",
+                "artifact://supply-chain/trivy.intoto.jsonl",
+            ),
+            ("trivy_scan_ref", "artifact://supply-chain/license.sarif"),
+            ("signed_commit_ref", "not-a-signed-commit-sha"),
+        ] {
+            let mut dependency = dependency_record("oya-check-supply-chain", "trivy");
+            match field {
+                "sbom_spdx_ref" => dependency.sbom_spdx_ref = bad_ref.into(),
+                "sbom_cyclonedx_ref" => dependency.sbom_cyclonedx_ref = bad_ref.into(),
+                "cosign_attestation_ref" => dependency.cosign_attestation_ref = bad_ref.into(),
+                "trivy_scan_ref" => dependency.trivy_scan_ref = bad_ref.into(),
+                "signed_commit_ref" => dependency.signed_commit_ref = bad_ref.into(),
+                _ => unreachable!("test field list is closed"),
+            }
+
+            assert_eq!(
+                validate_supply_chain_with_dependency_ledger(
+                    [record("oya-check-supply-chain", "source-only")],
+                    [dependency],
+                    full_adr0039_evidence()
+                ),
+                Err(SupplyChainError::InvalidDependencyEvidenceRef {
+                    subject: "oya-check-supply-chain".into(),
+                    dependency: "trivy".into(),
+                    field,
+                })
+            );
+        }
+    }
+
+    #[test]
     fn accepts_full_adr0039_lane_with_explicit_pre_release_empty_scope() {
         assert_eq!(
             validate_supply_chain(
@@ -741,7 +1920,10 @@ mod tests {
         );
         assert_eq!(
             validate_supply_chain(
-                [record("oya-intelligence-capability-kernel", "signed-provenance")],
+                [record(
+                    "oya-intelligence-capability-kernel",
+                    "signed-provenance"
+                )],
                 SupplyChainEvidence {
                     sbom_dual_format_wired: true,
                     ..evidence()
@@ -770,6 +1952,70 @@ mod tests {
             Ok(ReleaseSupplyChainReport {
                 artifacts_checked: 1,
                 evidence_records_checked: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn accepts_signed_image_promotion_ladder() {
+        assert_eq!(
+            validate_image_promotion_pipeline([
+                image_promotion_record(ImagePromotionTier::Dev, ImagePromotionVerifier::Kubewarden),
+                image_promotion_record(
+                    ImagePromotionTier::Staging,
+                    ImagePromotionVerifier::Kubewarden,
+                ),
+                image_promotion_record(ImagePromotionTier::Prod, ImagePromotionVerifier::Kyverno),
+            ]),
+            Ok(ImagePromotionReport {
+                artifacts_checked: 1,
+                promotion_records_checked: 3,
+                kubewarden_verifier_records: 2,
+                kyverno_verifier_records: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_image_promotion_ladder_without_kubewarden_default_verifier() {
+        assert_eq!(
+            validate_image_promotion_pipeline([
+                image_promotion_record(ImagePromotionTier::Dev, ImagePromotionVerifier::Kyverno),
+                image_promotion_record(
+                    ImagePromotionTier::Staging,
+                    ImagePromotionVerifier::Kyverno,
+                ),
+                image_promotion_record(ImagePromotionTier::Prod, ImagePromotionVerifier::Kyverno),
+            ]),
+            Err(ImagePromotionError::MissingDefaultVerifier {
+                artifact_digest:
+                    "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_image_promotion_record_without_bootstrap_runner_cedar_kill_switch_fixture() {
+        let mut prod_record =
+            image_promotion_record(ImagePromotionTier::Prod, ImagePromotionVerifier::Kyverno);
+        prod_record.runner_kill_switch_ref =
+            "artifact://fixtures/generic-kill-switch.fixture".into();
+
+        assert_eq!(
+            validate_image_promotion_pipeline([
+                image_promotion_record(ImagePromotionTier::Dev, ImagePromotionVerifier::Kubewarden),
+                image_promotion_record(
+                    ImagePromotionTier::Staging,
+                    ImagePromotionVerifier::Kubewarden,
+                ),
+                prod_record,
+            ]),
+            Err(ImagePromotionError::InvalidRunnerKillSwitchRef {
+                artifact_ref: image_promotion_record(
+                    ImagePromotionTier::Prod,
+                    ImagePromotionVerifier::Kyverno,
+                )
+                .artifact_ref,
             })
         );
     }
@@ -914,10 +2160,196 @@ mod tests {
         );
     }
 
+    #[test]
+    fn accepts_vulnerability_intelligence_closed_loop_contract() {
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&vulnerability_contract()),
+            Ok(VulnerabilityIntelligenceReport {
+                feeds_checked: 5,
+                sbom_formats_checked: 2,
+                vex_statuses_checked: 4,
+                priority_signals_checked: 4,
+                remediation_slas_checked: 4,
+                admission_blocks_checked: 6,
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_scanner_cli_as_canonical_surface() {
+        let mut contract = vulnerability_contract();
+        contract.canonical_surface = VulnerabilityProductSurface::ScannerCli;
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::ScannerCliDeclaredAsCanonicalSurface)
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_missing_required_ingestion_feed() {
+        let mut contract = vulnerability_contract();
+        contract
+            .advisory_feeds
+            .retain(|feed| *feed != VulnerabilityAdvisoryFeed::RustSec);
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingAdvisoryFeed { feed: "rustsec" })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_without_complete_vex_and_priority_coverage() {
+        let mut contract = vulnerability_contract();
+        contract
+            .vex_statuses
+            .retain(|status| *status != VexStatus::UnderInvestigation);
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingVexStatus {
+                status: "under_investigation",
+            })
+        );
+
+        let mut contract = vulnerability_contract();
+        contract
+            .priority_signals
+            .retain(|signal| *signal != VulnerabilityPrioritySignal::Ssvc);
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingPrioritySignal { signal: "ssvc" })
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_loose_sla_and_open_ended_exceptions() {
+        let mut contract = vulnerability_contract();
+        contract.remediation_slas[0].max_days = 8;
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::RemediationSlaTooLoose {
+                class: "kev_or_actively_exploited",
+                max_days: 8,
+                allowed_days: 7,
+            })
+        );
+
+        let mut contract = vulnerability_contract();
+        contract.exception_policy.requires_expiry = false;
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::ExceptionPolicyMissingExpiry)
+        );
+    }
+
+    #[test]
+    fn rejects_vulnerability_intelligence_missing_deployment_block() {
+        let mut contract = vulnerability_contract();
+        contract.admission_policy.block_fix_available_past_sla = false;
+
+        assert_eq!(
+            validate_vulnerability_intelligence_contract(&contract),
+            Err(VulnerabilityIntelligenceError::MissingAdmissionBlock {
+                block: "fix_available_past_sla",
+            })
+        );
+    }
+
+    fn vulnerability_contract() -> VulnerabilityIntelligenceContract {
+        VulnerabilityIntelligenceContract {
+            lane_id: VULNERABILITY_INTELLIGENCE_LANE_ID.into(),
+            canonical_surface: VulnerabilityProductSurface::CloudNativeApi,
+            advisory_feeds: vec![
+                VulnerabilityAdvisoryFeed::CveNvd,
+                VulnerabilityAdvisoryFeed::Osv,
+                VulnerabilityAdvisoryFeed::RustSec,
+                VulnerabilityAdvisoryFeed::GitHubAdvisories,
+                VulnerabilityAdvisoryFeed::VendorAdvisories,
+            ],
+            sbom_formats: vec![SbomFormat::Spdx, SbomFormat::CycloneDx],
+            vex_statuses: vec![
+                VexStatus::Affected,
+                VexStatus::NotAffected,
+                VexStatus::Fixed,
+                VexStatus::UnderInvestigation,
+            ],
+            priority_signals: vec![
+                VulnerabilityPrioritySignal::CisaKev,
+                VulnerabilityPrioritySignal::Epss,
+                VulnerabilityPrioritySignal::Cvss,
+                VulnerabilityPrioritySignal::Ssvc,
+            ],
+            remediation_slas: vec![
+                RemediationSla {
+                    class: RemediationSlaClass::KevOrActivelyExploited,
+                    max_days: 7,
+                    deployment_blocking: true,
+                },
+                RemediationSla {
+                    class: RemediationSlaClass::Critical,
+                    max_days: 7,
+                    deployment_blocking: true,
+                },
+                RemediationSla {
+                    class: RemediationSlaClass::High,
+                    max_days: 14,
+                    deployment_blocking: true,
+                },
+                RemediationSla {
+                    class: RemediationSlaClass::Medium,
+                    max_days: 30,
+                    deployment_blocking: false,
+                },
+            ],
+            exception_policy: VulnerabilityExceptionPolicy {
+                max_ttl_days: 30,
+                requires_owner: true,
+                requires_expiry: true,
+                requires_vex_justification: true,
+                requires_audit_event: true,
+            },
+            audit_evidence: VulnerabilityAuditEvidencePolicy {
+                advisory_snapshot_signed: true,
+                sbom_artifacts_signed: true,
+                vex_artifacts_signed: true,
+                audit_event_type: VULNERABILITY_DECISION_AUDIT_EVENT.into(),
+                retention_days: VULNERABILITY_MIN_AUDIT_RETENTION_DAYS,
+            },
+            admission_policy: VulnerabilityAdmissionPolicy {
+                block_missing_or_unsigned_sbom: true,
+                block_missing_vex: true,
+                block_expired_exception: true,
+                block_kev_or_exploited: true,
+                block_fix_available_past_sla: true,
+                block_unknown_component_match: true,
+            },
+        }
+    }
+
     fn record(subject: &str, attestation: &str) -> SupplyChainRecord {
         SupplyChainRecord {
             subject: subject.into(),
             attestation: attestation.into(),
+        }
+    }
+
+    fn dependency_record(subject: &str, dependency: &str) -> SupplyChainDependencyRecord {
+        SupplyChainDependencyRecord {
+            subject: subject.into(),
+            dependency: dependency.into(),
+            license: "Apache-2.0".into(),
+            license_tier: "tier1".into(),
+            maturity: "production-ready".into(),
+            isolation: "tooling-only".into(),
+            replacement_plan: "replace-with-owned-scanner-if-trivy-license-or-maintenance-drifts"
+                .into(),
+            owning_team: "ops-security".into(),
+            sbom_spdx_ref: "artifact://supply-chain/trivy.spdx.json".into(),
+            sbom_cyclonedx_ref: "artifact://supply-chain/trivy.cyclonedx.json".into(),
+            cosign_attestation_ref: "rekor://log/123/trivy-cosign-attestation".into(),
+            trivy_scan_ref: "artifact://supply-chain/trivy-dependency.sarif".into(),
+            signed_commit_ref: "0123456789abcdef0123456789abcdef01234567".into(),
         }
     }
 
@@ -953,6 +2385,35 @@ mod tests {
             audit_event_type: "oya.audit.builder_supply_attest".into(),
             attestor: "axis-foundry".into(),
             high_critical_findings_open: 0,
+            signed: true,
+        }
+    }
+
+    fn image_promotion_record(
+        tier: ImagePromotionTier,
+        verifier: ImagePromotionVerifier,
+    ) -> ImagePromotionRecord {
+        let digest = "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        ImagePromotionRecord {
+            artifact_ref: format!(
+                "ghcr.io/oyatie/tooling:0123456789abcdef0123456789abcdef01234567-{}@{digest}",
+                tier.name()
+            ),
+            artifact_digest: digest.into(),
+            tier,
+            cosign_identity: format!(
+                "https://token.actions.githubusercontent.com/oyatie/image-promotion-{}-oidc",
+                tier.name()
+            ),
+            verifier,
+            verifier_ref: format!(
+                "infra/{}/policies/require-signed-images.yaml",
+                verifier.name()
+            ),
+            provenance_attestation_ref: "artifact://release/0.1.0/tooling-provenance.intoto.jsonl"
+                .into(),
+            runner_kill_switch_ref: "artifact://fixtures/bootstrap-runner-kill-switch.cedar".into(),
+            audit_event_type: "oya.audit.image_promotion".into(),
             signed: true,
         }
     }

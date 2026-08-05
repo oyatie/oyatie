@@ -15,7 +15,7 @@
       "id": "git_worktree_hygiene",
       "owner": "platform-scm-ci-cd",
       "policy": "one isolated worktree branch per lane; no shared branch edits; branch owners record PR, disposition, and cleanup state",
-      "automation": "git worktree list --porcelain inventory plus future oya-scm worktree lease registry; local static check is repo-hygiene-automation-check",
+      "automation": "git worktree list --porcelain inventory plus future oya-scm worktree lease registry; current local static check is JSON parse plus Buck graph inventory; historical repo-hygiene-automation-check is planned_unavailable until restored as a real Buck target",
       "claim_boundary": "does not delete worktrees or branches by default",
       "live_mutation": false
     },
@@ -39,7 +39,7 @@
       "id": "disk_workspace_hygiene",
       "owner": "platform-governance",
       "policy": "inventory-by-default for build artifacts, caches, temp files, and worktree residue; cleanup requires explicit safe flag or separate PR",
-      "automation": "specs/workspace-hygiene.json plus repo-hygiene-automation-check and future session-close inventory evidence",
+      "automation": "specs/workspace-hygiene.json plus current JSON parse/Buck graph inventory and future session-close inventory evidence; historical repo-hygiene-automation-check is planned_unavailable until restored as a real Buck target",
       "claim_boundary": "does not delete tracked files or external temp roots by default",
       "live_mutation": false
     },
@@ -54,7 +54,7 @@
     {
       "id": "documentation_sprawl_hygiene",
       "owner": "council-architecture",
-      "policy": "root docs stay pointer-thin; new docs are rejected unless registered, lane-owned, or archived; stale docs older than 3 days on GitHub are audit candidates",
+      "policy": "root docs stay pointer-thin; HANDOFF.md is the only bounded fresh-session handoff exception and is not a fourth pointer hub; new docs are rejected unless registered, lane-owned, or archived; stale docs older than 3 days on GitHub are audit candidates",
       "automation": "root markdown allowlist, root-hub pointer validation, doc-catalog stale marker, retired substrate tombstone registry, and future doc archive planner",
       "claim_boundary": "does not bulk-delete historical ADRs or archives without evidence-backed migration",
       "live_mutation": false
@@ -64,7 +64,18 @@
     "root_markdown_allowlist": [
       "AGENTS.md",
       "CLAUDE.md",
+      "HANDOFF.md",
       "README.md"
+    ],
+    "root_markdown_bounded_exceptions": [
+      {
+        "path": "HANDOFF.md",
+        "class": "fresh-session-handoff-exception-not-pointer-hub",
+        "owner": "founder + platform-governance",
+        "source_of_truth": "specs/markdown-retirement-policy.json retention_rules.bounded_root_markdown_exceptions + specs/root-hub-pointers.json entry_points.session_handoff",
+        "freshness_check": "include in stale_doc_inventory scans and re-audit during root-hub/markdown-retirement cohesion updates",
+        "retirement_condition": "remove only after equivalent machine-readable session-handoff state exists"
+      }
     ],
     "new_markdown_default": "reject_unless_registered_or_lane_owned",
     "stale_doc_scan_cutoff_days": 3,
@@ -83,12 +94,15 @@
     ],
     "retired_exact_name_scan": "active root/canonical docs and specs must use the generic retired external SCM/CI/CD substrates term; exact names are allowed only in retired registry or historical ADR slug provenance.",
     "stale_doc_inventory": {
-      "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+      "planned_unavailable_command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+      "current_verifier": "python3 -m json.tool specs/repo-hygiene-automation.json >/dev/null",
+      "command_status": "planned_unavailable_missing_buck_package",
       "cutoff_days": 3,
       "scanned_paths": [
         "README.md",
         "AGENTS.md",
         "CLAUDE.md",
+        "HANDOFF.md",
         "docs",
         "specs"
       ],
@@ -122,12 +136,41 @@
     }
   },
   "automation_commands": [
-    "buck2 build //:repo-hygiene-automation-check",
-    "buck2 build //:github-lane-unlocker-bridge-check",
-    "buck2 build //:third-party-durable-handedits-check",
-    "buck2 build //:github-lane-unlocker-bridge-check //:buck2-authority-policy-check //:repo-hygiene-automation-check",
-    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
-    "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json"
+    "python3 -m json.tool specs/repo-hygiene-automation.json >/dev/null",
+    "buck2 targets //:"
+  ],
+  "planned_unavailable_automation_commands": [
+    {
+      "command": "buck2 build //:repo-hygiene-automation-check",
+      "status": "planned_unavailable_missing_root_target",
+      "successor_path": "python3 -m json.tool specs/repo-hygiene-automation.json >/dev/null plus buck2 targets //:",
+      "restoration_rule": "Restore only with a real Buck-owned checker target and focused tests; do not hand-edit generated JSON or expand deprecated CLI/oya surfaces."
+    },
+    {
+      "command": "buck2 build //:github-lane-unlocker-bridge-check",
+      "status": "planned_unavailable_missing_root_target",
+      "successor_path": "GitHub lane-unlocker evidence remains bridge/provenance until a real Buck target is restored."
+    },
+    {
+      "command": "buck2 build //:third-party-durable-handedits-check",
+      "status": "planned_unavailable_missing_root_target",
+      "successor_path": "Use accepted ADR/spec review plus JSON parse until a real Buck target is restored."
+    },
+    {
+      "command": "buck2 build //:buck2-authority-policy-check",
+      "status": "planned_unavailable_missing_root_target",
+      "successor_path": "buck2 targets //: inventories the live root package; policy enforcement needs a restored target."
+    },
+    {
+      "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-unit-tests",
+      "status": "planned_unavailable_missing_buck_package",
+      "successor_path": "python3 -m json.tool specs/repo-hygiene-automation.json >/dev/null for the current contract shape; stale-document inventory remains backlog until the tool package exists."
+    },
+    {
+      "command": "buck2 build //tools/oya-doc-staleness-inventory-app:doc-staleness-inventory-json",
+      "status": "planned_unavailable_missing_buck_package",
+      "successor_path": "python3 -m json.tool specs/repo-hygiene-automation.json >/dev/null for the current contract shape; stale-document inventory remains backlog until the tool package exists."
+    }
   ],
   "official_sources": [
     {
@@ -241,7 +284,7 @@
     "required_tool_examples": [
       "git worktree add",
       "gh pr create --base dev",
-      "buck2 build //:repo-hygiene-automation-check",
+      "python3 -m json.tool specs/repo-hygiene-automation.json >/dev/null",
       "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD"
     ],
     "forbidden_active_doc_phrases": [

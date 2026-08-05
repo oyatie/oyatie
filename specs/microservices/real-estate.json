@@ -89,7 +89,7 @@
       "given": "untrusted identifiers, team/asset/source/evidence refs, dates, areas, capacities, terms, amounts, period counts, windows, or overclaim paths enter the real-estate domain",
       "when": "domain validation runs",
       "then": "prefix-only identifiers, path traversal, whitespace/control characters, credential-shaped refs, invalid date ranges, invalid areas, capacity shortage, missing property registration, missing lease contract, zero amounts, invalid periods, invalid terms, and invalid maintenance windows are refused",
-      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{real_estate_refuses_missing_prerequisites,real_estate_validates_refs_dates_areas_terms_and_amounts,real_estate_records_capacity_shortage_without_reservation_claim}"
+      "test_ref": "microservices/real-estate/crates/oya-real-estate-portfolio-domain/tests/real_estate_portfolio.rs::{real_estate_refuses_missing_prerequisites,real_estate_validates_refs_dates_areas_terms_and_amounts,real_estate_refuses_prefix_only_identifiers,real_estate_refuses_whitespace_and_control_characters,real_estate_refuses_zero_capacity_and_invalid_period_count,real_estate_refuses_type_specific_unsafe_refs,real_estate_records_capacity_shortage_without_reservation_claim}"
     }
   ],
   "decision_log": [
@@ -247,7 +247,7 @@
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

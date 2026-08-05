@@ -31,7 +31,7 @@ source_adrs:
 - Safety invariant: prefer refusal with evidence over a partially observed automation event.
 
 ## Doctrine Anchors
-- ADR-0346 purpose wording: `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
+- ADR-0346 provenance note: legacy local verifier wording is retained only as historical/local-feedback context; ADR-0515 makes the branch-protected `oya-ci-required` context the live CI authority.
 - ADR-0346 enforced_by lanes: `oya-governance-oya-verify-ci-mirror-coverage`; `oya-governance-oya-verify-ci-step-exit-semantics`; `oya-governance-oya-verify-skip-flag-allowlist`; `oya-governance-oya-submit-calls-verify`; `oya-governance-oya-verify-exit-code-contract`.
 - ADR-0347 purpose wording: every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request.
 - ADR-0347 enforced_by lanes: `oya-governance-no-foundry-fitness-residue`; `oya-governance-lane-prefix-vocabulary`; `oya-governance-rename-inventory-presence`.
@@ -39,8 +39,8 @@ source_adrs:
 - ADR-0348 auto-rebalance wording: when cell load skews beyond promotion-gate criteria, the cell-orchestrator automatically migrates tenants from hot cells to cooler cells.
 - ADR-0348 dynamic-sharding wording: shard count within a cell adjusts based on load: HOT-SPLIT when shard p99 latency exceeds SLO OR capacity utilization exceeds 80%; COLD-MERGE when adjacent shards both run below 20% utilization for more than 24 hours.
 - ADR-0348 enforced_by lanes: `oya-governance-sharding-automation-coverage`; `oya-governance-autosharding-manual-mode-refusal`; `oya-governance-auto-rebalance-residency-honored`; `oya-governance-dynamic-sharding-threshold-coverage`; `oya-governance-audit-chain-emit-on-automation-events`; `oya-governance-tenant-migration-reversibility`.
-- ADR-0349 purpose wording: Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
-- ADR-0349 enforced_by lanes: `oya-governance-jenkins-canonical-no-gha-residue`; `oya-governance-argocd-application-cosign-verified`; `oya-governance-argocd-tenant-namespace-isolation`; `oya-governance-jenkins-jcasc-only`; `oya-governance-deploy-audit-chain-emit`.
+- ADR-0349 purpose wording: ADR-0349 Jenkins CI wording is historical/provenance after ADR-0515; ArgoCD remains separately authorized CD evidence where applicable.
+- ADR-0349 enforcement note: legacy Jenkins lane names are historical/provenance only after ADR-0515; live CI evidence is branch-protected `oya-ci-required`, while ArgoCD cosign, tenant-namespace, and deploy-audit lanes remain CD evidence where applicable.
 
 ## Trigger Conditions
 - Trigger 1: cell promotion criteria breach due to load skew.
@@ -49,7 +49,7 @@ source_adrs:
 - Trigger 4: `oya_sharding_auto_rebalance_candidate_count` crosses the declared threshold for two evaluator windows.
 - Trigger 5: `oya_sharding_auto_rebalance_migration_seconds_p99` threatens the service SLO budget or promotion-gate quiet window.
 - Trigger 6: governance reports missing sharding automation coverage for this service.
-- Trigger 7: Jenkins required-check drift blocks the release train for the sharding automation lane.
+- Trigger 7: missing branch-protected `oya-ci-required` evidence blocks the release train for the sharding automation lane.
 - Trigger 8: ArgoCD reports a pending sync tied to this service after a sharding automation manifest change.
 
 ## Preflight Checklist
@@ -62,7 +62,7 @@ source_adrs:
 7. Verify residency and compliance pack filters before any candidate target is accepted.
 8. Verify audit-chain availability: `oya audit-chain health --cell $CELL --tenant $TENANT`.
 9. Verify ArgoCD sync health: `argocd app get $SERVICE --refresh`.
-10. Verify Jenkins required-check evidence exists for this service before declaring the runbook complete.
+10. Verify branch-protected `oya-ci-required` evidence from GitHub Actions/branch protection before declaring the runbook complete.
 
 ## Decision Tree
 1. If Cedar denies the operation, stop the automation and attach the decision id to the incident.
@@ -70,7 +70,7 @@ source_adrs:
 3. If audit-chain emit is unhealthy, freeze the operation before state mutation.
 4. If only observability is stale, refresh telemetry once and compare against the last sealed audit-chain event.
 5. If GitOps sync is pending, pause execution until ArgoCD confirms the service declaration is current.
-6. If Jenkins required-check is unknown, keep the change in report-only state and run local `oya verify --ci-required` before push.
+6. If branch-protected `oya-ci-required` evidence is unavailable, keep the change in report-only state; legacy `oya verify --ci-required` output may be attached only as optional local-feedback/provenance.
 7. If all gates pass, continue with the smallest reversible cohort.
 8. If the first cohort fails validation, roll back from the audit-chain pointer and do not expand blast radius.
 
@@ -93,8 +93,8 @@ source_adrs:
 - Evidence 4: Cedar permit or denial id for every state-mutating step.
 - Evidence 5: residency and compliance pack candidate filter output.
 - Evidence 6: ArgoCD Application sync id and cosign verification policy result.
-- Evidence 7: Jenkins build id proving required-check coverage for this service.
-- Evidence 8: `oya verify --ci-required` local mirror result before any push related to this runbook.
+- Evidence 7: GitHub Actions run/status URL proving branch-protected `oya-ci-required` acceptance for this service.
+- Evidence 8: optional legacy `oya verify --ci-required` local-feedback result, or N/A with rationale, never merge authority.
 - Evidence 9: governance lane names from ADR-0347, ADR-0348, and ADR-0349 included in the incident handoff.
 - Evidence 10: rollback rehearsal output proving reversibility from the audit-chain trail.
 
@@ -113,7 +113,7 @@ source_adrs:
 3. Confirm Cedar decisions are sealed and tied to the incident id.
 4. Confirm `oya-governance-auto-rebalance-residency-honored` or `oya-governance-dynamic-sharding-threshold-coverage` evidence is attached as applicable.
 5. Confirm `oya-governance-audit-chain-emit-on-automation-events` evidence is attached for every automation event.
-6. Confirm Jenkins required-check evidence is attached per ADR-0349.
+6. Confirm branch-protected `oya-ci-required` evidence is attached per ADR-0515; Jenkins/Prow wording is provenance only.
 7. Confirm ArgoCD did not sync unsigned images and did not cross tenant namespaces.
 8. Confirm the post-incident note cites ADR-0346, ADR-0347, ADR-0348, and ADR-0349 by exact ID.
 9. Close only after the incident commander records the stop condition and evidence bundle hash.

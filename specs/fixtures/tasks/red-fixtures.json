@@ -1,0 +1,296 @@
+{
+  "fixture_plan_id": "TASKS-WORKPLACE-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_91fc5a1f",
+  "parent_plan_spec_task": "t_2e92e2f3",
+  "source_lock_task": "t_516944f9",
+  "follow_on_build_task": "t_4221a299",
+  "service": "tasks",
+  "claim_boundary": "RED fixture and contract-replay seam only; no runtime handlers, storage, UI implementation, generated JSON hand edits, Release Please metadata, shared manifests-index edits, cloud/runtime changes, or product-readiness claims.",
+  "source_authority_refs": [
+    "specs/microservices/tasks.json",
+    "specs/microservices/tasks.json#red_fixture_strategy",
+    "plan/tasks/tasks-workplace-source-backed-backlog.md",
+    "plan/tasks/tasks-workplace-backlog-slices.json",
+    "oya/tasks/manifest.json#inventory_context_not_live_authority",
+    "kanban:t_516944f9#source-lock",
+    "kanban:t_2e92e2f3#plan-spec",
+    "kanban:t_91fc5a1f#red"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/tasks/manifest.json",
+    "oya/tasks/contracts/openapi/tasks.yaml",
+    "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+    "oya/tasks/contracts/proto/tasks.proto",
+    "oya/tasks/slos/*.openslo.yaml",
+    "oya/tasks/runbooks/*.md",
+    "legacy microservices/tasks/** references from oya/tasks/manifest.json",
+    "SLO or catalog rows without RED/Build/review replay evidence"
+  ],
+  "required_plan_slice_ids": [
+    "TASKS-PS-00",
+    "TASKS-PS-01",
+    "TASKS-PS-02",
+    "TASKS-PS-03",
+    "TASKS-PS-04",
+    "TASKS-PS-05",
+    "TASKS-PS-06",
+    "TASKS-PS-07"
+  ],
+  "required_bounded_contexts": [
+    "task-store",
+    "project-list",
+    "dependency-graph",
+    "recurrence",
+    "search-index",
+    "view-engine",
+    "importers"
+  ],
+  "required_contract_surfaces": [
+    "oya/tasks/contracts/openapi/tasks.yaml",
+    "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+    "oya/tasks/contracts/proto/tasks.proto"
+  ],
+  "future_replay_root": "specs/fixtures/tasks/replay/",
+  "default_future_build_home": "oya/tasks/crates/oya-tasks-domain",
+  "build_handoff": {
+    "selected_first_slice": "TASKS-PS-00 source-map guard, then TASKS-PS-01 task-store lifecycle if the source-map guard is green",
+    "red_command": "python3 scripts/tests/tasks_red_fixture_contract_check.py",
+    "self_test_command": "python3 scripts/tests/tasks_red_fixture_contract_check.py --self-test",
+    "json_command": "python3 -m json.tool specs/fixtures/tasks/red-fixtures.json",
+    "expected_red_failure": "RED: future tasks replay artifacts are missing under specs/fixtures/tasks/replay/",
+    "follow_on_instruction": "Build t_4221a299 must create only the selected replay artifacts or implementation needed to satisfy this manifest; do not broaden beyond the selected slice or claim readiness from inventory-only files."
+  },
+  "global_non_claims": [
+    "green CI alone is insufficient for UI-facing tasks flows",
+    "contract files are source candidates until replay artifacts exist",
+    "legacy microservices/tasks/** paths are stale provenance only",
+    "no generated JSON hand edits are authorized",
+    "no tasks runtime/product readiness is claimed by this RED artifact"
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "tasks_source_map_authority_fixture",
+      "slice_id": "TASKS-PS-00",
+      "fixture_kind": "source_map_guard",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#authority_resolution",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-00",
+        "oya/tasks/manifest.json#legacy_manifest_reference_disposition"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/source-map/source-map-authority-replay.json"
+      ],
+      "must_assert": [
+        "every downstream tasks Plan/Spec, RED, Build, Review/fix, Merge/Rollout/E2E, and Learning card cites specs/microservices/tasks.json",
+        "oya/tasks/manifest.json remains inventory/provenance and is not readiness evidence",
+        "ADR-0131 and ADR-0512 keep canonical service paths under oya/tasks/**"
+      ],
+      "must_reject": [
+        "missing specs/microservices/tasks.json citation",
+        "live destination claim from microservices/tasks/**",
+        "runtime readiness claim from manifest, SLO, catalog, runbook, or contract inventory alone"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_task_store_lifecycle_contract_fixture",
+      "slice_id": "TASKS-PS-01",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#api_contract_replay_expectations",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-01",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/proto/tasks.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/task-store/create-update-list-archive-contract-replay.json",
+        "specs/fixtures/tasks/replay/task-store/auth-legal-hold-retention-negative-replay.json"
+      ],
+      "must_assert": [
+        "create/read/update/archive/delete lifecycle replay",
+        "idempotency key and optimistic-version conflict behavior",
+        "tenant mismatch denial, Cedar deny-by-default, RLS/tenant-DEK expectation, legal-hold and retention refusal",
+        "audit metadata for task create/update/archive/legal-hold"
+      ],
+      "must_reject": [
+        "malformed custom fields",
+        "cross-tenant task read or write",
+        "hard delete while legal hold is open",
+        "task-store readiness without OpenAPI/proto replay evidence"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_project_view_accessibility_fixture",
+      "slice_id": "TASKS-PS-02",
+      "fixture_kind": "browser_user_story_accessibility",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#browser_user_story_accessibility_expectations",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-02",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/asyncapi/tasks-events.yaml"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/project-view/board-list-user-story-a11y-replay.json"
+      ],
+      "must_assert": [
+        "project/list/board/sprint/milestone CRUD expectations",
+        "board status transition and drag/drop conflict feedback",
+        "keyboard drag/drop alternative, focus order, screen-reader announcements, reduced motion, high contrast, no spinner-only waits",
+        "browser/user-story/WCAG 2.2 AA evidence or explicit UI N/A for API-only work"
+      ],
+      "must_reject": [
+        "UI completion with green CI alone",
+        "board/list reads without authorization filtering",
+        "spinner-only waiting state",
+        "missing accessibility evidence for user-facing task list/board/project views"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_dependency_bulk_refusal_fixture",
+      "slice_id": "TASKS-PS-03",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#R-TASKS-01",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-03",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+        "oya/tasks/contracts/proto/tasks.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/dependency-bulk/cycle-and-bulk-refusal-replay.json"
+      ],
+      "must_assert": [
+        "self-edge refusal",
+        "two-node and multi-hop dependency cycle refusal",
+        "cycle-introducing batch patch refusal",
+        "atomicity or explicit partial-failure report where allowed",
+        "throttling/backpressure and audit-chain refusal metadata"
+      ],
+      "must_reject": [
+        "cycle-creating edge accepted",
+        "bulk update partially corrupts dependency graph silently",
+        "refusal without auditable reason",
+        "dependency/bulk readiness without contract replay"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_recurrence_idempotency_timezone_fixture",
+      "slice_id": "TASKS-PS-04",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#R-TASKS-04",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-04",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+        "oya/tasks/contracts/proto/tasks.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/recurrence/idempotency-timezone-bounds-replay.json"
+      ],
+      "must_assert": [
+        "bounded RRULE subset",
+        "timezone transition correctness",
+        "idempotency and duplicate prevention",
+        "backfill limits, paused/cancelled series, legal-hold interaction",
+        "unbounded expansion backpressure"
+      ],
+      "must_reject": [
+        "duplicate materialisation on replay",
+        "unbounded recurrence expansion",
+        "timezone-wrong generated task",
+        "backfill beyond configured bounds without refusal"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_search_auth_projection_fixture",
+      "slice_id": "TASKS-PS-05",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#R-TASKS-02",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-05",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/asyncapi/tasks-events.yaml"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/search-auth/auth-projection-and-rebuild-replay.json"
+      ],
+      "must_assert": [
+        "authorized search/filter/saved-view result replay",
+        "tenant/RBAC/legal-hold filtering",
+        "stale-index rebuild safety",
+        "delete/update propagation",
+        "confidential or regulated task content redaction"
+      ],
+      "must_reject": [
+        "cross-tenant search result",
+        "legal-hold hidden task surfaced to unauthorized actor",
+        "stale projection treated as fresh",
+        "saved view bypassing authorization"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_importer_webhook_idempotency_fixture",
+      "slice_id": "TASKS-PS-06",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#api_contract_replay_expectations",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-06",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+        "oya/tasks/contracts/proto/tasks.proto"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/importer-webhook/idempotent-fanout-dead-letter-replay.json"
+      ],
+      "must_assert": [
+        "importer mapping review",
+        "duplicate detection and correlation identifiers",
+        "idempotent writes",
+        "webhook signing and authorization",
+        "retry/dead-letter/replay and audit-chain event expectations"
+      ],
+      "must_reject": [
+        "external source treated as canonical source of truth",
+        "unsigned or unauthorized webhook fanout",
+        "duplicate importer payload creates duplicate task",
+        "dead-letter replay without correlation id"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "tasks_ai_assist_fairness_refusal_fixture",
+      "slice_id": "TASKS-PS-07",
+      "fixture_kind": "policy_contract_replay",
+      "source_authority_refs": [
+        "specs/microservices/tasks.json#R-TASKS-03",
+        "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-07",
+        "oya/tasks/contracts/openapi/tasks.yaml",
+        "oya/tasks/contracts/asyncapi/tasks-events.yaml",
+        "oya/tasks/manifest.json#capabilities"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/tasks/replay/ai-assist/fairness-disclosure-override-refusal-replay.json"
+      ],
+      "must_assert": [
+        "T0 suggestions and T1 categorisation/priority assistance are disclosed",
+        "T2 auto-assign refused unless fairness evidence exists",
+        "protected-class non-use",
+        "human override and audit evidence",
+        "EU AI Act and employment-context refusal controls",
+        "accessible recommendation disclosure, confidence/refusal state, keyboard override, and screen-reader announcements if UI touched"
+      ],
+      "must_reject": [
+        "protected-class input used for assignment",
+        "auto-assignment without fairness evidence",
+        "hidden automation without disclosure",
+        "employment-impacting recommendation without human override"
+      ],
+      "expected_red_status": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

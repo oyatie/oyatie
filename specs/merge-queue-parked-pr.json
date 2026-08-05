@@ -17,7 +17,7 @@
       "/specs/iterative-fix-loop.json",
       "/specs/ci-fix-loop-context-bundle.json"
     ],
-    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-vcs-review-mergequeue-kernel."
+    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. The former oya-vcs-review-mergequeue-kernel companion is historical/provenance only; live merge/admission authority is cloud-ci/oya-ci behind oya-ci-required."
   },
   "state_machine": {
     "states": [

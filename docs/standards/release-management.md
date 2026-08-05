@@ -46,15 +46,15 @@ breaches roll back, and how artifacts are signed.
 Per [Trunk Based Development](https://trunkbaseddevelopment.com/continuous-review/)
 and Google / Microsoft consensus:
 
-- Default branch is `main`. All work happens on **short-lived branches**
+- Protected integration branch is `dev` per the current operating contract. All work happens on **short-lived branches**
   (target ≤ 24 h, MUST NOT exceed 7 days without a re-base or an ADR
   exemption).
 - Lane `oya-governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
 - Feature flags hide incomplete work behind a runtime gate (§3) so
-  partial merges to `main` do not ship to users.
+  partial merges to `dev` do not ship to users.
 - Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
   hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
-- Force-push to `main` is forbidden per
+- Force-push to protected integration/release branches is forbidden per
   [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-03.
 
 Sources: [DORA — Trunk-Based Development](https://dora.dev/capabilities/trunk-based-development/),
@@ -101,7 +101,7 @@ Default rollout shape for an `oya-*-runtime-*` deploy:
 Rails:
 
 - **Argo Rollouts** or **Flagger** for k8s-native progressive delivery
-  (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 2).
+  (per [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md) Domain 2).
 - The canary controller subscribes to the metric backend (per
   [`observability.md`](observability.md)) and computes burn rate per
   stage.
@@ -124,6 +124,16 @@ Per [`on-call.md`](on-call.md) §2:
 - **Blue-green** is reserved for stateful cutovers (schema migrations,
   data backfills, region failover); requires a runbook entry per
   [`on-call.md`](on-call.md) §3 and a dry-run on staging.
+
+### 3.5 Post-merge product-completion gate
+
+A squash merge proves merge admission, not product completion. Product-complete
+requires a post-merge packet with promoted SHA + `oya-ci-required` status URL,
+rollout verification, rollback note, observability/golden-signal check,
+browser UX/user-story evidence, and release-governance/release-note impact
+(Release Please applies only when a live repo config/workflow exists).
+Docs-only or no-deploy changes record explicit `no deployable artifact` / `not
+user-visible` rationales; blank evidence means incomplete.
 
 Sources: [Flagsmith — Progressive Delivery](https://www.flagsmith.com/blog/progressive-delivery),
 [Unleash — Canary vs Progressive Delivery](https://www.getunleash.io/blog/canary-release-vs-progressive-delivery),
@@ -196,7 +206,7 @@ Every deploy emits per [`observability.md`](observability.md) §4:
 ## 9. CI lane summary
 
 Per the hyperscaler-quality CI gate set (per
-`.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4):
+[`hyperscaler-best-practices.md`](hyperscaler-best-practices.md) Domain 4):
 
 1. `cargo fmt --check`.
 2. `cargo clippy --workspace --all-features --all-targets -- -D warnings`.
@@ -219,7 +229,7 @@ Per the hyperscaler-quality CI gate set (per
 3. **`latest` tag in a manifest.** Refused by `image-discipline` lane.
 4. **Skipping SLO burn-rate check.** Canary controller refuses to
    promote.
-5. **Force-push to `main`.** Forbidden.
+5. **Force-push to a protected integration/release branch.** Forbidden.
 
 ## 11. Sources scanned
 
@@ -230,5 +240,5 @@ Per the hyperscaler-quality CI gate set (per
 - [Argo Rollouts](https://argoproj.github.io/argo-rollouts/), [Flagger](https://flagger.app/).
 - [SLSA Provenance v0.1](https://slsa.dev/spec/v0.1/provenance).
 - [Chainguard — Sign SBOM with Cosign](https://edu.chainguard.dev/open-source/sigstore/cosign/how-to-sign-an-sbom-with-cosign/).
-- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
+- [`hyperscaler-best-practices.md`](hyperscaler-best-practices.md)
   Domain 2 "Feature flags + progressive delivery" + Domain 4 CI gates.

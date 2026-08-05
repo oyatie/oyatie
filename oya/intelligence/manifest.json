@@ -193,6 +193,9 @@
     ],
     "proto": [
       "microservices/intelligence/contracts/proto/intelligence-v1.proto"
+    ],
+    "metadata": [
+      "oya/intelligence/contracts/env-tier-model-budget-contract.json"
     ]
   },
   "capabilities": [
@@ -727,6 +730,39 @@
     "microservices/intelligence/IP-002-domain-layer-secret-reference.md",
     "microservices/intelligence/contracts/openapi/intelligence-v1.yaml"
   ],
+  "sustainability_emission_model": {
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.71,
+      "memory_watts_per_gib_second": 0.0034,
+      "storage_watts_per_gib_hour": 0.0009,
+      "network_watts_per_gib": 0.125,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/README.md#per-usage-meter:intelligence.per_capability",
+      "pin_window_hours": 1
+    },
+    "workload_signal_source": {
+      "signal_family": "per_capability",
+      "source_ref": "oya/intelligence/manifest.json#audit_chain.DispatchCompleted+PromptInjectionDetected+slos.dispatch-api-latency"
+    },
+    "emission_path_tests": [
+      "oya/intelligence/IPs/IP-sustainability-emission-model.fixture.json",
+      "oya/intelligence/manifest.json#slos.oya-intelligence-audit-emission-success"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 0.780153,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.000312061,
+      "tolerance_pct": 20
+    }
+  },
   "tenant_version_pinning": {
     "declared_versions": [
       "2025-11-21",

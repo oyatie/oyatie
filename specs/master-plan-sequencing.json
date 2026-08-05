@@ -65,7 +65,7 @@
   "planning_closure_contract": {
     "status": "blocked_until_planning_closure_gate_green",
     "contract_ref": "/specs/planning-closure-contract.json",
-    "gate_command": "cargo run -q -p oya-dev-cli -- gate validate planning-closure",
+    "gate_command": "cloud-ci/Rust gate packet: planning-closure; legacy oya-dev-cli bridge output is local-feedback/provenance only and not authority",
     "gate_command_authority_note": "bridge-only local feedback per the founder all-CLI-retirement directive of 2026-06-09; merge authority is the cloud-ci gate apps behind the single required context oya-ci-required, and this oya-dev-cli invocation is never merge or exit authority",
     "master_plan_authority": "/specs/masterplan.json",
     "compatibility_projection": "docs/MASTERPLAN.md",
@@ -276,7 +276,7 @@
     {
       "primitive": "oya vcs",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git + cloud-ci + GitHub (interim) branch protection + oya gate evidence"
+      "lane_status": "retired by ADR-0363; ChangeSet claim/done/promote ratchet is replaced by plain git isolated worktree branches, protected PRs, reviewer approval, and the single protected oya-ci-required context; legacy oya gate/verify output is local bridge evidence only"
     },
     {
       "primitive": "gh",
@@ -286,7 +286,7 @@
     {
       "primitive": "manual-merge-bypassing-required-checks",
       "enforcement_lane_id": "oya-governance-banned-primitives",
-      "lane_status": "forbidden; branch protection, cloud-ci required checks, reviewer approval, and oya gate evidence own merge readiness"
+      "lane_status": "forbidden; branch protection, reviewer approval, and cloud-ci required checks behind oya-ci-required own merge readiness; legacy oya gate output may only be local bridge evidence"
     },
     {
       "primitive": "manual-push-to-protected-branch",
@@ -1276,7 +1276,7 @@
             "microservices/governance/cedar/sustainability/ (carbon-aware Cedar fragment library)",
             "microservices/audit-chain/ARCHITECTURE.md (envelope extension at v2)",
             "specs/audit-event-schema.json (new; envelope v2)",
-            "specs/audit-event-class-registry.json (mandatory_envelope_fields widened from 10 to 16)",
+            "specs/audit-event-class-registry.json (mandatory_envelope_fields widened from 10 to 17: legacy 10 + ADR-0252 hlc_timestamp + six ADR-0344 sustainability/FinOps fields)",
             "specs/finops-dimensional-model.json (new; dimensional rollup contract)",
             "specs/finops-cost-attribution.json (chargeback formula + anomaly thresholds widening per D-10)",
             "specs/microservices/manifest-schema.json (sustainability_emission_model block schema added)",
@@ -1344,7 +1344,7 @@
           ],
           "pack_floor_anchors": {
             "HIPAA-2024": "RTO <= 3600s, RPO <= 300s, multi-region REQUIRED, drill quarterly (45 CFR 164.308(a)(7); BAA-eligible cloud baseline)",
-            "PCI-DSS-L1-v4": "RTO <= 86400s, RPO <= 3600s, multi-region NOT required, drill annual (PCI DSS v4.0 12.10)",
+            "PCI-DSS-L1-v4": "RTO <= 86400s, RPO <= 3600s, multi-region NOT required, drill annual (PCI DSS v4.0.1 12.10; exact text pending permitted PCI SSC PDF acquisition)",
             "SOC2-T2": "RTO <= 14400s, RPO <= 900s, multi-region NOT required, drill annual (AICPA TSC CC7.5)",
             "EU-AI-ACT-2024-HIGH-RISK": "RTO <= 1800s, RPO <= 300s, multi-region REQUIRED, drill quarterly (EU 2024/1689 Articles 9/14/17/19/26/27)",
             "KR-CSAP-v3.1": "RTO <= 3600s, RPO <= 900s, multi-region REQUIRED within KR sovereign region, drill semi-annual (KISA notice 2024-1)",
@@ -1703,7 +1703,7 @@
             ]
           },
           "zf_4_validation": [
-            "cargo run -q -p oya-dev-cli -- gate validate adr-citation --docs-dir docs --decisions-dir docs/decisions",
+            "cloud-ci/Rust gate packet: adr-citation (--docs-dir docs --decisions-dir docs/decisions)",
             "jq empty specs/root-hub-pointers.json specs/master-plan-sequencing.json"
           ],
           "skill_binding": "every subagent uses installed runtime skills {spec-driven-development,documentation-and-adrs} + .omc/state/oyatie-architecture-2026-05-21.md + .omc/state/audit-doctrine-2026-05-21.md + ADR-0346/0347/0348/0349 before authoring per feedback_wave_d_skill_bound_dispatch_2026_05_21; repo-vendored tools/agent-skills is retired",
@@ -1770,7 +1770,7 @@
       "affected_crates_packages_deployables",
       "required_test_evidence",
       "rollback_or_compatibility_path",
-      "vcs_completion_payload"
+      "protected_pr_completion_packet"
     ],
     "split_when": [
       "unrelated lock scopes",
@@ -1779,7 +1779,7 @@
       "mixed provider adapter and kernel work without explicit contract boundary",
       "review/fix task independent from original ChangeSet"
     ],
-    "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
+    "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> protected PR -> reviewer approval + oya-ci-required -> release-governance closeout",
     "validation_lane": "oya-governance-plan-hierarchy + governance-admission"
   },
   "deployment_contexts": {

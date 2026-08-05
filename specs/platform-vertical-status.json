@@ -1,0 +1,374 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/platform-vertical-status.schema.json",
+  "$id": "https://docs.oyatie.com/specs/platform-vertical-status.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Registry",
+    "spec_id": "PLATFORM-VERTICAL-STATUS",
+    "version": "0.1.0",
+    "status": "seed-slice",
+    "owner_team": "platform-governance",
+    "lane": "governance/status",
+    "created_from": [
+      ".omc/ultragoal/milestone-view-build-artifact-design.md#S4",
+      ".omc/ultragoal/goals.json#goals"
+    ],
+    "purpose": "Canonical seed for platform vertical G-story status rows. The milestone view consumes this registry instead of hardcoded status pills or progress bars; status upgrades are valid only when gate-resolvable evidence is present."
+  },
+  "schema_version": "1.0.0",
+  "registry_kind": "platform_vertical_status",
+  "population_mode": "seed_slice",
+  "expected_span": {
+    "first_id": "G001",
+    "last_id": "G013",
+    "full_population_rule": "A full registry must contain exactly one row for every id G001 through G013, sorted ascending by id. Seed slices are allowed only for schema/gate bootstrapping and must not be rendered as full platform coverage."
+  },
+  "claim_boundary": {
+    "forbids_percentage_claims": true,
+    "forbidden_field_names": [
+      "completion_percent",
+      "percent_complete",
+      "progress_percent",
+      "progress_bar_width",
+      "bar_width",
+      "hardcoded_percentage_claim"
+    ],
+    "rendering_rule": "Render a row as unverified when status is unverified, evidence_refs are empty, or only local_source_snapshot evidence is present. Do not fall back to reference HTML status pills or numeric bars.",
+    "seed_slice_not_full_coverage": true,
+    "local_omc_boundary": ".omc/ultragoal/goals.json may seed ids/titles/objective summaries for this slice, but it is local workflow provenance and is not sufficient by itself for substantial, complete, or terminal status claims.",
+    "terminal_quality_gate_boundary": "G013 session-slice quality-gate passes may prove harness readiness or bounded slice acceptance only. They do not prove full-platform terminal closure unless every upstream G001-G012 vertical has gate-resolvable terminal acceptance evidence and the final integrated-corpus gate is green.",
+    "slice_evidence_not_terminal_closure": true,
+    "full_platform_closure_requires_all_upstreams": true
+  },
+  "terminal_quality_gate_criteria": {
+    "applies_to": "G013",
+    "source_refs": [
+      ".omc/ultragoal/goals.json#goals[id=G013-g13-final-quality-gate]",
+      ".omc/ultragoal/g001-g013-status-assessment-2026-06-23.md#G013"
+    ],
+    "claim_scopes": [
+      {
+        "id": "g013-session-slice-quality-gate",
+        "claim_scope": "slice_evidence",
+        "meaning": "A bounded quality-gate run over a named slice or PR train. It can support a claim that the G013 harness exists and passed for that slice, but it cannot set the full G013 platform row to complete or terminal.",
+        "allowed_status_effect": "May support an in_progress or substantial claim for harness readiness only when gate-resolvable refs exist; never sufficient for full-platform terminal closure.",
+        "required_evidence_inputs": [
+          "Named slice boundary, including merged PRs or commits covered by the run.",
+          "Verified checkout ref or dev head for that slice.",
+          "aiSlopCleaner or equivalent deslop verdict for the slice.",
+          "Independent verifier result for the slice, including dogfood/smoke/cloud-ci gate subset actually exercised.",
+          "Code-review verdict for the slice with reviewer identity and blocker/major counts.",
+          "Quality-gate checkpoint or workflow-run reference carrying the cleaner, verifier, and code-review evidence.",
+          "Evidence artifact paths under evidence/ when artifacts were produced."
+        ],
+        "forbidden_inferences": [
+          "Do not infer G001-G012 closure from a slice-quality pass.",
+          "Do not promote G013 to complete or terminal from slice evidence alone.",
+          "Do not treat local .omc acceptance snippets as gate-resolvable status evidence."
+        ]
+      },
+      {
+        "id": "g013-full-platform-terminal-closure",
+        "claim_scope": "full_platform_terminal_closure",
+        "meaning": "The terminal fan-in acceptance gate over the complete integrated G001-G012 platform corpus.",
+        "allowed_status_effect": "Required before any G013 complete or terminal claim.",
+        "preconditions": [
+          "Exactly one upstream closure row exists for every id G001 through G012.",
+          "Every upstream G001-G012 row has gate-resolvable terminal_acceptance evidence for its own scope.",
+          "The final run is performed from a clean checkout of the integrated corpus."
+        ],
+        "required_evidence_inputs": [
+          "Upstream closure matrix for G001-G012 with gate-resolvable terminal_acceptance refs.",
+          "Final integrated checkout ref or dev head verified by the terminal run.",
+          "Full-corpus aiSlopCleaner or equivalent deslop pass.",
+          "Independent verifier evidence for dogfood E2E, smoke, and all cloud-ci/oya-ci gates green.",
+          "Final code-review APPROVE on the integrated corpus and final PR.",
+          "Zero TODO-stub-mock evidence for accepted scope, with the exact search command or gate id recorded.",
+          "No hand add/modify evidence for *.generated.json in the accepted diff.",
+          "SSH-signed commit evidence for all commits in the accepted diff.",
+          "oya-ci-required green on dev or the protected merge-admission head.",
+          "Quality-gate-json or checkpoint carrying aiSlopCleaner, verification, and codeReview evidence under evidence/."
+        ],
+        "current_source_assessment": "The 2026-06-23 status assessment says G013 is deferred until G001-G012 substrates are production-real; historical slice passes are useful harness evidence but not terminal closure."
+      }
+    ]
+  },
+  "status_lifecycle": [
+    {
+      "status": "unverified",
+      "meaning": "The G-story row is identified but does not yet have gate-resolvable evidence for a status claim.",
+      "evidence_requirement": "May cite local_source_snapshot for provenance only; dashboard displays unverified."
+    },
+    {
+      "status": "not_started",
+      "meaning": "The vertical is accepted into the registry and has no started implementation evidence.",
+      "evidence_requirement": "Requires a committed planning or sequencing ref that names the vertical."
+    },
+    {
+      "status": "in_progress",
+      "meaning": "At least one accepted implementation or gate-evidence ref exists, but terminal acceptance is not present.",
+      "evidence_requirement": "Requires at least one gate-resolvable evidence_ref with claim_role status_support."
+    },
+    {
+      "status": "substantial",
+      "meaning": "Multiple required evidence classes for the vertical are resolved, but the row is not terminally accepted.",
+      "evidence_requirement": "Requires gate-resolvable evidence_refs for the vertical-specific required evidence classes; no numeric progress claim is implied."
+    },
+    {
+      "status": "complete",
+      "meaning": "The vertical has terminal acceptance evidence for its own scope.",
+      "evidence_requirement": "Requires a gate-resolvable terminal_acceptance ref plus all vertical-specific required evidence classes."
+    },
+    {
+      "status": "terminal",
+      "meaning": "The row is a fan-in/final-quality vertical whose acceptance depends on upstream vertical completion evidence.",
+      "evidence_requirement": "Requires gate-resolvable upstream closure refs and final-quality evidence; no row may infer this from elapsed time, PR state, or a hardcoded snapshot."
+    }
+  ],
+  "row_json_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "source_goal_id",
+      "title",
+      "objective_summary",
+      "status",
+      "source_snapshot",
+      "evidence_refs",
+      "gate_required_before_claim"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^G(00[1-9]|01[0-3])$"
+      },
+      "source_goal_id": {
+        "type": "string",
+        "pattern": "^G(00[1-9]|01[0-3])-[a-z0-9-]+$"
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1
+      },
+      "objective_summary": {
+        "type": "string",
+        "minLength": 1
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "unverified",
+          "not_started",
+          "in_progress",
+          "substantial",
+          "complete",
+          "terminal"
+        ]
+      },
+      "source_snapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_path",
+          "source_status",
+          "source_is_authoritative_for_status"
+        ],
+        "properties": {
+          "source_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "in_progress",
+              "pending",
+              "unknown"
+            ]
+          },
+          "source_is_authoritative_for_status": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "evidence_refs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "ref",
+            "gate_resolvable",
+            "claim_role"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "spec_path",
+                "registry_path",
+                "gate_id",
+                "closure_ledger_id",
+                "committed_pr_evidence",
+                "local_source_snapshot"
+              ]
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "gate_resolvable": {
+              "type": "boolean"
+            },
+            "claim_role": {
+              "type": "string",
+              "enum": [
+                "identity_seed",
+                "status_support",
+                "terminal_acceptance",
+                "drift_check"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "gate_required_before_claim": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "gate_expectations": [
+    {
+      "id": "platform-vertical-status-canonical-json",
+      "severity": "error",
+      "expectation": "Parse specs/platform-vertical-status.json as canonical JSON, validate every vertical row against row_json_schema, and reject duplicate ids or unsorted ids."
+    },
+    {
+      "id": "platform-vertical-status-no-percentage-claims",
+      "severity": "error",
+      "expectation": "Reject any row or renderer input containing the forbidden percentage/progress field names. The platform vertical view may derive counts of resolved evidence_refs, but it must not persist or render a claimed completion percentage from this registry."
+    },
+    {
+      "id": "platform-vertical-status-evidence-liveness",
+      "severity": "error",
+      "expectation": "For status in {in_progress, substantial, complete, terminal}, require at least one evidence_ref with gate_resolvable=true and claim_role=status_support or terminal_acceptance. For substantial, complete, and terminal, local_source_snapshot refs are provenance only and never satisfy the status claim."
+    },
+    {
+      "id": "platform-vertical-status-seed-slice-honesty",
+      "severity": "error",
+      "expectation": "When population_mode=seed_slice, consumers must label the registry as partial coverage and must not compute or display full G001-G013 coverage. Full coverage may be claimed only after exactly G001 through G013 are present."
+    },
+    {
+      "id": "platform-vertical-status-source-drift",
+      "severity": "warning",
+      "expectation": "Cross-check source_goal_id and title against the chosen committed platform-vertical source once it exists. Until then, drift against .omc/ultragoal/goals.json is advisory provenance only, not merge authority."
+    },
+    {
+      "id": "platform-vertical-status-renderer-fallback-refusal",
+      "severity": "error",
+      "expectation": "A milestone-view generator must render unverified (no machine SSOT) for missing or unverified rows and must fail if it attempts to import status pills or progress bars from the reference HTML."
+    },
+    {
+      "id": "platform-vertical-status-terminal-quality-boundary",
+      "severity": "error",
+      "expectation": "For G013, consumers must evaluate terminal_quality_gate_criteria by claim_scope. Slice evidence may identify a bounded quality-gate pass, but complete or terminal claims require all full_platform_terminal_closure required_evidence_inputs plus gate-resolvable upstream terminal_acceptance refs for every G001-G012 row."
+    }
+  ],
+  "verticals": [
+    {
+      "id": "G001",
+      "source_goal_id": "G001-g01-contract-lock-authority-reconcil",
+      "title": "G01 Contract Lock + Authority Reconciliation",
+      "objective_summary": "Serialized fan-out unlock. Fix stale authority surfaces, author hyperscaler decision-matrix ADRs, and lock shared contract seeds before PR to dev with oya-ci-required green.",
+      "status": "unverified",
+      "source_snapshot": {
+        "source_path": ".omc/ultragoal/goals.json#goals[0]",
+        "source_status": "complete",
+        "source_is_authoritative_for_status": false
+      },
+      "evidence_refs": [
+        {
+          "kind": "local_source_snapshot",
+          "ref": ".omc/ultragoal/goals.json#goals[id=G001-g01-contract-lock-authority-reconcil]",
+          "gate_resolvable": false,
+          "claim_role": "identity_seed",
+          "notes": "Seeds id/title/objective only; does not satisfy complete status."
+        }
+      ],
+      "gate_required_before_claim": [
+        "Replace local_source_snapshot-only provenance with committed, gate-resolvable terminal evidence before claiming complete.",
+        "Keep the row free of completion-percent or progress-bar fields."
+      ]
+    },
+    {
+      "id": "G011",
+      "source_goal_id": "G011-g11-pipeline-as-product-ratchet",
+      "title": "G11 Pipeline-as-Product Ratchet",
+      "objective_summary": "Continuous lane. Close the Buck-only gate-registration blind spot, migrate oya-check-* and oya-dev-cli gate logic into oya-cloud-ci-discipline-app crates, and convert every friction into a gate or automation.",
+      "status": "unverified",
+      "source_snapshot": {
+        "source_path": ".omc/ultragoal/goals.json#goals[10]",
+        "source_status": "in_progress",
+        "source_is_authoritative_for_status": false
+      },
+      "evidence_refs": [
+        {
+          "kind": "local_source_snapshot",
+          "ref": ".omc/ultragoal/goals.json#goals[id=G011-g11-pipeline-as-product-ratchet]",
+          "gate_resolvable": false,
+          "claim_role": "identity_seed",
+          "notes": "Seeds id/title/objective only; does not satisfy in_progress or substantial status."
+        }
+      ],
+      "gate_required_before_claim": [
+        "Add at least one committed, gate-resolvable status_support ref before claiming in_progress.",
+        "Require terminal_acceptance evidence before any complete or terminal claim."
+      ]
+    },
+    {
+      "id": "G013",
+      "source_goal_id": "G013-g13-final-quality-gate",
+      "title": "G13 Final Quality Gate",
+      "objective_summary": "Serialized fan-in final quality gate: deslop pass, independent verifier, dogfood E2E, smoke, cloud-ci gate evidence, final review approval, generated-file and TODO/stub/mock hygiene, signed commits, and oya-ci-required green over the accepted platform scope.",
+      "status": "unverified",
+      "source_snapshot": {
+        "source_path": ".omc/ultragoal/goals.json#goals[12]",
+        "source_status": "pending",
+        "source_is_authoritative_for_status": false
+      },
+      "evidence_refs": [
+        {
+          "kind": "local_source_snapshot",
+          "ref": ".omc/ultragoal/goals.json#goals[id=G013-g13-final-quality-gate]",
+          "gate_resolvable": false,
+          "claim_role": "identity_seed",
+          "notes": "Seeds id/title/objective and records historical session-slice acceptance snippets only; not terminal full-platform evidence."
+        },
+        {
+          "kind": "local_source_snapshot",
+          "ref": ".omc/ultragoal/g001-g013-status-assessment-2026-06-23.md#G013",
+          "gate_resolvable": false,
+          "claim_role": "drift_check",
+          "notes": "Assessment says G013 remains a deferred terminal gate until G001-G012 substrates are production-real; historical slice passes are harness evidence only."
+        }
+      ],
+      "gate_required_before_claim": [
+        "Classify each evidence ref under terminal_quality_gate_criteria claim_scope before using it for status.",
+        "Session-slice quality-gate passes require the session-slice evidence inputs and may not promote this row to complete or terminal.",
+        "Full-platform terminal closure requires every full_platform_terminal_closure evidence input plus upstream terminal_acceptance refs for G001 through G012.",
+        "Keep the row free of completion-percent or progress-bar fields."
+      ]
+    }
+  ]
+}

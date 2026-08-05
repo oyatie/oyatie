@@ -33,8 +33,8 @@ related_adrs:
 
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-This standard codifies [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md)
-**Directive 12 — Pragmatic git/gh**: direct `git` / `gh` invocation is
+This standard codifies historical `.omc/plans/MASTERPLAN.md`
+**Directive 12 — Pragmatic git/gh** (retired from the tracked tree): direct `git` / `gh` invocation is
 **permitted** when the documented rationale is logged and no sanctioned
 primitive exists. This standard names the rationale flow, the migration
 trigger, and the lane semantics.
@@ -197,7 +197,8 @@ scoped to the action.
 
 ## 11. Sources scanned
 
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
+- Historical `.omc/plans/MASTERPLAN.md` §2 Directive 12 (retired from the
+  tracked tree).
 - [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json).
 - [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape.
 - [`docs/standards/claude-code-harness.md`](claude-code-harness.md).

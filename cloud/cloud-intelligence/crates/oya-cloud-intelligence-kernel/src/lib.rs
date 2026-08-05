@@ -21,7 +21,7 @@
 //! encryption (D8) is enforced in the REST/secret adapter, not here.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fmt;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -131,6 +131,219 @@ impl fmt::Display for Provider {
 pub enum CredentialMode {
     OAuthSubscription,
     ApiKey,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum EnvTier {
+    Test,
+    Staging,
+    Prod,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ModelDefaultClass {
+    SmallCheap,
+    PromotionCandidate,
+    ProductionGradeSelection,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum ModelProfileTag {
+    CheapOrSmall,
+    SandboxOk,
+    NonProdOnly,
+    StagingApproved,
+    EvalSnapshotBound,
+    ProductionGrade,
+    ProdApproved,
+    SloBacked,
+    EvalGatePassed,
+    ProductionGradeOnly,
+    ProdOnly,
+    CheapOrSmallOnly,
+    SandboxOnly,
+    ProdOnlyWithoutPromotionEvidence,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EnvTierGatewayBudgetAdmission {
+    pub tenant_id: String,                             // data_class: INTERNAL_ONLY
+    pub env_tier: Option<EnvTier>,                     // data_class: INTERNAL_ONLY
+    pub model_default_class: ModelDefaultClass,        // data_class: INTERNAL_ONLY
+    pub model_profile_tags: BTreeSet<ModelProfileTag>, // data_class: INTERNAL_ONLY
+    pub model_default_policy_ref: String,              // data_class: INTERNAL_ONLY
+    pub tier_cost_budget_policy_ref: String,           // data_class: INTERNAL_ONLY
+    pub tier_cost_budget_evidence_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub model_route_registry_snapshot_ref: String,     // data_class: INTERNAL_ONLY
+    pub policy_decision_ref: String,                   // data_class: INTERNAL_ONLY
+    pub trace_context_ref: String,                     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum GatewayBudgetAdmissionDenialReason {
+    MissingEnvTier,
+    WrongModelDefaultForTier,
+    MissingPerTierCostBudgetEvidence,
+    FoundryLiveAuthorityResurrection,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GatewayBudgetAdmissionDenial {
+    pub reasons: BTreeSet<GatewayBudgetAdmissionDenialReason>,
+    pub evidence_refs: Vec<String>,
+}
+
+pub fn validate_env_tier_gateway_budget_admission(
+    admission: &EnvTierGatewayBudgetAdmission,
+) -> Result<(), GatewayBudgetAdmissionDenial> {
+    let mut reasons = BTreeSet::new();
+    let mut evidence_refs = vec![
+        admission.model_default_policy_ref.clone(),
+        admission.tier_cost_budget_policy_ref.clone(),
+        admission.model_route_registry_snapshot_ref.clone(),
+        admission.policy_decision_ref.clone(),
+        admission.trace_context_ref.clone(),
+    ];
+    if let Some(evidence_ref) = &admission.tier_cost_budget_evidence_ref {
+        evidence_refs.push(evidence_ref.clone());
+    }
+
+    if admission.env_tier.is_none() {
+        reasons.insert(GatewayBudgetAdmissionDenialReason::MissingEnvTier);
+        evidence_refs.push("env-tier:ENV-TIER-REQUIRED:missing_env_tier".to_owned());
+    }
+    if admission.tier_cost_budget_policy_ref.trim().is_empty()
+        || admission
+            .tier_cost_budget_evidence_ref
+            .as_deref()
+            .map(str::trim)
+            .unwrap_or_default()
+            .is_empty()
+    {
+        reasons.insert(GatewayBudgetAdmissionDenialReason::MissingPerTierCostBudgetEvidence);
+        evidence_refs.push(
+            "env-tier:TIER-BUDGET-EVIDENCE-REQUIRED:missing_per_tier_cost_budget_evidence"
+                .to_owned(),
+        );
+    }
+    if contains_retired_foundry_live_authority_ref(admission) {
+        reasons.insert(GatewayBudgetAdmissionDenialReason::FoundryLiveAuthorityResurrection);
+        evidence_refs.push(
+            "env-tier:FOUNDRY-LIVE-AUTHORITY-FORBIDDEN:foundry_live_authority_resurrection"
+                .to_owned(),
+        );
+    }
+    if let Some(env_tier) = admission.env_tier
+        && !admission_satisfies_env_tier(env_tier, admission)
+    {
+        reasons.insert(GatewayBudgetAdmissionDenialReason::WrongModelDefaultForTier);
+        evidence_refs
+            .push("env-tier:TIER-MODEL-DEFAULT-MATCH:wrong_model_default_for_tier".to_owned());
+    }
+
+    if reasons.is_empty() {
+        Ok(())
+    } else {
+        evidence_refs.retain(|value| !value.trim().is_empty());
+        evidence_refs.sort();
+        evidence_refs.dedup();
+        Err(GatewayBudgetAdmissionDenial {
+            reasons,
+            evidence_refs,
+        })
+    }
+}
+
+fn admission_satisfies_env_tier(
+    env_tier: EnvTier,
+    admission: &EnvTierGatewayBudgetAdmission,
+) -> bool {
+    match env_tier {
+        EnvTier::Test => {
+            admission.model_default_class == ModelDefaultClass::SmallCheap
+                && has_required_tags(
+                    &admission.model_profile_tags,
+                    &[
+                        ModelProfileTag::CheapOrSmall,
+                        ModelProfileTag::SandboxOk,
+                        ModelProfileTag::NonProdOnly,
+                    ],
+                )
+                && has_no_forbidden_tags(
+                    &admission.model_profile_tags,
+                    &[
+                        ModelProfileTag::ProductionGrade,
+                        ModelProfileTag::ProductionGradeOnly,
+                        ModelProfileTag::ProdApproved,
+                        ModelProfileTag::ProdOnly,
+                    ],
+                )
+        }
+        EnvTier::Staging => {
+            admission.model_default_class == ModelDefaultClass::PromotionCandidate
+                && has_required_tags(
+                    &admission.model_profile_tags,
+                    &[
+                        ModelProfileTag::StagingApproved,
+                        ModelProfileTag::EvalSnapshotBound,
+                    ],
+                )
+                && has_no_forbidden_tags(
+                    &admission.model_profile_tags,
+                    &[ModelProfileTag::ProdOnlyWithoutPromotionEvidence],
+                )
+        }
+        EnvTier::Prod => {
+            admission.model_default_class == ModelDefaultClass::ProductionGradeSelection
+                && has_required_tags(
+                    &admission.model_profile_tags,
+                    &[
+                        ModelProfileTag::ProductionGrade,
+                        ModelProfileTag::ProdApproved,
+                        ModelProfileTag::SloBacked,
+                        ModelProfileTag::EvalGatePassed,
+                    ],
+                )
+                && has_no_forbidden_tags(
+                    &admission.model_profile_tags,
+                    &[
+                        ModelProfileTag::CheapOrSmallOnly,
+                        ModelProfileTag::SandboxOnly,
+                        ModelProfileTag::NonProdOnly,
+                    ],
+                )
+        }
+    }
+}
+
+fn has_required_tags(tags: &BTreeSet<ModelProfileTag>, required: &[ModelProfileTag]) -> bool {
+    required.iter().all(|tag| tags.contains(tag))
+}
+
+fn has_no_forbidden_tags(tags: &BTreeSet<ModelProfileTag>, forbidden: &[ModelProfileTag]) -> bool {
+    forbidden.iter().all(|tag| !tags.contains(tag))
+}
+
+fn contains_retired_foundry_live_authority_ref(admission: &EnvTierGatewayBudgetAdmission) -> bool {
+    [
+        admission.model_default_policy_ref.as_str(),
+        admission.tier_cost_budget_policy_ref.as_str(),
+        admission.model_route_registry_snapshot_ref.as_str(),
+        admission
+            .tier_cost_budget_evidence_ref
+            .as_deref()
+            .unwrap_or_default(),
+    ]
+    .into_iter()
+    .any(is_retired_foundry_live_authority_ref)
+}
+
+fn is_retired_foundry_live_authority_ref(value: &str) -> bool {
+    let lower = value.to_ascii_lowercase();
+    lower.contains("foundry:cost-budget.md")
+        || lower.contains("foundry cost-budget.md")
+        || lower.contains("specs/microservices/foundry.json#live-authority")
+        || lower.contains("foundry.json#live-authority")
 }
 
 // ---------------------------------------------------------------------------
@@ -532,6 +745,7 @@ pub enum SubscriptionPoolError {
     DuplicateSeat,
     NoEligibleSeat,
     ForbiddenByPolicy,
+    EnvTierBudgetContractDenied,
 }
 
 /// RAII lease on a single seat. Prevents double-allocation of the same seat
@@ -756,6 +970,32 @@ impl SubscriptionPool {
         estimated_units: u64,
     ) -> Result<SeatId, SubscriptionPoolError> {
         self.select_candidate(agent_id, gate, now, estimated_units, false)
+    }
+
+    pub fn select_with_env_tier_budget(
+        &mut self,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        estimated_units: u64,
+        admission: &EnvTierGatewayBudgetAdmission,
+    ) -> Result<SeatId, SubscriptionPoolError> {
+        validate_env_tier_gateway_budget_admission(admission)
+            .map_err(|_| SubscriptionPoolError::EnvTierBudgetContractDenied)?;
+        self.select_candidate(agent_id, gate, now, estimated_units, false)
+    }
+
+    pub fn lease_with_env_tier_budget(
+        pool_ref: &Arc<Mutex<SubscriptionPool>>,
+        agent_id: &AgentId,
+        gate: &dyn AuthzGate,
+        now: Instant,
+        estimated_units: u64,
+        admission: &EnvTierGatewayBudgetAdmission,
+    ) -> Result<SeatLease, SubscriptionPoolError> {
+        validate_env_tier_gateway_budget_admission(admission)
+            .map_err(|_| SubscriptionPoolError::EnvTierBudgetContractDenied)?;
+        Self::lease_with_estimate(pool_ref, agent_id, gate, now, estimated_units)
     }
 
     fn select_candidate(
@@ -1037,6 +1277,10 @@ pub fn is_secret_handle_reference(handle: &str) -> bool {
 mod tests {
     use super::*;
 
+    const ENV_TIER_RED_FIXTURES: &str = include_str!(
+        "../../../../../oya/intelligence/contracts/fixtures/env-tier-model-budget/red-fixtures.json"
+    );
+
     struct AllowGate;
 
     impl AuthzGate for AllowGate {
@@ -1076,6 +1320,127 @@ mod tests {
             credential_secret_handle,
             0,
         )
+    }
+
+    fn gateway_admission() -> EnvTierGatewayBudgetAdmission {
+        EnvTierGatewayBudgetAdmission {
+            tenant_id: "tenant-a".to_owned(),
+            env_tier: Some(EnvTier::Test),
+            model_default_class: ModelDefaultClass::SmallCheap,
+            model_profile_tags: BTreeSet::from([
+                ModelProfileTag::CheapOrSmall,
+                ModelProfileTag::SandboxOk,
+                ModelProfileTag::NonProdOnly,
+            ]),
+            model_default_policy_ref: "policy:intelligence.env-tier.model-default.test.v1"
+                .to_owned(),
+            tier_cost_budget_policy_ref: "policy:intelligence.env-tier.cost-budget.test.v1"
+                .to_owned(),
+            tier_cost_budget_evidence_ref: Some("budget:intelligence:test:gateway".to_owned()),
+            model_route_registry_snapshot_ref: "route-registry:intelligence:env-tier:test"
+                .to_owned(),
+            policy_decision_ref: "policy-decision:cloud-intelligence:test:allow".to_owned(),
+            trace_context_ref: "trace:cloud-intelligence:env-tier:test".to_owned(),
+        }
+    }
+
+    #[test]
+    fn gateway_budget_admission_consumes_red_fixture_denials() {
+        assert!(ENV_TIER_RED_FIXTURES.contains("missing_env_tier_denies_before_model_selection"));
+        assert!(ENV_TIER_RED_FIXTURES.contains("test_tier_rejects_production_grade_default"));
+        assert!(ENV_TIER_RED_FIXTURES.contains("prod_tier_rejects_missing_cost_budget_evidence"));
+        assert!(ENV_TIER_RED_FIXTURES.contains("foundry_live_authority_resurrection_is_rejected"));
+    }
+
+    #[test]
+    fn missing_env_tier_denies_before_gateway_seat_lease() {
+        let now = Instant::now();
+        let pool = Arc::new(Mutex::new(SubscriptionPool::new(
+            tenant("tenant-a"),
+            Provider::Anthropic,
+            SelectionStrategy::RoundRobin,
+        )));
+        let sid = seat("seat-gateway");
+        pool.lock()
+            .expect("pool lock")
+            .add_seat(active_subscription(
+                tenant("tenant-a"),
+                sid.clone(),
+                Provider::Anthropic,
+                "vault://tenant-a/gateway",
+            ))
+            .expect("add seat");
+        let mut admission = gateway_admission();
+        admission.env_tier = None;
+
+        let denied = SubscriptionPool::lease_with_env_tier_budget(
+            &pool,
+            &agent("agent-a"),
+            &AllowGate,
+            now,
+            1,
+            &admission,
+        );
+
+        assert!(matches!(
+            denied,
+            Err(SubscriptionPoolError::EnvTierBudgetContractDenied)
+        ));
+        assert_eq!(
+            pool.lock().expect("pool lock").seat_inflight_units(&sid),
+            Some(0)
+        );
+    }
+
+    #[test]
+    fn prod_gateway_requires_cost_budget_evidence_before_dispatch_admission() {
+        let mut admission = gateway_admission();
+        admission.env_tier = Some(EnvTier::Prod);
+        admission.model_default_class = ModelDefaultClass::ProductionGradeSelection;
+        admission.model_profile_tags = BTreeSet::from([
+            ModelProfileTag::ProductionGrade,
+            ModelProfileTag::ProdApproved,
+            ModelProfileTag::SloBacked,
+            ModelProfileTag::EvalGatePassed,
+        ]);
+        admission.model_default_policy_ref =
+            "policy:intelligence.env-tier.model-default.prod.v1".to_owned();
+        admission.tier_cost_budget_policy_ref =
+            "policy:intelligence.env-tier.cost-budget.prod.v1".to_owned();
+        admission.tier_cost_budget_evidence_ref = None;
+
+        let denial = validate_env_tier_gateway_budget_admission(&admission)
+            .expect_err("missing prod budget evidence must deny");
+
+        assert!(
+            denial
+                .reasons
+                .contains(&GatewayBudgetAdmissionDenialReason::MissingPerTierCostBudgetEvidence)
+        );
+        assert!(
+            denial.evidence_refs.contains(
+                &"env-tier:TIER-BUDGET-EVIDENCE-REQUIRED:missing_per_tier_cost_budget_evidence"
+                    .to_owned()
+            )
+        );
+    }
+
+    #[test]
+    fn foundry_live_authority_refs_are_rejected_at_gateway_admission() {
+        let mut admission = gateway_admission();
+        admission.model_default_policy_ref =
+            "foundry:cost-budget.md#test_tier_model_default".to_owned();
+        admission.model_route_registry_snapshot_ref =
+            "specs/microservices/foundry.json#live-authority".to_owned();
+
+        let denial = validate_env_tier_gateway_budget_admission(&admission)
+            .expect_err("retired foundry authority must deny");
+
+        assert!(
+            denial
+                .reasons
+                .contains(&GatewayBudgetAdmissionDenialReason::FoundryLiveAuthorityResurrection)
+        );
     }
 
     #[test]

@@ -7,9 +7,10 @@ info:
     (ADR-0376). Provision/observe/teardown tenant control planes across the
     hosted (Kamaji TenantControlPlane) and dedicated (Talos spoke) tiers. This is
     a CONTROL-PLANE admin API consumed by oya-managed-k8s-cluster-lifecycle and
-    operators — never a tenant-workload data path. design-spec maturity: the live
-    Kamaji/Talos reconcile is honest-deferred and returns 501 Not Implemented
-    (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration).
+    operators — never a tenant-workload data path. live adapter foundation:
+    hosted Kamaji uses kube-rs DynamicObject create/read/delete; dedicated Talos
+    records an opaque CAPI reference. Real sandbox/live cluster proof remains a
+    separate approval artifact.
   license:
     name: Apache-2.0
 servers:
@@ -42,7 +43,7 @@ paths:
         '403':
           description: Principal is not authorized to provision (Cedar default-deny for tenants).
         '501':
-          description: Live Kamaji/Talos reconcile is honest-deferred (CAPI adapter).
+          description: Adapter explicitly deferred this operation.
           content:
             application/json:
               schema:
@@ -67,7 +68,7 @@ paths:
         '404':
           description: No control plane known for the supplied handle.
         '501':
-          description: Live reconcile honest-deferred (CAPI adapter).
+          description: Adapter explicitly deferred this operation.
   /admin/control-planes/teardown:
     post:
       operationId: teardownControlPlane
@@ -84,7 +85,7 @@ paths:
         '404':
           description: No control plane known for the supplied handle.
         '501':
-          description: Live reconcile honest-deferred (CAPI adapter).
+          description: Adapter explicitly deferred this operation.
   /healthz:
     get:
       operationId: healthz

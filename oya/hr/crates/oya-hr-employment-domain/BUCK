@@ -116,3 +116,15 @@ rust_test(
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
     ],
 )
+
+rust_test(
+    name = "oya-hr-employment-domain-statutory-filing-manifest",
+    srcs = ["tests/statutory_filing_manifest.rs"],
+    crate = "oya_hr_employment_domain_statutory_filing_manifest",
+    crate_root = "tests/statutory_filing_manifest.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

@@ -1,0 +1,533 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "CLOUD-CAPACITY-RESOURCE-CONTRACT-001",
+  "spec_id": "EXE-CLOUD-CAPACITY-RESOURCE-CONTRACT-001",
+  "doc_class": "Machine-Readable-Spec",
+  "microservice": "cloud-capacity",
+  "version": "0.1.0",
+  "owner": "axis-cloud-capacity",
+  "status": "target-contract-metadata-only",
+  "purpose": "Discoverable Cloud Control Plane resource-contract manifest for cloud-capacity resource types. This records the target per-resource control-plane contract for Cell, CapacityReservation, AutoscalerPolicy, and RebalancePlan without claiming provider-live provisioning or runtime controllers.",
+  "authority_refs": [
+    {
+      "path": "specs/cloud-resource-catalog-target.json",
+      "lines": "133-150",
+      "summary": "cloud-capacity target resource types are Cell, CapacityReservation, AutoscalerPolicy, and RebalancePlan; target-only non-claims remain in force."
+    },
+    {
+      "path": "specs/cloud-control-plane-canonical.json",
+      "lines": "24-148",
+      "summary": "Defines the Organization -> Account -> Project -> Region -> Cell -> Resource Group -> Resource hierarchy, ORN shape, durable LRO pipeline, required per-resource fields, nine control-plane facets, and target-only non-claims."
+    },
+    {
+      "path": "specs/masterplan.json",
+      "lines": "144-256,338-405,4023-4090",
+      "summary": "Requires discoverable stable cloud-resource contracts with lifecycle, identity, policy, quota, billing, audit, observability, rollback, and reconciliation facets; states current cloud foundations are metadata-only and capacity management is planning-closed, not provider-live."
+    },
+    {
+      "path": "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_c72570bb/cloud-capacity-resource-contract-map.json",
+      "summary": "Parent plan/spec evidence for this manifest and de-dupe boundary."
+    }
+  ],
+  "dedupe_note": "This manifest does not touch or unblock t_15ade88d/t_d29b82ea CAPACITY-001 workload capacity_model gate. Those cards remain authoritative for oya/workflow-engine/manifest.json and marketplace/facade/dev-cli capacity_model validation; this card only records the cloud-capacity resource-contract manifest.",
+  "resource_model": {
+    "hierarchy": [
+      "Organization",
+      "Account",
+      "Project",
+      "Region",
+      "Cell",
+      "Resource Group",
+      "Resource"
+    ],
+    "orn_pattern": "orn:oya:{region}:{account}:cloud-capacity:{resource_type}/{resource_id}",
+    "required_scope_fields": [
+      "tenant",
+      "account",
+      "project",
+      "region",
+      "cell",
+      "resource_group"
+    ],
+    "control_plane_pipeline": [
+      "API Gateway",
+      "Resource Registry",
+      "Operation Ledger",
+      "Workflow/Reconciler",
+      "OpenTofu/Operators/Argo"
+    ],
+    "long_running_operation_required_for": [
+      "create",
+      "update",
+      "delete"
+    ]
+  },
+  "control_plane_facets_required": [
+    "lifecycle",
+    "identity",
+    "policy",
+    "quota",
+    "billing",
+    "audit",
+    "observability",
+    "rollback",
+    "reconciliation"
+  ],
+  "per_resource_fields_required": [
+    "quota_cost",
+    "billing_meters",
+    "audit_events",
+    "lifecycle_state",
+    "owner",
+    "tenant_account_project",
+    "region_cell",
+    "slo_tier",
+    "deletion_retention_policy"
+  ],
+  "contract_status": {
+    "metadata_only_current_foundation": true,
+    "target_only": true,
+    "provider_live": false,
+    "runtime_reconciler": false,
+    "runtime_autoscaler": false,
+    "runtime_rebalancer": false,
+    "opentofu_or_argo_apply": false,
+    "measured_slo_or_dr_evidence": false
+  },
+  "non_claims": [
+    "No provider quota API, provider capacity purchase, committed-use purchase, spot-market operation, OpenTofu plan/apply, Argo CD sync, Kubernetes API call, Karpenter runtime mutation, cell-rebalancer/controller runtime, live Resource Registry, Operation Ledger persistence, runtime reconciler, measured SLO, DR evidence, production readiness, or hyperscaler maturity is implemented or claimed by this manifest.",
+    "Current cloud-capacity Rust code remains domain/kernel invariant and metadata guardrail foundation code. This manifest makes target contracts discoverable; it is not a runtime API, provider adapter, or controller implementation."
+  ],
+  "resource_contracts": [
+    {
+      "resource_type": "Cell",
+      "resource_id_field": "cell_id",
+      "current_foundation_status": "partial-code-backed-metadata-foundation",
+      "current_foundation_refs": [
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/cell_budget.rs",
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/src/lib.rs",
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      ],
+      "identity": {
+        "orn_pattern": "orn:oya:{region}:{account}:cloud-capacity:Cell/{cell_id}",
+        "required_fields": [
+          "tenant",
+          "account",
+          "project",
+          "region",
+          "cell",
+          "resource_group",
+          "cell_id",
+          "owner",
+          "deployment_model",
+          "compliance_pack"
+        ],
+        "tenant_account_project": {
+          "tenant_field": "tenant",
+          "account_field": "account",
+          "project_field": "project"
+        },
+        "region_cell": {
+          "region_field": "region",
+          "cell_field": "cell"
+        }
+      },
+      "quota_cost": {
+        "unit": "capacity_units",
+        "dimensions": [
+          "reservation_slots",
+          "aggregate_cell_budget",
+          "stable_headroom",
+          "brown_out_signal"
+        ],
+        "source": "CellBudget and CellCapacityEnvelope metadata; no live quota service is claimed."
+      },
+      "billing_meters": [
+        "cell_capacity_allocated_unit_seconds",
+        "cell_capacity_used_unit_seconds",
+        "reservation_chargeback_unit_seconds",
+        "spot_chargeback_unit_seconds",
+        "commitment_chargeback_unit_seconds"
+      ],
+      "audit_events": [
+        "cell.proposed",
+        "cell.allocation_requested",
+        "cell.activated",
+        "cell.budget_updated",
+        "cell.drain_requested",
+        "cell.retire_requested",
+        "cell.retired",
+        "cell.evidence_refs_updated",
+        "cell.rollback_recorded"
+      ],
+      "lifecycle_state": {
+        "states": [
+          "proposed",
+          "allocating",
+          "active",
+          "draining",
+          "retiring",
+          "retired",
+          "failed"
+        ],
+        "lro_required": true,
+        "current_code_claim": "Cell budget and guardrail metadata exist; no Cell lifecycle controller is claimed."
+      },
+      "owner": {
+        "field": "owner",
+        "authority": "Cloud IAM principal or owning team reference resolved by the future Cloud Control Plane."
+      },
+      "slo_tier": {
+        "field": "slo_tier",
+        "allowed_values": [
+          "tier-0",
+          "tier-1",
+          "tier-2",
+          "tier-3"
+        ],
+        "current_claim": "intended metadata only; no measured SLO evidence"
+      },
+      "deletion_retention_policy": {
+        "delete_mode": "drain_then_retire",
+        "minimum_audit_retention": "per tenant compliance pack",
+        "evidence_retention": "audit-chain/cloud-ops/{tenant}/{region}/{cell}/...",
+        "current_claim": "metadata target only; no runtime deletion workflow"
+      },
+      "facets": {
+        "lifecycle": "Declarative create/update/drain/retire through future Resource Registry and operation ledger; current foundation has no Cell lifecycle runtime.",
+        "identity": "ORN-pinned tenant/account/project/region/cell/resource-group identity with owner and deployment model metadata.",
+        "policy": "Cedar gates for create/update/drain/retire/read, tenant isolation, deployment-model constraints, jurisdiction/compliance pack pinning, and approval for drain/retire.",
+        "quota": "Cell-level reservation slots and CapacityUnits budgets with quota_cost and brown-out/degradation signal metadata.",
+        "billing": "Direct cell capacity allocation plus indirect reservation, spot, and commitment chargeback mapped to Cloud Billing / FOCUS dimensions.",
+        "audit": "Lifecycle, budget change, drain/rebalance, evidence-ref update, and compensating-action events.",
+        "observability": "Headroom, utilization, reservation pressure, spot pressure, rebalance pressure, drain progress, and SLO tier metadata.",
+        "rollback": "Cancel allocation/drain/retire operations, revert budget changes, restore prior guardrail refs, and record compensating action.",
+        "reconciliation": "Desired Cell envelope in registry versus future compute/IaC/Kubernetes inventory; no runtime reconciler is claimed."
+      }
+    },
+    {
+      "resource_type": "CapacityReservation",
+      "resource_id_field": "reservation_id",
+      "current_foundation_status": "partial-code-backed-domain-kernel-foundation",
+      "current_foundation_refs": [
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/lib.rs",
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-kernel/src/committed_use.rs",
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/src/lib.rs"
+      ],
+      "identity": {
+        "orn_pattern": "orn:oya:{region}:{account}:cloud-capacity:CapacityReservation/{reservation_id}",
+        "required_fields": [
+          "tenant",
+          "account",
+          "project",
+          "region",
+          "cell",
+          "resource_group",
+          "reservation_id",
+          "sku",
+          "capacity_class",
+          "term",
+          "owner",
+          "data_class"
+        ],
+        "tenant_account_project": {
+          "tenant_field": "tenant",
+          "account_field": "account",
+          "project_field": "project"
+        },
+        "region_cell": {
+          "region_field": "region",
+          "cell_field": "cell"
+        }
+      },
+      "quota_cost": {
+        "unit": "capacity_units_by_sku",
+        "dimensions": [
+          "regional_quota",
+          "cell_budget",
+          "stable_headroom",
+          "tenant_class_cap",
+          "capacity_class"
+        ],
+        "source": "Kernel reservation admission and domain reservation metadata; no live quota reservation service is claimed."
+      },
+      "billing_meters": [
+        "reserved_resource_unit_seconds",
+        "commitment_amortization_unit_seconds",
+        "reservation_purchase_amount",
+        "reservation_expiry_adjustment",
+        "reservation_cancel_adjustment"
+      ],
+      "audit_events": [
+        "capacity_reservation.requested",
+        "capacity_reservation.admitted",
+        "capacity_reservation.activated",
+        "capacity_reservation.rejected",
+        "capacity_reservation.expiring",
+        "capacity_reservation.expired",
+        "capacity_reservation.cancelling",
+        "capacity_reservation.cancelled",
+        "capacity_reservation.billing_emitted",
+        "capacity_reservation.rollback_recorded"
+      ],
+      "lifecycle_state": {
+        "states": [
+          "requested",
+          "admitted",
+          "active",
+          "expiring",
+          "expired",
+          "cancelling",
+          "cancelled",
+          "failed"
+        ],
+        "lro_required": true,
+        "current_code_claim": "Domain reservation state and Active -> Expired/Cancelled transitions exist; no purchase/extend/cancel runtime is claimed."
+      },
+      "owner": {
+        "field": "owner",
+        "authority": "Requester or owning service/team principal authorized by future Cedar policy."
+      },
+      "slo_tier": {
+        "field": "slo_tier",
+        "allowed_values": [
+          "tier-0",
+          "tier-1",
+          "tier-2",
+          "tier-3"
+        ],
+        "current_claim": "intended metadata only; no measured SLO evidence"
+      },
+      "deletion_retention_policy": {
+        "delete_mode": "cancel_or_expire_then_retained_ledger_record",
+        "minimum_audit_retention": "per financial and tenant compliance pack",
+        "evidence_retention": "audit-chain/cloud-ops/{tenant}/{region}/{cell}/capacity-reservation/...",
+        "current_claim": "metadata target only; no live billing ledger or audit persistence"
+      },
+      "facets": {
+        "lifecycle": "Requested/admitted/active/expiry/cancel flow with idempotent operation-ledger state for purchase/extend/cancel.",
+        "identity": "ORN-pinned reservation with tenant/account/project/SKU/region/cell/resource-group/owner/term/data-class metadata.",
+        "policy": "Cedar purchase/extend/cancel/read checks by owner/admin, tenant class, approval threshold, jurisdiction, and financial authorization.",
+        "quota": "CapacityUnits and SKU quota_cost composed with regional quota, cell budget, stable headroom, and tenant caps.",
+        "billing": "Reserved resource-seconds, commitment amortization, purchase/expiry/cancel charges, and capacity meter handoff to Cloud Billing.",
+        "audit": "Reservation request/admission/activation/expiry/cancel/reject, quota decision, billing emission, and rollback events.",
+        "observability": "Reservation utilization, unused percentage, headroom impact, expiry horizon, quota rejections, and per-resource SLO tier metadata.",
+        "rollback": "Failed purchase compensates meter and frees quota; cancellation/expiry remains idempotent and auditable.",
+        "reconciliation": "Desired reservation state versus catalog, quota ledger, billing meter ledger, and actual cell capacity; no persistence or runtime reconciliation is claimed."
+      }
+    },
+    {
+      "resource_type": "AutoscalerPolicy",
+      "resource_id_field": "policy_id",
+      "current_foundation_status": "target-only-no-code-backed-type-under-cloud-capacity",
+      "current_foundation_refs": [],
+      "identity": {
+        "orn_pattern": "orn:oya:{region}:{account}:cloud-capacity:AutoscalerPolicy/{policy_id}",
+        "required_fields": [
+          "tenant",
+          "account",
+          "project",
+          "region",
+          "cell",
+          "resource_group",
+          "policy_id",
+          "target_scope",
+          "version",
+          "owner",
+          "slo_tier"
+        ],
+        "tenant_account_project": {
+          "tenant_field": "tenant",
+          "account_field": "account",
+          "project_field": "project"
+        },
+        "region_cell": {
+          "region_field": "region",
+          "cell_field": "cell_selector"
+        }
+      },
+      "quota_cost": {
+        "unit": "max_capacity_envelope",
+        "dimensions": [
+          "requested_burst_budget",
+          "min_capacity",
+          "max_capacity",
+          "per_tenant_scale_ceiling",
+          "brown_out_behavior"
+        ],
+        "source": "Target contract only; no AutoscalerPolicy code type or runtime quota enforcement is claimed."
+      },
+      "billing_meters": [
+        "autoscaler_policy_recommended_scale_out_unit_seconds",
+        "autoscaler_policy_applied_scale_out_unit_seconds",
+        "forecasted_incremental_cost",
+        "scale_decision_cost_guardrail_denial"
+      ],
+      "audit_events": [
+        "autoscaler_policy.created",
+        "autoscaler_policy.updated",
+        "autoscaler_policy.validated",
+        "autoscaler_policy.activated",
+        "autoscaler_policy.paused",
+        "autoscaler_policy.superseded",
+        "autoscaler_policy.deleted",
+        "autoscaler_policy.scale_decision_recommended",
+        "autoscaler_policy.quota_denied",
+        "autoscaler_policy.rollback_recorded"
+      ],
+      "lifecycle_state": {
+        "states": [
+          "draft",
+          "validated",
+          "active",
+          "paused",
+          "superseded",
+          "deleted",
+          "failed"
+        ],
+        "lro_required": true,
+        "current_code_claim": "No AutoscalerPolicy code-backed type exists under cloud/cloud-capacity; this is a target contract only."
+      },
+      "owner": {
+        "field": "owner",
+        "authority": "Policy author or owning workload/service principal authorized by future Cedar policy."
+      },
+      "slo_tier": {
+        "field": "slo_tier",
+        "allowed_values": [
+          "tier-0",
+          "tier-1",
+          "tier-2",
+          "tier-3"
+        ],
+        "current_claim": "intended metadata only; no measured burn-rate or autoscaling telemetry"
+      },
+      "deletion_retention_policy": {
+        "delete_mode": "supersede_or_delete_after_policy_version_retention",
+        "minimum_audit_retention": "per tenant compliance pack and policy-change audit requirements",
+        "evidence_retention": "audit-chain/cloud-ops/{tenant}/{region}/{cell}/autoscaler-policy/...",
+        "current_claim": "metadata target only; no Karpenter/autoscaler controller mutation"
+      },
+      "facets": {
+        "lifecycle": "Draft/validate/activate/pause/supersede/delete flow with operation-ledger state for mutating operations.",
+        "identity": "ORN-pinned policy with account/project/resource group, region/cell selector, target scope, owner, version, and SLO tier.",
+        "policy": "Cedar author/update/activate/pause/delete gates plus min/max capacity, tenant class, deployment model, compliance pack, blast radius, approval threshold, and no-cross-cell unsafe scaling constraints.",
+        "quota": "Maximum capacity envelope, requested burst budget, per-tenant/per-resource ceilings, and brown-out behavior when quota is unavailable.",
+        "billing": "Policy-driven scale-out meter attribution and forecasted cost guardrails; no purchase or commitment execution in this contract.",
+        "audit": "Policy lifecycle, scale-decision recommendations, quota denials, and rollback events.",
+        "observability": "Desired/current capacity, pending workload pressure, scale decision latency, error-budget guardrails, headroom, throttles, and SLO burn-rate inputs.",
+        "rollback": "Revert to previous policy version, pause policy, clamp max capacity, and record compensating operation.",
+        "reconciliation": "Desired policy in resource registry versus future Karpenter/autoscaler actual state; no runtime mutation is claimed."
+      }
+    },
+    {
+      "resource_type": "RebalancePlan",
+      "resource_id_field": "rebalance_plan_id",
+      "current_foundation_status": "partial-code-backed-domain-foundation",
+      "current_foundation_refs": [
+        "cloud/cloud-capacity/crates/oya-cloud-capacity-domain/src/lib.rs"
+      ],
+      "identity": {
+        "orn_pattern": "orn:oya:{region}:{account}:cloud-capacity:RebalancePlan/{rebalance_plan_id}",
+        "required_fields": [
+          "tenant",
+          "account",
+          "project",
+          "region",
+          "cell",
+          "resource_group",
+          "rebalance_plan_id",
+          "source_cell",
+          "target_cell",
+          "owner",
+          "approval_ref",
+          "data_class"
+        ],
+        "tenant_account_project": {
+          "tenant_field": "tenant",
+          "account_field": "account",
+          "project_field": "project"
+        },
+        "region_cell": {
+          "region_field": "region",
+          "cell_field": "source_cell/target_cell"
+        }
+      },
+      "quota_cost": {
+        "unit": "moved_capacity_units",
+        "dimensions": [
+          "target_cell_headroom_consumed",
+          "source_cell_headroom_freed",
+          "reservation_side_effects",
+          "spot_side_effects",
+          "autoscaler_ceiling_interaction"
+        ],
+        "source": "Domain RebalancePlan move metadata and guardrails; no live rebalancer or quota ledger is claimed."
+      },
+      "billing_meters": [
+        "rebalance_operation_unit_seconds",
+        "rebalance_data_movement_units",
+        "reservation_reallocation_adjustment",
+        "spot_reassignment_adjustment",
+        "rollback_compensation_adjustment"
+      ],
+      "audit_events": [
+        "rebalance_plan.proposed",
+        "rebalance_plan.awaiting_approval",
+        "rebalance_plan.approved",
+        "rebalance_plan.executing",
+        "rebalance_plan.succeeded",
+        "rebalance_plan.failed",
+        "rebalance_plan.cancelled",
+        "rebalance_plan.rollback_requested",
+        "rebalance_plan.rolled_back",
+        "rebalance_plan.evidence_refs_updated"
+      ],
+      "lifecycle_state": {
+        "states": [
+          "proposed",
+          "awaiting_approval",
+          "approved",
+          "executing",
+          "succeeded",
+          "failed",
+          "rolled_back",
+          "cancelled"
+        ],
+        "lro_required": true,
+        "current_code_claim": "Domain RebalancePlan creation and bounded move validation exist; no execution controller is claimed."
+      },
+      "owner": {
+        "field": "owner",
+        "authority": "Plan requester, automated capacity steward, or owning service principal authorized by future Cedar policy."
+      },
+      "slo_tier": {
+        "field": "slo_tier",
+        "allowed_values": [
+          "tier-0",
+          "tier-1",
+          "tier-2",
+          "tier-3"
+        ],
+        "current_claim": "intended metadata only; no measured rebalance SLO evidence"
+      },
+      "deletion_retention_policy": {
+        "delete_mode": "cancel_or_complete_then_retain_plan_record",
+        "minimum_audit_retention": "per tenant compliance pack and capacity operation audit requirements",
+        "evidence_retention": "audit-chain/cloud-ops/{tenant}/{region}/{cell}/rebalance-plan/...",
+        "current_claim": "metadata target only; no live rebalancer/controller persistence"
+      },
+      "facets": {
+        "lifecycle": "Proposal/approval/execution/success/failure/cancel/rollback flow with operation ledger for approve/execute/cancel/rollback.",
+        "identity": "ORN-pinned plan with source/target cell, tenant/account/project/resource-group when scoped, owner, approval ref, and data class.",
+        "policy": "Cedar approval gates, MAX_REBALANCE_MOVE_BPS blast-radius cap, tenant isolation, jurisdiction/compliance pinning, and emergency override rules.",
+        "quota": "Moved capacity consumes target cell headroom and frees source cell headroom while composing with reservation, spot, and autoscaler ceilings.",
+        "billing": "Rebalancing operation cost/meter attribution and reservation/spot side effects; no direct marketplace purchase in this lane.",
+        "audit": "Proposal, approval, execution, cancel, rollback, capacity snapshots, approval refs, and evidence refs.",
+        "observability": "Move progress, source/target headroom, affected workload count, error-budget/SLO guardrails, retries, and rollback trigger metrics.",
+        "rollback": "Abort before execution, reverse move when safe, restore source/target envelopes, and record compensating action.",
+        "reconciliation": "Registry desired plan versus future cell-rebalancer actual state; no live rebalancer/controller is claimed."
+      }
+    }
+  ]
+}

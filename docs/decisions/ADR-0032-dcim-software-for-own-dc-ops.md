@@ -4,7 +4,7 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0032: DCIM software for Oyatie-owned DC operations — `crates/oya-cloud-dcops-*` with anti-scope on custom silicon
+# ADR-0032: DCIM software for Oyatie-owned DC operations — long-horizon DCIM target with OSS/commercial bridge and default custom-silicon anti-scope
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -19,15 +19,19 @@ doc_status: published
 
 ADR-0028 commits the cloud microservice to a three-phase trajectory ending in greenfield Oyatie mega-DCs. From Phase 2 onward we operate physical infrastructure: rack-and-stack, power, cooling, network ops, sustainability, regulatory compliance. The industry-standard term for the software that runs a DC is **DCIM** (Data Center Infrastructure Management). Off-the-shelf DCIM (Sunbird, Nlyte, Schneider EcoStruxure, Vertiv Trellis) is built for colocation operators and enterprise IT, not for a cloud provider whose tenants are themselves multi-axis SaaS workloads. None of them consume the cohesion-thesis substrates (Tenant / Identity / Audit / Capability / Runtime / Autonomy); all of them ship their own auth, their own audit log, and their own scripting surface — which is exactly the cohesion violation pattern we exist to prevent.
 
-We must also be explicit about anti-scope: every cloud provider that has tried to design custom silicon (NICs, switches, accelerators, optical transceivers) has burned years and capital. We adopt the discipline that we use commercial silicon only and own nothing below the OEM line. This ADR pins the in-house DCIM bounded contexts, the integration surfaces (BMS / BAS / power monitoring / cooling / physical security / asset lifecycle / capacity planning / dispatch / sustainability / regulatory), and the anti-scope.
+We must also be explicit about anti-scope: every cloud provider that has tried to design custom silicon (NICs, switches, accelerators, optical transceivers) has burned years and capital. We adopt the default discipline that we use commercial silicon and own nothing below the OEM line during Phase 1/2; any custom data-center silicon exception requires a Phase 3+ forcing function plus founder ratification. This ADR pins the in-house DCIM bounded contexts, the integration surfaces (BMS / BAS / power monitoring / cooling / physical security / asset lifecycle / capacity planning / dispatch / sustainability / regulatory), and the anti-scope.
 
 ---
 
 ## Decision
 
-We build `crates/oya-cloud-dcops-*` as the in-house DCIM, consuming the same six cohesion substrates as every other axis. Off-the-shelf DCIM is rejected; per-vendor BMS/BAS adapters are isolated behind explicit ports.
+DCIM is a long-horizon W-DataCenter-Operations destination, not a day-0 in-house build. Until Oyatie operates physical or colocated DC capacity at scale, DC operations use OSS/commercial DCIM and facility/BMS/BAS tools behind cohesion-substrate ports. The current authorities are `docs/PRD.md:53-54` and `docs/PRD.md:111` (DC build/operation is in scope only at W-DataCenter-Operations) plus `docs/DESIGN.md:232-240` (Phase 1 OCI+AWS, Phase 2 Oyatie colo, DCIM operational only when the DC-ops wave triggers).
 
-### Bounded contexts
+When that trigger fires, `crates/oya-cloud-dcops-*` is the owned DCIM destination consuming the same six cohesion substrates as every other axis. Off-the-shelf DCIM is accepted as the bridge and rejected only as the final cohesion substrate; per-vendor BMS/BAS adapters remain isolated behind explicit ports.
+
+### Destination bounded contexts
+
+These contexts describe the W-DataCenter-Operations target surface. They are not a runtime/product implementation claim before Oyatie owns physical or colocated DC capacity at scale.
 
 | Crate | Concern |
 |---|---|
@@ -69,7 +73,7 @@ pub struct LgEnsAdapter { /* KR-specific */ }
 pub struct LsElectricAdapter { /* KR-specific */ }
 ```
 
-Per-vendor adapters live behind the trait; the rest of DCIM never sees vendor specifics. KR-specific adapters (LG ENS / LS Electric) ship at Phase 2 since KR colos overwhelmingly use these.
+Per-vendor adapters live behind the trait; the rest of DCIM never sees vendor specifics. KR-specific adapters (LG ENS / LS Electric) ship when the W-DataCenter-Operations trigger fires for KR colo/physical capacity; before then, adopted OSS/commercial DCIM remains behind the same port boundary.
 
 ### Power monitoring
 
@@ -135,14 +139,14 @@ Per-vendor adapters live behind the trait; the rest of DCIM never sees vendor sp
 
 ### Anti-scope: chip designer
 
-We do not design custom silicon at any phase. Specifically forbidden:
+Custom data-center silicon remains anti-scope by default. We use commercial silicon and do not start a silicon program unless Phase 3+ scale creates a documented forcing function (for example, no acceptable commercial/RFP option for a named component) and the founder ratifies the exception. Day-0 custom silicon remains forbidden:
 
 - Custom CPU / accelerator silicon (commercial: NVIDIA / AMD / Intel / Qualcomm / Samsung).
 - Custom NIC / DPU silicon (commercial: NVIDIA BlueField / AMD Pensando / Intel IPU).
 - Custom switch ASIC (commercial: Broadcom Tomahawk / NVIDIA Spectrum / Intel Tofino).
 - Custom optical transceiver silicon (commercial vendor).
 
-If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, founder ratification is required to revisit this anti-scope (per ADR-0001 axis-admission protocol equivalent).
+If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, founder ratification is required to revisit this anti-scope (per ADR-0001 axis-admission protocol equivalent). That escape hatch is not a current ownership claim and does not allocate a day-0 major slot.
 
 ---
 
@@ -177,7 +181,7 @@ If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, f
 
 - **Pros:** faster to first-DC.
 - **Cons:** does not consume substrates; ships own auth + audit; per-vendor lock-in; cannot expose cohesion-grade capabilities to Foundry agents.
-- **Rejected because:** the cohesion violation is structural.
+- **Accepted as bridge, rejected as destination:** before Oyatie owns physical/colo DC capacity at scale, OSS/commercial DCIM behind ports is the correct sequencing. After W-DataCenter-Operations triggers, the destination DCIM must consume Oyatie tenancy, identity, audit, capability, runtime, and autonomy substrates.
 
 ### Alternative B — DCIM as a non-cohesion appliance (DCIM in its own bounded subnet, not consuming substrates)
 
@@ -207,6 +211,8 @@ If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, f
 
 - `docs/PRD.md` §7 (cloud axis), §10 (sustainability)
 - `docs/DESIGN.md` §4 (cloud), §10 (cross-microservice contracts)
+- `docs/PRD.md:53-54`, `docs/PRD.md:111`, and `docs/DESIGN.md:232-240` (W-DataCenter-Operations is long-horizon after physical/colo capacity exists at scale)
+- `specs/portfolio-ownership-ratchet.json` BVB-07 (DCIM deferred behind OSS/commercial DCIM ports; custom silicon default anti-scope with Phase-3+ founder-ratified exception only)
 - Uptime Institute Tier-III/IV; EN 50600 series; ASHRAE TC9.9 thermal guidelines
 - KR ISMS-DC; KISA 클라우드보안인증 (CSAP); CSA STAR-Cloud
 - NIST 800-88 Rev 1 (media sanitization); GHG Protocol Scope 1/2/3

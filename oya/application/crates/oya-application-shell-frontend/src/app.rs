@@ -1,12 +1,81 @@
 use leptos::prelude::*;
 
+use crate::design_system::audit_evidence_timeline::{
+    AuditEvidenceTimeline, EvidencePath, EvidenceRow, RowSeverity, RowState, TimelineVariant,
+    row_severity,
+};
+use crate::design_system::ops_deployment_status_panel::{
+    ClusterHealthStatus, DeploymentStatus, OpsDeploymentStatusPanel,
+};
 #[cfg(any(feature = "ssr", test))]
 use crate::render_envelope::server_derived_envelope;
 use crate::render_envelope::{
-    ApprovalItem, CommunityItem, OperatorContext, IntelligenceSuggestion, MessageItem, MetricCard,
-    ModuleCard, OntologyFact, ProductActivitySpine, ProductActivityStep, ScheduleItem,
-    TenantRenderEnvelope, WorkItem, WorkflowNode,
+    ApprovalItem, CommunityItem, DeveloperPortalFixture, IntelligenceSuggestion, MessageItem,
+    MetricCard, ModuleCard, OntologyFact, OperatorContext, ProductActivitySpine,
+    ProductActivityStep, ScheduleItem, SupportAdvisoryFixture, TenantRenderEnvelope, WorkItem,
+    WorkflowNode,
 };
+
+const OPS_CLUSTER_HEALTH_FIXTURE_JSON: &str = r#"{
+    "cluster_id": "cell-us-east-2",
+    "observed_at": "2026-07-01T05:00:00Z",
+    "health": "yellow",
+    "signals": [
+        "argocd-app-health degraded",
+        "cosign verify ok",
+        "traceparent fixture only"
+    ]
+}"#;
+
+const CLOUD_OBSERVABILITY_AUDIT_READ_ENDPOINT: &str =
+    "QUERY /v1/cloud/observability/audit-records:read";
+const CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE: &str = "cloud.observability.audit.read";
+const CLOUD_OBSERVABILITY_AUDIT_OPERATION_CLASS: &str = "cloud_iam_policy";
+const CLOUD_OBSERVABILITY_AUDIT_AUTHORITY_REF: &str =
+    "contracts/openapi/cloud/cloud-observability-audit-v1.yaml#readCloudObservabilityAudit";
+const CLOUD_OBSERVABILITY_AUDIT_SOURCE_ANCHORS: &str = "G007 goals.json + AUTHZ-006 + specs/root-hub-pointers.json#entry_points.agent_operating_contract";
+const CLOUD_OBSERVABILITY_AUDIT_BOUNDARY: &str = "analysis-only-non-mutating";
+const CLOUD_OBSERVABILITY_AUDIT_READ_JSON: &str = r#"{
+    "data": [
+        {
+            "id": "caud_tn_northwind_prod_42",
+            "tenant_id": "tn_northwind_prod",
+            "region": "us-east-2",
+            "cell_id": "cell-us-east-2a",
+            "topic": "oya.audit.cloud_iam_policy",
+            "operation": "iam_policy_changed",
+            "record_class": "control_plane_mutation",
+            "source_resource_id": "orn:oya:us-east-2:acct-northwind-prod:cloud-iam:policy/policy-tenant-admin",
+            "actor": "sp_audit_reader",
+            "iam_role": "role_cloud_security_reviewer",
+            "occurred_at_epoch_seconds": 1782887880,
+            "chain_sequence": 42,
+            "previous_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "payload_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "idempotency_key": "idem/cloud-iam-policy/001",
+            "decision": "allow tenant admin policy delta after AUTHZ-006 review",
+            "purpose": "security",
+            "plane": "audit",
+            "data_classes_referenced": [
+                { "label": "INTERNAL_ONLY" },
+                { "label": "AUDIT" }
+            ],
+            "signed_export_uri": "oyaaudit://signed-export/northwind/cloud-iam-policy?sig=sig_cloud_iam_policy_001",
+            "audit_marker": "AUDIT",
+            "schema_version": 1
+        }
+    ],
+    "metadata": {
+        "request_id": "req-shell-004-audit-evidence",
+        "tenant_id": "tn_northwind_prod",
+        "region": "us-east-2",
+        "record_count": 1,
+        "next_cursor": null,
+        "chain_complete": true,
+        "high_watermark_sequence": 42
+    }
+}"#;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ProductSurface {
@@ -120,6 +189,164 @@ struct DeploymentGate {
     detail: &'static str,
     state: &'static str,
     progress: &'static str,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CloudObservabilityAuditReadSuccessResponse {
+    data: Vec<CloudObservabilityAuditRecord>,
+    metadata: CloudObservabilityAuditReadMetadata,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CloudObservabilityAuditReadMetadata {
+    request_id: String,
+    tenant_id: String,
+    region: String,
+    record_count: u32,
+    next_cursor: Option<String>,
+    chain_complete: bool,
+    high_watermark_sequence: Option<u64>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CloudObservabilityAuditRecord {
+    id: String,
+    tenant_id: String,
+    region: String,
+    cell_id: Option<String>,
+    topic: String,
+    operation: String,
+    record_class: String,
+    source_resource_id: Option<String>,
+    actor: String,
+    iam_role: Option<String>,
+    occurred_at_epoch_seconds: u64,
+    chain_sequence: u64,
+    previous_hash: String,
+    hash: String,
+    payload_hash: String,
+    idempotency_key: String,
+    decision: String,
+    purpose: String,
+    plane: String,
+    data_classes_referenced: Vec<CloudObservabilityDataClassRef>,
+    signed_export_uri: String,
+    audit_marker: String,
+    schema_version: u32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CloudObservabilityDataClassRef {
+    label: String,
+}
+
+impl CloudObservabilityAuditReadSuccessResponse {
+    fn from_json(input: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(input)
+    }
+
+    const fn endpoint(&self) -> &'static str {
+        CLOUD_OBSERVABILITY_AUDIT_READ_ENDPOINT
+    }
+
+    const fn authz_surface(&self) -> &'static str {
+        CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE
+    }
+
+    const fn operation_class(&self) -> &'static str {
+        CLOUD_OBSERVABILITY_AUDIT_OPERATION_CLASS
+    }
+
+    const fn authority_ref(&self) -> &'static str {
+        CLOUD_OBSERVABILITY_AUDIT_AUTHORITY_REF
+    }
+
+    const fn source_anchors(&self) -> &'static str {
+        CLOUD_OBSERVABILITY_AUDIT_SOURCE_ANCHORS
+    }
+
+    const fn authority_boundary(&self) -> &'static str {
+        CLOUD_OBSERVABILITY_AUDIT_BOUNDARY
+    }
+
+    fn high_watermark_sequence_label(&self) -> String {
+        self.metadata
+            .high_watermark_sequence
+            .map(|sequence| sequence.to_string())
+            .unwrap_or_else(|| "none".to_owned())
+    }
+
+    fn timeline_rows(&self) -> Vec<EvidenceRow> {
+        self.data
+            .iter()
+            .filter(|record| record.operation_class() == self.operation_class())
+            .map(|record| record.to_timeline_row(self.metadata.chain_complete))
+            .collect()
+    }
+}
+
+impl CloudObservabilityAuditRecord {
+    fn operation_class(&self) -> &str {
+        self.topic
+            .strip_prefix("oya.audit.")
+            .unwrap_or(self.operation.as_str())
+    }
+
+    fn to_timeline_row(&self, chain_complete: bool) -> EvidenceRow {
+        let state =
+            if chain_complete && self.audit_marker == "AUDIT" && !self.signed_export_uri.is_empty()
+            {
+                RowState::Complete
+            } else if self.signed_export_uri.is_empty() {
+                RowState::SignatureMissing
+            } else {
+                RowState::MissingRow
+            };
+        let source = self
+            .source_resource_id
+            .clone()
+            .unwrap_or_else(|| self.id.clone());
+        let classes = self
+            .data_classes_referenced
+            .iter()
+            .map(|data_class| data_class.label.as_str())
+            .collect::<Vec<_>>()
+            .join("+");
+        let cell = self.cell_id.as_deref().unwrap_or("region-wide");
+        let iam_role = self.iam_role.as_deref().unwrap_or("role absent");
+
+        EvidenceRow {
+            state,
+            event_type: format!("{} · {}", self.topic, self.operation),
+            timestamp: format!("epoch-seconds:{}", self.occurred_at_epoch_seconds),
+            evidence: Some(EvidencePath::SignedExternal {
+                digest: self.hash.clone(),
+                signature_ref: self.signed_export_uri.clone(),
+            }),
+            signature_status: format!(
+                "signed export {} · seq {} · previous {} · payload {} · tenant {} · region {} · cell {} · actor {} · role {} · purpose {} · plane {} · class {} · data {} · schema {}",
+                self.signed_export_uri,
+                self.chain_sequence,
+                self.previous_hash,
+                self.payload_hash,
+                self.tenant_id,
+                self.region,
+                cell,
+                self.actor,
+                iam_role,
+                self.purpose,
+                self.plane,
+                self.record_class,
+                classes,
+                self.schema_version
+            ),
+            linked_change_id: format!("{} · {} · {}", self.idempotency_key, source, self.decision),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -340,6 +567,7 @@ fn ShellRail() -> impl IntoView {
             <a class="rail-nav" href="#leave-time"><span aria-hidden="true">"◫"</span>"Leave & time"</a>
             <a class="rail-nav" href="#identity-workforce-service"><span aria-hidden="true">"⚿"</span>"Auth · Org"</a>
             <p class="rail-group">"Trust"</p>
+            <a class="rail-nav" href="#trust-center-portal"><span aria-hidden="true">"◈"</span>"Trust Center"<em>"new"</em></a>
             <a class="rail-nav" href="#resource-inventory"><span aria-hidden="true">"▤"</span>"Resource inventory"</a>
             <a class="rail-nav" href="#modules-title"><span aria-hidden="true">"▦"</span>"Service catalog"</a>
             <a class="rail-nav" href="#evidence-spine"><span aria-hidden="true">"▥"</span>"Evidence spine"</a>
@@ -917,6 +1145,12 @@ fn dashboard_view(
     let selected_node = selected_workflow_node(&display_nodes, &selected_node_id)
         .cloned()
         .or_else(|| display_nodes.first().cloned());
+    let support_advisory_view = match envelope.support_advisory.clone() {
+        Some(fixture) if support_advisory_is_visible(&envelope) => {
+            support_advisory_case_console(fixture).into_any()
+        }
+        _ => ().into_any(),
+    };
 
     view! {
         {surface_command_bar(active_surface, set_active_surface)}
@@ -955,6 +1189,14 @@ fn dashboard_view(
         {operator_intelligence_strip(envelope.clone())}
 
         {tenant_operations_cockpit(envelope.clone())}
+
+        {control_plane_resource_explorer_operation_center()}
+
+        {trust_center_portal()}
+
+        {support_advisory_view}
+
+        {audit_evidence_timeline_panel()}
 
         {resource_audit_console(envelope.clone())}
 
@@ -1014,6 +1256,14 @@ fn dashboard_view(
             </section>
         </section>
     }
+}
+
+fn support_advisory_is_visible(envelope: &TenantRenderEnvelope) -> bool {
+    envelope.support_advisory.is_some()
+        && envelope
+            .modules
+            .iter()
+            .any(|module| module.name == "Customer Support")
 }
 
 fn loading_state() -> impl IntoView {
@@ -3627,6 +3877,322 @@ fn object_graph_anchor_board() -> impl IntoView {
     }
 }
 
+fn audit_evidence_timeline_from_durable_source() -> CloudObservabilityAuditReadSuccessResponse {
+    CloudObservabilityAuditReadSuccessResponse::from_json(CLOUD_OBSERVABILITY_AUDIT_READ_JSON)
+        .expect("static cloud observability audit read JSON must match the durable API contract")
+}
+
+fn audit_evidence_timeline_panel() -> impl IntoView {
+    let source = audit_evidence_timeline_from_durable_source();
+    let rows = source.timeline_rows();
+    let chain_complete = source.metadata.chain_complete.to_string();
+    let high_watermark_sequence = source.high_watermark_sequence_label();
+    let record_count = source.metadata.record_count.to_string();
+    let request_id = source.metadata.request_id.clone();
+    let tenant_id = source.metadata.tenant_id.clone();
+    let region = source.metadata.region.clone();
+    let next_cursor = source
+        .metadata
+        .next_cursor
+        .clone()
+        .unwrap_or_else(|| "none".to_owned());
+
+    view! {
+        <section
+            id="audit-evidence-timeline"
+            class="audit-evidence-timeline-panel panel"
+            aria-labelledby="audit-evidence-timeline-title"
+            data-audit-evidence-source="durable-cloud-observability-audit-api"
+            data-audit-evidence-endpoint=source.endpoint()
+            data-authz-surface=source.authz_surface()
+            data-audit-operation-class=source.operation_class()
+            data-authority-ref=source.authority_ref()
+            data-source-anchors=source.source_anchors()
+            data-authority-boundary=source.authority_boundary()
+            data-chain-complete=chain_complete
+            data-high-watermark-sequence=high_watermark_sequence
+        >
+            <div class="panel-header audit-evidence-header">
+                <div>
+                    <p class="eyebrow">"Audit Evidence · durable source"</p>
+                    <h3 id="audit-evidence-timeline-title">"Cloud IAM policy evidence timeline"</h3>
+                    <p>
+                        "Read-only projection from the Cloud Observability audit read API; the UI renders signed digest-chain evidence for one operation class without provider mutation."
+                    </p>
+                    <p class="scope-notice">
+                        "Authority: contracts/openapi/cloud/cloud-observability-audit-v1.yaml · G007/AUTHZ-006 slice · analysis-only-non-mutating."
+                    </p>
+                </div>
+                <span class="status-chip success">"chain complete"</span>
+            </div>
+            <div class="audit-evidence-source-strip" aria-label="Durable audit source metadata">
+                <span><strong>{record_count}</strong><small>"records"</small></span>
+                <span><strong>{request_id}</strong><small>"request"</small></span>
+                <span><strong>{tenant_id}</strong><small>"tenant"</small></span>
+                <span><strong>{region}</strong><small>"region"</small></span>
+                <span><strong>{next_cursor}</strong><small>"next cursor"</small></span>
+            </div>
+            <AuditEvidenceTimeline variant=TimelineVariant::ChangesetProvenance rows=rows />
+        </section>
+    }
+}
+
+fn ops_cluster_health_from_typed_api() -> ClusterHealthStatus {
+    ClusterHealthStatus::from_json(OPS_CLUSTER_HEALTH_FIXTURE_JSON)
+        .expect("static ops cluster health fixture must match the OpenAPI contract")
+}
+
+fn ops_cluster_health_panel_status() -> DeploymentStatus {
+    ops_cluster_health_from_typed_api().to_deployment_status()
+}
+
+fn ops_cluster_health_panel() -> impl IntoView {
+    let api_status = ops_cluster_health_from_typed_api();
+    let endpoint = api_status.endpoint();
+    let status = api_status.to_deployment_status();
+
+    view! {
+        <div
+            class="ops-cluster-health-panel"
+            data-ops-cluster-health-source="typed-api"
+            data-ops-cluster-health-endpoint=endpoint
+        >
+            <OpsDeploymentStatusPanel status=status />
+        </div>
+    }
+}
+
+fn control_plane_resource_explorer_operation_center() -> impl IntoView {
+    view! {
+        <section
+            id="resource-explorer"
+            class="panel resource-explorer-panel"
+            data-fixture-kind="resource-explorer-resource"
+            aria-labelledby="resource-explorer-title"
+        >
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">"Control plane · fixture only"</p>
+                    <h3 id="resource-explorer-title">"Resource Explorer"</h3>
+                    <p>"Read-only tenant-scoped index for one representative resource type; no provider CRUD, billing, quota, Cedar runtime, or production persistence is wired."</p>
+                </div>
+                <span class="status-chip warning">"fixture-only non-claim"</span>
+            </div>
+            <p class="scope-notice">"Organization → Account → Project → Region → Cell → Resource Group → Resource"</p>
+            <div class="catalog-toolbar" aria-label="Resource Explorer filters">
+                <label class="catalog-search">
+                    <span aria-hidden="true">"⌕"</span>
+                    <input
+                        type="search"
+                        aria-label="Search ORN"
+                        value="orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01"
+                    />
+                </label>
+                <span class="catalog-status">"GET /v1/cloud-control-plane/resources · X-Oyatie-API-Version: 2026-07-01 (mock)"</span>
+            </div>
+            <article class="resource-explorer-card" data-resource-type="K8sCluster">
+                <span class="status-chip success">"K8sCluster"</span>
+                <strong>"cluster-nw-app-01"</strong>
+                <code>"orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01"</code>
+                <dl>
+                    <div><dt>"Organization"</dt><dd>"org-oyatie-northwind"</dd></div>
+                    <div><dt>"Account"</dt><dd>"acct-northwind-prod"</dd></div>
+                    <div><dt>"Project"</dt><dd>"prj-fd001-control"</dd></div>
+                    <div><dt>"Region / Cell"</dt><dd>"us-east-2 / cell-us-east-2a"</dd></div>
+                    <div><dt>"Resource group"</dt><dd>"rg-platform-admin"</dd></div>
+                    <div><dt>"Owner"</dt><dd>"tenant-admin-platform"</dd></div>
+                </dl>
+            </article>
+            <div class="resource-facet-grid" aria-label="Resource detail facets">
+                <span data-resource-facet="lifecycle">"lifecycle · ACTIVE fixture"</span>
+                <span data-resource-facet="identity">"identity · workload principal reference only"</span>
+                <span data-resource-facet="policy">"policy · Cedar default-deny expectation"</span>
+                <span data-resource-facet="quota">"quota · mock CPU/memory ceiling"</span>
+                <span data-resource-facet="billing">"billing · mock meter labels only"</span>
+                <span data-resource-facet="audit">"audit · REC-CTRL-001A"</span>
+                <span data-resource-facet="observability">"observability · trace fixture"</span>
+                <span data-resource-facet="rollback">"rollback · compensation pending"</span>
+                <span data-resource-facet="reconciliation">"reconciliation · controller-owned later"</span>
+            </div>
+            <aside class="resource-access-rules" aria-label="Data access rules">
+                <p>"Cedar default-deny expectation"</p>
+                <p>"Cross-tenant rows are redacted"</p>
+                <p>"Support access is constrained"</p>
+                <p>"No secret material is exposed"</p>
+            </aside>
+        </section>
+        <section
+            id="operation-center"
+            class="panel operation-center-panel"
+            data-fixture-kind="operation-timeline-entry"
+            aria-labelledby="operation-center-title"
+        >
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">"Operation Center · AIP-151 fixture"</p>
+                    <h3 id="operation-center-title">"Operation Center"</h3>
+                    <p>"Operation-ledger timeline for create/update/delete attempts; read-only fixture rows until API-001/resource-provider integration."</p>
+                </div>
+                <span class="status-chip ai">"jsonschema.cloud-control-plane.fixture.operation-timeline-entry"</span>
+            </div>
+            <ol class="ops-timeline" aria-label="Operation ledger timeline">
+                <li>
+                    <time>"2026-07-01T09:18:00Z"</time>
+                    <strong>"op-20260701-0001 · current state accepted · fixture row"</strong>
+                    <span>"client idempotency key idem-ctrlplane-001 · actor tenant-admin-platform · requested mutation create K8sCluster"</span>
+                    <span>"timestamps accepted/queued/running fixture · retry classification policy · rollback / compensation pending"</span>
+                    <span>"audit-chain pointer REC-CTRL-001A · error / remediation metadata policy reviewer required"</span>
+                </li>
+                <li>
+                    <time>"2026-07-01T09:42:00Z"</time>
+                    <strong>"op-20260701-0002 · current state failed · policy denied fixture row"</strong>
+                    <span>"client idempotency key idem-ctrlplane-002 · actor support-engineer-redacted · requested mutation update labels"</span>
+                    <span>"timestamps accepted/failed fixture · retry classification operator_required · rollback / compensation not-started"</span>
+                    <span>"audit-chain pointer REC-CTRL-001B · error / remediation metadata support scope redacted"</span>
+                </li>
+            </ol>
+            <div class="policy-decision-strip" aria-label="Persona user-story paths">
+                <article><strong>"tenant admin path"</strong><p>"Search ORN, inspect facets, route reviewer work without live mutation."</p></article>
+                <article><strong>"operator path"</strong><p>"Inspect operation retries, rollback state, and remediation metadata."</p></article>
+                <article><strong>"developer path"</strong><p>"Use the ORN and operation id from the service catalog/dev portal flow."</p></article>
+                <article><strong>"security/compliance reviewer path"</strong><p>"Verify audit, policy, retention, jurisdiction, and no-secret posture."</p></article>
+                <article><strong>"support engineer path"</strong><p>"See constrained redacted support context without cross-tenant leakage."</p></article>
+            </div>
+            <p class="cockpit-note">"ADR-0536 D-4/D-5 · specs/masterplan.json:144-257 · specs/cloud-control-plane-canonical.json · specs/cloud-resource-catalog-target.json · specs/api-contract-ssot-canonical.json · ADR-0393 · CONTROLPLANE-UX-001 spec comment"</p>
+        </section>
+    }
+}
+
+fn support_advisory_case_console(fixture: SupportAdvisoryFixture) -> impl IntoView {
+    let SupportAdvisoryFixture {
+        case_id,
+        tenant_id,
+        resource_ref,
+        service_ref,
+        severity,
+        response_target_label,
+        entitlement_plan,
+        customer_state,
+        incident_refs,
+        status_refs,
+        trust_evidence_refs,
+        governance_posture_refs,
+        finops_refs,
+        onboarding_refs,
+        audit_chain_refs,
+        diagnostic_bundle_ref,
+        diagnostic_bundle_evidence_refs,
+        advisor_key,
+        advisor_severity,
+        advisor_owner,
+        recommended_action,
+        non_goal_copy,
+        expires_at,
+        support_access_state,
+        support_engineer_view,
+        post_case_actions,
+        api_records,
+        security_assertions,
+        authority_boundaries,
+    } = fixture;
+    let support_access_state_summary = support_access_state.clone();
+    let linked_refs = incident_refs
+        .into_iter()
+        .chain(status_refs)
+        .chain(trust_evidence_refs)
+        .chain(governance_posture_refs)
+        .chain(finops_refs)
+        .chain(onboarding_refs)
+        .chain(audit_chain_refs);
+
+    view! {
+        <section
+            id="support-advisory-console"
+            class="panel support-advisory-console"
+            data-fixture-kind="support-advisory-case"
+            aria-labelledby="support-advisory-title"
+        >
+            <div class="panel-header">
+                <div>
+                    <p class="eyebrow">"Customer Support + Trusted Advisor · fixture only"</p>
+                    <h3 id="support-advisory-title">"Support case diagnostic bundle and advisory"</h3>
+                    <p>"Tenant admin opens a case, selects severity, attaches a redacted diagnostic bundle preview, sees a trusted-advisor recommendation, and tracks post-case action items without live ticketing or notification delivery."</p>
+                </div>
+                <span class="status-chip warning">"fixture-only non-claim"</span>
+            </div>
+            <div class="catalog-kpi-strip" aria-label="Support entitlement and severity summary">
+                <span><strong>{severity}</strong><small>{response_target_label}</small></span>
+                <span><strong>"Plan"</strong><small>{entitlement_plan}</small></span>
+                <span><strong>"State"</strong><small>{customer_state}</small></span>
+                <span><strong>"Access"</strong><small>{support_access_state_summary}</small></span>
+            </div>
+            <div class="devportal-story-grid">
+                <article aria-label="Support case story">
+                    <p class="screen-anchor">"support_case"</p>
+                    <h5>{case_id}</h5>
+                    <dl class="service-kv">
+                        <div><dt>"Tenant"</dt><dd>"tenant_id="{tenant_id}</dd></div>
+                        <div><dt>"Resource"</dt><dd>{resource_ref}</dd></div>
+                        <div><dt>"Service"</dt><dd>{service_ref}</dd></div>
+                        <div><dt>"Engineer view"</dt><dd>{support_engineer_view}</dd></div>
+                    </dl>
+                    <button type="button" data-support-action="attach-bundle">"Attach diagnostic bundle preview"</button>
+                    <button type="button" data-support-action="select-severity">"Select severity"</button>
+                </article>
+                <article aria-label="Diagnostic bundle allowed refs">
+                    <p class="screen-anchor">"diagnostic_bundle"</p>
+                    <h5>{diagnostic_bundle_ref}</h5>
+                    <div class="devportal-resource-pills" aria-label="Support linked refs">
+                        {linked_refs.map(|reference| view! { <span class="status-chip">{reference}</span> }).collect_view()}
+                    </div>
+                    <ul>
+                        {diagnostic_bundle_evidence_refs.into_iter().map(|reference| view! { <li>{reference}</li> }).collect_view()}
+                    </ul>
+                </article>
+                <article aria-label="Trusted advisor recommendation">
+                    <p class="screen-anchor">"advisor_recommendation"</p>
+                    <h5>{advisor_key}</h5>
+                    <dl class="service-kv">
+                        <div><dt>"Severity"</dt><dd>{advisor_severity}</dd></div>
+                        <div><dt>"Owner"</dt><dd>{advisor_owner}</dd></div>
+                        <div><dt>"Freshness"</dt><dd>{expires_at}</dd></div>
+                    </dl>
+                    <p>{recommended_action}</p>
+                    <p>{non_goal_copy}</p>
+                </article>
+            </div>
+            <table class="finance-table" aria-label="Support API fixture records">
+                <thead><tr><th>"Record"</th><th>"ID"</th><th>"Tenant"</th><th>"Actor"</th><th>"Purpose"</th><th>"Data class"</th><th>"Freshness"</th><th>"Redaction"</th><th>"Audit"</th></tr></thead>
+                <tbody>
+                    {api_records.into_iter().map(|record| view! {
+                        <tr data-support-record=record.record_type.clone()>
+                            <th scope="row">{record.record_type.clone()}</th>
+                            <td>{record.record_id}</td>
+                            <td>{record.tenant_id}</td>
+                            <td>{record.actor}</td>
+                            <td>{record.purpose}</td>
+                            <td>{record.data_class}</td>
+                            <td>{record.freshness}</td>
+                            <td>{record.redaction_policy_id}</td>
+                            <td>{"audit_event_ref="}{record.audit_event_ref}</td>
+                        </tr>
+                    }).collect_view()}
+                </tbody>
+            </table>
+            <div class="resource-access-rules" aria-label="Support redaction and authority boundaries">
+                <p>"approval-gated breakglass"</p>
+                {security_assertions.into_iter().map(|assertion| view! { <p>{assertion}</p> }).collect_view()}
+                {authority_boundaries.into_iter().map(|boundary| view! { <p>{boundary}</p> }).collect_view()}
+            </div>
+            <ol class="ops-timeline" aria-label="Customer communication and post-case action items">
+                <li><strong>"customer_communication"</strong><span>"Customer-visible update is staged; external send is disabled."</span></li>
+                <li><strong>"support_access_approval"</strong><span>{support_access_state}</span></li>
+                {post_case_actions.into_iter().map(|action| view! { <li><strong>"post_case_action_item"</strong><span>{action}</span></li> }).collect_view()}
+            </ol>
+        </section>
+    }
+}
+
 fn tenant_operations_cockpit(envelope: TenantRenderEnvelope) -> impl IntoView {
     let healthcare_gate = if envelope.accreditation.healthcare_enabled {
         "Healthcare surfaces enabled"
@@ -3665,6 +4231,7 @@ fn tenant_operations_cockpit(envelope: TenantRenderEnvelope) -> impl IntoView {
                         <span class="service audit">"Audit chain"</span>
                     </div>
                     {cloud_ops_command_matrix()}
+                    {ops_cluster_health_panel()}
                     <div class="ops-metrics-strip" aria-label="Cloud operations live posture">
                         <span><small>"Availability"</small><strong>"99.96%"</strong><em>"+0.01 vs SLO"</em></span>
                         <span><small>"Pending rollbacks"</small><strong>"2"</strong><em>"1 network · 1 key"</em></span>
@@ -4102,6 +4669,75 @@ fn resource_inventory_anchor_board() -> impl IntoView {
                 </div>
             </div>
         </div>
+    }
+}
+
+fn trust_center_portal() -> impl IntoView {
+    view! {
+        <section
+            id="trust-center-portal"
+            class="trust-center-portal panel"
+            aria-labelledby="trust-center-title"
+            data-trust-center-fixture="contract-first-slice"
+        >
+            <div class="panel-header trust-center-header">
+                <div>
+                    <p class="eyebrow">"Trust Center · customer evidence"</p>
+                    <h3 id="trust-center-title">"Trust Center overview"</h3>
+                    <p>
+                        "Contracted fixture for /specs/trust-center-compliance-evidence-portal.json: tenant-scoped evidence, reviewer room, status link, SBOM/VEX posture, freshness, and access audit."
+                    </p>
+                </div>
+                <span class="status-chip warning">"first slice · fixture/API contract"</span>
+            </div>
+            <div class="trust-center-role-strip" aria-label="Trust Center persona paths">
+                <article data-trust-role="tenant-admin"><span class="status-chip success">"tenant admin"</span><strong>"Review posture, filter evidence, invite/revoke reviewers"</strong><p>"Can inspect summary, open detail, manage bounded reviewer grants, and view access audit."</p></article>
+                <article data-trust-role="security-compliance-reviewer"><span class="status-chip">"reviewer"</span><strong>"Read-only evidence room with expiry"</strong><p>"Reviewer can read approved evidence and safe exports, but cannot administer tenant settings."</p></article>
+                <article data-trust-role="oyatie-operator"><span class="status-chip warning">"operator"</span><strong>"Publishability and redaction stay upstream"</strong><p>"Operator-only detail withheld; UI shows handles, claim tiers, audit refs, and customer-safe summaries."</p></article>
+            </div>
+            <div class="trust-center-kpi-strip" aria-label="Trust Center evidence freshness summary">
+                <span><strong>"3"</strong><small>"current evidence"</small></span>
+                <span><strong>"2"</strong><small>"warning/stale"</small></span>
+                <span><strong>"1"</strong><small>"blocked_missing_evidence · not green"</small></span>
+                <span><strong>"target_non_claim"</strong><small>"claim tier: target_non_claim"</small></span>
+            </div>
+            <div class="trust-center-toolbar" aria-label="Trust Center filters and public status controls">
+                <label><span aria-hidden="true">"⌕"</span><input aria-label="Filter trust evidence by class, source, freshness, or claim tier" value="" placeholder="Filter evidence, source, freshness, claim tier..." /></label>
+                <div class="trust-filter-pills" role="toolbar" aria-label="Trust Center evidence state filters">
+                    <button type="button" class="active" data-trust-filter="all" aria-pressed="true">"All"</button>
+                    <button type="button" data-trust-filter="current" aria-pressed="false">"Current"</button>
+                    <button type="button" data-trust-filter="stale" aria-pressed="false">"Stale"</button>
+                    <button type="button" data-trust-filter="blocked" aria-pressed="false">"Blocked"</button>
+                    <button type="button" data-trust-filter="target_non_claim" aria-pressed="false">"Target non-claim"</button>
+                </div>
+                <a class="trust-status-link" href="https://status.oyatie.example/northwind">"Public status link / embed"</a>
+            </div>
+            <div class="trust-center-layout">
+                <article class="trust-evidence-table-card" aria-labelledby="trust-evidence-table-title">
+                    <div class="cockpit-column-head"><p class="screen-anchor">"CONTROLS AND EVIDENCE"</p><h4 id="trust-evidence-table-title">"Evidence table with non-color states"</h4></div>
+                    <table class="resource-table trust-evidence-table" aria-label="Trust Center evidence table">
+                        <thead><tr><th>"Control"</th><th>"Source"</th><th>"Freshness"</th><th>"Claim tier"</th><th>"Audit ref"</th><th>"Detail"</th></tr></thead>
+                        <tbody>
+                            <tr data-trust-evidence-state="current"><td><strong>"SOC2 CC7.2 validation"</strong><small>"security_validation_controls"</small></td><td>"security-validation matrix"</td><td><span class="status-chip success" aria-label="freshness state current">"current · source 2026-07-01T07:42Z"</span></td><td>"mechanically_enforced"</td><td><code>"aud-trust-ctrl-cc72-001"</code></td><td><button type="button" aria-label="Open SOC2 CC7.2 evidence detail">"Open detail"</button></td></tr>
+                            <tr data-trust-evidence-state="stale"><td><strong>"DR drill floor"</strong><small>"slo_dr_status_incident"</small></td><td>"compliance-pack floors"</td><td><span class="status-chip warning" aria-label="freshness state stale warning">"stale · refresh required"</span></td><td>"spec_ready"</td><td><code>"aud-trust-dr-floor-014"</code></td><td><button type="button" aria-label="Open DR drill stale evidence detail">"Open detail"</button></td></tr>
+                            <tr data-trust-evidence-state="blocked_missing_evidence"><td><strong>"Quality kit abuse drill"</strong><small>"cloud_quality_kits"</small></td><td>"quality-kit evidence catalogue"</td><td><span class="status-chip danger" aria-label="freshness state blocked missing evidence">"blocked_missing_evidence · not green"</span></td><td>"target_non_claim"</td><td><code>"gap-trust-qk-abuse-001"</code></td><td><button type="button" aria-label="Open missing quality kit evidence gap detail">"Open detail"</button></td></tr>
+                            <tr data-trust-evidence-state="target_non_claim"><td><strong>"External certification display"</strong><small>"claim boundary"</small></td><td>"trust-center spec"</td><td><span class="status-chip" aria-label="target non claim not certified">"target_non_claim · no certification"</span></td><td>"claim tier: target_non_claim"</td><td><code>"nonclaim-trust-cert-000"</code></td><td><button type="button" aria-label="Open non certification boundary detail">"Open detail"</button></td></tr>
+                        </tbody>
+                    </table>
+                </article>
+                <aside class="trust-detail-card" aria-labelledby="trust-detail-title">
+                    <p class="screen-anchor">"EVIDENCE DETAIL"</p><h4 id="trust-detail-title">"Customer-safe detail pane"</h4>
+                    <dl class="service-kv"><div><dt>"source_system"</dt><dd>"security-validation matrix"</dd></div><div><dt>"source_record_ref"</dt><dd>"secval://lane/api-fuzz/latest"</dd></div><div><dt>"freshness_state"</dt><dd>"current"</dd></div><div><dt>"audit_event_ref"</dt><dd>"aud-trust-ctrl-cc72-001"</dd></div><div><dt>"redaction"</dt><dd>"raw scanner output redacted · operator-only detail withheld"</dd></div></dl>
+                    <p class="scope-notice">"Cross-tenant route denied; payload tenant assertions are display-only and never authority."</p>
+                    <p>"keyboard table/detail/filter/reviewer grant paths labelled"</p>
+                </aside>
+            </div>
+            <div class="trust-lower-grid">
+                <article class="trust-sbom-card" aria-labelledby="trust-sbom-title"><p class="screen-anchor">"SBOM / VEX"</p><h4 id="trust-sbom-title">"SBOM/VEX posture"</h4><ul class="evidence-steps"><li><span>"SBOM"</span><strong>"signed SBOM present"</strong></li><li><span>"VEX"</span><strong>"customer-safe VEX summary · exploit details withheld"</strong></li><li><span>"SLA"</span><strong>"2 remediation SLA exceptions expire in 6 days"</strong></li></ul></article>
+                <article class="trust-reviewer-card" aria-labelledby="trust-reviewer-title" data-reviewer-grant-flow="create-revoke-expiring"><p class="screen-anchor">"REVIEWER GRANT"</p><h4 id="trust-reviewer-title">"Reviewer invite"</h4><label><span>"Reviewer email"</span><input aria-label="Reviewer email" type="email" value="security.reviewer@example.com" /></label><label><span>"Expiry"</span><input aria-label="Reviewer grant expiry" type="datetime-local" value="2026-07-08T00:00" /></label><div class="trust-card-actions"><button type="button" aria-label="Create expiring reviewer grant">"Invite reviewer"</button><button type="button" aria-label="Revoke reviewer access">"Revoke reviewer access"</button></div><p>"Reviewer cannot administer tenant settings; grant is bounded by purpose, scope, and expiry."</p></article>
+                <article class="trust-access-audit-card" aria-labelledby="trust-access-audit-title"><p class="screen-anchor">"ACCESS AUDIT"</p><h4 id="trust-access-audit-title">"Access audit"</h4><ol class="audit-ledger-list compact"><li><time>"07:42"</time><span class="status-chip success">"viewed"</span><strong>"trust_center.evidence_index_viewed"</strong><p>"tenant_admin · aud-trust-index-001"</p></li><li><time>"07:48"</time><span class="status-chip warning">"grant"</span><strong>"trust_center.access_grant_created"</strong><p>"expiry 2026-07-08 · aud-trust-grant-002"</p></li><li><time>"08:05"</time><span class="status-chip danger">"denied"</span><strong>"Cross-tenant route denied"</strong><p>"other tenant evidence room request failed closed"</p></li></ol></article>
+            </div>
+        </section>
     }
 }
 
@@ -6563,6 +7199,7 @@ fn static_rail_html() -> String {
     <a class="rail-nav" href="#workflow-studio"><span aria-hidden="true">⌘</span>Workflow Studio</a>
     <a class="rail-nav" href="#work-hub"><span aria-hidden="true">✉</span>Messenger · Mail · Community<em>18</em></a>
     <a class="rail-nav" href="#cloud-ops-cockpit"><span aria-hidden="true">◫</span>Cloud Ops</a>
+    <a class="rail-nav" href="#support-advisory-console"><span aria-hidden="true">?</span>Support</a>
     <p class="rail-group">Money</p>
     <a class="rail-nav" href="#payroll-cockpit"><span aria-hidden="true">₩</span>Payroll</a>
     <a class="rail-nav" href="#ledger-preview"><span aria-hidden="true">▤</span>Ledger</a>
@@ -6578,6 +7215,7 @@ fn static_rail_html() -> String {
             <a class="rail-nav" href="#leave-time"><span aria-hidden="true">◫</span>Leave &amp; time</a>
             <a class="rail-nav" href="#identity-workforce-service"><span aria-hidden="true">⚿</span>Auth · Org</a>
             <p class="rail-group">Trust</p>
+    <a class="rail-nav" href="#trust-center-portal"><span aria-hidden="true">◈</span>Trust Center<em>new</em></a>
     <a class="rail-nav" href="#resource-inventory"><span aria-hidden="true">▤</span>Resource inventory</a>
     <a class="rail-nav" href="#modules-title"><span aria-hidden="true">▦</span>Service catalog</a>
     <a class="rail-nav" href="#evidence-spine"><span aria-hidden="true">▥</span>Evidence spine</a>
@@ -6759,6 +7397,10 @@ fn static_dashboard_content(envelope: &TenantRenderEnvelope) -> String {
 {finance_service}
 {operator_intelligence}
 {operations_cockpit}
+{control_plane_fixture}
+{trust_center}
+{support_advisory}
+{audit_evidence_timeline}
 {resource_audit}
 <section class="dashboard-grid" aria-label="Personalized dashboard">{daily_execution}<section id="work-hub" class="panel communications-panel"><div class="panel-header"><p class="eyebrow">Messenger · Mail · Community</p><h3>Work hub</h3></div>{communication_hub}</section>{service_catalog}</section>
 <section class="studio-grid" aria-label="Workflow, ontology, and intelligence">{workflow_studio}<section id="ontology-command-console" class="panel ontology-command-shell"><div class="panel-header"><p class="eyebrow">Ontology</p><h3 id="ontology-title">Tenant workload graph</h3></div>{ontology}</section><section id="intelligence-command-console" class="panel intelligence-command-shell"><div class="panel-header"><p class="eyebrow">Intelligence</p><h3 id="intelligence-title">Governed AI command</h3></div>{suggestions}</section></section>"#,
@@ -6779,6 +7421,15 @@ fn static_dashboard_content(envelope: &TenantRenderEnvelope) -> String {
         finance_service = static_finance_commercial_service(),
         operator_intelligence = static_operator_intelligence_strip(envelope),
         operations_cockpit = static_tenant_operations_cockpit(envelope),
+        control_plane_fixture = static_control_plane_resource_explorer_operation_center(),
+        trust_center = static_trust_center_portal(),
+        support_advisory = envelope
+            .support_advisory
+            .as_ref()
+            .filter(|_| support_advisory_is_visible(envelope))
+            .map(static_support_advisory_case_console)
+            .unwrap_or_default(),
+        audit_evidence_timeline = static_audit_evidence_timeline_panel(),
         resource_audit = static_resource_audit_console(envelope),
         daily_execution = static_daily_execution_console(envelope),
         communication_hub = static_communication_hub(&envelope.messages, &envelope.community),
@@ -7522,6 +8173,40 @@ fn static_operator_intelligence_strip(envelope: &TenantRenderEnvelope) -> String
 fn static_cloud_ops_command_matrix() -> &'static str {
     r#"<div class="ops-command-matrix" aria-label="Cloud operations command matrix"><section class="ops-command-card ops-cell-card"><div class="ops-command-card-head"><div><p class="screen-anchor">CELL CONTROL</p><h5>Runtime cells, residency, and rollback posture</h5></div><span class="status-chip warning">2 guardrails</span></div><div class="ops-cell-grid" role="list" aria-label="Regional cell state"><button type="button" class="active" data-cockpit-action="select-us-east"><strong>us-east-2</strong><span>primary</span><em>99.96% · 72% cap</em></button><button type="button" data-cockpit-action="select-eu-west"><strong>eu-west-1</strong><span>standby</span><em>warm · 44% cap</em></button><button type="button" data-cockpit-action="select-kr-seoul"><strong>kr-seoul</strong><span>pack gated</span><em>residency review</em></button></div><dl class="ops-command-kv"><div><dt>Residency</dt><dd>KR pack gated before workload placement</dd></div><div><dt>Rollback</dt><dd>Network split runbook needs reviewer evidence</dd></div><div><dt>Audit sidecar</dt><dd>Receipt vault sealed draft attached</dd></div></dl></section><section class="ops-command-card ops-workload-card ops-tenant-plane" data-cloud-workload-plane="true"><div class="ops-command-card-head"><div><p class="screen-anchor">FD-001 TENANT WORKLOAD PLANE</p><h5>Product microservices hosted on the dogfood substrate</h5></div><button type="button" data-cockpit-action="open-resource-inventory">Inventory</button></div><div class="ops-plane-summary" aria-label="FD-001 tenant workload summary"><span><strong>9</strong><small>FD-001 services</small></span><span><strong>3</strong><small>cells</small></span><span><strong>0</strong><small>live mutations</small></span></div><div class="ops-workload-list" aria-label="FD-001 microservices running as tenant workloads"><button type="button" class="selected" data-cockpit-workload="workflow" data-workload-title="Workflow runner" data-workload-service="workflow-runner" data-workload-cell="us-east-2" data-workload-state="review" data-workload-route="Workflow → Messenger/Mail/Community → Evidence" data-workload-receipt="REC-FD001-WF-018"><span>Workflow</span><strong>workflow-runner</strong><em>us-east-2 · review</em><small>Runs approvals as visual-only tenant workload previews.</small></button><button type="button" data-cockpit-workload="comms" data-workload-title="Built-in communications" data-workload-service="messenger-mail-community" data-workload-cell="us-east-2 + kr-seoul" data-workload-state="drafts" data-workload-route="Messenger/Mail/Community handoff bus" data-workload-receipt="REC-COMMS-HANDOFF-006"><span>Comms</span><strong>messenger-mail-community</strong><em>multi-surface · drafts</em><small>Local drafts prove FD-001 coordination without delivery.</small></button><button type="button" data-cockpit-workload="evidence" data-workload-title="Evidence spine" data-workload-service="audit-vault" data-workload-cell="multi-cell" data-workload-state="sealed" data-workload-route="Audit ledger + object graph" data-workload-receipt="REC-FD001-CLOUD-009"><span>Evidence</span><strong>audit-vault</strong><em>multi-cell · sealed</em><small>Receipts bind cloud posture, workflow output, and reviewers.</small></button><button type="button" data-cockpit-workload="identity" data-workload-title="Identity envelope" data-workload-service="identity-access" data-workload-cell="kr-seoul gated" data-workload-state="policy" data-workload-route="Identity → Policy → Deployment gates" data-workload-receipt="REC-ID-2026-05"><span>Identity</span><strong>identity-access</strong><em>kr pack · policy</em><small>Role and residency controls prove tenant placement.</small></button></div><div class="ops-workload-detail" aria-label="Selected tenant workload detail"><span class="status-chip warning" data-cockpit-workload-status="true">Workflow runner selected · review gate open · local-only substrate proof</span><dl><div><dt>Service</dt><dd data-workload-detail-service="true">workflow-runner</dd></div><div><dt>Cell</dt><dd data-workload-detail-cell="true">us-east-2</dd></div><div><dt>Route</dt><dd data-workload-detail-route="true">Workflow → Messenger/Mail/Community → Evidence</dd></div><div><dt>Receipt</dt><dd data-workload-detail-receipt="true">REC-FD001-WF-018</dd></div></dl><div class="ops-workload-routes" aria-label="Selected workload routes"><button type="button" data-cockpit-workload-route="workflow">Workflow</button><button type="button" data-cockpit-workload-route="mail">Mail brief</button><button type="button" data-cockpit-workload-route="community">Community</button><button type="button" data-cockpit-workload-route="evidence">Evidence</button><button type="button" data-cockpit-workload-route="gates">Gates</button></div></div></section><section class="ops-command-card ops-release-card"><div class="ops-command-card-head"><div><p class="screen-anchor">RELEASE GATES</p><h5>Jenkins, ArgoCD, cosign, and audit evidence</h5></div><button type="button" data-cockpit-action="open-deployment-gates">Gates</button></div><div class="ops-release-lanes" aria-label="Cloud release readiness"><span style="--bar: 92%"><strong>Jenkins parity</strong><em>92%</em></span><span style="--bar: 74%"><strong>ArgoCD app</strong><em>74%</em></span><span style="--bar: 88%"><strong>Cosign verify</strong><em>88%</em></span><span style="--bar: 69%"><strong>Audit emit</strong><em>69%</em></span></div></section><section class="ops-command-card ops-route-card"><div class="ops-command-card-head"><div><p class="screen-anchor">ROUTES</p><h5>Open the connected product surface without leaving context</h5></div></div><div class="ops-route-grid" aria-label="Cloud operations local routes"><button type="button" data-cockpit-action="open-workflow">Workflow</button><button type="button" data-cockpit-action="open-mail">Mail brief</button><button type="button" data-cockpit-action="open-evidence">Evidence</button><button type="button" data-cockpit-action="open-finops">FinOps</button></div><p>All actions are visual-only local state; no cloud, DNS, deploy, or billing operation is executed.</p></section></div>"#
 }
+
+#[cfg(any(feature = "ssr", test))]
+fn static_ops_cluster_health_panel() -> String {
+    let api_status = ops_cluster_health_from_typed_api();
+    let endpoint = api_status.endpoint();
+    let status = ops_cluster_health_panel_status();
+    let remediation = status
+        .remediation
+        .as_ref()
+        .map(|route| {
+            format!(
+                r#"<button type="button" class="ds-remediation-route">{}</button>"#,
+                escape(&route.label())
+            )
+        })
+        .unwrap_or_default();
+    let rollback_available = status.destructive_apply.is_some()
+        || matches!(
+            status.variant,
+            crate::design_system::ops_deployment_status_panel::PanelVariant::Rollback
+        );
+
+    format!(
+        r#"<div class="ops-cluster-health-panel" data-ops-cluster-health-source="typed-api" data-ops-cluster-health-endpoint="{endpoint}"><section class="ds-ops-deployment-status-panel" data-variant="{variant}" aria-label="Deployment status panel"><p role="status" aria-live="polite">{announcement}</p><dl><div><dt>Target environment</dt><dd>{target}</dd></div><div><dt>Current step</dt><dd>{step}</dd></div><div><dt>Drift</dt><dd>{drift}</dd></div><div><dt>Rollback available</dt><dd>{rollback_available}</dd></div></dl>{remediation}</section></div>"#,
+        endpoint = escape(endpoint),
+        variant = status.variant.id(),
+        announcement = escape(status.state.announcement()),
+        target = escape(&status.target_environment),
+        step = escape(&status.current_step),
+        drift = escape(&status.drift_status),
+        rollback_available = rollback_available,
+        remediation = remediation,
+    )
+}
 #[cfg(any(feature = "ssr", test))]
 fn static_finops_anchor_board() -> &'static str {
     r#"<div class="trust-anchor-board finops-trust-board" aria-label="FD-001 FinOps and Oyatie Cloud substrate proof"><div class="trust-anchor-grid"><article class="trust-anchor-card selected" data-trust-proof-card="finops-fd001"><p class="screen-anchor">FD-001 WORKLOAD ECONOMY</p><h5>Product delivery remains the north star</h5><p>Run-rate is shown per FD-001 tenant workload: Workflow, Messenger, Mail, Community, Intelligence, and audit services stay in one delivery envelope.</p><div class="trust-anchor-actions"><button type="button" data-trust-proof-action="stage-budget">Stage budget</button><button type="button" data-trust-proof-action="route-finance">Finance close</button></div></article><article class="trust-anchor-card" data-trust-proof-card="finops-cloud"><p class="screen-anchor">OYATIE CLOUD SUBSTRATE</p><h5>Costs prove real tenant hosting</h5><p>Compute, network, storage, audit, residency, and release gates expose hyperscaler-grade posture before FD-001 workloads claim production readiness.</p><div class="trust-anchor-actions"><button type="button" data-trust-proof-action="route-cloud">Cloud topology</button><button type="button" data-trust-proof-action="route-policy">Policy gate</button></div></article><article class="trust-anchor-card" data-trust-proof-card="finops-local"><p class="screen-anchor">LOCAL-ONLY FINOPS</p><h5>Interactive budget controls, no spend mutation</h5><p>Operators can stage commitments, tag anomalies, and brief reviewers visually; no billing, procurement, deploy, DNS, or cloud mutation executes.</p><div class="trust-anchor-actions"><button type="button" data-trust-proof-action="route-audit">Audit receipt</button><button type="button" data-trust-proof-action="route-evidence">Evidence spine</button></div></article></div><div class="trust-anchor-footer"><span data-trust-proof-status="true">FinOps ready · FD-001 microservices dogfood Oyatie Cloud as tenant workloads with local-only controls.</span><div class="trust-anchor-routes" aria-label="FinOps connected routes"><button type="button" data-trust-proof-action="route-inventory">Resources</button><button type="button" data-trust-proof-action="route-gates">Gates</button><button type="button" data-trust-proof-action="route-mail">Reviewer Mail</button><button type="button" data-trust-proof-action="route-community">Community</button></div></div></div>"#
@@ -7530,6 +8215,11 @@ fn static_finops_anchor_board() -> &'static str {
 #[cfg(any(feature = "ssr", test))]
 fn static_resource_inventory_anchor_board() -> &'static str {
     r#"<div class="trust-anchor-board" aria-label="FD-001 resource inventory and Oyatie Cloud substrate proof"><div class="trust-anchor-grid"><article class="trust-anchor-card selected" data-trust-proof-card="resource-fd001"><p class="screen-anchor">FD-001 SERVICE FLEET</p><h5>Microservices are tenant workloads</h5><p>Tenant admin, workflow runner, audit vault, Mail, Messenger, Community, and Intelligence assets are tracked as one FD-001 product fleet.</p><div class="trust-anchor-actions"><button type="button" data-trust-proof-action="link-resource">Link resource</button><button type="button" data-trust-proof-action="route-catalog">Service catalog</button></div></article><article class="trust-anchor-card" data-trust-proof-card="resource-cloud"><p class="screen-anchor">OYATIE CLOUD INVENTORY</p><h5>Substrate owns residency and release posture</h5><p>Each resource shows cell, owner, cost, risk, policy, deployment gate, and audit receipt so the cloud substrate can prove real tenant hosting.</p><div class="trust-anchor-actions"><button type="button" data-trust-proof-action="route-finops">FinOps cost</button><button type="button" data-trust-proof-action="route-gates">Admission gates</button></div></article><article class="trust-anchor-card" data-trust-proof-card="resource-local"><p class="screen-anchor">LOCAL-ONLY RESOURCE OPS</p><h5>Inspect without provider mutation</h5><p>Operators can inspect ownership, route evidence, and preview remediation; no cloud provider, database, deploy, billing, or audit mutation executes.</p><div class="trust-anchor-actions"><button type="button" data-trust-proof-action="route-audit">Audit ledger</button><button type="button" data-trust-proof-action="trace-lineage">Trace lineage</button></div></article></div><div class="trust-anchor-footer"><span data-trust-proof-status="true">Resource inventory ready · FD-001 workload fleet is hosted-proof on Oyatie Cloud with local visual controls only.</span><div class="trust-anchor-routes" aria-label="Resource inventory connected routes"><button type="button" data-trust-proof-action="route-workflow">Workflow</button><button type="button" data-trust-proof-action="route-evidence">Evidence</button><button type="button" data-trust-proof-action="route-mail">Mail</button><button type="button" data-trust-proof-action="route-community">Community</button></div></div></div>"#
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn static_control_plane_resource_explorer_operation_center() -> &'static str {
+    r#"<section id="resource-explorer" class="panel resource-explorer-panel" data-fixture-kind="resource-explorer-resource" aria-labelledby="resource-explorer-title"><div class="panel-header"><div><p class="eyebrow">Control plane · fixture only</p><h3 id="resource-explorer-title">Resource Explorer</h3><p>Read-only tenant-scoped index for one representative resource type; no provider CRUD, billing, quota, Cedar runtime, or production persistence is wired.</p></div><span class="status-chip warning">fixture-only non-claim</span></div><p class="scope-notice">Organization → Account → Project → Region → Cell → Resource Group → Resource</p><div class="catalog-toolbar" aria-label="Resource Explorer filters"><label class="catalog-search"><span aria-hidden="true">⌕</span><input type="search" aria-label="Search ORN" value="orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01" /></label><span class="catalog-status">GET /v1/cloud-control-plane/resources · X-Oyatie-API-Version: 2026-07-01 (mock)</span></div><article class="resource-explorer-card" data-resource-type="K8sCluster"><span class="status-chip success">K8sCluster</span><strong>cluster-nw-app-01</strong><code>orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01</code><dl><div><dt>Organization</dt><dd>org-oyatie-northwind</dd></div><div><dt>Account</dt><dd>acct-northwind-prod</dd></div><div><dt>Project</dt><dd>prj-fd001-control</dd></div><div><dt>Region / Cell</dt><dd>us-east-2 / cell-us-east-2a</dd></div><div><dt>Resource group</dt><dd>rg-platform-admin</dd></div><div><dt>Owner</dt><dd>tenant-admin-platform</dd></div></dl></article><div class="resource-facet-grid" aria-label="Resource detail facets"><span data-resource-facet="lifecycle">lifecycle · ACTIVE fixture</span><span data-resource-facet="identity">identity · workload principal reference only</span><span data-resource-facet="policy">policy · Cedar default-deny expectation</span><span data-resource-facet="quota">quota · mock CPU/memory ceiling</span><span data-resource-facet="billing">billing · mock meter labels only</span><span data-resource-facet="audit">audit · REC-CTRL-001A</span><span data-resource-facet="observability">observability · trace fixture</span><span data-resource-facet="rollback">rollback · compensation pending</span><span data-resource-facet="reconciliation">reconciliation · controller-owned later</span></div><aside class="resource-access-rules" aria-label="Data access rules"><p>Cedar default-deny expectation</p><p>Cross-tenant rows are redacted</p><p>Support access is constrained</p><p>No secret material is exposed</p></aside></section><section id="operation-center" class="panel operation-center-panel" data-fixture-kind="operation-timeline-entry" aria-labelledby="operation-center-title"><div class="panel-header"><div><p class="eyebrow">Operation Center · AIP-151 fixture</p><h3 id="operation-center-title">Operation Center</h3><p>Operation-ledger timeline for create/update/delete attempts; read-only fixture rows until API-001/resource-provider integration.</p></div><span class="status-chip ai">jsonschema.cloud-control-plane.fixture.operation-timeline-entry</span></div><ol class="ops-timeline" aria-label="Operation ledger timeline"><li><time>2026-07-01T09:18:00Z</time><strong>op-20260701-0001 · current state accepted · fixture row</strong><span>client idempotency key idem-ctrlplane-001 · actor tenant-admin-platform · requested mutation create K8sCluster</span><span>timestamps accepted/queued/running fixture · retry classification policy · rollback / compensation pending</span><span>audit-chain pointer REC-CTRL-001A · error / remediation metadata policy reviewer required</span></li><li><time>2026-07-01T09:42:00Z</time><strong>op-20260701-0002 · current state failed · policy denied fixture row</strong><span>client idempotency key idem-ctrlplane-002 · actor support-engineer-redacted · requested mutation update labels</span><span>timestamps accepted/failed fixture · retry classification operator_required · rollback / compensation not-started</span><span>audit-chain pointer REC-CTRL-001B · error / remediation metadata support scope redacted</span></li></ol><div class="policy-decision-strip" aria-label="Persona user-story paths"><article><strong>tenant admin path</strong><p>Search ORN, inspect facets, route reviewer work without live mutation.</p></article><article><strong>operator path</strong><p>Inspect operation retries, rollback state, and remediation metadata.</p></article><article><strong>developer path</strong><p>Use the ORN and operation id from the service catalog/dev portal flow.</p></article><article><strong>security/compliance reviewer path</strong><p>Verify audit, policy, retention, jurisdiction, and no-secret posture.</p></article><article><strong>support engineer path</strong><p>See constrained redacted support context without cross-tenant leakage.</p></article></div><p class="cockpit-note">ADR-0536 D-4/D-5 · specs/masterplan.json:144-257 · specs/cloud-control-plane-canonical.json · specs/cloud-resource-catalog-target.json · specs/api-contract-ssot-canonical.json · ADR-0393 · CONTROLPLANE-UX-001 spec comment</p></section>"#
 }
 
 #[cfg(any(feature = "ssr", test))]
@@ -7542,12 +8232,86 @@ fn static_tenant_operations_cockpit(envelope: &TenantRenderEnvelope) -> String {
     let visible_modules = envelope.modules.len();
 
     format!(
-        r#"<section id="cloud-ops-cockpit" class="ops-cockpit panel" aria-labelledby="ops-cockpit-title"><div class="panel-header cockpit-header"><div><p class="eyebrow">Operate</p><h3 id="ops-cockpit-title">Cloud, policy, and FinOps cockpit</h3></div><div class="cockpit-tabs" role="tablist" aria-label="Operations cockpit views"><button type="button" class="active" data-cockpit-tab="topology" role="tab" aria-selected="true">Topology</button><button type="button" data-cockpit-tab="policy" role="tab" aria-selected="false">Policy</button><button type="button" data-cockpit-tab="finops" role="tab" aria-selected="false">FinOps</button></div></div><div class="cockpit-panels"><article class="cockpit-panel active" data-cockpit-panel="topology" aria-labelledby="cloud-topology-title"><div class="cockpit-column-head"><p class="screen-anchor">CLOUD TOPOLOGY</p><h4 id="cloud-topology-title">Tenant runtime map</h4></div><div class="topology-map" aria-hidden="true"><span class="region primary">us-east-2<em>cell active</em></span><span class="region">eu-west-1<em>warm standby</em></span><span class="region">kr-seoul<em>pack gated</em></span><span class="service compute">Compute</span><span class="service network">Network</span><span class="service storage">Storage</span><span class="service audit">Audit chain</span></div>{ops_command_matrix}<div class="ops-metrics-strip" aria-label="Cloud operations live posture"><span><small>Availability</small><strong>99.96%</strong><em>+0.01 vs SLO</em></span><span><small>Pending rollbacks</small><strong>2</strong><em>1 network · 1 key</em></span><span><small>Run-rate</small><strong>$48.2k</strong><em>4% under commit</em></span><span><small>Evidence age</small><strong>12m</strong><em>fresh</em></span></div><div class="topology-detail-grid"><article><p class="screen-anchor">INCIDENT THREAD</p><ol class="ops-timeline"><li><time>09:18</time><strong>Mesh split detected</strong><span>northwind-prod-mesh · rollback evidence requested</span></li><li><time>09:42</time><strong>DNS policy verified</strong><span>tenant-control-plane routes stay global</span></li><li><time>10:05</time><strong>Audit sidecar healthy</strong><span>receipt vault sealed draft attached</span></li></ol></article><article><p class="screen-anchor">RUNBOOK QUEUE</p><div class="runbook-list"><button type="button" data-cockpit-action="reconcile-cell">Reconcile cell evidence</button><button type="button" data-cockpit-action="simulate-failover">Simulate failover</button><button type="button" data-cockpit-action="queue-runbook">Queue rollback runbook</button></div></article><article><p class="screen-anchor">REGIONAL CAPACITY</p><div class="capacity-bars"><span style="--bar: 72%"><em>us-east-2</em></span><span style="--bar: 44%"><em>eu-west-1</em></span><span style="--bar: 28%"><em>kr-seoul</em></span></div></article></div><div class="cockpit-actions"><button type="button" data-sidepeek-trigger="topology" data-sidepeek-title="Tenant runtime map" data-sidepeek-id="CELL-US-EAST-2" data-sidepeek-desc="Primary cell running compute, network, storage, and audit-chain staged surfaces." data-sidepeek-owner="Cloud infrastructure" data-sidepeek-risk="Medium" data-sidepeek-sla="99.95% target · local data">Inspect cell</button><button type="button" data-command-trigger="true">Search resources</button><span class="cockpit-status" data-cockpit-status="true">Topology ready · local runbooks only.</span></div></article><article id="policy-access" class="cockpit-panel" data-cockpit-panel="policy" aria-labelledby="policy-access-title"><div class="cockpit-column-head"><p class="screen-anchor">POLICY &amp; ACCESS</p><h4 id="policy-access-title">Policy envelope command board</h4></div><div class="policy-command-grid" aria-label="FD-001 and Oyatie Cloud policy proof"><article class="policy-command-card selected" data-policy-card="fd001"><div><p class="screen-anchor">FD-001 TENANT</p><h5>Product delivery stays the goal</h5><p>Messenger, Mail, Community, Workflow, Ontology, and Intelligence run as tenant workloads; Oyatie Cloud proves they can be hosted without moving the tenant workload north star.</p></div><div class="policy-command-actions" aria-label="FD-001 policy routes"><button type="button" data-policy-anchor-action="role-review">Review role grants</button><button type="button" data-policy-anchor-action="open-identity">Open identity</button><button type="button" data-policy-anchor-action="route-evidence">Evidence spine</button></div></article><article class="policy-command-card" data-policy-card="substrate"><div><p class="screen-anchor">OYATIE CLOUD</p><h5>Dogfood substrate boundary</h5><p>Cloud controls stay tenant-scoped, PIPA-aware, auditable, and local-only until real FD-001 services are admitted through release gates.</p></div><div class="policy-command-actions" aria-label="Oyatie Cloud policy routes"><button type="button" data-policy-anchor-action="route-cloud">Cloud topology</button><button type="button" data-policy-anchor-action="pipa-boundary">PIPA boundary</button><button type="button" data-policy-anchor-action="open-audit">Audit trail</button></div></article><article class="policy-command-card" data-policy-card="autonomy"><div><p class="screen-anchor">AUTONOMY CEILING</p><h5>Interactive, never wired</h5><p>Policy can preview allow, gate, deny, rollback, and reviewer paths, but every action is visual state with no cloud, billing, DNS, or workflow mutation.</p></div><div class="policy-command-actions" aria-label="Autonomy policy routes"><button type="button" data-policy-anchor-action="autonomy-ceiling">Show ceiling</button><button type="button" data-policy-anchor-action="residency">Residency pack</button><button type="button" data-policy-anchor-action="route-mail">Mail brief</button></div></article></div><table class="policy-table"><thead><tr><th>Subject</th><th>Scope</th><th>Decision</th><th>Reason</th></tr></thead><tbody><tr><td>Tenant admin</td><td>Cloud controls</td><td><span class="status-chip success">Allow</span></td><td>Owner role</td></tr><tr><td>{role}</td><td>Healthcare</td><td><span class="status-chip warning">{healthcare_gate}</span></td><td>Accreditation</td></tr><tr><td>Workflow builder</td><td>Execution</td><td><span class="status-chip danger">Deny</span></td><td>Autonomy ceiling</td></tr></tbody></table><div class="policy-evidence-grid"><span><strong>12</strong><small>Cedar rules mirrored</small></span><span><strong>7</strong><small>tenant pack grants</small></span><span><strong>3</strong><small>human review stops</small></span></div><div class="policy-decision-strip" aria-label="Policy decision proof path"><article class="policy-decision-card" data-policy-card="allow"><span class="status-chip success">Allow</span><strong>Tenant admin → Cloud controls</strong><p>Owner-scoped controls stay inside the dogfood substrate and attach receipt IDs before promotion.</p><button type="button" data-policy-anchor-action="route-cloud">Inspect controls</button></article><article class="policy-decision-card" data-policy-card="gate"><span class="status-chip warning">Gate</span><strong>{role} → regulated data</strong><p>{healthcare_gate} · reviewer evidence and residency pack required before any FD-001 workload placement.</p><button type="button" data-policy-anchor-action="residency">Review gate</button></article><article class="policy-decision-card" data-policy-card="deny"><span class="status-chip danger">Deny</span><strong>Workflow builder → execution</strong><p>The autonomy ceiling blocks real execution; visual routing proves the UX without wiring side effects.</p><button type="button" data-policy-anchor-action="autonomy-ceiling">Trace denial</button></article></div><div class="policy-anchor-footer"><span class="cockpit-status" data-policy-anchor-status="true">Policy board ready · FD-001 workloads dogfood Oyatie Cloud as tenant surfaces.</span><div class="policy-anchor-routes" aria-label="Connected policy routes"><button type="button" data-policy-anchor-action="route-community">Community review</button><button type="button" data-policy-anchor-action="open-audit">Audit ledger</button><button type="button" data-policy-anchor-action="route-evidence">Evidence graph</button></div></div></article><article id="finops-pane" class="cockpit-panel" data-cockpit-panel="finops" aria-labelledby="finops-title"><div class="cockpit-column-head"><p class="screen-anchor">FINOPS</p><h4 id="finops-title">Run-rate and sustainability</h4></div><div class="finops-bars" aria-label="FinOps breakdown"><span style="--bar: 72%"><em>Compute · $21.4k</em></span><span style="--bar: 51%"><em>Network · $9.8k</em></span><span style="--bar: 43%"><em>Storage · $7.2k</em></span><span style="--bar: 26%"><em>Audit · $3.1k</em></span></div><div class="finops-action-grid"><button type="button" data-cockpit-action="open-commit">Open commit plan</button><button type="button" data-cockpit-action="tag-anomaly">Tag anomaly</button><button type="button" data-cockpit-action="draft-budget-note">Draft budget note</button></div><span class="cockpit-status" data-cockpit-status="true">FinOps ready · local budget actions only.</span>{finops_anchor_board}<p class="cockpit-note">{visible_modules} services visible in this envelope · backend wiring remains disabled</p></article></div></section>"#,
+        r#"<section id="cloud-ops-cockpit" class="ops-cockpit panel" aria-labelledby="ops-cockpit-title"><div class="panel-header cockpit-header"><div><p class="eyebrow">Operate</p><h3 id="ops-cockpit-title">Cloud, policy, and FinOps cockpit</h3></div><div class="cockpit-tabs" role="tablist" aria-label="Operations cockpit views"><button type="button" class="active" data-cockpit-tab="topology" role="tab" aria-selected="true">Topology</button><button type="button" data-cockpit-tab="policy" role="tab" aria-selected="false">Policy</button><button type="button" data-cockpit-tab="finops" role="tab" aria-selected="false">FinOps</button></div></div><div class="cockpit-panels"><aside class="ops-cluster-health-fixture" data-ops-cluster-health-source="typed-api" aria-label="Typed ops cluster health fixture"><code>GET /ops/v1/clusters/{{cluster_id}}/health</code><strong>cell-us-east-2</strong><span>yellow · observed 2026-07-01T05:00:00Z · typed ops API</span></aside><article class="cockpit-panel active" data-cockpit-panel="topology" aria-labelledby="cloud-topology-title"><div class="cockpit-column-head"><p class="screen-anchor">CLOUD TOPOLOGY</p><h4 id="cloud-topology-title">Tenant runtime map</h4></div><div class="topology-map" aria-hidden="true"><span class="region primary">us-east-2<em>cell active</em></span><span class="region">eu-west-1<em>warm standby</em></span><span class="region">kr-seoul<em>pack gated</em></span><span class="service compute">Compute</span><span class="service network">Network</span><span class="service storage">Storage</span><span class="service audit">Audit chain</span></div>{ops_command_matrix}<div class="ops-metrics-strip" aria-label="Cloud operations live posture"><span><small>Availability</small><strong>99.96%</strong><em>+0.01 vs SLO</em></span><span><small>Pending rollbacks</small><strong>2</strong><em>1 network · 1 key</em></span><span><small>Run-rate</small><strong>$48.2k</strong><em>4% under commit</em></span><span><small>Evidence age</small><strong>12m</strong><em>fresh</em></span></div><div class="topology-detail-grid"><article><p class="screen-anchor">INCIDENT THREAD</p><ol class="ops-timeline"><li><time>09:18</time><strong>Mesh split detected</strong><span>northwind-prod-mesh · rollback evidence requested</span></li><li><time>09:42</time><strong>DNS policy verified</strong><span>tenant-control-plane routes stay global</span></li><li><time>10:05</time><strong>Audit sidecar healthy</strong><span>receipt vault sealed draft attached</span></li></ol></article><article><p class="screen-anchor">RUNBOOK QUEUE</p><div class="runbook-list"><button type="button" data-cockpit-action="reconcile-cell">Reconcile cell evidence</button><button type="button" data-cockpit-action="simulate-failover">Simulate failover</button><button type="button" data-cockpit-action="queue-runbook">Queue rollback runbook</button></div></article><article><p class="screen-anchor">REGIONAL CAPACITY</p><div class="capacity-bars"><span style="--bar: 72%"><em>us-east-2</em></span><span style="--bar: 44%"><em>eu-west-1</em></span><span style="--bar: 28%"><em>kr-seoul</em></span></div></article></div><div class="cockpit-actions"><button type="button" data-sidepeek-trigger="topology" data-sidepeek-title="Tenant runtime map" data-sidepeek-id="CELL-US-EAST-2" data-sidepeek-desc="Primary cell running compute, network, storage, and audit-chain staged surfaces." data-sidepeek-owner="Cloud infrastructure" data-sidepeek-risk="Medium" data-sidepeek-sla="99.95% target · local data">Inspect cell</button><button type="button" data-command-trigger="true">Search resources</button><span class="cockpit-status" data-cockpit-status="true">Topology ready · local runbooks only.</span></div></article><article id="policy-access" class="cockpit-panel" data-cockpit-panel="policy" aria-labelledby="policy-access-title"><div class="cockpit-column-head"><p class="screen-anchor">POLICY &amp; ACCESS</p><h4 id="policy-access-title">Policy envelope command board</h4></div><div class="policy-command-grid" aria-label="FD-001 and Oyatie Cloud policy proof"><article class="policy-command-card selected" data-policy-card="fd001"><div><p class="screen-anchor">FD-001 TENANT</p><h5>Product delivery stays the goal</h5><p>Messenger, Mail, Community, Workflow, Ontology, and Intelligence run as tenant workloads; Oyatie Cloud proves they can be hosted without moving the tenant workload north star.</p></div><div class="policy-command-actions" aria-label="FD-001 policy routes"><button type="button" data-policy-anchor-action="role-review">Review role grants</button><button type="button" data-policy-anchor-action="open-identity">Open identity</button><button type="button" data-policy-anchor-action="route-evidence">Evidence spine</button></div></article><article class="policy-command-card" data-policy-card="substrate"><div><p class="screen-anchor">OYATIE CLOUD</p><h5>Dogfood substrate boundary</h5><p>Cloud controls stay tenant-scoped, PIPA-aware, auditable, and local-only until real FD-001 services are admitted through release gates.</p></div><div class="policy-command-actions" aria-label="Oyatie Cloud policy routes"><button type="button" data-policy-anchor-action="route-cloud">Cloud topology</button><button type="button" data-policy-anchor-action="pipa-boundary">PIPA boundary</button><button type="button" data-policy-anchor-action="open-audit">Audit trail</button></div></article><article class="policy-command-card" data-policy-card="autonomy"><div><p class="screen-anchor">AUTONOMY CEILING</p><h5>Interactive, never wired</h5><p>Policy can preview allow, gate, deny, rollback, and reviewer paths, but every action is visual state with no cloud, billing, DNS, or workflow mutation.</p></div><div class="policy-command-actions" aria-label="Autonomy policy routes"><button type="button" data-policy-anchor-action="autonomy-ceiling">Show ceiling</button><button type="button" data-policy-anchor-action="residency">Residency pack</button><button type="button" data-policy-anchor-action="route-mail">Mail brief</button></div></article></div><table class="policy-table"><thead><tr><th>Subject</th><th>Scope</th><th>Decision</th><th>Reason</th></tr></thead><tbody><tr><td>Tenant admin</td><td>Cloud controls</td><td><span class="status-chip success">Allow</span></td><td>Owner role</td></tr><tr><td>{role}</td><td>Healthcare</td><td><span class="status-chip warning">{healthcare_gate}</span></td><td>Accreditation</td></tr><tr><td>Workflow builder</td><td>Execution</td><td><span class="status-chip danger">Deny</span></td><td>Autonomy ceiling</td></tr></tbody></table><div class="policy-evidence-grid"><span><strong>12</strong><small>Cedar rules mirrored</small></span><span><strong>7</strong><small>tenant pack grants</small></span><span><strong>3</strong><small>human review stops</small></span></div><div class="policy-decision-strip" aria-label="Policy decision proof path"><article class="policy-decision-card" data-policy-card="allow"><span class="status-chip success">Allow</span><strong>Tenant admin → Cloud controls</strong><p>Owner-scoped controls stay inside the dogfood substrate and attach receipt IDs before promotion.</p><button type="button" data-policy-anchor-action="route-cloud">Inspect controls</button></article><article class="policy-decision-card" data-policy-card="gate"><span class="status-chip warning">Gate</span><strong>{role} → regulated data</strong><p>{healthcare_gate} · reviewer evidence and residency pack required before any FD-001 workload placement.</p><button type="button" data-policy-anchor-action="residency">Review gate</button></article><article class="policy-decision-card" data-policy-card="deny"><span class="status-chip danger">Deny</span><strong>Workflow builder → execution</strong><p>The autonomy ceiling blocks real execution; visual routing proves the UX without wiring side effects.</p><button type="button" data-policy-anchor-action="autonomy-ceiling">Trace denial</button></article></div><div class="policy-anchor-footer"><span class="cockpit-status" data-policy-anchor-status="true">Policy board ready · FD-001 workloads dogfood Oyatie Cloud as tenant surfaces.</span><div class="policy-anchor-routes" aria-label="Connected policy routes"><button type="button" data-policy-anchor-action="route-community">Community review</button><button type="button" data-policy-anchor-action="open-audit">Audit ledger</button><button type="button" data-policy-anchor-action="route-evidence">Evidence graph</button></div></div></article><article id="finops-pane" class="cockpit-panel" data-cockpit-panel="finops" aria-labelledby="finops-title"><div class="cockpit-column-head"><p class="screen-anchor">FINOPS</p><h4 id="finops-title">Run-rate and sustainability</h4></div><div class="finops-bars" aria-label="FinOps breakdown"><span style="--bar: 72%"><em>Compute · $21.4k</em></span><span style="--bar: 51%"><em>Network · $9.8k</em></span><span style="--bar: 43%"><em>Storage · $7.2k</em></span><span style="--bar: 26%"><em>Audit · $3.1k</em></span></div><div class="finops-action-grid"><button type="button" data-cockpit-action="open-commit">Open commit plan</button><button type="button" data-cockpit-action="tag-anomaly">Tag anomaly</button><button type="button" data-cockpit-action="draft-budget-note">Draft budget note</button></div><span class="cockpit-status" data-cockpit-status="true">FinOps ready · local budget actions only.</span>{finops_anchor_board}<p class="cockpit-note">{visible_modules} services visible in this envelope · backend wiring remains disabled</p></article></div></section>"#,
         role = escape(&envelope.role_name),
         healthcare_gate = escape(healthcare_gate),
         visible_modules = visible_modules,
-        ops_command_matrix = static_cloud_ops_command_matrix(),
+        ops_command_matrix = format!(
+            "{}{}",
+            static_cloud_ops_command_matrix(),
+            static_ops_cluster_health_panel()
+        ),
         finops_anchor_board = static_finops_anchor_board(),
+    )
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn static_trust_center_portal() -> &'static str {
+    r#"<section id="trust-center-portal" class="trust-center-portal panel" aria-labelledby="trust-center-title" data-trust-center-fixture="contract-first-slice"><div class="panel-header trust-center-header"><div><p class="eyebrow">Trust Center · customer evidence</p><h3 id="trust-center-title">Trust Center overview</h3><p>Contracted fixture for /specs/trust-center-compliance-evidence-portal.json: tenant-scoped evidence, reviewer room, status link, SBOM/VEX posture, freshness, and access audit.</p></div><span class="status-chip warning">first slice · fixture/API contract</span></div><div class="trust-center-role-strip" aria-label="Trust Center persona paths"><article data-trust-role="tenant-admin"><span class="status-chip success">tenant admin</span><strong>Review posture, filter evidence, invite/revoke reviewers</strong><p>Can inspect summary, open detail, manage bounded reviewer grants, and view access audit.</p></article><article data-trust-role="security-compliance-reviewer"><span class="status-chip">reviewer</span><strong>Read-only evidence room with expiry</strong><p>Reviewer can read approved evidence and safe exports, but cannot administer tenant settings.</p></article><article data-trust-role="oyatie-operator"><span class="status-chip warning">operator</span><strong>Publishability and redaction stay upstream</strong><p>Operator-only detail withheld; UI shows handles, claim tiers, audit refs, and customer-safe summaries.</p></article></div><div class="trust-center-kpi-strip" aria-label="Trust Center evidence freshness summary"><span><strong>3</strong><small>current evidence</small></span><span><strong>2</strong><small>warning/stale</small></span><span><strong>1</strong><small>blocked_missing_evidence · not green</small></span><span><strong>target_non_claim</strong><small>claim tier: target_non_claim</small></span></div><div class="trust-center-toolbar" aria-label="Trust Center filters and public status controls"><label><span aria-hidden="true">⌕</span><input aria-label="Filter trust evidence by class, source, freshness, or claim tier" value="" placeholder="Filter evidence, source, freshness, claim tier..." /></label><div class="trust-filter-pills" role="toolbar" aria-label="Trust Center evidence state filters"><button type="button" class="active" data-trust-filter="all" aria-pressed="true">All</button><button type="button" data-trust-filter="current" aria-pressed="false">Current</button><button type="button" data-trust-filter="stale" aria-pressed="false">Stale</button><button type="button" data-trust-filter="blocked" aria-pressed="false">Blocked</button><button type="button" data-trust-filter="target_non_claim" aria-pressed="false">Target non-claim</button></div><a class="trust-status-link" href="https://status.oyatie.example/northwind">Public status link / embed</a></div><div class="trust-center-layout"><article class="trust-evidence-table-card" aria-labelledby="trust-evidence-table-title"><div class="cockpit-column-head"><p class="screen-anchor">CONTROLS AND EVIDENCE</p><h4 id="trust-evidence-table-title">Evidence table with non-color states</h4></div><table class="resource-table trust-evidence-table" aria-label="Trust Center evidence table"><thead><tr><th>Control</th><th>Source</th><th>Freshness</th><th>Claim tier</th><th>Audit ref</th><th>Detail</th></tr></thead><tbody><tr data-trust-evidence-state="current"><td><strong>SOC2 CC7.2 validation</strong><small>security_validation_controls</small></td><td>security-validation matrix</td><td><span class="status-chip success" aria-label="freshness state current">current · source 2026-07-01T07:42Z</span></td><td>mechanically_enforced</td><td><code>aud-trust-ctrl-cc72-001</code></td><td><button type="button" aria-label="Open SOC2 CC7.2 evidence detail">Open detail</button></td></tr><tr data-trust-evidence-state="stale"><td><strong>DR drill floor</strong><small>slo_dr_status_incident</small></td><td>compliance-pack floors</td><td><span class="status-chip warning" aria-label="freshness state stale warning">stale · refresh required</span></td><td>spec_ready</td><td><code>aud-trust-dr-floor-014</code></td><td><button type="button" aria-label="Open DR drill stale evidence detail">Open detail</button></td></tr><tr data-trust-evidence-state="blocked_missing_evidence"><td><strong>Quality kit abuse drill</strong><small>cloud_quality_kits</small></td><td>quality-kit evidence catalogue</td><td><span class="status-chip danger" aria-label="freshness state blocked missing evidence">blocked_missing_evidence · not green</span></td><td>target_non_claim</td><td><code>gap-trust-qk-abuse-001</code></td><td><button type="button" aria-label="Open missing quality kit evidence gap detail">Open detail</button></td></tr><tr data-trust-evidence-state="target_non_claim"><td><strong>External certification display</strong><small>claim boundary</small></td><td>trust-center spec</td><td><span class="status-chip" aria-label="target non claim not certified">target_non_claim · no certification</span></td><td>claim tier: target_non_claim</td><td><code>nonclaim-trust-cert-000</code></td><td><button type="button" aria-label="Open non certification boundary detail">Open detail</button></td></tr></tbody></table></article><aside class="trust-detail-card" aria-labelledby="trust-detail-title"><p class="screen-anchor">EVIDENCE DETAIL</p><h4 id="trust-detail-title">Customer-safe detail pane</h4><dl class="service-kv"><div><dt>source_system</dt><dd>security-validation matrix</dd></div><div><dt>source_record_ref</dt><dd>secval://lane/api-fuzz/latest</dd></div><div><dt>freshness_state</dt><dd>current</dd></div><div><dt>audit_event_ref</dt><dd>aud-trust-ctrl-cc72-001</dd></div><div><dt>redaction</dt><dd>raw scanner output redacted · operator-only detail withheld</dd></div></dl><p class="scope-notice">Cross-tenant route denied; payload tenant assertions are display-only and never authority.</p><p>keyboard table/detail/filter/reviewer grant paths labelled</p></aside></div><div class="trust-lower-grid"><article class="trust-sbom-card" aria-labelledby="trust-sbom-title"><p class="screen-anchor">SBOM / VEX</p><h4 id="trust-sbom-title">SBOM/VEX posture</h4><ul class="evidence-steps"><li><span>SBOM</span><strong>signed SBOM present</strong></li><li><span>VEX</span><strong>customer-safe VEX summary · exploit details withheld</strong></li><li><span>SLA</span><strong>2 remediation SLA exceptions expire in 6 days</strong></li></ul></article><article class="trust-reviewer-card" aria-labelledby="trust-reviewer-title" data-reviewer-grant-flow="create-revoke-expiring"><p class="screen-anchor">REVIEWER GRANT</p><h4 id="trust-reviewer-title">Reviewer invite</h4><label><span>Reviewer email</span><input aria-label="Reviewer email" type="email" value="security.reviewer@example.com" /></label><label><span>Expiry</span><input aria-label="Reviewer grant expiry" type="datetime-local" value="2026-07-08T00:00" /></label><div class="trust-card-actions"><button type="button" aria-label="Create expiring reviewer grant">Invite reviewer</button><button type="button" aria-label="Revoke reviewer access">Revoke reviewer access</button></div><p>Reviewer cannot administer tenant settings; grant is bounded by purpose, scope, and expiry.</p></article><article class="trust-access-audit-card" aria-labelledby="trust-access-audit-title"><p class="screen-anchor">ACCESS AUDIT</p><h4 id="trust-access-audit-title">Access audit</h4><ol class="audit-ledger-list compact"><li><time>07:42</time><span class="status-chip success">viewed</span><strong>trust_center.evidence_index_viewed</strong><p>tenant_admin · aud-trust-index-001</p></li><li><time>07:48</time><span class="status-chip warning">grant</span><strong>trust_center.access_grant_created</strong><p>expiry 2026-07-08 · aud-trust-grant-002</p></li><li><time>08:05</time><span class="status-chip danger">denied</span><strong>Cross-tenant route denied</strong><p>other tenant evidence room request failed closed</p></li></ol></article></div></section>"#
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn static_audit_evidence_timeline_panel() -> String {
+    let source = audit_evidence_timeline_from_durable_source();
+    let rows = source.timeline_rows();
+    let row_html = rows
+        .iter()
+        .map(static_audit_evidence_timeline_row)
+        .collect::<String>();
+
+    format!(
+        r#"<section id="audit-evidence-timeline" class="audit-evidence-timeline-panel panel" aria-labelledby="audit-evidence-timeline-title" data-audit-evidence-source="durable-cloud-observability-audit-api" data-audit-evidence-endpoint="{endpoint}" data-authz-surface="{authz_surface}" data-audit-operation-class="{operation_class}" data-authority-ref="{authority_ref}" data-source-anchors="{source_anchors}" data-authority-boundary="{authority_boundary}" data-chain-complete="{chain_complete}" data-high-watermark-sequence="{high_watermark}"><div class="panel-header audit-evidence-header"><div><p class="eyebrow">Audit Evidence · durable source</p><h3 id="audit-evidence-timeline-title">Cloud IAM policy evidence timeline</h3><p>Read-only projection from the Cloud Observability audit read API; the UI renders signed digest-chain evidence for one operation class without provider mutation.</p><p class="scope-notice">Authority: contracts/openapi/cloud/cloud-observability-audit-v1.yaml · G007/AUTHZ-006 slice · analysis-only-non-mutating.</p></div><span class="status-chip success">chain complete</span></div><div class="audit-evidence-source-strip" aria-label="Durable audit source metadata"><span><strong>{record_count}</strong><small>records</small></span><span><strong>{request_id}</strong><small>request</small></span><span><strong>{tenant_id}</strong><small>tenant</small></span><span><strong>{region}</strong><small>region</small></span><span><strong>{next_cursor}</strong><small>next cursor</small></span></div><section class="ds-audit-evidence-timeline" data-variant="changeset-provenance" aria-label="Audit evidence timeline"><ol>{row_html}</ol></section></section>"#,
+        endpoint = escape(source.endpoint()),
+        authz_surface = escape(source.authz_surface()),
+        operation_class = escape(source.operation_class()),
+        authority_ref = escape(source.authority_ref()),
+        source_anchors = escape(source.source_anchors()),
+        authority_boundary = escape(source.authority_boundary()),
+        chain_complete = source.metadata.chain_complete,
+        high_watermark = escape(&source.high_watermark_sequence_label()),
+        record_count = source.metadata.record_count,
+        request_id = escape(&source.metadata.request_id),
+        tenant_id = escape(&source.metadata.tenant_id),
+        region = escape(&source.metadata.region),
+        next_cursor = escape(source.metadata.next_cursor.as_deref().unwrap_or("none")),
+        row_html = row_html,
+    )
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn static_audit_evidence_timeline_row(row: &EvidenceRow) -> String {
+    let severity = row_severity(row);
+    let severity_label = match severity {
+        RowSeverity::Ok => "ok",
+        RowSeverity::Warning => "warning",
+        RowSeverity::Blocking => "blocking",
+    };
+    let evidence = row
+        .evidence
+        .as_ref()
+        .map(EvidencePath::display)
+        .unwrap_or_else(|| "evidence missing".to_owned());
+    let alert_role = if severity == RowSeverity::Blocking {
+        " role=\"alert\""
+    } else {
+        ""
+    };
+    let blocking_gap = if severity == RowSeverity::Blocking {
+        "<p class=\"ds-blocking-gap\">Blocking gap: this row must be resolved before the timeline can certify</p>"
+    } else {
+        ""
+    };
+
+    format!(
+        r#"<li data-severity="{severity}"{alert_role}><time>{timestamp}</time><strong>{event_type}</strong><span class="ds-evidence-path">{evidence}</span><span class="ds-signature-status">{signature_status}</span><span class="ds-linked-change">{linked_change_id}</span>{blocking_gap}</li>"#,
+        severity = severity_label,
+        alert_role = alert_role,
+        timestamp = escape(&row.timestamp),
+        event_type = escape(&row.event_type),
+        evidence = escape(&evidence),
+        signature_status = escape(&row.signature_status),
+        linked_change_id = escape(&row.linked_change_id),
+        blocking_gap = blocking_gap,
     )
 }
 
@@ -7639,6 +8403,234 @@ fn static_service_catalog_anchor_board() -> &'static str {
 }
 
 #[cfg(any(feature = "ssr", test))]
+fn static_developer_portal_provisioning(portal: &DeveloperPortalFixture) -> String {
+    let template = &portal.approved_template;
+    let artifact_count = portal.generated_artifacts.len();
+    let resource_facets = [
+        "lifecycle",
+        "identity",
+        "policy",
+        "quota",
+        "billing",
+        "audit",
+        "observability",
+        "rollback",
+        "reconciliation",
+    ]
+    .iter()
+    .map(|facet| {
+        format!(
+            r#"<span data-resource-facet="{facet}">{facet}</span>"#,
+            facet = escape(facet)
+        )
+    })
+    .collect::<String>();
+    let resources = template
+        .supported_golden_path_resources
+        .iter()
+        .map(|resource| {
+            format!(
+                r#"<span class="status-chip" data-devportal-resource="{resource}">{resource}</span>"#,
+                resource = escape(resource)
+            )
+        })
+        .collect::<String>();
+    let parameters = template
+        .parameters
+        .iter()
+        .map(|parameter| {
+            format!(
+                r#"<label><span>{name}</span><input data-devportal-parameter="{name}" aria-label="Template parameter {name}" value="{value}" /><small>{field_type}{required}</small></label>"#,
+                name = escape(&parameter.name),
+                value = escape(&parameter.default_value),
+                field_type = escape(&parameter.field_type),
+                required = if parameter.required { " · required" } else { "" }
+            )
+        })
+        .collect::<String>();
+    let admission_steps = portal
+        .admission_sequence
+        .iter()
+        .enumerate()
+        .map(|(index, step)| {
+            format!(
+                r#"<li><span>{ordinal:02}</span><strong>{step}</strong></li>"#,
+                ordinal = index + 1,
+                step = escape(step)
+            )
+        })
+        .collect::<String>();
+    let artifacts = portal
+        .generated_artifacts
+        .iter()
+        .map(|artifact| {
+            format!(
+                r#"<li data-devportal-artifact="{kind}"><strong>{kind}</strong><span>{path}</span><small>{description}</small></li>"#,
+                kind = escape(&artifact.artifact_kind),
+                path = escape(&artifact.path),
+                description = escape(&artifact.description)
+            )
+        })
+        .collect::<String>();
+    let audit_events = portal
+        .audit_event_fixture
+        .iter()
+        .map(|event| {
+            format!(
+                r#"<li><strong>{event_type}</strong><code>{receipt}</code></li>"#,
+                event_type = escape(&contract_fixture_label(&event.event_type)),
+                receipt = escape(&event.receipt)
+            )
+        })
+        .collect::<String>();
+    let role_paths = portal
+        .role_coverage
+        .iter()
+        .map(|role| {
+            format!(
+                r#"<article><strong>{role}</strong><span>{path}</span></article>"#,
+                role = escape(&title_case_role(&role.role)),
+                path = escape(&role.path)
+            )
+        })
+        .collect::<String>();
+    let facet_rows = portal
+        .resource_facets
+        .iter()
+        .map(|facet| {
+            format!(
+                r#"<tr data-devportal-facet-row="{resource}"><th scope="row">{resource}</th><td>{lifecycle}</td><td>{identity}</td><td>{policy}</td><td>{quota}</td><td>{billing}</td><td>{audit}</td><td>{observability}</td><td>{rollback}</td><td>{reconciliation}</td></tr>"#,
+                resource = escape(&facet.resource),
+                lifecycle = escape(&facet.lifecycle),
+                identity = escape(&facet.identity),
+                policy = escape(&facet.policy),
+                quota = escape(&facet.quota),
+                billing = escape(&facet.billing),
+                audit = escape(&facet.audit),
+                observability = escape(&facet.observability),
+                rollback = escape(&facet.rollback),
+                reconciliation = escape(&facet.reconciliation)
+            )
+        })
+        .collect::<String>();
+
+    format!(
+        r#"<section id="developer-portal-provisioning" class="developer-portal-provisioning" data-devportal-fixture="approved-template" aria-labelledby="developer-portal-provisioning-title"><div class="devportal-head developer-portal-head"><div><p class="screen-anchor">DEVELOPER PORTAL · FIXTURE ONLY</p><h4 id="developer-portal-provisioning-title">Approved service template provisioning</h4><h5>Resource Explorer</h5><p>Application developer selects an approved service template, enters fixture parameters, previews quota/cost, and receives an operation receipt without provider-live provisioning.</p><p>Organization → Account → Project → Region → Cell → Resource Group → Resource</p><label aria-label="Search ORN"><span>Search ORN</span><input aria-label="Search ORN" value="orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01" /></label></div><span class="status-chip success">fixture-only non-claim</span></div><article class="resource-explorer-card" data-resource-type="K8sCluster"><strong>{service}</strong><code>orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01</code><span>{template_id} · {artifact_count} generated artifacts</span></article><div class="resource-facet-grid" aria-label="Resource detail facets">{resource_facets}</div><aside class="resource-access-rules" aria-label="Data access rules"><p>Cedar default-deny expectation</p><p>Cross-tenant rows are redacted</p><p>Support access is constrained</p><p>No secret material is exposed</p></aside><div class="devportal-story-grid"><article class="devportal-template-card" aria-label="Approved template details"><p class="screen-anchor">APPROVED TEMPLATE</p><h5>{template_name}</h5><dl class="service-kv"><div><dt>Template id</dt><dd>{template_id}</dd></div><div><dt>Version</dt><dd>{version}</dd></div><div><dt>Owner</dt><dd>{owner}</dd></div><div><dt>Catalog entity</dt><dd>{entity_kind} · {service_slug}</dd></div></dl><div class="devportal-resource-pills" aria-label="Required resources and generated artifacts">{resources}</div></article><form class="devportal-request-form" aria-label="Create service from approved template fixture"><p class="screen-anchor">APPLICATION DEVELOPER PATH</p><div class="devportal-parameter-grid" aria-label="Template parameters">{parameters}</div><div class="devportal-form-actions"><button type="button" data-devportal-action="preview-quota-cost">Quota and cost preview</button><button type="button" class="primary" data-devportal-action="submit-provisioning-request">Submit provisioning request</button></div><p class="settings-status">Request {request_id} uses idempotency key {idempotency_key}; UI stages no service admission, deploy, billing, IAM, database, or cloud mutation.</p></form><aside class="devportal-operation-card" aria-label="Durable operation result"><p class="screen-anchor">DURABLE OPERATION RESULT</p><h5>{operation_id}</h5><dl class="service-kv"><div><dt>State</dt><dd>{operation_state}</dd></div><div><dt>Preview environment</dt><dd>{preview_id} · {preview_state}</dd></div><div><dt>Evidence</dt><dd>{evidence_receipt}</dd></div><div><dt>Cost preview</dt><dd>Quota and cost preview · {currency} {monthly_major}/mo fixture</dd></div></dl><a href="{preview_url}" aria-label="Preview environment fixture">Preview environment fixture</a></aside></div><ol class="devportal-admission-sequence" aria-label="Admission sequence">{admission_steps}</ol><section class="operation-center-card" aria-label="Operation Center"><h5>Operation Center</h5><dl class="service-kv"><div><dt>operation id</dt><dd>op-20260701-0001 · {operation_id}</dd></div><div><dt>client idempotency key</dt><dd>{idempotency_key}</dd></div><div><dt>requested mutation</dt><dd>fixture-only provisioning preview</dd></div><div><dt>current state</dt><dd>{operation_state}</dd></div><div><dt>timestamps</dt><dd>2026-07-01T05:00:00Z</dd></div><div><dt>retry classification</dt><dd>safe-idempotent</dd></div><div><dt>rollback / compensation</dt><dd>delete preview environment fixture</dd></div><div><dt>audit-chain pointer</dt><dd>{evidence_receipt}</dd></div><div><dt>error / remediation metadata</dt><dd>{denial_reason}</dd></div></dl></section><div class="devportal-artifact-grid"><section aria-labelledby="devportal-artifacts-title" aria-label="Generated artifacts"><h5 id="devportal-artifacts-title">Generated artifacts</h5><ol>{artifacts}</ol></section><section aria-labelledby="devportal-policy-title" aria-label="Policy denial and audit evidence"><h5 id="devportal-policy-title">Policy denial and audit evidence</h5><p><strong>{denial_decision}</strong> · {denial_reason}</p><ol>{audit_events}</ol></section><section aria-labelledby="devportal-roles-title" aria-label="Developer Portal role coverage"><h5 id="devportal-roles-title">Role coverage</h5><div class="devportal-role-grid">{role_paths}</div></section></div><div class="devportal-facets" role="region" aria-label="Developer Portal resource facet evidence"><div><p class="screen-anchor">RESOURCE FACET EVIDENCE</p><h5>Missing lifecycle, identity, policy, quota, billing, audit, observability, rollback, or reconciliation facets fail closed</h5><span class="status-chip danger">facet_contract_fail_closed={fail_closed}</span></div><table class="finance-table"><thead><tr><th>Resource</th><th>Lifecycle</th><th>Identity</th><th>Policy</th><th>Quota</th><th>Billing</th><th>Audit</th><th>Observability</th><th>Rollback</th><th>Reconciliation</th></tr></thead><tbody>{facet_rows}</tbody></table><div class="devportal-authority-strip" aria-label="Developer portal authority and persona paths"><span>tenant admin path</span><span>operator path</span><span>developer path</span><span>security/compliance reviewer path</span><span>support engineer path</span><span>fixture-only non-claim</span><span>ADR-0536 D-4/D-5</span><span>specs/masterplan.json:144-257</span><span>specs/cloud-control-plane-canonical.json</span><span>specs/cloud-resource-catalog-target.json</span><span>specs/api-contract-ssot-canonical.json</span><span>ADR-0393</span></div></div></section>"#,
+        service = escape(&portal.catalog_entity.display_name),
+        template_id = escape(&template.template_id),
+        artifact_count = artifact_count,
+        resource_facets = resource_facets,
+        template_name = escape(&template.display_name),
+        version = escape(&template.version.version),
+        owner = escape(&template.owner),
+        entity_kind = escape(&portal.catalog_entity.kind),
+        service_slug = escape(&portal.catalog_entity.service_slug),
+        resources = resources,
+        parameters = parameters,
+        request_id = escape(&portal.provisioning_request.request_id),
+        idempotency_key = escape(&portal.provisioning_operation.idempotency_key),
+        operation_id = escape(&portal.provisioning_operation.operation_id),
+        operation_state = escape(&contract_fixture_label(
+            &portal.provisioning_operation.state
+        )),
+        preview_id = escape(&portal.preview_environment.environment_id),
+        preview_state = escape(&portal.preview_environment.lifecycle_state),
+        preview_url = escape(&portal.preview_environment.url),
+        evidence_receipt = escape(&portal.provisioning_operation.evidence_receipt),
+        currency = escape(&portal.cost_preview.currency),
+        monthly_major = portal.cost_preview.monthly_minor_units / 100,
+        admission_steps = admission_steps,
+        artifacts = artifacts,
+        denial_decision = escape(&portal.policy_denial_fixture.decision),
+        denial_reason = escape(&portal.policy_denial_fixture.reason),
+        audit_events = audit_events,
+        role_paths = role_paths,
+        fail_closed = portal.facet_contract_fail_closed,
+        facet_rows = facet_rows,
+    )
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn static_support_advisory_case_console(fixture: &SupportAdvisoryFixture) -> String {
+    let bundle_refs = fixture
+        .diagnostic_bundle_evidence_refs
+        .iter()
+        .map(|reference| format!("<li>{}</li>", escape(reference)))
+        .collect::<String>();
+    let records = fixture
+        .api_records
+        .iter()
+        .map(|record| {
+            format!(
+                r#"<tr data-support-record="{record_type}"><th scope="row">{record_type}</th><td>{record_id}</td><td>{tenant_id}</td><td>{actor}</td><td>{purpose}</td><td>{data_class}</td><td>{freshness}</td><td>{redaction}</td><td>audit_event_ref={audit}</td></tr>"#,
+                record_type = escape(&record.record_type),
+                record_id = escape(&record.record_id),
+                tenant_id = escape(&record.tenant_id),
+                actor = escape(&record.actor),
+                purpose = escape(&record.purpose),
+                data_class = escape(&record.data_class),
+                freshness = escape(&record.freshness),
+                redaction = escape(&record.redaction_policy_id),
+                audit = escape(&record.audit_event_ref),
+            )
+        })
+        .collect::<String>();
+    let incident_refs = fixture
+        .incident_refs
+        .iter()
+        .chain(fixture.status_refs.iter())
+        .chain(fixture.trust_evidence_refs.iter())
+        .chain(fixture.governance_posture_refs.iter())
+        .chain(fixture.finops_refs.iter())
+        .chain(fixture.onboarding_refs.iter())
+        .chain(fixture.audit_chain_refs.iter())
+        .map(|reference| format!("<span class=\"status-chip\">{}</span>", escape(reference)))
+        .collect::<String>();
+    let security = fixture
+        .security_assertions
+        .iter()
+        .chain(fixture.authority_boundaries.iter())
+        .map(|assertion| format!("<p>{}</p>", escape(assertion)))
+        .collect::<String>();
+    let actions = fixture
+        .post_case_actions
+        .iter()
+        .map(|action| {
+            format!(
+                "<li><strong>post_case_action_item</strong><span>{}</span></li>",
+                escape(action)
+            )
+        })
+        .collect::<String>();
+
+    format!(
+        r#"<section id="support-advisory-console" class="panel support-advisory-console" data-fixture-kind="support-advisory-case" aria-labelledby="support-advisory-title"><div class="panel-header"><div><p class="eyebrow">Customer Support + Trusted Advisor · fixture only</p><h3 id="support-advisory-title">Support case diagnostic bundle and advisory</h3><p>Tenant admin opens Support, creates a case, selects severity, attaches a redacted diagnostic bundle preview, sees a trusted-advisor recommendation, links relevant status/incident/evidence, and tracks post-case action items. The support engineer sees support engineer redacted context only.</p></div><span class="status-chip warning">fixture-only non-claim</span></div><div class="catalog-kpi-strip" aria-label="Support entitlement and severity summary"><span><strong>{severity}</strong><small>{response_target}</small></span><span><strong>support_entitlement</strong><small>{entitlement}</small></span><span><strong>customer_communication</strong><small>{customer_state}</small></span><span><strong>support_access_approval</strong><small>{access_state}</small></span></div><div class="devportal-story-grid"><article aria-label="Support case story"><p class="screen-anchor">support_case</p><h5>{case_id}</h5><dl class="service-kv"><div><dt>Tenant</dt><dd>tenant_id={tenant_id}</dd></div><div><dt>Resource</dt><dd>{resource_ref}</dd></div><div><dt>Service</dt><dd>{service_ref}</dd></div><div><dt>Engineer view</dt><dd>{engineer_view}</dd></div></dl><button type="button" data-support-action="attach-bundle">Attach diagnostic bundle preview</button><button type="button" data-support-action="select-severity">Select severity</button></article><article aria-label="Diagnostic bundle allowed refs"><p class="screen-anchor">diagnostic_bundle</p><h5>{bundle_ref}</h5><div class="devportal-resource-pills" aria-label="Support linked refs">{incident_refs}</div><ul>{bundle_refs}</ul></article><article aria-label="Trusted advisor recommendation"><p class="screen-anchor">advisor_recommendation</p><h5>{advisor_key}</h5><dl class="service-kv"><div><dt>Severity</dt><dd>{advisor_severity}</dd></div><div><dt>Owner</dt><dd>{advisor_owner}</dd></div><div><dt>Freshness</dt><dd>{expires}</dd></div></dl><p>{recommended_action}</p><p>{non_goal_copy}</p></article></div><table class="finance-table" aria-label="Support API fixture records"><thead><tr><th>Record</th><th>ID</th><th>Tenant</th><th>Actor</th><th>Purpose</th><th>Data class</th><th>Freshness</th><th>Redaction</th><th>Audit</th></tr></thead><tbody>{records}</tbody></table><div class="resource-access-rules" aria-label="Support redaction and authority boundaries"><p>approval-gated breakglass</p>{security}</div><ol class="ops-timeline" aria-label="Customer communication and post-case action items"><li><strong>customer_communication</strong><span>Customer-visible update is staged; external send is disabled.</span></li><li><strong>support_access_approval</strong><span>{access_state}</span></li>{actions}</ol></section>"#,
+        severity = escape(&fixture.severity),
+        response_target = escape(&fixture.response_target_label),
+        entitlement = escape(&fixture.entitlement_plan),
+        customer_state = escape(&fixture.customer_state),
+        access_state = escape(&fixture.support_access_state),
+        case_id = escape(&fixture.case_id),
+        tenant_id = escape(&fixture.tenant_id),
+        resource_ref = escape(&fixture.resource_ref),
+        service_ref = escape(&fixture.service_ref),
+        engineer_view = escape(&fixture.support_engineer_view),
+        bundle_ref = escape(&fixture.diagnostic_bundle_ref),
+        incident_refs = incident_refs,
+        bundle_refs = bundle_refs,
+        advisor_key = escape(&fixture.advisor_key),
+        advisor_severity = escape(&fixture.advisor_severity),
+        advisor_owner = escape(&fixture.advisor_owner),
+        expires = escape(&fixture.expires_at),
+        recommended_action = escape(&fixture.recommended_action),
+        non_goal_copy = escape(&fixture.non_goal_copy),
+        records = records,
+        security = security,
+        actions = actions,
+    )
+}
+
+#[cfg(any(feature = "ssr", test))]
 fn static_service_catalog(envelope: &TenantRenderEnvelope) -> String {
     let total_modules = envelope.modules.len();
     let attention_count = envelope
@@ -7673,18 +8665,38 @@ fn static_service_catalog(envelope: &TenantRenderEnvelope) -> String {
         .iter()
         .map(static_catalog_module)
         .collect::<String>();
+    let developer_portal = static_developer_portal_provisioning(&envelope.developer_portal);
 
     format!(
-        r#"<section id="service-catalog" class="panel modules-panel catalog-workbench" aria-labelledby="modules-title"><div class="panel-header catalog-header"><div><p class="eyebrow">Service catalog</p><h3 id="modules-title">Permitted service graph</h3></div><span class="catalog-live-chip">local · visually interactive</span></div><div class="catalog-kpi-strip" aria-label="Service catalog summary"><div class="catalog-kpi accent"><span>Permitted modules</span><strong>{total_modules}</strong><small>from server envelope</small></div><div class="catalog-kpi"><span>Cloud dependencies</span><strong>{cloud_count}</strong><small>compute · network · cells</small></div><div class="catalog-kpi warn"><span>Need attention</span><strong>{attention_count}</strong><small>review before promote</small></div><div class="catalog-kpi"><span>Trust surfaces</span><strong>{trust_count}</strong><small>roles · audit · policy</small></div><div class="catalog-kpi"><span>Cross-service routes</span><strong>7</strong><small>workflow → mail/community/ops</small></div></div><div class="catalog-toolbar" aria-label="Catalog search and filters"><label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search="true" type="search" aria-label="Search service catalog" placeholder="Search modules, owners, dependencies..." /></label><div class="filter-pills catalog-filters" role="toolbar" aria-label="Catalog filters">{filters}<button type="button" class="fp" data-catalog-filter="attention"><span class="fp-dot danger" aria-hidden="true"></span>Attention</button></div><span class="catalog-status" data-catalog-status="true"><strong data-catalog-visible-count="true">{total_modules}</strong> visible · all filter · local catalog only</span></div><div class="catalog-workspace"><div class="catalog-table-shell" role="region" aria-label="Permitted modules table"><div class="catalog-table-head" aria-hidden="true"><span>Health</span><span>Module</span><span>Category</span><span>Owner</span><span>Downstream graph</span><span>Actions</span></div><div class="catalog-module-list">{modules}</div></div><aside id="service-graph" class="catalog-service-graph" aria-label="Service graph and module lineage"><div class="graph-head"><p class="screen-anchor">SERVICE GRAPH</p><strong>One cohesive Oyatie nervous system</strong><span>Workflow events fan out to built-in surfaces and return audit evidence.</span></div><ol class="lineage-list"><li class="root"><span>Workflow</span><strong>Tenant change approval</strong><em>root event</em></li><li><span>Messenger</span><strong>Ops room draft</strong><em>delivered</em></li><li><span>Mail</span><strong>Formal approval brief</strong><em>pending</em></li><li><span>Community</span><strong>Governance council note</strong><em>review</em></li><li><span>Cloud Ops</span><strong>Runbook + FinOps</strong><em>guarded</em></li><li><span>Audit</span><strong>Receipt spine</strong><em>sealed</em></li></ol><div class="catalog-graph-actions" aria-label="Service graph actions"><button type="button" data-catalog-graph-action="workflow">Open workflow</button><button type="button" data-catalog-graph-action="mail">Mail route</button><button type="button" data-catalog-graph-action="community">Community route</button><button type="button" data-catalog-graph-action="evidence">Evidence spine</button></div></aside></div>{service_catalog_anchor_board}<p class="catalog-footer-hint omitted-note"><span aria-hidden="true">✦</span>{omitted}</p></section>"#,
+        r#"<section id="service-catalog" class="panel modules-panel catalog-workbench" aria-labelledby="modules-title"><div class="panel-header catalog-header"><div><p class="eyebrow">Service catalog</p><h3 id="modules-title">Permitted service graph</h3></div><span class="catalog-live-chip">local · visually interactive</span></div><div class="catalog-kpi-strip" aria-label="Service catalog summary"><div class="catalog-kpi accent"><span>Permitted modules</span><strong>{total_modules}</strong><small>from server envelope</small></div><div class="catalog-kpi"><span>Cloud dependencies</span><strong>{cloud_count}</strong><small>compute · network · cells</small></div><div class="catalog-kpi warn"><span>Need attention</span><strong>{attention_count}</strong><small>review before promote</small></div><div class="catalog-kpi"><span>Trust surfaces</span><strong>{trust_count}</strong><small>roles · audit · policy</small></div><div class="catalog-kpi"><span>Cross-service routes</span><strong>7</strong><small>workflow → mail/community/ops</small></div></div><div class="catalog-toolbar" aria-label="Catalog search and filters"><label class="catalog-search"><span aria-hidden="true">⌕</span><input data-catalog-search="true" type="search" aria-label="Search service catalog" placeholder="Search modules, owners, dependencies..." /></label><div class="filter-pills catalog-filters" role="toolbar" aria-label="Catalog filters">{filters}<button type="button" class="fp" data-catalog-filter="attention"><span class="fp-dot danger" aria-hidden="true"></span>Attention</button></div><span class="catalog-status" data-catalog-status="true"><strong data-catalog-visible-count="true">{total_modules}</strong> visible · all filter · local catalog only</span></div><div class="catalog-workspace"><div class="catalog-table-shell" role="region" aria-label="Permitted modules table"><div class="catalog-table-head" aria-hidden="true"><span>Health</span><span>Module</span><span>Category</span><span>Owner</span><span>Downstream graph</span><span>Actions</span></div><div class="catalog-module-list">{modules}</div></div><aside id="service-graph" class="catalog-service-graph" aria-label="Service graph and module lineage"><div class="graph-head"><p class="screen-anchor">SERVICE GRAPH</p><strong>One cohesive Oyatie nervous system</strong><span>Workflow events fan out to built-in surfaces and return audit evidence.</span></div><ol class="lineage-list"><li class="root"><span>Workflow</span><strong>Tenant change approval</strong><em>root event</em></li><li><span>Messenger</span><strong>Ops room draft</strong><em>delivered</em></li><li><span>Mail</span><strong>Formal approval brief</strong><em>pending</em></li><li><span>Community</span><strong>Governance council note</strong><em>review</em></li><li><span>Cloud Ops</span><strong>Runbook + FinOps</strong><em>guarded</em></li><li><span>Audit</span><strong>Receipt spine</strong><em>sealed</em></li></ol><div class="catalog-graph-actions" aria-label="Service graph actions"><button type="button" data-catalog-graph-action="workflow">Open workflow</button><button type="button" data-catalog-graph-action="mail">Mail route</button><button type="button" data-catalog-graph-action="community">Community route</button><button type="button" data-catalog-graph-action="evidence">Evidence spine</button></div></aside></div>{developer_portal}{service_catalog_anchor_board}<p class="catalog-footer-hint omitted-note"><span aria-hidden="true">✦</span>{omitted}</p></section>"#,
         total_modules = total_modules,
         cloud_count = cloud_count,
         attention_count = attention_count,
         trust_count = trust_count,
         filters = filters,
         modules = modules,
+        developer_portal = developer_portal,
         service_catalog_anchor_board = static_service_catalog_anchor_board(),
         omitted = escape(&envelope.omitted_capability_note),
     )
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn contract_fixture_label(value: &str) -> String {
+    value
+        .replace("accepted_fixture", "accepted · fixture row")
+        .replace("denied_fixture", "denied · fixture row")
+        .replace("non-retryable-policy-gate", "policy")
+        .replace("human-remediation", "operator_required")
+}
+
+#[cfg(any(feature = "ssr", test))]
+fn title_case_role(role: &str) -> String {
+    let mut chars = role.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
 }
 
 #[cfg(any(feature = "ssr", test))]
@@ -7940,4 +8952,396 @@ fn escape(value: &str) -> String {
         .replace('>', "&gt;")
         .replace('"', "&quot;")
         .replace('\'', "&#39;")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{static_dashboard_content, static_dashboard_html};
+    use crate::render_envelope::{OperatorContext, server_derived_envelope};
+
+    #[test]
+    fn resource_explorer_fixture_exposes_canonical_hierarchy_and_one_resource_type() {
+        let html = static_dashboard_html();
+
+        assert!(html.contains("Resource Explorer"));
+        assert!(html.contains(
+            "Organization → Account → Project → Region → Cell → Resource Group → Resource"
+        ));
+        assert!(html.contains("aria-label=\"Search ORN\""));
+        assert!(html.contains(
+            "orn:oya:us-east-2:acct-northwind-prod:cloud-compute:k8s-cluster/cluster-nw-app-01"
+        ));
+        assert!(html.contains("data-resource-type=\"K8sCluster\""));
+        assert!(!html.contains("data-resource-type=\"Vpc\""));
+    }
+
+    #[test]
+    fn resource_detail_exposes_nine_facets_and_data_access_rules() {
+        let html = static_dashboard_html();
+
+        for facet in [
+            "data-resource-facet=\"lifecycle\"",
+            "data-resource-facet=\"identity\"",
+            "data-resource-facet=\"policy\"",
+            "data-resource-facet=\"quota\"",
+            "data-resource-facet=\"billing\"",
+            "data-resource-facet=\"audit\"",
+            "data-resource-facet=\"observability\"",
+            "data-resource-facet=\"rollback\"",
+            "data-resource-facet=\"reconciliation\"",
+        ] {
+            assert!(html.contains(facet), "missing facet marker {facet}");
+        }
+
+        assert!(html.contains("Cedar default-deny expectation"));
+        assert!(html.contains("Cross-tenant rows are redacted"));
+        assert!(html.contains("Support access is constrained"));
+        assert!(html.contains("No secret material is exposed"));
+    }
+
+    #[test]
+    fn operation_center_fixture_exposes_aip151_ledger_fields() {
+        let html = static_dashboard_html();
+        let operation_center_start = html
+            .find("id=\"operation-center\"")
+            .expect("operation center fixture should render");
+        let operation_center_end = html[operation_center_start..]
+            .find("aria-label=\"Persona user-story paths\"")
+            .map(|relative| operation_center_start + relative)
+            .unwrap_or(html.len());
+        let operation_center_html = &html[operation_center_start..operation_center_end];
+
+        for marker in [
+            "Operation Center",
+            "op-20260701-0001",
+            "client idempotency key",
+            "requested mutation",
+            "current state",
+            "current state accepted · fixture row",
+            "current state failed · policy denied fixture row",
+            "timestamps",
+            "retry classification",
+            "retry classification policy",
+            "retry classification operator_required",
+            "rollback / compensation",
+            "audit-chain pointer",
+            "error / remediation metadata",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing operation ledger marker {marker}"
+            );
+        }
+
+        for forbidden in [
+            "accepted_fixture",
+            "denied_fixture",
+            "retry classification non-retryable-policy-gate",
+            "retry classification human-remediation",
+        ] {
+            assert!(
+                !operation_center_html.contains(forbidden),
+                "operation fixture leaked non-contract marker {forbidden}"
+            );
+        }
+    }
+
+    #[test]
+    fn audit_evidence_timeline_uses_durable_cloud_observability_source() {
+        let html = static_dashboard_html();
+        let timeline_start = html
+            .find("id=\"audit-evidence-timeline\"")
+            .expect("audit evidence timeline should render");
+        let timeline_end = html[timeline_start..]
+            .find("</section>")
+            .map(|relative| timeline_start + relative)
+            .unwrap_or(html.len());
+        let timeline_html = &html[timeline_start..timeline_end];
+
+        for marker in [
+            "data-audit-evidence-source=\"durable-cloud-observability-audit-api\"",
+            "data-audit-evidence-endpoint=\"QUERY /v1/cloud/observability/audit-records:read\"",
+            "data-authz-surface=\"cloud.observability.audit.read\"",
+            "data-audit-operation-class=\"cloud_iam_policy\"",
+            "data-authority-ref=\"contracts/openapi/cloud/cloud-observability-audit-v1.yaml#readCloudObservabilityAudit\"",
+            "data-source-anchors=\"G007 goals.json + AUTHZ-006 + specs/root-hub-pointers.json#entry_points.agent_operating_contract\"",
+            "data-authority-boundary=\"analysis-only-non-mutating\"",
+            "data-chain-complete=\"true\"",
+            "data-high-watermark-sequence=\"42\"",
+            "Authority: contracts/openapi/cloud/cloud-observability-audit-v1.yaml · G007/AUTHZ-006 slice · analysis-only-non-mutating.",
+            "data-severity=\"ok\"",
+            "oya.audit.cloud_iam_policy · iam_policy_changed",
+            "signed:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "oyaaudit://signed-export/northwind/cloud-iam-policy?sig=sig_cloud_iam_policy_001",
+            "idem/cloud-iam-policy/001",
+        ] {
+            assert!(
+                timeline_html.contains(marker),
+                "missing durable audit evidence timeline marker {marker}"
+            );
+        }
+
+        for forbidden in ["fixture-only", "local visual evidence", "mock", "ssh into"] {
+            assert!(
+                !timeline_html.contains(forbidden),
+                "audit evidence timeline must not downgrade durable source to {forbidden}"
+            );
+        }
+    }
+
+    #[test]
+    fn developer_portal_story_has_accessible_landmarks_for_fixture_paths() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "aria-labelledby=\"developer-portal-provisioning-title\"",
+            "aria-label=\"Template parameters\"",
+            "aria-label=\"Generated artifacts\"",
+            "aria-label=\"Policy denial and audit evidence\"",
+            "aria-label=\"Developer Portal role coverage\"",
+            "aria-label=\"Developer Portal resource facet evidence\"",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing accessibility marker {marker}"
+            );
+        }
+    }
+
+    #[test]
+    fn control_plane_slice_names_persona_paths_non_claim_and_authorities() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "tenant admin path",
+            "operator path",
+            "developer path",
+            "security/compliance reviewer path",
+            "support engineer path",
+            "fixture-only non-claim",
+            "ADR-0536 D-4/D-5",
+            "specs/masterplan.json:144-257",
+            "specs/cloud-control-plane-canonical.json",
+            "specs/cloud-resource-catalog-target.json",
+            "specs/api-contract-ssot-canonical.json",
+            "ADR-0393",
+        ] {
+            assert!(html.contains(marker), "missing contract marker {marker}");
+        }
+    }
+
+    #[test]
+    fn control_plane_slice_uses_dedicated_resource_explorer_and_operation_center_surface() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "id=\"resource-explorer\"",
+            "aria-labelledby=\"resource-explorer-title\"",
+            "data-fixture-kind=\"resource-explorer-resource\"",
+            "id=\"operation-center\"",
+            "aria-labelledby=\"operation-center-title\"",
+            "data-fixture-kind=\"operation-timeline-entry\"",
+            "X-Oyatie-API-Version: 2026-07-01 (mock)",
+            "GET /v1/cloud-control-plane/resources",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing dedicated surface marker {marker}"
+            );
+        }
+    }
+
+    #[test]
+    fn trust_center_slice_is_wired_into_static_and_interactive_shells() {
+        let static_html = static_dashboard_html();
+        assert!(static_html.contains("href=\"#trust-center-portal\""));
+        assert!(static_html.contains("id=\"trust-center-portal\""));
+
+        let source = include_str!("app.rs");
+        let rail_start = source
+            .find("fn ShellRail(")
+            .expect("ShellRail source should be present");
+        let dashboard_start = source
+            .find("fn dashboard_view(")
+            .expect("dashboard view source should be present");
+        let rail_source = &source[rail_start..dashboard_start];
+        assert!(rail_source.contains("href=\"#trust-center-portal\""));
+
+        let dashboard_source = &source[dashboard_start..];
+        let control_plane = dashboard_source
+            .find("{control_plane_resource_explorer_operation_center()}")
+            .expect("control-plane fixture call should be present");
+        let trust_center = dashboard_source
+            .find(concat!("{", "trust_center_portal", "()}"))
+            .expect("Trust Center portal call should be present in interactive dashboard view");
+        let support_advisory = dashboard_source
+            .find("{support_advisory_view}")
+            .expect("support advisory call should be present");
+        assert!(control_plane < trust_center && trust_center < support_advisory);
+    }
+
+    #[test]
+    fn trust_center_slice_exposes_admin_reviewer_and_evidence_room_markers() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "href=\"#trust-center-portal\"",
+            "id=\"trust-center-portal\"",
+            "data-trust-center-fixture=\"contract-first-slice\"",
+            "Trust Center overview",
+            "data-trust-role=\"tenant-admin\"",
+            "data-trust-role=\"security-compliance-reviewer\"",
+            "data-trust-role=\"oyatie-operator\"",
+            "aria-label=\"Filter trust evidence by class, source, freshness, or claim tier\"",
+            "data-trust-filter=\"all\" aria-pressed=\"true\"",
+            "Public status link / embed",
+            "aria-label=\"Trust Center evidence table\"",
+            "data-trust-evidence-state=\"current\"",
+            "data-trust-evidence-state=\"stale\"",
+            "data-trust-evidence-state=\"blocked_missing_evidence\"",
+            "data-reviewer-grant-flow=\"create-revoke-expiring\"",
+            "aria-label=\"Reviewer grant expiry\" type=\"datetime-local\"",
+            "Create expiring reviewer grant",
+            "Revoke reviewer access",
+            "SBOM/VEX posture",
+            "trust_center.evidence_index_viewed",
+            "trust_center.access_grant_created",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing Trust Center marker {marker}"
+            );
+        }
+    }
+
+    #[test]
+    fn trust_center_slice_marks_non_claim_boundaries_and_redaction_rules() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "blocked_missing_evidence · not green",
+            "target_non_claim · no certification",
+            "claim tier: target_non_claim",
+            "raw scanner output redacted · operator-only detail withheld",
+            "Cross-tenant route denied; payload tenant assertions are display-only and never authority.",
+            "customer-safe VEX summary · exploit details withheld",
+            "Reviewer cannot administer tenant settings",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing Trust Center boundary marker {marker}"
+            );
+        }
+
+        for forbidden in [
+            "SECRET=",
+            "BEGIN PRIVATE KEY",
+            "raw scanner token",
+            "exploit_payload=",
+            "credit_card",
+            "ssn",
+        ] {
+            assert!(
+                !html
+                    .to_ascii_lowercase()
+                    .contains(&forbidden.to_ascii_lowercase()),
+                "Trust Center fixture leaked forbidden marker {forbidden}"
+            );
+        }
+    }
+
+    #[test]
+    fn support_advisory_story_exposes_case_bundle_and_advisor_fixture() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "id=\"support-advisory-console\"",
+            "aria-labelledby=\"support-advisory-title\"",
+            "support_case",
+            "support_entitlement",
+            "diagnostic_bundle",
+            "advisor_recommendation",
+            "customer_communication",
+            "support_access_approval",
+            "post_case_action_item",
+            "budget_anomaly_followup",
+            "sreops_incident_ref=inc-sreops-20260701-17",
+            "status_ref=status-component-orders-api-yellow",
+            "trust_evidence_ref=trustcenter-control-soc2-cc7-2-redacted",
+            "governance_posture_ref=govposture-policy-drift-asset-cluster-nw-app-01",
+            "finops_ref=budget-anomaly-northwind-compute-20260701",
+            "admin_onboarding_ref=domain-verified-northwind.example",
+            "Attach diagnostic bundle preview",
+            "approval-gated breakglass",
+            "support engineer redacted context",
+            "SEV-2 · 4h target label",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing support/advisory marker {marker}"
+            );
+        }
+    }
+
+    #[test]
+    fn support_advisory_surface_is_not_rendered_for_unpermitted_contexts() {
+        let admin_html =
+            static_dashboard_content(&server_derived_envelope(OperatorContext::TenantAdmin));
+        assert!(admin_html.contains("id=\"support-advisory-console\""));
+
+        for context in [
+            OperatorContext::CorporateOffice,
+            OperatorContext::HealthcareClinician,
+        ] {
+            let html = static_dashboard_content(&server_derived_envelope(context));
+            assert!(
+                !html.contains("id=\"support-advisory-console\""),
+                "{context:?} must not render the tenant-admin support/advisory surface"
+            );
+            assert!(
+                !html.contains("tenant_id=tn_northwind_prod"),
+                "{context:?} must not receive the Northwind support/advisory fixture"
+            );
+        }
+    }
+
+    #[test]
+    fn support_advisory_fixture_denies_cross_tenant_and_raw_sensitive_data() {
+        let html = static_dashboard_html();
+
+        for marker in [
+            "tenant_id=tn_northwind_prod",
+            "other tenant denied",
+            "raw_log_absent=true",
+            "raw_pii_absent=true",
+            "raw_phi_absent=true",
+            "financial_detail_absent=true",
+            "exploit_payload_absent=true",
+            "cross-tenant list/open/count/attach/export/search/support-mode denied",
+            "no status publish authority",
+            "no Trust Center publishability mutation",
+            "no SREOPS incident resolution authority",
+            "audit_event_ref=aud-support-case-created-001",
+        ] {
+            assert!(
+                html.contains(marker),
+                "missing support security marker {marker}"
+            );
+        }
+
+        for forbidden in [
+            "SECRET=",
+            "BEGIN PRIVATE KEY",
+            "ssn",
+            "credit_card",
+            "patient_dob",
+        ] {
+            assert!(
+                !html
+                    .to_ascii_lowercase()
+                    .contains(&forbidden.to_ascii_lowercase()),
+                "support fixture leaked forbidden marker {forbidden}"
+            );
+        }
+    }
 }

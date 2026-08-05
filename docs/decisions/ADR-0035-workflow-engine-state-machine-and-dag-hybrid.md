@@ -4,14 +4,14 @@ status: proposed
 doc_status: published
 ---
 
-# ADR-0035: Workflow engine — hybrid state-machine + DAG (not pure BPMN), per-tenant versioning, jurisdiction overlay, agent-authored steps
+# ADR-0035: Workflow engine — hybrid state-machine + DAG contract/overlay; Temporal-class bridge until ADR-0482 Tier-3 `oya-workflow` parity
 
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
 > **Owner:** `foundry`
 > **Date:** 2026-05-09
-> **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0029, ADR-0033, ADR-0034, ADR-0049
+> **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0029, ADR-0033, ADR-0034, ADR-0049, ADR-0482
 
 ---
 
@@ -25,9 +25,11 @@ Neither matches Oyatie's requirements: per-tenant workflow definition versioning
 
 ## Decision
 
-We build `crates/oya-workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime via the regional-pack architecture.
+During the ADR-0482 bridge period, Oyatie owns the workflow contract and differentiating overlays now, not a day-0 durable-execution engine rewrite. A Temporal-class durable-execution substrate remains the bridge behind a `WorkflowRuntimePort` / SDK shim. The owned day-0 surfaces are `crates/oya-workflow-*` workflow definitions, per-tenant versioning, jurisdiction-overlay injection, autonomy-ceiling binding, saga/audit contracts, and migration/replay adapters.
 
-### Engine architecture
+The destination `oya-workflow` engine is a Tier-3 bespoke substrate per ADR-0482 (`oya-workflow` supersedes Temporal with a Temporal parallel-run and SDK shim; cutover requires durable-execution parity). That destination requires durable-execution parity plus migration and replay evidence before any cutover claim. This ADR therefore preserves the hybrid state-machine + DAG product model without allocating a day-0 major ownership slot to workflow.
+
+### Contract and overlay architecture
 
 ```rust
 // crates/oya-workflow-kernel
@@ -149,11 +151,11 @@ The workflow engine does not own the audit chain (ADR-0003), does not own the ag
 - **Cons:** no state-machine semantics; human-in-the-loop steps awkward; saga compensation requires custom plumbing; per-tenant versioning is a per-org configuration headache.
 - **Rejected because:** misses the human/regulator/saga half of our workflow surface.
 
-### Alternative C — Temporal as durable-execution engine (gated per ADR-0035)
+### Alternative C — Temporal-class durable-execution bridge (ADR-0482 amendment)
 
 - **Pros:** mature durable execution; saga support.
-- **Cons:** adds a heavy runtime; Temporal license posture is a moving target; we would still need a per-tenant versioning + overlay layer above it.
-- **Rejected because:** if we need a layer above it anyway, we should own the engine.
+- **Cons:** adds a heavy runtime; we still need a per-tenant versioning, jurisdiction-overlay, autonomy-ceiling, migration, and replay layer above it.
+- **Accepted as bridge, not destination:** ADR-0482 founder authority requires explicit OSS bridges, parallel-run, per-feature parity gates, tenant opt-in granularity, rollback, and quality-gated cutover. A Temporal-class bridge is retained until `oya-workflow` reaches durable-execution parity; ownership now stays on the overlay/port/SDK layer.
 
 ### Alternative D — Per-vertical workflow engine
 
@@ -177,6 +179,8 @@ The workflow engine does not own the audit chain (ADR-0003), does not own the ag
 
 - `docs/PRD.md` §7 (workflow engine), §11 (per-jurisdiction overlay)
 - `docs/DESIGN.md` §4 (workflow), §10 (cross-microservice contracts)
+- `docs/decisions/ADR-0482-bespoke-substrate-roadmap.md` lines 35-46 and 79-86 (founder-accepted bridge discipline; Tier-3 `oya-workflow` with Temporal parallel-run and durable-execution parity)
+- `specs/portfolio-ownership-ratchet.json` BVB-06 (Temporal-class bridge now; owned workflow overlays now; no day-0 major workflow slot)
 - BPMN 2.0 spec; CNCF Serverless Workflow; DMN 1.4
 - KR 「의료법」 §21 (consent before PHI processing); 「전자금융거래법」 §6 (KYC workflow mandatory steps)
 - ADR-0001 (cohesion), ADR-0003 (audit), ADR-0007 (Cedar + persona tier), ADR-0011 (capability registry), ADR-0028 (cloud), ADR-0029 (workspace tasks), ADR-0033 (vertical pack), ADR-0034 (per-vertical override), ADR-0037 (API stability), ADR-0038 (DSR cascade), ADR-0042 (observability), ADR-0045 (database tier), ADR-0049 (residency)

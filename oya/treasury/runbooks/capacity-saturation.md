@@ -1,7 +1,9 @@
 ---
 doc_class: Runbook
 microservice: treasury
-status: Accepted
+status: preview-planning-non-authoritative
+authority_ref: ../../../specs/microservices/treasury.json
+runtime_claim: false
 date: 2026-05-21
 owner_team: axis-treasury + axis-erp-parity
 related_adrs: [ADR-0105, ADR-0131, ADR-0132, ADR-0244, ADR-0253, ADR-0297, ADR-0314, ADR-0315]
@@ -10,6 +12,9 @@ scenario: capacity-saturation
 ---
 
 # Runbook: Treasury capacity-saturation
+
+## Authority boundary
+This document is non-authoritative planning inventory under `specs/microservices/treasury.json` (`PRD-MICROSERVICE-TREASURY`, status `preview`). It is not an executable production runbook and does not claim live bank/SWIFT/payment execution, durable persistence/Postgres/RLS, Workflow execution, runtime audit-chain emission, cloud deployment, GA, measured SLO/DR readiness, or production readiness. Operational commands, alerts, dashboards, metrics, audit-chain events, deployment checks, rollback steps, and evidence requirements below remain future-planning placeholders until a later PRD/evidence gate promotes them.
 
 ## A. Trigger conditions
 - Alert treasury_capacity_saturation_active is firing.

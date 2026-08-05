@@ -1,0 +1,801 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/trust-center-compliance-evidence-portal.json",
+  "title": "TrustCenterComplianceEvidencePortal",
+  "description": "Planning/product-surface contract for a tenant-scoped Trust Center and Compliance Evidence Portal. The portal turns existing security-validation, SBOM/VEX, compliance-pack, SLO/DR, status, incident, release, and audit-chain evidence into a customer/admin UX and API without claiming certification or exposing cross-tenant evidence.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "TRUSTCENTER-001-COMPLIANCE-EVIDENCE-PORTAL",
+    "version": "0.1.0",
+    "status": "planning-product-surface-contract",
+    "owner_team": "product-architecture + ops-compliance + platform-security + ops-sre-reliability + platform-toolchain + council-privacy",
+    "created_at": "2026-07-01T06:16:11Z",
+    "created_by": "hermes-agent",
+    "kanban_task": "t_157e833c",
+    "source_request": "TRUSTCENTER-001: specify the customer trust/compliance evidence portal surface and implementation decomposition from existing evidence specs.",
+    "claim_boundary": "Spec-ready planning contract only. This artifact does not implement a portal, publish customer artifacts, assert SOC2/ISO/PCI/CSAP/ISMS-P/KISA/KMCC/KCC certification, or claim production-ready/hyperscaler-grade trust-center maturity.",
+    "non_goals": [
+      "Do not claim certification, attestation, audit success, production readiness, or hyperscaler-grade maturity from this spec alone.",
+      "Do not publish fake or placeholder compliance artifacts.",
+      "Do not expose cross-tenant evidence, internal secrets, raw PII, vulnerability exploit details, or operator-only incident data.",
+      "Do not implement UI, API, ingestion, or release-pipeline code in this planning artifact.",
+      "Do not create new legacy oya CLI authority; implementation gates must land through cloud-ci/Rust/API/control-plane surfaces where enforcement is required."
+    ]
+  },
+  "source_authorities": [
+    {
+      "path": "/specs/root-hub-pointers.json",
+      "role": "Discovery hub and pointer cohesion for canonical specs."
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "role": "Operating contract, done definition, tenant-safety, and review/merge boundary."
+    },
+    {
+      "path": "/specs/security-validation-pipeline-matrix.json",
+      "role": "Security validation evidence records, lane results, false-positive/VEX policy, tenant-scoped read path, and control snapshots."
+    },
+    {
+      "path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "role": "SBOM/VEX/advisory/exception/remediation evidence and the tenant_trust_portal_publish protected path."
+    },
+    {
+      "path": "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "role": "Claim ceilings, evidence-domain vocabulary, and production/hyperscaler readiness proof requirements."
+    },
+    {
+      "path": "/specs/cloud-production-quality-kits-target.json",
+      "role": "Quality-kit evidence families for privacy, canary/PRR, cost, Pod Security Standards, and abuse/fraud/DDoS posture."
+    },
+    {
+      "path": "/specs/compliance-pack-schema.json",
+      "role": "Compliance pack bundle shape, regulator references, Cedar fragments, audit requirements, data-class extensions, residency, retention, consent, and breach workflow mapping."
+    },
+    {
+      "path": "/specs/compliance-pack-floors.json",
+      "role": "Per-compliance-pack DR, retention, and drill-floor mapping for trust-center evidence freshness and export packaging."
+    },
+    {
+      "path": "docs/decisions/ADR-0168-public-status-page.md",
+      "role": "Public status page and incident/status feed semantics; Trust Center links to status rather than duplicating status authority."
+    },
+    {
+      "path": "/specs/cloud-observability-slo-target.json",
+      "role": "SLO/observability target architecture referenced by service-health and status summaries."
+    }
+  ],
+  "non_negotiables": [
+    "Every tenant-visible evidence item is scoped by tenant_id, audience_id, compliance_pack_id when applicable, data_class, evidence_ref, freshness_state, and audit_event_ref.",
+    "Portal reads use least-privilege Cedar decisions and cannot rely on client-side filtering for tenant separation.",
+    "Public status data is separated from authenticated tenant evidence; authenticated Trust Center APIs must not depend on public status page availability or reveal private incident details publicly.",
+    "Evidence bytes are immutable or append-only; corrections supersede prior evidence through new records and audit-chain links rather than mutation.",
+    "Security findings, SBOM/VEX records, exceptions, and control snapshots render at customer-safe detail by default; deep exploit detail and internal-only runbooks stay operator-only.",
+    "Every readiness, compliance, security, and isolation statement renders with a claim tier and evidence state so target/spec/planned claims cannot be mistaken for proven or certified status.",
+    "Export and auditor-room flows require explicit purpose, expiry, actor identity, access audit logging, and revocation."
+  ],
+  "personas": [
+    {
+      "id": "tenant_admin",
+      "name": "Tenant administrator",
+      "goals": [
+        "Understand enabled compliance packs and evidence freshness for their tenant.",
+        "Share safe evidence packets with internal security, procurement, and legal reviewers.",
+        "Track exceptions, expiring controls, status subscriptions, and export requests."
+      ],
+      "allowed_actions": [
+        "view tenant evidence summary",
+        "grant reviewer access with expiry",
+        "request evidence export package",
+        "subscribe to status/security advisories",
+        "view access audit for trust-center artifacts"
+      ],
+      "forbidden_actions": [
+        "view other tenant evidence",
+        "bypass evidence redaction",
+        "turn target_non_claim records into certified claims",
+        "alter source evidence records"
+      ]
+    },
+    {
+      "id": "security_compliance_reviewer",
+      "name": "Customer security/compliance reviewer",
+      "goals": [
+        "Evaluate security-validation, SBOM/VEX, SLO/DR, privacy, and compliance-pack evidence without admin privileges.",
+        "Download bounded artifacts approved by the tenant admin.",
+        "See clear freshness, scope, exception, and non-claim boundaries."
+      ],
+      "allowed_actions": [
+        "read approved evidence room",
+        "download approved artifacts",
+        "view customer-safe exception status",
+        "ask tenant admin for expanded scope"
+      ],
+      "forbidden_actions": [
+        "administer tenant settings",
+        "see raw PII, secrets, exploit payloads, or cross-tenant data",
+        "extend their own access expiry"
+      ]
+    },
+    {
+      "id": "oyatie_operator",
+      "name": "Oyatie operator/compliance owner",
+      "goals": [
+        "Curate which evidence classes are publishable, redacted, pending, or blocked.",
+        "Resolve stale evidence and exceptions before customers see misleading posture.",
+        "Investigate trust-center access and export audit events."
+      ],
+      "allowed_actions": [
+        "mark evidence class publishable only when source record and policy permit it",
+        "attach customer-safe narrative to an evidence item",
+        "revoke evidence room access",
+        "open remediation tasks for stale or missing evidence"
+      ],
+      "forbidden_actions": [
+        "edit immutable source evidence",
+        "publish unverified certification claims",
+        "suppress blocking evidence without an approved exception"
+      ]
+    },
+    {
+      "id": "auditor",
+      "name": "External auditor or regulator reviewer",
+      "goals": [
+        "Receive a bounded evidence package with provenance, retention, scope, and chain-of-custody metadata.",
+        "Trace each claim back to source evidence without direct production access.",
+        "Verify export completeness for a named framework, tenant, and time window."
+      ],
+      "allowed_actions": [
+        "read approved export package",
+        "verify signatures and audit-chain references",
+        "request tenant/operator clarification through workflow"
+      ],
+      "forbidden_actions": [
+        "browse live tenant data outside approved package",
+        "access unrelated tenants or internal-only operator runbooks",
+        "modify or extend evidence package retention"
+      ]
+    }
+  ],
+  "tenant_scope_and_data_boundaries": {
+    "identity_and_authorization": {
+      "required_subject_fields": [
+        "tenant_id",
+        "principal_id",
+        "role",
+        "purpose",
+        "audience_id",
+        "access_grant_id",
+        "expires_at_trusted"
+      ],
+      "required_resource_fields": [
+        "tenant_id",
+        "evidence_id",
+        "evidence_class",
+        "data_class",
+        "compliance_pack_ids",
+        "source_system",
+        "publishability_state",
+        "freshness_state"
+      ],
+      "authorization_rule": "Server-side Cedar/PDP decisions must include tenant_id, role, purpose, evidence_class, data_class, and publishability_state. Client-side filtering is presentation-only and never the tenant boundary."
+    },
+    "data_classes": [
+      {
+        "class": "PUBLIC_STATUS",
+        "default_visibility": "public",
+        "examples": ["component status", "public incident summary", "maintenance window"],
+        "redaction": "No tenant names, raw logs, or private incident details unless explicitly public."
+      },
+      {
+        "class": "TENANT_TRUST_EVIDENCE",
+        "default_visibility": "authenticated tenant-scoped",
+        "examples": ["control freshness badge", "compliance-pack activation state", "customer-safe security validation summary"],
+        "redaction": "Collapse internal file paths, exploit payloads, secrets, and employee identities to evidence refs and roles."
+      },
+      {
+        "class": "REGULATED_EXPORT_EVIDENCE",
+        "default_visibility": "explicit export grant or auditor room only",
+        "examples": ["DPA artifact", "audit package", "framework control mapping", "retention proof"],
+        "redaction": "Apply pack-specific residency, consent, retention, and regulator disclosure policy before export."
+      },
+      {
+        "class": "OPERATOR_SECURITY_INTERNAL",
+        "default_visibility": "operator-only",
+        "examples": ["raw scanner output", "exploit reproduction", "secret rotation detail", "unredacted incident timeline"],
+        "redaction": "Never directly customer-visible; publish derived summary only when approved by policy."
+      }
+    ],
+    "cross_tenant_rules": [
+      "Queries must include tenant_id from trusted auth context; tenant_id supplied in request payload is an assertion to check, not authority.",
+      "Evidence aggregation across tenants is operator-only and cannot back a tenant-visible export without per-tenant decomposition.",
+      "Shared-service evidence must render as tenant-impact scope plus shared-control proof; it must not reveal other tenants, cell occupancy, or noisy-neighbor details."
+    ],
+    "public_vs_authenticated_boundary": {
+      "public_status_surface": "Public status links and summaries may be embedded in the portal but remain governed by ADR-0168.",
+      "authenticated_trust_surface": "Compliance evidence, SBOM/VEX posture, control freshness, DPA artifacts, and audit exports require tenant-scoped authentication and authorization.",
+      "outage_mode": "The public status page must remain reachable during auth outages; authenticated evidence room may degrade read-only or unavailable without changing public status authority."
+    }
+  },
+  "evidence_source_map": [
+    {
+      "id": "security_validation_controls",
+      "source_contract": "/specs/security-validation-pipeline-matrix.json#evidence_api_contract",
+      "trust_center_component": "Security validation and control freshness",
+      "customer_visible_summary": [
+        "lane applicability and latest result",
+        "control freshness badge",
+        "exception/VEX count and expiry window",
+        "audit event link"
+      ],
+      "operator_only_detail": [
+        "raw findings",
+        "scanner output",
+        "exploit traces",
+        "internal ruleset diagnostics"
+      ],
+      "minimum_fields": [
+        "tenant_id",
+        "lane_id",
+        "subject_ref",
+        "result",
+        "severity_summary",
+        "exception_refs",
+        "audit_event_ref",
+        "retention_until"
+      ]
+    },
+    {
+      "id": "sbom_vex_vulnerability_posture",
+      "source_contract": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "trust_center_component": "SBOM/VEX and vulnerability posture",
+      "customer_visible_summary": [
+        "signed SBOM presence by releasable artifact",
+        "VEX status distribution",
+        "blocking vulnerability count by customer-safe class",
+        "exception expiry and remediation SLA class"
+      ],
+      "operator_only_detail": [
+        "raw advisory payloads",
+        "unredacted exploitability analysis",
+        "scanner command output",
+        "secret or unpublished vulnerability detail"
+      ],
+      "minimum_fields": [
+        "tenant_id_or_internal_lane",
+        "artifact_digest",
+        "component_purl",
+        "vulnerability_id",
+        "sbom_refs",
+        "vex_ref",
+        "priority_signals",
+        "exception_ref",
+        "verdict"
+      ]
+    },
+    {
+      "id": "compliance_pack_activation",
+      "source_contract": "/specs/compliance-pack-schema.json",
+      "trust_center_component": "Compliance pack and framework coverage",
+      "customer_visible_summary": [
+        "active compliance packs",
+        "framework/control mapping",
+        "data-class/residency/retention obligations",
+        "breach-notification workflow references"
+      ],
+      "operator_only_detail": [
+        "unsigned draft pack bundles",
+        "internal legal review notes",
+        "regulator source extraction working files"
+      ],
+      "minimum_fields": [
+        "pack_id",
+        "version",
+        "signed_by",
+        "audit_chain_requirements",
+        "data_class_extensions",
+        "cell_eligibility",
+        "retention_rules",
+        "regulator_references"
+      ]
+    },
+    {
+      "id": "slo_dr_status_incident",
+      "source_contract": "docs/decisions/ADR-0168-public-status-page.md + /specs/hyperscaler-production-readiness-claim-contract.json#evidence_domains",
+      "trust_center_component": "Status, SLO, DR, incident, and postmortem posture",
+      "customer_visible_summary": [
+        "public status link",
+        "service-health summary",
+        "SLO/DR evidence state by service or pack",
+        "incident/postmortem availability"
+      ],
+      "operator_only_detail": [
+        "unredacted timeline",
+        "pager notes",
+        "internal remediation owners",
+        "non-public customer impact analysis"
+      ],
+      "minimum_fields": [
+        "service_id",
+        "tenant_or_pack_scope",
+        "slo_state",
+        "dr_floor_ref",
+        "incident_ref",
+        "postmortem_ref",
+        "audit_event_ref"
+      ]
+    },
+    {
+      "id": "cloud_quality_kits",
+      "source_contract": "/specs/cloud-production-quality-kits-target.json",
+      "trust_center_component": "Quality kit evidence catalogue",
+      "customer_visible_summary": [
+        "privacy/data-governance kit state",
+        "canary/PRR evidence state",
+        "cost/FOCUS export evidence state",
+        "Pod Security Standards evidence state",
+        "abuse/fraud/DDoS drill evidence state"
+      ],
+      "operator_only_detail": [
+        "raw drill artifacts",
+        "internal red-team notes",
+        "unpublished cost/provider details"
+      ],
+      "minimum_fields": [
+        "kit_id",
+        "scenario_id",
+        "evidence_ref",
+        "gate",
+        "freshness_state",
+        "non_claim_state"
+      ]
+    },
+    {
+      "id": "release_and_audit_chain",
+      "source_contract": "docs/AGENTS.md#Done-Definition-checklist + /evidence/audit-chain.jsonl",
+      "trust_center_component": "Release evidence and audit-chain traceability",
+      "customer_visible_summary": [
+        "release evidence packet state",
+        "claim tier",
+        "audit-chain reference",
+        "rollback/rollout evidence availability"
+      ],
+      "operator_only_detail": [
+        "internal PR review transcripts",
+        "raw CI logs containing paths or usernames",
+        "unredacted rollout incident notes"
+      ],
+      "minimum_fields": [
+        "change_id",
+        "claim_tier",
+        "evidence_packet_ref",
+        "audit_event_ref",
+        "release_note_or_governance_impact"
+      ]
+    }
+  ],
+  "api_contract": {
+    "canonical_surface": "cloud-native authenticated API plus customer/admin web UX; no legacy CLI authority",
+    "record_types": [
+      "trust_center_evidence_index.v1",
+      "trust_center_evidence_item.v1",
+      "trust_center_control_freshness.v1",
+      "trust_center_sbom_vex_view.v1",
+      "trust_center_compliance_pack_view.v1",
+      "trust_center_export_request.v1",
+      "trust_center_access_audit.v1",
+      "trust_center_publishability_decision.v1"
+    ],
+    "common_required_fields": [
+      "record_id",
+      "record_type",
+      "schema_version",
+      "tenant_id",
+      "audience_id",
+      "source_system",
+      "source_record_ref",
+      "evidence_class",
+      "data_class",
+      "claim_tier",
+      "freshness_state",
+      "publishability_state",
+      "redaction_policy_id",
+      "audit_event_ref",
+      "created_at_trusted",
+      "expires_at_trusted_or_retention_until"
+    ],
+    "endpoint_groups": [
+      {
+        "id": "evidence_index",
+        "method": "GET",
+        "path": "/trust-center/v1/evidence",
+        "purpose": "Tenant-scoped evidence catalogue with filters for evidence_class, compliance_pack_id, source_system, freshness_state, and claim_tier.",
+        "authorization": "tenant_admin, security_compliance_reviewer with active grant, oyatie_operator scoped to tenant",
+        "response_records": ["trust_center_evidence_index.v1"]
+      },
+      {
+        "id": "evidence_detail",
+        "method": "GET",
+        "path": "/trust-center/v1/evidence/{evidence_id}",
+        "purpose": "Customer-safe evidence detail with source refs, audit-chain refs, redaction state, and non-claim boundary.",
+        "authorization": "same as evidence_index plus evidence-specific data_class permit",
+        "response_records": ["trust_center_evidence_item.v1"]
+      },
+      {
+        "id": "sbom_vex_view",
+        "method": "GET",
+        "path": "/trust-center/v1/sbom-vex",
+        "purpose": "SBOM and VEX posture by artifact/release without exposing raw scanner output or exploit detail.",
+        "authorization": "tenant_admin or reviewer grant with security-evidence scope",
+        "response_records": ["trust_center_sbom_vex_view.v1"]
+      },
+      {
+        "id": "control_freshness",
+        "method": "GET",
+        "path": "/trust-center/v1/controls/freshness",
+        "purpose": "Control freshness badges by evidence source, lane, compliance pack, service, and tenant/cell scope.",
+        "authorization": "tenant_admin or reviewer grant with control-evidence scope",
+        "response_records": ["trust_center_control_freshness.v1"]
+      },
+      {
+        "id": "compliance_packs",
+        "method": "GET",
+        "path": "/trust-center/v1/compliance-packs",
+        "purpose": "Activated pack view with regulator references, data classes, retention, residency, DR floors, and breach workflow pointers.",
+        "authorization": "tenant_admin or reviewer grant with compliance scope",
+        "response_records": ["trust_center_compliance_pack_view.v1"]
+      },
+      {
+        "id": "export_request",
+        "method": "POST",
+        "path": "/trust-center/v1/exports",
+        "purpose": "Create bounded evidence export or auditor-room request with purpose, time window, framework, actor, expiry, and approval policy.",
+        "authorization": "tenant_admin; operator approval required for regulated export scopes until policy says otherwise",
+        "response_records": ["trust_center_export_request.v1"]
+      },
+      {
+        "id": "access_audit",
+        "method": "GET",
+        "path": "/trust-center/v1/access-audit",
+        "purpose": "Tenant-visible audit of evidence-room grants, downloads, export requests, revocations, and publishability changes.",
+        "authorization": "tenant_admin and oyatie_operator scoped to tenant",
+        "response_records": ["trust_center_access_audit.v1"]
+      }
+    ],
+    "query_and_pagination_rules": [
+      "All list endpoints require server-side tenant scoping from trusted auth context.",
+      "Pagination cursors must be opaque and bound to tenant_id, actor, filters, and expiry.",
+      "Sorting by freshness, evidence_class, compliance_pack_id, service_id, and last_updated_trusted is required for the first UI slice.",
+      "Unknown source-system state renders as blocked_missing_evidence rather than hidden success."
+    ],
+    "redaction_and_publishability_states": [
+      "publishable_customer_safe",
+      "publishable_summary_only",
+      "tenant_admin_only",
+      "operator_only",
+      "blocked_missing_evidence",
+      "blocked_stale_evidence",
+      "blocked_security_privacy_review",
+      "not_applicable_with_policy_reason"
+    ]
+  },
+  "ux_surface_contract": {
+    "information_architecture": [
+      {
+        "id": "overview",
+        "label": "Trust Center overview",
+        "primary_users": ["tenant_admin", "security_compliance_reviewer"],
+        "components": [
+          "overall evidence freshness summary",
+          "active compliance packs",
+          "security posture summary",
+          "status and incident links",
+          "open exceptions and expiry alerts",
+          "download/export call-to-action"
+        ],
+        "empty_state_rule": "Show missing/stale/not-yet-implemented evidence explicitly with claim_tier=target_non_claim or spec_ready; never render an empty green dashboard."
+      },
+      {
+        "id": "control_evidence",
+        "label": "Controls and evidence",
+        "primary_users": ["tenant_admin", "security_compliance_reviewer", "auditor"],
+        "components": [
+          "evidence table",
+          "control freshness badges",
+          "source-system filter",
+          "compliance-pack filter",
+          "audit-chain source link"
+        ],
+        "empty_state_rule": "Controls without current evidence render blocked_missing_evidence or blocked_stale_evidence."
+      },
+      {
+        "id": "sbom_vex",
+        "label": "SBOM and vulnerability posture",
+        "primary_users": ["security_compliance_reviewer", "auditor"],
+        "components": [
+          "artifact SBOM presence",
+          "VEX status distribution",
+          "exception expiry table",
+          "remediation SLA summary",
+          "customer-safe advisory export"
+        ],
+        "empty_state_rule": "Missing signed SBOM or missing VEX maps to blocked_missing_evidence, not pass."
+      },
+      {
+        "id": "status_incidents_dr",
+        "label": "Status, incidents, SLO, and DR",
+        "primary_users": ["tenant_admin", "security_compliance_reviewer"],
+        "components": [
+          "public status embed/link",
+          "service health summary",
+          "incident and postmortem index",
+          "DR floor by compliance pack",
+          "scheduled maintenance list"
+        ],
+        "empty_state_rule": "If status/SLO/DR evidence is target-only, label as target_non_claim and link the required evidence gap."
+      },
+      {
+        "id": "exports_and_auditor_room",
+        "label": "Exports and auditor room",
+        "primary_users": ["tenant_admin", "auditor", "oyatie_operator"],
+        "components": [
+          "export request wizard",
+          "purpose and framework selector",
+          "expiry and reviewer grant controls",
+          "two-person or operator approval state for regulated exports",
+          "access/download audit"
+        ],
+        "empty_state_rule": "Export unavailable must show policy reason and safe next step, not route around approval."
+      },
+      {
+        "id": "operator_publishability_queue",
+        "label": "Operator publishability queue",
+        "primary_users": ["oyatie_operator"],
+        "components": [
+          "blocked evidence queue",
+          "stale evidence queue",
+          "redaction review queue",
+          "exception expiry alerts",
+          "remediation card creation hook"
+        ],
+        "empty_state_rule": "No blocked items is an operator queue state only; tenant green posture still depends on source evidence."
+      }
+    ],
+    "accessibility_and_browser_expectations": [
+      "Keyboard-navigable evidence table, filter chips, export wizard, modal/dialog flows, and status/error alerts.",
+      "WCAG 2.2 AA contrast for freshness and status badges; do not encode pass/fail solely by color.",
+      "Screen-reader labels for claim tier, freshness state, evidence source, and exception expiry.",
+      "Responsive layout for admin console widths and narrow reviewer-share links.",
+      "Browser/user-story verification must cover tenant admin invite, reviewer evidence read, SBOM/VEX view, export request, and access-audit review."
+    ],
+    "best_in_class_benchmarks": [
+      "AWS Artifact for compliance reports and agreements",
+      "Google Cloud Compliance Reports Manager and Assured Workloads evidence framing",
+      "Microsoft Service Trust Portal / Purview Compliance Manager for control mapping and artifacts",
+      "Cloudflare Trust Hub for security/compliance posture and public assurances",
+      "Atlassian Statuspage/GitHub Status/Stripe Status for status and incident UX patterns"
+    ]
+  },
+  "freshness_and_claim_status": {
+    "freshness_states": [
+      "current",
+      "aging_warning",
+      "stale",
+      "missing",
+      "not_applicable_with_policy_reason",
+      "blocked_pending_review"
+    ],
+    "claim_tiers": [
+      "target_non_claim",
+      "spec_ready",
+      "mechanically_enforced",
+      "production_ready",
+      "hyperscaler_grade",
+      "externally_certified"
+    ],
+    "externally_certified_rule": "Allowed only when an approved external attestation/audit artifact exists, is tenant/policy applicable, and legal/compliance permits display. This spec creates no certified status.",
+    "default_freshness_targets": [
+      {
+        "source_id": "security_validation_controls",
+        "warning_after": "P7D",
+        "stale_after": "P14D",
+        "override_source": "/specs/security-validation-pipeline-matrix.json lane cadence or compliance pack if stricter"
+      },
+      {
+        "source_id": "sbom_vex_vulnerability_posture",
+        "warning_after": "P1D",
+        "stale_after": "P2D",
+        "override_source": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json required advisory feed freshness and remediation SLA"
+      },
+      {
+        "source_id": "compliance_pack_activation",
+        "warning_after": "P30D",
+        "stale_after": "P90D",
+        "override_source": "pack version, regulator update cadence, or source-row refresh cadence if stricter"
+      },
+      {
+        "source_id": "slo_dr_status_incident",
+        "warning_after": "PT15M for live status; P30D for DR drill posture unless pack stricter",
+        "stale_after": "PT1H for live status; overdue when drill cadence exceeded",
+        "override_source": "ADR-0168 and compliance-pack DR floors"
+      },
+      {
+        "source_id": "cloud_quality_kits",
+        "warning_after": "P30D",
+        "stale_after": "P90D or kit-specific cadence",
+        "override_source": "/specs/cloud-production-quality-kits-target.json and later evidence backlog"
+      }
+    ],
+    "badge_rules": [
+      "Green/current badges require source evidence, trusted timestamp, claim tier, and audit_event_ref.",
+      "Spec-ready or target-only evidence uses neutral/info badges, never success badges.",
+      "Stale or missing blocking sources dominate aggregate summaries even when other categories are current.",
+      "Exception badges must display expiry and reviewer role; expired exceptions return the underlying item to blocked/stale state."
+    ]
+  },
+  "compliance_pack_mapping": {
+    "pack_fields_to_portal_sections": [
+      {
+        "pack_field": "regulator_references",
+        "portal_section": "Compliance pack framework mapping",
+        "visibility": "tenant-scoped; customer-safe citation summary"
+      },
+      {
+        "pack_field": "audit_chain_requirements",
+        "portal_section": "Audit and retention posture",
+        "visibility": "tenant-scoped; export package includes audit refs"
+      },
+      {
+        "pack_field": "data_class_extensions",
+        "portal_section": "Data categories and residency obligations",
+        "visibility": "tenant-scoped; no raw PII"
+      },
+      {
+        "pack_field": "cell_eligibility",
+        "portal_section": "Region/cell eligibility and residency posture",
+        "visibility": "tenant-scoped summary; no cross-tenant occupancy"
+      },
+      {
+        "pack_field": "retention_rules",
+        "portal_section": "Retention and deletion posture",
+        "visibility": "tenant-scoped summary plus exportable policy evidence"
+      },
+      {
+        "pack_field": "breach_notification_workflow_id",
+        "portal_section": "Incident and notification readiness",
+        "visibility": "tenant-scoped; customer-safe workflow name/ref"
+      },
+      {
+        "pack_field": "cedar_fragments",
+        "portal_section": "Policy enforcement posture",
+        "visibility": "summary only unless policy fragment is approved for export"
+      }
+    ],
+    "pack_activation_rules": [
+      "Tenant portal shows only packs activated, offered, or requested for that tenant and region.",
+      "Inactive packs may render as not_applicable or available-to-request; they must not imply control coverage.",
+      "Pack-specific floors override generic freshness, retention, export, and DR display defaults when stricter.",
+      "Jurisdiction-specific artifacts require residency-aware storage and export routing before display."
+    ]
+  },
+  "audit_chain_and_exception_lifecycle": {
+    "required_events": [
+      "trust_center.evidence_index_viewed",
+      "trust_center.evidence_item_viewed",
+      "trust_center.evidence_export_requested",
+      "trust_center.evidence_export_approved",
+      "trust_center.evidence_export_downloaded",
+      "trust_center.access_grant_created",
+      "trust_center.access_grant_revoked",
+      "trust_center.publishability_state_changed",
+      "trust_center.redaction_policy_applied",
+      "trust_center.exception_displayed"
+    ],
+    "exception_rules": [
+      "Every visible exception cites source exception/VEX record, approver role, expiry, compensating controls, and audit_event_ref.",
+      "Expired exceptions cannot remain green; UI and API recalculate freshness/publishability from the current source state.",
+      "Operator publishability decisions are append-only records with reviewer identity, reason, source refs, and expiry when temporary.",
+      "Trust Center exports include a manifest with source evidence refs and audit-chain refs, not mutable screenshots as sole proof."
+    ],
+    "retention_rules": [
+      "Access-audit records retain at least 400 days unless compliance pack requires longer.",
+      "Regulated export evidence follows pack retention floors and legal hold policy.",
+      "Reviewer grants are revocable and expire by default; exports must carry expiry and revocation metadata when technically enforceable."
+    ]
+  },
+  "first_minimal_slice": {
+    "slice_id": "TC-MIN-001",
+    "goal": "Deliver a tenant-scoped evidence index with SBOM/VEX posture and control freshness badges before broader auditor-room/export automation.",
+    "included_capabilities": [
+      "tenant-scoped evidence index API and read model",
+      "security validation control freshness view",
+      "SBOM/VEX customer-safe view",
+      "public status link/embed and status freshness indicator",
+      "basic tenant admin UX with reviewer read-only grant",
+      "access audit for evidence views and grants"
+    ],
+    "excluded_until_later_slices": [
+      "full DPA/subprocessor document vault",
+      "automated auditor evidence package assembly",
+      "external certification display workflow",
+      "self-service compliance pack purchase/activation",
+      "operator publishability automation beyond manual review queue"
+    ],
+    "minimum_acceptance": [
+      "Cross-tenant negative tests fail closed for every API endpoint and UI route.",
+      "Missing/stale evidence renders as blocked or warning, never green/hidden.",
+      "SBOM/VEX view refuses to publish raw scanner output and shows signed SBOM/VEX state only.",
+      "Control freshness badges include source_system, trusted timestamp, evidence_ref, and audit_event_ref.",
+      "Keyboard and screen-reader user stories pass for evidence table, filters, detail pane, and reviewer grant flow."
+    ]
+  },
+  "implementation_decomposition": [
+    {
+      "id": "TC-API-001",
+      "title": "Trust Center tenant-scoped evidence API and read model",
+      "owner_profile_hint": "default until specialized product/security profiles exist",
+      "scope": "Define and implement API/read-model records, endpoint authz, tenant filters, pagination, and access audit events for evidence index, evidence detail, control freshness, SBOM/VEX, compliance pack view, export request, and access audit.",
+      "verification": [
+        "API contract tests",
+        "cross-tenant negative tests",
+        "Cedar/PDP policy tests",
+        "stale/missing evidence rendering tests",
+        "audit event fixture tests"
+      ],
+      "path_conflicts": "Likely touches cloud/control-plane or tenant/admin API surfaces, policy, audit-chain, and generated API contracts; isolate in its own worktree/PR."
+    },
+    {
+      "id": "TC-UX-001",
+      "title": "Trust Center admin/reviewer UX first slice",
+      "owner_profile_hint": "default until specialized frontend/product profiles exist",
+      "scope": "Implement overview, evidence table/detail, SBOM/VEX view, control freshness badges, public status link/embed, reviewer grant flow, and access-audit page against mocked/contracted API first.",
+      "verification": [
+        "browser user stories for tenant admin and reviewer",
+        "accessibility checks for keyboard/screen-reader/contrast",
+        "empty/stale/missing evidence visual regression checks",
+        "no color-only pass/fail cues"
+      ],
+      "path_conflicts": "Likely touches web/admin console design system and API client surfaces; do not mix with API implementation unless explicitly serialized."
+    },
+    {
+      "id": "TC-INGEST-001",
+      "title": "Trust Center evidence ingestion adapters and publishability policy",
+      "owner_profile_hint": "default until specialized security/compliance profiles exist",
+      "scope": "Normalize security-validation, SBOM/VEX, compliance-pack, status/SLO/DR, quality-kit, release, and audit-chain sources into trust_center_* records with redaction and publishability state.",
+      "verification": [
+        "fixture replay for each source family",
+        "operator-only detail never appears in customer-safe records",
+        "freshness and exception expiry recalculation tests",
+        "missing source records fail closed"
+      ],
+      "path_conflicts": "Touches ingestion/control-plane/security evidence surfaces and should follow or run after API record-shape stabilization."
+    },
+    {
+      "id": "TC-DOCS-SEC-001",
+      "title": "Trust Center security/privacy/docs review packet",
+      "owner_profile_hint": "default until specialized security/privacy/doc profiles exist",
+      "scope": "Author customer-safe documentation, threat model, privacy/data-class review, redaction matrix, auditor-room operating procedure, and review checklist before tenant-facing launch claims.",
+      "verification": [
+        "security review approves redaction and cross-tenant boundaries",
+        "privacy review approves data classes and export retention",
+        "docs include non-claim/certification boundary",
+        "review packet cites source authorities and implementation PRs"
+      ],
+      "path_conflicts": "Docs/security review should wait for API/UX slices but can draft redaction matrix in parallel with no code-path writes."
+    }
+  ],
+  "security_privacy_review_criteria": [
+    "Tenant isolation negative tests cover list, detail, export, reviewer grant, access audit, status embed, and stale cursor replay.",
+    "Evidence detail pages cannot reveal secrets, raw PII, exploit payloads, private incident notes, raw scanner output, or other tenant identifiers.",
+    "Authorization decisions are server-side and auditable; disabled client controls are not relied on for enforcement.",
+    "Export packages require purpose, time window, actor, expiry, approval state, manifest, and audit-chain references.",
+    "Claim-tier and non-certification boundaries are present in API and UI for every readiness/compliance/security posture summary.",
+    "Failure modes are fail-closed: missing source evidence, stale evidence, parser errors, unknown applicability, and expired exceptions do not render green."
+  ],
+  "verification_plan": [
+    "JSON syntax validation for this spec and root-hub/registry updates.",
+    "Board search confirms no active trust-center card already covered this exact product/control-plane surface before TRUSTCENTER-001.",
+    "Follow-up implementation cards exist and are linked to TRUSTCENTER-001 with API, UI, ingestion, and docs/security review acceptance paths.",
+    "First implementation PRs must include API/contract replay, cross-tenant negative tests, browser/accessibility user-story evidence, and independent security/privacy review before any tenant-facing launch claim.",
+    "No generated JSON is hand-edited and no legacy oya CLI merge or trust-center authority is introduced."
+  ]
+}

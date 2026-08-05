@@ -1,3 +1,5 @@
+# Preview planning inventory only; no Terraform/OpenTofu apply or cloud
+# deployment authority exists for treasury under the preview PRD.
 variable "service_name" { default = "oya-treasury" }
 variable "http_default" { default = "HTTP/3" }
 variable "ech_enabled" { default = true }

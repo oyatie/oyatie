@@ -5,6 +5,7 @@
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `panic!()`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::panic))]
 
+use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
@@ -76,6 +77,63 @@ pub enum PlanKind {
     GlobalArtifactConflict,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParityTargetSourceTrackingReport {
+    pub targets_checked: usize,     // data_class: INTERNAL_ONLY
+    pub source_refs_checked: usize, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParityTargetSourceTrackingViolation {
+    pub path: String,                         // data_class: INTERNAL_ONLY
+    pub target_id: String,                    // data_class: INTERNAL_ONLY
+    pub kind: ParityTargetSourceTrackingKind, // data_class: INTERNAL_ONLY
+    pub summary: String,                      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ParityTargetSourceTrackingKind {
+    MissingTargets,
+    MalformedTarget,
+    DuplicateTargetId,
+    MissingPinnedSource,
+    ExternalAuthorityLeak,
+    PromotionAuthorityClaim,
+    MissingValidationRefs,
+    MissingStopConditions,
+    OptimisticKernelAbiClaim,
+    MissingCwardPessimism,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferenceFamilyDocument {
+    pub path: String,     // data_class: INTERNAL_ONLY
+    pub contents: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferenceFamilyParityReport {
+    pub documents_checked: usize,          // data_class: INTERNAL_ONLY
+    pub lines_checked: usize,              // data_class: INTERNAL_ONLY
+    pub reference_families_checked: usize, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReferenceFamilyParityViolation {
+    pub path: String,                    // data_class: INTERNAL_ONLY
+    pub line: usize,                     // data_class: INTERNAL_ONLY
+    pub kind: ReferenceFamilyParityKind, // data_class: INTERNAL_ONLY
+    pub family: String,                  // data_class: INTERNAL_ONLY
+    pub summary: String,                 // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ReferenceFamilyParityKind {
+    MissingReferenceFamily,
+    GithubOnlyAdapterOverfit,
+    AdapterAsAuthority,
+}
+
 impl fmt::Display for HonestClaimsViolation {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -92,6 +150,26 @@ impl fmt::Display for ChangeSetPlanViolation {
             formatter,
             "{}:{} {:?}: {}",
             self.path, self.line, self.kind, self.summary
+        )
+    }
+}
+
+impl fmt::Display for ParityTargetSourceTrackingViolation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "{}:{} {:?}: {}",
+            self.path, self.target_id, self.kind, self.summary
+        )
+    }
+}
+
+impl fmt::Display for ReferenceFamilyParityViolation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "{}:{} {:?}: {} ({})",
+            self.path, self.line, self.kind, self.summary, self.family
         )
     }
 }
@@ -259,6 +337,574 @@ where
     } else {
         Err(violations)
     }
+}
+
+pub fn validate_parity_target_source_tracking(
+    path: impl Into<String>,
+    input: &Value,
+) -> Result<ParityTargetSourceTrackingReport, Vec<ParityTargetSourceTrackingViolation>> {
+    let path = path.into();
+    let mut violations = Vec::new();
+    let Some(targets) = input.get("parity_targets").and_then(Value::as_array) else {
+        violations.push(parity_violation(
+            &path,
+            "<document>",
+            ParityTargetSourceTrackingKind::MissingTargets,
+            "document must contain a parity_targets array",
+        ));
+        return Err(violations);
+    };
+
+    let mut seen_targets = BTreeSet::new();
+    let mut source_refs_checked = 0usize;
+
+    for target in targets {
+        let Some(target_object) = target.as_object() else {
+            violations.push(parity_violation(
+                &path,
+                "<malformed>",
+                ParityTargetSourceTrackingKind::MalformedTarget,
+                "parity target row must be an object",
+            ));
+            continue;
+        };
+
+        let target_id = string_field(target, "target_id").unwrap_or("<missing>");
+        if target_id == "<missing>" {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MalformedTarget,
+                "parity target requires target_id",
+            ));
+        } else if !seen_targets.insert(target_id.to_string()) {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::DuplicateTargetId,
+                "target_id must be unique within the source-tracking document",
+            ));
+        }
+
+        for required in [
+            "reference_kind",
+            "source_tracking_state",
+            "freshness_state",
+            "parity_posture",
+            "authority_boundary",
+        ] {
+            if string_field(target, required).is_none() {
+                violations.push(parity_violation(
+                    &path,
+                    target_id,
+                    ParityTargetSourceTrackingKind::MalformedTarget,
+                    format!("parity target requires non-empty {required}"),
+                ));
+            }
+        }
+
+        match target_object.get("source_refs").and_then(Value::as_array) {
+            Some(source_refs) if !source_refs.is_empty() => {
+                source_refs_checked += source_refs.len();
+                for source_ref in source_refs {
+                    if string_field(source_ref, "url").is_none()
+                        || string_field(source_ref, "retrieved_at").is_none()
+                        || string_field(source_ref, "pinned_ref").is_none()
+                    {
+                        violations.push(parity_violation(
+                            &path,
+                            target_id,
+                            ParityTargetSourceTrackingKind::MissingPinnedSource,
+                            "each source_ref requires url, retrieved_at, and pinned_ref",
+                        ));
+                    }
+
+                    if source_ref
+                        .get("external_authority")
+                        .and_then(Value::as_bool)
+                        != Some(false)
+                    {
+                        violations.push(parity_violation(
+                            &path,
+                            target_id,
+                            ParityTargetSourceTrackingKind::ExternalAuthorityLeak,
+                            "source_ref.external_authority must be false",
+                        ));
+                    }
+                }
+            }
+            _ => violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingPinnedSource,
+                "parity target requires at least one pinned source_ref",
+            )),
+        }
+
+        if !non_empty_array(target, "validation_refs") {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingValidationRefs,
+                "parity target requires validation_refs",
+            ));
+        }
+
+        if !non_empty_array(target, "stop_conditions") {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingStopConditions,
+                "parity target requires stop_conditions",
+            ));
+        }
+
+        let target_text = target.to_string().to_ascii_lowercase();
+        if contains_authority_claim(&target_text) {
+            violations.push(parity_violation(
+                &path,
+                target_id,
+                ParityTargetSourceTrackingKind::PromotionAuthorityClaim,
+                "parity target cannot claim merge, promotion, product-ready, or hyperscaler-ready authority",
+            ));
+        }
+
+        if is_cward_or_linux_libc_target(target) {
+            validate_cward_pessimism(&path, target_id, target, &target_text, &mut violations);
+        }
+    }
+
+    if violations.is_empty() {
+        Ok(ParityTargetSourceTrackingReport {
+            targets_checked: targets.len(),
+            source_refs_checked,
+        })
+    } else {
+        Err(violations)
+    }
+}
+
+fn validate_cward_pessimism(
+    path: &str,
+    target_id: &str,
+    target: &Value,
+    target_text: &str,
+    violations: &mut Vec<ParityTargetSourceTrackingViolation>,
+) {
+    if string_field(target, "reference_kind") != Some("linux_libc_abi_pessimistic_input")
+        || !string_field(target, "parity_posture")
+            .is_some_and(|posture| posture.contains("pessimistic"))
+        || target
+            .get("userspace_abi_preserved")
+            .and_then(Value::as_bool)
+            != Some(true)
+    {
+        violations.push(parity_violation(
+            path,
+            target_id,
+            ParityTargetSourceTrackingKind::MissingCwardPessimism,
+            "c-ward/Linux libc ABI rows must be pessimistic userspace-ABI inputs only",
+        ));
+    }
+
+    if target
+        .get("internal_kernel_api_stable")
+        .and_then(Value::as_bool)
+        != Some(false)
+        || target_text.contains("kernel api stable")
+        || target_text.contains("kernel-api-stable")
+        || target_text.contains("production ready")
+    {
+        violations.push(parity_violation(
+            path,
+            target_id,
+            ParityTargetSourceTrackingKind::OptimisticKernelAbiClaim,
+            "c-ward/Linux libc ABI rows must not claim stable internal kernel APIs or production readiness",
+        ));
+    }
+
+    let gap_text = target
+        .get("known_gaps")
+        .and_then(Value::as_array)
+        .map(|gaps| {
+            gaps.iter()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>()
+                .join(" ")
+                .to_ascii_lowercase()
+        })
+        .unwrap_or_default();
+
+    for required_gap in ["getent", "nightly", "incomplete", "linux-gnu-only"] {
+        if !gap_text.contains(required_gap) {
+            violations.push(parity_violation(
+                path,
+                target_id,
+                ParityTargetSourceTrackingKind::MissingCwardPessimism,
+                format!("c-ward known_gaps must record {required_gap} caveat"),
+            ));
+        }
+    }
+}
+
+fn parity_violation(
+    path: &str,
+    target_id: &str,
+    kind: ParityTargetSourceTrackingKind,
+    summary: impl Into<String>,
+) -> ParityTargetSourceTrackingViolation {
+    ParityTargetSourceTrackingViolation {
+        path: path.to_string(),
+        target_id: target_id.to_string(),
+        kind,
+        summary: summary.into(),
+    }
+}
+
+fn string_field<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
+    value.get(key).and_then(Value::as_str).and_then(|value| {
+        let trimmed = value.trim();
+        if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed)
+        }
+    })
+}
+
+fn non_empty_array(value: &Value, key: &str) -> bool {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .is_some_and(|values| !values.is_empty())
+}
+
+fn contains_authority_claim(target_text: &str) -> bool {
+    [
+        "approved_product_ready",
+        "approved-product-ready",
+        "approved product ready",
+        "approved_hyperscaler_ready",
+        "approved-hyperscaler-ready",
+        "approved hyperscaler ready",
+        "merge_authority",
+        "merge-authority",
+        "merge authority",
+        "promotion_authority",
+        "promotion-authority",
+        "promotion authority",
+        "permanent_product_authority",
+        "permanent-product-authority",
+        "permanent product authority",
+        "product_ready",
+        "product-ready",
+        "product ready",
+        "hyperscaler_ready",
+        "hyperscaler-ready",
+        "hyperscaler ready",
+    ]
+    .iter()
+    .any(|marker| target_text.contains(marker))
+}
+
+fn is_cward_or_linux_libc_target(target: &Value) -> bool {
+    let target_id = string_field(target, "target_id").unwrap_or_default();
+    let reference_kind = string_field(target, "reference_kind").unwrap_or_default();
+    let source_text = target
+        .get("source_refs")
+        .and_then(Value::as_array)
+        .map(|refs| {
+            refs.iter()
+                .filter_map(|source_ref| string_field(source_ref, "url"))
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
+        .unwrap_or_default();
+
+    target_id.contains("c-ward")
+        || reference_kind == "linux_libc_abi_pessimistic_input"
+        || source_text.contains("github.com/sunfishcode/c-ward")
+}
+
+pub fn validate_reference_family_parity<D>(
+    documents: D,
+) -> Result<ReferenceFamilyParityReport, Vec<ReferenceFamilyParityViolation>>
+where
+    D: IntoIterator<Item = ReferenceFamilyDocument>,
+{
+    let mut documents_checked = 0usize;
+    let mut lines_checked = 0usize;
+    let mut reference_families = BTreeSet::new();
+    let mut violations = Vec::new();
+
+    for document in documents {
+        documents_checked += 1;
+        let scan = ReferenceFamilyScan::from_document(&document);
+        lines_checked += scan.lines_checked;
+        reference_families.extend(scan.present_families.iter().copied());
+
+        if scan.family_lines.is_empty() {
+            violations.push(ReferenceFamilyParityViolation {
+                path: document.path.clone(),
+                line: 1,
+                kind: ReferenceFamilyParityKind::MissingReferenceFamily,
+                family: "reference-family-set".to_string(),
+                summary: "parity claim lacks a reference_families/reference family declaration"
+                    .to_string(),
+            });
+        } else {
+            let reference_line = scan.first_reference_line();
+            for rule in REQUIRED_REFERENCE_FAMILIES {
+                if !scan.present_families.contains(rule.id) {
+                    violations.push(ReferenceFamilyParityViolation {
+                        path: document.path.clone(),
+                        line: reference_line,
+                        kind: ReferenceFamilyParityKind::MissingReferenceFamily,
+                        family: rule.display.to_string(),
+                        summary: format!(
+                            "reference family {} is required for directive parity coverage",
+                            rule.display
+                        ),
+                    });
+                }
+            }
+        }
+
+        if let Some(line) = scan.github_family_line
+            && !scan.gitlab_in_family_lines
+        {
+            violations.push(ReferenceFamilyParityViolation {
+                path: document.path.clone(),
+                line,
+                kind: ReferenceFamilyParityKind::GithubOnlyAdapterOverfit,
+                family: "GitHub/GitLab adapters".to_string(),
+                summary:
+                    "GitHub adapter coverage must be paired with GitLab to avoid hosted-SCM overfit"
+                        .to_string(),
+            });
+        }
+
+        for (line, family) in scan.adapter_authority_lines {
+            violations.push(ReferenceFamilyParityViolation {
+                path: document.path.clone(),
+                line,
+                kind: ReferenceFamilyParityKind::AdapterAsAuthority,
+                family: family.to_string(),
+                summary:
+                    "reference adapters may be bridge/evidence families, not product authority"
+                        .to_string(),
+            });
+        }
+    }
+
+    if violations.is_empty() {
+        Ok(ReferenceFamilyParityReport {
+            documents_checked,
+            lines_checked,
+            reference_families_checked: reference_families.len(),
+        })
+    } else {
+        Err(violations)
+    }
+}
+
+#[derive(Clone, Copy)]
+struct ReferenceFamilyRule {
+    id: &'static str,
+    display: &'static str,
+}
+
+const REQUIRED_REFERENCE_FAMILIES: &[ReferenceFamilyRule] = &[
+    ReferenceFamilyRule {
+        id: "c-ward",
+        display: "c-ward",
+    },
+    ReferenceFamilyRule {
+        id: "kubernetes",
+        display: "Kubernetes",
+    },
+    ReferenceFamilyRule {
+        id: "argo",
+        display: "Argo",
+    },
+    ReferenceFamilyRule {
+        id: "github-gitlab-adapters",
+        display: "GitHub/GitLab adapters",
+    },
+    ReferenceFamilyRule {
+        id: "snyk-trivy-drift",
+        display: "Snyk/Trivy/drift",
+    },
+    ReferenceFamilyRule {
+        id: "linux-oci",
+        display: "Linux/OCI",
+    },
+];
+
+struct ReferenceFamilyScan {
+    lines_checked: usize,
+    family_lines: Vec<(usize, String)>,
+    present_families: BTreeSet<&'static str>,
+    github_family_line: Option<usize>,
+    gitlab_in_family_lines: bool,
+    adapter_authority_lines: Vec<(usize, &'static str)>,
+}
+
+impl ReferenceFamilyScan {
+    fn from_document(document: &ReferenceFamilyDocument) -> Self {
+        let mut lines_checked = 0usize;
+        let mut family_lines = Vec::new();
+        let mut adapter_authority_lines = Vec::new();
+        let mut in_code_fence = false;
+        let mut in_reference_family_list = false;
+
+        for (line_index, raw) in document.contents.lines().enumerate() {
+            lines_checked += 1;
+            let line_number = line_index + 1;
+            let trimmed = raw.trim_start();
+            if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
+                in_code_fence = !in_code_fence;
+                continue;
+            }
+            if in_code_fence || is_example_line(trimmed) {
+                continue;
+            }
+
+            let lower = raw.to_ascii_lowercase();
+            if let Some(family) = adapter_as_authority_family(&lower) {
+                adapter_authority_lines.push((line_number, family));
+            }
+
+            if is_reference_family_header(&lower) {
+                in_reference_family_list =
+                    lower.trim_end().ends_with(':') || trimmed.trim_start().starts_with('#');
+                family_lines.push((line_number, lower));
+                continue;
+            }
+
+            if in_reference_family_list && trimmed.trim_start().starts_with("- ") {
+                family_lines.push((line_number, lower));
+                continue;
+            }
+
+            if !trimmed.trim().is_empty() && !trimmed.trim_start().starts_with('#') {
+                in_reference_family_list = false;
+            }
+        }
+
+        let mut present_families = BTreeSet::new();
+        let family_blob = family_lines
+            .iter()
+            .map(|(_, line)| line.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        if has_c_ward_reference(&family_blob) {
+            present_families.insert("c-ward");
+        }
+        if has_any(&family_blob, &["kubernetes", "k8s"]) {
+            present_families.insert("kubernetes");
+        }
+        if has_any(
+            &family_blob,
+            &["argo", "argocd", "argo cd", "argo rollouts"],
+        ) {
+            present_families.insert("argo");
+        }
+        if family_blob.contains("github") && family_blob.contains("gitlab") {
+            present_families.insert("github-gitlab-adapters");
+        }
+        if family_blob.contains("snyk")
+            && family_blob.contains("trivy")
+            && has_any(&family_blob, &["driftctl", "drift"])
+        {
+            present_families.insert("snyk-trivy-drift");
+        }
+        if family_blob.contains("linux") && family_blob.contains("oci") {
+            present_families.insert("linux-oci");
+        }
+
+        let github_family_line = family_lines
+            .iter()
+            .find_map(|(line, text)| text.contains("github").then_some(*line));
+        let gitlab_in_family_lines = family_blob.contains("gitlab");
+
+        Self {
+            lines_checked,
+            family_lines,
+            present_families,
+            github_family_line,
+            gitlab_in_family_lines,
+            adapter_authority_lines,
+        }
+    }
+
+    fn first_reference_line(&self) -> usize {
+        self.family_lines
+            .first()
+            .map(|(line, _)| *line)
+            .unwrap_or(1)
+    }
+}
+
+fn is_reference_family_header(lower: &str) -> bool {
+    lower.contains("reference_families")
+        || lower.contains("reference_family")
+        || lower.contains("reference-famil")
+        || lower.contains("reference family")
+        || lower.contains("reference families")
+}
+
+fn has_c_ward_reference(lower: &str) -> bool {
+    has_any(lower, &["c-ward", "c ward", "c_ward", "cward"])
+}
+
+fn has_any(lower: &str, markers: &[&str]) -> bool {
+    markers.iter().any(|marker| lower.contains(marker))
+}
+
+fn adapter_as_authority_family(lower: &str) -> Option<&'static str> {
+    for (family, aliases) in ADAPTER_AUTHORITY_TERMS {
+        for alias in *aliases {
+            if adapter_alias_is_authority(lower, alias) {
+                return Some(*family);
+            }
+        }
+    }
+    None
+}
+
+const ADAPTER_AUTHORITY_TERMS: &[(&str, &[&str])] = &[
+    ("GitHub", &["github"]),
+    ("GitLab", &["gitlab"]),
+    ("Kubernetes", &["kubernetes", "k8s"]),
+    ("Argo", &["argo", "argocd", "argo cd"]),
+    ("Snyk", &["snyk"]),
+    ("Trivy", &["trivy"]),
+    ("driftctl", &["driftctl"]),
+    ("c-ward", &["c-ward", "c ward", "c_ward", "cward"]),
+    ("Linux", &["linux"]),
+    ("OCI", &["oci"]),
+];
+
+fn adapter_alias_is_authority(lower: &str, alias: &str) -> bool {
+    [
+        format!("{alias} is the authority"),
+        format!("{alias} is authority"),
+        format!("{alias} owns authority"),
+        format!("{alias} owns the authority"),
+        format!("{alias} becomes authority"),
+        format!("{alias} becomes the authority"),
+        format!("{alias} is canonical"),
+        format!("{alias} is the canonical"),
+        format!("{alias} as authority"),
+        format!("{alias} is source of truth"),
+        format!("{alias} is the source of truth"),
+        format!("authority: {alias}"),
+        format!("canonical authority: {alias}"),
+        format!("source of truth: {alias}"),
+    ]
+    .iter()
+    .any(|marker| lower.contains(marker))
 }
 
 fn scan_claim_line(path: &str, line: usize, raw: &str) -> Vec<HonestClaimsViolation> {
@@ -975,6 +1621,258 @@ mod tests {
             violations
                 .iter()
                 .any(|violation| violation.kind == PlanKind::GlobalArtifactConflict)
+        );
+    }
+
+    fn good_parity_target_fixture() -> Value {
+        serde_json::json!({
+            "parity_targets": [
+                {
+                    "target_id": "linux-libc-abi-c-ward",
+                    "reference_kind": "linux_libc_abi_pessimistic_input",
+                    "source_refs": [
+                        {
+                            "url": "https://github.com/sunfishcode/c-ward",
+                            "pinned_ref": "main@2026-06-30-readme-inspection",
+                            "retrieved_at": "2026-06-30T00:00:00Z",
+                            "external_authority": false
+                        }
+                    ],
+                    "source_tracking_state": "tracked_inventory",
+                    "freshness_state": "fresh_at_collection",
+                    "parity_posture": "pessimistic_reference_only",
+                    "authority_boundary": "Benchmark and parity input only; first-party policy decides readiness.",
+                    "validation_refs": ["libs/oya-check-honest-claims/src/lib.rs#validate_parity_target_source_tracking"],
+                    "stop_conditions": ["source_changed_reopen_required", "missing_conformance_fixture"],
+                    "userspace_abi_preserved": true,
+                    "internal_kernel_api_stable": false,
+                    "known_gaps": [
+                        "getent runtime dependency",
+                        "nightly dependency",
+                        "incomplete implementation",
+                        "linux-gnu-only ABI coverage"
+                    ]
+                }
+            ]
+        })
+    }
+
+    #[test]
+    fn parity_target_source_tracking_accepts_good_fixture() {
+        let report =
+            validate_parity_target_source_tracking("good.json", &good_parity_target_fixture())
+                .unwrap();
+        assert_eq!(report.targets_checked, 1);
+        assert_eq!(report.source_refs_checked, 1);
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_external_authority() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["source_refs"][0]["external_authority"] =
+            serde_json::json!(true);
+
+        let violations =
+            validate_parity_target_source_tracking("bad-authority.json", &fixture).unwrap_err();
+
+        assert!(violations.iter().any(
+            |violation| violation.kind == ParityTargetSourceTrackingKind::ExternalAuthorityLeak
+        ));
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_duplicate_target_id() {
+        let mut fixture = good_parity_target_fixture();
+        let duplicate = fixture["parity_targets"][0].clone();
+        fixture["parity_targets"]
+            .as_array_mut()
+            .unwrap()
+            .push(duplicate);
+
+        let violations =
+            validate_parity_target_source_tracking("duplicate.json", &fixture).unwrap_err();
+
+        assert!(
+            violations.iter().any(
+                |violation| violation.kind == ParityTargetSourceTrackingKind::DuplicateTargetId
+            )
+        );
+    }
+
+    #[test]
+    fn parity_target_source_tracking_requires_pinned_sources() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["source_refs"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("pinned_ref");
+
+        let violations =
+            validate_parity_target_source_tracking("missing-source.json", &fixture).unwrap_err();
+
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.kind
+                    == ParityTargetSourceTrackingKind::MissingPinnedSource)
+        );
+    }
+
+    #[test]
+    fn parity_target_source_tracking_rejects_embedded_authority_claim() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["authority_boundary"] =
+            serde_json::json!("external source is merge_authority for promotion decisions");
+
+        let violations =
+            validate_parity_target_source_tracking("embedded-authority.json", &fixture)
+                .unwrap_err();
+
+        assert!(
+            violations.iter().any(|violation| violation.kind
+                == ParityTargetSourceTrackingKind::PromotionAuthorityClaim)
+        );
+    }
+
+    #[test]
+    fn c_ward_linux_libc_abi_reference_is_pessimistic_only() {
+        let mut fixture = good_parity_target_fixture();
+        fixture["parity_targets"][0]["internal_kernel_api_stable"] = serde_json::json!(true);
+        fixture["parity_targets"][0]["parity_posture"] = serde_json::json!("production ready");
+
+        let violations =
+            validate_parity_target_source_tracking("cward-optimistic.json", &fixture).unwrap_err();
+
+        assert!(
+            violations.iter().any(|violation| violation.kind
+                == ParityTargetSourceTrackingKind::OptimisticKernelAbiClaim)
+        );
+    }
+    fn reference_doc(contents: &str) -> ReferenceFamilyDocument {
+        ReferenceFamilyDocument {
+            path: "specs/reference-parity.md".to_string(),
+            contents: contents.to_string(),
+        }
+    }
+
+    fn good_reference_family_fixture() -> &'static str {
+        "---\n\
+reference_families:\n\
+  - c-ward\n\
+  - Kubernetes\n\
+  - Argo\n\
+  - GitHub/GitLab adapters\n\
+  - Snyk/Trivy/drift\n\
+  - Linux/OCI\n\
+---\n\
+Authority: Oyatie owns product authority; these are bridge/reference families only.\n\
+GitHub and GitLab are adapter examples, not authority.\n"
+    }
+
+    #[test]
+    fn reference_family_parity_accepts_full_directive_fixture() {
+        let report =
+            validate_reference_family_parity([reference_doc(good_reference_family_fixture())])
+                .unwrap();
+        assert_eq!(report.documents_checked, 1);
+        assert_eq!(report.reference_families_checked, 6);
+    }
+    #[test]
+    fn reference_family_parity_accepts_markdown_heading_fixture() {
+        let report = validate_reference_family_parity([reference_doc(
+            "## Reference families\n\
+- c-ward\n\
+- Kubernetes\n\
+- Argo\n\
+- GitHub/GitLab adapters\n\
+- Snyk/Trivy/drift\n\
+- Linux/OCI\n",
+        )])
+        .unwrap();
+        assert_eq!(report.reference_families_checked, 6);
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_missing_reference_family() {
+        let violations = validate_reference_family_parity([reference_doc(
+            "GitHub adapter parity covers the target without declaring the required comparison set.",
+        )])
+        .unwrap_err();
+        assert!(
+            violations.iter().any(
+                |violation| violation.kind == ReferenceFamilyParityKind::MissingReferenceFamily
+            )
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_github_only_adapter_overfit() {
+        let fixture =
+            good_reference_family_fixture().replace("GitHub/GitLab adapters", "GitHub adapter");
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.kind
+                    == ReferenceFamilyParityKind::GithubOnlyAdapterOverfit)
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_adapter_as_authority() {
+        let fixture = format!(
+            "{}\nGitHub is the authority for merge admission.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+        );
+    }
+    #[test]
+    fn reference_family_parity_rejects_mixed_authority_and_negation_line() {
+        let fixture = format!(
+            "{}\nGitHub is the authority for merge admission; GitLab is not product authority.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.family == "GitHub"
+                    && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_source_of_truth_wording() {
+        let fixture = format!(
+            "{}\nKubernetes is the source of truth for control-plane parity.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.family == "Kubernetes"
+                    && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+        );
+    }
+
+    #[test]
+    fn reference_family_parity_rejects_same_alias_mixed_authority_and_negation() {
+        let fixture = format!(
+            "{}\nGitHub is the authority for merge admission; GitHub is not product authority.\n",
+            good_reference_family_fixture()
+        );
+        let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
+        assert!(
+            violations
+                .iter()
+                .any(|violation| violation.family == "GitHub"
+                    && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
         );
     }
 }

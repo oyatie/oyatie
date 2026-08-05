@@ -831,22 +831,22 @@
       "promotion_gates": [
         {
           "gate_id": "pack-overlay-cedar-fixtures",
-          "command": "oya gate validate pack-overlay-cedar-fixtures",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-cedar-fixtures",
           "evidence_ref": "evidence://pack/gdpr/sales/cedar"
         },
         {
           "gate_id": "pack-overlay-projection-fixtures",
-          "command": "oya gate validate pack-overlay-projection-fixtures",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-projection-fixtures",
           "evidence_ref": "evidence://pack/gdpr/sales/projection"
         },
         {
           "gate_id": "pack-overlay-audit-sample",
-          "command": "oya gate validate pack-overlay-audit-sample",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-audit-sample",
           "evidence_ref": "evidence://pack/gdpr/sales/audit"
         },
         {
           "gate_id": "pack-overlay-legal-review",
-          "command": "oya gate validate pack-overlay-legal-review",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-legal-review",
           "evidence_ref": "evidence://pack/gdpr/sales/legal"
         }
       ],
@@ -985,22 +985,22 @@
       "promotion_gates": [
         {
           "gate_id": "pack-overlay-cedar-fixtures",
-          "command": "oya gate validate pack-overlay-cedar-fixtures",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-cedar-fixtures",
           "evidence_ref": "evidence://pack/hipaa/cedar"
         },
         {
           "gate_id": "pack-overlay-projection-fixtures",
-          "command": "oya gate validate pack-overlay-projection-fixtures",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-projection-fixtures",
           "evidence_ref": "evidence://pack/hipaa/projection"
         },
         {
           "gate_id": "pack-overlay-workflow-test",
-          "command": "oya gate validate pack-overlay-workflow-test",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-workflow-test",
           "evidence_ref": "evidence://pack/hipaa/workflow"
         },
         {
           "gate_id": "pack-overlay-audit-sample",
-          "command": "oya gate validate pack-overlay-audit-sample",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-audit-sample",
           "evidence_ref": "evidence://pack/hipaa/audit"
         }
       ]
@@ -1134,22 +1134,22 @@
       "promotion_gates": [
         {
           "gate_id": "pack-overlay-cedar-fixtures",
-          "command": "oya gate validate pack-overlay-cedar-fixtures",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-cedar-fixtures",
           "evidence_ref": "evidence://pack/kr-csap/cedar"
         },
         {
           "gate_id": "pack-overlay-projection-fixtures",
-          "command": "oya gate validate pack-overlay-projection-fixtures",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-projection-fixtures",
           "evidence_ref": "evidence://pack/kr-csap/projection"
         },
         {
           "gate_id": "pack-overlay-audit-sample",
-          "command": "oya gate validate pack-overlay-audit-sample",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-audit-sample",
           "evidence_ref": "evidence://pack/kr-csap/audit"
         },
         {
           "gate_id": "pack-overlay-legal-review",
-          "command": "oya gate validate pack-overlay-legal-review",
+          "command": "cloud-ci/Rust gate packet: pack-overlay-legal-review",
           "evidence_ref": "evidence://pack/kr-csap/legal"
         }
       ],

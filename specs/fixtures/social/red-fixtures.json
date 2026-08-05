@@ -1,0 +1,443 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/social-prd-red-fixtures.schema.json",
+  "fixture_plan_id": "SOCIAL-PRD-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_b70fe698",
+  "parent_plan_spec_task": "t_df502234",
+  "status": "red-fixture-plan-contract-replay-pending",
+  "created_at_utc": "2026-07-01T14:00:05Z",
+  "source_commit_at_authoring": "c52bdb09ea33",
+  "claim_boundary": "metadata/fixture-only RED contract plan; no runtime handlers, storage, feed/search index, Workflow execution, Ontology projection, intelligence model, AR SDK, UI implementation, deployment, generated JSON hand edits, production readiness, GA, measured SLO, hyperscaler maturity, UI readiness, or customer availability claim",
+  "source_authority_refs": [
+    "specs/microservices/social.json",
+    "specs/microservices/social.json#authority_resolution",
+    "specs/microservices/social.json#acceptance_criteria",
+    "specs/microservices/social.json#contracts.produces",
+    "specs/microservices/manifests-index.json#microservices[name=social]",
+    "oya/social/manifest.json#source_authority",
+    "docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md",
+    "kanban:t_df502234#PLAN/SPEC-SOCIAL-001"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/social/manifest.json",
+    "oya/social/contracts/*",
+    "oya/social/catalog/*",
+    "oya/social/IPs/*",
+    "microservices/social/manifest.json",
+    "microservices/social/IP-001..IP-015*.md",
+    "microservices/shorts/*",
+    "Foundry active authority"
+  ],
+  "global_non_claims": [
+    "No social runtime implementation is created or approved by this fixture plan.",
+    "No post writer, feed renderer, search index, story purge job, Workflow cross-post automation, Ontology projection, intelligence model/router, AR pipeline, policy engine, deployment, live SLO, production readiness, GA, UI readiness, or customer-availability claim is made.",
+    "No microservices/social/manifest.json, unresolved microservices/social/IP-001..IP-015 path, retired shorts root, or Foundry term is restored or treated as live authority.",
+    "No existing oya/social contract, catalog, manifest, policy, SLO, dashboard, or runbook is treated as implementation-readiness evidence without source-backed replay fixtures and Build/Review gates.",
+    "No generated JSON hand edits are authorized.",
+    "Green CI alone is insufficient for social browser/user-story readiness, accessibility, context isolation, story purge, AR privacy, or consent evidence."
+  ],
+  "required_prd_acceptance_criteria": [
+    "AC-SOCIAL-01",
+    "AC-SOCIAL-02",
+    "AC-SOCIAL-03",
+    "AC-SOCIAL-04",
+    "AC-SOCIAL-05",
+    "AC-SOCIAL-06"
+  ],
+  "required_produced_contracts": [
+    "community.social.post.v1",
+    "community.social.story.v1",
+    "community.social.engagement.v1",
+    "community.social.moderation_decision.v1"
+  ],
+  "contract_replay_expectations": {
+    "openapi": {
+      "source_path": "oya/social/contracts/openapi/social.yaml",
+      "future_replay_family": "social-prd-openapi-v1",
+      "must_assert": [
+        "personal post create/read replay proves context_kind=Personal and ownership_pillar=personal are immutable",
+        "professional feed/search/Ontology read attempts cannot return personal artifacts",
+        "story TTL purge endpoints or records carry ttl_expires_at, purge evidence, tombstone audit linkage, and CDN/search/Ontology deletion semantics",
+        "professional story cross-post requires explicit consent_token and refuses personal-context consultation",
+        "AR save/share payload permits non-sensitive effect metadata and rejects biometric/face-geometry persistence",
+        "collaborative post replay requires personal pillar for both personal owners and explicit cross-user consent plus audit log when work context participates"
+      ]
+    },
+    "asyncapi": {
+      "source_path": "oya/social/contracts/asyncapi/social-events.yaml",
+      "future_replay_family": "social-prd-asyncapi-v1",
+      "must_assert": [
+        "community.social.post.v1 / SocialContentPublished replay includes tenant_id, context_kind, ownership_pillar, consent_token when required, and idempotency",
+        "community.social.story.v1 / SocialStoryExpired replay carries ttl_expires_at, purge_completed_at, tombstone audit ref, and context scope",
+        "community.social.engagement.v1 replay refuses cross-context engagement signals and employer-visible personal signals",
+        "community.social.moderation_decision.v1 replay carries Cedar policy basis, DSA/EU AI transparency where applicable, and no retired Foundry owner"
+      ]
+    },
+    "proto": {
+      "source_path": "oya/social/contracts/proto/social.proto",
+      "future_replay_family": "social-prd-proto-v1",
+      "must_assert": [
+        "Post and PublishPostRequest messages preserve context_kind and future ownership_pillar semantics",
+        "story messages or extensions encode ttl_expires_at and purge/tombstone linkage",
+        "AR media metadata cannot encode biometric template, face geometry, or server-side face detection persistence",
+        "engagement and moderation messages preserve context matching, consent, policy basis, and audit refs"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/social/replay/",
+  "expected_red_failure": "RED until future Build cards create source-backed OpenAPI/AsyncAPI/proto/user-story/security replay fixtures under specs/fixtures/social/replay/ and extend/replace this checker with real contract replay plus implementation under oya/social/**.",
+  "browser_user_story_accessibility_checklist": [
+    "personal_user posts a personal photo, verifies visible personal-context disclosure, and confirms the artifact is absent from professional feed/search/Ontology work graph.",
+    "employee_brand_user switches TenantContextSwitcher from personal to work and verifies feed, stories ring, close-friends list, and AR camera session are reconstructed with zero stale personal artifact references.",
+    "personal_user creates an ephemeral story and sees TTL/purge disclosure; later purge evidence shows CDN, search, and Ontology deletion plus tombstone audit event within the social target.",
+    "employee_brand_user publishes a professional story with Workflow cross-post consent token and sees personal context never consulted.",
+    "personal_user applies an AR effect and sees non-sensitive effect metadata disclosure plus no biometric persistence notice; Build must prove server payloads exclude face geometry/templates.",
+    "content_creator creates a collaborative post and sees dual-owner consent state; mixed personal/work context paths require explicit consent and audit log.",
+    "Each UI path must meet WCAG 2.2 AA with keyboard, screen-reader labels, focus order, reduced-motion, high-contrast, mobile portrait/landscape, tablet, desktop, and wide-desktop evidence; if no UI exists, Build records explicit N/A and uses API/contract replay evidence instead."
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "social_prd_authority_source_lock_fixture",
+      "fixture_kind": "authority_source_lock",
+      "source_authority_refs": [
+        "specs/microservices/social.json#authority_resolution",
+        "specs/microservices/manifests-index.json#microservices[name=social]",
+        "oya/social/manifest.json#source_authority",
+        "kanban:t_df502234"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/authority/social-authority-source-lock.fixture.json"],
+      "must_assert": [
+        "PRD-SOCIAL status Draft retained for RED planning only",
+        "authority lock task is t_df502234",
+        "manifests-index row points to specs/microservices/social.json and oya/social/manifest.json",
+        "oya/social/manifest.json is inventory/provenance only",
+        "microservices/social/manifest.json is absent and must not be restored"
+      ],
+      "must_reject": [
+        "runtime readiness from oya/social/manifest.json",
+        "Build without parent PLAN/SPEC t_df502234 and RED gate t_b70fe698",
+        "unresolved microservices/social/IP-001..IP-015 path as live authority",
+        "community FD-001 as social implementation authority"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_ac01_personal_post_pillar_fixture",
+      "fixture_kind": "positive_source_contract",
+      "prd_acceptance_criteria": "AC-SOCIAL-01",
+      "source_authority_refs": [
+        "specs/microservices/social.json#acceptance_criteria[AC-SOCIAL-01]",
+        "specs/microservices/social.json#data_model.entities_ref.SocialPost",
+        "specs/microservices/social.json#dual_context_isolation"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ac/social-ac01-personal-post-pillar.fixture.json"],
+      "must_assert": [
+        "personal photo post persists context_kind=personal",
+        "ownership_pillar=personal is immutable",
+        "professional feed excludes personal post",
+        "professional search index excludes personal post",
+        "Ontology work-graph excludes personal post"
+      ],
+      "must_reject": [
+        "personal artifact visible in professional feed",
+        "personal artifact visible in professional search",
+        "personal artifact linked into Ontology work-graph",
+        "mutable context_kind or ownership_pillar"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_ac02_context_switch_reconstructs_surfaces_fixture",
+      "fixture_kind": "browser_user_story_contract",
+      "prd_acceptance_criteria": "AC-SOCIAL-02",
+      "source_authority_refs": [
+        "specs/microservices/social.json#acceptance_criteria[AC-SOCIAL-02]",
+        "specs/microservices/social.json#frontend_components[TenantContextSwitcher]",
+        "specs/design-system/tenant-context-switcher.json"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ux/social-ac02-context-switch-reconstructs-surfaces.fixture.json"],
+      "must_assert": [
+        "TenantContextSwitcher personal-to-work switch reconstructs feed",
+        "stories ring reconstructed from new context",
+        "close-friends list reconstructed from new context",
+        "AR camera session reconstructed from new context",
+        "zero cross-context artifact references survive"
+      ],
+      "must_reject": [
+        "stale personal post after work switch",
+        "stale close-friends ring in work context",
+        "stale AR effect session cache across contexts",
+        "cross-context artifact reference survives switch"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_ac03_story_ttl_purge_fixture",
+      "fixture_kind": "ephemeral_story_contract",
+      "prd_acceptance_criteria": "AC-SOCIAL-03",
+      "source_authority_refs": [
+        "specs/microservices/social.json#acceptance_criteria[AC-SOCIAL-03]",
+        "specs/microservices/social.json#patterns.ephemeral_stories_ttl",
+        "specs/microservices/social.json#data_model.events_emitted.SocialStoryExpired"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ac/social-ac03-story-ttl-purge.fixture.json"],
+      "must_assert": [
+        "story artifact carries ttl_expires_at",
+        "CDN purge completes within 60 seconds",
+        "search index purge completes within 60 seconds",
+        "Ontology graph purge completes within 60 seconds",
+        "tombstone audit event is emitted"
+      ],
+      "must_reject": [
+        "story without ttl_expires_at",
+        "story remains in CDN after TTL",
+        "story remains in search after TTL",
+        "story remains in Ontology after TTL",
+        "purge without tombstone audit event"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_ac04_professional_crosspost_consent_fixture",
+      "fixture_kind": "workflow_consent_contract",
+      "prd_acceptance_criteria": "AC-SOCIAL-04",
+      "source_authority_refs": [
+        "specs/microservices/social.json#acceptance_criteria[AC-SOCIAL-04]",
+        "specs/microservices/social.json#ecosystem_integration.workflow",
+        "specs/microservices/social.json#contracts.consumes.workflow.cross_post.v1"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ac/social-ac04-professional-crosspost-consent.fixture.json"],
+      "must_assert": [
+        "professional story publish emits SocialContentPublished",
+        "Workflow receives explicit consent token",
+        "cross-post executes only within professional context",
+        "personal context is never consulted",
+        "Workflow/Ontology mediation is explicit"
+      ],
+      "must_reject": [
+        "professional cross-post without consent token",
+        "cross-post reads personal context",
+        "direct Workspace import outside Workflow",
+        "implicit Workflow inference without audit linkage"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_ac05_ar_no_biometric_persistence_fixture",
+      "fixture_kind": "privacy_boundary_contract",
+      "prd_acceptance_criteria": "AC-SOCIAL-05",
+      "source_authority_refs": [
+        "specs/microservices/social.json#acceptance_criteria[AC-SOCIAL-05]",
+        "specs/microservices/social.json#anti_patterns_avoided.biometric_persistence_from_ar",
+        "specs/microservices/social.json#risks.R-SOCIAL-02"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ac/social-ac05-ar-no-biometric-persistence.fixture.json"],
+      "must_assert": [
+        "AR effect metadata is non-sensitive annotation",
+        "face-detection data remains in-session only",
+        "face geometry never leaves device",
+        "server payload excludes biometric template",
+        "EU GDPR Art.9 biometric prohibition is covered"
+      ],
+      "must_reject": [
+        "biometric template persisted",
+        "face geometry persisted",
+        "server-side face detection persistence",
+        "AR payload without no-biometric disclosure",
+        "EU pack missing biometric prohibition expectation"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_ac06_collab_ownership_consent_fixture",
+      "fixture_kind": "collaboration_consent_contract",
+      "prd_acceptance_criteria": "AC-SOCIAL-06",
+      "source_authority_refs": [
+        "specs/microservices/social.json#acceptance_criteria[AC-SOCIAL-06]",
+        "specs/microservices/social.json#patterns.collaborative_post_dual_owner",
+        "specs/microservices/social.json#data_model.entities_ref.SocialPost"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ac/social-ac06-collab-ownership-consent.fixture.json"],
+      "must_assert": [
+        "both personal-context owners yield ownership_pillar=personal for both users",
+        "mixed work context requires explicit cross-user consent",
+        "mixed context collaboration is audit logged",
+        "collab_owner_ids are context scoped",
+        "pillar mismatch cannot silently publish"
+      ],
+      "must_reject": [
+        "collaborative post silently crosses personal/work context",
+        "work context participant without explicit consent",
+        "collaboration without audit log",
+        "mutable ownership_pillar after publish"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_produced_contracts_fixture",
+      "fixture_kind": "produced_contract_surface",
+      "source_authority_refs": ["specs/microservices/social.json#contracts.produces"],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/contracts/social-produced-contracts.fixture.json"],
+      "must_assert": [
+        "community.social.post.v1",
+        "community.social.story.v1",
+        "community.social.engagement.v1",
+        "community.social.moderation_decision.v1"
+      ],
+      "must_reject": [
+        "post contract without context_kind and ownership_pillar semantics",
+        "story contract without ttl_expires_at and purge/tombstone semantics",
+        "engagement contract without context match",
+        "moderation decision contract without Cedar policy basis"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_api_contract_replay_fixture",
+      "fixture_kind": "api_contract_replay",
+      "source_authority_refs": [
+        "oya/social/contracts/openapi/social.yaml",
+        "oya/social/contracts/asyncapi/social-events.yaml",
+        "oya/social/contracts/proto/social.proto",
+        "oya/social/manifest.json#contracts"
+      ],
+      "future_replay_artifacts": [
+        "specs/fixtures/social/replay/openapi/social-openapi-v1-replay.fixture.json",
+        "specs/fixtures/social/replay/asyncapi/social-asyncapi-v1-replay.fixture.json",
+        "specs/fixtures/social/replay/proto/social-proto-v1-replay.fixture.json"
+      ],
+      "must_assert": [
+        "OpenAPI replay covers AC-SOCIAL-01 through AC-SOCIAL-06",
+        "AsyncAPI replay covers community.social.post/story/engagement/moderation_decision families",
+        "proto replay covers context_kind, ownership_pillar, story TTL, AR privacy, consent, and audit semantics",
+        "legacy microservices/social contract pointers are not canonical readiness evidence"
+      ],
+      "must_reject": [
+        "handler before contract replay",
+        "green API claim without OpenAPI replay",
+        "green event claim without AsyncAPI replay",
+        "green gRPC claim without proto replay",
+        "legacy microservices/social/contracts as live authority"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_security_privacy_policy_fixture",
+      "fixture_kind": "security_privacy_contract",
+      "source_authority_refs": [
+        "specs/microservices/social.json#dual_context_isolation",
+        "specs/microservices/social.json#risks",
+        "specs/microservices/social.json#regional_packs",
+        "oya/social/policy/tenant-scope.cedar",
+        "oya/social/policy/content-policy.cedar"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/security/social-security-privacy-policy.fixture.json"],
+      "must_assert": [
+        "Cedar deny-by-default for cross-pillar read or join",
+        "personal content is never employer-visible",
+        "KR pack covers PIPA content-retention and local moderation expectations",
+        "US pack covers COPPA/CCPA expectations",
+        "EU pack covers GDPR Art.9 biometric prohibition and DSA moderation transparency"
+      ],
+      "must_reject": [
+        "allow-by-default policy for cross-pillar read",
+        "employer access to personal social content",
+        "regional pack missing KR",
+        "regional pack missing US",
+        "regional pack missing EU"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_browser_accessibility_evidence_fixture",
+      "fixture_kind": "browser_user_story_accessibility_contract",
+      "source_authority_refs": [
+        "specs/microservices/social.json#frontend_components",
+        "specs/microservices/social.json#user_experience",
+        "specs/design-system/social-feed-scroller.json",
+        "specs/design-system/social-post-composer.json",
+        "specs/design-system/tenant-context-switcher.json",
+        "specs/design-system/policy-disclosure-banner.json"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/ux/social-browser-accessibility-evidence.fixture.json"],
+      "must_assert": [
+        "personal post isolation story",
+        "work context switch story",
+        "story TTL purge disclosure story",
+        "AR no-biometric persistence disclosure story",
+        "professional cross-post consent story",
+        "collaborative post consent story",
+        "WCAG 2.2 AA keyboard traversal screen-reader responsive KR US EU evidence or explicit no-UI N/A rationale"
+      ],
+      "must_reject": [
+        "UI readiness from green CI alone",
+        "browser evidence missing for social UI path",
+        "keyboard traversal missing",
+        "screen-reader labels missing",
+        "context switch story leaks artifacts",
+        "AR privacy disclosure missing"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_retired_authority_rejection_fixture",
+      "fixture_kind": "retired_authority_contract",
+      "source_authority_refs": [
+        "specs/microservices/social.json#authority_resolution",
+        "oya/social/manifest.json#source_authority.retired_authority_guard",
+        "docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md",
+        "docs/decisions/ADR-0335-retire-foundry-into-intelligence.md"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/authority/social-retired-authority-rejection.fixture.json"],
+      "must_assert": [
+        "Foundry references are historical/provenance only",
+        "active model moderation discovery scope routes through intelligence",
+        "Workflow mediation is explicit",
+        "Ontology mediation is explicit",
+        "short-video remains a social media flavor under ADR-0334"
+      ],
+      "allowed_successors": [
+        "intelligence",
+        "Workflow",
+        "Ontology",
+        "social short-video flavor"
+      ],
+      "must_reject": [
+        "Foundry as active authority",
+        "new Foundry backlog card from social PRD",
+        "standalone shorts service or oya-shorts crate",
+        "microservices/shorts as live authority",
+        "short-video implementation outside social"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "social_prd_build_parentage_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_authority_refs": [
+        "kanban:t_df502234",
+        "kanban:t_b70fe698",
+        "kanban:t_4c158581",
+        "specs/microservices/social.json#authority_resolution"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/social/replay/policy/social-build-parentage.fixture.json"],
+      "must_assert": [
+        "Build is parented behind PLAN/SPEC source lock t_df502234",
+        "Build is parented behind RED fixture gate t_b70fe698",
+        "Build allowed path prefix remains oya/social/** plus locked fixture paths",
+        "Build does not hand edit generated JSON; no generated JSON hand edits",
+        "Build does not restore microservices/social/manifest.json",
+        "Build does not create active Foundry or standalone shorts backlog"
+      ],
+      "must_reject": [
+        "Build without source lock parent",
+        "Build without RED fixture parent",
+        "Build outside oya/social/** without serialized integrator",
+        "generated JSON hand edit",
+        "restored retired manifest",
+        "active Foundry backlog",
+        "standalone shorts service fanout"
+      ],
+      "expected_red_status": "RED_UNTIL_SOCIAL_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

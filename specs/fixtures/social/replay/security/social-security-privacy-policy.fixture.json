@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/social-prd-replay-fixture.schema.json",
+  "claim_boundary": "First social workplace slice evidence only: no production readiness, no hyperscaler claim, no UI readiness, no deployment, no durable storage, no live SLO, no generated JSON hand edits, no standalone shorts authority.",
+  "contract_replay_family": "social-prd-first-slice-v1",
+  "coverage_class": "service_local_domain_first_slice",
+  "fixture_id": "social_prd_security_privacy_policy_fixture",
+  "implementation_refs": [
+    "oya/social/crates/oya-social-domain/Cargo.toml",
+    "oya/social/crates/oya-social-domain/src/lib.rs",
+    "oya/social/crates/oya-social-domain/tests/social_workplace_slice.rs"
+  ],
+  "kanban_task": "t_4c158581",
+  "observability_slo_note": "No live SLO or telemetry is claimed; future runtime cards must add measured service metrics before production or hyperscaler claims.",
+  "parent_red_fixture_task": "t_b70fe698",
+  "replay_assertions": [
+    "Cedar policy remains source authority for production authz; this first slice adds a domain fail-closed ContextKind/OwnershipPillar mismatch rejection",
+    "Personal content is not employer-visible through tenant-scoped SocialFeedIndex professional feed/search/Ontology projection, and other tenants' artifacts do not leak into tenant-scoped reads",
+    "KR US EU regional pack runtime behavior is not implemented or claimed by this first slice"
+  ],
+  "replay_rejections": [
+    "runtime or product readiness inferred from this first-slice fixture"
+  ],
+  "replay_status": "passed_first_social_workplace_slice",
+  "rollback_note": "Remove oya/social/crates/oya-social-domain and these specs/fixtures/social/replay artifacts to return to RED metadata-only baseline; no deployed state or durable storage exists.",
+  "source_contract_refs": [
+    "specs/microservices/social.json#acceptance_criteria",
+    "oya/social/contracts/openapi/social.yaml",
+    "oya/social/contracts/asyncapi/social-events.yaml",
+    "oya/social/contracts/proto/social.proto"
+  ],
+  "verification_commands": [
+    "cargo test -p oya-social-domain --test social_workplace_slice",
+    "python3 scripts/tests/social_prd_red_fixture_contract_check.py"
+  ]
+}

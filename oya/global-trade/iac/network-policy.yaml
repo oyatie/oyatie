@@ -1,19 +1,14 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: oya-global-trade-default-deny
-spec:
-  podSelector:
-    matchLabels:
-      app: oya-global-trade
-  policyTypes: [Ingress, Egress]
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              oya-ingress: "true"
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              oya-substrate: "true"
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/iac/network-policy.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no Kubernetes workload authority
+  - no Helm release authority
+  - no Terraform or OpenTofu apply authority
+  - no OpenBao/runtime secret authority
+  - no cloud deployment
+  - no runtime audit-chain emission
+future_gate: separate authority-gated RED/test-first implementation lane required before use

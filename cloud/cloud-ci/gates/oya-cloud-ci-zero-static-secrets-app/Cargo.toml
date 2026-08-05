@@ -1,0 +1,24 @@
+[package]
+name = "oya-cloud-ci-zero-static-secrets-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# cloud-ci-zero-static-secrets: pure gate slice for detecting static credential-shaped
+# literals while allowing bootstrap-only exceptions through explicit policy DATA.
+
+[lib]
+name = "oya_cloud_ci_zero_static_secrets_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

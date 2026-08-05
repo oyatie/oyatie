@@ -37,6 +37,11 @@ pub const OPS_MARKETPLACE_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/marketplac
 pub const OPS_FSH_EVIDENCE_PREFIX: &str = "evidence/cloud-ops/fsh/";
 pub const OPS_AUDIT_CHAIN_PREFIX: &str = "audit-chain/cloud-ops/";
 const CAPACITY_METER_CAPABILITY_ID: &str = "cap.cloud.capacity.commercial";
+pub const CAPACITY_RESOURCE_CONTRACT_SCHEMA_VERSION: u32 = 1;
+const RESOURCE_CONTRACT_POLICY_HOOK_PREFIX: &str = "cap.cloud.capacity.";
+pub const RESOURCE_CONTRACT_OBSERVABILITY_PREFIX: &str = "observability/cloud-ops/capacity/";
+pub const RESOURCE_CONTRACT_ROLLBACK_PREFIX: &str = "rollback/cloud-ops/capacity/";
+pub const RESOURCE_CONTRACT_RECONCILIATION_PREFIX: &str = "reconciliation/cloud-ops/capacity/";
 pub const REQUIRED_STABLE_HEADROOM_BPS: u16 = 3_000;
 pub const MIN_SPOT_INTERRUPTION_NOTICE_SECONDS: u32 = 120;
 pub const MAX_REBALANCE_MOVE_BPS: u16 = 1_000;
@@ -133,6 +138,105 @@ pub enum RebalancePlanState {
     Approved,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum CapacityResourceKind {
+    CapacityReservation,
+    CommittedUseContract,
+    SpotPool,
+    SpotAssignment,
+}
+
+impl CapacityResourceKind {
+    pub const fn resource_type(self) -> &'static str {
+        match self {
+            Self::CapacityReservation => "CapacityReservation",
+            Self::CommittedUseContract => "CommittedUseContract",
+            Self::SpotPool => "SpotPool",
+            Self::SpotAssignment => "SpotAssignment",
+        }
+    }
+
+    const fn audit_event_prefix(self) -> &'static str {
+        match self {
+            Self::CapacityReservation => "capacity_reservation.",
+            Self::CommittedUseContract => "committed_use_contract.",
+            Self::SpotPool => "spot_pool.",
+            Self::SpotAssignment => "spot_assignment.",
+        }
+    }
+
+    fn lifecycle_states(self) -> Vec<String> {
+        match self {
+            Self::CapacityReservation => string_vec(&[
+                "requested",
+                "admitted",
+                "active",
+                "expiring",
+                "expired",
+                "cancelling",
+                "cancelled",
+                "failed",
+            ]),
+            Self::CommittedUseContract => string_vec(&[
+                "requested",
+                "admitted",
+                "active",
+                "expiring",
+                "expired",
+                "cancelling",
+                "cancelled",
+                "failed",
+            ]),
+            Self::SpotPool => string_vec(&["open", "draining", "closed", "failed"]),
+            Self::SpotAssignment => {
+                string_vec(&["requested", "active", "preempting", "terminated", "failed"])
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CapacityResourceContractCreate {
+    pub account_id: String,                      // data_class: INTERNAL_ONLY
+    pub project_id: String,                      // data_class: INTERNAL_ONLY
+    pub resource_group: String,                  // data_class: INTERNAL_ONLY
+    pub owner: String,                           // data_class: INTERNAL_ONLY
+    pub policy_hook: String,                     // data_class: INTERNAL_ONLY
+    pub quota_cost_inputs: Vec<String>,          // data_class: INTERNAL_ONLY
+    pub billing_meters: Vec<String>,             // data_class: FINANCIAL
+    pub audit_events: Vec<String>,               // data_class: AUDIT
+    pub evidence_ref: String,                    // data_class: AUDIT
+    pub observability_ref: String,               // data_class: INTERNAL_ONLY
+    pub observability_inputs: Vec<String>,       // data_class: INTERNAL_ONLY
+    pub rollback_ref: String,                    // data_class: INTERNAL_ONLY
+    pub rollback_state_transitions: Vec<String>, // data_class: INTERNAL_ONLY
+    pub reconciliation_ref: String,              // data_class: INTERNAL_ONLY
+    pub reconciliation_targets: Vec<String>,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CapacityResourceContract {
+    pub resource_kind: Classified<CapacityResourceKind>, // data_class: PUBLIC
+    pub orn: Classified<String>,                         // data_class: INTERNAL_ONLY
+    pub account_id: Classified<String>,                  // data_class: INTERNAL_ONLY
+    pub project_id: Classified<String>,                  // data_class: INTERNAL_ONLY
+    pub resource_group: Classified<String>,              // data_class: INTERNAL_ONLY
+    pub owner: Classified<String>,                       // data_class: INTERNAL_ONLY
+    pub policy_hook: Classified<String>,                 // data_class: INTERNAL_ONLY
+    pub quota_cost_inputs: Classified<Vec<String>>,      // data_class: INTERNAL_ONLY
+    pub billing_meters: Classified<Vec<String>>,         // data_class: FINANCIAL
+    pub audit_events: Classified<Vec<String>>,           // data_class: AUDIT
+    pub evidence_ref: Classified<String>,                // data_class: AUDIT
+    pub observability_ref: Classified<String>,           // data_class: INTERNAL_ONLY
+    pub observability_inputs: Classified<Vec<String>>,   // data_class: INTERNAL_ONLY
+    pub rollback_ref: Classified<String>,                // data_class: INTERNAL_ONLY
+    pub rollback_state_transitions: Classified<Vec<String>>, // data_class: INTERNAL_ONLY
+    pub reconciliation_ref: Classified<String>,          // data_class: INTERNAL_ONLY
+    pub reconciliation_targets: Classified<Vec<String>>, // data_class: INTERNAL_ONLY
+    pub lifecycle_states: Classified<Vec<String>>,       // data_class: PUBLIC
+    pub schema_version: Classified<u32>,                 // data_class: PUBLIC
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CapacitySkuCreate {
     pub id: String,                    // data_class: PUBLIC
@@ -168,6 +272,7 @@ pub struct CapacityReservationCreate {
     pub start_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
     pub data_class: DataClass,           // data_class: FINANCIAL
+    pub contract: CapacityResourceContractCreate,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -183,7 +288,8 @@ pub struct CapacityReservation {
     pub start_epoch_seconds: Classified<u64>,  // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: Classified<u64>,    // data_class: INTERNAL_ONLY
     pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
-    pub schema_version: Classified<u32>,       // data_class: PUBLIC
+    pub contract: CapacityResourceContract,
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -191,12 +297,14 @@ pub struct CommittedUseCreate {
     pub id: String,                      // data_class: INTERNAL_ONLY
     pub tenant_id: String,               // data_class: INTERNAL_ONLY
     pub region: String,                  // data_class: PUBLIC
+    pub cell_id: String,                 // data_class: PUBLIC
     pub term_months: CapacityTermMonths, // data_class: PUBLIC
     pub spend_commitment: Money,         // data_class: FINANCIAL
     pub discount_bps: u16,               // data_class: FINANCIAL
     pub start_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
     pub data_class: DataClass,           // data_class: FINANCIAL
+    pub contract: CapacityResourceContractCreate,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -204,6 +312,7 @@ pub struct CommittedUseContract {
     pub id: Classified<CommitmentId>,   // data_class: INTERNAL_ONLY
     pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
     pub region: Classified<RegionCode>, // data_class: PUBLIC
+    pub cell_id: Classified<CellId>,    // data_class: PUBLIC
     pub term_months: Classified<CapacityTermMonths>, // data_class: PUBLIC
     pub spend_commitment: Classified<Money>, // data_class: FINANCIAL
     pub discount_bps: Classified<u16>,  // data_class: FINANCIAL
@@ -211,22 +320,26 @@ pub struct CommittedUseContract {
     pub start_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub end_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
+    pub contract: CapacityResourceContract,
     pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SpotPoolCreate {
     pub id: String,                       // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                // data_class: INTERNAL_ONLY
     pub sku_id: String,                   // data_class: PUBLIC
     pub available_units: CapacityUnits,   // data_class: PUBLIC
     pub current_price: Money,             // data_class: FINANCIAL
     pub interruption_notice_seconds: u32, // data_class: PUBLIC
     pub data_class: DataClass,            // data_class: PUBLIC
+    pub contract: CapacityResourceContractCreate,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SpotPool {
     pub id: Classified<SpotPoolId>,        // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,     // data_class: INTERNAL_ONLY
     pub sku_id: Classified<CapacitySkuId>, // data_class: PUBLIC
     pub region: Classified<RegionCode>,    // data_class: PUBLIC
     pub cell_id: Classified<CellId>,       // data_class: PUBLIC
@@ -235,7 +348,8 @@ pub struct SpotPool {
     pub interruption_notice_seconds: Classified<u32>, // data_class: PUBLIC
     pub state: Classified<SpotPoolState>,  // data_class: PUBLIC
     pub data_class: Classified<PrivacyDataClass>, // data_class: PUBLIC
-    pub schema_version: Classified<u32>,   // data_class: PUBLIC
+    pub contract: CapacityResourceContract,
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -247,6 +361,7 @@ pub struct SpotAssignmentCreate {
     pub max_price: Money,                // data_class: FINANCIAL
     pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
     pub data_class: DataClass,           // data_class: FINANCIAL
+    pub contract: CapacityResourceContractCreate,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -262,7 +377,8 @@ pub struct SpotAssignment {
     pub state: Classified<SpotAssignmentState>, // data_class: INTERNAL_ONLY
     pub requested_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
     pub data_class: Classified<PrivacyDataClass>, // data_class: FINANCIAL
-    pub schema_version: Classified<u32>,  // data_class: PUBLIC
+    pub contract: CapacityResourceContract,
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -368,6 +484,14 @@ pub enum CloudCapacityError {
     InvalidRebalanceMove,
     InvalidOpsEvidenceRef,
     InvalidAuditChainRef,
+    InvalidResourceIdentity,
+    InvalidPolicyHook,
+    InvalidQuotaCostInput,
+    InvalidBillingMeter,
+    InvalidAuditEvent,
+    InvalidObservabilityInput,
+    InvalidRollbackMetadata,
+    InvalidReconciliationMetadata,
     UnknownSku,
     UnknownSpotPool,
     DuplicateSku,
@@ -500,6 +624,105 @@ impl ApprovalRef {
     }
 }
 
+impl CapacityResourceContract {
+    fn new(
+        resource_kind: CapacityResourceKind,
+        tenant_id: &str,
+        region: &RegionCode,
+        cell_id: &CellId,
+        resource_id: &str,
+        input: CapacityResourceContractCreate,
+    ) -> Result<Self, CloudCapacityError> {
+        let account_id = validate_contract_identity(input.account_id)?;
+        let project_id = validate_contract_identity(input.project_id)?;
+        let resource_group = validate_contract_identity(input.resource_group)?;
+        let owner = validate_contract_identity(input.owner)?;
+        let policy_hook = validate_policy_hook(input.policy_hook)?;
+        let quota_cost_inputs = validate_contract_items(
+            input.quota_cost_inputs,
+            CloudCapacityError::InvalidQuotaCostInput,
+        )?;
+        let billing_meters = validate_contract_items(
+            input.billing_meters,
+            CloudCapacityError::InvalidBillingMeter,
+        )?;
+        let audit_events = validate_audit_events(resource_kind, input.audit_events)?;
+        let evidence_ref = validate_scoped_ref(
+            &input.evidence_ref,
+            OPS_CAPACITY_EVIDENCE_PREFIX,
+            tenant_id,
+            region,
+            cell_id,
+            CloudCapacityError::InvalidOpsEvidenceRef,
+        )?;
+        let observability_ref = validate_scoped_ref(
+            &input.observability_ref,
+            RESOURCE_CONTRACT_OBSERVABILITY_PREFIX,
+            tenant_id,
+            region,
+            cell_id,
+            CloudCapacityError::InvalidObservabilityInput,
+        )?;
+        let observability_inputs = validate_contract_items(
+            input.observability_inputs,
+            CloudCapacityError::InvalidObservabilityInput,
+        )?;
+        let rollback_ref = validate_scoped_ref(
+            &input.rollback_ref,
+            RESOURCE_CONTRACT_ROLLBACK_PREFIX,
+            tenant_id,
+            region,
+            cell_id,
+            CloudCapacityError::InvalidRollbackMetadata,
+        )?;
+        let rollback_state_transitions = validate_contract_items(
+            input.rollback_state_transitions,
+            CloudCapacityError::InvalidRollbackMetadata,
+        )?;
+        let reconciliation_ref = validate_scoped_ref(
+            &input.reconciliation_ref,
+            RESOURCE_CONTRACT_RECONCILIATION_PREFIX,
+            tenant_id,
+            region,
+            cell_id,
+            CloudCapacityError::InvalidReconciliationMetadata,
+        )?;
+        let reconciliation_targets = validate_contract_items(
+            input.reconciliation_targets,
+            CloudCapacityError::InvalidReconciliationMetadata,
+        )?;
+        let orn = format!(
+            "orn:oya:{}:{}:cloud-capacity:{}/{}",
+            region.value,
+            account_id,
+            resource_kind.resource_type(),
+            resource_id
+        );
+
+        Ok(Self {
+            resource_kind: public(resource_kind),
+            orn: internal(orn),
+            account_id: internal(account_id),
+            project_id: internal(project_id),
+            resource_group: internal(resource_group),
+            owner: internal(owner),
+            policy_hook: internal(policy_hook),
+            quota_cost_inputs: internal(quota_cost_inputs),
+            billing_meters: financial(billing_meters),
+            audit_events: audit(audit_events),
+            evidence_ref: audit(evidence_ref),
+            observability_ref: internal(observability_ref),
+            observability_inputs: internal(observability_inputs),
+            rollback_ref: internal(rollback_ref),
+            rollback_state_transitions: internal(rollback_state_transitions),
+            reconciliation_ref: internal(reconciliation_ref),
+            reconciliation_targets: internal(reconciliation_targets),
+            lifecycle_states: public(resource_kind.lifecycle_states()),
+            schema_version: public(CAPACITY_RESOURCE_CONTRACT_SCHEMA_VERSION),
+        })
+    }
+}
+
 impl CapacityTermMonths {
     pub const fn months(self) -> u64 {
         match self {
@@ -552,8 +775,17 @@ impl CapacityReservation {
             return Err(CloudCapacityError::UnknownSku);
         }
         validate_reservation_headroom(cell_capacity, input.units)?;
+        let reservation_id = CapacityReservationId::new(input.id)?;
+        let contract = CapacityResourceContract::new(
+            CapacityResourceKind::CapacityReservation,
+            &input.tenant_id,
+            &sku.region.value,
+            &sku.cell_id.value,
+            &reservation_id.value,
+            input.contract,
+        )?;
         Ok(Self {
-            id: internal(CapacityReservationId::new(input.id)?),
+            id: internal(reservation_id),
             tenant_id: internal(input.tenant_id),
             sku_id: public(sku_id),
             region: public(sku.region.value.clone()),
@@ -564,6 +796,7 @@ impl CapacityReservation {
             start_epoch_seconds: internal(input.start_epoch_seconds),
             end_epoch_seconds: internal(input.end_epoch_seconds),
             data_class: financial_class(input.data_class)?,
+            contract,
             schema_version: public(CAPACITY_SCHEMA_VERSION),
         })
     }
@@ -614,12 +847,24 @@ impl CommittedUseContract {
         if input.discount_bps == 0 || input.discount_bps > 6_000 {
             return Err(CloudCapacityError::InvalidDiscount);
         }
+        let commitment_id = CommitmentId::new(input.id)?;
+        let region =
+            RegionCode::new(input.region).map_err(|_| CloudCapacityError::InvalidRegion)?;
+        let cell_id = CellId::new(input.cell_id).map_err(|_| CloudCapacityError::InvalidCellId)?;
+        validate_cell_region(&cell_id, &region)?;
+        let contract = CapacityResourceContract::new(
+            CapacityResourceKind::CommittedUseContract,
+            &input.tenant_id,
+            &region,
+            &cell_id,
+            &commitment_id.value,
+            input.contract,
+        )?;
         Ok(Self {
-            id: internal(CommitmentId::new(input.id)?),
+            id: internal(commitment_id),
             tenant_id: internal(input.tenant_id),
-            region: public(
-                RegionCode::new(input.region).map_err(|_| CloudCapacityError::InvalidRegion)?,
-            ),
+            region: public(region),
+            cell_id: public(cell_id),
             term_months: public(input.term_months),
             spend_commitment: financial(input.spend_commitment),
             discount_bps: financial(input.discount_bps),
@@ -627,6 +872,7 @@ impl CommittedUseContract {
             start_epoch_seconds: internal(input.start_epoch_seconds),
             end_epoch_seconds: internal(input.end_epoch_seconds),
             data_class: financial_class(input.data_class)?,
+            contract,
             schema_version: public(CAPACITY_SCHEMA_VERSION),
         })
     }
@@ -664,6 +910,7 @@ impl CommittedUseContract {
 
 impl SpotPool {
     pub fn open(sku: &CapacitySku, input: SpotPoolCreate) -> Result<Self, CloudCapacityError> {
+        validate_tenant_id(&input.tenant_id)?;
         validate_units(input.available_units)?;
         validate_units_match_sku_shape(input.available_units, sku.unit.value)?;
         validate_money(&input.current_price)?;
@@ -674,8 +921,18 @@ impl SpotPool {
         if sku_id != sku.id.value {
             return Err(CloudCapacityError::UnknownSku);
         }
+        let pool_id = SpotPoolId::new(input.id)?;
+        let contract = CapacityResourceContract::new(
+            CapacityResourceKind::SpotPool,
+            &input.tenant_id,
+            &sku.region.value,
+            &sku.cell_id.value,
+            &pool_id.value,
+            input.contract,
+        )?;
         Ok(Self {
-            id: internal(SpotPoolId::new(input.id)?),
+            id: internal(pool_id),
+            tenant_id: internal(input.tenant_id),
             sku_id: public(sku_id),
             region: public(sku.region.value.clone()),
             cell_id: public(sku.cell_id.value.clone()),
@@ -684,6 +941,7 @@ impl SpotPool {
             interruption_notice_seconds: public(input.interruption_notice_seconds),
             state: public(SpotPoolState::Open),
             data_class: public_class(input.data_class)?,
+            contract,
             schema_version: public(CAPACITY_SCHEMA_VERSION),
         })
     }
@@ -714,8 +972,17 @@ impl SpotAssignment {
         {
             return Err(CloudCapacityError::InvalidSpotPrice);
         }
+        let assignment_id = SpotAssignmentId::new(input.id)?;
+        let contract = CapacityResourceContract::new(
+            CapacityResourceKind::SpotAssignment,
+            &input.tenant_id,
+            &pool.region.value,
+            &pool.cell_id.value,
+            &assignment_id.value,
+            input.contract,
+        )?;
         Ok(Self {
-            id: internal(SpotAssignmentId::new(input.id)?),
+            id: internal(assignment_id),
             tenant_id: internal(input.tenant_id),
             spot_pool_id: internal(pool.id.value.clone()),
             sku_id: public(pool.sku_id.value.clone()),
@@ -726,6 +993,7 @@ impl SpotAssignment {
             state: internal(SpotAssignmentState::Active),
             requested_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
             data_class: financial_class(input.data_class)?,
+            contract,
             schema_version: public(CAPACITY_SCHEMA_VERSION),
         })
     }
@@ -1008,6 +1276,60 @@ impl CloudCapacityCatalog {
     }
     pub fn meter_events(&self) -> impl Iterator<Item = &MeterEvent> {
         self.meter.events()
+    }
+}
+
+fn string_vec(values: &[&str]) -> Vec<String> {
+    values.iter().map(|value| (*value).to_string()).collect()
+}
+
+fn validate_contract_identity(value: String) -> Result<String, CloudCapacityError> {
+    validate_contract_value(&value, &CloudCapacityError::InvalidResourceIdentity)?;
+    Ok(value)
+}
+
+fn validate_policy_hook(value: String) -> Result<String, CloudCapacityError> {
+    if !value.starts_with(RESOURCE_CONTRACT_POLICY_HOOK_PREFIX) {
+        return Err(CloudCapacityError::InvalidPolicyHook);
+    }
+    validate_contract_value(&value, &CloudCapacityError::InvalidPolicyHook)?;
+    Ok(value)
+}
+
+fn validate_contract_items(
+    values: Vec<String>,
+    error: CloudCapacityError,
+) -> Result<Vec<String>, CloudCapacityError> {
+    if values.is_empty() {
+        return Err(error);
+    }
+    for value in &values {
+        validate_contract_value(value, &error)?;
+    }
+    Ok(values)
+}
+
+fn validate_audit_events(
+    resource_kind: CapacityResourceKind,
+    values: Vec<String>,
+) -> Result<Vec<String>, CloudCapacityError> {
+    let values = validate_contract_items(values, CloudCapacityError::InvalidAuditEvent)?;
+    let prefix = resource_kind.audit_event_prefix();
+    if values.iter().all(|value| value.starts_with(prefix)) {
+        Ok(values)
+    } else {
+        Err(CloudCapacityError::InvalidAuditEvent)
+    }
+}
+
+fn validate_contract_value(
+    value: &str,
+    error: &CloudCapacityError,
+) -> Result<(), CloudCapacityError> {
+    if value.is_empty() || has_unsafe_ref_bytes(value) || has_secret_marker(value) {
+        Err(error.clone())
+    } else {
+        Ok(())
     }
 }
 
@@ -1447,6 +1769,7 @@ mod tests {
             start_epoch_seconds: 1_700_000_100,
             end_epoch_seconds: 1_732_000_100,
             data_class: DataClass::Financial,
+            contract: contract_create("capacity_reservation"),
         }
     }
 
@@ -1455,23 +1778,82 @@ mod tests {
             id: "cuc_ten_alpha_12m".to_string(),
             tenant_id: "ten_alpha".to_string(),
             region: "region-alpha".to_string(),
+            cell_id: "cell-region-alpha-a-001".to_string(),
             term_months: CapacityTermMonths::Twelve,
             spend_commitment: Money::new("OYC", 100_000_000).expect("money"),
             discount_bps: 2_000,
             start_epoch_seconds: 1_700_000_100,
             end_epoch_seconds: 1_732_000_100,
             data_class: DataClass::Financial,
+            contract: contract_create("committed_use_contract"),
         }
     }
 
     fn spot_pool_create() -> SpotPoolCreate {
         SpotPoolCreate {
             id: "spot_gp_region_alpha_a".to_string(),
+            tenant_id: "ten_alpha".to_string(),
             sku_id: "csku_gp_region_alpha_a".to_string(),
             available_units: units(200, 800),
             current_price: Money::new("OYC", 30_000).expect("money"),
             interruption_notice_seconds: 120,
             data_class: DataClass::Public,
+            contract: contract_create("spot_pool"),
+        }
+    }
+
+    fn spot_assignment_create(
+        id: &str,
+        units: CapacityUnits,
+        max_price: Money,
+    ) -> SpotAssignmentCreate {
+        SpotAssignmentCreate {
+            id: id.to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            spot_pool_id: "spot_gp_region_alpha_a".to_string(),
+            units,
+            max_price,
+            requested_at_epoch_seconds: 1_700_000_300,
+            data_class: DataClass::Financial,
+            contract: contract_create("spot_assignment"),
+        }
+    }
+
+    fn contract_create(resource: &str) -> CapacityResourceContractCreate {
+        CapacityResourceContractCreate {
+            account_id: "acct_alpha".to_string(),
+            project_id: "proj_capacity".to_string(),
+            resource_group: "rg_capacity".to_string(),
+            owner: "team_cloud_capacity".to_string(),
+            policy_hook: format!("cap.cloud.capacity.{resource}.mutate"),
+            quota_cost_inputs: vec![
+                "units".to_string(),
+                "sku_id".to_string(),
+                "cell_budget".to_string(),
+            ],
+            billing_meters: vec![format!("{resource}_unit_seconds")],
+            audit_events: vec![
+                format!("{resource}.requested"),
+                format!("{resource}.rollback_recorded"),
+            ],
+            evidence_ref: format!(
+                "evidence/cloud-ops/capacity/ten_alpha/region-alpha/cell-region-alpha-a-001/{resource}/contract"
+            ),
+            observability_ref: format!(
+                "observability/cloud-ops/capacity/ten_alpha/region-alpha/cell-region-alpha-a-001/{resource}/signals"
+            ),
+            observability_inputs: vec!["headroom_bps".to_string(), "utilization_bps".to_string()],
+            rollback_ref: format!(
+                "rollback/cloud-ops/capacity/ten_alpha/region-alpha/cell-region-alpha-a-001/{resource}/transitions"
+            ),
+            rollback_state_transitions: vec!["active->cancelled".to_string()],
+            reconciliation_ref: format!(
+                "reconciliation/cloud-ops/capacity/ten_alpha/region-alpha/cell-region-alpha-a-001/{resource}/desired-vs-actual"
+            ),
+            reconciliation_targets: vec![
+                "resource_registry".to_string(),
+                "quota_ledger".to_string(),
+            ],
         }
     }
 
@@ -1569,15 +1951,11 @@ mod tests {
             .expect("spot pool");
         assert_eq!(pool.state.value, SpotPoolState::Open);
         let assignment = catalog
-            .assign_spot_capacity(SpotAssignmentCreate {
-                id: "spota_ten_alpha_gp".to_string(),
-                tenant_id: "ten_alpha".to_string(),
-                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
-                units: units(20, 80),
-                max_price: Money::new("OYC", 35_000).expect("money"),
-                requested_at_epoch_seconds: 1_700_000_300,
-                data_class: DataClass::Financial,
-            })
+            .assign_spot_capacity(spot_assignment_create(
+                "spota_ten_alpha_gp",
+                units(20, 80),
+                Money::new("OYC", 35_000).expect("money"),
+            ))
             .expect("spot assignment");
         assert_eq!(assignment.state.value, SpotAssignmentState::Active);
         assert_eq!(
@@ -1602,12 +1980,13 @@ mod tests {
         let price_error = catalog
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_low_price".to_string(),
-                tenant_id: "ten_alpha".to_string(),
-                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
-                units: units(20, 80),
-                max_price: Money::new("OYC", 20_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_301,
-                data_class: DataClass::Financial,
+                max_price: Money::new("OYC", 20_000).expect("money"),
+                ..spot_assignment_create(
+                    "spota_low_price_base",
+                    units(20, 80),
+                    Money::new("OYC", 35_000).expect("money"),
+                )
             })
             .expect_err("spot max price must cover current price");
         assert_eq!(price_error, CloudCapacityError::InvalidSpotPrice);
@@ -1615,15 +1994,171 @@ mod tests {
         let capacity_error = catalog
             .assign_spot_capacity(SpotAssignmentCreate {
                 id: "spota_too_large".to_string(),
-                tenant_id: "ten_alpha".to_string(),
-                spot_pool_id: "spot_gp_region_alpha_a".to_string(),
-                units: units(300, 1_200),
-                max_price: Money::new("OYC", 35_000).expect("money"),
                 requested_at_epoch_seconds: 1_700_000_302,
-                data_class: DataClass::Financial,
+                ..spot_assignment_create(
+                    "spota_too_large_base",
+                    units(300, 1_200),
+                    Money::new("OYC", 35_000).expect("money"),
+                )
             })
             .expect_err("spot assignment cannot exceed debited pool capacity");
         assert_eq!(capacity_error, CloudCapacityError::InvalidSpotCapacity);
+    }
+
+    #[test]
+    fn reservation_commitment_and_spot_contracts_expose_control_plane_facets() {
+        let mut catalog = seeded_catalog();
+        let reservation = catalog
+            .purchase_reservation(envelope(), reservation_create())
+            .expect("reservation");
+        assert_eq!(
+            reservation.contract.resource_kind.value,
+            CapacityResourceKind::CapacityReservation
+        );
+        assert_eq!(
+            reservation.contract.orn.value,
+            "orn:oya:region-alpha:acct_alpha:cloud-capacity:CapacityReservation/cres_ten_alpha_gp"
+        );
+        assert!(
+            reservation
+                .contract
+                .lifecycle_states
+                .value
+                .iter()
+                .any(|state| state == "requested")
+        );
+        assert!(
+            reservation
+                .contract
+                .quota_cost_inputs
+                .value
+                .iter()
+                .any(|input| input == "cell_budget")
+        );
+        assert!(
+            reservation
+                .contract
+                .billing_meters
+                .value
+                .iter()
+                .any(|meter| meter == "capacity_reservation_unit_seconds")
+        );
+        assert!(
+            reservation
+                .contract
+                .audit_events
+                .value
+                .iter()
+                .any(|event| event == "capacity_reservation.rollback_recorded")
+        );
+        assert!(
+            reservation
+                .contract
+                .observability_inputs
+                .value
+                .iter()
+                .any(|input| input == "headroom_bps")
+        );
+        assert!(
+            reservation
+                .contract
+                .rollback_state_transitions
+                .value
+                .iter()
+                .any(|transition| transition == "active->cancelled")
+        );
+        assert!(
+            reservation
+                .contract
+                .reconciliation_targets
+                .value
+                .iter()
+                .any(|target| target == "quota_ledger")
+        );
+
+        let commitment = catalog
+            .purchase_commitment(commitment_create())
+            .expect("commitment");
+        assert_eq!(commitment.cell_id.value.value, "cell-region-alpha-a-001");
+        assert_eq!(
+            commitment.contract.orn.value,
+            "orn:oya:region-alpha:acct_alpha:cloud-capacity:CommittedUseContract/cuc_ten_alpha_12m"
+        );
+        assert!(
+            commitment
+                .contract
+                .audit_events
+                .value
+                .iter()
+                .any(|event| event == "committed_use_contract.requested")
+        );
+
+        let pool = catalog
+            .open_spot_pool(spot_pool_create())
+            .expect("spot pool");
+        assert_eq!(pool.tenant_id.value, "ten_alpha");
+        assert_eq!(
+            pool.contract.orn.value,
+            "orn:oya:region-alpha:acct_alpha:cloud-capacity:SpotPool/spot_gp_region_alpha_a"
+        );
+
+        let assignment = catalog
+            .assign_spot_capacity(spot_assignment_create(
+                "spota_ten_alpha_contract",
+                units(20, 80),
+                Money::new("OYC", 35_000).expect("money"),
+            ))
+            .expect("spot assignment");
+        assert_eq!(
+            assignment.contract.resource_kind.value,
+            CapacityResourceKind::SpotAssignment
+        );
+        assert_eq!(
+            assignment.contract.orn.value,
+            "orn:oya:region-alpha:acct_alpha:cloud-capacity:SpotAssignment/spota_ten_alpha_contract"
+        );
+        assert!(
+            assignment
+                .contract
+                .lifecycle_states
+                .value
+                .iter()
+                .any(|state| state == "preempting")
+        );
+    }
+
+    #[test]
+    fn resource_contract_metadata_rejects_unscoped_refs_and_wrong_audit_prefix() {
+        let mut catalog = seeded_catalog();
+        let scoped_error = catalog
+            .purchase_reservation(
+                envelope(),
+                CapacityReservationCreate {
+                    id: "cres_bad_evidence".to_string(),
+                    contract: CapacityResourceContractCreate {
+                        evidence_ref: "evidence/cloud-ops/capacity/ten_other/region-alpha/cell-region-alpha-a-001/capacity_reservation/contract".to_string(),
+                        ..contract_create("capacity_reservation")
+                    },
+                    ..reservation_create()
+                },
+            )
+            .expect_err("contract evidence refs must be scoped to tenant/region/cell");
+        assert_eq!(scoped_error, CloudCapacityError::InvalidOpsEvidenceRef);
+
+        let audit_error = catalog
+            .purchase_reservation(
+                envelope(),
+                CapacityReservationCreate {
+                    id: "cres_bad_audit".to_string(),
+                    contract: CapacityResourceContractCreate {
+                        audit_events: vec!["spot_pool.requested".to_string()],
+                        ..contract_create("capacity_reservation")
+                    },
+                    ..reservation_create()
+                },
+            )
+            .expect_err("capacity reservation audit events must use reservation prefix");
+        assert_eq!(audit_error, CloudCapacityError::InvalidAuditEvent);
     }
 
     #[test]

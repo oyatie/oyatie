@@ -1,0 +1,19 @@
+rust_library(
+    name = "oya-hr-employment-storage-adapter-postgres",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_hr_employment_storage_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "oya-hr-employment-storage-adapter-postgres-storage",
+    srcs = ["tests/storage.rs"],
+    crate = "oya_hr_employment_storage_adapter_postgres_storage",
+    crate_root = "tests/storage.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-storage-adapter-postgres",
+    ],
+)

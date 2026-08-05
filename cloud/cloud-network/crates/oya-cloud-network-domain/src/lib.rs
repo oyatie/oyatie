@@ -496,6 +496,153 @@ pub struct DnsZone {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkResourceType {
+    Vpc,
+    Subnet,
+    SecurityGroup,
+    LoadBalancerL4,
+    LoadBalancerL7,
+    Gateway,
+}
+
+impl NetworkResourceType {
+    pub const fn contract_label(self) -> &'static str {
+        match self {
+            Self::Vpc => "vpc",
+            Self::Subnet => "subnet",
+            Self::SecurityGroup => "security-group",
+            Self::LoadBalancerL4 => "load-balancer-l4",
+            Self::LoadBalancerL7 => "load-balancer-l7",
+            Self::Gateway => "gateway",
+        }
+    }
+
+    pub const fn registry_kind(self) -> Option<ResourceKind> {
+        match self {
+            Self::Vpc => Some(ResourceKind::Vpc),
+            Self::Subnet => Some(ResourceKind::Subnet),
+            Self::LoadBalancerL4 => Some(ResourceKind::LoadBalancer(LbProtocol::L4)),
+            Self::LoadBalancerL7 => Some(ResourceKind::LoadBalancer(LbProtocol::L7)),
+            Self::SecurityGroup | Self::Gateway => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NetworkResourceScope {
+    FirstClassResource,
+    VpcChild {
+        parent_vpc_id: String, // data_class: INTERNAL_ONLY
+        child_path: String,    // data_class: INTERNAL_ONLY
+    },
+    Network001BoundaryReference {
+        authoritative_task_id: String, // data_class: INTERNAL_ONLY
+        decision_ref: String,          // data_class: INTERNAL_ONLY
+    },
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkOperationKind {
+    Create,
+    Update,
+    Delete,
+    Reconcile,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkSloTier {
+    ControlPlaneMetadataOnly,
+    ResourceCritical,
+    BestEffort,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum NetworkResourceFacet {
+    LifecycleLroEnvelope,
+    IdentityBinding,
+    PolicyReference,
+    QuotaReservation,
+    BillingMeterIntent,
+    AuditEventEnvelope,
+    ObservabilityHooks,
+    RollbackCompensation,
+    DesiredActualReconciliation,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkResourceContractCreate {
+    pub resource_type: NetworkResourceType,   // data_class: PUBLIC
+    pub resource_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
+    pub account_id: String,                   // data_class: INTERNAL_ONLY
+    pub project_id: String,                   // data_class: INTERNAL_ONLY
+    pub resource_group_id: String,            // data_class: INTERNAL_ONLY
+    pub region: String,                       // data_class: PUBLIC
+    pub cell_id: String,                      // data_class: PUBLIC
+    pub owner_principal: String,              // data_class: INTERNAL_ONLY
+    pub scope: NetworkResourceScope,          // data_class: INTERNAL_ONLY
+    pub operation_kind: NetworkOperationKind, // data_class: PUBLIC
+    pub operation_id: String,                 // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,              // data_class: INTERNAL_ONLY
+    pub policy_ref: String,                   // data_class: INTERNAL_ONLY
+    pub quota_cost_units: u32,                // data_class: PUBLIC
+    pub quota_reservation_ref: Option<String>, // data_class: INTERNAL_ONLY
+    pub quota_refusal_reason: Option<String>, // data_class: INTERNAL_ONLY
+    pub billing_meters: Vec<String>,          // data_class: INTERNAL_ONLY
+    pub meter_event_intent_ref: String,       // data_class: INTERNAL_ONLY
+    pub audit_event_class: String,            // data_class: INTERNAL_ONLY
+    pub audit_event_ref: String,              // data_class: INTERNAL_ONLY
+    pub slo_tier: NetworkSloTier,             // data_class: PUBLIC
+    pub metric_hook_names: Vec<String>,       // data_class: INTERNAL_ONLY
+    pub trace_hook_names: Vec<String>,        // data_class: INTERNAL_ONLY
+    pub measured_slo_claimed: bool,           // data_class: PUBLIC
+    pub rollback_plan_ref: String,            // data_class: INTERNAL_ONLY
+    pub compensating_action: String,          // data_class: INTERNAL_ONLY
+    pub desired_state: String,                // data_class: PUBLIC
+    pub actual_state: String,                 // data_class: PUBLIC
+    pub reconciliation_status: String,        // data_class: PUBLIC
+    pub live_resource_registry_claimed: bool, // data_class: PUBLIC
+    pub live_operation_ledger_claimed: bool,  // data_class: PUBLIC
+    pub live_reconciler_claimed: bool,        // data_class: PUBLIC
+    pub live_provider_apply_claimed: bool,    // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NetworkResourceContract {
+    resource_type: NetworkResourceType,
+    resource_id: String,
+    orn: String, // data_class: INTERNAL_ONLY
+    tenant_id: String,
+    account_id: String,
+    project_id: String,
+    resource_group_id: String,
+    region: RegionCode,
+    cell_id: CellId,
+    owner_principal: PrincipalId,
+    scope: NetworkResourceScope,
+    operation_kind: NetworkOperationKind,
+    operation_id: String,
+    idempotency_key: String,
+    policy_ref: String,
+    quota_cost_units: u32,
+    quota_reservation_ref: Option<String>,
+    quota_refusal_reason: Option<String>,
+    billing_meters: Vec<String>,
+    meter_event_intent_ref: String,
+    audit_event_class: String,
+    audit_event_ref: String,
+    slo_tier: NetworkSloTier,
+    metric_hook_names: Vec<String>,
+    trace_hook_names: Vec<String>,
+    rollback_plan_ref: String,
+    compensating_action: String,
+    desired_state: String,
+    actual_state: String,
+    reconciliation_status: String,
+    facets: Vec<NetworkResourceFacet>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CdnOriginKind {
     LoadBalancer,
     DnsZone,
@@ -789,6 +936,7 @@ pub enum NetworkProviderKind {
     OciDnsZone,
     OciFastConnect,
     SelfHostedColoVpc,
+    SelfHostedColoLoadBalancer,
     SelfHostedColoDnsZone,
 }
 
@@ -800,6 +948,7 @@ impl NetworkProviderKind {
             Self::OciDnsZone => "oci_dns_zone",
             Self::OciFastConnect => "oci_fast_connect",
             Self::SelfHostedColoVpc => "selfhosted_colo_vpc",
+            Self::SelfHostedColoLoadBalancer => "selfhosted_colo_load_balancer",
             Self::SelfHostedColoDnsZone => "selfhosted_colo_dns_zone",
         }
     }
@@ -1169,6 +1318,16 @@ pub enum CloudNetworkError {
     /// A CIDR string stored directly in an `Ipv4Cidr` or `Ipv6Cidr` value
     /// field could not be parsed (e.g. bypassed the constructor).
     InvalidCidrPrefix,
+    InvalidResourceContractPolicyRef,
+    InvalidResourceContractQuota,
+    InvalidResourceContractBillingMeter,
+    InvalidResourceContractAuditEvent,
+    InvalidResourceContractObservabilityHook,
+    InvalidResourceContractRollbackPlan,
+    InvalidResourceContractReconciliationStatus,
+    InvalidResourceContractScope,
+    ResourceContractRuntimeClaimOutOfScope,
+    ResourceContractMeasuredSloClaimOutOfScope,
 }
 
 /// The direction + L4 attributes of a network flow to be evaluated against a
@@ -1577,6 +1736,520 @@ impl LbKind {
 
     pub const fn requires_mtls(self) -> bool {
         matches!(self, Self::L7Grpc)
+    }
+}
+
+impl NetworkResourceContract {
+    pub fn new(input: NetworkResourceContractCreate) -> Result<Self, CloudNetworkError> {
+        validate_network_resource_contract_create(&input)?;
+        let resource_id = input.resource_id.clone();
+        let region = RegionCode::new(input.region.clone())
+            .map_err(|_| CloudNetworkError::InvalidResourceId)?;
+        let cell_id =
+            CellId::new(input.cell_id.clone()).map_err(|_| CloudNetworkError::InvalidCellId)?;
+        let owner_principal =
+            PrincipalId::new(input.owner_principal.clone()).map_err(map_resource_error)?;
+        let orn = format!(
+            "orn:oya:{}:{}:cloud-network:{}/{}",
+            region.value,
+            input.account_id,
+            input.resource_type.contract_label(),
+            resource_id
+        );
+        Ok(Self {
+            resource_type: input.resource_type,
+            resource_id,
+            orn,
+            tenant_id: input.tenant_id,
+            account_id: input.account_id,
+            project_id: input.project_id,
+            resource_group_id: input.resource_group_id,
+            region,
+            cell_id,
+            owner_principal,
+            scope: input.scope,
+            operation_kind: input.operation_kind,
+            operation_id: input.operation_id,
+            idempotency_key: input.idempotency_key,
+            policy_ref: input.policy_ref,
+            quota_cost_units: input.quota_cost_units,
+            quota_reservation_ref: input.quota_reservation_ref,
+            quota_refusal_reason: input.quota_refusal_reason,
+            billing_meters: input.billing_meters,
+            meter_event_intent_ref: input.meter_event_intent_ref,
+            audit_event_class: input.audit_event_class,
+            audit_event_ref: input.audit_event_ref,
+            slo_tier: input.slo_tier,
+            metric_hook_names: input.metric_hook_names,
+            trace_hook_names: input.trace_hook_names,
+            rollback_plan_ref: input.rollback_plan_ref,
+            compensating_action: input.compensating_action,
+            desired_state: input.desired_state,
+            actual_state: input.actual_state,
+            reconciliation_status: input.reconciliation_status,
+            facets: vec![
+                NetworkResourceFacet::LifecycleLroEnvelope,
+                NetworkResourceFacet::IdentityBinding,
+                NetworkResourceFacet::PolicyReference,
+                NetworkResourceFacet::QuotaReservation,
+                NetworkResourceFacet::BillingMeterIntent,
+                NetworkResourceFacet::AuditEventEnvelope,
+                NetworkResourceFacet::ObservabilityHooks,
+                NetworkResourceFacet::RollbackCompensation,
+                NetworkResourceFacet::DesiredActualReconciliation,
+            ],
+        })
+    }
+
+    pub fn facets(&self) -> &[NetworkResourceFacet] {
+        &self.facets
+    }
+
+    pub fn resource_type(&self) -> NetworkResourceType {
+        self.resource_type
+    }
+
+    pub fn resource_id(&self) -> &str {
+        &self.resource_id
+    }
+
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
+
+    pub fn account_id(&self) -> &str {
+        &self.account_id
+    }
+
+    pub fn project_id(&self) -> &str {
+        &self.project_id
+    }
+
+    pub fn resource_group_id(&self) -> &str {
+        &self.resource_group_id
+    }
+
+    pub fn region(&self) -> &str {
+        &self.region.value
+    }
+
+    pub fn cell_id(&self) -> &str {
+        &self.cell_id.value
+    }
+
+    pub fn owner_principal(&self) -> &str {
+        &self.owner_principal.value
+    }
+
+    pub fn operation_kind(&self) -> NetworkOperationKind {
+        self.operation_kind
+    }
+
+    pub fn operation_id(&self) -> &str {
+        &self.operation_id
+    }
+
+    pub fn idempotency_key(&self) -> &str {
+        &self.idempotency_key
+    }
+
+    pub fn policy_ref(&self) -> &str {
+        &self.policy_ref
+    }
+
+    pub fn quota_cost_units(&self) -> u32 {
+        self.quota_cost_units
+    }
+
+    pub fn quota_reservation_ref(&self) -> Option<&str> {
+        self.quota_reservation_ref.as_deref()
+    }
+
+    pub fn quota_refusal_reason(&self) -> Option<&str> {
+        self.quota_refusal_reason.as_deref()
+    }
+
+    pub fn billing_meters(&self) -> &[String] {
+        &self.billing_meters
+    }
+
+    pub fn meter_event_intent_ref(&self) -> &str {
+        &self.meter_event_intent_ref
+    }
+
+    pub fn audit_event_class(&self) -> &str {
+        &self.audit_event_class
+    }
+
+    pub fn audit_event_ref(&self) -> &str {
+        &self.audit_event_ref
+    }
+
+    pub fn slo_tier(&self) -> NetworkSloTier {
+        self.slo_tier
+    }
+
+    pub fn metric_hook_names(&self) -> &[String] {
+        &self.metric_hook_names
+    }
+
+    pub fn trace_hook_names(&self) -> &[String] {
+        &self.trace_hook_names
+    }
+
+    pub fn rollback_plan_ref(&self) -> &str {
+        &self.rollback_plan_ref
+    }
+
+    pub fn compensating_action(&self) -> &str {
+        &self.compensating_action
+    }
+
+    pub fn desired_state(&self) -> &str {
+        &self.desired_state
+    }
+
+    pub fn actual_state(&self) -> &str {
+        &self.actual_state
+    }
+
+    pub fn reconciliation_status(&self) -> &str {
+        &self.reconciliation_status
+    }
+
+    pub fn orn(&self) -> &str {
+        &self.orn
+    }
+
+    pub const fn claims_live_resource_registry(&self) -> bool {
+        false
+    }
+
+    pub const fn claims_live_operation_ledger(&self) -> bool {
+        false
+    }
+
+    pub const fn claims_live_reconciler(&self) -> bool {
+        false
+    }
+
+    pub const fn claims_live_provider_apply(&self) -> bool {
+        false
+    }
+
+    pub const fn claims_measured_slo(&self) -> bool {
+        false
+    }
+
+    pub fn registry_kind_label(&self) -> Option<&'static str> {
+        self.resource_type
+            .registry_kind()
+            .map(ResourceKind::type_label)
+    }
+
+    pub fn parent_vpc_id(&self) -> Option<&str> {
+        match &self.scope {
+            NetworkResourceScope::VpcChild { parent_vpc_id, .. } => Some(parent_vpc_id.as_str()),
+            _ => None,
+        }
+    }
+
+    pub fn network_001_task_id(&self) -> Option<&str> {
+        match &self.scope {
+            NetworkResourceScope::Network001BoundaryReference {
+                authoritative_task_id,
+                ..
+            } => Some(authoritative_task_id.as_str()),
+            _ => None,
+        }
+    }
+
+    pub const fn claims_route_schema_authority(&self) -> bool {
+        false
+    }
+
+    pub const fn claims_mesh_mtls_or_ext_authz_authority(&self) -> bool {
+        false
+    }
+
+    pub fn non_claim_reason(&self) -> Option<&'static str> {
+        match self.resource_type {
+            NetworkResourceType::SecurityGroup => Some(
+                "shared ResourceKind has no SecurityGroup variant; encoded as VPC child resource contract",
+            ),
+            NetworkResourceType::Gateway => Some(
+                "NETWORK-001 owns route schema, gateway classification, mTLS/SPIFFE, and ext_authz semantics",
+            ),
+            _ => None,
+        }
+    }
+}
+
+fn validate_network_resource_contract_create(
+    input: &NetworkResourceContractCreate,
+) -> Result<(), CloudNetworkError> {
+    validate_tenant_id(&input.tenant_id)?;
+    validate_prefixed_ascii_segment(
+        &input.account_id,
+        "acct_",
+        CloudNetworkError::InvalidResourceId,
+    )?;
+    validate_prefixed_ascii_segment(
+        &input.project_id,
+        "proj_",
+        CloudNetworkError::InvalidResourceId,
+    )?;
+    validate_prefixed_ascii_segment(
+        &input.resource_group_id,
+        "rg_",
+        CloudNetworkError::InvalidResourceId,
+    )?;
+    let region =
+        RegionCode::new(input.region.clone()).map_err(|_| CloudNetworkError::InvalidResourceId)?;
+    validate_resource_contract_resource_id(input, &region)?;
+    CellId::new(input.cell_id.clone()).map_err(|_| CloudNetworkError::InvalidCellId)?;
+    PrincipalId::new(input.owner_principal.clone()).map_err(map_resource_error)?;
+    validate_non_empty_prefixed(
+        &input.operation_id,
+        "op_",
+        CloudNetworkError::InvalidResourceContractScope,
+    )?;
+    validate_non_empty(
+        &input.idempotency_key,
+        CloudNetworkError::InvalidResourceContractScope,
+    )?;
+    validate_non_empty_prefixed(
+        &input.policy_ref,
+        CEDAR_POLICY_REF_PREFIX,
+        CloudNetworkError::InvalidResourceContractPolicyRef,
+    )?;
+    validate_resource_contract_scope(input, &region)?;
+    validate_resource_contract_quota(input)?;
+    validate_non_empty_vec(
+        &input.billing_meters,
+        CloudNetworkError::InvalidResourceContractBillingMeter,
+    )?;
+    validate_non_empty(
+        &input.meter_event_intent_ref,
+        CloudNetworkError::InvalidResourceContractBillingMeter,
+    )?;
+    validate_non_empty(
+        &input.audit_event_class,
+        CloudNetworkError::InvalidResourceContractAuditEvent,
+    )?;
+    validate_non_empty_prefixed(
+        &input.audit_event_ref,
+        AUDIT_STREAM_REF_PREFIX,
+        CloudNetworkError::InvalidResourceContractAuditEvent,
+    )?;
+    validate_non_empty_vec(
+        &input.metric_hook_names,
+        CloudNetworkError::InvalidResourceContractObservabilityHook,
+    )?;
+    validate_non_empty_vec(
+        &input.trace_hook_names,
+        CloudNetworkError::InvalidResourceContractObservabilityHook,
+    )?;
+    validate_non_empty(
+        &input.rollback_plan_ref,
+        CloudNetworkError::InvalidResourceContractRollbackPlan,
+    )?;
+    validate_non_empty(
+        &input.compensating_action,
+        CloudNetworkError::InvalidResourceContractRollbackPlan,
+    )?;
+    validate_non_empty(
+        &input.desired_state,
+        CloudNetworkError::InvalidResourceContractReconciliationStatus,
+    )?;
+    validate_non_empty(
+        &input.actual_state,
+        CloudNetworkError::InvalidResourceContractReconciliationStatus,
+    )?;
+    validate_non_empty(
+        &input.reconciliation_status,
+        CloudNetworkError::InvalidResourceContractReconciliationStatus,
+    )?;
+    if input.measured_slo_claimed {
+        return Err(CloudNetworkError::ResourceContractMeasuredSloClaimOutOfScope);
+    }
+    if input.live_resource_registry_claimed
+        || input.live_operation_ledger_claimed
+        || input.live_reconciler_claimed
+        || input.live_provider_apply_claimed
+    {
+        return Err(CloudNetworkError::ResourceContractRuntimeClaimOutOfScope);
+    }
+    Ok(())
+}
+
+fn validate_resource_contract_resource_id(
+    input: &NetworkResourceContractCreate,
+    region: &RegionCode,
+) -> Result<(), CloudNetworkError> {
+    match input.resource_type {
+        NetworkResourceType::Vpc => {
+            resource_id_for(
+                &input.resource_id,
+                &input.tenant_id,
+                region,
+                ResourceKind::Vpc,
+            )?;
+        }
+        NetworkResourceType::Subnet => {
+            resource_id_for(
+                &input.resource_id,
+                &input.tenant_id,
+                region,
+                ResourceKind::Subnet,
+            )?;
+        }
+        NetworkResourceType::LoadBalancerL4 => {
+            resource_id_for(
+                &input.resource_id,
+                &input.tenant_id,
+                region,
+                ResourceKind::LoadBalancer(LbProtocol::L4),
+            )?;
+        }
+        NetworkResourceType::LoadBalancerL7 => {
+            resource_id_for(
+                &input.resource_id,
+                &input.tenant_id,
+                region,
+                ResourceKind::LoadBalancer(LbProtocol::L7),
+            )?;
+        }
+        NetworkResourceType::Gateway => {
+            resource_id_for_kind_label(
+                &input.resource_id,
+                &input.tenant_id,
+                region,
+                input.resource_type.contract_label(),
+            )?;
+        }
+        NetworkResourceType::SecurityGroup => {
+            SecurityGroupId::new(input.resource_id.clone())?;
+        }
+    }
+    Ok(())
+}
+
+fn validate_resource_contract_scope(
+    input: &NetworkResourceContractCreate,
+    region: &RegionCode,
+) -> Result<(), CloudNetworkError> {
+    match (&input.resource_type, &input.scope) {
+        (
+            NetworkResourceType::SecurityGroup,
+            NetworkResourceScope::VpcChild {
+                parent_vpc_id,
+                child_path,
+            },
+        ) => {
+            resource_id_for(parent_vpc_id, &input.tenant_id, region, ResourceKind::Vpc)?;
+            if child_path.starts_with("security-groups/")
+                && child_path.len() > "security-groups/".len()
+            {
+                Ok(())
+            } else {
+                Err(CloudNetworkError::InvalidResourceContractScope)
+            }
+        }
+        (
+            NetworkResourceType::Gateway,
+            NetworkResourceScope::Network001BoundaryReference {
+                authoritative_task_id,
+                decision_ref,
+            },
+        ) => {
+            if authoritative_task_id == "t_9e4e1495" && decision_ref.starts_with("NETWORK-001/") {
+                validate_non_empty(
+                    decision_ref,
+                    CloudNetworkError::InvalidResourceContractScope,
+                )
+            } else {
+                Err(CloudNetworkError::InvalidResourceContractScope)
+            }
+        }
+        (
+            NetworkResourceType::Vpc
+            | NetworkResourceType::Subnet
+            | NetworkResourceType::LoadBalancerL4
+            | NetworkResourceType::LoadBalancerL7,
+            NetworkResourceScope::FirstClassResource,
+        ) => Ok(()),
+        _ => Err(CloudNetworkError::InvalidResourceContractScope),
+    }
+}
+
+fn validate_resource_contract_quota(
+    input: &NetworkResourceContractCreate,
+) -> Result<(), CloudNetworkError> {
+    if input.quota_cost_units == 0 {
+        return Err(CloudNetworkError::InvalidResourceContractQuota);
+    }
+    match (&input.quota_reservation_ref, &input.quota_refusal_reason) {
+        (Some(reservation_ref), None) => validate_non_empty(
+            reservation_ref,
+            CloudNetworkError::InvalidResourceContractQuota,
+        ),
+        (None, Some(refusal_reason)) => validate_non_empty(
+            refusal_reason,
+            CloudNetworkError::InvalidResourceContractQuota,
+        ),
+        _ => Err(CloudNetworkError::InvalidResourceContractQuota),
+    }
+}
+
+fn validate_non_empty(value: &str, error: CloudNetworkError) -> Result<(), CloudNetworkError> {
+    if value.trim().is_empty() {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_non_empty_prefixed(
+    value: &str,
+    prefix: &str,
+    error: CloudNetworkError,
+) -> Result<(), CloudNetworkError> {
+    if value.starts_with(prefix)
+        && value.len() > prefix.len()
+        && !value[prefix.len()..].trim().is_empty()
+    {
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
+fn validate_non_empty_vec(
+    values: &[String],
+    error: CloudNetworkError,
+) -> Result<(), CloudNetworkError> {
+    if values.iter().all(|value| !value.trim().is_empty()) && !values.is_empty() {
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
+fn validate_prefixed_ascii_segment(
+    value: &str,
+    prefix: &str,
+    error: CloudNetworkError,
+) -> Result<(), CloudNetworkError> {
+    if value.starts_with(prefix)
+        && value.len() > prefix.len()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+    {
+        Ok(())
+    } else {
+        Err(error)
     }
 }
 
@@ -2864,6 +3537,15 @@ fn resource_id_for(
     region: &RegionCode,
     kind: ResourceKind,
 ) -> Result<ResourceId, CloudNetworkError> {
+    resource_id_for_kind_label(value, tenant_id, region, kind.type_label())
+}
+
+fn resource_id_for_kind_label(
+    value: &str,
+    tenant_id: &str,
+    region: &RegionCode,
+    kind_label: &str,
+) -> Result<ResourceId, CloudNetworkError> {
     let id = ResourceId::new(value.to_string()).map_err(map_resource_error)?;
     if id.tenant_id().map_err(map_resource_error)? != tenant_id {
         return Err(CloudNetworkError::ResourceTenantMismatch);
@@ -2871,7 +3553,7 @@ fn resource_id_for(
     if id.region().map_err(map_resource_error)? != *region {
         return Err(CloudNetworkError::ResourceRegionMismatch);
     }
-    if id.kind_label().map_err(map_resource_error)? != kind.type_label() {
+    if id.kind_label().map_err(map_resource_error)? != kind_label {
         return Err(CloudNetworkError::ResourceKindMismatch);
     }
     Ok(id)

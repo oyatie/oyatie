@@ -16,7 +16,7 @@
     "microservice": "production-planning",
     "bounded_context": "plan-to-produce",
     "crate_prefix": "oya-production-planning",
-    "primary_crate": "microservices/production-planning/crates/oya-production-planning-domain",
+    "primary_crate": "oya/production-planning/crates/oya-production-planning-domain",
     "product_id": "production-planning",
     "owning_axis": "axis-enterprise"
   },
@@ -47,28 +47,28 @@
       "given": "a product has an approved manufacturing definition before planning",
       "when": "the production-planning domain approves the work definition",
       "then": "tenant, legal entity, plant, product item, BOM, route, work center, component counts, run minutes, effective date, source refs, approval evidence, idempotency key, state, schema version, and false shop-floor/inventory/cloud flags are present",
-      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::work_definition_drives_mrp_and_release_plan"
+      "test_ref": "oya/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::work_definition_drives_mrp_and_release_plan"
     },
     {
       "id": "AC-02",
       "given": "an approved work definition exists and demand exceeds available supply after safety stock",
       "when": "material requirements planning metadata is produced",
       "then": "demand, on-hand quantity, scheduled receipts, safety stock, net requirement, lot-sized planned order quantity, horizon, demand source, planning evidence, idempotency key, and false procurement/inventory/cloud flags are present",
-      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::{work_definition_drives_mrp_and_release_plan,production_planning_refuses_unapproved_work_definition_and_unproposed_order}"
+      "test_ref": "oya/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::{work_definition_drives_mrp_and_release_plan,production_planning_refuses_unapproved_work_definition_and_unproposed_order}"
     },
     {
       "id": "AC-03",
       "given": "a planned order proposal has material and capacity evidence",
       "when": "production release preparation runs",
       "then": "production order, planned order, work definition, material availability, material remainder, required capacity, capacity remainder, schedule/material/capacity evidence, release-allowed flag, and false shop-floor/inventory/accounting/Workflow/cloud flags are present",
-      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::{work_definition_drives_mrp_and_release_plan,production_planning_refuses_material_or_capacity_shortage}"
+      "test_ref": "oya/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::{work_definition_drives_mrp_and_release_plan,production_planning_refuses_material_or_capacity_shortage}"
     },
     {
       "id": "AC-04",
       "given": "untrusted identifiers, source refs, evidence refs, dates, horizons, or quantities enter the production-planning domain",
       "when": "domain validation runs",
       "then": "prefix-only, traversal, whitespace/control, credential-shaped refs, invalid dates, invalid horizons, zero quantities, missing work-definition approval, missing planned-order proposal, material shortage, and capacity shortage are refused",
-      "test_ref": "microservices/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::production_planning_validates_refs_dates_and_quantities"
+      "test_ref": "oya/production-planning/crates/oya-production-planning-domain/tests/production_planning.rs::production_planning_validates_refs_dates_and_quantities"
     }
   ],
   "decision_log": [
@@ -112,7 +112,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "microservices/production-planning/crates/oya-production-planning-domain",
+    "primary_crate_ref": "oya/production-planning/crates/oya-production-planning-domain",
     "entities_ref": [
       {
         "entity": "Plan",
@@ -226,7 +226,7 @@
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

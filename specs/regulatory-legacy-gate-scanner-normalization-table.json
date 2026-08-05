@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/regulatory-legacy-gate-scanner-normalization-table.json",
+  "title": "RegulatoryLegacyGateScannerNormalizationTable",
+  "_artifact_id": "regulatory-legacy-gate-scanner-normalization-table",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "REGNORM-001-LEGACY-GATE-SCANNER-NORMALIZATION-TABLE",
+    "version": "0.1.0",
+    "status": "planning-spec-only",
+    "created_at": "2026-07-01T09:34:00Z",
+    "created_by": "hermes-agent",
+    "kanban_task": "t_295a709e",
+    "lane": "pipeline-productization/normalization",
+    "owner_team": "platform-toolchain + council-security + developer-experience + platform-governance",
+    "purpose": "Normalize every legacy command, scanner, hosted dashboard, and gate reference used by the regulatory/security program into productized adapters, API/event/evidence records, cloud-ci Rust gate packets, and dashboard/trust-portal query surfaces without making CLI or scanner output the product path.",
+    "claim_ceiling": "Planning/spec table only. This artifact does not implement scanners, adapters, APIs, cloud-ci gates, dashboards, trust-portal exports, branch protection, runtime admission, certification, readiness, or production security posture.",
+    "authority_inputs": [
+      "docs/AGENTS.md lines 55-75 and 184-193: ADR-0515 makes legacy oya gate/verify local feedback only while oya-ci-required/cloud-ci Rust gate packets own merge authority.",
+      "docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md: proposed supply-chain security scanner/signing/SBOM/admission posture retained as planning context only.",
+      "specs/security-validation-pipeline-matrix.json: runner-neutral security-validation matrix and evidence API contract.",
+      "specs/vulnerability-intelligence-sbom-vex-pipeline.json: scanner output is bridge input data until normalized into vulnerability/admission records.",
+      "evidence/regulatory/regulatory-hermes-decomposition-preservation-20260701.json: REGPLAN-002 row for REGNORM-001."
+    ],
+    "non_goals": [
+      "No new CLI, shell, oya-dev-cli, oya gate, or oya verify surface.",
+      "No new scanner invocation, hosted scanner integration, runtime service, API server, dashboard implementation, trust-portal implementation, or branch-protection change.",
+      "No claim that GitHub Actions, Jenkins, Prow, a scanner exit code, SARIF, or any hosted dashboard is canonical product/merge/security authority.",
+      "No mutation to generated JSON, runtime code, or cloud-ci gate crates in this planning slice."
+    ]
+  },
+  "contract": {
+    "required_row_fields": [
+      "row_id",
+      "legacy_reference_patterns",
+      "current_role",
+      "canonical_adapter",
+      "canonical_api_event_or_state_contract",
+      "evidence_record",
+      "cloud_ci_rust_gate_packet",
+      "dashboard_surface",
+      "trust_portal_surface",
+      "unknown_or_stale_semantics_blocker",
+      "forbidden_product_path"
+    ],
+    "normalization_rule": "Legacy command, scanner, hosted-dashboard, CI-runner, or shell output is untrusted bridge data until a product adapter parses it against trusted policy, binds it to subject identity and source revision, emits a typed evidence record, and contributes to a cloud-ci Rust gate packet or product state machine. Dashboards and trust portals read/query that normalized state; they do not own the decision.",
+    "go_no_go_rule": "Any new program reference that lacks a row in this table, teaches a CLI/scanner as the product path, or treats local/hosted output as merge/readiness/security authority is NO-GO until normalized here or explicitly marked out of scope by an accepted authority.",
+    "refresh_policy": "Refresh on every new scanner/gate/legacy command reference, on ADR-0515/cloud-ci doctrine changes, and at least quarterly while legacy bridge references remain in active docs or specs."
+  },
+  "normalization_rows": [
+    {
+      "row_id": "REGNORM-BRIDGE-OYA-GATE-VERIFY",
+      "legacy_reference_patterns": [
+        "oya gate validate <lane>",
+        "oya gate run-all --ci-required",
+        "./bin/oya verify --ci-required",
+        "oya verify",
+        "oya-dev-cli gate subcommands"
+      ],
+      "current_role": "Historical/local feedback and provenance only; optional developer diagnostics during migration.",
+      "canonical_adapter": "cloud-ci required-context adapter that converts trusted gate semantics into Rust gate packets; legacy command output may be attached as non-authoritative local evidence only.",
+      "canonical_api_event_or_state_contract": [
+        "cloud_ci_gate_run.v1",
+        "cloud_ci_gate_packet.v1",
+        "evidence.governance_gate_result.v1"
+      ],
+      "evidence_record": "Typed gate result with gate_id, source_revision, trusted_base_policy_ref, candidate_tree_hash, normalized subject refs, verdict, failure reasons, producer identity, timestamp, and audit-chain ref.",
+      "cloud_ci_rust_gate_packet": "oya-ci-required constituent packet emitted by cloud-ci Rust gate apps; protected merge readiness is the aggregate oya-ci-required context, not local command exit status.",
+      "dashboard_surface": "CI/gate result panel showing cloud-ci packet status plus local bridge evidence badges clearly labeled non-authoritative.",
+      "trust_portal_surface": "No customer trust-portal surface unless the gate contributes to an approved customer-facing compliance evidence packet; bridge CLI logs are never exported as authoritative evidence.",
+      "unknown_or_stale_semantics_blocker": "If the legacy command's semantics diverge from the Rust gate packet or are not mapped, block the claim and create a retirement/normalization follow-up rather than extending the CLI.",
+      "forbidden_product_path": "Do not add docs, acceptance criteria, branch protection, or product flows that make oya gate/verify/oya-dev-cli a product, merge, readiness, or compliance authority."
+    },
+    {
+      "row_id": "REGNORM-CI-RUNNER-BRIDGES",
+      "legacy_reference_patterns": [
+        "GitHub Actions workflow examples",
+        "Jenkins/Groovy pipeline snippets",
+        "Prow/Tide-shaped admission wording",
+        "hosted CI status checks other than oya-ci-required"
+      ],
+      "current_role": "Runner or historical/provenance transport. ADR-0515 permits GitHub Actions as current live runner, but the product contract remains cloud-ci Rust gate packets aggregated into oya-ci-required.",
+      "canonical_adapter": "Runner adapter that executes or transports trusted cloud-ci Rust gate packets and uploads signed packet receipts.",
+      "canonical_api_event_or_state_contract": [
+        "cloud_ci_runner_invocation.v1",
+        "cloud_ci_required_context.v1",
+        "merge_queue_gate_packet.v1"
+      ],
+      "evidence_record": "Signed runner invocation and gate-packet receipt with runner identity, workflow ref, packet digest, source revision, and protected context URL.",
+      "cloud_ci_rust_gate_packet": "cloud-ci full-matrix gate packet; oya-ci-required is the only protected aggregate named by this program.",
+      "dashboard_surface": "Pipeline dashboard reads cloud-ci packet state and runner invocation metadata; runner UI links are drill-down evidence, not state authority.",
+      "trust_portal_surface": "Trust portal may expose release/pipeline assurance summaries derived from signed packets, never raw CI workflow success as standalone proof.",
+      "unknown_or_stale_semantics_blocker": "Any runner-only or Jenkins/Prow/GitHub-specific policy not represented in a cloud-ci packet blocks merge-authority claims until converted or retired.",
+      "forbidden_product_path": "Do not make GitHub Actions, Jenkins, Prow, or branch-protection snippets the north-star product/gate surface."
+    },
+    {
+      "row_id": "REGNORM-TRIVY-AND-SARIF-SCANNERS",
+      "legacy_reference_patterns": [
+        "trivy fs",
+        "trivy image",
+        "trivy config",
+        "trivy fs --scanners vuln,secret,license --format sarif",
+        "SARIF upload/status"
+      ],
+      "current_role": "License-vetted scanner/format bridge input for vulnerability, secret, container, and IaC findings.",
+      "canonical_adapter": "security scanner adapter that pins scanner version/ruleset, parses JSON/SARIF, deduplicates findings, binds findings to artifact digest/source revision, and emits normalized security-validation/vulnerability records.",
+      "canonical_api_event_or_state_contract": [
+        "security_validation_lane_result.v1",
+        "security_validation_finding.v1",
+        "vulnerability_match_record.v1",
+        "secret_exposure_incident.v1"
+      ],
+      "evidence_record": "Finding evidence with scanner_id/version, ruleset digest, subject_kind, subject_ref, artifact_digest, source_revision, finding_id, severity, exploitability, remediation_ref, freshness, and audit-chain ref.",
+      "cloud_ci_rust_gate_packet": "security-validation and vulnerability-intelligence constituent packets inside oya-ci-required; packet verdict comes from normalized records plus policy thresholds, not scanner exit code alone.",
+      "dashboard_surface": "Security validation dashboard groups normalized findings by lane, subject, severity, exception/VEX state, owner, SLA, and remediation case.",
+      "trust_portal_surface": "Customer/auditor trust portal exposes approved vulnerability posture summaries, SBOM/VEX packet refs, and remediation SLAs derived from normalized records; raw SARIF is not the canonical decision.",
+      "unknown_or_stale_semantics_blocker": "Unknown scanner version, missing ruleset digest, stale database, unparseable SARIF/JSON, or missing artifact binding blocks the lane result.",
+      "forbidden_product_path": "Do not treat Trivy stdout/SARIF, scanner exit code, or hosted SARIF UI as product/security authority by itself."
+    },
+    {
+      "row_id": "REGNORM-CARGO-DEPENDENCY-SCANNERS",
+      "legacy_reference_patterns": [
+        "cargo audit",
+        "cargo-audit JSON",
+        "cargo deny check",
+        "cargo-deny JSON",
+        "RustSec advisory database"
+      ],
+      "current_role": "Bridge input for Rust dependency vulnerability and license-policy evidence.",
+      "canonical_adapter": "dependency intelligence adapter that normalizes crate/package identity, advisory aliases, license policy, affected ranges, yanked/informational status, and fix availability.",
+      "canonical_api_event_or_state_contract": [
+        "component_inventory_snapshot.v1",
+        "vulnerability_match_record.v1",
+        "license_policy_result.v1",
+        "remediation_case.v1"
+      ],
+      "evidence_record": "Dependency evidence bound to package URL, lockfile/source revision, advisory id/aliases, affected range, license expression, policy version, fix version, owner, and audit ref.",
+      "cloud_ci_rust_gate_packet": "supply-chain/dependency-policy packet in oya-ci-required fed by normalized component and policy records.",
+      "dashboard_surface": "Dependency-risk dashboard shows normalized advisory/license records, affected components, fixes, exceptions, and SLA status.",
+      "trust_portal_surface": "Trust portal may expose SBOM/VEX/license summaries for released artifacts after signed evidence approval; raw cargo command output is never exported as authoritative proof.",
+      "unknown_or_stale_semantics_blocker": "Missing lockfile binding, missing advisory freshness, ambiguous alias/range mapping, or absent license policy version blocks pass claims.",
+      "forbidden_product_path": "Do not make cargo-audit/cargo-deny command success the canonical merge or release authority without cloud-ci packet/evidence normalization."
+    },
+    {
+      "row_id": "REGNORM-ADVISORY-FEEDS",
+      "legacy_reference_patterns": [
+        "OSV API response",
+        "GitHub Advisory Database/API response",
+        "NVD/CVE JSON",
+        "CISA KEV feed",
+        "FIRST EPSS data",
+        "vendor advisory feed"
+      ],
+      "current_role": "External source feed input for vulnerability intelligence; never sufficient alone for product decisions.",
+      "canonical_adapter": "advisory ingestion adapter with signed fetch receipts, freshness policy, id/alias normalization, source precedence, and air-gap mirror support.",
+      "canonical_api_event_or_state_contract": [
+        "source_feed_receipt.v1",
+        "normalized_vulnerability_record.v1",
+        "advisory_mirror_snapshot.v1",
+        "risk_score_snapshot.v1"
+      ],
+      "evidence_record": "Feed receipt and normalized advisory evidence with source URL, fetched_at, signature/hash, freshness deadline, vulnerability ids/aliases, modified/published times, CVSS/EPSS/KEV/SSVC fields, and mirror provenance.",
+      "cloud_ci_rust_gate_packet": "vulnerability-intelligence freshness and risk-prioritization packet; stale or unsigned feed records fail closed per policy.",
+      "dashboard_surface": "Vulnerability intelligence dashboard shows feed freshness, alias graph, risk scoring, KEV/EPSS overlays, mirror status, and blockers.",
+      "trust_portal_surface": "Trust portal exposes curated customer-impact vulnerability attestations/VEX packets derived from normalized feed and SBOM matches.",
+      "unknown_or_stale_semantics_blocker": "Missing signature/hash, stale feed, unresolved alias graph, missing KEV/EPSS for high/critical rows, or stale air-gap mirror blocks affected claims.",
+      "forbidden_product_path": "Do not cite a feed dashboard/API response as a complete readiness or safety claim without normalized matching against signed SBOM/artifacts and policy."
+    },
+    {
+      "row_id": "REGNORM-SBOM-SIGNING-ATTESTATION",
+      "legacy_reference_patterns": [
+        "SPDX 2.3 SBOM file",
+        "CycloneDX 1.5 SBOM file",
+        "cosign sign/attest/verify output",
+        "Rekor inclusion proof",
+        "in-toto/SLSA provenance output"
+      ],
+      "current_role": "Artifact evidence inputs for supply-chain assurance and vulnerability matching.",
+      "canonical_adapter": "attestation adapter that verifies signatures/inclusion/provenance, binds SBOM documents to artifact digests and source revisions, and indexes component PURLs.",
+      "canonical_api_event_or_state_contract": [
+        "sbom_signature_receipt.v1",
+        "component_inventory_snapshot.v1",
+        "provenance_attestation.v1",
+        "artifact_release_evidence_packet.v1"
+      ],
+      "evidence_record": "Signed SBOM/provenance evidence with artifact digest, builder identity, source revision, SBOM format/version, component index digest, Rekor/Fulcio refs, SLSA predicate, and audit-chain ref.",
+      "cloud_ci_rust_gate_packet": "supply-chain provenance packet; release/admission claims require verified evidence records, not raw command logs.",
+      "dashboard_surface": "Release/supply-chain dashboard shows artifact evidence packet status, SBOM coverage, signature state, provenance level, and missing-evidence blockers.",
+      "trust_portal_surface": "Tenant trust portal exports approved SBOM/provenance/VEX packets and freshness badges per artifact or tenant release.",
+      "unknown_or_stale_semantics_blocker": "Unsigned SBOM, missing dual-format coverage where required, absent Rekor/provenance binding, or ambiguous artifact digest blocks release/trust claims.",
+      "forbidden_product_path": "Do not treat cosign/Rekor/SBOM command output pasted in logs as the product evidence store without typed receipts and artifact binding."
+    },
+    {
+      "row_id": "REGNORM-HOSTED-SECURITY-DASHBOARDS",
+      "legacy_reference_patterns": [
+        "GitHub dependency graph dashboard",
+        "GitHub code scanning/SARIF dashboard",
+        "Snyk-like hosted scanner dashboard",
+        "container registry vulnerability dashboard",
+        "cloud provider security posture dashboard"
+      ],
+      "current_role": "Optional enrichment, transport, or external observation source; not canonical state.",
+      "canonical_adapter": "hosted-dashboard import adapter that records source, scope, retrieval time, finding identity mapping, confidence, tenant/data boundary, and provenance before joining product state.",
+      "canonical_api_event_or_state_contract": [
+        "external_security_observation.v1",
+        "security_validation_finding.v1",
+        "remediation_case.v1"
+      ],
+      "evidence_record": "External observation evidence with provider id, retrieval receipt, scope, finding mapping, subject binding, confidence, policy status, owner, and audit ref.",
+      "cloud_ci_rust_gate_packet": "Only normalized imported observations can influence cloud-ci packets; raw hosted dashboard green/red state cannot satisfy required contexts.",
+      "dashboard_surface": "Oyatie security dashboards may link to hosted dashboards as drill-down while preserving Oyatie normalized state as the source of truth.",
+      "trust_portal_surface": "Trust portal exposes only curated Oyatie evidence packets; hosted dashboard screenshots or URLs are supplementary and must be labeled as such.",
+      "unknown_or_stale_semantics_blocker": "Unknown scope, stale snapshot, provider-only severity without policy mapping, or missing subject binding blocks authority claims.",
+      "forbidden_product_path": "Do not outsource canonical security posture, remediation state, readiness, or tenant evidence to a hosted dashboard."
+    },
+    {
+      "row_id": "REGNORM-ADMISSION-POLICY-BRIDGES",
+      "legacy_reference_patterns": [
+        "Kyverno admission policy examples",
+        "OPA/Gatekeeper policy examples",
+        "container admission deny logs",
+        "cluster scanner admission output"
+      ],
+      "current_role": "Bridge/reference admission mechanism or future runtime enforcement input; this planning slice does not implement runtime admission.",
+      "canonical_adapter": "admission-decision adapter that consumes signed artifact evidence, vulnerability/VEX state, policy bundle version, tenant/cell classification, and emits admission verdict records.",
+      "canonical_api_event_or_state_contract": [
+        "admission_verdict.v1",
+        "policy_bundle_decision.v1",
+        "deployment_blocking_decision.v1",
+        "audit_chain_event.v1"
+      ],
+      "evidence_record": "Admission evidence with policy bundle digest, artifact digest, tenant/cell context, decision inputs, verdict, denial reason, expiration/freshness, and audit-chain ref.",
+      "cloud_ci_rust_gate_packet": "Pre-release/admission-readiness packet may validate decision records and policy bundles once an implementation card is approved; no runtime admission is claimed here.",
+      "dashboard_surface": "Deployment/admission dashboard reads verdict records and blocker reasons by tenant/cell/artifact.",
+      "trust_portal_surface": "Trust portal may show signed admission/promotion assurance summaries for released artifacts where approved by product policy.",
+      "unknown_or_stale_semantics_blocker": "Missing signed evidence, stale policy bundle, unresolved VEX, missing tenant/cell classification, or unverified artifact digest blocks admission claims.",
+      "forbidden_product_path": "Do not treat a Kyverno/OPA example or cluster log as proof of runtime enforcement without the typed verdict/evidence contract and approved implementation lane."
+    }
+  ],
+  "blocker_rows": [
+    {
+      "blocker_id": "REGNORM-BLOCKER-UNMAPPED-LEGACY-REFERENCE",
+      "state": "blocker",
+      "summary": "A legacy command/scanner/gate/hosted-dashboard reference used by the regulatory/security program lacks a normalization row.",
+      "resolution_path": "Add or update a row with bridge input, canonical adapter, typed evidence record, cloud-ci packet, dashboard/trust-portal surface, blocker semantics, and forbidden product path before using the reference in acceptance criteria or product docs.",
+      "claim_ceiling": "No merge/security/readiness/product authority claim may depend on the unmapped reference."
+    },
+    {
+      "blocker_id": "REGNORM-BLOCKER-CLI-AUTHORITY-REGRESSION",
+      "state": "blocker",
+      "summary": "A doc, spec, card, or PR teaches scanner or oya gate/verify output as canonical product, merge, compliance, or readiness authority.",
+      "resolution_path": "Rewrite the reference to the canonical adapter/evidence/cloud-ci packet path or create a retirement/fix-forward card; do not extend the CLI.",
+      "claim_ceiling": "Affected docs/specs/cards are NO-GO until the authority regression is removed."
+    }
+  ],
+  "verification_notes": [
+    "REGNORM-001 is satisfied by this table only if every active program reference to a legacy command/scanner/gate maps to a row above or is explicitly out of scope by accepted authority.",
+    "Focused validation for this artifact is JSON parsing plus row-field completeness and no-CLI-authority text inspection.",
+    "This table intentionally preserves ADR-0039 scanner/signing/admission examples as planning context while routing authority through normalized evidence records and cloud-ci Rust gate packets."
+  ]
+}

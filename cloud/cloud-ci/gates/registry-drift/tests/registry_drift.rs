@@ -1,5 +1,5 @@
-// :registry-drift gate — committed == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
-// Re-runs the producer in --stdout (sandbox) mode and byte-diffs against the committed
+// :registry-drift gate — materialized == regenerated (PHASE-0-FIREWALL-PLAN §5.3).
+// Re-runs the producer in --stdout (sandbox) mode and byte-diffs against the materialized
 // accounting faces, AND re-runs the scm-facts emitter and byte-diffs the committed
 // scm-facts.generated.json (OYA-CI-HERMETIC-EXECUTION-DESIGN §1, Option C: the scm-facts face
 // is byte-parity-protected exactly like the other faces). A hand-edit to any generated face —
@@ -37,7 +37,7 @@ fn faces_dir(root: &Path) -> PathBuf {
     root.join("cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app")
 }
 
-/// The committed generated faces and the `--face` name that regenerates each. registry-drift
+/// The materialized generated faces and the `--face` name that regenerates each. registry-drift
 /// extends across ALL of them: the registry + ttl-policy + the GATE-1 decision-crosswalk +
 /// the GATE-4 enforcement-inventory/enforcement-liveness faces + the GO-LIVE gate-baseline (the accepted-debt
 /// ratchet). A hand-edit to any one fails this gate. The baseline being byte-diff-protected
@@ -152,26 +152,26 @@ fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
     if p.is_absolute() { p } else { root.join(p) }
 }
 
-/// Regenerate each face in-memory (sandbox) and assert it byte-matches the committed face.
+/// Regenerate each face in-memory (sandbox) and assert it byte-matches the materialized face.
 #[test]
-fn committed_faces_equal_regenerated() {
+fn materialized_faces_equal_regenerated() {
     let root = repo_root();
     let dir = faces_dir(&root);
 
     for (file, face) in FACES {
-        let committed_path = dir.join(file);
-        let committed = fs::read_to_string(&committed_path).unwrap_or_else(|e| {
+        let materialized_path = dir.join(file);
+        let materialized = fs::read_to_string(&materialized_path).unwrap_or_else(|e| {
             panic!(
-                "committed face missing at {} ({e}); run the producer to generate it",
-                committed_path.display()
+                "materialized face missing at {} ({e}); run the producer to generate it",
+                materialized_path.display()
             )
         });
 
         let regenerated = regenerate_face(&root, face);
 
         assert_eq!(
-            committed, regenerated,
-            "REGISTRY DRIFT: committed {file} != regenerated. \
+            materialized, regenerated,
+            "REGISTRY DRIFT: materialized {file} != regenerated. \
              A generated face was hand-edited, or source changed without re-running the producer. \
              Re-run //cloud/cloud-ci/gates:oya-cloud-ci-accounting-registry-app-bin to regenerate."
         );

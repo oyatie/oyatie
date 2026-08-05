@@ -11,18 +11,16 @@
 //!    BEFORE any parsing/routing (so unsigned traffic cannot poison state).
 //! 3. Parses `pull_request` events (opened / reopened / synchronized) whose
 //!    base branch is the gated target (default `dev`).
-//! 4. Dispatches the gated pipeline by kicking the Jenkins `oyaCiLane`
-//!    pipeline (admission → `oya gate run-all`, the trusted-runner
-//!    re-execution that posts the GitHub commit statuses).
+//! 4. Dispatches the historical Jenkins `oyaCiLane` bridge for provenance
+//!    and local replay only. Protected-branch authority is the cloud-ci
+//!    Rust gate packet that posts the single `oya-ci-required` context.
 //!
 //! ## Why it exists
 //!
-//! `dev` branch protection requires 15 status contexts. Jenkins already POSTs
-//! 14 of them to the GitHub Commit Status API (`oyaCiLane.groovy`), but
-//! nothing TRIGGERS Jenkins from a GitHub PR event — so historically every
-//! merge briefly disabled `enforce_admins` and used an admin-merge. This
-//! gateway is the missing trigger: it turns a PR event into a real, gated CI
-//! run, retiring the manual admin-relax-merge seam.
+//! Earlier bridge-era `dev` branch protection expected many Jenkins-produced
+//! contexts. This gateway remains as a historical/provenance trigger for that
+//! lane; it does not define current merge authority, which lives behind the
+//! protected `oya-ci-required` context.
 //!
 //! ## Honest boundaries
 //!
@@ -71,11 +69,9 @@ pub const OWNER_TEAM: &str = "council-architecture + ops-platform";
 pub const PRIMARY_DESIGN_ADR: &str = "ADR-0374";
 pub const SUBSTRATE_ADR: &str = "ADR-0363";
 
-/// The branch-protection required status contexts the downstream Jenkins lane
-/// produces (kept in sync with `infra/ci/jenkins/reported-status-contexts.json`
-/// by the `oya-governance-protection-context-match` gate). The gateway does
-/// not post these itself — it kicks the pipeline that does — but it knows the
-/// set so it can report the boundary.
+/// Historical Jenkins bridge status contexts. Current branch-protection merge
+/// authority is the single cloud-ci `oya-ci-required` context; this list is
+/// retained only so the deprecated gateway can report its bridge boundary.
 pub const REQUIRED_STATUS_CONTEXTS: &[&str] = &[
     "cargo-fmt",
     "cargo-check",
@@ -106,8 +102,9 @@ mod tests {
     }
 
     #[test]
-    fn required_contexts_match_branch_protection_count() {
-        // dev.json lists 15 required contexts.
+    fn historical_bridge_contexts_remain_enumerated_for_boundary_reporting() {
+        // The retired Jenkins bridge produced 15 historical contexts; current
+        // branch-protection authority remains the single `oya-ci-required` context.
         assert_eq!(REQUIRED_STATUS_CONTEXTS.len(), 15);
         assert!(REQUIRED_STATUS_CONTEXTS.contains(&"oya-pr-review"));
     }

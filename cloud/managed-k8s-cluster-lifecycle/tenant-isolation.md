@@ -1,18 +1,27 @@
-# Managed K8s Tenant Quota — Tenant Isolation
+# Managed K8s Cluster Lifecycle — Tenant Isolation
 
-## Isolation Guarantees (ADR-0376 / ADR-0007)
+## Isolation guarantees (ADR-0376 / ADR-0007)
 
-1. **Quota record isolation**: Each `TenantQuota` is keyed by `TenantId`. No API
-   returns quota data for a tenant other than the one in the authenticated request.
+1. **Gateway tenant principal**: Cluster-lifecycle accepts tenant identity only from
+   the upstream gateway-injected principal. Caller-supplied tenant context is rejected
+   when it is missing, malformed, or inconsistent with the authenticated request.
 
-2. **Cedar default-deny**: All RBAC policies require the principal's `tenant_id`
-   scope to match the target resource. A principal without a matching scope is denied.
+2. **Quota-before-provisioning dependency**: The service calls the
+   `managed-k8s-tenant-quota` dependency through `QuotaDecisionPort` before any
+   control-plane host invocation. Deny, not-found, and persistence/unavailable
+   decisions are hard admission failures.
 
-3. **evaluate() cross-tenant guard**: The kernel function short-circuits with
-   `Deny(TenantMismatch)` if `quota.tenant_id != request.tenant_id`.
+3. **No quota administration surface**: Cluster-lifecycle does not own tenant-quota
+   storage, read/write APIs, quota RBAC administration, or quota mutation semantics.
+   Any quota-service behavior named here is a dependency contract, not source
+   authority for the cluster-lifecycle service.
 
-4. **HTTP path/body consistency**: `PUT /tenants/{id}/quota` rejects requests where
-   `path.id != body.tenant_id` with HTTP 400.
+4. **Tenant-scoped provisioning request**: Only after quota allow does
+   cluster-lifecycle map the tenant-scoped cluster request to
+   `managed-k8s-control-plane-host`. The tenant principal is preserved on the
+   provisioning request and no cross-tenant cluster handle is returned.
 
-5. **No shared mutable state**: Each tenant's quota and usage records are stored
-   under separate keys; no cross-tenant aggregation is performed.
+5. **Deterministic foundation ceiling**: Current claims are limited to the
+   dogfood/design deterministic foundation for create admission. Live provider
+   actions, public GA, billing readiness, and measured SLO compliance remain
+   out of scope until follow-on evidence exists.

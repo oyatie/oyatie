@@ -9,7 +9,8 @@
 //! - Dev-CLI `oya-governance-adapter-with-no-importer-app` —
 //!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:adapter-with-no-importer>-<layer:app>`;
 //!   binary tool surface (canonical `app` suffix per ADR-0105 amendment 2026-05-15),
-//!   wraps the kernel for `oya gate validate`.
+//!   wraps the kernel for the Rust gate packet; legacy `oya gate validate`
+//!   calls are local bridge/provenance only.
 //!
 //! # Intent
 //!

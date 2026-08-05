@@ -135,7 +135,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Hold network policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+1. Hold network policy deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 2. Freeze route automation: `oya flags set oya.cloud_network.routing.auto_promote=false --cell $CELL --reason $INCIDENT_ID`.
 3. Keep residency guard enabled: `oya flags set oya.cloud_network.residency.enforce=true --cell $CELL --reason $INCIDENT_ID`.
 4. Refresh service discovery: `oya network service-discovery refresh --tenant $TENANT --cell $CELL --peer-cell $PEER_CELL --confirm $INCIDENT_ID`.
@@ -170,7 +170,7 @@ doc_status: published
 11. Run LB API tests if ingress changed: `cargo test -p oya-cloud-network-lb-api cloud_network_lb_api -- --nocapture`.
 12. Run production gate: `cargo run -p oya-dev-cli -- gate validate cloud-network-routing --production-snapshot --cell $CELL`.
 13. Re-enable route automation: `oya flags set oya.cloud_network.routing.auto_promote=true --cell $CELL --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 15. Seal audit: `oya audit-chain emit --event-class EVT_CLOUD_NETWORK_CROSS_CELL_ROUTING_STALL_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

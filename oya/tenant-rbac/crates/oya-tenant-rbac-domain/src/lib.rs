@@ -12,12 +12,16 @@
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const TENANT_RBAC_DECISION_SCHEMA_VERSION: u32 = 1;
+const SENSITIVE_HR_READ_SCOPE_SCHEMA_VERSION: u32 = 1;
 const GROUP_ROLLUP_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
 const LEGAL_ENTITY_ID_PREFIX: &str = "le_";
 const GROUP_ID_PREFIX: &str = "grp_";
+const ENTITLEMENT_SET_ID_PREFIX: &str = "entset_";
 const AUDIT_EVIDENCE_PREFIX: &str = "audit/";
 const POLICY_GATEWAY_PREFIX: &str = "policy/tenant-rbac/";
+const ROLE_BINDING_REF_PREFIX: &str = "role-binding/";
+const POLICY_SCOPE_REF_PREFIX: &str = "scope/tenant-rbac/";
 const PROJECTION_REF_PREFIX: &str = "projection/";
 const WORKFLOW_REF_PREFIX: &str = "workflow/";
 const OBJECT_GRAPH_REF_PREFIX: &str = "object-graph/";
@@ -50,6 +54,21 @@ pub struct AuditEvidenceRef {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PolicyGatewayRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct EntitlementSetId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct RoleBindingRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct PolicyScopeRef {
     pub value: String, // data_class: INTERNAL_ONLY
 }
 
@@ -100,6 +119,13 @@ pub enum TenantRbacWriteKind {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum TenantRbacPolicyDecisionStatus {
     Accepted,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum SensitiveReadLegalBasis {
+    Consent,
+    EmploymentLawObligation,
+    VitalInterests,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -187,6 +213,17 @@ pub struct ServiceWriteInput {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SensitiveHrReadScopeInput {
+    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
+    pub entitlement_set_id: String,           // data_class: INTERNAL_ONLY
+    pub role_binding: String,                 // data_class: INTERNAL_ONLY
+    pub policy_scope: String,                 // data_class: INTERNAL_ONLY
+    pub legal_basis: SensitiveReadLegalBasis, // data_class: INTERNAL_ONLY
+    pub audit_evidence_refs: Vec<String>,     // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,              // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantRbacPolicyDecision {
     pub service: Classified<TenantRbacService>, // data_class: INTERNAL_ONLY
     pub write_kind: Classified<TenantRbacWriteKind>, // data_class: INTERNAL_ONLY
@@ -199,6 +236,21 @@ pub struct TenantRbacPolicyDecision {
     pub sequence: Classified<u64>,              // data_class: INTERNAL_ONLY
     pub decision_status: Classified<TenantRbacPolicyDecisionStatus>, // data_class: INTERNAL_ONLY
     pub schema_version: Classified<u32>,        // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SensitiveHrReadScopeDecision {
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub entitlement_set_id: Classified<EntitlementSetId>, // data_class: INTERNAL_ONLY
+    pub role_binding: Classified<RoleBindingRef>, // data_class: INTERNAL_ONLY
+    pub policy_scope: Classified<PolicyScopeRef>, // data_class: INTERNAL_ONLY
+    pub legal_basis: Classified<SensitiveReadLegalBasis>, // data_class: INTERNAL_ONLY
+    pub audit_evidence_refs: Classified<Vec<AuditEvidenceRef>>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub decision_status: Classified<TenantRbacPolicyDecisionStatus>, // data_class: INTERNAL_ONLY
+    pub sensitive_data_fetch: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub downstream_service_policy_bypass: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -316,7 +368,11 @@ pub enum TenantRbacDomainError {
     InvalidTenantId,
     InvalidLegalEntityId,
     InvalidGroupId,
+    InvalidEntitlementSetId,
+    InvalidRoleBinding,
+    InvalidPolicyScope,
     InvalidAuditEvidenceRef,
+    MissingAuditEvidence,
     BypassedPlatformPolicyGateway,
     InvalidDashboardProjectionRef,
     InvalidIdempotencyKey,
@@ -390,6 +446,68 @@ pub fn admit_service_write(
         sequence: internal(input.sequence),
         decision_status: internal(TenantRbacPolicyDecisionStatus::Accepted),
         schema_version: public(TENANT_RBAC_DECISION_SCHEMA_VERSION),
+    })
+}
+
+pub fn admit_sensitive_hr_read_scope(
+    input: SensitiveHrReadScopeInput,
+) -> Result<SensitiveHrReadScopeDecision, TenantRbacDomainError> {
+    require_prefixed(
+        &input.tenant_id,
+        TENANT_ID_PREFIX,
+        TenantRbacDomainError::InvalidTenantId,
+    )?;
+    require_prefixed(
+        &input.entitlement_set_id,
+        ENTITLEMENT_SET_ID_PREFIX,
+        TenantRbacDomainError::InvalidEntitlementSetId,
+    )?;
+    require_prefixed(
+        &input.role_binding,
+        ROLE_BINDING_REF_PREFIX,
+        TenantRbacDomainError::InvalidRoleBinding,
+    )?;
+    require_prefixed(
+        &input.policy_scope,
+        POLICY_SCOPE_REF_PREFIX,
+        TenantRbacDomainError::InvalidPolicyScope,
+    )?;
+    if input.audit_evidence_refs.is_empty() {
+        return Err(TenantRbacDomainError::MissingAuditEvidence);
+    }
+    let mut audit_evidence_refs = Vec::with_capacity(input.audit_evidence_refs.len());
+    for evidence_ref in input.audit_evidence_refs {
+        require_prefixed(
+            &evidence_ref,
+            AUDIT_EVIDENCE_PREFIX,
+            TenantRbacDomainError::InvalidAuditEvidenceRef,
+        )?;
+        audit_evidence_refs.push(AuditEvidenceRef {
+            value: evidence_ref,
+        });
+    }
+    require_non_empty_key(&input.idempotency_key)?;
+
+    Ok(SensitiveHrReadScopeDecision {
+        tenant_id: internal(TenantId {
+            value: input.tenant_id,
+        }),
+        entitlement_set_id: internal(EntitlementSetId {
+            value: input.entitlement_set_id,
+        }),
+        role_binding: internal(RoleBindingRef {
+            value: input.role_binding,
+        }),
+        policy_scope: internal(PolicyScopeRef {
+            value: input.policy_scope,
+        }),
+        legal_basis: internal(input.legal_basis),
+        audit_evidence_refs: internal(audit_evidence_refs),
+        idempotency_key: internal(input.idempotency_key),
+        decision_status: internal(TenantRbacPolicyDecisionStatus::Accepted),
+        sensitive_data_fetch: internal(false),
+        downstream_service_policy_bypass: internal(false),
+        schema_version: public(SENSITIVE_HR_READ_SCOPE_SCHEMA_VERSION),
     })
 }
 

@@ -1,7 +1,12 @@
+# Claim boundary: target/provenance inventory only; no DNS HTTPS record,
+# ECH runtime, cert readiness, or runtime audit-chain emission is claimed.
 apiVersion: oyatie.dev/v1
 kind: EchConfig
 metadata:
   name: oya-supply-chain-planning-ech
+  annotations:
+    oyatie.com/claim-boundary: target-provenance-only
+    oyatie.com/no-runtime-audit-chain-emission: "true"
 spec:
   rotationCadenceDays: 90
   httpsRecord: true

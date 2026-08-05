@@ -5,7 +5,11 @@ package oya.treasury.v1;
 option java_package = "dev.oyatie.treasury.v1";
 
 // SAP TRM; benchmarks: SAP TRM Treasury and Risk Management | Oracle Fusion Cash Management | Workday Financial Management cash and treasury counterpart | NetSuite Cash Management | Microsoft Dynamics 365 Finance Cash and Bank
-// Transport binding: HTTP/3 default at REST edge, gRPC over mTLS internally, ECH/PQC at ingress where supported.
+// Preview metadata-only contract authority: specs/microservices/treasury.json.
+// The service and RPC names describe future wire shape only; this proto has no
+// deployed server, no durable persistence, no Workflow execution, no runtime
+// audit-chain emission, no payment execution, no live bank connectivity,
+// no cloud deployment, no GA readiness, and no measured SLO/DR readiness.
 
 message CashPositionCommand {
   string tenant_id = 1;

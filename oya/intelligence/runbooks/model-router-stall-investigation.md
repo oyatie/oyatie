@@ -135,7 +135,7 @@ doc_status: published
 ```
 
 ## Mitigation
-1. Hold route policy deploys: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+1. Hold route policy deploys: incident hold PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 2. Keep guardrails enforced: `oya flags set oya.intelligence.guardrails.bypass=false --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
 3. Keep audit tap enforced: `oya flags set oya.intelligence.audit_tap.required=true --tenant $TENANT --cell $CELL --reason $INCIDENT_ID`.
 4. Open router breaker: `oya ops breaker open intelligence-model-router --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
@@ -170,7 +170,7 @@ doc_status: published
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-model-router --production-snapshot --cell $CELL`.
 12. Verify route explain: `oya ops intelligence model-router explain --tenant $TENANT --pack $PACK --task assist-draft --expect safe-candidate`.
 13. Close breaker: `oya ops breaker close intelligence-model-router --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
-14. Unhold deploys: recovery PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
+14. Unhold deploys: recovery PR against `dev` (plain `git`; branch-protected `oya-ci-required` required; legacy `oya gate` output optional local/provenance only).
 15. Seal audit: `oya audit-chain emit --event-class EVT_INTELLIGENCE_MODEL_ROUTER_STALL_INCIDENT --incident $INCIDENT_ID --field resolution=complete`.
 
 ## Verification Checklist

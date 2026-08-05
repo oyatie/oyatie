@@ -53,7 +53,10 @@ pub struct ModuleGrant {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum GrantRefusal {
     /// The session's ACR does not meet the capability's required floor.
-    AcrBelowFloor { required: AcrLevel, actual: AcrLevel },
+    AcrBelowFloor {
+        required: AcrLevel,
+        actual: AcrLevel,
+    },
 }
 
 /// ACR floor per navigation sensitivity. Admin-audit-grade capabilities
@@ -115,8 +118,8 @@ impl<C: OidcClient> ShellTokenBroker<C> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use oya_shared_platform_contracts_kernel::shell_bff::NavigationSurface;
     use oya_shared_oidc_client_kernel::Audience;
+    use oya_shared_platform_contracts_kernel::shell_bff::NavigationSurface;
 
     use super::*;
 

@@ -1,8 +1,8 @@
 {
   "schema_version": "oyatie.design-spec-maturity-claims.v1",
   "_schema": {
-    "validation_check": "json-valid + oya gate validate design-spec-maturity-claims",
-    "primary_evidence_command": "cargo run -q -p oya-dev-cli -- gate validate design-spec-maturity-claims --emit-evidence evidence/design-spec-maturity/after-2026-05-18.json"
+    "validation_check": "json-valid + cloud-ci/Rust gate packet: design-spec-maturity-claims",
+    "primary_evidence_command": "cloud-ci/Rust gate packet: design-spec-maturity-claims (--emit-evidence evidence/design-spec-maturity/after-2026-05-18.json)"
   },
   "_metadata": {
     "purpose": "Define the machine-enforced evidence bar for a bounded architecture/platform/system design maturity claim.",
@@ -156,7 +156,7 @@
     "owner_team": "council-architecture + axis-foundry",
     "last_audited": "2026-05-20",
     "substance_bar": "documentation-rigor.md section 1.1",
-    "canonical_gate": "oya gate validate design-spec-maturity-claims",
+    "canonical_gate": "cloud-ci/Rust gate packet: design-spec-maturity-claims",
     "authority_boundary": "Allows design/spec maturity claims only; does not authorize operational, production, certification, SLO-achievement, or product-completeness claims."
   },
   "hyperscaler_grade_rigor": {
@@ -177,7 +177,7 @@
     ],
     "observability_hooks": [
       "evidence/design-spec-maturity/after-2026-05-18.json",
-      "oya gate validate design-spec-maturity-claims"
+      "cloud-ci/Rust gate packet: design-spec-maturity-claims"
     ],
     "rollback_path": "Remove or narrow the exact_claim until required surfaces are green again.",
     "versioning": "Additive schema evolution under schema_version oyatie.design-spec-maturity-claims.v1; breaking claim semantics require ADR update."

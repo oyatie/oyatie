@@ -1,0 +1,57 @@
+{
+  "artifacts": [
+    "oya/workflow-engine/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/intelligence/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/messenger/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/ontology/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/audit-chain/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/governance/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/identity/IPs/IP-sustainability-emission-model.fixture.json",
+    "cloud/tenancy/IPs/IP-sustainability-emission-model.fixture.json"
+  ],
+  "change_class_id": "CC-6",
+  "change_id": "t_f60cb75d-finops-high-risk-emission-models",
+  "changed_files": [
+    "oya/workflow-engine/manifest.json",
+    "oya/workflow-engine/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/intelligence/manifest.json",
+    "oya/intelligence/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/messenger/manifest.json",
+    "oya/messenger/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/ontology/manifest.json",
+    "oya/ontology/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/audit-chain/manifest.json",
+    "oya/audit-chain/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/governance/manifest.json",
+    "oya/governance/IPs/IP-sustainability-emission-model.fixture.json",
+    "oya/identity/manifest.json",
+    "oya/identity/IPs/IP-sustainability-emission-model.fixture.json",
+    "cloud/tenancy/manifest.json",
+    "cloud/tenancy/IPs/IP-sustainability-emission-model.fixture.json",
+    "evidence/multispectrum/t_f60cb75d-finops-high-risk-emission-models-1782944098.json"
+  ],
+  "facets": {
+    "F1_traceability": [
+      "t_f60cb75d",
+      "t_35c95bce",
+      "t_b69c0b30",
+      "t_b64c3b20",
+      "t_ff6ecba7",
+      "t_42bf53d0",
+      "ADR-0344",
+      "ADR-0324",
+      "specs/finops-dimensional-model.json",
+      "specs/microservices/manifest-schema.json",
+      "specs/microservices/manifests-index.json"
+    ],
+    "F2_correctness": "Eight current indexed Tier-0/Tier-1 workload-emitting services now declare sustainability_emission_model blocks with service-specific workload_signal_source, price binding, validation baseline, and fixture evidence. cloud-k8s/cloud-secrets and non-index cloud-* rows remain excluded because the reviewed inventory classifies them as not_claimed_runtime or outside this batch.",
+    "F3_security": "Tier 0/1 no-carbon-deferral notes are captured in each fixture; no runtime instrumentation, credential, billing, cloud-ci, manifest-schema, manifests-index, or generated JSON path was edited.",
+    "F4_data_boundary": "All values are deterministic fixture baselines and non-claim declarations; no measured tenant energy, CO2, price, invoice, chargeback, OpenCost, FOCUS, regulator export, or production readiness claim is introduced.",
+    "F5_testing": "python3 -m json.tool validated 17 touched JSON files; custom verifier checked required block fields, unique coefficient tuples, formula-derived baselines, fixture references, no-carbon-deferral/security/audit notes, and excluded runtime/non-index rows; git diff --check passed for tracked touched manifests; board stats and dispatch dry-run reported spawnable_count=0/warning_count=0.",
+    "F6_rollback": "Revert the eight manifest insertions, eight service-local fixture JSON files, and this evidence file if ADR-0344 authority, manifest schema, or manifest-index review is superseded before review/merge. No generated output regeneration or billing data rollback is needed."
+  },
+  "generated_at": "2026-07-01T22:14:58Z",
+  "schema_version": "2.4.0-advisory-local",
+  "scope": "Tier-0/Tier-1 data-plane sustainability_emission_model manifest declaration and service-local fixture evidence only; no runtime, billing, generated-output, or live FinOps claim",
+  "task_id": "t_f60cb75d"
+}

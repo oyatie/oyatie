@@ -215,6 +215,23 @@
     "runtime/SLO/DR claims without measured evidence",
     "direct cross-microservice calls bypassing Workflow/Ontology"
   ],
+  "sustainability_emission_model_authority": {
+    "status": "conditional_metadata_only_no_current_manifest",
+    "adr": "ADR-0344",
+    "manifest_declaration": "not_authored",
+    "reason": "Procurement remains a preview/metadata-only source-to-pay PRD with no current oya/procurement or cloud/procurement manifest in this checkout. Its source-to-pay tests name purchase requisition, PO, and three-way-match metadata, but the PRD explicitly preserves no supplier runtime, persistence, Workflow, inventory mutation, payment execution, statutory filing, or cloud deployment claims.",
+    "workload_signal_candidate": "per_workflow_run source-to-pay requisition, purchase-order, goods-receipt, supplier-invoice, and three-way-match events after runtime authority exists",
+    "required_before_manifest_declaration": [
+      "promote a current procurement manifest path",
+      "declare capacity_model and pod_runtime_tier in that manifest",
+      "land source-to-pay runtime/adapter authority without violating payment, supplier-network, persistence, Workflow, or cloud non-claims",
+      "add emission-path fixture assertions for cost, co2, watt_hours, provider, and region before any live FinOps claim"
+    ],
+    "non_claims": [
+      "No sustainability_emission_model coefficients are declared for procurement in this slice.",
+      "No invoice, chargeback, tax filing, payment, billing, live provider, supplier-network, regulator export, or runtime audit-chain mutation is introduced."
+    ]
+  },
   "metrics": [
     {
       "name": "domain-test-green",
@@ -229,7 +246,7 @@
       "targets": {
         "preview": "0 forbidden dependency edges"
       },
-      "lane_ref": "oya gate validate architecture-boundaries"
+      "lane_ref": "cloud-ci/Rust gate packet: architecture-boundaries"
     }
   ]
 }

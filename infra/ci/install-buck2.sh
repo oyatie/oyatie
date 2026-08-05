@@ -4,6 +4,7 @@ set -euo pipefail
 
 BUCK2_RELEASE="${BUCK2_RELEASE:-2026-06-01}"
 BUCK2_INSTALL_DIR="${BUCK2_INSTALL_DIR:-/tmp/oya-ci-buck2-${BUCK2_RELEASE}}"
+BUCK2_BINARY="${BUCK2_INSTALL_DIR}/buck2"
 
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64)
@@ -22,13 +23,26 @@ case "$(uname -s)-$(uname -m)" in
 esac
 
 mkdir -p "${BUCK2_INSTALL_DIR}"
+
+if [ -x "${BUCK2_BINARY}" ]; then
+  if "${BUCK2_BINARY}" --version >/dev/null 2>&1; then
+    echo "Using cached buck2 at ${BUCK2_BINARY}."
+    if [ -n "${GITHUB_PATH:-}" ]; then
+      echo "${BUCK2_INSTALL_DIR}" >> "${GITHUB_PATH}"
+    fi
+    exec "${BUCK2_BINARY}" "$@"
+  fi
+
+  echo "Cached buck2 binary at ${BUCK2_BINARY} is unusable; redownloading." >&2
+fi
+
 curl -fsSL "https://github.com/facebook/buck2/releases/download/${BUCK2_RELEASE}/${BUCK2_ASSET}" -o "${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}"
 echo "${BUCK2_SHA256}  ${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}" | sha256sum -c -
-zstd -d -f "${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}" -o "${BUCK2_INSTALL_DIR}/buck2"
-chmod +x "${BUCK2_INSTALL_DIR}/buck2"
+zstd -f -d "${BUCK2_INSTALL_DIR}/${BUCK2_ASSET}" -o "${BUCK2_BINARY}"
+chmod +x "${BUCK2_BINARY}"
 
 if [ -n "${GITHUB_PATH:-}" ]; then
   echo "${BUCK2_INSTALL_DIR}" >> "${GITHUB_PATH}"
 fi
 
-"${BUCK2_INSTALL_DIR}/buck2" --version
+"${BUCK2_BINARY}" --version

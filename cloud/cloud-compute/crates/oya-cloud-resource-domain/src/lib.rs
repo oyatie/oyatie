@@ -16,11 +16,15 @@ use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_la
 const RESOURCE_SCHEMA_VERSION: u32 = 1;
 const RESOURCE_ID_PREFIX_OWNER: &str = "oya";
 const RESOURCE_ID_PREFIX_SERVICE: &str = "cloud";
+const RESOURCE_ID_ORN_SCHEME: &str = "orn";
+const RESOURCE_ID_ORN_OWNER: &str = "oya";
+const RESOURCE_ID_ORN_SERVICE: &str = "cloud-compute";
 const TENANT_ID_PREFIX: &str = "ten_";
 const HUMAN_PRINCIPAL_PREFIX: &str = "usr_";
 const SERVICE_PRINCIPAL_PREFIX: &str = "sp_";
 const POLICY_ID_PREFIX: &str = "pol_";
 const RESERVED_TAG_PREFIX: &str = "oya:";
+pub const RESOURCE_HIERARCHY_PREREQUISITE: &str = "Full organization/project/resource-group hierarchy needs a serialized root control-plane identity contract migration before ResourceCreate grows mandatory scope fields; this crate currently treats the ORN account segment as the tenant/account compatibility key.";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ResourceId {
@@ -142,7 +146,9 @@ pub enum ImageKind {
 pub enum ResourceKind {
     ComputeInstance(InstanceFlavor),
     KubernetesCluster(K8sFlavor),
+    NodePool(InstanceFlavor),
     Function(FunctionRuntime),
+    Container,
     BareMetal(BareMetalFlavor),
     GpuFleet(GpuFlavor),
     Bucket(BucketTier),
@@ -239,10 +245,12 @@ pub enum CloudResourceError {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct ResourceIdParts {
-    region: RegionCode, // data_class: PUBLIC
-    tenant_id: String,  // data_class: INTERNAL_ONLY
-    kind_label: String, // data_class: PUBLIC
-    name: String,       // data_class: INTERNAL_ONLY
+    region: RegionCode,    // data_class: PUBLIC
+    tenant_id: String,     // data_class: INTERNAL_ONLY
+    account_id: String,    // data_class: INTERNAL_ONLY
+    service_label: String, // data_class: PUBLIC
+    kind_label: String,    // data_class: PUBLIC
+    name: String,          // data_class: INTERNAL_ONLY
 }
 
 pub trait ResourceRepo {
@@ -266,7 +274,9 @@ impl ResourceKind {
         match self {
             Self::ComputeInstance(_) => "instance",
             Self::KubernetesCluster(_) => "k8s",
+            Self::NodePool(_) => "node-pool",
             Self::Function(_) => "function",
+            Self::Container => "container",
             Self::BareMetal(_) => "bare-metal",
             Self::GpuFleet(_) => "gpu-fleet",
             Self::Bucket(_) => "bucket",
@@ -290,12 +300,29 @@ impl ResourceKind {
         }
     }
 
+    pub const fn catalog_type_label(self) -> &'static str {
+        match self {
+            Self::ComputeInstance(_) => "vm-instance",
+            Self::KubernetesCluster(_) => "k8s-cluster",
+            Self::NodePool(_) => "node-pool",
+            Self::Function(_) => "function",
+            Self::Container => "container",
+            _ => self.type_label(),
+        }
+    }
+
+    pub fn matches_type_label(self, label: &str) -> bool {
+        label == self.type_label() || label == self.catalog_type_label()
+    }
+
     pub const fn requires_az(self) -> bool {
         matches!(
             self,
             Self::ComputeInstance(_)
                 | Self::KubernetesCluster(_)
+                | Self::NodePool(_)
                 | Self::Function(_)
+                | Self::Container
                 | Self::BareMetal(_)
                 | Self::GpuFleet(_)
                 | Self::Volume(_)
@@ -381,6 +408,14 @@ impl ResourceId {
 
     pub fn tenant_id(&self) -> Result<String, CloudResourceError> {
         Ok(self.parts()?.tenant_id)
+    }
+
+    pub fn account_id(&self) -> Result<String, CloudResourceError> {
+        Ok(self.parts()?.account_id)
+    }
+
+    pub fn service_label(&self) -> Result<String, CloudResourceError> {
+        Ok(self.parts()?.service_label)
     }
 
     pub fn region(&self) -> Result<RegionCode, CloudResourceError> {
@@ -581,6 +616,14 @@ pub fn resource_data_class_from_legacy(
 
 fn parse_resource_id(value: &str) -> Result<ResourceIdParts, CloudResourceError> {
     let parts: Vec<&str> = value.split(':').collect();
+    match parts.first().copied() {
+        Some(RESOURCE_ID_PREFIX_OWNER) => parse_legacy_resource_id(&parts),
+        Some(RESOURCE_ID_ORN_SCHEME) => parse_orn_resource_id(&parts),
+        _ => Err(CloudResourceError::InvalidResourceId),
+    }
+}
+
+fn parse_legacy_resource_id(parts: &[&str]) -> Result<ResourceIdParts, CloudResourceError> {
     if parts.len() != 6
         || parts[0] != RESOURCE_ID_PREFIX_OWNER
         || parts[1] != RESOURCE_ID_PREFIX_SERVICE
@@ -595,8 +638,36 @@ fn parse_resource_id(value: &str) -> Result<ResourceIdParts, CloudResourceError>
     Ok(ResourceIdParts {
         region,
         tenant_id: parts[3].to_string(),
+        account_id: parts[3].to_string(),
+        service_label: RESOURCE_ID_PREFIX_SERVICE.to_string(),
         kind_label: parts[4].to_string(),
         name: parts[5].to_string(),
+    })
+}
+
+fn parse_orn_resource_id(parts: &[&str]) -> Result<ResourceIdParts, CloudResourceError> {
+    if parts.len() != 6
+        || parts[0] != RESOURCE_ID_ORN_SCHEME
+        || parts[1] != RESOURCE_ID_ORN_OWNER
+        || parts[4] != RESOURCE_ID_ORN_SERVICE
+        || parts.iter().any(|part| part.trim().is_empty())
+    {
+        return Err(CloudResourceError::InvalidResourceId);
+    }
+    let region = RegionCode::new(parts[2]).map_err(|_| CloudResourceError::InvalidResourceId)?;
+    validate_tenant_id(parts[3])?;
+    let Some((kind_label, name)) = parts[5].split_once('/') else {
+        return Err(CloudResourceError::InvalidResourceId);
+    };
+    validate_canonical_segment(kind_label, CloudResourceError::InvalidResourceId)?;
+    validate_canonical_segment(name, CloudResourceError::InvalidResourceId)?;
+    Ok(ResourceIdParts {
+        region,
+        tenant_id: parts[3].to_string(),
+        account_id: parts[3].to_string(),
+        service_label: parts[4].to_string(),
+        kind_label: kind_label.to_string(),
+        name: name.to_string(),
     })
 }
 
@@ -612,7 +683,7 @@ fn validate_resource_id_matches(
     if id_parts.tenant_id != tenant_id {
         return Err(CloudResourceError::ResourceIdTenantMismatch);
     }
-    if id_parts.kind_label != kind.type_label() {
+    if !kind.matches_type_label(&id_parts.kind_label) {
         return Err(CloudResourceError::ResourceIdKindMismatch);
     }
     Ok(())
@@ -793,6 +864,124 @@ mod tests {
             residency: residency_class(),
             created_at_epoch_seconds: 1_700_000_000,
             updated_at_epoch_seconds: 1_700_000_000,
+        }
+    }
+
+    #[test]
+    fn resource_id_accepts_canonical_control_plane_orn_and_exposes_hierarchy() {
+        let id =
+            ResourceId::new("orn:oya:region-alpha1:ten_alpha:cloud-compute:vm-instance/api-001")
+                .expect("canonical control-plane ORN resource id should parse");
+
+        assert_eq!(
+            id.region().expect("region should parse").value,
+            "region-alpha1"
+        );
+        assert_eq!(
+            id.tenant_id().expect("tenant/account should parse"),
+            "ten_alpha"
+        );
+        assert_eq!(id.account_id().expect("account should parse"), "ten_alpha");
+        assert_eq!(
+            id.service_label().expect("service should parse"),
+            "cloud-compute"
+        );
+        assert_eq!(
+            id.kind_label().expect("resource type should parse"),
+            "vm-instance"
+        );
+        assert_eq!(
+            id.resource_name().expect("resource id should parse"),
+            "api-001"
+        );
+    }
+
+    #[test]
+    fn resource_id_rejects_non_compute_orn_service_fail_closed() {
+        let error =
+            ResourceId::new("orn:oya:region-alpha1:ten_alpha:cloud-storage:vm-instance/api-001")
+                .expect_err(
+                    "cloud-compute resource contract must not accept another service namespace",
+                );
+
+        assert_eq!(error, CloudResourceError::InvalidResourceId);
+    }
+
+    #[test]
+    fn compute_catalog_resource_kinds_are_first_class_without_runtime_claims() {
+        let kinds = [
+            (
+                ResourceKind::ComputeInstance(InstanceFlavor::GeneralPurpose),
+                "vm-instance",
+                "instance",
+            ),
+            (
+                ResourceKind::KubernetesCluster(K8sFlavor::Standard),
+                "k8s-cluster",
+                "k8s",
+            ),
+            (
+                ResourceKind::NodePool(InstanceFlavor::GeneralPurpose),
+                "node-pool",
+                "node-pool",
+            ),
+            (
+                ResourceKind::Function(FunctionRuntime::Wasm),
+                "function",
+                "function",
+            ),
+            (ResourceKind::Container, "container", "container"),
+        ];
+
+        for (kind, catalog_label, legacy_metering_label) in kinds {
+            assert_eq!(kind.catalog_type_label(), catalog_label);
+            assert_eq!(kind.type_label(), legacy_metering_label);
+            assert!(
+                kind.requires_az(),
+                "{catalog_label} remains cell/AZ scoped metadata"
+            );
+        }
+    }
+
+    #[test]
+    fn creates_node_pool_and_container_resources_with_existing_invariants_preserved() {
+        let cases = [
+            (
+                ResourceKind::NodePool(InstanceFlavor::GeneralPurpose),
+                "node-pool",
+                "np-api-a",
+            ),
+            (ResourceKind::Container, "container", "ctr-api-001"),
+        ];
+
+        for (kind, catalog_label, name) in cases {
+            let resource = Resource::new(ResourceCreate {
+                id: format!("orn:oya:region-alpha1:ten_alpha:cloud-compute:{catalog_label}/{name}"),
+                kind,
+                metering_tag: format!("oya:metering:ten_alpha:{}", kind.type_label()),
+                ..compute_resource_create()
+            })
+            .expect("first-class compute catalog resource should preserve shared invariants");
+
+            assert_eq!(
+                resource.id.value.account_id().expect("account"),
+                "ten_alpha"
+            );
+            assert_eq!(
+                resource.id.value.service_label().expect("service"),
+                "cloud-compute"
+            );
+            assert_eq!(resource.id.value.kind_label().expect("kind"), catalog_label);
+            assert_eq!(resource.owner_principal.value.value, "sp_foundry");
+            assert_eq!(resource.iam_policy_attachments.value.len(), 1);
+            assert_eq!(resource.tenant_id.value, "ten_alpha");
+            assert_eq!(resource.region.value.value, "region-alpha1");
+            assert_eq!(resource.cell_id.value.value, "cell-region-alpha1-a-001");
+            assert_eq!(
+                resource.data_class.value.data_class(),
+                DataClass::InternalOnly
+            );
+            assert_eq!(resource.state.value, ResourceState::Pending);
         }
     }
 
@@ -1003,8 +1192,7 @@ mod tests {
                 let via_predicate = from.can_transition_to(to);
                 let via_graph = nexts.contains(&to);
                 assert_eq!(
-                    via_predicate,
-                    via_graph,
+                    via_predicate, via_graph,
                     "allowed_next({from:?}) and can_transition_to({from:?}, {to:?}) disagree: \
                      predicate={via_predicate}, graph={via_graph}"
                 );

@@ -1,9 +1,10 @@
-//! Self-hosted / colo VPC adapter boundary for Cloud Network.
+//! Self-hosted / colo Cloud Network adapter boundary.
 //!
 //! This crate keeps on-prem and colo control-plane endpoint, site, cell, and
 //! fabric references outside the provider-neutral Cloud Network domain/API
-//! crates while implementing the shared VPC provider port contract. It builds
-//! deterministic request shapes only; credentialed live smoke remains a
+//! crates while implementing the shared VPC, DNS zone, and load-balancer
+//! provider port contracts. It builds deterministic request shapes only;
+//! credentialed live smoke remains a
 //! separate promotion gate.
 //! ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 //! `panic!()` to assert invariants under the `cfg(test)` exemption.
@@ -11,8 +12,10 @@
 
 use oya_cloud_network_domain::{
     NetworkProviderDnsZoneCreateRequest, NetworkProviderDnsZoneError, NetworkProviderDnsZonePort,
-    NetworkProviderDnsZoneReceipt, NetworkProviderKind, NetworkProviderVpcCreateRequest,
-    NetworkProviderVpcError, NetworkProviderVpcPort, NetworkProviderVpcReceipt,
+    NetworkProviderDnsZoneReceipt, NetworkProviderKind, NetworkProviderLoadBalancerCreateRequest,
+    NetworkProviderLoadBalancerError, NetworkProviderLoadBalancerPort,
+    NetworkProviderLoadBalancerReceipt, NetworkProviderVpcCreateRequest, NetworkProviderVpcError,
+    NetworkProviderVpcPort, NetworkProviderVpcReceipt,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -25,6 +28,14 @@ pub enum SelfHostedColoVpcAdapterConfigError {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SelfHostedColoDnsZoneAdapterConfigError {
+    InvalidEndpoint,
+    InvalidSiteRef,
+    InvalidCellRef,
+    InvalidFabricRef,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum SelfHostedColoLoadBalancerAdapterConfigError {
     InvalidEndpoint,
     InvalidSiteRef,
     InvalidCellRef,
@@ -61,6 +72,25 @@ pub struct SelfHostedColoDnsZoneAdapter {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SelfHostedColoDnsZoneCommand {
+    pub operation: &'static str,       // data_class: PUBLIC
+    pub method: &'static str,          // data_class: PUBLIC
+    pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
+    pub path: String,                  // data_class: INTERNAL_ONLY
+    pub body_canonical: String,        // data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SelfHostedColoLoadBalancerAdapter {
+    endpoint_origin: String,  // data_class: INTERNAL_ONLY
+    site_ref: String,         // data_class: PUBLIC
+    cell_ref: String,         // data_class: PUBLIC
+    fabric_ref: String,       // data_class: INTERNAL_ONLY
+    clock_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SelfHostedColoLoadBalancerCommand {
     pub operation: &'static str,       // data_class: PUBLIC
     pub method: &'static str,          // data_class: PUBLIC
     pub endpoint_origin: String,       // data_class: INTERNAL_ONLY
@@ -302,6 +332,124 @@ impl SelfHostedColoDnsZoneAdapter {
     }
 }
 
+impl SelfHostedColoLoadBalancerAdapter {
+    pub fn new(
+        endpoint_origin: impl Into<String>,
+        site_ref: impl Into<String>,
+        cell_ref: impl Into<String>,
+        fabric_ref: impl Into<String>,
+    ) -> Result<Self, SelfHostedColoLoadBalancerAdapterConfigError> {
+        let endpoint_origin = endpoint_origin.into();
+        let site_ref = site_ref.into();
+        let cell_ref = cell_ref.into();
+        let fabric_ref = fabric_ref.into();
+        validate_lb_endpoint(&endpoint_origin)?;
+        validate_lb_segment(
+            &site_ref,
+            SelfHostedColoLoadBalancerAdapterConfigError::InvalidSiteRef,
+        )?;
+        validate_lb_segment(
+            &cell_ref,
+            SelfHostedColoLoadBalancerAdapterConfigError::InvalidCellRef,
+        )?;
+        validate_lb_segment(
+            &fabric_ref,
+            SelfHostedColoLoadBalancerAdapterConfigError::InvalidFabricRef,
+        )?;
+        Ok(Self {
+            endpoint_origin,
+            site_ref,
+            cell_ref,
+            fabric_ref,
+            clock_epoch_seconds: 0,
+        })
+    }
+
+    pub fn with_clock(mut self, clock_epoch_seconds: u64) -> Self {
+        self.clock_epoch_seconds = clock_epoch_seconds;
+        self
+    }
+
+    pub fn provider_load_balancer_ref(&self, load_balancer_resource_id: &str) -> String {
+        format!(
+            "selfhosted-lb://{}/{}/{}/{}",
+            self.site_ref, self.cell_ref, self.fabric_ref, load_balancer_resource_id
+        )
+    }
+
+    pub fn create_load_balancer_command(
+        &self,
+        request: &NetworkProviderLoadBalancerCreateRequest,
+    ) -> Result<SelfHostedColoLoadBalancerCommand, NetworkProviderLoadBalancerError> {
+        request.validate()?;
+        self.ensure_provider_load_balancer(
+            &request.provider_load_balancer_ref,
+            &request.load_balancer.resource_id,
+        )?;
+        let listener_count = request.load_balancer.listeners.len().to_string();
+        let target_group_count = request.load_balancer.target_groups.len().to_string();
+        let mtls_enabled = request.load_balancer.mtls.is_some().to_string();
+        let waf_policy = request
+            .load_balancer
+            .waf_policy
+            .as_deref()
+            .unwrap_or("none");
+        Ok(SelfHostedColoLoadBalancerCommand {
+            operation: "CreateTenantLoadBalancer",
+            method: "POST",
+            endpoint_origin: self.endpoint_origin.clone(),
+            path: format!(
+                "/v1/sites/{}/cells/{}/load-balancers",
+                self.site_ref, self.cell_ref
+            ),
+            body_canonical: canonical_body(&[
+                ("site_ref", self.site_ref.as_str()),
+                ("cell_ref", self.cell_ref.as_str()),
+                ("fabric_ref", self.fabric_ref.as_str()),
+                ("resource_id", request.load_balancer.resource_id.as_str()),
+                ("tenant_id", request.load_balancer.tenant_id.as_str()),
+                ("vpc_id", request.load_balancer.vpc_id.as_str()),
+                ("kind", lb_kind_label(request.load_balancer.kind)),
+                ("listener_count", listener_count.as_str()),
+                ("target_group_count", target_group_count.as_str()),
+                ("mtls_enabled", mtls_enabled.as_str()),
+                ("waf_policy", waf_policy),
+                ("actor", request.actor.as_str()),
+                ("idempotency_key", request.idempotency_key.as_str()),
+            ]),
+            provider_evidence_ref: format!(
+                "selfhosted-lb://{}/{}/{}/{}/{}",
+                self.site_ref,
+                self.cell_ref,
+                self.fabric_ref,
+                request.load_balancer.resource_id,
+                request.request_id
+            ),
+        })
+    }
+
+    fn ensure_provider_load_balancer(
+        &self,
+        provider_load_balancer_ref: &str,
+        load_balancer_resource_id: &str,
+    ) -> Result<(), NetworkProviderLoadBalancerError> {
+        let expected = self.provider_load_balancer_ref(load_balancer_resource_id);
+        if provider_load_balancer_ref == expected {
+            Ok(())
+        } else {
+            Err(NetworkProviderLoadBalancerError::ProviderRejected {
+                provider: NetworkProviderKind::SelfHostedColoLoadBalancer,
+                reason: "provider_load_balancer_ref does not match configured self-hosted colo load balancer target"
+                    .to_string(),
+            })
+        }
+    }
+
+    fn provider_request_id(&self, request_id: &str) -> String {
+        format!("selfhosted-lb-{}-{request_id}", self.clock_epoch_seconds)
+    }
+}
+
 impl NetworkProviderVpcPort for SelfHostedColoVpcAdapter {
     fn provider_kind(&self) -> NetworkProviderKind {
         NetworkProviderKind::SelfHostedColoVpc
@@ -332,6 +480,25 @@ impl NetworkProviderDnsZonePort for SelfHostedColoDnsZoneAdapter {
     ) -> Result<NetworkProviderDnsZoneReceipt, NetworkProviderDnsZoneError> {
         let command = self.create_authoritative_zone_command(&input)?;
         NetworkProviderDnsZoneReceipt::create_dns_zone(
+            self.provider_kind(),
+            input.clone(),
+            self.provider_request_id(&input.request_id),
+            command.provider_evidence_ref,
+        )
+    }
+}
+
+impl NetworkProviderLoadBalancerPort for SelfHostedColoLoadBalancerAdapter {
+    fn provider_kind(&self) -> NetworkProviderKind {
+        NetworkProviderKind::SelfHostedColoLoadBalancer
+    }
+
+    fn create_load_balancer(
+        &self,
+        input: NetworkProviderLoadBalancerCreateRequest,
+    ) -> Result<NetworkProviderLoadBalancerReceipt, NetworkProviderLoadBalancerError> {
+        let command = self.create_load_balancer_command(&input)?;
+        NetworkProviderLoadBalancerReceipt::create_load_balancer(
             self.provider_kind(),
             input.clone(),
             self.provider_request_id(&input.request_id),
@@ -378,6 +545,34 @@ fn validate_dns_segment(
     }
 }
 
+fn validate_lb_endpoint(value: &str) -> Result<(), SelfHostedColoLoadBalancerAdapterConfigError> {
+    if value.starts_with("https://") && no_space_or_control(value) {
+        Ok(())
+    } else {
+        Err(SelfHostedColoLoadBalancerAdapterConfigError::InvalidEndpoint)
+    }
+}
+
+fn validate_lb_segment(
+    value: &str,
+    error: SelfHostedColoLoadBalancerAdapterConfigError,
+) -> Result<(), SelfHostedColoLoadBalancerAdapterConfigError> {
+    if value.trim().is_empty() || value.contains('/') || !no_space_or_control(value) {
+        Err(error)
+    } else {
+        Ok(())
+    }
+}
+
+const fn lb_kind_label(kind: oya_cloud_network_domain::LbKind) -> &'static str {
+    match kind {
+        oya_cloud_network_domain::LbKind::L4Tcp => "l4_tcp",
+        oya_cloud_network_domain::LbKind::L4Udp => "l4_udp",
+        oya_cloud_network_domain::LbKind::L7Http => "l7_http",
+        oya_cloud_network_domain::LbKind::L7Grpc => "l7_grpc",
+    }
+}
+
 const fn dns_zone_kind_label(kind: oya_cloud_network_domain::DnsZoneKind) -> &'static str {
     match kind {
         oya_cloud_network_domain::DnsZoneKind::Public => "public",
@@ -403,10 +598,13 @@ fn canonical_body(fields: &[(&str, &str)]) -> String {
 mod tests {
     use super::*;
     use oya_cloud_network_domain::{
-        CloudNetworkError, DnsZoneCreate, DnsZoneKind, DnsZoneState, IpProtocol, Ipv4Cidr,
-        NetworkProviderDnsZoneError, NetworkProviderDnsZonePort, NetworkProviderVpcPort,
-        RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate, RuleDirection,
-        SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
+        CloudNetworkError, DnsZoneCreate, DnsZoneKind, DnsZoneState, IpProtocol, Ipv4Cidr, LbKind,
+        LbState, ListenerCreate, LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate,
+        NetworkProviderDnsZoneError, NetworkProviderDnsZonePort,
+        NetworkProviderLoadBalancerCreateRequest, NetworkProviderLoadBalancerError,
+        NetworkProviderLoadBalancerPort, NetworkProviderVpcPort, RouteCreate, RouteDestination,
+        RouteNextHopKind, RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule,
+        SubnetCreate, SubnetState, TargetGroupCreate, VpcCreate, VpcState,
     };
     use oya_data_boundary_kernel::DataClass;
     use oya_residency_domain::ResidencyClass;
@@ -416,6 +614,7 @@ mod tests {
     const FABRIC_REF: &str = "fabric-ovn-frr-a";
     const VPC_ID: &str = "oya:cloud:alpha-region:ten_alpha:vpc:prod";
     const DNS_ZONE_ID: &str = "oya:cloud:alpha-region:ten_alpha:dns-zone:example-com";
+    const LB_ID: &str = "oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor";
 
     fn adapter() -> SelfHostedColoVpcAdapter {
         SelfHostedColoVpcAdapter::new(
@@ -437,6 +636,17 @@ mod tests {
         )
         .unwrap()
         .with_clock(1_700_000_100)
+    }
+
+    fn lb_adapter() -> SelfHostedColoLoadBalancerAdapter {
+        SelfHostedColoLoadBalancerAdapter::new(
+            "https://network-control.kr-seoul-1.oyatie.local",
+            SITE_REF,
+            CELL_REF,
+            FABRIC_REF,
+        )
+        .unwrap()
+        .with_clock(1_700_000_200)
     }
 
     fn request() -> NetworkProviderVpcCreateRequest {
@@ -503,6 +713,65 @@ mod tests {
             actor: "sp_network".to_string(),
             idempotency_key: "idem-selfhosted-network-dns-zone-create".to_string(),
             requested_at_epoch_seconds: 1_700_000_110,
+        }
+    }
+
+    fn subnet_create() -> SubnetCreate {
+        SubnetCreate {
+            resource_id: "oya:cloud:alpha-region:ten_alpha:subnet:prod-a".to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            vpc_id: VPC_ID.to_string(),
+            region: "alpha-region".to_string(),
+            az: "alpha-region-a".to_string(),
+            cidr_v4: "10.42.1.0/24".to_string(),
+            cidr_v6: "2001:db8:42:1::/64".to_string(),
+            public_ip_on_launch: false,
+            state: SubnetState::Creating,
+            data_class: DataClass::Public,
+            created_at_epoch_seconds: 1_700_000_120,
+        }
+    }
+
+    fn lb_create() -> LoadBalancerCreate {
+        LoadBalancerCreate {
+            resource_id: LB_ID.to_string(),
+            tenant_id: "ten_alpha".to_string(),
+            vpc_id: VPC_ID.to_string(),
+            region: "alpha-region".to_string(),
+            kind: LbKind::L7Grpc,
+            listeners: vec![ListenerCreate {
+                port: 443,
+                target_group_id: "tg_api".to_string(),
+                tls_certificate: Some("cert/alpha-region/ten_alpha/frontdoor".to_string()),
+            }],
+            target_groups: vec![TargetGroupCreate {
+                id: "tg_api".to_string(),
+                subnet_ids: vec!["oya:cloud:alpha-region:ten_alpha:subnet:prod-a".to_string()],
+                health_check_path: Some("/healthz".to_string()),
+            }],
+            mtls: Some(MtlsConfigCreate {
+                ca_bundle_ref: "cert/alpha-region/ten_alpha/mesh-ca".to_string(),
+                client_policy: MtlsClientPolicy::RequireVerifiedClientCert,
+            }),
+            waf_policy: Some("waf_cloud_frontdoor".to_string()),
+            state: LbState::Creating,
+            data_class: DataClass::Public,
+            created_at_epoch_seconds: 1_700_000_130,
+        }
+    }
+
+    fn lb_request() -> NetworkProviderLoadBalancerCreateRequest {
+        NetworkProviderLoadBalancerCreateRequest {
+            request_id: "networkprov_req_selfhosted_lb_create_001".to_string(),
+            provider_load_balancer_ref: format!(
+                "selfhosted-lb://{SITE_REF}/{CELL_REF}/{FABRIC_REF}/{LB_ID}"
+            ),
+            vpc: request().vpc,
+            subnets: vec![subnet_create()],
+            load_balancer: lb_create(),
+            actor: "sp_network".to_string(),
+            idempotency_key: "idem-selfhosted-network-lb-create".to_string(),
+            requested_at_epoch_seconds: 1_700_000_210,
         }
     }
 
@@ -622,6 +891,79 @@ mod tests {
     }
 
     #[test]
+    fn create_load_balancer_command_uses_self_hosted_path_and_reference_only_body() {
+        let command = lb_adapter()
+            .create_load_balancer_command(&lb_request())
+            .expect("valid LB request becomes deterministic self-hosted LB command");
+
+        assert_eq!(command.operation, "CreateTenantLoadBalancer");
+        assert_eq!(command.method, "POST");
+        assert_eq!(
+            command.endpoint_origin,
+            "https://network-control.kr-seoul-1.oyatie.local"
+        );
+        assert_eq!(
+            command.path,
+            "/v1/sites/kr-seoul-colo-a/cells/cell-kr-seoul-a/load-balancers"
+        );
+        assert!(command.body_canonical.contains("site_ref=kr-seoul-colo-a"));
+        assert!(command.body_canonical.contains("cell_ref=cell-kr-seoul-a"));
+        assert!(
+            command
+                .body_canonical
+                .contains("fabric_ref=fabric-ovn-frr-a")
+        );
+        assert!(
+            command
+                .body_canonical
+                .contains("resource_id=oya:cloud:alpha-region:ten_alpha:lb-v7:frontdoor")
+        );
+        assert!(command.body_canonical.contains("kind=l7_grpc"));
+        assert!(command.body_canonical.contains("listener_count=1"));
+        assert!(command.body_canonical.contains("target_group_count=1"));
+        assert!(command.body_canonical.contains("mtls_enabled=true"));
+        assert!(
+            command
+                .body_canonical
+                .contains("waf_policy=waf_cloud_frontdoor")
+        );
+        assert!(!command.body_canonical.contains("private_key"));
+        assert!(!command.body_canonical.contains("token"));
+        assert_eq!(
+            command.provider_evidence_ref,
+            format!(
+                "selfhosted-lb://{SITE_REF}/{CELL_REF}/{FABRIC_REF}/{LB_ID}/networkprov_req_selfhosted_lb_create_001"
+            )
+        );
+    }
+
+    #[test]
+    fn load_balancer_port_receipts_preserve_self_hosted_refs_without_provider_credentials() {
+        let receipt = lb_adapter()
+            .create_load_balancer(lb_request())
+            .expect("self-hosted LB receipt is generated");
+
+        assert_eq!(
+            receipt.provider,
+            NetworkProviderKind::SelfHostedColoLoadBalancer
+        );
+        assert_eq!(receipt.provider.label(), "selfhosted_colo_load_balancer");
+        assert_eq!(
+            receipt.provider_request_id,
+            "selfhosted-lb-1700000200-networkprov_req_selfhosted_lb_create_001"
+        );
+        assert_eq!(
+            receipt.provider_load_balancer_ref,
+            format!("selfhosted-lb://{SITE_REF}/{CELL_REF}/{FABRIC_REF}/{LB_ID}")
+        );
+        assert_eq!(receipt.resource_id, LB_ID);
+        assert_eq!(receipt.actor, "sp_network");
+        assert_eq!(receipt.listener_count, 1);
+        assert_eq!(receipt.target_group_count, 1);
+        assert!(receipt.mtls_enabled);
+    }
+
+    #[test]
     fn rejects_provider_vcn_drift_and_bad_vpc_shape() {
         let mut drifted = request();
         drifted.provider_vcn_ref =
@@ -657,6 +999,26 @@ mod tests {
             bad_dns.validate(),
             Err(NetworkProviderDnsZoneError::InvalidRequestShape(
                 CloudNetworkError::DnssecRequired,
+            ))
+        );
+    }
+
+    #[test]
+    fn rejects_provider_load_balancer_drift_and_bad_lb_shape() {
+        let mut drifted = lb_request();
+        drifted.provider_load_balancer_ref =
+            "selfhosted-lb://other/cell-kr-seoul-a/fabric-ovn-frr-a/lb".to_string();
+        assert!(matches!(
+            lb_adapter().create_load_balancer_command(&drifted),
+            Err(NetworkProviderLoadBalancerError::ProviderRejected { .. })
+        ));
+
+        let mut bad_lb = lb_request();
+        bad_lb.load_balancer.mtls = None;
+        assert_eq!(
+            bad_lb.validate(),
+            Err(NetworkProviderLoadBalancerError::InvalidRequestShape(
+                CloudNetworkError::GrpcRequiresMtls,
             ))
         );
     }
@@ -729,6 +1091,42 @@ mod tests {
                 "",
             ),
             Err(SelfHostedColoDnsZoneAdapterConfigError::InvalidFabricRef)
+        );
+        assert_eq!(
+            SelfHostedColoLoadBalancerAdapter::new(
+                "http://network-control",
+                SITE_REF,
+                CELL_REF,
+                FABRIC_REF,
+            ),
+            Err(SelfHostedColoLoadBalancerAdapterConfigError::InvalidEndpoint)
+        );
+        assert_eq!(
+            SelfHostedColoLoadBalancerAdapter::new(
+                "https://network-control.kr-seoul-1.oyatie.local",
+                "kr/seoul",
+                CELL_REF,
+                FABRIC_REF,
+            ),
+            Err(SelfHostedColoLoadBalancerAdapterConfigError::InvalidSiteRef)
+        );
+        assert_eq!(
+            SelfHostedColoLoadBalancerAdapter::new(
+                "https://network-control.kr-seoul-1.oyatie.local",
+                SITE_REF,
+                "cell kr seoul",
+                FABRIC_REF,
+            ),
+            Err(SelfHostedColoLoadBalancerAdapterConfigError::InvalidCellRef)
+        );
+        assert_eq!(
+            SelfHostedColoLoadBalancerAdapter::new(
+                "https://network-control.kr-seoul-1.oyatie.local",
+                SITE_REF,
+                CELL_REF,
+                "",
+            ),
+            Err(SelfHostedColoLoadBalancerAdapterConfigError::InvalidFabricRef)
         );
     }
 }

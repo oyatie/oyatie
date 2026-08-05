@@ -1,0 +1,407 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/anonymous-prd-red-fixtures.schema.json",
+  "fixture_plan_id": "ANONYMOUS-PRD-RED-FIXTURE-CONTRACT-PLAN-001",
+  "kanban_task": "t_fe98ab0a",
+  "parent_plan_spec_task": "t_8da1d130",
+  "status": "red-fixture-plan-contract-replay-pending",
+  "created_at_utc": "2026-07-01T13:57:06Z",
+  "source_commit_at_authoring": "c52bdb09ea33",
+  "claim_boundary": "metadata/fixture-only RED contract plan; no runtime handlers, storage, HSM/vault implementation, API handlers, UI implementation, deployment, generated JSON hand edits, production readiness, GA, measured SLO, UI readiness, or customer availability claim",
+  "source_authority_refs": [
+    "specs/microservices/anonymous.json",
+    "specs/microservices/anonymous.json#implementation_source_lock",
+    "specs/microservices/manifests-index.json#microservices[name=anonymous]",
+    "oya/community/manifest.json",
+    "kanban:t_8da1d130#PLAN/SPEC-ANON-001"
+  ],
+  "inventory_context_not_live_authority": [
+    "oya/community/manifest.json",
+    "microservices/anonymous/manifest.json",
+    "oya/anonymous/manifest.json",
+    "identity.crate_refs_planned layer-per-crate list",
+    "Foundry/AI-substrate active authority"
+  ],
+  "global_non_claims": [
+    "No anonymous runtime implementation is created or approved by this fixture plan.",
+    "No handler, storage adapter, HSM/vault service, policy engine, Workflow execution, Ontology projection, intelligence integration, deployment, live SLO, production readiness, GA, UI readiness, or customer-availability claim is made.",
+    "No oya/anonymous or microservices/anonymous standalone manifest is created, restored, or treated as live authority.",
+    "No layer-per-crate anonymous scaffold is authorized; ADR-0512 requires a bounded-context crate shape unless a later accepted exception says otherwise.",
+    "No active Foundry or AI-substrate backlog is authorized; remaining terms are historical/provenance only and route through intelligence plus Workflow/Ontology mediation.",
+    "No generated JSON hand edits are authorized.",
+    "Green CI alone is insufficient for UI, privacy, legal-hold, aggregate-only, or browser/user-story readiness."
+  ],
+  "required_prd_acceptance_criteria": [
+    "AC-ANON-01",
+    "AC-ANON-02",
+    "AC-ANON-03",
+    "AC-ANON-04",
+    "AC-ANON-05",
+    "AC-ANON-06"
+  ],
+  "required_produced_contracts": [
+    "community.anonymous.post.v1",
+    "community.anonymous.salary_benchmark.v1",
+    "community.anonymous.topic_trend.v1",
+    "community.anonymous.legal_hold_identity_reveal.v1",
+    "audit.community.anonymous.policy.v1"
+  ],
+  "contract_replay_expectations": {
+    "post_store_read": {
+      "contract": "community.anonymous.post.v1",
+      "future_replay_family": "anonymous-post-store-read-v1",
+      "must_assert": [
+        "create/read replay stores anonymous_author_token only",
+        "record has no user_id field",
+        "record has no identity FK",
+        "search index and read DTO contain no identity fields"
+      ]
+    },
+    "salary_benchmark": {
+      "contract": "community.anonymous.salary_benchmark.v1",
+      "future_replay_family": "anonymous-salary-benchmark-v1",
+      "must_assert": [
+        "salary record stores anonymous_author_token only",
+        "aggregate peer range is returned for eligible cohorts",
+        "individual entry query is denied",
+        "real-identity attribution path is absent"
+      ]
+    },
+    "topic_trend": {
+      "contract": "community.anonymous.topic_trend.v1",
+      "future_replay_family": "anonymous-topic-trend-v1",
+      "must_assert": [
+        "topic trend output is aggregate-only",
+        "Workflow mediation is explicit",
+        "Ontology projection is aggregate only",
+        "intelligence output cannot include individual attribution"
+      ]
+    },
+    "legal_hold_identity_reveal": {
+      "contract": "community.anonymous.legal_hold_identity_reveal.v1",
+      "consumed_contract": "workflow.legal_hold.v1",
+      "future_replay_family": "anonymous-legal-hold-identity-reveal-v1",
+      "must_assert": [
+        "two distinct compliance officers approve",
+        "court-order evidence is attached",
+        "HSM/vault access is recorded",
+        "sealed audit package and immutable audit-chain event are emitted"
+      ]
+    },
+    "audit_policy": {
+      "contract": "audit.community.anonymous.policy.v1",
+      "future_replay_family": "anonymous-audit-policy-v1",
+      "must_assert": [
+        "moderation decision audit event contains anonymous_author_token",
+        "aggregate access audit event contains cohort and k-anonymity decision",
+        "policy denial audit event contains reason code",
+        "legal reveal audit event links sealed package without normal-path identity exposure"
+      ]
+    }
+  },
+  "future_replay_root": "specs/fixtures/anonymous-prd/replay/",
+  "default_future_build_home": "oya/community/crates/oya-community-anonymous",
+  "expected_red_failure": "RED until future Build cards create source-backed API/privacy/legal-hold replay fixtures under specs/fixtures/anonymous-prd/replay/ and extend/replace this checker with real contract replay plus implementation under oya/community/**.",
+  "browser_user_story_accessibility_checklist": [
+    "verified_employee verifies work affiliation, composes an anonymous post or salary entry, sees anonymity boundary and policy state, and persistence remains anonymous_author_token-only.",
+    "moderator reviews and actions anonymous content using anonymous_author_token, never real identity, with a moderation audit event.",
+    "enterprise_hr_admin views aggregate dashboard, receives 403/denial for individual attribution, and sees k>=10 small-cohort suppression behavior.",
+    "compliance_officer completes legal-hold identity reveal only with court-order evidence, second-officer approval, HSM/vault access, and sealed audit package visibility.",
+    "Each UI path must meet WCAG 2.2 AA with keyboard, screen-reader labels, reduced-motion, high-contrast, mobile portrait/landscape, tablet, desktop, and wide desktop evidence; if no UI exists, Build records explicit N/A and uses API/contract replay evidence instead."
+  ],
+  "fixtures": [
+    {
+      "fixture_id": "anonymous_prd_authority_source_lock_fixture",
+      "fixture_kind": "authority_source_lock",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#implementation_source_lock",
+        "specs/microservices/manifests-index.json#microservices[name=anonymous]",
+        "oya/community/manifest.json",
+        "kanban:t_8da1d130"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/authority/anonymous-authority-source-lock.fixture.json"],
+      "must_assert": [
+        "PRD-ANONYMOUS status Draft and implementation-ready for RED planning only",
+        "anonymous manifest-index row has no standalone manifest",
+        "parent inventory is oya/community/manifest.json",
+        "future Build home is oya/community/**"
+      ],
+      "must_reject": [
+        "standalone oya/anonymous service root",
+        "microservices/anonymous manifest restoration",
+        "runtime readiness from parent inventory",
+        "Build without parent PLAN/SPEC t_8da1d130 and RED gate t_fe98ab0a"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_post_token_only_fixture",
+      "fixture_kind": "positive_source_contract",
+      "prd_acceptance_criteria": "AC-ANON-01",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-01]",
+        "specs/microservices/anonymous.json#data_model.entities_ref.AnonPost",
+        "specs/microservices/anonymous.json#implementation_source_lock.red_fixture_list"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/post/anonymous-post-token-only.fixture.json"],
+      "must_assert": [
+        "anonymous post persists anonymous_author_token",
+        "no user_id field",
+        "no identity FK",
+        "no identity fields in search index",
+        "post_store_read replay covers create and read"
+      ],
+      "must_reject": [
+        "post table with user_id",
+        "post table with employee_id",
+        "post table with identity_fk",
+        "search index storing real identity"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_identity_fk_leakage_rejection_fixture",
+      "fixture_kind": "negative_privacy_contract",
+      "prd_acceptance_criteria": "AC-ANON-01, AC-ANON-05",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#data_model.entities_ref.AnonPost",
+        "specs/microservices/anonymous.json#data_model.entities_ref.AnonSalaryEntry",
+        "specs/microservices/anonymous.json#anti_patterns"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/privacy/anonymous-identity-fk-leakage-rejection.fixture.json"],
+      "must_assert": [
+        "privacy fixture fails closed on identity-carrying post payloads",
+        "privacy fixture fails closed on identity-carrying salary payloads",
+        "audit.community.anonymous.policy.v1 denial event is expected"
+      ],
+      "must_reject": [
+        "user_id in anonymous post records",
+        "identity_fk in anonymous post records",
+        "real identity in salary records",
+        "tenant identity table FK from anonymous records",
+        "real-name-linked salary disclosure"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_verification_vault_isolation_fixture",
+      "fixture_kind": "privacy_boundary_contract",
+      "prd_acceptance_criteria": "AC-ANON-04",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-04]",
+        "specs/microservices/anonymous.json#data_model.entities_ref.VerificationToken",
+        "specs/microservices/anonymous.json#industry_patterns_adopted.work_email_verification_for_anonymity"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/privacy/anonymous-verification-vault-isolation.fixture.json"],
+      "must_assert": [
+        "verification link is one-time-use",
+        "verification token expires after 24h",
+        "credential lives in separate verification vault",
+        "verification vault has no FK to AnonPost",
+        "verified work affiliation does not link identity to posts"
+      ],
+      "must_reject": [
+        "verification token reused",
+        "expired verification token accepted",
+        "AnonPost FK to VerificationToken",
+        "verification vault exposed to normal anonymous post query path"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_hr_aggregate_k_anonymity_fixture",
+      "fixture_kind": "aggregate_only_contract",
+      "prd_acceptance_criteria": "AC-ANON-02, AC-ANON-05",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-02]",
+        "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-05]",
+        "specs/microservices/anonymous.json#threat_model.attacker_models.employer_admin"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/aggregate/anonymous-hr-aggregate-k-anonymity.fixture.json"],
+      "must_assert": [
+        "employer HR admin gets aggregate-only stats",
+        "k>=10 cohort threshold is enforced",
+        "individual-attribution query returns 403",
+        "no individual attribution is available",
+        "small-cohort salary benchmark is suppressed"
+      ],
+      "must_reject": [
+        "employer individual-attribution query succeeds",
+        "aggregate dashboard renders cohort smaller than k>=10",
+        "salary benchmark exposes individual entry",
+        "HR dashboard contains anonymous_author_token list"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_moderator_token_only_fixture",
+      "fixture_kind": "moderation_privacy_contract",
+      "prd_acceptance_criteria": "AC-ANON-06",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-06]",
+        "specs/microservices/anonymous.json#target_users[moderator]",
+        "specs/microservices/anonymous.json#contracts.produces.audit.community.anonymous.policy.v1"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/moderation/anonymous-moderator-token-only.fixture.json"],
+      "must_assert": [
+        "moderator queue exposes anonymous_author_token",
+        "moderator sees not real identity",
+        "moderation decision emits audit event",
+        "appeal processing is bound to anonymous_author_token",
+        "real identity reveal is refused outside legal hold"
+      ],
+      "must_reject": [
+        "moderator real-identity reveal",
+        "moderator sees user_id",
+        "moderator sees employee profile",
+        "moderation audit event missing anonymous_author_token"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_legal_hold_four_eyes_fixture",
+      "fixture_kind": "legal_hold_privacy_contract",
+      "prd_acceptance_criteria": "AC-ANON-03",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#acceptance_criteria[AC-ANON-03]",
+        "specs/microservices/anonymous.json#data_model.entities_ref.LegalHoldIdentityRevealRequest",
+        "specs/microservices/anonymous.json#contracts.produces.community.anonymous.legal_hold_identity_reveal.v1",
+        "specs/microservices/anonymous.json#threat_model.attacker_models.legal_or_compliance_insider"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/legal/anonymous-legal-hold-four-eyes.fixture.json"],
+      "must_assert": [
+        "two compliance officers are required",
+        "court-order evidence is required",
+        "HSM vault access is required and logged",
+        "sealed audit package is produced",
+        "immutable audit-chain event records identity reveal"
+      ],
+      "must_reject": [
+        "single compliance officer reveal",
+        "legal reveal without court-order evidence",
+        "legal reveal without HSM/vault access log",
+        "legal reveal without sealed audit package",
+        "legal reveal without immutable audit event"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_work_personal_context_isolation_fixture",
+      "fixture_kind": "context_isolation_contract",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#identity.context_model",
+        "specs/microservices/anonymous.json#dual_context_isolation",
+        "specs/microservices/anonymous.json#scope.out_of_scope",
+        "specs/design-system/tenant-context-switcher.json"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/boundary/anonymous-work-personal-context-isolation.fixture.json"],
+      "must_assert": [
+        "anonymous context_model is work-only",
+        "tenant context switcher renders work variant only for CommunityAnonymous",
+        "no_cross_feed is true",
+        "no_cross_search is true",
+        "no_cross_suggest is true"
+      ],
+      "must_reject": [
+        "personal anonymous boards",
+        "personal feeds containing work anonymous posts",
+        "personal search containing work anonymous posts",
+        "personal suggestions from work anonymous topics",
+        "work/personal context leakage",
+        "personal-to-work anonymous post conversion"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_retired_authority_rejection_fixture",
+      "fixture_kind": "retired_authority_contract",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#implementation_source_lock.retired_authority_mapping.foundry",
+        "specs/root-hub-pointers.json#entry_points.prd_foundry",
+        "docs/decisions/ADR-0335-intelligence-microservice-consolidation.md"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/authority/anonymous-retired-authority-rejection.fixture.json"],
+      "must_assert": [
+        "Foundry references are historical/provenance only",
+        "AI-substrate concerns route through intelligence",
+        "Workflow mediation is explicit",
+        "Ontology mediation is explicit"
+      ],
+      "allowed_successors": [
+        "intelligence",
+        "Workflow",
+        "Ontology"
+      ],
+      "must_reject": [
+        "Foundry as active authority",
+        "AI-substrate as active authority",
+        "new Foundry backlog card from anonymous PRD",
+        "foundry-owned anonymous moderation runtime"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_browser_accessibility_evidence_fixture",
+      "fixture_kind": "browser_user_story_accessibility_contract",
+      "source_authority_refs": [
+        "specs/microservices/anonymous.json#implementation_source_lock.user_story_browser_accessibility_matrix",
+        "specs/microservices/anonymous.json#user_experience",
+        "specs/design-system/anon-channel-feed.json",
+        "specs/design-system/anon-post-composer.json",
+        "specs/design-system/hr-aggregate-insights-dashboard.json",
+        "specs/design-system/salary-benchmark-widget.json",
+        "specs/design-system/policy-disclosure-banner.json",
+        "specs/design-system/tenant-context-switcher.json"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/ux/anonymous-browser-accessibility-evidence.fixture.json"],
+      "must_assert": [
+        "verified_employee anonymous posting or salary path",
+        "moderator token-only moderation path",
+        "enterprise_hr_admin aggregate-only dashboard path",
+        "compliance_officer legal-hold four-eyes path",
+        "WCAG 2.2 AA",
+        "keyboard traversal",
+        "screen-reader labels",
+        "reduced-motion and high-contrast states",
+        "mobile portrait and mobile landscape coverage",
+        "tablet coverage",
+        "desktop and wide desktop coverage"
+      ],
+      "must_reject": [
+        "UI readiness from green CI alone",
+        "anonymous UX without visible anonymity boundary",
+        "HR aggregate UX without individual-attribution denial state",
+        "legal-hold UX without missing-evidence and single-approver denial states",
+        "accessibility evidence missing for keyboard or screen-reader coverage"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    },
+    {
+      "fixture_id": "anonymous_prd_build_parentage_fixture",
+      "fixture_kind": "dependency_parentage",
+      "source_authority_refs": [
+        "kanban:t_8da1d130",
+        "kanban:t_fe98ab0a",
+        "kanban:t_956bcd9c",
+        "specs/microservices/anonymous.json#implementation_source_lock.crate_shape_decision"
+      ],
+      "future_replay_artifacts": ["specs/fixtures/anonymous-prd/replay/policy/anonymous-build-parentage.fixture.json"],
+      "must_assert": [
+        "Build is parented behind Plan/Spec t_8da1d130",
+        "Build is parented behind RED t_fe98ab0a",
+        "Build allowed path prefix remains oya/community/**",
+        "default bounded-context crate follows ADR-0512",
+        "no generated JSON hand edits",
+        "no standalone oya/anonymous or microservices/anonymous manifest"
+      ],
+      "must_reject": [
+        "Build without source lock parent",
+        "Build without RED fixture parent",
+        "Build outside oya/community/** without accepted service-split decision",
+        "layer-per-crate scaffold from Draft PRD provenance",
+        "generated JSON hand edit",
+        "active Foundry backlog"
+      ],
+      "expected_red_status": "RED_UNTIL_ANONYMOUS_REPLAY_ARTIFACT_EXISTS"
+    }
+  ]
+}

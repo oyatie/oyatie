@@ -69,7 +69,7 @@ Team-level OKRs / KPIs with org-level rollup. Cite the org-level metric in [PRD 
 
 - Code review: per [`standards/code-review.md`](../standards/code-review.md)
 - PR shape: 5-section H2 template per CLAUDE.md
-- Pre-push: `oya verify` per [`checklists/pre-push.md`](../checklists/pre-push.md)
+- Pre-push: optional local feedback only per [`checklists/pre-push.md`](../checklists/pre-push.md); merge waits for the protected `oya-ci-required` context.
 - ADR proposal cadence: monthly batch
 - Postmortem authorship: per [`templates/incident-postmortem-template.md`](incident-postmortem-template.md)
 

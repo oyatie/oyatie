@@ -12,7 +12,7 @@
 pub mod envelope_keys;
 pub use envelope_keys::{DekId, EnvelopeKeyError, KekId};
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use oya_cloud_region_domain::{CellId, RegionCode};
 use oya_cloud_resource_domain::{CloudResourceError, ResourceId, ResourceKind};
@@ -33,6 +33,7 @@ const HYOK_KEY_PREFIX: &str = "hyok";
 const HSM_PARTITION_PREFIX: &str = "hsm/";
 const KMS_SYSTEM_ACTOR: &str = "sp_kms_control_plane";
 const MAX_DESTRUCTION_SLA_SECONDS: u64 = 86_400;
+pub const MIN_KEY_DELETION_WAITING_WINDOW_SECONDS: u64 = 7 * 24 * 60 * 60;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct KmsKeyId {
@@ -130,6 +131,7 @@ pub enum CloudKmsEvidenceOperation {
     Encrypt,
     Decrypt,
     Rotate,
+    ScheduleKeyDeletion,
     Destroy,
     ProviderEncrypt,
     ProviderDecrypt,
@@ -180,6 +182,7 @@ impl CloudKmsEvidenceOperation {
             Self::Encrypt => "encrypt",
             Self::Decrypt => "decrypt",
             Self::Rotate => "rotate",
+            Self::ScheduleKeyDeletion => "schedule_key_deletion",
             Self::Destroy => "destroy",
             Self::ProviderEncrypt => "provider_encrypt",
             Self::ProviderDecrypt => "provider_decrypt",
@@ -356,6 +359,35 @@ pub struct KeyDestructionReceipt {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyDeletionScheduleRequest {
+    pub key_id: String,                              // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                           // data_class: INTERNAL_ONLY
+    pub actor: String,                               // data_class: INTERNAL_ONLY
+    pub schedule_proof_ref: String,                  // data_class: INTERNAL_ONLY
+    pub authorization_decision_id: String,           // data_class: INTERNAL_ONLY
+    pub authorization_policy_version: String,        // data_class: INTERNAL_ONLY
+    pub required_approvals: u32,                     // data_class: INTERNAL_ONLY
+    pub approver_principal_ids: Vec<String>,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64,             // data_class: INTERNAL_ONLY
+    pub scheduled_deletion_at_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyDeletionScheduleReceipt {
+    pub key_id: Classified<KmsKeyId>,             // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,            // data_class: INTERNAL_ONLY
+    pub actor: Classified<ActorRef>,              // data_class: INTERNAL_ONLY
+    pub schedule_proof_ref: Classified<DestructionProofRef>, // data_class: INTERNAL_ONLY
+    pub authorization_decision_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub authorization_policy_version: Classified<String>, // data_class: INTERNAL_ONLY
+    pub required_approvals: Classified<u32>,      // data_class: INTERNAL_ONLY
+    pub approver_principal_ids: Classified<Vec<ActorRef>>, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub scheduled_deletion_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,          // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KeyRotationRequest {
     pub key_id: String,                  // data_class: INTERNAL_ONLY
     pub tenant_id: String,               // data_class: INTERNAL_ONLY
@@ -439,6 +471,13 @@ pub enum CloudKmsError {
     InvalidTimeOrder,
     DestructionSlaExceeded,
     InvalidDestructionProofRef,
+    InvalidAuthorizationDecisionId,
+    InvalidAuthorizationPolicyVersion,
+    InvalidQuorumPolicy,
+    KeyDeletionQuorumNotReached,
+    DuplicateKeyDeletionApprover,
+    KeyDeletionRequesterCannotApprove,
+    KeyDeletionWindowTooShort,
     ProviderMismatch,
     InvalidEvidenceRef,
     InvalidEvidenceSchemaVersion,
@@ -459,6 +498,7 @@ struct KmsKeyIdParts {
 pub struct CloudKmsDirectory {
     keys: BTreeMap<KmsKeyId, KmsKey>,
     receipts: BTreeMap<KmsUseEventId, KmsUseReceipt>,
+    deletion_schedule_receipts: BTreeMap<KmsKeyId, KeyDeletionScheduleReceipt>,
     destruction_receipts: BTreeMap<KmsKeyId, KeyDestructionReceipt>,
 }
 
@@ -477,6 +517,10 @@ pub trait KmsRepo {
         key_id: &KmsKeyId,
         updated_at_epoch_seconds: u64,
     ) -> Result<KmsKey, CloudKmsError>;
+    fn schedule_key_deletion(
+        &mut self,
+        input: KeyDeletionScheduleRequest,
+    ) -> Result<KeyDeletionScheduleReceipt, CloudKmsError>;
     fn destroy_key(
         &mut self,
         input: KeyDestructionRequest,
@@ -709,6 +753,57 @@ impl KmsKey {
             schema_version: public(KMS_SCHEMA_VERSION),
         };
         Ok((rotated, receipt))
+    }
+
+    pub fn schedule_deletion(
+        &self,
+        input: KeyDeletionScheduleRequest,
+    ) -> Result<(Self, KeyDeletionScheduleReceipt), CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id)?;
+        if key_id != self.key_id.value {
+            return Err(CloudKmsError::UnknownKey);
+        }
+        if input.tenant_id != self.tenant_id.value {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        if self.state.value != KmsKeyState::Enabled {
+            return Err(CloudKmsError::InvalidKeyState);
+        }
+        let actor = ActorRef::new(input.actor)?;
+        let schedule_proof_ref = DestructionProofRef::new(input.schedule_proof_ref)?;
+        validate_authorization_decision_ref(&input.authorization_decision_id)?;
+        validate_authorization_policy_version(&input.authorization_policy_version)?;
+        validate_time_order(
+            input.requested_at_epoch_seconds,
+            input.scheduled_deletion_at_epoch_seconds,
+        )?;
+        if input.scheduled_deletion_at_epoch_seconds - input.requested_at_epoch_seconds
+            < MIN_KEY_DELETION_WAITING_WINDOW_SECONDS
+        {
+            return Err(CloudKmsError::KeyDeletionWindowTooShort);
+        }
+        let approvers = validate_key_deletion_quorum(
+            &actor,
+            input.required_approvals,
+            input.approver_principal_ids,
+        )?;
+        let receipt = KeyDeletionScheduleReceipt {
+            key_id: internal(key_id),
+            tenant_id: internal(input.tenant_id),
+            actor: internal(actor),
+            schedule_proof_ref: internal(schedule_proof_ref),
+            authorization_decision_id: internal(input.authorization_decision_id),
+            authorization_policy_version: internal(input.authorization_policy_version),
+            required_approvals: internal(input.required_approvals),
+            approver_principal_ids: internal(approvers),
+            requested_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
+            scheduled_deletion_at_epoch_seconds: internal(input.scheduled_deletion_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        };
+        let mut scheduled = self.clone();
+        scheduled.state = public(KmsKeyState::PendingDeletion);
+        scheduled.updated_at_epoch_seconds = internal(input.requested_at_epoch_seconds);
+        Ok((scheduled, receipt))
     }
 
     pub fn destroy(
@@ -1021,6 +1116,36 @@ impl CloudKmsEvidenceEvent {
         })
     }
 
+    pub fn from_key_deletion_schedule_receipt(
+        expected_tenant_id: &str,
+        receipt: KeyDeletionScheduleReceipt,
+    ) -> Result<Self, CloudKmsError> {
+        validate_expected_tenant(expected_tenant_id)?;
+        validate_evidence_schema_version(receipt.schema_version.value)?;
+        let tenant_id = receipt.tenant_id.value;
+        if tenant_id != expected_tenant_id {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        let evidence_ref = receipt.schedule_proof_ref.value.value;
+        validate_evidence_ref(&evidence_ref)?;
+        let operation = CloudKmsEvidenceOperation::ScheduleKeyDeletion;
+        let event_id = evidence_event_id(&tenant_id, operation, &evidence_ref);
+        Ok(Self {
+            event_id,
+            tenant_id,
+            key_id: receipt.key_id.value.value,
+            actor: receipt.actor.value.value,
+            operation,
+            status: CloudKmsEvidenceStatus::Succeeded,
+            evidence_ref,
+            provider: None,
+            provider_request_id: None,
+            key_version: None,
+            occurred_at_epoch_seconds: receipt.requested_at_epoch_seconds.value,
+            schema_version: KMS_SCHEMA_VERSION,
+        })
+    }
+
     pub fn from_key_destruction_receipt(
         expected_tenant_id: &str,
         receipt: KeyDestructionReceipt,
@@ -1203,6 +1328,19 @@ impl KmsRepo for CloudKmsDirectory {
         Ok(updated)
     }
 
+    fn schedule_key_deletion(
+        &mut self,
+        input: KeyDeletionScheduleRequest,
+    ) -> Result<KeyDeletionScheduleReceipt, CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id.clone())?;
+        let current = self.keys.get(&key_id).ok_or(CloudKmsError::UnknownKey)?;
+        let (scheduled, receipt) = current.schedule_deletion(input)?;
+        self.keys.insert(key_id.clone(), scheduled);
+        self.deletion_schedule_receipts
+            .insert(key_id, receipt.clone());
+        Ok(receipt)
+    }
+
     fn destroy_key(
         &mut self,
         input: KeyDestructionRequest,
@@ -1223,6 +1361,12 @@ impl CloudKmsDirectory {
 
     pub fn receipts(&self) -> impl Iterator<Item = &KmsUseReceipt> {
         self.receipts.values()
+    }
+
+    pub fn deletion_schedule_receipts(
+        &self,
+    ) -> impl Iterator<Item = &KeyDeletionScheduleReceipt> {
+        self.deletion_schedule_receipts.values()
     }
 
     pub fn destruction_receipts(&self) -> impl Iterator<Item = &KeyDestructionReceipt> {
@@ -1432,6 +1576,55 @@ fn validate_evidence_ref(value: &str) -> Result<(), CloudKmsError> {
         return Err(CloudKmsError::InvalidEvidenceRef);
     }
     Ok(())
+}
+
+fn validate_authorization_decision_ref(value: &str) -> Result<(), CloudKmsError> {
+    if value.trim().is_empty()
+        || value.starts_with(MATERIAL_REF_PREFIX)
+        || value.starts_with(CIPHERTEXT_REF_PREFIX)
+        || looks_like_serialized_token(value)
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        return Err(CloudKmsError::InvalidAuthorizationDecisionId);
+    }
+    Ok(())
+}
+
+fn validate_authorization_policy_version(value: &str) -> Result<(), CloudKmsError> {
+    if value.trim().is_empty()
+        || value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        return Err(CloudKmsError::InvalidAuthorizationPolicyVersion);
+    }
+    Ok(())
+}
+
+fn validate_key_deletion_quorum(
+    actor: &ActorRef,
+    required_approvals: u32,
+    approver_principal_ids: Vec<String>,
+) -> Result<Vec<ActorRef>, CloudKmsError> {
+    if required_approvals == 0 {
+        return Err(CloudKmsError::InvalidQuorumPolicy);
+    }
+    let mut distinct = BTreeSet::new();
+    for approver_principal_id in approver_principal_ids {
+        let approver = ActorRef::new(approver_principal_id)?;
+        if approver == *actor {
+            return Err(CloudKmsError::KeyDeletionRequesterCannotApprove);
+        }
+        if !distinct.insert(approver) {
+            return Err(CloudKmsError::DuplicateKeyDeletionApprover);
+        }
+    }
+    if distinct.len() < required_approvals as usize {
+        return Err(CloudKmsError::KeyDeletionQuorumNotReached);
+    }
+    Ok(distinct.into_iter().collect())
 }
 
 fn looks_like_serialized_token(value: &str) -> bool {

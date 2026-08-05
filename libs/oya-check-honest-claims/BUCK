@@ -4,6 +4,7 @@ rust_library(
     crate = "oya_check_honest_claims",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = ["third-party//:serde_json"],
 )
 
 rust_test(
@@ -12,5 +13,5 @@ rust_test(
     crate = "oya_check_honest_claims",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
-    deps = [],
+    deps = ["third-party//:serde_json"],
 )

@@ -1,0 +1,36 @@
+rust_library(
+    name = "oya-managed-k8s-tenant-quota-adapter-postgres",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_managed_k8s_tenant_quota_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
+        "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-managed-k8s-tenant-quota-adapter-postgres-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_managed_k8s_tenant_quota_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
+        "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-managed-k8s-tenant-quota-adapter-postgres-rls-guard",
+    srcs = ["tests/rls_guard.rs"],
+    crate = "oya_managed_k8s_tenant_quota_adapter_postgres_rls_guard",
+    crate_root = "tests/rls_guard.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-managed-k8s-tenant-quota-adapter-postgres",
+        "//cloud/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api:oya-managed-k8s-tenant-quota-api",
+        "//libs/oya-data-sql-kernel:oya-data-sql-kernel",
+    ],
+)

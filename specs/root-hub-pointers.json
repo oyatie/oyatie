@@ -2,12 +2,12 @@
   "$id": "https://docs.oyatie.com/schemas/root-hub-pointers.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_meta": {
-    "audit_scope": "ADR index consolidation, spec hub gardening, direct root-hub coverage for top-level specs/*.json, and Wave 15-ZF master-plan pointer coverage for ADR-0346..0349.",
+    "audit_scope": "DOC-DRIFT-001 authority/procedure reconciliation: root-hub quick-start wording, PHASE-5 projection boundary, oya-ci-required merge authority, and release-governance/release-note closeout wording.",
     "created_at": "2026-05-13T00:00:00Z",
     "doc_class": "Machine-Readable-Spec",
-    "last_audited": "2026-06-02",
+    "last_audited": "2026-07-01",
     "owner_team": "founder + platform-governance",
-    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file.",
+    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md are the only repo-root Markdown pointer hubs and include a section that references this file. HANDOFF.md is retained separately as the bounded fresh-session handoff exception governed by specs/markdown-retirement-policy.json and specs/repo-hygiene-automation.json.",
     "spec_id": "EXE-ROOT-HUB-POINTERS",
     "status": "Accepted",
     "user_directives_2026_05_13": [
@@ -21,10 +21,10 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is Prow/cloud-ci required context + reviewer APPROVE; legacy CI/`oya gate` output is bridge evidence only until P0.0 cloud-ci cutover. The bespoke Oya VCS claim \u2192 work \u2192 verify \u2192 done \u2192 promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim \u2192 work \u2192 verify \u2192 done \u2192 promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate. Destination enforcement is cloud-ci/oya-ci Rust gate context; legacy `oya gate run-all`/CI output is transition evidence only until P0.0 and must not be extended as new authority.",
-    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0513. Live merge readiness is plain git + protected PR against dev + Prow/cloud-ci/oya-ci required context + reviewer APPROVE. Legacy CI/`oya gate` output is bridge evidence only until P0.0. Tide admission is cloud-ci-owned now: Phase 0 places the admission contract; Phase 1 scales projected-state, batching, auto-rebase, and auto-regeneration."
+    "step_5_multispectrum_evidence": "Every PR carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks the governance gate. Destination enforcement is the cloud-ci Rust gate packet behind the single protected `oya-ci-required` context; legacy `oya gate run-all`/CI output is bridge/local evidence only and must not be extended as new authority.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0513/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `oya-ci-required` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
   },
   "by_kind": {
     "decision": "Accepted ADR or decision record that constrains implementation and promotion.",
@@ -37,13 +37,18 @@
     "schema": "JSON Schema (Draft 2020-12). Validates instances.",
     "spec": "Schema or canonical-truth definition. Read by validators + agents."
   },
-  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file. Agents read this JSON to discover canonical entry points; humans read the README/CLAUDE/AGENTS summaries that mirror this.",
+  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md are the only repo-root Markdown pointer hubs and include a section that references this file. HANDOFF.md is retained separately as the bounded fresh-session handoff exception governed by specs/markdown-retirement-policy.json and specs/repo-hygiene-automation.json. Agents read this JSON to discover canonical entry points; humans read the README/CLAUDE/AGENTS summaries that mirror this.",
   "entry_points": {
     "session_handoff": {
       "current_path": "HANDOFF.md",
       "kind": "doc",
-      "purpose": "Fresh-session handoff at repo root (founder directive 2026-06-08): cross-repo state, full backlog, hard guardrails, and the sibling/kernel consolidation map. Joins README/CLAUDE/AGENTS as a purposeful root markdown; agents read this to resume with zero context loss.",
-      "target_path_after_md_retirement": "same"
+      "migration_phase": "bounded-root-markdown-exception-until-machine-readable-successor",
+      "owner_team": "founder + platform-governance",
+      "purpose": "Fresh-session handoff at repo root (founder directive 2026-06-08): cross-repo state, full backlog, hard guardrails, and the sibling/kernel consolidation map. Retained as a bounded root Markdown exception, not as a fourth pointer hub; agents read this after the root pointer hubs to resume with zero context loss.",
+      "authority_boundary": "Session state/backlog summary only; it must not override README.md, CLAUDE.md, AGENTS.md, docs/AGENTS.md, accepted ADRs, or machine-readable specs/registries.",
+      "freshness_rule": "Audit when root-hub pointers or repo-hygiene automation change, and treat claims older than 30 days as stale unless refreshed by a governance/docs task.",
+      "retirement_rule": "Migrate equivalent handoff state to a machine-readable session-handoff registry, then remove HANDOFF.md from this entry and root Markdown allowlists in the same cohesion slice.",
+      "target_path_after_md_retirement": "machine-readable session-handoff registry successor"
     },
     "_retired_constitutional_authority": {
       "retired_on": "2026-05-15",
@@ -105,7 +110,7 @@
       "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "kind": "goal_prompt",
       "migration_phase": "fd001-planning-closure-supersedes-2026-05-16-durable-goal",
-      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
+      "purpose": "Historical FD-001 durable-goal prompt for planning closure/implementation. Its plain-git protected-PR governance portions are superseded/amended by platform-readiness: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI bridge output is evidence only. The former .omc archive manifest is retired from the tracked tree and is not live authority.",
       "superseded_path": "/specs/agent-durable-goal.json",
       "target_path_after_md_retirement": "same active goal prompt until promoted into /specs/agent-durable-goal.json successor schema",
       "retired_archive_manifest_path": ".omc/archive/stale-documents/2026-05-19-planning-closure/manifest.json",
@@ -115,15 +120,21 @@
       "current_path": "docs/AGENTS.md",
       "kind": "spec",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, Prow/cloud-ci transition target, multispectrum evidence, legacy-tool retirement notes).",
+      "phase_deadline": "2026-06-30",
+      "phase_status": "overdue-needs-replan",
+      "promotion_boundary": "docs/AGENTS.md remains current authority until explicit PHASE-5 promotion evidence promotes /specs/agent-operating-contract.json; the missed PHASE-5 deadline does not auto-promote the projection.",
+      "purpose": "Canonical agent operating contract (done-definition checklist, plain-git protected-PR governance, single oya-ci-required merge authority, multispectrum evidence, legacy-tool retirement notes).",
       "target_path_after_md_retirement": "/specs/agent-operating-contract.json"
     },
     "agent_operating_contract_machine_projection": {
       "canonical_authority_path": "docs/AGENTS.md",
       "current_path": "/specs/agent-operating-contract.json",
       "kind": "spec",
-      "migration_phase": "projection-until-PHASE-5",
-      "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before PHASE-5 promotion."
+      "migration_phase": "projection-until-explicit-PHASE-5-promotion",
+      "phase_deadline": "2026-06-30",
+      "phase_status": "overdue-needs-replan",
+      "promotion_condition": "Promotion requires authority-cohesion evidence and reviewer approval; until then this projection is discovery/planning support only.",
+      "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before explicit PHASE-5 promotion evidence."
     },
     "api_contract_ssot_canonical": {
       "current_path": "/specs/api-contract-ssot-canonical.json",
@@ -164,6 +175,27 @@
       "kind": "spec",
       "migration_phase": "current-machine-readable-authority",
       "purpose": "Product and sequencing spec for tenant-facing bespoke Rust Oyatie Cloud SCM, CI, and CD services. Defines bridge-adapter boundaries for GitHub/cloud-scm/Argo, full bespoke CI enforcement baseline, masterplan P-TOOLCHAIN placement, and mandatory secure separation between tenant=oyatie-internal and every customer tenant pipeline.",
+      "target_path_after_md_retirement": "same"
+    },
+    "bespoke_scm_virtual_materialization_plan": {
+      "current_path": "/specs/bespoke-scm-virtual-materialization-plan.json",
+      "kind": "spec",
+      "migration_phase": "w4-design-spike-prototype",
+      "purpose": "W4-003 machine-readable design spike/prototype for mapping content-addressed WorkAreaTree records to reversible materialized file views during the ADR-0518 ISOLATE/AUTHOR stages. Metadata-only; no native SCM storage, virtual filesystem runtime, object-store runtime, parser runtime, CD runtime, or bridge cutover claim.",
+      "target_path_after_md_retirement": "same (machine-readable W4 virtual materialization plan/prototype)"
+    },
+    "security_validation_pipeline_matrix": {
+      "current_path": "/specs/security-validation-pipeline-matrix.json",
+      "kind": "spec",
+      "migration_phase": "planning-gate-matrix",
+      "purpose": "Productized runner-neutral security validation pipeline matrix. Defines SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS/purple-team, security chaos, automated pen-test, and continuous-control evidence lanes with scope, cadence, pass/fail policy, false-positive/VEX handling, and API evidence records.",
+      "target_path_after_md_retirement": "same"
+    },
+    "trust_center_compliance_evidence_portal": {
+      "current_path": "/specs/trust-center-compliance-evidence-portal.json",
+      "kind": "spec",
+      "migration_phase": "planning-product-surface-contract",
+      "purpose": "Tenant-scoped Trust Center / Compliance Evidence Portal product-surface contract. Maps security-validation, SBOM/VEX, compliance-pack, SLO/DR/status/incident, release, quality-kit, and audit-chain evidence into customer/admin UX and API surfaces with data-access rules, freshness badges, export/auditor-room flows, and non-certification claim boundaries.",
       "target_path_after_md_retirement": "same"
     },
     "check_empirical_evidence": {
@@ -233,7 +265,7 @@
       "current_path": "/specs/cloud-strangler-migration-target.json",
       "kind": "spec",
       "migration_phase": "p-strangle",
-      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Bazel affected-targets + merge-queue fan-in, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed.",
+      "purpose": "Strangler-fig migration playbook (P-STRANGLE): per-service pattern (seam->build-ideal->facade->shadow/canary->cutover->retire), parallel worktree-lane model + single-writer invariant + Buck2/Cargo affected-target feedback + full oya-ci-required/cloud-ci merge-authority backstop, per-migration DoD, cutover/rollback criteria. Target playbook; no migration executed.",
       "target_path_after_md_retirement": "same"
     },
     "cloud_toolchain_target": {
@@ -455,6 +487,13 @@
       "purpose": "Machine-readable claim ceiling for production-ready, hyperscaler-grade, mechanically-enforced, secure, isolated, tenant-facing, retired, done, parity, full, complete, automatic, and equivalent language. Defines target/spec/enforced/production/hyperscaler tiers and evidence domains; blocks empty promises through cloud-ci/Rust gate evidence rather than new oya CLI surfaces.",
       "target_path_after_md_retirement": "same (machine-readable claim/evidence contract)"
     },
+    "portfolio_ownership_ratchet": {
+      "current_path": "/specs/portfolio-ownership-ratchet.json",
+      "kind": "spec",
+      "migration_phase": "proposed-for-architecture-governance-review",
+      "purpose": "Machine-readable portfolio own-when-proven / day-0 ownership budget contract. Reconciles SOURCE Class A/B/C and LINUX OWN_DAY0/OWN_EARLY/DEFER_VENDORED/PERMANENT_REUSE rubrics, names the one-slot major day-0 budget, maps hyperscaler audit findings to dispositions, and proposes a cloud-ci/Rust gate against unsupported new own-day-0 claims.",
+      "target_path_after_md_retirement": "same"
+    },
     "iterative_fix_loop": {
       "current_path": "/specs/iterative-fix-loop.json",
       "kind": "spec",
@@ -546,7 +585,7 @@
       "current_path": "/specs/master-plan-sequencing.json",
       "kind": "spec",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older CI-bridge language: Prow/cloud-ci/oya-ci required contexts are destination authority; legacy CI/oya output is bridge/local evidence only.",
+      "purpose": "Forbidden-primitive list + plain-git protected-PR governance protocol + ledger-required-fields + execution sequence. Platform-readiness amends its older CI-bridge language: reviewer approval plus the single protected `oya-ci-required` context is destination authority; legacy CI/oya output is bridge/local evidence only.",
       "target_path_after_md_retirement": "same"
     },
     "masterplan": {
@@ -597,7 +636,7 @@
       "current_path": "/specs/phase0-ci-enforcement-baseline.json",
       "kind": "spec",
       "migration_phase": "phase0_p0_0_gap_packet_not_green",
-      "purpose": "P0.0 Prow/cloud-ci enforcement and tenant-isolation baseline. Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
+      "purpose": "P0.0 cloud-ci/oya-ci enforcement and tenant-isolation baseline (historically Prow-shaped). Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
       "target_path_after_md_retirement": "same (machine-readable P0.0 baseline/gap packet)"
     },
     "phase0_claim_evidence_map": {
@@ -651,6 +690,17 @@
       "purpose": "Calendar microservice PRD \u2014 personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-context-safe availability projections without a product-group wrapper.",
       "target_path_after_md_retirement": "same"
     },
+    "prd_community": {
+      "current_path": "/specs/microservices/community.json",
+      "kind": "prd",
+      "migration_phase": "fd001-authority-lock",
+      "purpose": "Community FD-001 source-authority lock \u2014 tenant/RBAC-packaged community service boundary, normalized community modes, retired network/shorts successor routing, separate messenger/mail/workflow/ops-dashboard boundaries, and explicit Plan/Spec + RED gates before implementation fanout; no production or GA claim.",
+      "source_manifest_index": "/specs/microservices/manifests-index.json#microservices[name=community]",
+      "absorbs_retired": [
+        "network"
+      ],
+      "target_path_after_md_retirement": "same"
+    },
     "prd_community_anonymous": {
       "current_path": "/specs/microservices/anonymous.json",
       "kind": "prd",
@@ -663,22 +713,24 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_community_network_retired": {
-      "current_path": "/microservices/community/PRD.md",
+      "current_path": "/specs/microservices/community.json",
       "kind": "prd",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
+      "retired_previous_path": "/microservices/community/PRD.md",
       "path_correction_2026_05_20": {
         "previous_path": "legacy network JSON projection",
         "reason": "Wave 15K retires network as standalone product and redirects its professional content into community."
       },
       "purpose": "Retired network PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope.",
       "retired_on": "2026-05-21",
-      "successor_path": "/microservices/community/PRD.md",
-      "target_path_after_md_retirement": "/microservices/community/PRD.md until a community machine-readable successor projection is authored"
+      "successor_path": "/specs/microservices/community.json",
+      "target_path_after_md_retirement": "/specs/microservices/community.json"
     },
     "prd_community_shorts_retired": {
-      "current_path": "/microservices/social/PRD.md",
+      "current_path": "/specs/microservices/social.json",
       "kind": "prd",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
+      "retired_previous_path": "/microservices/social/PRD.md",
       "path_correction_2026_05_20": {
         "previous_path": "retired specs/products communications/shorts JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
@@ -689,8 +741,8 @@
         "previous_path": "/specs/microservices/shorts.json",
         "reason": "Wave 15O retires shorts as a standalone \u00b5service and absorbs its short-form video capabilities into social per ADR-0334."
       },
-      "successor_path": "/microservices/social/PRD.md",
-      "target_path_after_md_retirement": "/microservices/social/PRD.md (short-video flavor section)"
+      "successor_path": "/specs/microservices/social.json",
+      "target_path_after_md_retirement": "/specs/microservices/social.json (short-video flavor section)"
     },
     "prd_community_social": {
       "current_path": "/specs/microservices/social.json",
@@ -778,13 +830,14 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_network": {
-      "current_path": "/microservices/community/PRD.md",
+      "current_path": "/specs/microservices/community.json",
       "kind": "prd",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
+      "retired_previous_path": "/microservices/community/PRD.md",
       "purpose": "Retired network PRD pointer. LinkedIn-class jobs/profile/recruiter content is absorbed into community; LinkedIn-style engagement feed remains forbidden.",
       "retired_on": "2026-05-21",
-      "successor_path": "/microservices/community/PRD.md",
-      "target_path_after_md_retirement": "/microservices/community/PRD.md until a community machine-readable successor projection is authored"
+      "successor_path": "/specs/microservices/community.json",
+      "target_path_after_md_retirement": "/specs/microservices/community.json"
     },
     "prd_ontology": {
       "current_path": "/specs/microservices/ontology.json",
@@ -836,13 +889,14 @@
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_shorts": {
-      "current_path": "/microservices/social/PRD.md",
+      "current_path": "/specs/microservices/social.json",
       "kind": "prd",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
+      "retired_previous_path": "/microservices/social/PRD.md",
       "purpose": "Retired shorts \u00b5service PRD pointer. TikTok-/Reels-/YouTube-Shorts-class short-form video is absorbed into social as the TikTok-style media flavor per ADR-0334 (Wave 15O). Industry precedent (Instagram Reels in Instagram; YouTube Shorts in YouTube; X video in X) places short-video inside the social product, not in a sibling service.",
       "retired_on": "2026-05-21",
-      "successor_path": "/microservices/social/PRD.md",
-      "target_path_after_md_retirement": "/microservices/social/PRD.md (short-video flavor section)"
+      "successor_path": "/specs/microservices/social.json",
+      "target_path_after_md_retirement": "/specs/microservices/social.json (short-video flavor section)"
     },
     "prd_social": {
       "current_path": "/specs/microservices/social.json",
@@ -984,6 +1038,30 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Compliance Pack Bundle Schema"
     },
+    "spec_pci_dss_level_1_readiness_plan": {
+      "current_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "kind": "spec",
+      "migration_phase": "regid-003-planning-spec",
+      "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
+    },
+    "spec_regulatory_identity_source_of_truth": {
+      "current_path": "/specs/regulatory-identity-source-of-truth.json",
+      "kind": "spec",
+      "migration_phase": "regid-001-planning-source-of-truth",
+      "purpose": "REGID-001 source-index and machine-readable control backlog for KR/global identity, KYC, passkey, compliance, PCI/NIST/EU/US/PQC floors. Planning/spec inventory only: no product-code mutation, no CLI surface, no oya/cloud reorg debt."
+    },
+    "spec_regulatory_legacy_gate_scanner_normalization_table": {
+      "current_path": "/specs/regulatory-legacy-gate-scanner-normalization-table.json",
+      "kind": "spec",
+      "migration_phase": "regnorm-001-planning-spec-only",
+      "purpose": "REGNORM-001 planning-only normalization table mapping legacy oya gate/verify commands, scanner outputs, hosted dashboards, CI runner bridges, SBOM/signing attestations, advisory feeds, and admission examples to product adapters, typed evidence records, cloud-ci Rust gate packets, and dashboard/trust-portal query surfaces without making CLI/scanner output the product path."
+    },
+    "spec_compliance_security_radar_cadence_contract": {
+      "current_path": "/specs/compliance-security-radar-cadence-contract.json",
+      "kind": "spec",
+      "migration_phase": "sec-reg-radar-cadence-planning-procedure-contract",
+      "purpose": "Planning/procedure contract for recurring compliance/security radar: source classes, owners, freshness cadences, stale/blocker semantics, claim ceilings, dedupe card targets, and Kanban output rules. No certification/readiness/security-posture or scheduler claim."
+    },
     "spec_csi_storage_class_canonical": {
       "current_path": "/specs/csi-storage-class-canonical.json",
       "kind": "spec",
@@ -1122,6 +1200,126 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Inventory-by-default hygiene pass for agent-created spillover across temp space, user-home coordination files, the main checkout, build artifacts, and Oyatie worktrees before pipeline closeout."
     },
+    "spec_agent_durable_goal": {
+      "current_path": "/specs/agent-durable-goal.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Persistent across-session agent goal contract: operating principles, lifecycle phases, iteration-loop semantics, TDD contract, CI/CD contract, confusion-management protocol, and verification-before-completion checklist."
+    },
+    "spec_audit_event_schema": {
+      "current_path": "/specs/audit-event-schema.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Canonical audit-row envelope schema, including the ADR-0344 sustainability and FinOps tuple extension."
+    },
+    "spec_cloud_control_plane_operation_contract": {
+      "current_path": "/specs/cloud-control-plane-operation-contract.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Metadata-level cloud control-plane contract for resource registry entries, long-running operations, idempotent retries, cancellation, compensation, and per-resource state transitions."
+    },
+    "spec_cloud_enforceability_facets": {
+      "current_path": "/specs/cloud-enforceability-facets.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Cloud enforceability facets for resource contracts: authorization, tenancy, audit, metering, billing, quota, and fail-closed cost admission metadata."
+    },
+    "spec_cloud_hyperscaler_parity_taxonomy": {
+      "current_path": "/specs/cloud-hyperscaler-parity-taxonomy.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Source-backed hyperscaler parity taxonomy and honest nonclaim matrix for AWS, Google Cloud, Azure, OCI, Kubernetes, and CNCF comparison claims."
+    },
+    "spec_cloud_observability_slo_evidence_contract": {
+      "current_path": "/specs/cloud-observability-slo-evidence-contract.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Cloud observability and SLO evidence contract for resource parity gates, OpenTelemetry metadata, OpenSLO authoring, burn-rate evidence windows, and event receipts."
+    },
+    "spec_cloud_production_quality_kit_evidence_backlog": {
+      "current_path": "/specs/cloud-production-quality-kit-evidence-backlog.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Machine-checkable backlog and evidence-record schema for cloud production-quality kits without claiming dogfood execution or production maturity."
+    },
+    "spec_cloud_resource_contract_parity_catalog": {
+      "current_path": "/specs/cloud-resource-contract-parity-catalog.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Resource-contract parity catalog companion for cloud backend categories and future parity evidence checks."
+    },
+    "spec_compliance_pack_floors": {
+      "current_path": "/specs/compliance-pack-floors.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Machine-readable per-compliance-pack DR floor table consumed by pack-activation gates and auditor dashboard generation."
+    },
+    "spec_finops_dimensional_model": {
+      "current_path": "/specs/finops-dimensional-model.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "FinOps and sustainability dimensional rollup contract for per-axis aggregation, freshness, retention, and regulator-export evidence formats."
+    },
+    "spec_generated_artifact_control_plane_schema": {
+      "current_path": "/specs/generated-artifact-control-plane.schema.json",
+      "kind": "schema",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Portable generated-artifact control-plane manifest schema consumed by hermetic generated-output ownership and materialization gates."
+    },
+    "spec_http_stack_policy": {
+      "current_path": "/specs/http-stack-policy.json",
+      "kind": "policy",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Authoritative HTTP-framework selection policy: hyper preferred, axum sanctioned with justification, all other HTTP stacks forbidden."
+    },
+    "spec_iac_module_library": {
+      "current_path": "/specs/iac-module-library.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Canonical OpenTofu IaC module-library primitive enumeration for Oyatie deployment contexts and shared module discovery."
+    },
+    "spec_language_discipline_registry": {
+      "current_path": "/specs/language-discipline-registry.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Local/static Phase-0 language-discipline allowlist registry with GOOD/BAD fixture validation and cloud-check backlog inventory."
+    },
+    "spec_legal_ip_domain_taxonomy": {
+      "current_path": "/specs/legal-ip-domain-taxonomy.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Machine-readable domain-purpose taxonomy for FD-001 legal/IP and operator-surface planning, with explicit evidence gaps for DNS, trademark, renewal, and production routing claims."
+    },
+    "spec_oss_stewardship_registry": {
+      "current_path": "/specs/oss-stewardship-registry.json",
+      "kind": "registry",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Canonical OSS stewardship registry per ADR-0345, enumerating direct upstream OSS dependencies, stewardship class, owner team, CVE SLA, license, source URL, and ADR provenance."
+    },
+    "spec_vulnerability_intelligence_sbom_vex_pipeline": {
+      "current_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "kind": "spec",
+      "migration_phase": "regsec-001-planning-contract",
+      "purpose": "Planning-only cloud-native vulnerability intelligence and SBOM/VEX pipeline contract covering CVE/NVD/OSV/RustSec/GitHub/vendor advisory ingestion, dual-format SBOMs, VEX, KEV/EPSS/CVSS/SSVC prioritization, remediation SLAs, expiring exceptions, audit evidence, and deployment/admission blocking without scanner CLI authority."
+    },
+    "spec_platform_vertical_status": {
+      "current_path": "/specs/platform-vertical-status.json",
+      "kind": "registry",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Seed registry for platform vertical G-story status rows consumed by milestone views without hardcoded status pills or numeric progress bars."
+    },
+    "spec_repo_hygiene_automation": {
+      "current_path": "/specs/repo-hygiene-automation.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Automation contract for git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene before native SCM/CI/CD cutover."
+    },
+    "spec_structural_blockers": {
+      "current_path": "/specs/structural-blockers.json",
+      "kind": "registry",
+      "migration_phase": "root-hub-covered-2026-06-30-gov-003-derived-top-level-specs",
+      "purpose": "Seed registry for structural blockers with machine-derivable signals and auto-clear conditions for milestone-view rendering."
+    },
     "stop_conditions": {
       "current_path": "/specs/stop-conditions.json",
       "kind": "spec",
@@ -1176,6 +1374,90 @@
       "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
       "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
+    }
+  },
+  "root_hub_pointer_derivation_gate": {
+    "schema_version": "1.0.0",
+    "status": "first_gate_slice",
+    "created_from": [
+      "specs/root-hub-pointers.json",
+      "HANDOFF.md#6-outstanding-backlog",
+      "kanban:t_b0032373"
+    ],
+    "purpose": "Make root-hub pointer staleness mechanically detectable by deriving mandatory coverage sets from the candidate tree instead of relying on a hand-maintained gardening snapshot.",
+    "derivation_rules": [
+      {
+        "id": "top_level_specs_json",
+        "status": "enforced_in_first_slice",
+        "source": "candidate-tree glob /specs/*.json, non-recursive",
+        "normalization": "Compare each entry_points[*].current_path after stripping one leading slash and any #fragment suffix.",
+        "expectation": "Every candidate-tree top-level specs/*.json file has at least one entry_points row whose normalized current_path base equals that repo-relative path. The list of required spec paths is never stored in this file."
+      },
+      {
+        "id": "current_path_base_reachability",
+        "status": "detect_only_with_debt_snapshot",
+        "source": "entry_points rows that declare current_path",
+        "normalization": "Strip one leading slash and any #fragment suffix; resolve against the repo root.",
+        "expectation": "Every non-retired current_path base resolves to an existing candidate-tree path. Until the legacy debt below is settled, the gate fails only on changes to the exact debt set."
+      },
+      {
+        "id": "fragment_reachability",
+        "status": "designed_next_slice",
+        "source": "current_path values containing #fragment",
+        "normalization": "JSON Pointer fragments use RFC 6901. Dotted fragments in historical rows are accepted only when each segment resolves through object keys after the base JSON file parses.",
+        "expectation": "After current_path_base_reachability is clean, fragment resolution becomes an error gate instead of an advisory trace."
+      }
+    ],
+    "gate_expectations": [
+      {
+        "id": "root-hub-canonical-json",
+        "severity": "error",
+        "expectation": "Parse specs/root-hub-pointers.json as canonical JSON before evaluating any pointer rows."
+      },
+      {
+        "id": "root-hub-derived-top-level-specs-parity",
+        "severity": "error",
+        "expectation": "Derive /specs/*.json from the candidate tree and reject any missing root-hub entry_points coverage. This replaces static counts such as specs_directory_audit_2026_05_20.top_level_specs_count."
+      },
+      {
+        "id": "root-hub-current-path-debt-snapshot",
+        "severity": "error",
+        "expectation": "Compute unresolved current_path base rows and require the set to exactly match known_current_path_debt_2026_06_30 until a cleanup slice removes the debt rows. Any new missing path or silently fixed debt row is a gate-visible diff."
+      },
+      {
+        "id": "root-hub-historical-audit-not-authority",
+        "severity": "error",
+        "expectation": "Consumers must not use specs_directory_audit_2026_05_20 for current coverage claims; it is historical only and intentionally superseded by derived candidate-tree checks."
+      }
+    ],
+    "known_current_path_debt_2026_06_30": [
+      {
+        "entry_point": "audit_kg_robustness",
+        "current_path": "/registry/kg-audit/index.json",
+        "debt_class": "missing_live_base_path"
+      },
+      {
+        "entry_point": "multispectrum_review",
+        "current_path": "/specs/multispectrum-review.json",
+        "debt_class": "missing_live_base_path"
+      },
+      {
+        "entry_point": "pre_pr_multispectrum_checklist",
+        "current_path": "/templates/checklists/pre-pr-multispectrum.json",
+        "debt_class": "missing_live_base_path"
+      },
+      {
+        "entry_point": "reusable_building_blocks_registry",
+        "current_path": "/registry/reusable-building-blocks-registry.json",
+        "debt_class": "missing_live_base_path"
+      }
+    ],
+    "first_slice_current_baseline": {
+      "candidate_tree_top_level_specs_count": 98,
+      "root_hub_entry_points_after_slice": 177,
+      "derived_top_level_specs_missing_after_slice": 0,
+      "current_path_debt_count": 4,
+      "forbids_clock_network_or_pr_api": true
     }
   },
   "specs_directory_audit_2026_05_20": {

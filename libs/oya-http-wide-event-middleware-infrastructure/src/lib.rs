@@ -45,10 +45,12 @@ use std::time::Instant;
 
 use futures_util::FutureExt as _;
 use futures_util::future::BoxFuture;
-use http::{Request, Response};
+use http::{Extensions, Request, Response};
+use oya_http_middleware_kernel::HttpRequest as StdHttpRequest;
 use oya_shared_hyperscaler_metrics_kernel::{
     HyperscalerMetrics, MetricsContext, RequestTelemetryBinding, RequestTelemetryOutcome,
 };
+use oya_tenancy_kernel::TenantSlug;
 use serde::{Deserialize, Serialize};
 use tower::{Layer, Service};
 
@@ -91,6 +93,195 @@ pub struct TraceContext(pub String); // data_class: INTERNAL_ONLY
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct RequestDimensions(pub BTreeMap<String, String>); // data_class: TENANT_SCOPED
 
+pub const TENANT_ID_CAPTURE_KEY: &str = "tenant_id";
+pub const PRINCIPAL_ID_HEADER: &str = "x-principal-id";
+pub const TRACEPARENT_HEADER: &str = "traceparent";
+pub const CORRELATION_ID_HEADER: &str = "x-correlation-id";
+pub const REQUEST_ID_HEADER: &str = "x-request-id";
+pub const DIMENSION_HEADER_PREFIX: &str = "x-oya-dim-";
+pub const MAX_CORRELATION_CONTEXT_BYTES: usize = 128;
+pub const MAX_PRINCIPAL_CONTEXT_BYTES: usize = 128;
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct StdHttpRequestExtensionBridgeReport {
+    pub inserted_route_template: bool,
+    pub inserted_tenant: bool,
+    pub inserted_principal: bool,
+    pub inserted_trace: bool,
+    pub inserted_dimensions: bool,
+    pub dimension_count: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum StdHttpRequestExtensionBridgeError {
+    MissingContext,
+    InvalidTenantContext,
+    InvalidTraceContext,
+    InvalidCorrelationContext,
+    InvalidPrincipalContext,
+}
+
+pub fn insert_std_http_request_extensions(
+    request: &StdHttpRequest,
+    extensions: &mut Extensions,
+) -> Result<StdHttpRequestExtensionBridgeReport, StdHttpRequestExtensionBridgeError> {
+    let mut report = StdHttpRequestExtensionBridgeReport::default();
+    let route_template = request
+        .matched_template
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let tenant_id = validated_tenant_id(request)?;
+    let principal = validated_principal_context(request)?;
+    let trace = validated_trace_context(request)?;
+    let dimensions = request_dimensions_from_headers(request);
+
+    if let Some(route_template) = route_template {
+        extensions.insert(RouteTemplate(route_template.to_owned()));
+        report.inserted_route_template = true;
+    }
+
+    if let Some(tenant_id) = tenant_id {
+        extensions.insert(TenantContext(tenant_id));
+        report.inserted_tenant = true;
+    }
+
+    if let Some(principal) = principal {
+        extensions.insert(PrincipalContext(principal.to_owned()));
+        report.inserted_principal = true;
+    }
+
+    if let Some(trace) = trace {
+        extensions.insert(TraceContext(trace));
+        report.inserted_trace = true;
+    }
+
+    if !dimensions.is_empty() {
+        report.dimension_count = dimensions.len();
+        report.inserted_dimensions = true;
+        extensions.insert(RequestDimensions(dimensions));
+    }
+
+    Ok(report)
+}
+
+fn validated_tenant_id(
+    request: &StdHttpRequest,
+) -> Result<Option<String>, StdHttpRequestExtensionBridgeError> {
+    let Some(tenant_id) = request
+        .path_captures
+        .get(TENANT_ID_CAPTURE_KEY)
+        .map(String::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    else {
+        return Ok(None);
+    };
+    TenantSlug::try_new(tenant_id)
+        .map(TenantSlug::into_inner)
+        .map(Some)
+        .map_err(|_| StdHttpRequestExtensionBridgeError::InvalidTenantContext)
+}
+
+fn validated_trace_context(
+    request: &StdHttpRequest,
+) -> Result<Option<String>, StdHttpRequestExtensionBridgeError> {
+    if let Some(traceparent) = non_empty_header(request, TRACEPARENT_HEADER) {
+        if is_valid_traceparent(traceparent) {
+            return Ok(Some(traceparent.to_owned()));
+        }
+        return Err(StdHttpRequestExtensionBridgeError::InvalidTraceContext);
+    }
+    let Some(correlation) = non_empty_header(request, CORRELATION_ID_HEADER)
+        .or_else(|| non_empty_header(request, REQUEST_ID_HEADER))
+    else {
+        return Ok(None);
+    };
+    if is_valid_bounded_correlation_context(correlation) {
+        Ok(Some(correlation.to_owned()))
+    } else {
+        Err(StdHttpRequestExtensionBridgeError::InvalidCorrelationContext)
+    }
+}
+
+fn is_valid_bounded_correlation_context(value: &str) -> bool {
+    is_valid_bounded_context(value, MAX_CORRELATION_CONTEXT_BYTES)
+}
+
+fn validated_principal_context(
+    request: &StdHttpRequest,
+) -> Result<Option<&str>, StdHttpRequestExtensionBridgeError> {
+    let Some(principal) = non_empty_header(request, PRINCIPAL_ID_HEADER) else {
+        return Ok(None);
+    };
+    if is_valid_bounded_context(principal, MAX_PRINCIPAL_CONTEXT_BYTES) {
+        Ok(Some(principal))
+    } else {
+        Err(StdHttpRequestExtensionBridgeError::InvalidPrincipalContext)
+    }
+}
+
+fn is_valid_bounded_context(value: &str, max_bytes: usize) -> bool {
+    !value.is_empty()
+        && value.len() <= max_bytes
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b':'))
+}
+
+fn is_valid_traceparent(value: &str) -> bool {
+    let mut parts = value.split('-');
+    let (Some(version), Some(trace_id), Some(parent_id), Some(flags), None) = (
+        parts.next(),
+        parts.next(),
+        parts.next(),
+        parts.next(),
+        parts.next(),
+    ) else {
+        return false;
+    };
+    version == "00"
+        && trace_id.len() == 32
+        && parent_id.len() == 16
+        && flags.len() == 2
+        && is_lower_hex(trace_id)
+        && is_lower_hex(parent_id)
+        && is_lower_hex(flags)
+        && !trace_id.bytes().all(|byte| byte == b'0')
+        && !parent_id.bytes().all(|byte| byte == b'0')
+}
+
+fn is_lower_hex(value: &str) -> bool {
+    value
+        .bytes()
+        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+fn request_dimensions_from_headers(request: &StdHttpRequest) -> BTreeMap<String, String> {
+    let mut dimensions = BTreeMap::new();
+    for (name, value) in &request.headers {
+        let Some(key) = name.strip_prefix(DIMENSION_HEADER_PREFIX) else {
+            continue;
+        };
+        let key = key.trim();
+        let value = value.trim();
+        if key.is_empty() || value.is_empty() {
+            continue;
+        }
+        dimensions.insert(key.to_owned(), value.to_owned());
+    }
+    dimensions
+}
+
+fn non_empty_header<'a>(request: &'a StdHttpRequest, name: &str) -> Option<&'a str> {
+    request
+        .headers
+        .get(name)
+        .map(String::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+}
+
 // ---------------------------------------------------------------------------
 // Cardinality caps (enforced at ingestion, D-6)
 // ---------------------------------------------------------------------------
@@ -100,9 +291,9 @@ pub struct RequestDimensions(pub BTreeMap<String, String>); // data_class: TENAN
 /// silent (no-silent-caps doctrine).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CardinalityCaps {
-    pub max_dimensions: usize,      // data_class: INTERNAL_ONLY
-    pub max_key_bytes: usize,       // data_class: INTERNAL_ONLY
-    pub max_value_bytes: usize,     // data_class: INTERNAL_ONLY
+    pub max_dimensions: usize,  // data_class: INTERNAL_ONLY
+    pub max_key_bytes: usize,   // data_class: INTERNAL_ONLY
+    pub max_value_bytes: usize, // data_class: INTERNAL_ONLY
 }
 
 impl Default for CardinalityCaps {
@@ -302,12 +493,18 @@ where
             .extensions()
             .get::<RouteTemplate>()
             .map_or_else(|| UNMATCHED_ROUTE_LABEL.to_owned(), |r| r.0.clone());
-        let tenant_id = request.extensions().get::<TenantContext>().map(|t| t.0.clone());
+        let tenant_id = request
+            .extensions()
+            .get::<TenantContext>()
+            .map(|t| t.0.clone());
         let principal = request
             .extensions()
             .get::<PrincipalContext>()
             .map(|p| p.0.clone());
-        let trace_id = request.extensions().get::<TraceContext>().map(|t| t.0.clone());
+        let trace_id = request
+            .extensions()
+            .get::<TraceContext>()
+            .map(|t| t.0.clone());
         let raw_dimensions = request
             .extensions()
             .get::<RequestDimensions>()
@@ -329,18 +526,20 @@ where
                 // Derive RED counters from this same outcome. Telemetry
                 // failures never fail the request — they are recorded on
                 // the wide event for the collector to alert on.
-                let red_derivation_failed = RequestTelemetryBinding::new(
-                    &config.context,
-                    operation_id.clone(),
-                )
-                .and_then(|binding| {
-                    RequestTelemetryOutcome::new(binding, tenant_label, status_code, sli_success)
-                })
-                .and_then(|outcome| config.metrics.record_request_outcome(&outcome))
-                .is_err();
+                let red_derivation_failed =
+                    RequestTelemetryBinding::new(&config.context, operation_id.clone())
+                        .and_then(|binding| {
+                            RequestTelemetryOutcome::new(
+                                binding,
+                                tenant_label,
+                                status_code,
+                                sli_success,
+                            )
+                        })
+                        .and_then(|outcome| config.metrics.record_request_outcome(&outcome))
+                        .is_err();
 
-                let (dimensions, cardinality_truncated) =
-                    config.caps.apply(raw_dimensions);
+                let (dimensions, cardinality_truncated) = config.caps.apply(raw_dimensions);
                 config.sink.emit(WideEvent {
                     service: config.context.microservice().to_owned(),
                     route_template,
@@ -366,6 +565,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_http_middleware_kernel::HttpRequest as StdHttpRequest;
+    use oya_http_router_kernel::HttpMethod;
     use oya_shared_hyperscaler_metrics_kernel::{CircuitState, MetricsError};
     use std::future::Future;
     use std::pin::Pin;
@@ -448,6 +649,34 @@ mod tests {
         status: u16,
     }
 
+    fn std_http_request(
+        method: HttpMethod,
+        path: &str,
+        matched_template: Option<&str>,
+        headers: &[(&str, &str)],
+        captures: &[(&str, &str)],
+    ) -> StdHttpRequest {
+        let mut request = StdHttpRequest {
+            method,
+            path: path.to_owned(),
+            headers: BTreeMap::new(),
+            body: Vec::new(),
+            path_captures: BTreeMap::new(),
+            matched_template: matched_template.map(str::to_owned),
+        };
+        for (key, value) in headers {
+            request
+                .headers
+                .insert((*key).to_owned(), (*value).to_owned());
+        }
+        for (key, value) in captures {
+            request
+                .path_captures
+                .insert((*key).to_owned(), (*value).to_owned());
+        }
+        request
+    }
+
     impl Service<Request<()>> for StaticHandler {
         type Response = Response<String>;
         type Error = std::convert::Infallible;
@@ -488,7 +717,10 @@ mod tests {
             sink.clone(),
         );
         let mut service = layer.layer(StaticHandler { status });
-        let mut request = Request::builder().uri("/ignored/raw/path").body(()).unwrap();
+        let mut request = Request::builder()
+            .uri("/ignored/raw/path")
+            .body(())
+            .unwrap();
         decorate(&mut request);
         let response = block_on(service.call(request)).expect("infallible");
         assert_eq!(response.status().as_u16(), status);
@@ -496,11 +728,206 @@ mod tests {
     }
 
     #[test]
+    fn std_http_request_bridge_populates_static_extensions_without_raw_leakage() {
+        let traceparent = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+        let source = std_http_request(
+            HttpMethod::Post,
+            "/tenants/acme/accounts/secret-account",
+            Some("/tenants/{tenant_id}/accounts/{account_id}"),
+            &[
+                ("x-principal-id", "wl_console"),
+                ("traceparent", traceparent),
+            ],
+            &[("tenant_id", "acme"), ("account_id", "secret-account")],
+        );
+        let mut tower_request = Request::builder()
+            .uri(source.path.as_str())
+            .body(())
+            .unwrap();
+
+        let report = insert_std_http_request_extensions(&source, tower_request.extensions_mut())
+            .expect("valid std request context bridges to extensions");
+
+        assert!(report.inserted_route_template);
+        assert!(report.inserted_tenant);
+        assert!(report.inserted_principal);
+        assert!(report.inserted_trace);
+        let extensions = tower_request.extensions();
+        assert_eq!(
+            extensions.get::<RouteTemplate>(),
+            Some(&RouteTemplate(
+                "/tenants/{tenant_id}/accounts/{account_id}".to_owned()
+            ))
+        );
+        assert_eq!(
+            extensions.get::<TenantContext>(),
+            Some(&TenantContext("acme".to_owned()))
+        );
+        assert_eq!(
+            extensions.get::<PrincipalContext>(),
+            Some(&PrincipalContext("wl_console".to_owned()))
+        );
+        assert_eq!(
+            extensions.get::<TraceContext>(),
+            Some(&TraceContext(traceparent.to_owned()))
+        );
+        let route = &extensions.get::<RouteTemplate>().unwrap().0;
+        assert!(!route.contains("acme"));
+        assert!(!route.contains("secret-account"));
+    }
+
+    #[test]
+    fn bridged_wide_event_records_bounded_dimensions_for_final_response() {
+        let traceparent = "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01";
+        let source = std_http_request(
+            HttpMethod::Get,
+            "/widgets/widget-42",
+            Some("/widgets/{widget_id}"),
+            &[
+                ("traceparent", traceparent),
+                ("x-oya-dim-alpha", "123456"),
+                ("x-oya-dim-beta", "ok"),
+                ("x-oya-dim-gamma", "dropped"),
+            ],
+            &[("tenant_id", "tenant_alpha"), ("widget_id", "widget-42")],
+        );
+        let metrics = Arc::new(RecordingMetrics::default());
+        let sink = Arc::new(RecordingSink::default());
+        let layer = WideEventLayer::with_caps(
+            MetricsContext::new("cloud-observability").expect("slug"),
+            metrics.clone(),
+            sink.clone(),
+            CardinalityCaps {
+                max_dimensions: 2,
+                max_key_bytes: 4,
+                max_value_bytes: 4,
+            },
+        );
+        let mut service = layer.layer(StaticHandler { status: 503 });
+        let mut request = Request::builder()
+            .uri(source.path.as_str())
+            .body(())
+            .unwrap();
+        insert_std_http_request_extensions(&source, request.extensions_mut())
+            .expect("valid bridge context");
+
+        let response = block_on(service.call(request)).expect("infallible");
+
+        assert_eq!(response.status().as_u16(), 503);
+        let events = sink.events.lock().unwrap();
+        assert_eq!(events.len(), 1);
+        let event = &events[0];
+        assert_eq!(event.route_template, "/widgets/{widget_id}");
+        assert!(!event.route_template.contains("widget-42"));
+        assert_eq!(event.tenant_id.as_deref(), Some("tenant_alpha"));
+        assert_eq!(event.trace_id.as_deref(), Some(traceparent));
+        assert_eq!(event.status_code, 503);
+        assert!(!event.sli_success);
+        assert!(event.cardinality_truncated);
+        assert_eq!(event.dimensions.len(), 2);
+        assert_eq!(
+            event.dimensions.get("alph").map(String::as_str),
+            Some("1234")
+        );
+        assert_eq!(event.dimensions.get("beta").map(String::as_str), Some("ok"));
+        let calls = metrics.calls.lock().unwrap();
+        assert!(calls.contains(&"5xx".to_owned()));
+        assert!(!calls.contains(&"request_success".to_owned()));
+    }
+
+    #[test]
+    fn bridge_rejects_malformed_tenant_before_extension_insertion() {
+        let source = std_http_request(
+            HttpMethod::Get,
+            "/widgets/widget-42",
+            Some("/widgets/{widget_id}"),
+            &[],
+            &[("tenant_id", "bad/tenant"), ("widget_id", "widget-42")],
+        );
+        let mut request = Request::builder()
+            .uri(source.path.as_str())
+            .body(())
+            .unwrap();
+
+        insert_std_http_request_extensions(&source, request.extensions_mut())
+            .expect_err("malformed tenant capture must be rejected before bridge insertion");
+
+        assert!(request.extensions().get::<TenantContext>().is_none());
+        assert!(request.extensions().get::<RouteTemplate>().is_none());
+    }
+
+    #[test]
+    fn bridge_rejects_malformed_traceparent_before_extension_insertion() {
+        let source = std_http_request(
+            HttpMethod::Get,
+            "/widgets/widget-42",
+            Some("/widgets/{widget_id}"),
+            &[("traceparent", "00-not-a-valid-traceparent")],
+            &[("tenant_id", "tenant_alpha"), ("widget_id", "widget-42")],
+        );
+        let mut request = Request::builder()
+            .uri(source.path.as_str())
+            .body(())
+            .unwrap();
+
+        insert_std_http_request_extensions(&source, request.extensions_mut())
+            .expect_err("malformed traceparent must be rejected before bridge insertion");
+
+        assert!(request.extensions().get::<TraceContext>().is_none());
+        assert!(request.extensions().get::<RouteTemplate>().is_none());
+    }
+
+    #[test]
+    fn bridge_rejects_unbounded_correlation_before_extension_insertion() {
+        let too_long_correlation = "c".repeat(129);
+        let source = std_http_request(
+            HttpMethod::Get,
+            "/widgets/widget-42",
+            Some("/widgets/{widget_id}"),
+            &[("x-correlation-id", too_long_correlation.as_str())],
+            &[("tenant_id", "tenant_alpha"), ("widget_id", "widget-42")],
+        );
+        let mut request = Request::builder()
+            .uri(source.path.as_str())
+            .body(())
+            .unwrap();
+
+        insert_std_http_request_extensions(&source, request.extensions_mut())
+            .expect_err("oversized correlation id must be rejected before bridge insertion");
+
+        assert!(request.extensions().get::<TraceContext>().is_none());
+        assert!(request.extensions().get::<RouteTemplate>().is_none());
+    }
+
+    #[test]
+    fn bridge_rejects_unbounded_principal_before_extension_insertion() {
+        let too_long_principal = "p".repeat(129);
+        let source = std_http_request(
+            HttpMethod::Get,
+            "/widgets/widget-42",
+            Some("/widgets/{widget_id}"),
+            &[("x-principal-id", too_long_principal.as_str())],
+            &[("tenant_id", "tenant_alpha"), ("widget_id", "widget-42")],
+        );
+        let mut request = Request::builder()
+            .uri(source.path.as_str())
+            .body(())
+            .unwrap();
+
+        insert_std_http_request_extensions(&source, request.extensions_mut())
+            .expect_err("oversized principal id must be rejected before bridge insertion");
+
+        assert!(request.extensions().get::<PrincipalContext>().is_none());
+        assert!(request.extensions().get::<RouteTemplate>().is_none());
+    }
+
+    #[test]
     fn emits_one_wide_event_with_derived_red_counters() {
         let (metrics, sink) = run_one(200, |req| {
             req.extensions_mut()
                 .insert(RouteTemplate("/users/{user_id}".into()));
-            req.extensions_mut().insert(TenantContext("ten_acme".into()));
+            req.extensions_mut()
+                .insert(TenantContext("ten_acme".into()));
             req.extensions_mut()
                 .insert(PrincipalContext("wl_console".into()));
             req.extensions_mut().insert(TraceContext("tr-1".into()));

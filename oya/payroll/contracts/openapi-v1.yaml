@@ -3,8 +3,8 @@
   "info": {
     "title": "Payroll Run API",
     "version": "0.1.0",
-    "summary": "Payroll trial close, HR leave impact intake, and accounting journal draft contracts.",
-    "description": "Preview contract surface aligned to transport-neutral Rust DTO crates. This artifact defines wire shape for later runtime adapters; it does not claim a deployed endpoint.",
+    "summary": "Payroll trial close, HR leave impact intake, accounting journal draft, statutory calculation preview, and year-end settlement preview contracts.",
+    "description": "Preview contract surface aligned to transport-neutral Rust DTO crates. This artifact defines wire shape for local preview/runtime-adapter replay; it does not claim a deployed endpoint or production statutory execution.",
     "x-oyatie-contract-status": "preview-not-deployed",
     "x-oyatie-non-claims": [
       "no deployed HTTP runtime",
@@ -14,7 +14,11 @@
       "no statutory filing transport",
       "no cloud service integration claim",
       "no payroll calculation from HR leave-impact metadata",
-      "no HR service runtime call"
+      "no HR service runtime call",
+      "no statutory agency submission",
+      "no disbursement rail",
+      "no durable payroll storage",
+      "no production year-end settlement close"
     ],
     "x-source-standard": "OpenAPI Specification 3.2.0, official spec.openapis.org rendering checked 2026-05-23"
   },
@@ -120,6 +124,98 @@
           }
         }
       }
+    },
+    "/payroll/v1/healthz": {
+      "get": {
+        "operationId": "payrollRuntimeHealth",
+        "summary": "Report local Payroll runtime adapter health and explicit non-claims.",
+        "x-oyatie-app-function": "oya_payroll_run_infrastructure::dispatch_payroll_request",
+        "responses": {
+          "200": {
+            "description": "Local runtime adapter health with live deployment and accessibility N/A rationale.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollHealthResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-oyatie-non-claims": [
+          "Local router health only; no deployed listener, durable storage, Workflow dispatch, statutory filing rail, disbursement rail, external HR/accounting call, production close controller, browser UI, or cloud rollout is claimed."
+        ]
+      }
+    },
+    "/payroll/v1/statutory-calculation-previews": {
+      "post": {
+        "operationId": "previewPayrollStatutoryCalculation",
+        "summary": "Replay a local statutory calculation preview against source-versioned synthetic rulepack input.",
+        "x-oyatie-app-function": "oya_payroll_run_app::prepare_statutory_calculation_preview",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatutoryCalculationPreviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Local statutory calculation preview replay accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatutoryCalculationPreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-oyatie-non-claims": [
+          "Local preview only; no deployed listener, statutory agency submission, filing rail, disbursement rail, durable storage, Workflow dispatch, HR/accounting runtime call, or cloud deployment is claimed."
+        ]
+      }
+    },
+    "/payroll/v1/year-end-settlement-previews": {
+      "post": {
+        "operationId": "previewPayrollYearEndSettlement",
+        "summary": "Replay a local year-end settlement input preview against source-versioned evidence shapes.",
+        "x-oyatie-app-function": "oya_payroll_run_app::prepare_year_end_settlement_preview",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/YearEndSettlementPreviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Local year-end settlement input preview replay accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YearEndSettlementPreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-oyatie-non-claims": [
+          "Local preview only; no deployed listener, statutory agency submission, filing rail, disbursement rail, durable storage, Workflow dispatch, HR/accounting runtime call, or cloud deployment is claimed."
+        ]
+      }
     }
   },
   "components": {
@@ -172,25 +268,248 @@
           "accepted",
           "auditTopic",
           "idempotencyKey",
-          "schemaVersion"
+          "schemaVersion",
+          "service",
+          "storyStage",
+          "runId",
+          "tenantId",
+          "legalEntityId",
+          "evidenceRefs",
+          "sourceDigest",
+          "payloadDataClass",
+          "localReplayOnly",
+          "deployedListener",
+          "storageAttached",
+          "workflowDispatch",
+          "runtimeAuditEmission",
+          "externalHrCall",
+          "externalAccountingCall",
+          "statutoryFilingRails",
+          "disbursementRails",
+          "productionClose",
+          "liveDeploymentRationale"
         ],
         "properties": {
           "accepted": {
-            "type": "boolean"
+            "type": "boolean",
+            "const": true
           },
           "auditTopic": {
-            "type": "string"
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
           },
           "idempotencyKey": {
-            "type": "string"
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
           },
           "schemaVersion": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "x-data-class": "PUBLIC"
           },
           "service": {
             "type": "string",
             "const": "payroll"
+          },
+          "storyStage": {
+            "type": "string",
+            "enum": [
+              "payroll_trial_close",
+              "accounting_journal_draft"
+            ],
+            "x-data-class": "PUBLIC"
+          },
+          "runId": {
+            "type": "string",
+            "pattern": "^prun_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^audit/.+"
+            },
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceDigest": {
+            "type": "string",
+            "pattern": "^sha256:[A-Fa-f0-9]{64}$",
+            "x-data-class": "FINANCIAL"
+          },
+          "payloadDataClass": {
+            "type": "string",
+            "const": "FINANCIAL",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "localReplayOnly": {
+            "type": "boolean",
+            "const": true,
+            "x-data-class": "PUBLIC"
+          },
+          "deployedListener": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "storageAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "workflowDispatch": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "runtimeAuditEmission": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "externalHrCall": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "externalAccountingCall": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "statutoryFilingRails": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "disbursementRails": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "productionClose": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "liveDeploymentRationale": {
+            "type": "string",
+            "const": "N/A: no deployable listener or cloud target exists for this Payroll runtime adapter card; evidence is local in-process router replay only.",
+            "x-data-class": "PUBLIC"
+          }
+        }
+      },
+      "PayrollHealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "runtimeAdapter",
+          "closeHealthGate",
+          "rollbackObservability",
+          "localReplayOnly",
+          "liveDeploymentStatus",
+          "liveDeploymentRationale",
+          "accessibilityEvidenceStatus",
+          "productionCloseController",
+          "deployedListener",
+          "storageAttached",
+          "workflowDispatch",
+          "opentofuOpsConvergence",
+          "statutoryFilingRails",
+          "schemaVersion"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "x-data-class": "PUBLIC"
+          },
+          "service": {
+            "type": "string",
+            "const": "payroll",
+            "x-data-class": "PUBLIC"
+          },
+          "runtimeAdapter": {
+            "type": "string",
+            "const": "router-ready",
+            "x-data-class": "PUBLIC"
+          },
+          "closeHealthGate": {
+            "type": "string",
+            "const": "domain-local-only",
+            "x-data-class": "PUBLIC"
+          },
+          "rollbackObservability": {
+            "type": "string",
+            "const": "metadata-only",
+            "x-data-class": "PUBLIC"
+          },
+          "localReplayOnly": {
+            "type": "boolean",
+            "const": true,
+            "x-data-class": "PUBLIC"
+          },
+          "liveDeploymentStatus": {
+            "type": "string",
+            "const": "not-deployed-local-router-only",
+            "x-data-class": "PUBLIC"
+          },
+          "liveDeploymentRationale": {
+            "type": "string",
+            "const": "N/A: no deployable listener or cloud target exists for this Payroll runtime adapter card; evidence is local in-process router replay only.",
+            "x-data-class": "PUBLIC"
+          },
+          "accessibilityEvidenceStatus": {
+            "type": "string",
+            "const": "N/A: backend/router-only replay has no Payroll UI surface or browser workflow in this card.",
+            "x-data-class": "PUBLIC"
+          },
+          "productionCloseController": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "deployedListener": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "storageAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "workflowDispatch": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "opentofuOpsConvergence": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "statutoryFilingRails": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "PUBLIC"
           }
         }
       },
@@ -546,14 +865,33 @@
       "HrLeaveImpactIntakeResponse": {
         "type": "object",
         "required": [
+          "storyStage",
           "integrationTopic",
           "idempotencyKey",
           "payrollPeriod",
           "impactKind",
+          "sourceHrIdempotencyKey",
+          "evidenceRefs",
           "payloadDataClass",
-          "schemaVersion"
+          "schemaVersion",
+          "localReplayOnly",
+          "deployedListener",
+          "storageAttached",
+          "workflowDispatch",
+          "runtimeAuditEmission",
+          "externalHrCall",
+          "externalAccountingCall",
+          "statutoryFilingRails",
+          "disbursementRails",
+          "productionClose",
+          "liveDeploymentRationale"
         ],
         "properties": {
+          "storyStage": {
+            "type": "string",
+            "const": "hr_leave_impact_intake",
+            "x-data-class": "PUBLIC"
+          },
           "integrationTopic": {
             "type": "string",
             "const": "integration.payroll.hr.leave-impact-intake",
@@ -578,9 +916,733 @@
             ],
             "x-data-class": "FINANCIAL"
           },
+          "sourceHrIdempotencyKey": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "minItems": 4,
+            "items": {
+              "type": "string",
+              "pattern": "^audit/.+"
+            },
+            "x-data-class": "INTERNAL_ONLY"
+          },
           "payloadDataClass": {
             "type": "string",
             "const": "FINANCIAL",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "PUBLIC"
+          },
+          "localReplayOnly": {
+            "type": "boolean",
+            "const": true,
+            "x-data-class": "PUBLIC"
+          },
+          "deployedListener": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "storageAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "workflowDispatch": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "runtimeAuditEmission": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "externalHrCall": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "externalAccountingCall": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "statutoryFilingRails": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "disbursementRails": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "productionClose": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "liveDeploymentRationale": {
+            "type": "string",
+            "const": "N/A: no deployable listener or cloud target exists for this Payroll runtime adapter card; evidence is local in-process router replay only.",
+            "x-data-class": "PUBLIC"
+          }
+        }
+      },
+      "PayrollRulepackJurisdiction": {
+        "type": "string",
+        "enum": [
+          "KOREA",
+          "UNITED_STATES_FEDERAL"
+        ],
+        "x-data-class": "INTERNAL_ONLY"
+      },
+      "StatutoryDeductionKind": {
+        "type": "string",
+        "enum": [
+          "INCOME_TAX",
+          "SOCIAL_INSURANCE"
+        ],
+        "x-data-class": "INTERNAL_ONLY"
+      },
+      "CalculationBoundary": {
+        "type": "string",
+        "enum": [
+          "PURE_DOMAIN_NO_FILING_TRANSPORT"
+        ],
+        "x-data-class": "PUBLIC"
+      },
+      "YearEndSettlementSourceKind": {
+        "type": "string",
+        "enum": [
+          "WAGE_LEDGER_DIGEST",
+          "WITHHOLDING_EVIDENCE",
+          "EMPLOYEE_DECLARATION"
+        ],
+        "x-data-class": "INTERNAL_ONLY"
+      },
+      "StatutoryRateLineRequest": {
+        "type": "object",
+        "required": [
+          "kind",
+          "syntheticRateBasisPoints",
+          "sourceEvidenceRef"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/StatutoryDeductionKind"
+          },
+          "syntheticRateBasisPoints": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "x-data-class": "FINANCIAL"
+          },
+          "sourceEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          }
+        }
+      },
+      "StatutoryDeductionLineResponse": {
+        "type": "object",
+        "required": [
+          "kind",
+          "amount",
+          "syntheticRateBasisPoints",
+          "sourceEvidenceRef"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/StatutoryDeductionKind"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "syntheticRateBasisPoints": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000,
+            "x-data-class": "FINANCIAL"
+          },
+          "sourceEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          }
+        }
+      },
+      "StatutoryCalculationPreviewRequest": {
+        "type": "object",
+        "required": [
+          "runId",
+          "tenantId",
+          "legalEntityId",
+          "payeeId",
+          "payrollPeriod",
+          "jurisdiction",
+          "requiredRegionalPack",
+          "rulepackRef",
+          "rulepackManifestRef",
+          "rulepackSourceVersion",
+          "officialSourceEvidenceRefs",
+          "unofficialSourceFixture",
+          "grossPay",
+          "rateLines",
+          "fixtureNote",
+          "filingRailRequested",
+          "disbursementRailRequested",
+          "productionCloseRequested",
+          "cloudDeploymentRequested"
+        ],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "pattern": "^prun_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payeeId": {
+            "type": "string",
+            "pattern": "^payee_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollPeriod": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$",
+            "x-data-class": "FINANCIAL"
+          },
+          "jurisdiction": {
+            "$ref": "#/components/schemas/PayrollRulepackJurisdiction"
+          },
+          "requiredRegionalPack": {
+            "type": "string",
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackRef": {
+            "type": "string",
+            "pattern": "^rulepack/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackManifestRef": {
+            "type": "string",
+            "pattern": "^rulepack-source/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackSourceVersion": {
+            "type": "string",
+            "minLength": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "officialSourceEvidenceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^audit/.+"
+            }
+          },
+          "unofficialSourceFixture": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "grossPay": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "rateLines": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/StatutoryRateLineRequest"
+            }
+          },
+          "fixtureNote": {
+            "type": "string",
+            "const": "synthetic/non-authoritative fixture: no official KR/US/EU rate correctness claim",
+            "x-data-class": "PUBLIC"
+          },
+          "filingRailRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "disbursementRailRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "productionCloseRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "cloudDeploymentRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          }
+        },
+        "x-oyatie-non-claims": [
+          "synthetic/local preview only; no official rate correctness, filing rail, disbursement rail, production close, storage, Workflow dispatch, or cloud deployment claim."
+        ]
+      },
+      "StatutoryCalculationPreviewResponse": {
+        "type": "object",
+        "required": [
+          "runId",
+          "payrollPeriod",
+          "jurisdiction",
+          "rulepackSourceVersion",
+          "fixtureNote",
+          "grossPay",
+          "deductions",
+          "netPay",
+          "boundary",
+          "directAgencySubmissionAttached",
+          "filingRailAttached",
+          "disbursementRailAttached",
+          "productionCloseAttached",
+          "cloudDeploymentAttached",
+          "payloadDataClass",
+          "schemaVersion"
+        ],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payeeId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollPeriod": {
+            "type": "string",
+            "x-data-class": "FINANCIAL"
+          },
+          "jurisdiction": {
+            "$ref": "#/components/schemas/PayrollRulepackJurisdiction"
+          },
+          "requiredRegionalPack": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackRef": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackManifestRef": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackSourceVersion": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "officialSourceEvidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fixtureNote": {
+            "type": "string",
+            "x-data-class": "PUBLIC"
+          },
+          "grossPay": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "deductions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatutoryDeductionLineResponse"
+            }
+          },
+          "netPay": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "boundary": {
+            "$ref": "#/components/schemas/CalculationBoundary"
+          },
+          "directAgencySubmissionAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "filingRailAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "disbursementRailAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "productionCloseAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "cloudDeploymentAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "payloadDataClass": {
+            "type": "string",
+            "const": "FINANCIAL",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "PUBLIC"
+          }
+        }
+      },
+      "YearEndEvidenceRefRequest": {
+        "type": "object",
+        "required": [
+          "sourceKind",
+          "refValue",
+          "sourceVersion"
+        ],
+        "properties": {
+          "sourceKind": {
+            "$ref": "#/components/schemas/YearEndSettlementSourceKind"
+          },
+          "refValue": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "minLength": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          }
+        }
+      },
+      "YearEndRegionalDependencyRequest": {
+        "type": "object",
+        "required": [
+          "packCode",
+          "sourceVersion",
+          "evidenceRef"
+        ],
+        "properties": {
+          "packCode": {
+            "type": "string",
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "minLength": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "evidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          }
+        }
+      },
+      "YearEndEmployeeInputRequest": {
+        "type": "object",
+        "description": "Year-end employee money amounts share one domain currency; grossPay.currency and withholding.currency must match or the preview rejects the request.",
+        "required": [
+          "payeeId",
+          "employeeRef",
+          "grossPay",
+          "withholding",
+          "wageLedgerEvidenceRef",
+          "declarationEvidenceRef"
+        ],
+        "properties": {
+          "payeeId": {
+            "type": "string",
+            "pattern": "^payee_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "employeeRef": {
+            "type": "string",
+            "pattern": "^person/.+",
+            "x-data-class": "PII_IDENTIFYING"
+          },
+          "grossPay": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "withholding": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "wageLedgerEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "declarationEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          }
+        }
+      },
+      "YearEndSettlementPreviewRequest": {
+        "type": "object",
+        "required": [
+          "runId",
+          "tenantId",
+          "legalEntityId",
+          "payrollYear",
+          "jurisdiction",
+          "rulepackRef",
+          "rulepackManifestRef",
+          "sourceVersion",
+          "evidenceRefs",
+          "regionalDependencies",
+          "employeeInputs",
+          "fixtureNote",
+          "unofficialSourceFixture",
+          "directAgencySubmissionRequested",
+          "filingRailRequested",
+          "disbursementRailRequested",
+          "productionCloseRequested",
+          "cloudDeploymentRequested"
+        ],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "pattern": "^prun_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollYear": {
+            "type": "integer",
+            "minimum": 1900,
+            "maximum": 2200,
+            "x-data-class": "FINANCIAL"
+          },
+          "jurisdiction": {
+            "$ref": "#/components/schemas/PayrollRulepackJurisdiction"
+          },
+          "rulepackRef": {
+            "type": "string",
+            "pattern": "^rulepack/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackManifestRef": {
+            "type": "string",
+            "pattern": "^rulepack-source/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "minLength": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/YearEndEvidenceRefRequest"
+            }
+          },
+          "regionalDependencies": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/YearEndRegionalDependencyRequest"
+            }
+          },
+          "employeeInputs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/YearEndEmployeeInputRequest"
+            }
+          },
+          "fixtureNote": {
+            "type": "string",
+            "const": "synthetic/non-authoritative fixture: no production year-end settlement or filing claim",
+            "x-data-class": "PUBLIC"
+          },
+          "unofficialSourceFixture": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "directAgencySubmissionRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "filingRailRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "disbursementRailRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "productionCloseRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "cloudDeploymentRequested": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          }
+        },
+        "x-oyatie-non-claims": [
+          "synthetic/local preview only; no agency submission, filing rail, disbursement rail, production close, storage, Workflow dispatch, or cloud deployment claim."
+        ]
+      },
+      "YearEndSettlementPreviewResponse": {
+        "type": "object",
+        "required": [
+          "runId",
+          "payrollYear",
+          "jurisdiction",
+          "rulepackManifestRef",
+          "sourceVersion",
+          "fixtureNote",
+          "evidenceRefCount",
+          "regionalDependencyCount",
+          "employeeInputCount",
+          "directAgencySubmissionAttached",
+          "filingRailAttached",
+          "disbursementRailAttached",
+          "productionCloseAttached",
+          "cloudDeploymentAttached",
+          "payloadDataClass",
+          "schemaVersion"
+        ],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollYear": {
+            "type": "integer",
+            "x-data-class": "FINANCIAL"
+          },
+          "jurisdiction": {
+            "$ref": "#/components/schemas/PayrollRulepackJurisdiction"
+          },
+          "rulepackRef": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackManifestRef": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "fixtureNote": {
+            "type": "string",
+            "x-data-class": "PUBLIC"
+          },
+          "evidenceRefCount": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "regionalDependencyCount": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "employeeInputCount": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "directAgencySubmissionAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "filingRailAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "disbursementRailAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "productionCloseAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "cloudDeploymentAttached": {
+            "type": "boolean",
+            "const": false,
+            "x-data-class": "PUBLIC"
+          },
+          "payloadDataClass": {
+            "type": "string",
+            "const": "PII_IDENTIFYING+FINANCIAL",
             "x-data-class": "INTERNAL_ONLY"
           },
           "schemaVersion": {

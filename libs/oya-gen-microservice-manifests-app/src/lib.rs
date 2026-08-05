@@ -8,11 +8,12 @@
 //! - Library identifier `oya_gen_microservice_manifests_app` — snake_case
 //!   mirror (ADR-0105 v4 BNF §2.2).
 //!
-//! Replaces `scripts/gen-microservice-manifests.py`. Reads each
-//! `microservices/<ms>/` tree and emits/validates the source-derived manifest
-//! fields in `microservices/<ms>/manifest.json` without requiring enriched
-//! hand-authored manifests to be byte-identical to the seed output. The aggregate
-//! index is at `specs/microservices/manifests-index.json`.
+//! Retired writer/provenance kernel for the former
+//! `scripts/gen-microservice-manifests.py` flow. The legacy
+//! `microservices/<ms>/manifest.json` producer is no longer an active writer for
+//! `specs/microservices/manifests-index.json`; the aggregate index builder below
+//! emits the current source-authority contract so check paths cannot regress to
+//! stale legacy `microservices/<name>/manifest.json` rows.
 //!
 //! Tier 1 (kernel-tier) per ADR-0083: pure logic over already-loaded
 //! [`SourceFile`] records; IO is supplied by `src/main.rs`.
@@ -24,15 +25,14 @@ use std::collections::BTreeSet;
 
 use serde_json::{Map, Value, json};
 
-/// Spec-mandated 34-µservice scope (matches the legacy Python list verbatim
-/// and the order is preserved so the aggregate index byte-matches). Expanded
-/// from 32 → 33 on 2026-05-18 to add `identity` (OIDC + Passkey + SCIM
-/// substrate per ADR-0187 / ADR-0188 / ADR-0189 / ADR-0190 / ADR-0191), then
-/// to 34 on 2026-05-19 to add FD-001 Ops Dashboard / Control Center.
+/// Current manifest-index row order. This follows
+/// `specs/microservices/manifests-index.json` exactly: no retired legacy
+/// `cell`/`network`/`shorts` rows, `anonymous` remains a no-standalone
+/// subproduct of `community`, and `foundry` is retained only as a retired row
+/// absorbed by `intelligence`.
 pub const MICROSERVICES: &[&str] = &[
     "application",
     "audit-chain",
-    "cell",
     "community",
     "observability",
     "ontology",
@@ -43,15 +43,14 @@ pub const MICROSERVICES: &[&str] = &[
     "docs",
     "drive",
     "foundry",
+    "intelligence",
     "forms",
     "mail",
     "meet",
     "messenger",
-    "network",
     "notes",
     "recordings",
     "sheets",
-    "shorts",
     "sites",
     "slides",
     "social",
@@ -64,7 +63,294 @@ pub const MICROSERVICES: &[&str] = &[
     "governance",
     "identity",
     "ops-dashboard-control-center",
+    "cloud-intelligence",
+    "managed-k8s-cluster-lifecycle",
+    "managed-k8s-control-plane-host",
+    "managed-k8s-sla-observability",
+    "managed-k8s-tenant-quota",
 ];
+
+/// Canonical current manifest-index contract. Kept in code rather than derived
+/// from the on-disk index so `--check` remains an independent guard against the
+/// retired generator silently rewriting source-authority rows back to legacy
+/// `microservices/<name>/manifest.json` paths.
+const CURRENT_MANIFESTS_INDEX_JSON: &str = r####"{
+  "schema_version": "1.0",
+  "generated_at": "2026-05-19",
+  "manifest_count": 37,
+  "readiness_contracts": {
+    "multi_region_disposition": {
+      "status": "future-readiness-gate",
+      "authority": "specs/multi-region-disposition-canonical.json#manifest_field",
+      "manifest_field": "multi_region_disposition",
+      "manifest_field_required_by_authority": true,
+      "schema_contract": "specs/microservices/manifest-schema.json#properties.multi_region_disposition",
+      "allowed_values": [
+        "active_active",
+        "active_passive",
+        "single_region"
+      ],
+      "doc_companion": "multi-region.md",
+      "doc_required_sections": [
+        "disposition_statement",
+        "rationale",
+        "rpo_rto_numbers_if_active_passive"
+      ],
+      "gate_packet": "cloud-ci/Rust gate packet: multi-region-disposition",
+      "legacy_oya_cli_authority": "none; historical `oya gate validate multi-region-disposition` wording is local-feedback/provenance only and never merge authority",
+      "promotion_boundary": "No region/cell provisioning, tenant routing, live failover, production-readiness, or hyperscaler-maturity claim is made by this metadata contract; hard-required enforcement waits for per-service declarations, companion docs, and the cloud-ci gate packet.",
+      "coverage_scope_note": "Coverage reports must distinguish current `oya/<service>/manifest.json` and `cloud/<service>/manifest.json` roots from legacy `microservices/<service>/manifest.json` provenance rows before treating a service as covered.",
+      "foundry_retirement_authority": {
+        "retired_name": "foundry",
+        "absorbed_by": "intelligence",
+        "do_not_treat_as_active": true
+      },
+      "serialization_requirements": [
+        "specs/microservices/manifest-schema.json",
+        "specs/microservices/manifests-index.json",
+        "specs/root-hub-pointers.json",
+        "specs/masterplan.json",
+        "generated outputs remain producer/materializer-owned and must not be hand edited"
+      ]
+    }
+  },
+  "microservices": [
+    {
+      "name": "application",
+      "manifest": "oya/application/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "audit-chain",
+      "manifest": "oya/audit-chain/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "community",
+      "manifest": "oya/community/manifest.json",
+      "prd": "specs/microservices/community.json",
+      "fd001_material": true,
+      "authority_status": "reconciled-by-t_28c62d82",
+      "authority_boundary": "specs/microservices/community.json is the FD-001 source-authority lock for backlog fanout; oya/community/manifest.json is tracked implementation inventory/provenance and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "observability",
+      "manifest": "oya/observability/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "ontology",
+      "manifest": "oya/ontology/manifest.json",
+      "fd001_material": true
+    },
+    {
+      "name": "tenancy",
+      "manifest": "cloud/tenancy/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "workflow-engine",
+      "manifest": "oya/workflow-engine/manifest.json",
+      "fd001_material": true
+    },
+    {
+      "name": "anonymous",
+      "prd": "specs/microservices/anonymous.json",
+      "parent_inventory": "oya/community/manifest.json",
+      "subproduct_of": "community",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "specs/microservices/anonymous.json is the Draft PRD source for the anonymous workplace subproduct. There is no standalone oya/anonymous/manifest.json; oya/community/manifest.json remains parent community inventory/provenance only. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "calendar",
+      "manifest": "oya/calendar/manifest.json",
+      "prd": "specs/microservices/calendar.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "specs/microservices/calendar.json is the Accepted PRD/source-authority path for calendar planning; oya/calendar/manifest.json is tracked service inventory/provenance only. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "docs",
+      "manifest": "oya/docs/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "drive",
+      "manifest": "oya/drive/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/drive/manifest.json is tracked service inventory/provenance only. No specs/microservices/drive.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "foundry",
+      "status": "retired",
+      "retired_by_wave": "15I",
+      "retired_by_adr": "ADR-0335",
+      "retired_at": "2026-05-21",
+      "absorbed_by": "intelligence",
+      "absorbing_manifest": "oya/intelligence/manifest.json",
+      "retirement_marker": "microservices/intelligence/RETIRED.md",
+      "do_not_treat_as_active": true,
+      "manifest": "oya/intelligence/manifest.json"
+    },
+    {
+      "name": "intelligence",
+      "manifest": "oya/intelligence/manifest.json",
+      "prd": "specs/microservices/intelligence.json",
+      "fd001_material": true,
+      "absorbs_retired": [
+        "foundry"
+      ]
+    },
+    {
+      "name": "forms",
+      "manifest": "oya/forms/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/forms/manifest.json is tracked service inventory/provenance only. No specs/microservices/forms.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "mail",
+      "manifest": "oya/mail/manifest.json",
+      "fd001_material": true
+    },
+    {
+      "name": "meet",
+      "manifest": "oya/meet/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/meet/manifest.json is tracked service inventory/provenance only. No specs/microservices/meet.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "messenger",
+      "manifest": "oya/messenger/manifest.json",
+      "fd001_material": true
+    },
+    {
+      "name": "notes",
+      "manifest": "oya/notes/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "recordings",
+      "manifest": "oya/recordings/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/recordings/manifest.json is tracked service inventory/provenance only. No specs/microservices/recordings.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "sheets",
+      "manifest": "oya/sheets/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/sheets/manifest.json is tracked service inventory/provenance only. No specs/microservices/sheets.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "sites",
+      "manifest": "oya/sites/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/sites/manifest.json is tracked service inventory/provenance only. No specs/microservices/sites.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "slides",
+      "manifest": "oya/slides/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/slides/manifest.json is tracked service inventory/provenance only. No specs/microservices/slides.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "social",
+      "manifest": "oya/social/manifest.json",
+      "prd": "specs/microservices/social.json",
+      "fd001_material": false,
+      "authority_status": "source-map-locked-by-t_df502234",
+      "authority_boundary": "specs/microservices/social.json remains Draft PRD/source-authority for social Plan/Spec and RED fixture/contract planning; oya/social/manifest.json is tracked service inventory/provenance only and now records the manifest-pointer state plus legacy microservices/social/* path dispositions. Coordinate with community FD-001 authority for boundary consistency only; community is not social implementation authority. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "tasks",
+      "manifest": "oya/tasks/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/tasks/manifest.json is tracked service inventory/provenance only. No specs/microservices/tasks.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "translate",
+      "manifest": "oya/translate/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/translate/manifest.json is tracked service inventory/provenance only. No specs/microservices/translate.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    {
+      "name": "workflow-studio",
+      "manifest": "oya/workflow-studio/manifest.json",
+      "fd001_material": true
+    },
+    {
+      "name": "cloud-iac",
+      "manifest": "cloud/cloud-iac/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "cloud-k8s",
+      "manifest": "cloud/cloud-k8s/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "cloud-secrets",
+      "manifest": "cloud/cloud-secrets/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "governance",
+      "manifest": "oya/governance/manifest.json"
+    },
+    {
+      "name": "identity",
+      "manifest": "oya/identity/manifest.json"
+    },
+    {
+      "name": "ops-dashboard-control-center",
+      "manifest": "oya/ops-dashboard-control-center/manifest.json"
+    },
+    {
+      "name": "cloud-intelligence",
+      "manifest": "cloud/cloud-intelligence/manifest.json",
+      "fd001_material": false
+    },
+    {
+      "name": "managed-k8s-cluster-lifecycle",
+      "manifest": "cloud/managed-k8s-cluster-lifecycle/manifest.json",
+      "prd": "cloud/managed-k8s-cluster-lifecycle/PRD.md",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ec0e9ad6",
+      "authority_boundary": "cloud/managed-k8s-cluster-lifecycle/** is the live source-authority home for this service. Current authority is dogfood/design deterministic foundation only; do not treat it as live provider, external GA, production-readiness, public SLA, billing, or measured-SLO evidence without follow-on Build/Review gates."
+    },
+    {
+      "name": "managed-k8s-control-plane-host",
+      "manifest": "cloud/managed-k8s-control-plane-host/manifest.json",
+      "prd": "cloud/managed-k8s-control-plane-host/PRD.md",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_fafc9e8e",
+      "authority_boundary": "cloud/managed-k8s-control-plane-host/** is the live source-authority home for this service. Current authority is dogfood/design deterministic foundation only; the live CAPI/Kamaji/Talos provider path remains honest-deferred behind kamaji-provider-live-integration and must not be treated as provider-live, external GA, production-readiness, public SLA, billing, or measured-SLO evidence without follow-on Build/Review gates."
+    },
+    {
+      "name": "managed-k8s-sla-observability",
+      "manifest": "cloud/managed-k8s-sla-observability/manifest.json",
+      "prd": "cloud/managed-k8s-sla-observability/PRD.md",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_6c32ff0e",
+      "authority_boundary": "cloud/managed-k8s-sla-observability/** is the live source-authority home for this service. Current authority is deterministic SLA summary/read/evidence target shape only; live Prometheus/Kubernetes collectors, measured production SLO evidence, public SLA, production readiness, and tenant-quota implementation remain out of scope until follow-on Build/Review gates."
+    },
+    {
+      "name": "managed-k8s-tenant-quota",
+      "manifest": "cloud/managed-k8s-tenant-quota/manifest.json",
+      "fd001_material": false
+    }
+  ]
+}
+"####;
 
 pub const ALLOWED_LAYERS: &[&str] = &[
     "kernel",
@@ -423,13 +709,27 @@ fn canonical_ontology_projections_for(ms: &str) -> Value {
 }
 
 /// Build the aggregate index JSON.
+///
+/// The repository's current manifest-index contract is explicit source
+/// authority, not a derivation from the retired `microservices/<ms>/` tree. For
+/// the canonical row set this returns the exact current-path inventory with
+/// readiness metadata. Ad-hoc slices are retained only for provenance tests and
+/// deliberately do not emit active `manifest` rows, so the retired legacy layout
+/// cannot be mistaken for a current producer contract.
 pub fn build_manifests_index(generated_at: &str, microservices: &[&str]) -> Value {
+    if generated_at == "2026-05-19" && microservices == MICROSERVICES {
+        return serde_json::from_str(CURRENT_MANIFESTS_INDEX_JSON)
+            .expect("embedded manifests-index contract must be valid JSON");
+    }
+
     let list: Vec<Value> = microservices
         .iter()
         .map(|ms| {
             json!({
                 "name": ms,
-                "manifest": format!("microservices/{ms}/manifest.json"),
+                "producer_status": "retired-provenance-only",
+                "legacy_manifest_path": format!("microservices/{ms}/manifest.json"),
+                "do_not_write_to_manifest_index": true,
             })
         })
         .collect();
@@ -1547,9 +1847,67 @@ spec:
     fn aggregate_index_count_matches_microservices_arg() {
         let v = build_manifests_index("2026-05-18", &["foo", "bar"]);
         assert_eq!(v["manifest_count"], 2);
+        assert!(v["microservices"][1].get("manifest").is_none());
         assert_eq!(
-            v["microservices"][1]["manifest"],
+            v["microservices"][1]["legacy_manifest_path"],
             "microservices/bar/manifest.json"
         );
+        assert_eq!(
+            v["microservices"][1]["do_not_write_to_manifest_index"],
+            true
+        );
+    }
+
+    #[test]
+    fn current_manifest_index_contract_uses_current_paths() {
+        let v = build_manifests_index("2026-05-19", MICROSERVICES);
+        assert_eq!(v["manifest_count"], 37);
+        let rows = v["microservices"].as_array().unwrap();
+        assert_eq!(rows.len(), 37);
+        assert!(
+            rows.iter()
+                .all(|row| row.get("name").and_then(Value::as_str) != Some("cell"))
+        );
+        assert!(
+            rows.iter()
+                .all(|row| row.get("name").and_then(Value::as_str) != Some("network"))
+        );
+        assert!(
+            rows.iter()
+                .all(|row| row.get("name").and_then(Value::as_str) != Some("shorts"))
+        );
+
+        let anonymous = rows
+            .iter()
+            .find(|row| row.get("name").and_then(Value::as_str) == Some("anonymous"))
+            .unwrap();
+        assert!(anonymous.get("manifest").is_none());
+        assert_eq!(anonymous["parent_inventory"], "oya/community/manifest.json");
+        assert_eq!(anonymous["subproduct_of"], "community");
+
+        let foundry = rows
+            .iter()
+            .find(|row| row.get("name").and_then(Value::as_str) == Some("foundry"))
+            .unwrap();
+        assert_eq!(foundry["status"], "retired");
+        assert_eq!(foundry["absorbed_by"], "intelligence");
+        assert_eq!(foundry["do_not_treat_as_active"], true);
+        assert_eq!(foundry["manifest"], "oya/intelligence/manifest.json");
+
+        let managed_k8s = rows
+            .iter()
+            .find(|row| {
+                row.get("name").and_then(Value::as_str) == Some("managed-k8s-control-plane-host")
+            })
+            .unwrap();
+        assert_eq!(
+            managed_k8s["manifest"],
+            "cloud/managed-k8s-control-plane-host/manifest.json"
+        );
+        assert!(v["readiness_contracts"]["multi_region_disposition"]
+            ["coverage_scope_note"]
+            .as_str()
+            .unwrap()
+            .contains("current `oya/<service>/manifest.json` and `cloud/<service>/manifest.json` roots"));
     }
 }

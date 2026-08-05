@@ -1,0 +1,861 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/microservices/translate.json",
+  "title": "MicroservicePrdSourceMap:Translate",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-TRANSLATE-SOURCE-MAP",
+    "version": "0.1.0",
+    "status": "Accepted",
+    "owner_team": "axis-translate",
+    "created_at": "2026-07-01T13:48:50Z",
+    "authority_lock_task": "t_558fedfa",
+    "purpose": "Translate workplace app source-authority lock and PRD/source map before Plan/Spec, RED, Build, runtime, or implementation fanout. This artifact maps oya/translate inventory/provenance into bounded planning authority for single, batch, bulk, language-detection, translation-memory, quality-estimation, document-localization, real-time-caption, glossary, and termbase domains while preserving no-runtime-readiness boundaries."
+  },
+  "authority_resolution": {
+    "current_authority": "specs/microservices/translate.json",
+    "manifest_index_ref": "specs/microservices/manifests-index.json#microservices[name=translate]",
+    "manifest_inventory_ref": "oya/translate/manifest.json",
+    "source_lock_task": "t_558fedfa",
+    "upstream_plan_spec_task": "t_ba3dcb44",
+    "review_gate_task": "t_ce0e47d2",
+    "prior_state_recorded": {
+      "specific_spec_before_this_task": "absent: specs/microservices/translate.json did not exist before t_558fedfa",
+      "legacy_manifest_before_this_task": "absent: microservices/translate/manifest.json did not exist before t_558fedfa",
+      "canonical_inventory_before_this_task": "present: oya/translate/manifest.json existed and was treated as inventory/provenance only"
+    },
+    "manifest_index_row": {
+      "name": "translate",
+      "manifest": "oya/translate/manifest.json",
+      "fd001_material": false,
+      "authority_status": "source-authority-reconciled-by-t_ff8bab02",
+      "authority_boundary": "oya/translate/manifest.json is tracked service inventory/provenance only. No specs/microservices/translate.json PRD/source-authority file exists yet; downstream Plan/Spec cards must author and lock the PRD/source map before implementation fanout. This row makes no runtime/product-readiness claim and must not be used as live implementation-readiness evidence without Plan/Spec/RED gates."
+    },
+    "root_boundary": {
+      "canonical_service_home": "oya/translate/",
+      "legacy_root": "microservices/translate/",
+      "adr_refs": [
+        "docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-24-28",
+        "docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-60-63",
+        "docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-24-27",
+        "docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-53-62"
+      ],
+      "decision": "ADR-0131 amended by ADR-0512 makes {oya,cloud}/<service>/ canonical. microservices/ is legacy/removal-candidate and must not be restored as the canonical translate home."
+    },
+    "claim_boundary": "Source authority for Plan/Spec, RED fixture, and review-gated decomposition only. This file makes no handler, storage adapter, model-provider, deployment, live SLO, production readiness, hyperscaler maturity, FD-001 materiality, GA, or customer availability claim."
+  },
+  "identity": {
+    "product_id": "translate",
+    "owning_axis": "axis-translate",
+    "product_class": "workplace_app_service",
+    "fd001_material": false,
+    "user_facing_surface": true,
+    "context_model": [
+      "work",
+      "tenant-scoped collaboration",
+      "cross-locale business communication"
+    ],
+    "service_boundary": "Tenant-scoped translation and localization service covering single text translation, batch segment translation, bulk localization jobs, language detection, translation memory leverage, quality estimation, document localization, real-time caption translation, glossary CRUD, and termbase CRUD/import/export. Meet, messenger, mail, notes, recordings, workflow-engine, ontology, intelligence, identity, tenancy, audit-chain, observability, and marketplace remain separate service boundaries connected through explicit contracts and policy-gated handoffs.",
+    "canonical_inventory_scope": {
+      "bounded_contexts_from_manifest": [
+        "bulk-translate",
+        "document-localization",
+        "language-detection",
+        "quality-estimation",
+        "real-time-stream",
+        "termbase-and-glossary",
+        "translate-router",
+        "translation-memory"
+      ],
+      "declared_layers_from_manifest": [
+        "adapter",
+        "api",
+        "app",
+        "domain",
+        "kernel",
+        "rest",
+        "sdk",
+        "usecase",
+        "worker"
+      ],
+      "runtime_crate_inventory_observed": [],
+      "capability_tiers_declared_by_manifest": [
+        "T0:translate-segment-suggest-and-lang-hint",
+        "T1:translate-assist-suggest-qe-and-langdetect",
+        "T2:translate-auto-translate-content-class"
+      ],
+      "data_classes_observed": [
+        "INTERNAL_ONLY",
+        "AUDIT",
+        "PII_QUASI"
+      ]
+    }
+  },
+  "inherits": {
+    "oyatie_specs": [
+      "$ref:specs/root-hub-pointers.json#entry_points.agent_operating_contract",
+      "$ref:specs/masterplan.json",
+      "$ref:specs/master-plan-sequencing.json",
+      "$ref:specs/microservices/manifests-index.json#microservices[name=translate]",
+      "$ref:specs/microservices/meet.json",
+      "$ref:specs/microservices/recordings.json",
+      "$ref:specs/microservices/mail.json",
+      "$ref:specs/microservices/messenger.json",
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "adrs": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "$ref:docs/decisions/ADR-0243-cedar-as-universal-gate.md",
+      "$ref:docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md",
+      "$ref:docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md",
+      "$ref:docs/decisions/ADR-0263-observability-emission-contract.md",
+      "$ref:docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
+      "$ref:docs/decisions/ADR-0335-intelligence-microservice-consolidation.md",
+      "$ref:docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "$ref:docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    ],
+    "inventory_context_not_fanout_authority": [
+      "$ref:oya/translate/manifest.json",
+      "$ref:oya/translate/README.md",
+      "$ref:oya/translate/dpia/dpia.md",
+      "$ref:oya/translate/contracts/openapi/translate.yaml",
+      "$ref:oya/translate/contracts/asyncapi/translate-events.yaml",
+      "$ref:oya/translate/contracts/proto/translate.proto",
+      "$ref:oya/translate/catalog/*.yaml",
+      "$ref:oya/translate/slos/*.openslo.yaml",
+      "$ref:oya/translate/policy/translate-tenant-scope.cedar"
+    ],
+    "workplace_api_user_story_evidence_candidates": [
+      "$ref:docs/user-journeys/j72-ai-translation-cross-locale-business/schemas/ai-translation-cross-locale-business-handoff.json",
+      "$ref:docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json",
+      "$ref:docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/board-meeting-state-machine.yaml",
+      "$ref:docs/user-journeys/j169-cmo-felix-ng-multi-country-launch-with-locale-pack/schemas/launch-state-machine.yaml",
+      "$ref:docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/schemas/agm-state-machine.yaml"
+    ]
+  },
+  "source_inventory_map": {
+    "manifest_source": {
+      "path": "oya/translate/manifest.json",
+      "status": "inventory_provenance_only",
+      "must_not_be_used_as": [
+        "implementation-readiness evidence",
+        "runtime-readiness evidence",
+        "product-readiness evidence",
+        "FD-001 materiality evidence",
+        "permission to restore microservices/translate/manifest.json",
+        "permission to assign live ownership to retired/provenance terminology"
+      ]
+    },
+    "canonical_path_map": [
+      {
+        "manifest_or_inventory_path": "microservices/translate/contracts/openapi/translate.yaml",
+        "canonical_path": "oya/translate/contracts/openapi/translate.yaml",
+        "observed_state": "present",
+        "fanout_status": "candidate REST contract source; require review and API contract replay before implementation use"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/contracts/asyncapi/translate-events.yaml",
+        "canonical_path": "oya/translate/contracts/asyncapi/translate-events.yaml",
+        "observed_state": "present",
+        "fanout_status": "candidate event contract source; require review and event replay before implementation use"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/contracts/proto/translate.proto",
+        "canonical_path": "oya/translate/contracts/proto/translate.proto",
+        "observed_state": "present",
+        "fanout_status": "candidate gRPC/proto contract source; require review and contract replay before implementation use"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/capabilities/T0-suggest.yaml",
+        "canonical_path": "oya/translate/capabilities/T0-suggest.yaml",
+        "observed_state": "present",
+        "fanout_status": "capability inventory only until policy/security/autonomy review"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/capabilities/T1-assist.yaml",
+        "canonical_path": "oya/translate/capabilities/T1-assist.yaml",
+        "observed_state": "present",
+        "fanout_status": "capability inventory only until policy/security/autonomy review"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/capabilities/T2-auto.yaml",
+        "canonical_path": "oya/translate/capabilities/T2-auto.yaml",
+        "observed_state": "present",
+        "fanout_status": "capability inventory only; automation requires Cedar, EU AI Act transparency, human-control, audit-chain, and Intelligence-boundary review before build"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/slos/*.openslo.yaml",
+        "canonical_path": "oya/translate/slos/*.openslo.yaml",
+        "observed_state": "partially present by named files in oya/translate/slos",
+        "fanout_status": "SLO target inventory only; no measured-live-SLO or rollout claim"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/IP-001..IP-015*.md",
+        "canonical_path": null,
+        "observed_state": "absent under oya/translate/ during source-lock inspection",
+        "fanout_status": "quarantined unresolved legacy IP references; future workers must not recreate microservices/translate and must author current Plan/Spec cards only after source-lock review"
+      },
+      {
+        "manifest_or_inventory_path": "microservices/translate/PRD.md and microservices/translate/ARCHITECTURE.md",
+        "canonical_path": "specs/microservices/translate.json for this machine-readable source lock",
+        "observed_state": "legacy markdown targets absent under oya/translate/ during source-lock inspection",
+        "fanout_status": "canonical PRD/source lock is this JSON file; markdown architecture/PRD work requires a separate allowed-path card if needed"
+      }
+    ],
+    "stale_or_retired_reference_handling": [
+      {
+        "reference": "manifest and service-local contract text still contain microservices/translate/... path strings",
+        "disposition": "treat as stale legacy provenance; downstream Plan/Spec or Build cards must source-map to oya/translate/... when an equivalent current artifact exists, or create a serialized path-repair/source-map card before relying on the path"
+      },
+      {
+        "reference": "retired Foundry/foundry-runtime wording in translate inventory, catalog rows, AsyncAPI consumers, adapter names, or IP titles",
+        "disposition": "retired/provenance AI-substrate terminology; route live AI/agentic/model-provider authority through current intelligence authority per ADR-0335/root-hub markers before implementation fanout"
+      },
+      {
+        "reference": "dirty-tree oya/translate runtime-looking inventory files",
+        "disposition": "inventory/provenance only until this source map, independent review, RED fixtures, Build, Review/fix, and rollout/E2E gates complete"
+      }
+    ]
+  },
+  "functional_domain_map": {
+    "domains": [
+      {
+        "id": "single_translation",
+        "description": "Single text/segment translation with source/target locale, content class, tenant/pack policy, engine routing, TM leverage, optional QE, and audit evidence.",
+        "contract_candidates": [
+          "POST /translate",
+          "Translate.TranslateText"
+        ],
+        "future_red_focus": [
+          "tenant and pack headers required",
+          "Cedar deny and residency mismatch refusals",
+          "EU AI Act transparency label where jurisdiction requires it",
+          "idempotent/auditable evidence event and content hash"
+        ]
+      },
+      {
+        "id": "batch_translation",
+        "description": "Bounded batch translation for up to the contract-stated segment envelope with per-segment errors, stable ids, and no silent partial success.",
+        "contract_candidates": [
+          "POST /batch-translate",
+          "Translate.BatchTranslate"
+        ],
+        "future_red_focus": [
+          "payload-size and segment-count refusals",
+          "per-segment error surface",
+          "backpressure and retry semantics"
+        ]
+      },
+      {
+        "id": "bulk_translation",
+        "description": "Asynchronous bulk localization jobs for XLIFF, TMX, TBX, JSON-i18n, ARB, PO, strings, resx, properties, and multi-file localization payloads.",
+        "contract_candidates": [
+          "POST /bulk-translate",
+          "GET /bulk-translate/{jobId}",
+          "Translate.BulkTranslate",
+          "translate.bulk.started/completed/failed events"
+        ],
+        "future_red_focus": [
+          "job lifecycle and result manifest integrity",
+          "sandbox/malware and file-size refusal",
+          "progress events and webhook/audit idempotency"
+        ]
+      },
+      {
+        "id": "language_detection",
+        "description": "Language detection for BCP 47 and ISO 639-3 with confidence/alternates and tenant/pack policy.",
+        "contract_candidates": [
+          "POST /detect-language",
+          "Translate.DetectLanguage"
+        ],
+        "future_red_focus": [
+          "short and long input limits",
+          "low-confidence/error behavior",
+          "BCP 47/ISO 639-3 normalization"
+        ]
+      },
+      {
+        "id": "translation_memory",
+        "description": "Translation memory leverage and update events for exact, ICE, fuzzy, and no-match candidates with project and tenant boundaries.",
+        "contract_candidates": [
+          "POST /tm-leverage",
+          "Translate.TmLeverage",
+          "translate.tm.updated events"
+        ],
+        "future_red_focus": [
+          "cross-tenant/project denial",
+          "match-score ordering and threshold behavior",
+          "memory update audit envelope"
+        ]
+      },
+      {
+        "id": "quality_estimation",
+        "description": "Reference-free translation quality scoring with model version, confidence interval, human-review recommendation, and EU AI Act disclosure record where required.",
+        "contract_candidates": [
+          "POST /qe-score",
+          "Translate.QeScore",
+          "translate.qe.estimated events"
+        ],
+        "future_red_focus": [
+          "score bounds and model-version evidence",
+          "EU AI Act Art. 13/50 disclosure references",
+          "human-review threshold behavior"
+        ]
+      },
+      {
+        "id": "document_localization",
+        "description": "Asynchronous document translation/localization for DOCX, PPTX, XLSX, PDF, HTML, Markdown, PO, XLIFF, ARB, strings, resx, and properties with fidelity-tier evidence.",
+        "contract_candidates": [
+          "POST /document-translate",
+          "GET /document-translate/{jobId}",
+          "Translate.DocumentTranslate",
+          "translate.document.completed events"
+        ],
+        "future_red_focus": [
+          "format and file-size refusal",
+          "fidelity tier achieved and structural preservation",
+          "sandbox panic/non-silent failure and evidence event"
+        ]
+      },
+      {
+        "id": "real_time_caption_translation",
+        "description": "Real-time caption translation stream for meet/livestream/workplace events with correction replay, latency budget, consent/policy, and evidence hashes.",
+        "contract_candidates": [
+          "POST /real-time-translate/stream",
+          "Translate.RealTimeTranslateStream",
+          "translate.realtime.caption_emitted events",
+          "docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json",
+          "docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/schemas/agm-state-machine.yaml"
+        ],
+        "future_red_focus": [
+          "consent and policy disclosure before stream start",
+          "caption correction replay and chunk hash binding",
+          "latency/error state visibility and accessibility evidence"
+        ]
+      },
+      {
+        "id": "glossary",
+        "description": "Tenant/project-scoped glossary CRUD, do-not-translate entries, register/part-of-speech metadata, and update events.",
+        "contract_candidates": [
+          "GET/POST /glossary",
+          "GET/PUT/DELETE /glossary/{entryId}",
+          "Translate.ListGlossary/CreateGlossaryEntry/UpdateGlossaryEntry/DeleteGlossaryEntry",
+          "translate.glossary.updated events"
+        ],
+        "future_red_focus": [
+          "tenant/project scoping",
+          "do-not-translate enforcement",
+          "CRUD audit/event idempotency"
+        ]
+      },
+      {
+        "id": "termbase",
+        "description": "Termbase CRUD plus ISO 30042 TBX import/export with concept counts, validation errors, and conflict resolution audit.",
+        "contract_candidates": [
+          "GET/POST /termbase",
+          "GET/DELETE /termbase/{termbaseId}",
+          "POST /termbase/{termbaseId}/import-tbx",
+          "GET /termbase/{termbaseId}/export-tbx",
+          "Translate.ListTermbases/CreateTermbase/GetTermbase/DeleteTermbase/ImportTbx/ExportTbx",
+          "translate.termbase.changed events"
+        ],
+        "future_red_focus": [
+          "TBX validation and import errors",
+          "export authorization and integrity",
+          "conflict resolution with audit-chain evidence"
+        ]
+      }
+    ]
+  },
+  "plan_spec_scope": {
+    "source_map_inputs": [
+      "specs/root-hub-pointers.json",
+      "docs/AGENTS.md",
+      "specs/microservices/manifests-index.json#microservices[name=translate]",
+      "oya/translate/manifest.json",
+      "oya/translate/README.md",
+      "oya/translate/dpia/dpia.md",
+      "oya/translate/contracts/openapi/translate.yaml",
+      "oya/translate/contracts/asyncapi/translate-events.yaml",
+      "oya/translate/contracts/proto/translate.proto",
+      "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "docs/user-journeys/j72-ai-translation-cross-locale-business/schemas/ai-translation-cross-locale-business-handoff.json",
+      "docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json",
+      "docs/user-journeys/j169-cmo-felix-ng-multi-country-launch-with-locale-pack/schemas/launch-state-machine.yaml",
+      "docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/schemas/agm-state-machine.yaml"
+    ],
+    "in_scope_for_future_prd_elaboration": [
+      "single segment/text translation with policy, content class, engine routing, evidence, and disclosure labels",
+      "batch segment translation with stable ids, partial failure semantics, backpressure, and per-segment evidence",
+      "bulk translation/localization job lifecycle with result manifest, webhook/event evidence, and sandbox/file-format controls",
+      "language detection with BCP 47, ISO 639-3, confidence, alternates, and low-confidence behavior",
+      "translation memory leverage/update, fuzzy/ICE/exact matches, project scoping, and TMX/TBX interoperability",
+      "quality estimation with model/version evidence, review recommendations, EU AI Act disclosure, and no silent automated high-risk use",
+      "document localization with fidelity tiers, malware/sandbox posture, structural preservation, and import/export evidence",
+      "real-time caption translation for meet/livestream/cross-locale workplace events with consent, latency, correction replay, and accessibility requirements",
+      "glossary and termbase management with tenant/project ACLs, do-not-translate enforcement, TBX import/export, conflict resolution, and audit-chain evidence",
+      "observability, SLO, rollback, runbook, capacity, autosharding, dynamic sharding, regional/compliance-pack posture, and provider-degradation behavior"
+    ],
+    "out_of_scope_for_this_lock": [
+      "runtime or product code changes",
+      "RED fixture code before independent Review/fix approves this source lock",
+      "generated JSON hand edits",
+      "shared specs/microservices/manifests-index.json edits",
+      "microservices/translate/manifest.json restoration",
+      "cloud/runtime surface changes",
+      "oya/CLI merge-authority or legacy gate expansion",
+      "Release Please metadata",
+      "FD-001 materiality claim",
+      "production, GA, live-SLO, model-quality, benchmark, or hyperscaler maturity claim"
+    ]
+  },
+  "allowed_paths": {
+    "this_task_write_paths": [
+      "specs/microservices/translate.json"
+    ],
+    "this_task_read_paths": [
+      "specs/root-hub-pointers.json",
+      "specs/microservices/manifests-index.json",
+      "oya/translate/manifest.json",
+      "oya/translate/**",
+      "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "docs/user-journeys/**"
+    ],
+    "future_plan_spec_allowed_prefixes_after_review": [
+      "specs/microservices/translate.json",
+      "plan/translate/",
+      "oya/translate/specs/",
+      "oya/translate/decisions/",
+      "evidence/translate/"
+    ],
+    "future_red_allowed_prefixes_after_plan_spec": [
+      "specs/fixtures/translate/",
+      "scripts/tests/translate_*.py",
+      "oya/translate/crates/**/tests/"
+    ],
+    "future_build_allowed_prefixes_conditioned_on_review_and_red": [
+      "oya/translate/",
+      "specs/fixtures/translate/",
+      "scripts/tests/translate_*.py"
+    ],
+    "forbidden_paths_for_this_source_lock": [
+      "specs/microservices/manifests-index.json",
+      "microservices/translate/manifest.json",
+      "microservices/translate/**",
+      "oya/translate/** runtime or inventory promotion edits",
+      "cloud/**",
+      "*.generated.json",
+      "Release Please metadata",
+      "legacy oya CLI merge-authority surfaces"
+    ],
+    "conflict_class": "product-spec-authority-translate-workplace-app",
+    "generated_faces_policy": "Never hand-edit *.generated.json; materializers own generated faces."
+  },
+  "dependency_boundaries": {
+    "consumes": [
+      {
+        "service": "identity",
+        "contract": "OIDC principal, service-principal, and tenant-scoped authorization context",
+        "boundary": "no direct identity data model coupling; use token/policy claims"
+      },
+      {
+        "service": "tenancy",
+        "contract": "tenant, region, cell, residency, compliance-pack scope",
+        "boundary": "tenant and cell metadata remain authoritative upstream"
+      },
+      {
+        "service": "intelligence",
+        "contract": "current AI/model-provider routing, model lifecycle, disclosure, and high-risk assistance boundary",
+        "boundary": "retired/provenance AI terminology must normalize to intelligence; model processing requires policy, tenant opt-in, data-use, and audit evidence before build"
+      },
+      {
+        "service": "meet",
+        "contract": "caption translation stream handoff for live meetings and board-mode language preflight",
+        "boundary": "meet owns meeting/session lifecycle; translate owns translated caption chunks after explicit policy/consent handoff"
+      },
+      {
+        "service": "recordings",
+        "contract": "recording transcript translation and derived artifact references",
+        "boundary": "recordings owns source recording/transcript retention and legal hold; translate owns translation request/result evidence only"
+      },
+      {
+        "service": "workflow-engine",
+        "contract": "translation job and cross-locale business workflow orchestration",
+        "boundary": "workflow owns durable process state; translate exposes typed commands/events and never reaches across services directly"
+      },
+      {
+        "service": "audit-chain",
+        "contract": "sealed translation, routing, disclosure, glossary, termbase, and job lifecycle evidence",
+        "boundary": "audit-chain owns seal mechanics; translate emits valid evidence envelopes"
+      },
+      {
+        "service": "observability",
+        "contract": "SLO, trace, metric, provider-degradation, and burn-rate signal consumption",
+        "boundary": "observability evidence is proof only after concrete emitters and dashboards are implemented and replayed"
+      }
+    ],
+    "produces": [
+      {
+        "contract": "translate.text.v1",
+        "description": "single and batch segment translation command/result with evidence hashes"
+      },
+      {
+        "contract": "translate.language_detection.v1",
+        "description": "BCP 47/ISO 639-3 detection and confidence output"
+      },
+      {
+        "contract": "translate.memory.v1",
+        "description": "TM leverage/update candidates and TMX/TBX-related evidence"
+      },
+      {
+        "contract": "translate.quality_estimation.v1",
+        "description": "QE score, model version, human-review recommendation, and disclosure references"
+      },
+      {
+        "contract": "translate.document_job.v1",
+        "description": "document/bulk localization job lifecycle, progress, result manifest, and fidelity evidence"
+      },
+      {
+        "contract": "translate.caption_stream.v1",
+        "description": "real-time caption translation chunks and correction replay outputs"
+      },
+      {
+        "contract": "translate.glossary_termbase.v1",
+        "description": "glossary and termbase CRUD/import/export events"
+      }
+    ],
+    "separate_services_not_covered": [
+      "meet",
+      "messenger",
+      "mail",
+      "notes",
+      "recordings",
+      "slides",
+      "sheets",
+      "workflow-engine",
+      "ontology",
+      "intelligence",
+      "identity",
+      "marketplace",
+      "ops-dashboard-control-center"
+    ],
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow Engine events",
+        "Ontology projections",
+        "typed API/event contracts",
+        "Cedar policy",
+        "audit-chain seals"
+      ],
+      "claim_boundary": "Planning contract only until RED and Build gates ship contract replay and dependency guards."
+    }
+  },
+  "data_privacy_security_notes": {
+    "data_classes_planning_floor": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_QUASI",
+      "PII_IDENTIFYING where source or target text contains identity data",
+      "SENSITIVE_PIPA_ART23 or PHI where regulated source documents, captions, or transcripts are translated",
+      "SECRET where source documents contain credential-like material; future implementations must refuse or redact before model/provider egress"
+    ],
+    "sensitive_artifacts": [
+      "source text and target translation",
+      "document bodies and localized files",
+      "caption chunks and correction replay history",
+      "translation memory units and termbase concepts",
+      "glossary entries including do-not-translate policy",
+      "provider routing decisions, model ids, cost, and quality scores",
+      "tenant, project, pack, region, content class, and audit evidence ids"
+    ],
+    "required_controls_before_build": [
+      "tenant/RBAC and Cedar default-deny for translate, detect, TM, QE, document, stream, bulk, glossary, and termbase actions",
+      "content-class and regulatory overlay policy for legal, medical, employment, credit, regulated financial, and public-market disclosure contexts",
+      "EU AI Act transparency and deployer evidence for AI-assisted translation and quality estimation where applicable",
+      "tenant opt-in/data-use controls and no training reuse without explicit accepted policy and audit evidence",
+      "residency-aware provider routing with cross-border consent/refusal and provider-degradation fallback states",
+      "data minimization and hashing for audit evidence; no plaintext leakage in logs, telemetry, or evidence bundles",
+      "translation memory and termbase tenant/project isolation with legal hold/retention/export boundaries",
+      "document localization sandboxing, malware/file-type checks, and non-silent structural fidelity failures",
+      "real-time caption consent and visible disclosure before live translation in meet/livestream contexts"
+    ],
+    "security_risks_to_fixture": [
+      {
+        "id": "R-TRANSLATE-01",
+        "risk": "legacy microservices/translate/** paths or inventory manifests are treated as live implementation readiness",
+        "future_fixture": "RED source-map guard should fail any fanout that cites microservices/translate/** as a live destination or oya/translate/manifest.json alone as source authority"
+      },
+      {
+        "id": "R-TRANSLATE-02",
+        "risk": "cross-tenant translation memory, glossary, or termbase leakage",
+        "future_fixture": "RED contract replay should deny TM/glossary/termbase reads and exports across tenant/project boundaries"
+      },
+      {
+        "id": "R-TRANSLATE-03",
+        "risk": "provider routing sends regulated content to an unauthorized region or model provider",
+        "future_fixture": "RED provider-routing fixture should require residency, pack, consent, and content-class evidence before translation"
+      },
+      {
+        "id": "R-TRANSLATE-04",
+        "risk": "real-time caption translation starts without consent/disclosure or silently misses accessibility/error states",
+        "future_fixture": "RED browser/user-story and contract fixture should require consent, disclosure, latency/error status, and screen-reader-visible state"
+      },
+      {
+        "id": "R-TRANSLATE-05",
+        "risk": "quality estimation or T2 auto-translation substitutes for human review in high-risk contexts",
+        "future_fixture": "RED autonomy/regulatory fixture should refuse or require human review for legal, medical, employment, credit, and regulated disclosure contexts"
+      }
+    ]
+  },
+  "evidence_expectations": {
+    "api_contract_replay": {
+      "required_before_build_or_rollout": true,
+      "surfaces": [
+        "oya/translate/contracts/openapi/translate.yaml",
+        "oya/translate/contracts/asyncapi/translate-events.yaml",
+        "oya/translate/contracts/proto/translate.proto"
+      ],
+      "minimum_scenarios": [
+        "single translation with tenant, pack, source/target locale, content class, disclosure, and audit evidence",
+        "batch translation with segment-count limit, per-segment failures, and backpressure behavior",
+        "bulk and document translation job lifecycle with result manifest, fidelity tier, progress, and non-silent failure",
+        "language detection with low-confidence and invalid/oversized input cases",
+        "TM leverage/update, glossary CRUD, and termbase TBX import/export with tenant/project isolation",
+        "QE scoring with score bounds, model version, review recommendation, and EU AI Act disclosure reference",
+        "real-time caption stream open/chunk/correction/close with consent, latency, and content-hash/evidence fields",
+        "provider routing/refusal/degradation events including residency and cross-border consent evidence"
+      ]
+    },
+    "browser_user_story_accessibility": {
+      "required_for_user_visible_slices": true,
+      "minimum_scenarios": [
+        "user requests translation from mail/messenger/docs/notes context and sees tenant/policy/disclosure state",
+        "user corrects source text or glossary term and sees updated translation/QE state without silent overwrite",
+        "meeting participant enables live caption translation after consent and can perceive translated captions, correction replays, latency/errors, and language controls",
+        "admin or translator manages glossary and termbase entries with keyboard-only flow, validation errors, import/export status, and screen-reader labels",
+        "document localization upload/progress/result/error states are keyboard accessible, localizable, and explicit about fidelity tier and failed formats",
+        "screen-reader and focus-order evidence for language picker, source/target text, glossary/termbase dialogs, caption controls, and job status"
+      ],
+      "accessibility_floor": [
+        "WCAG 2.2 AA minimum for any user-facing translate surface",
+        "keyboard-only operation for source/target language selection, translate, batch job creation, upload, glossary/termbase CRUD, live caption toggle, and error recovery",
+        "screen-reader labels and live-region updates for translation status, caption stream updates, policy denials, provider degradation, progress, and validation errors",
+        "visible focus order, high contrast, reduced motion, locale-aware text direction, and no spinner-only waiting state for jobs or real-time streams"
+      ]
+    },
+    "security_data_policy": {
+      "required_for_data_or_policy_slices": true,
+      "minimum_scenarios": [
+        "tenant/RBAC and Cedar refusal for cross-tenant translation, TM, glossary, termbase, document, and stream access",
+        "residency and cross-border provider routing denial/consent evidence",
+        "regulated/high-risk content-class refusal or human-review requirement",
+        "no plaintext source/target leakage in logs/evidence and no unauthorized training reuse",
+        "T2 automation human-control and audit-chain evidence before auto actions"
+      ]
+    },
+    "observability_slo": {
+      "required_when_performance_or_streaming_or_provider_routing_touched": true,
+      "themes": [
+        "translation request latency",
+        "batch translation latency and throughput",
+        "bulk/document job queue latency and completion time",
+        "language detection latency/confidence distribution",
+        "TM leverage latency and hit rate",
+        "QE scoring latency and review recommendation rate",
+        "real-time caption translation latency and correction replay delay",
+        "provider availability/degradation and residency-compliant routing",
+        "term/glossary import/export validation rates"
+      ],
+      "claim_boundary": "These are target/inventory themes only until measured evidence exists."
+    }
+  },
+  "red_fixture_plan": {
+    "fanout_blocked_until_review_task_complete": "t_ce0e47d2",
+    "fixture_objective": "Create failing checks that prove translate source-map, legacy-path refusal, retired-AI terminology handling, API/event/proto contract mapping, no-runtime-readiness claims, regulated provider routing, and browser/accessibility expectations are enforced before Build work starts.",
+    "candidate_fixture_paths": [
+      "specs/fixtures/translate/source-map/valid-translate-source-map.json",
+      "specs/fixtures/translate/source-map/rejects-legacy-microservices-manifest.json",
+      "specs/fixtures/translate/source-map/rejects-runtime-readiness-claim.json",
+      "specs/fixtures/translate/source-map/rejects-retired-ai-substrate-live-owner.json",
+      "scripts/tests/translate_source_map_authority_check.py"
+    ],
+    "must_fail_when": [
+      "specs/microservices/translate.json is missing or invalid JSON",
+      "the source map restores or prefers microservices/translate/manifest.json",
+      "the source map treats oya/translate/manifest.json or dirty oya/translate/** inventory as runtime/product readiness",
+      "the source map omits single/batch/bulk, language detection, translation memory, QE, document localization, real-time caption translation, glossary, or termbase domains",
+      "the source map omits API/AsyncAPI/proto replay expectations",
+      "the source map omits browser/user-story/accessibility expectations for UI or live-caption slices",
+      "the source map omits provider-routing/residency/data-policy expectations",
+      "the source map allows Build fanout before independent Review/fix"
+    ]
+  },
+  "downstream_lifecycle_gates": {
+    "review_fix_source_lock": {
+      "task": "t_ce0e47d2",
+      "required_before": [
+        "RED fixture cards",
+        "Build implementation cards",
+        "Merge/Rollout/E2E cards",
+        "Learning/observation harvest cards"
+      ],
+      "lenses": [
+        "authority/source-map fidelity",
+        "ADR-0131/ADR-0512 canonical path boundary",
+        "retired/legacy terminology handling",
+        "no runtime/product-readiness false claim",
+        "domain coverage across translate single/batch/bulk/detect/TM/QE/document/realtime/glossary/termbase",
+        "API/event/proto replay sufficiency",
+        "browser/user-story/accessibility sufficiency",
+        "security/data/residency/provider-routing and automation-control sufficiency"
+      ]
+    },
+    "red_fixture_contract": {
+      "exit": "Failing RED fixtures/checkers exist before Build touches runtime/product paths."
+    },
+    "future_build": {
+      "status": "blocked_pending_review_and_red",
+      "exit": "Build scope is narrowed to reviewed source map plus GREENing RED fixtures; no shared manifest-index or legacy microservices root edits."
+    },
+    "review_fix_build": {
+      "exit": "Independent multispectrum review fixes or approves Build evidence before merge/rollout."
+    },
+    "merge_rollout_e2e": {
+      "exit": "Protected PR, reviewer approval, oya-ci-required green, rollback note, observability check, API/contract replay, and browser/user-story/accessibility evidence where UI/live-caption exists."
+    },
+    "learning_observation_harvest": {
+      "exit": "Agent observations, maturity gaps, follow-ups, and defects are converted into durable cards or documented duplicates."
+    }
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-TRANSLATE-SOURCE-LOCK-01",
+      "given": "a worker decomposes translate Plan/Spec, RED, Build, Merge/Rollout, or Learning work",
+      "when": "it chooses source authority",
+      "then": "it cites specs/microservices/translate.json plus the reviewed source-lock gate, not oya/translate/manifest.json alone"
+    },
+    {
+      "id": "AC-TRANSLATE-SOURCE-LOCK-02",
+      "given": "legacy microservices/translate paths appear in manifests, contracts, runbooks, SLOs, catalog rows, or IP references",
+      "when": "downstream work needs a live artifact path",
+      "then": "the worker maps to oya/translate paths when a verified current artifact exists or creates a serialized path-repair/source-map card; it does not restore microservices/translate/manifest.json"
+    },
+    {
+      "id": "AC-TRANSLATE-SOURCE-LOCK-03",
+      "given": "dirty oya/translate inventory, contracts, policy, catalog, SLOs, or runbooks exist",
+      "when": "a worker assesses readiness",
+      "then": "the artifacts are treated as provenance/inventory only until Review/fix, RED, Build, Review/fix Build, and rollout/E2E gates produce evidence"
+    },
+    {
+      "id": "AC-TRANSLATE-SOURCE-LOCK-04",
+      "given": "retired Foundry or model-runtime vocabulary appears in translate inventory or contracts",
+      "when": "a worker creates downstream implementation scope",
+      "then": "retired terminology is routed through current intelligence authority and T0/T1/T2 human-control, policy, data-use, and audit gates before implementation"
+    },
+    {
+      "id": "AC-TRANSLATE-SOURCE-LOCK-05",
+      "given": "a user-visible translate or live-caption slice is proposed",
+      "when": "the slice exits Review/fix or rollout",
+      "then": "browser/user-story/accessibility evidence covers language selection, translation status, policy/disclosure visibility, glossary/termbase or document job errors, real-time caption controls, keyboard flow, and screen-reader semantics"
+    },
+    {
+      "id": "AC-TRANSLATE-SOURCE-LOCK-06",
+      "given": "a provider-routed or AI-assisted translation slice is proposed",
+      "when": "the slice exits RED, Build, or review",
+      "then": "contract replay and policy evidence prove residency, pack, content class, model/provider disclosure, EU AI Act where applicable, and human-review/refusal behavior for high-risk contexts"
+    }
+  ],
+  "downstream_fanout_policy": {
+    "review_required_before_red_or_build": true,
+    "existing_review_child": "t_ce0e47d2",
+    "allowed_immediate_children": [
+      "Review/fix: translate PRD/source map source-authority lock"
+    ],
+    "deferred_until_review_approves": [
+      "RED fixture/contract plan",
+      "Build implementation",
+      "Merge/Rollout/E2E",
+      "Learning/observation harvest"
+    ],
+    "downstream_card_requirements": [
+      "cite specs/microservices/translate.json#_meta.spec_id=PRD-TRANSLATE-SOURCE-MAP",
+      "cite manifests-index, oya/translate/manifest.json as inventory/provenance only, ADR-0131, and ADR-0512",
+      "declare allowed paths and conflict class",
+      "include red-capable verification command and claim-boundary guard",
+      "avoid shared manifests, generated JSON, runtime/cloud edits, Release Please metadata, and legacy microservices/translate/** recreation"
+    ]
+  },
+  "claim_boundaries": {
+    "fd001_material": false,
+    "production_ready": false,
+    "runtime_implemented_by_this_artifact": false,
+    "measured_slos_available": false,
+    "live_e2e_verified": false,
+    "inventory_manifest_promoted": false,
+    "release_ready": false,
+    "boundary_statement": "This PRD/source-lock creates source authority for planning and downstream RED/Build gates only. Any future readiness, production, SLO, rollout, model-quality, or E2E claim must cite current implementation, tests, cloud-ci required context, independent review, and live-surface evidence."
+  },
+  "decision_log": [
+    {
+      "date": "2026-07-01",
+      "decision": "Author specs/microservices/translate.json as PRD-TRANSLATE-SOURCE-MAP because manifests-index.json explicitly records oya/translate/manifest.json as inventory/provenance only and says no translate PRD/source-authority file existed before this task.",
+      "drivers": [
+        "t_ba3dcb44 source map/backlog artifact",
+        "specs/microservices/manifests-index.json translate authority_boundary",
+        "ADR-0131 and ADR-0512 current service-root authority"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "Treat oya/translate/manifest.json and oya/translate/contracts/** as inventory/provenance inputs, not readiness evidence.",
+      "drivers": [
+        "manifest row states inventory/provenance only",
+        "neighbor source-lock examples keep explicit planning/claim boundaries",
+        "Kanban task non-goals forbid runtime/readiness claims"
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "decision": "Map verified stale microservices/translate contract/capability/SLO references to oya/translate equivalents, quarantine absent legacy IP/PRD/ARCHITECTURE references, and normalize retired AI-substrate terminology to current intelligence authority before downstream assignment.",
+      "drivers": [
+        "ADR-0131/ADR-0512 service-home boundary",
+        "manifest legacy reference scan",
+        "retired-authority normalization requirement in t_558fedfa"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+    "docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+    "specs/microservices/manifests-index.json",
+    "specs/microservices/meet.json",
+    "specs/microservices/sheets.json",
+    "specs/microservices/recordings.json",
+    "specs/microservices/sites.json",
+    "oya/translate/manifest.json",
+    "oya/translate/README.md",
+    "oya/translate/dpia/dpia.md",
+    "oya/translate/contracts/openapi/translate.yaml",
+    "oya/translate/contracts/asyncapi/translate-events.yaml",
+    "oya/translate/contracts/proto/translate.proto",
+    "docs/user-journeys/j72-ai-translation-cross-locale-business/schemas/ai-translation-cross-locale-business-handoff.json",
+    "docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json",
+    "docs/user-journeys/j169-cmo-felix-ng-multi-country-launch-with-locale-pack/schemas/launch-state-machine.yaml",
+    "docs/user-journeys/j172-lev-kahn-investor-relations-shareholder-meeting-livestream/schemas/agm-state-machine.yaml"
+  ],
+  "enforcement_status": {
+    "source_lock": "complete_for_downstream_review_by_t_ce0e47d2",
+    "contract_replay": "planned_for_future_red_fixture_card_after_review",
+    "runtime_product_readiness": "not_claimed",
+    "release_governance": "not_applicable_to_source_lock_only",
+    "generated_files": "not_touched"
+  }
+}

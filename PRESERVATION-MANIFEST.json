@@ -1,0 +1,195 @@
+{
+  "base_head": "06b5018067a317d1b0f1b45d0c780fa9807da69d",
+  "candidate_path_count": 1780,
+  "captured_at": "2026-08-05",
+  "content_scan": {
+    "mode": "redacted",
+    "name_safe_paths_scanned_and_preserved_count": 26,
+    "result": "passed-after-sanitization",
+    "sanitized_paths": [
+      {
+        "action": "replaced detected literal with REDACTED_RECOVERY_PLACEHOLDER in archive only",
+        "field": "idempotency_key",
+        "line": 56,
+        "path": "oya/supply-chain-planning/crates/oya-supply-chain-planning-network-app/tests/integration.rs"
+      }
+    ],
+    "tool": "gitleaks"
+  },
+  "excluded_paths": [
+    {
+      "path": "--help/mutation-normalization-oracle-v0.2.json",
+      "reason": "secret-like-name-or-prior-leak-finding"
+    },
+    {
+      "path": ".grok/bin/mm-role",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081312Z-ARCHITECT/command.txt",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081312Z-ARCHITECT/meta.json",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081312Z-ARCHITECT/prompt.md",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081312Z-PLANNER/command.txt",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081312Z-PLANNER/meta.json",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081312Z-PLANNER/prompt.md",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081313Z-CRITIC/command.txt",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081313Z-CRITIC/meta.json",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081313Z-CRITIC/prompt.md",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081313Z-EXECUTOR/command.txt",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081313Z-EXECUTOR/meta.json",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/mm-runs/20260805T081313Z-EXECUTOR/prompt.md",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/multi-model-roles.json",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".grok/workflows/delivery-pipeline-improve.rhai",
+      "reason": "local-orchestration-metadata"
+    },
+    {
+      "path": ".worktrees/g023-pr1523-restack-20260802/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/g028-runner-disk-request-20260802/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/k8s-port-w0a/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/review-t_ceb89d13-pr1107/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_03877337-calendar-e2e/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_09997b9d/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_0b5f2b75-crm-closeout/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_1cb9bacc/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_1e67b1be-regeneration/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_60e047bd/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_7b437a23-calendar-build/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_7d05dc85-regsec-001/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_b41da6b2-authz-007-runtime-fix/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_f15d213a-airgap-contract/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/t_fc9e8923-idp-002-fix/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/workspace-drift-cloud-ci-port-20260701/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/workspace-drift-cloud-trust-port-20260701/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/workspace-drift-docs-procedure-port-20260701/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": ".worktrees/workspace-drift-oya-retired-port-20260701/",
+      "reason": "local-worktree-metadata"
+    },
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/accounting-registry.generated.json",
+      "reason": "generated-output-policy"
+    },
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/decision-crosswalk.generated.json",
+      "reason": "generated-output-policy"
+    },
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/gate-baseline.generated.json",
+      "reason": "generated-output-policy"
+    },
+    {
+      "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
+      "reason": "generated-output-policy"
+    },
+    {
+      "path": "controlplane.yaml",
+      "reason": "secret-like-name-or-prior-leak-finding"
+    },
+    {
+      "path": "worker.yaml",
+      "reason": "secret-like-name-or-prior-leak-finding"
+    }
+  ],
+  "origin_dev_observed": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+  "preserved_path_count_after_content_scan": 1739,
+  "preserved_path_count_before_content_scan": 1713,
+  "recovery": "Fetch the archive branch and inspect its single snapshot commit relative to base_head. Do not merge wholesale; curate through normal isolated-worktree PR governance.",
+  "schema": "oyatie-prewipe-sanitized-working-tree-snapshot/v1",
+  "source_checkout": "/Users/jasonlee/Developer/oyatie",
+  "status": "quarantine-recovery-only-not-implementation-or-merge-authority",
+  "supersedes_archive_branch": "archive/prewipe-20260805/primary-workspace-sanitized-v2",
+  "tracked_changed_path_count": 1386,
+  "untracked_path_count": 394
+}

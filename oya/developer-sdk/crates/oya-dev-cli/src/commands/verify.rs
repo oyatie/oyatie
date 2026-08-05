@@ -21,10 +21,15 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, ExitStatus, Stdio};
 use std::time::Instant;
 
+use crate::terminal_verifier_harness::{parse_terminal_evidence_args, run_terminal_evidence};
+
 use super::gate;
 
 const MANDATORY_TOTAL: usize = 5;
 const ADVISORY_TOTAL: usize = 2;
+const PRE_PUSH_TOTAL: usize = 3;
+const FACE_SETTLE_TARGET: &str =
+    "//cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-face-settle-bin";
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 struct VerifyArgs {
@@ -106,6 +111,12 @@ struct VerifyInvalid {
 }
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    if args.iter().any(|arg| arg == "--terminal-evidence") {
+        return run_terminal_evidence_entry(args, usage);
+    }
+    if args.iter().any(|arg| arg == "--pre-push") {
+        return run_pre_push_entry(args, usage);
+    }
     if let Some(pos) = args.iter().position(|arg| arg == "--from-results") {
         return run_from_results(args.get(pos + 1).map(String::as_str), usage);
     }
@@ -135,6 +146,184 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             eprintln!("{}", error.message);
             ExitCode::from(2)
         }
+    }
+}
+
+fn run_terminal_evidence_entry(args: Vec<String>, usage: &str) -> ExitCode {
+    let args = match parse_terminal_evidence_args(args, usage) {
+        Ok(args) => args,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::from(2);
+        }
+    };
+    match run_terminal_evidence(args) {
+        Ok(run) => {
+            println!("{}", run.stdout_json);
+            run.exit
+        }
+        Err(error) => {
+            eprintln!("{}", error.message);
+            ExitCode::from(2)
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct PrePushArgs {
+    base: String,
+}
+
+fn run_pre_push_entry(args: Vec<String>, usage: &str) -> ExitCode {
+    let args = match parse_pre_push_args(args, usage) {
+        Ok(args) => args,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::from(2);
+        }
+    };
+    if std::env::var("OYA_VERIFY_RUNNING").as_deref() == Ok("1") {
+        eprintln!("oya verify: recursive invocation refused");
+        return ExitCode::from(2);
+    }
+
+    match run_pre_push_self_verify(args) {
+        Ok(exit) => exit,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            ExitCode::from(2)
+        }
+    }
+}
+
+fn parse_pre_push_args(args: Vec<String>, usage: &str) -> Result<PrePushArgs, VerifyInvalid> {
+    let mut base = "origin/dev".to_string();
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
+        match flag.as_str() {
+            "--pre-push" => {}
+            "--base" => {
+                let Some(value) = iter.next() else {
+                    return Err(VerifyInvalid {
+                        message: format!("oya verify: --base requires a <ref> argument\n{usage}"),
+                    });
+                };
+                base = value;
+            }
+            other => {
+                return Err(VerifyInvalid {
+                    message: format!("oya verify: unknown flag {other:?}\n{usage}"),
+                });
+            }
+        }
+    }
+    Ok(PrePushArgs { base })
+}
+
+fn run_pre_push_self_verify(args: PrePushArgs) -> Result<ExitCode, VerifyInvalid> {
+    let workspace_root = workspace_root()?;
+    let root_display = workspace_root.display().to_string();
+    let affected_script = workspace_root.join("infra/ci/buck2-affected-gate.sh");
+
+    let outcomes = vec![
+        run_pre_push_step(
+            "P-1",
+            "freshness gate (Cargo.lock + generated-face byte drift)",
+            "Autofix guidance (freshness): run `cargo metadata >/dev/null` for Cargo.lock drift; run `infra/ci/materialize-cloud-ci-generated-faces.sh .` only after content changes are committed, then create a faces-only settle commit.",
+            || {
+                run_inherited(
+                    "oya",
+                    &[
+                        "gate",
+                        "validate",
+                        "freshness",
+                        "--repo-root",
+                        root_display.as_str(),
+                    ],
+                    workspace_root.as_path(),
+                )
+            },
+        )?,
+        run_pre_push_step(
+            "P-2",
+            "generated-face settle check",
+            "Autofix guidance (faces): commit content changes first; then run `buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-face-settle-bin -- --repo-root . --settle`; commit only the generated-face paths.",
+            || {
+                run_inherited(
+                    "buck2",
+                    &[
+                        "run",
+                        FACE_SETTLE_TARGET,
+                        "--",
+                        "--repo-root",
+                        root_display.as_str(),
+                    ],
+                    workspace_root.as_path(),
+                )
+            },
+        )?,
+        run_pre_push_step(
+            "P-3",
+            "Buck2 affected-set build/test",
+            &format!(
+                "Autofix guidance (affected-set): rerun `infra/ci/buck2-affected-gate.sh {} HEAD`; if owner/rdeps resolution is fatal, add or repair the relevant BUCK target/rust_test wiring; if a target fails, fix that target before pushing.",
+                args.base
+            ),
+            || {
+                run_inherited_path(
+                    &affected_script,
+                    &[args.base.as_str(), "HEAD"],
+                    workspace_root.as_path(),
+                )
+            },
+        )?,
+    ];
+
+    let passed = outcomes
+        .iter()
+        .filter(|outcome| outcome.state == StepState::Passed)
+        .count();
+    let failed = outcomes
+        .iter()
+        .any(|outcome| outcome.state == StepState::Failed);
+    let status = if failed { "FAIL" } else { "PASS" };
+    println!("oya verify --pre-push: {status} ({passed}/{PRE_PUSH_TOTAL})");
+
+    if failed {
+        Ok(ExitCode::FAILURE)
+    } else {
+        Ok(ExitCode::SUCCESS)
+    }
+}
+
+fn run_pre_push_step<F>(
+    id: &str,
+    label: &str,
+    guidance: &str,
+    run: F,
+) -> Result<StepOutcome, VerifyInvalid>
+where
+    F: FnOnce() -> Result<ExitStatus, VerifyInvalid>,
+{
+    println!("=== {id}: {label} ===");
+    let start = Instant::now();
+    let status = run()?;
+    let elapsed = start.elapsed().as_secs_f32();
+    if status.success() {
+        println!("--- {id}: PASS ({elapsed:.1}s) ---");
+        Ok(StepOutcome {
+            state: StepState::Passed,
+        })
+    } else {
+        let exit = status
+            .code()
+            .map(|code| format!("exit {code}"))
+            .unwrap_or_else(|| "signal termination".into());
+        println!("--- {id}: FAIL ({exit}, {elapsed:.1}s) ---");
+        println!("{guidance}");
+        Ok(StepOutcome {
+            state: StepState::Failed,
+        })
     }
 }
 
@@ -534,6 +723,21 @@ fn run_inherited(program: &str, args: &[&str], cwd: &Path) -> Result<ExitStatus,
         .stderr(Stdio::inherit())
         .status()
         .map_err(|error| invalid_start(program, &error))
+}
+
+fn run_inherited_path(
+    program: &Path,
+    args: &[&str],
+    cwd: &Path,
+) -> Result<ExitStatus, VerifyInvalid> {
+    Command::new(program)
+        .args(args)
+        .current_dir(cwd)
+        .env("OYA_VERIFY_RUNNING", "1")
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+        .map_err(|error| invalid_start(&program.display().to_string(), &error))
 }
 
 fn ensure_cargo_nextest(cwd: &Path) -> Result<(), VerifyInvalid> {

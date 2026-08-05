@@ -160,11 +160,12 @@ Cross-cutting standards docs (lives under `docs/standards/`):
 | Release | [`standards/release.md`](standards/release.md) | trunk-based + release branch; tag at cut; Argo Rollouts canary |
 | On-call | [`standards/on-call.md`](standards/on-call.md) | rotation; escalation; comms templates |
 | Incident severity | [`standards/incident-severity.md`](standards/incident-severity.md) | Sev 1-4 taxonomy; declared per service |
+| Autonomous Kanban lifecycle | [`standards/autonomous-kanban-lifecycle.md`](standards/autonomous-kanban-lifecycle.md) | Hermes Kanban lifecycle spine, required card fields, Review/fix child-card handoff, bounded active work, duplicate/no-action handling |
 | Doc style | [`standards/doc-style.md`](standards/doc-style.md) | per-doc kind (Diátaxis quadrant) writing rules; voice; tone |
 | Brand voice | [`standards/brand-voice.md`](standards/brand-voice.md) | Oyatie / oYa brand voice; KR + global |
 | Migration playbook | [`standards/migration-playbook.md`](standards/migration-playbook.md) | tenant migration from competitor stacks |
 | Plugin authoring | [`standards/plugin-authoring.md`](standards/plugin-authoring.md) | Plugin substrate conventions (Wasmtime + manifest + signing) |
-| Capability authoring | [`standards/capability-authoring.md`](standards/capability-authoring.md) | Foundry capability conventions (eval-set + autonomy tier + class allowlist) |
+| Capability authoring | `retired: standards/capability-authoring.md` | Historical Foundry capability conventions; no tracked standard file currently exists. |
 
 ---
 

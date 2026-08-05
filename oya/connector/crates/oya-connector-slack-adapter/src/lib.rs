@@ -49,6 +49,235 @@ use std::sync::Mutex;
 
 const PROVIDER_ID: &str = "slack";
 
+/// Tenant environment tier for metadata-only connector outbound plans.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ConnectorEnvTier {
+    Test,
+    Staging,
+    Prod,
+}
+
+impl ConnectorEnvTier {
+    fn parse(raw: &str) -> Option<Self> {
+        match raw {
+            "test" => Some(Self::Test),
+            "staging" => Some(Self::Staging),
+            "prod" => Some(Self::Prod),
+            _ => None,
+        }
+    }
+
+    fn outbound_mode(self) -> ConnectorOutboundMode {
+        match self {
+            Self::Test => ConnectorOutboundMode::Intercept,
+            Self::Staging => ConnectorOutboundMode::TestRecipients,
+            Self::Prod => ConnectorOutboundMode::Live,
+        }
+    }
+}
+
+/// Derived outbound behavior. Callers never supply this as authority.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ConnectorOutboundMode {
+    Intercept,
+    TestRecipients,
+    Live,
+}
+
+impl ConnectorOutboundMode {
+    fn parse(raw: &str) -> Option<Self> {
+        match raw {
+            "intercept" => Some(Self::Intercept),
+            "test_recipients" => Some(Self::TestRecipients),
+            "live" => Some(Self::Live),
+            _ => None,
+        }
+    }
+}
+
+/// Metadata-only fixture input for connector/integration outbound plans.
+///
+/// This guardrail deliberately does not perform OAuth, API, webhook, or
+/// production delivery. It only validates the evidence envelope a later
+/// connector adapter lane must carry before any live side-effect path exists.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ConnectorOutboundPlanFixture {
+    pub tenant_id: Option<String>,
+    pub env_tier: Option<String>,
+    pub caller_supplied_outbound_mode: Option<String>,
+    pub attempts_external_delivery: bool,
+    pub connector_adapter_class: Option<String>,
+    pub destination_binding_ref: Option<String>,
+    pub destination_tenant_id: Option<String>,
+    pub qa_endpoint_ref: Option<String>,
+    pub retirement_no_new_runtime_scope_evidence_ref: Option<String>,
+    pub policy_evidence_ref: Option<String>,
+    pub connector_authorization_evidence_ref: Option<String>,
+    pub secret_material_probe: Option<String>,
+}
+
+/// Validated metadata envelope with outbound mode derived from `env_tier`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ConnectorOutboundPlanMetadata {
+    pub tenant_id: String,
+    pub env_tier: ConnectorEnvTier,
+    pub outbound_mode: ConnectorOutboundMode,
+    pub connector_adapter_class: String,
+    pub destination_binding_ref: String,
+    pub retirement_no_new_runtime_scope_evidence_ref: String,
+    pub policy_evidence_ref: String,
+    pub connector_authorization_evidence_ref: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ConnectorOutboundMetadataError {
+    MissingTenantId,
+    MissingEnvTier,
+    InvalidEnvTier,
+    OutboundModeMismatch,
+    MissingConnectorAdapterClass,
+    MissingDestinationBindingRef,
+    MissingRetirementNoNewRuntimeScopeEvidence,
+    MissingPolicyEvidenceRef,
+    TestTierExternalDelivery,
+    StagingMissingQaEndpoint,
+    ProdMissingConnectorAuthorization,
+    CrossTenantDestinationLeakage,
+    RawSecretMaterial,
+}
+
+/// Validate metadata-only connector outbound fixtures and derive outbound mode.
+pub fn validate_connector_outbound_plan_fixture(
+    fixture: ConnectorOutboundPlanFixture,
+) -> std::result::Result<ConnectorOutboundPlanMetadata, ConnectorOutboundMetadataError> {
+    let ConnectorOutboundPlanFixture {
+        tenant_id,
+        env_tier,
+        caller_supplied_outbound_mode,
+        attempts_external_delivery,
+        connector_adapter_class,
+        destination_binding_ref,
+        destination_tenant_id,
+        qa_endpoint_ref,
+        retirement_no_new_runtime_scope_evidence_ref,
+        policy_evidence_ref,
+        connector_authorization_evidence_ref,
+        secret_material_probe,
+    } = fixture;
+
+    let tenant_id = required_string(tenant_id, ConnectorOutboundMetadataError::MissingTenantId)?;
+    let env_tier_raw = required_string(env_tier, ConnectorOutboundMetadataError::MissingEnvTier)?;
+    let env_tier = ConnectorEnvTier::parse(&env_tier_raw)
+        .ok_or(ConnectorOutboundMetadataError::InvalidEnvTier)?;
+    let outbound_mode = env_tier.outbound_mode();
+
+    if caller_supplied_outbound_mode
+        .as_deref()
+        .and_then(ConnectorOutboundMode::parse)
+        .is_some_and(|caller_mode| caller_mode != outbound_mode)
+        || caller_supplied_outbound_mode
+            .as_deref()
+            .is_some_and(|raw| ConnectorOutboundMode::parse(raw).is_none())
+    {
+        return Err(ConnectorOutboundMetadataError::OutboundModeMismatch);
+    }
+
+    let connector_adapter_class = required_string(
+        connector_adapter_class,
+        ConnectorOutboundMetadataError::MissingConnectorAdapterClass,
+    )?;
+    let destination_binding_ref = required_string(
+        destination_binding_ref,
+        ConnectorOutboundMetadataError::MissingDestinationBindingRef,
+    )?;
+    let retirement_no_new_runtime_scope_evidence_ref = required_string(
+        retirement_no_new_runtime_scope_evidence_ref,
+        ConnectorOutboundMetadataError::MissingRetirementNoNewRuntimeScopeEvidence,
+    )?;
+    let policy_evidence_ref = required_string(
+        policy_evidence_ref,
+        ConnectorOutboundMetadataError::MissingPolicyEvidenceRef,
+    )?;
+
+    if let Some(destination_tenant_id) = destination_tenant_id.as_deref()
+        && destination_tenant_id != tenant_id
+    {
+        return Err(ConnectorOutboundMetadataError::CrossTenantDestinationLeakage);
+    }
+
+    if [
+        Some(connector_adapter_class.as_str()),
+        Some(destination_binding_ref.as_str()),
+        Some(retirement_no_new_runtime_scope_evidence_ref.as_str()),
+        Some(policy_evidence_ref.as_str()),
+        qa_endpoint_ref.as_deref(),
+        connector_authorization_evidence_ref.as_deref(),
+        secret_material_probe.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    .any(contains_raw_secret_material)
+    {
+        return Err(ConnectorOutboundMetadataError::RawSecretMaterial);
+    }
+
+    match env_tier {
+        ConnectorEnvTier::Test if attempts_external_delivery => {
+            return Err(ConnectorOutboundMetadataError::TestTierExternalDelivery);
+        }
+        ConnectorEnvTier::Staging if !has_required_string(qa_endpoint_ref.as_deref()) => {
+            return Err(ConnectorOutboundMetadataError::StagingMissingQaEndpoint);
+        }
+        ConnectorEnvTier::Prod
+            if !has_required_string(connector_authorization_evidence_ref.as_deref()) =>
+        {
+            return Err(ConnectorOutboundMetadataError::ProdMissingConnectorAuthorization);
+        }
+        _ => {}
+    }
+
+    Ok(ConnectorOutboundPlanMetadata {
+        tenant_id,
+        env_tier,
+        outbound_mode,
+        connector_adapter_class,
+        destination_binding_ref,
+        retirement_no_new_runtime_scope_evidence_ref,
+        policy_evidence_ref,
+        connector_authorization_evidence_ref,
+    })
+}
+
+fn required_string(
+    value: Option<String>,
+    error: ConnectorOutboundMetadataError,
+) -> std::result::Result<String, ConnectorOutboundMetadataError> {
+    match value {
+        Some(value) if !value.trim().is_empty() => Ok(value),
+        _ => Err(error),
+    }
+}
+
+fn has_required_string(value: Option<&str>) -> bool {
+    value.is_some_and(|value| !value.trim().is_empty())
+}
+
+fn contains_raw_secret_material(value: &str) -> bool {
+    let value = value.to_ascii_lowercase();
+    [
+        "sk_test_",
+        "sk_stage_",
+        "sk_live_",
+        "oauth_token=",
+        "webhook_secret=",
+        "api_key=",
+        "bearer ",
+        "xoxb-",
+    ]
+    .into_iter()
+    .any(|marker| value.contains(marker))
+}
+
 /// Slack connector adapter.
 ///
 /// In-memory state is wrapped in `RefCell` so the adapter satisfies the

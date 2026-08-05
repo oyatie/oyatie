@@ -28,8 +28,9 @@
 //! # Layer
 //!
 //! `domain` (port-in-kernel, ADR-0056). The kernel performs no I/O; callers
-//! (for example, `oya gate validate high-risk-auto-decision-refusal`) read the
-//! files and hand strings in.
+//! read the files and hand strings in. A legacy
+//! `oya gate validate high-risk-auto-decision-refusal` invocation is only a
+//! local bridge/provenance surface for the Rust gate packet.
 //!
 //! # Naming justification
 //!

@@ -78,7 +78,7 @@ Before `grit claim`, the agent **MUST**:
 6. Confirm none of the `grit_claim_symbols` are currently claimed by another agent (`oya-tooling-agent-read grit-status <symbol>`).
 <!-- agent-instructions:end -->
 
-**Human path:** read the same files; run `oya gate validate plan-hierarchy --ip IP-NNN-<slug>` to confirm parent pointers resolve and frontmatter is well-formed.
+**Human path:** read the same files; optional legacy/local feedback may include `oya gate validate plan-hierarchy --ip IP-NNN-<slug>` to confirm parent pointers resolve and frontmatter is well-formed; merge authority remains the protected `oya-ci-required` context.
 
 ## Acceptance test commands
 
@@ -88,14 +88,15 @@ Each row is a runnable command + expected pass token. CI replays these on every 
 $ cargo nextest run -p oya-<crate> --all-features            # expect: PASS, 0 failures
 $ cargo clippy -p oya-<crate> --all-features -- -D warnings  # expect: PASS, 0 warnings
 $ cargo deny check                                            # expect: PASS
-$ oya gate validate <lane-name>                               # expect: PASS
+$ oya gate validate <lane-name>                               # optional local-feedback/provenance only; expect: PASS if run
 $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <captured shape>
 ```
 
 ## Done criteria
 
 - [ ] All `grit_claim_symbols` claimed → work → `grit done` (no orphan claims).
-- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked (see `/templates/checklists/done-definition-checklist.md`).
+- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D20 walked (see
+  `/templates/checklists/done-definition-checklist.md`).
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
 - [ ] Dependency additions cleared `cargo deny check` and named in PR `## Traceability`.
 - [ ] `icm store -t context-<project> -c "<icm-store-payload>" -i high` emitted (see §Icm-store-payload).

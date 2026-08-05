@@ -1,29 +1,12 @@
-apiVersion: openslo/v1
-kind: SLO
-metadata:
-  name: global-trade-latency-p99
-  labels:
-    service: global-trade
-    sap_code: "GTS"
-spec:
-  description: "Global Trade global-trade-latency-p99 objective; benchmarks SAP GTS Global Trade Services | Oracle Global Trade Management | Workday supplier-compliance workflow counterpart | NetSuite international tax and trade counterpart | Microsoft Dynamics 365 global trade and export-control counterpart"
-  service: global-trade
-  indicator:
-    metadata:
-      name: global-trade-latency-p99-sli
-    spec:
-      ratioMetric:
-        counter: true
-        good:
-          metricSource:
-            type: prometheus
-            spec:
-              query: "sum(rate(http_request_duration_seconds_bucket{service=\"global-trade\",le=\"0.35\"}[5m]))"
-        total:
-          metricSource:
-            type: prometheus
-            spec:
-              query: "sum(rate(http_request_duration_seconds_count{service=\"global-trade\"}[5m]))"
-  objectives:
-    - displayName: global-trade-latency-p99
-      target: 0.99
+# Current authority: specs/microservices/global-trade.json metadata-only PRD; inventory/provenance/planned-only.
+schema_version: "1.0"
+artifact: oya/global-trade/slos/global-trade-latency-p99.openslo.yaml
+status: inventory-provenance-planned-only
+current_authority: specs/microservices/global-trade.json
+authority_status: metadata-only PRD
+non_claims:
+  - no measured SLI/SLO
+  - no Prometheus metric source
+  - no availability, latency, throughput, burn-rate, or alert evidence
+  - no production/GA/hyperscaler readiness
+future_gate: separate authority-gated RED/test-first implementation lane required before measured SLOs

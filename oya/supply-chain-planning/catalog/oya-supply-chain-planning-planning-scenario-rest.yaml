@@ -6,6 +6,10 @@ layer: rest
 adr_0105_layer: rest
 owner_team: axis-supply-chain-planning
 status: planned
+inventory_classification: target/provenance
+canonical_prd: specs/microservices/supply-chain-planning.json
+visible_repo_path: oya/supply-chain-planning
+claim_ceiling: metadata-only preview inventory; no active implementation, runtime readiness, cloud readiness, SLO/DR readiness, GA readiness, or exhaustive vendor parity claim
 sap_code: "SCM/APO"
 benchmarks:
   - "SAP SCM/APO and SAP IBP"
@@ -14,8 +18,8 @@ benchmarks:
   - "NetSuite Demand Planning"
   - "Microsoft Dynamics 365 Master Planning"
 contracts:
-  openapi: microservices/supply-chain-planning/contracts/openapi-v1.yaml
-  asyncapi: microservices/supply-chain-planning/contracts/asyncapi-v1.yaml
-  proto: microservices/supply-chain-planning/contracts/supply-chain-planning-v1.proto
-policy_fragment: microservices/supply-chain-planning/policy/planning-scenario-authorization.cedar
+  openapi: oya/supply-chain-planning/contracts/openapi-v1.yaml
+  asyncapi: oya/supply-chain-planning/contracts/asyncapi-v1.yaml
+  proto: oya/supply-chain-planning/contracts/supply-chain-planning-v1.proto
+policy_fragment: oya/supply-chain-planning/policy/planning-scenario-authorization.cedar
 settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

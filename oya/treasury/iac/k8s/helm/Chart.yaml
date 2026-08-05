@@ -1,10 +1,12 @@
+# Preview planning inventory only; not deployment authority or production readiness evidence.
 apiVersion: v2
 name: oya-treasury
-description: Oyatie treasury microservice Kubernetes chart.
+description: Oyatie treasury preview-planning Kubernetes chart inventory; no current cloud deployment claim.
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
 annotations:
+  oyatie.com/authority-scope: preview-planning-non-authoritative
   oyatie.com/adr-0181: signed-image-promotion-required
   oyatie.com/adr-0254: kubernetes-everywhere
   oyatie.com/adr-0349: argocd-application-source

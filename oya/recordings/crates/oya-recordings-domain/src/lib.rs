@@ -19,9 +19,13 @@ use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use oya_meet_domain::{RecordingAccessMode, RecordingRef, RecordingStatus};
 
 const RECORDING_ARCHIVE_SCHEMA_VERSION: u32 = 1;
+const RECORDING_INGEST_SCHEMA_VERSION: u32 = 1;
 const RETENTION_POLICY_SCHEMA_VERSION: u32 = 1;
 const MIN_ARCHIVE_BYTES: u64 = 1;
 const SHA256_PREFIX: &str = "sha256:";
+const SHA256_HEX_LENGTH: usize = 64;
+const SPIFFE_PREFIX: &str = "spiffe://";
+const AUDIT_CHAIN_PREFIX: &str = "audit-chain:";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RecordingArchiveError {
@@ -51,6 +55,12 @@ pub enum RecordingArchiveError {
     InvalidSummaryRef,
     InvalidTimeOrder,
     InvalidDataClass,
+    InvalidIdempotencyKey,
+    InvalidSourceRef,
+    InvalidProducerSpiffeId,
+    InvalidParentAuditChainRef,
+    MissingConsentBanner,
+    DuplicateIngestContentHashMismatch,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -60,6 +70,78 @@ pub enum RecordingVariantFormat {
     OpusAudio,
     TranscriptJson,
     SummaryMarkdown,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum RecordingSourceKind {
+    Meet,
+    MessengerHuddle,
+    LiveBroadcast,
+    ManualUpload,
+    WorkflowScreenCapture,
+    LegacyWorkspaceRecording,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum RecordingContextKind {
+    Personal,
+    Professional,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RecordingIngestRequestCreate {
+    pub idempotency_key: String,             // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub source_kind: RecordingSourceKind,    // data_class: INTERNAL_ONLY
+    pub source_ref: String,                  // data_class: INTERNAL_ONLY
+    pub content_hash: String,                // data_class: INTERNAL_ONLY
+    pub byte_len: u64,                       // data_class: INTERNAL_ONLY
+    pub duration_seconds: u64,               // data_class: INTERNAL_ONLY
+    pub ingested_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub ended_at_epoch_seconds: Option<u64>, // data_class: INTERNAL_ONLY
+    pub consent_banner_confirmed: bool,      // data_class: INTERNAL_ONLY
+    pub context_kind: RecordingContextKind,  // data_class: INTERNAL_ONLY
+    pub author_ref: Option<String>,          // data_class: INTERNAL_ONLY
+    pub cell_id: String,                     // data_class: INTERNAL_ONLY
+    pub producer_spiffe_id: String,          // data_class: INTERNAL_ONLY
+    pub parent_audit_chain_ref: String,      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RecordingIngestRequest {
+    pub idempotency_key: Classified<String>,
+    pub tenant_id: Classified<String>,
+    pub source_kind: Classified<RecordingSourceKind>,
+    pub source_ref: Classified<String>,
+    pub content_hash: Classified<String>,
+    pub byte_len: Classified<u64>,
+    pub duration_seconds: Classified<u64>,
+    pub ingested_at_epoch_seconds: Classified<u64>,
+    pub ended_at_epoch_seconds: Classified<Option<u64>>,
+    pub consent_banner_confirmed: Classified<bool>,
+    pub context_kind: Classified<RecordingContextKind>,
+    pub author_ref: Classified<Option<String>>,
+    pub cell_id: Classified<String>,
+    pub producer_spiffe_id: Classified<String>,
+    pub parent_audit_chain_ref: Classified<String>,
+    pub schema_version: Classified<u32>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RecordingIngestReceipt {
+    pub recording_id: Classified<String>,
+    pub tenant_id: Classified<String>,
+    pub idempotency_key: Classified<String>,
+    pub content_hash: Classified<String>,
+    pub content_hash_verified: Classified<String>,
+    pub ingest_audit_chain_ref: Classified<String>,
+    pub schema_version: Classified<u32>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RecordingIngestDecision {
+    AcceptNew,
+    AlreadyAccepted { recording_id: String },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -138,6 +220,117 @@ pub trait RecordingArchiveReader {
         tenant_id: &str,
         archive_id: &str,
     ) -> Result<Option<RecordingArchiveEntry>, RecordingArchiveError>;
+}
+
+impl RecordingIngestRequest {
+    pub fn new(input: RecordingIngestRequestCreate) -> Result<Self, RecordingArchiveError> {
+        validate_non_empty(
+            &input.idempotency_key,
+            RecordingArchiveError::InvalidIdempotencyKey,
+        )?;
+        validate_non_empty(&input.tenant_id, RecordingArchiveError::InvalidTenantId)?;
+        validate_non_empty(&input.source_ref, RecordingArchiveError::InvalidSourceRef)?;
+        validate_checksum(&input.content_hash)?;
+        if input.byte_len < MIN_ARCHIVE_BYTES {
+            return Err(RecordingArchiveError::EmptyRecordingBytes);
+        }
+        if input.duration_seconds == 0 {
+            return Err(RecordingArchiveError::InvalidDuration);
+        }
+        if !input.consent_banner_confirmed {
+            return Err(RecordingArchiveError::MissingConsentBanner);
+        }
+        validate_non_empty(&input.cell_id, RecordingArchiveError::InvalidCellId)?;
+        validate_spiffe_id(
+            &input.producer_spiffe_id,
+            RecordingArchiveError::InvalidProducerSpiffeId,
+        )?;
+        validate_audit_chain_ref(
+            &input.parent_audit_chain_ref,
+            RecordingArchiveError::InvalidParentAuditChainRef,
+        )?;
+        if let Some(ended_at) = input.ended_at_epoch_seconds
+            && input.ingested_at_epoch_seconds < ended_at
+        {
+            return Err(RecordingArchiveError::InvalidTimeOrder);
+        }
+        validate_optional_ref(
+            input.author_ref.as_deref(),
+            RecordingArchiveError::InvalidSourceRef,
+        )?;
+
+        Ok(Self {
+            idempotency_key: internal(input.idempotency_key),
+            tenant_id: internal(input.tenant_id),
+            source_kind: internal(input.source_kind),
+            source_ref: internal(input.source_ref),
+            content_hash: internal(input.content_hash),
+            byte_len: internal(input.byte_len),
+            duration_seconds: internal(input.duration_seconds),
+            ingested_at_epoch_seconds: internal(input.ingested_at_epoch_seconds),
+            ended_at_epoch_seconds: internal(input.ended_at_epoch_seconds),
+            consent_banner_confirmed: internal(input.consent_banner_confirmed),
+            context_kind: internal(input.context_kind),
+            author_ref: internal(input.author_ref),
+            cell_id: internal(input.cell_id),
+            producer_spiffe_id: internal(input.producer_spiffe_id),
+            parent_audit_chain_ref: internal(input.parent_audit_chain_ref),
+            schema_version: internal(RECORDING_INGEST_SCHEMA_VERSION),
+        })
+    }
+
+    pub fn idempotency_scope(&self) -> (&str, &str) {
+        (&self.tenant_id.value, &self.idempotency_key.value)
+    }
+}
+
+impl RecordingIngestReceipt {
+    pub fn accepted(
+        recording_id: String,
+        request: &RecordingIngestRequest,
+        content_hash_verified: String,
+        ingest_audit_chain_ref: String,
+    ) -> Result<Self, RecordingArchiveError> {
+        validate_non_empty(&recording_id, RecordingArchiveError::InvalidRecordingId)?;
+        validate_checksum(&content_hash_verified)?;
+        if content_hash_verified != request.content_hash.value {
+            return Err(RecordingArchiveError::DuplicateIngestContentHashMismatch);
+        }
+        validate_audit_chain_ref(
+            &ingest_audit_chain_ref,
+            RecordingArchiveError::InvalidParentAuditChainRef,
+        )?;
+
+        Ok(Self {
+            recording_id: internal(recording_id),
+            tenant_id: internal(request.tenant_id.value.clone()),
+            idempotency_key: internal(request.idempotency_key.value.clone()),
+            content_hash: internal(request.content_hash.value.clone()),
+            content_hash_verified: internal(content_hash_verified),
+            ingest_audit_chain_ref: internal(ingest_audit_chain_ref),
+            schema_version: internal(RECORDING_INGEST_SCHEMA_VERSION),
+        })
+    }
+}
+
+pub fn classify_idempotent_ingest(
+    existing: Option<&RecordingIngestReceipt>,
+    request: &RecordingIngestRequest,
+) -> Result<RecordingIngestDecision, RecordingArchiveError> {
+    let Some(existing) = existing else {
+        return Ok(RecordingIngestDecision::AcceptNew);
+    };
+    if existing.tenant_id.value != request.tenant_id.value
+        || existing.idempotency_key.value != request.idempotency_key.value
+    {
+        return Ok(RecordingIngestDecision::AcceptNew);
+    }
+    if existing.content_hash.value != request.content_hash.value {
+        return Err(RecordingArchiveError::DuplicateIngestContentHashMismatch);
+    }
+    Ok(RecordingIngestDecision::AlreadyAccepted {
+        recording_id: existing.recording_id.value.clone(),
+    })
 }
 
 impl ArchiveRetentionPolicy {
@@ -347,15 +540,45 @@ fn validate_storage_key(storage_key: &str) -> Result<(), RecordingArchiveError> 
 }
 
 fn validate_checksum(checksum: &str) -> Result<(), RecordingArchiveError> {
+    let Some(hex) = checksum.strip_prefix(SHA256_PREFIX) else {
+        return Err(RecordingArchiveError::InvalidChecksum);
+    };
     if checksum.trim() != checksum
-        || !checksum.starts_with(SHA256_PREFIX)
-        || checksum.len() == SHA256_PREFIX.len()
-        || checksum.chars().any(char::is_control)
+        || hex.len() != SHA256_HEX_LENGTH
+        || !hex.chars().all(|c| matches!(c, '0'..='9' | 'a'..='f'))
     {
-        Err(RecordingArchiveError::InvalidChecksum)
-    } else {
-        Ok(())
+        return Err(RecordingArchiveError::InvalidChecksum);
     }
+    Ok(())
+}
+
+fn validate_spiffe_id(
+    value: &str,
+    error: RecordingArchiveError,
+) -> Result<(), RecordingArchiveError> {
+    validate_prefixed_ref(value, SPIFFE_PREFIX, error)
+}
+
+fn validate_audit_chain_ref(
+    value: &str,
+    error: RecordingArchiveError,
+) -> Result<(), RecordingArchiveError> {
+    validate_prefixed_ref(value, AUDIT_CHAIN_PREFIX, error)
+}
+
+fn validate_prefixed_ref(
+    value: &str,
+    prefix: &str,
+    error: RecordingArchiveError,
+) -> Result<(), RecordingArchiveError> {
+    if value.trim() != value
+        || !value.starts_with(prefix)
+        || value.len() == prefix.len()
+        || value.chars().any(char::is_control)
+    {
+        return Err(error);
+    }
+    Ok(())
 }
 
 fn validate_optional_ref(
@@ -418,7 +641,8 @@ mod tests {
             variant_id: variant_id.into(),
             format,
             storage_key: format!("tenant-1/meet/session-1/rec-1/{variant_id}.bin"),
-            checksum: "sha256:abc123".into(),
+            checksum: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                .into(),
             byte_len: 2048,
             duration_seconds: 900,
         })
@@ -506,7 +730,8 @@ mod tests {
                 variant_id: "bad".into(),
                 format: RecordingVariantFormat::WebmVideo,
                 storage_key: "tenant-1/../bad.webm".into(),
-                checksum: "sha256:abc123".into(),
+                checksum: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                    .into(),
                 byte_len: 1,
                 duration_seconds: 1,
             }),
@@ -518,7 +743,8 @@ mod tests {
                 variant_id: "empty".into(),
                 format: RecordingVariantFormat::OpusAudio,
                 storage_key: "tenant-1/meet/session-1/empty.opus".into(),
-                checksum: "sha256:abc123".into(),
+                checksum: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                    .into(),
                 byte_len: 0,
                 duration_seconds: 1,
             }),
@@ -533,6 +759,149 @@ mod tests {
         assert_eq!(
             RecordingArchiveEntry::new(input),
             Err(RecordingArchiveError::InvalidTimeOrder)
+        );
+    }
+
+    fn ingest_input() -> RecordingIngestRequestCreate {
+        RecordingIngestRequestCreate {
+            idempotency_key: "tenant-1:manual-upload-1".into(),
+            tenant_id: "tenant-1".into(),
+            source_kind: RecordingSourceKind::ManualUpload,
+            source_ref: "upload-1".into(),
+            content_hash: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                .into(),
+            byte_len: 4096,
+            duration_seconds: 900,
+            ingested_at_epoch_seconds: 1_700_001_000,
+            ended_at_epoch_seconds: Some(1_700_000_900),
+            consent_banner_confirmed: true,
+            context_kind: RecordingContextKind::Professional,
+            author_ref: Some("user:host@example.com".into()),
+            cell_id: "cell-a".into(),
+            producer_spiffe_id: "spiffe://oyatie.local/ns/meet/sa/recording-producer".into(),
+            parent_audit_chain_ref: "audit-chain:meet-session-1:seal-9".into(),
+        }
+    }
+
+    #[test]
+    fn ingest_request_requires_source_locked_identity_consent_and_audit_fields() {
+        let request = RecordingIngestRequest::new(ingest_input()).unwrap();
+
+        assert_eq!(
+            request.idempotency_scope(),
+            ("tenant-1", "tenant-1:manual-upload-1")
+        );
+        assert_eq!(
+            request.content_hash.value,
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        );
+        assert_eq!(
+            request.context_kind.value,
+            RecordingContextKind::Professional
+        );
+        assert_eq!(
+            request.producer_spiffe_id.value,
+            "spiffe://oyatie.local/ns/meet/sa/recording-producer"
+        );
+        assert_eq!(
+            request.parent_audit_chain_ref.value,
+            "audit-chain:meet-session-1:seal-9"
+        );
+        assert_eq!(request.schema_version.value, 1);
+
+        let mut missing_consent = ingest_input();
+        missing_consent.consent_banner_confirmed = false;
+        assert_eq!(
+            RecordingIngestRequest::new(missing_consent),
+            Err(RecordingArchiveError::MissingConsentBanner)
+        );
+
+        let mut missing_producer = ingest_input();
+        missing_producer.producer_spiffe_id.clear();
+        assert_eq!(
+            RecordingIngestRequest::new(missing_producer),
+            Err(RecordingArchiveError::InvalidProducerSpiffeId)
+        );
+
+        let mut malformed_hash = ingest_input();
+        malformed_hash.content_hash = "sha256:abc123".into();
+        assert_eq!(
+            RecordingIngestRequest::new(malformed_hash),
+            Err(RecordingArchiveError::InvalidChecksum)
+        );
+
+        let mut malformed_producer = ingest_input();
+        malformed_producer.producer_spiffe_id = "meet-recording-producer".into();
+        assert_eq!(
+            RecordingIngestRequest::new(malformed_producer),
+            Err(RecordingArchiveError::InvalidProducerSpiffeId)
+        );
+
+        let mut missing_audit_parent = ingest_input();
+        missing_audit_parent.parent_audit_chain_ref = "meet-session-1:seal-9".into();
+        assert_eq!(
+            RecordingIngestRequest::new(missing_audit_parent),
+            Err(RecordingArchiveError::InvalidParentAuditChainRef)
+        );
+
+        let mut invalid_time = ingest_input();
+        invalid_time.ended_at_epoch_seconds = Some(1_700_001_001);
+        assert_eq!(
+            RecordingIngestRequest::new(invalid_time),
+            Err(RecordingArchiveError::InvalidTimeOrder)
+        );
+    }
+
+    #[test]
+    fn idempotent_ingest_reuses_same_hash_and_rejects_mismatched_replay() {
+        let request = RecordingIngestRequest::new(ingest_input()).unwrap();
+        let receipt = RecordingIngestReceipt::accepted(
+            "recording-1".into(),
+            &request,
+            "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+            "audit-chain:recordings:ingest:seal-1".into(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            classify_idempotent_ingest(Some(&receipt), &request),
+            Ok(RecordingIngestDecision::AlreadyAccepted {
+                recording_id: "recording-1".into()
+            })
+        );
+
+        let mut mismatched = ingest_input();
+        mismatched.content_hash =
+            "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into();
+        let mismatched = RecordingIngestRequest::new(mismatched).unwrap();
+        assert_eq!(
+            classify_idempotent_ingest(Some(&receipt), &mismatched),
+            Err(RecordingArchiveError::DuplicateIngestContentHashMismatch)
+        );
+
+        assert_eq!(
+            classify_idempotent_ingest(None, &request),
+            Ok(RecordingIngestDecision::AcceptNew)
+        );
+
+        assert_eq!(
+            RecordingIngestReceipt::accepted(
+                "recording-1".into(),
+                &request,
+                "sha256:abc123".into(),
+                "audit-chain:recordings:ingest:seal-1".into(),
+            ),
+            Err(RecordingArchiveError::InvalidChecksum)
+        );
+
+        assert_eq!(
+            RecordingIngestReceipt::accepted(
+                "recording-1".into(),
+                &request,
+                "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".into(),
+                "recordings:ingest:seal-1".into(),
+            ),
+            Err(RecordingArchiveError::InvalidParentAuditChainRef)
         );
     }
 

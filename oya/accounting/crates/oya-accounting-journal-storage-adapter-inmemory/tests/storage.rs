@@ -2,6 +2,7 @@
 
 use oya_accounting_journal_app::{
     plan_vat_workflow, post_journal_with_audit, record_payroll_posting,
+    record_payroll_posting_for_period,
 };
 use oya_accounting_journal_domain::{
     JournalLineInput, JournalPostInput, Jurisdiction, PayrollPostingInput, PeriodState,
@@ -89,6 +90,64 @@ fn accounting_storage_refuses_duplicate_idempotency_keys() {
     assert_eq!(
         error,
         AccountingStorageError::DuplicateIdempotencyKey("jrn_2026_01:1:posted".to_owned())
+    );
+}
+
+#[test]
+fn payroll_gl_bridge_posting_preserves_accounting_control_refs() {
+    let mut store = InMemoryAccountingJournalStore::new();
+    let payroll = record_payroll_posting(payroll_input()).expect("payroll posting outcome");
+
+    assert_eq!(
+        payroll.evidence.journal.legal_entity_id.value.value,
+        "le_kr_001"
+    );
+    assert_eq!(
+        payroll.evidence.journal.approval_evidence_ref.value.value,
+        "audit/accounting/payroll/approval"
+    );
+    assert_eq!(payroll.evidence.source_payroll_digest.value.value, digest());
+    assert_eq!(
+        payroll.evidence.wage_ledger_refs.value[0].value,
+        "audit/payroll/wage-ledger/001"
+    );
+    assert_eq!(
+        payroll.evidence.reversal_path_ref.value.value,
+        "audit/accounting/payroll/reversal"
+    );
+
+    let record = store
+        .persist_payroll_posting_audit(&payroll.audit_envelope)
+        .expect("persist payroll posting audit");
+    assert_eq!(
+        record.idempotency_key,
+        "ten_acme:jrn_payroll_2026_01:payroll-posted"
+    );
+    assert_eq!(record.evidence_ref_count, 3);
+}
+
+#[test]
+fn payroll_gl_bridge_posting_refuses_closed_period() {
+    assert!(record_payroll_posting_for_period(payroll_input(), PeriodState::Closed).is_err());
+}
+
+#[test]
+fn payroll_gl_bridge_posting_refuses_duplicate_idempotency_key() {
+    let mut store = InMemoryAccountingJournalStore::new();
+    let payroll = record_payroll_posting(payroll_input()).expect("payroll posting outcome");
+    store
+        .persist_payroll_posting_audit(&payroll.audit_envelope)
+        .expect("first payroll posting audit");
+
+    let error = store
+        .persist_payroll_posting_audit(&payroll.audit_envelope)
+        .expect_err("duplicate payroll posting must be refused");
+
+    assert_eq!(
+        error,
+        AccountingStorageError::DuplicateIdempotencyKey(
+            "ten_acme:jrn_payroll_2026_01:payroll-posted".to_owned()
+        )
     );
 }
 

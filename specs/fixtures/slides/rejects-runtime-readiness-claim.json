@@ -1,0 +1,14 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/slides-prd-red-case.schema.json",
+  "fixture_id": "rejects_runtime_readiness_claim_fixture",
+  "fixture_kind": "negative_control",
+  "source_map_ref": "specs/microservices/slides.json",
+  "kanban_task": "t_7e63e03d",
+  "expected_checker_decision": "REJECT",
+  "must_reject": [
+    "runtime readiness from fixture metadata",
+    "product readiness from inventory",
+    "green CI alone",
+    "live SLO evidence without runtime"
+  ]
+}

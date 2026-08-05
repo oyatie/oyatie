@@ -1,7 +1,12 @@
+# Claim boundary: target/provenance inventory only; no edge deployment,
+# WAF enforcement, production protection, or GA readiness is claimed.
 apiVersion: oyatie.dev/v1
 kind: EdgeWafPolicy
 metadata:
   name: oya-supply-chain-planning-abuse-defence
+  annotations:
+    oyatie.com/claim-boundary: target-provenance-only
+    oyatie.com/no-production-protection-readiness: "true"
 spec:
   defaultPathLatencyBudgetMs: 2
   emergencyServicesBypass: true

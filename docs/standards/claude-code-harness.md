@@ -43,16 +43,15 @@ configuration, and OMC magic-keyword routing.
 
 ## 1. Sanctioned-primitive contract
 
-Per [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) Directive 12 and
-the agentic-pipeline cutover (`SST consolidation ralplan`), the
+Per historical `.omc/plans/MASTERPLAN.md` Directive 12 (retired from the
+tracked tree) and the agentic-pipeline cutover (`SST consolidation ralplan`), the
 default sanctioned tool surface inside an `<!-- agent-instructions -->`
 fence is the **triad**:
 
 | Tool | Role | Source |
 |---|---|---|
 
-Versions: per
-[`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md)
+Versions: per [`lts-versions-verified.md`](lts-versions-verified.md)
 
 artifact inventory), ADR-0054 (scaffold-claim pattern).
 
@@ -211,7 +210,8 @@ the loop complete or records the structural block.
 
 - [Anthropic — Claude Code docs](https://docs.anthropic.com/en/docs/claude-code/).
 - [Anthropic — Claude Code memory](https://docs.anthropic.com/en/docs/claude-code/memory).
-- [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
+- Historical `.omc/plans/MASTERPLAN.md` §2 Directive 12 (retired from the
+  tracked tree).
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Claude Code).
 - [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-02 (no
   hook bypass).

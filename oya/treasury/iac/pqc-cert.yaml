@@ -1,7 +1,10 @@
+# Preview planning inventory only; not a live cert-manager Certificate.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: oya-treasury-pqc
+  annotations:
+    oyatie.com/authority-scope: preview-planning-non-authoritative
 spec:
   secretName: oya-treasury-tls
   commonName: treasury.svc.oyatie.example

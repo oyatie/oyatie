@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "task_id": "t_f60cb75d",
+  "service": "ontology",
+  "claim_ceiling": "ADR-0344 Proposed/advisory manifest declaration only; no runtime instrumentation (including query-runtime paths), measured emissions, live billing, OpenCost/FOCUS export, generated JSON, or production FinOps readiness claim.",
+  "manifest": "oya/ontology/manifest.json",
+  "included_by_inventory_gate": "specs/microservices/manifests-index.json#ontology",
+  "source_refs": [
+    "oya/ontology/manifest.json#capacity_model",
+    "oya/ontology/manifest.json#slos.ontology-function-read-latency",
+    "oya/ontology/manifest.json#audit_chain.oya.ontology.query-execute",
+    "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-2"
+  ],
+  "workload_signal_source": {
+    "signal_family": "per_query",
+    "source_ref": "entity graph query, function evaluation, projection read, and action invocation surfaces",
+    "audit_event_refs": [
+      "oya.ontology.query-execute",
+      "oya.ontology.cedar-evaluate",
+      "oya.ontology.type-register"
+    ],
+    "slo_refs": [
+      "ontology-function-read-latency",
+      "ontology-function-read-availability",
+      "ontology-audit-chain-emission-completeness"
+    ]
+  },
+  "resource_accounting_fixture": {
+    "cpu_seconds": 0.85,
+    "memory_gib_seconds": 0.75,
+    "storage_gib_hours": 0.004,
+    "network_gib": 0.009,
+    "provider": "provider_sku_pricing",
+    "region": "fixture-region",
+    "carbon_intensity_source": "fixture_grid_400gco2_per_kwh"
+  },
+  "power_model": {
+    "cpu_watts_per_vcpu_second": 0.48,
+    "memory_watts_per_gib_second": 0.0027,
+    "storage_watts_per_gib_hour": 0.0013,
+    "network_watts_per_gib": 0.07,
+    "tier_overhead_factor_applied": 1.4,
+    "derivation_note": "Values reflect ontology's query-heavy graph reads, ClickHouse/Postgres history mirrors, and Tier-1 tenant entity graph substrate; storage coefficient is higher than simple stateless APIs and distinct from ADR examples."
+  },
+  "price_model": {
+    "source": "provider_sku_pricing",
+    "binding": "cloud/cloud-billing/README.md#per-usage-meter:ontology.per_query",
+    "pin_window_hours": 1,
+    "non_claim": "Fixture binds query SKU attribution only; no tenant billing or chargeback rows are changed."
+  },
+  "validation_baseline": {
+    "formula_ref": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-6.4",
+    "expected_watt_hours_per_request_p50_mwh": 0.159701,
+    "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.00006388,
+    "tolerance_pct": 20
+  },
+  "review_notes": {
+    "no_carbon_deferral": "Tier 1 tenant graph reads and policy/ontology projections are not carbon-deferrable under the Tier 0/1 boundary.",
+    "security_tenant_data_plane": "Entity graphs, links, histories, and action/function evaluations are tenant-data substrate paths.",
+    "audit_chain": "Query-execute and type-register audit rows are the future attribution source and must preserve tenant scoping."
+  },
+  "failure_cases": [
+    "graph query row misses one of the five ADR-0344 fields",
+    "projection reads are treated as workload-free",
+    "storage mirror cost is omitted from query fixture",
+    "template-stamped per_request source replaces per_query"
+  ],
+  "recalibration": {
+    "cadence": "quarterly",
+    "owner_team": "axis-ontology",
+    "evidence_floor": "representative graph query, function read, and projection-history samples with tenant-scoped audit evidence"
+  }
+}

@@ -132,7 +132,7 @@ The api-gateway µservice has zero domain logic; it is pure adapter (Layer 7 in 
 ### Operational
 
 1. New µservice scaffolded at `microservices/api-gateway/` per ADR-0131 flat layout. PRD skeleton ships with this ADR (see Companion); full IP pack lands in the stacked PR.
-2. New CI lane `oya gate validate api-gateway-tier` enforces (a) all external endpoints in any other µservice's OpenAPI 3.1 spec resolve under the api-gateway tier's route table, (b) no other µservice declares a `LoadBalancer` Service for tenant-facing traffic.
+2. New cloud-ci/Rust gate packet `api-gateway-tier` enforces (a) all external HTTP/gRPC endpoints in any other µservice's OpenAPI 3.1 spec resolve under the api-gateway tier's route table, (b) tenant-facing `LoadBalancer` inventory is classified as `api_gateway_http_grpc_load_balancer`, `authorized_non_http_protocol_edge` per ADR-0182, or fail-closed `unclassified_tenant_facing_load_balancer`, and (c) no workload µservice owns a direct tenant-facing `LoadBalancer` Service.
 3. Per-tenant rate-limit policy defaults captured in `specs/api-gateway-tier-canonical.json`.
 4. Helm chart `iac/helm/api-gateway/` ships with Envoy Gateway 1.1 + Coraza + ratelimit-redis sidecar.
 5. Per-pack overlay path `iac/kustomize/components/api-gateway-overlay-{kr,eu,us,jp,ksa}/` for sovereign cell variations.

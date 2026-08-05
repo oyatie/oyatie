@@ -150,6 +150,28 @@
             "type": "string",
             "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
           },
+          "standard_version": {
+            "type": "string",
+            "description": "Precise external standard revision backing this pack floor when pack_id remains a stable major-version shorthand. For PCI-DSS-L1-v4 this records 4.0.1."
+          },
+          "source_revision": {
+            "type": "object",
+            "description": "Source/version acquisition metadata for the floor's external standard citation; this is not readiness, certification, or evidence-acceptance proof.",
+            "properties": {
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "retrieval_status": {
+                "type": "string"
+              },
+              "claim_ceiling": {
+                "type": "string"
+              }
+            }
+          },
           "dr_floor": {
             "type": "object",
             "required": [
@@ -351,6 +373,15 @@
     {
       "pack_id": "PCI-DSS-L1-v4",
       "version": "1.0.0",
+      "standard_version": "4.0.1",
+      "source_revision": {
+        "source_refs": [
+          "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+          "PCI-DSS-V4-0-1-PDF-BLOCKED"
+        ],
+        "retrieval_status": "blocked-http-403",
+        "claim_ceiling": "DR floor source-version metadata only; no PCI DSS Level 1 readiness, v4.0.1 control completeness, ROC/AOC/QSA/ASV readiness, or tenant CDE activation claim."
+      },
       "dr_floor": {
         "rto_p99_seconds": 86400,
         "rpo_p99_seconds": 3600,
@@ -359,14 +390,14 @@
       },
       "_meta": {
         "regulator_citations": [
-          "PCI DSS v4.0 §12.10 (Incident Response Plan)",
-          "PCI DSS v4.0 §12.10.1 (Documented business continuity / disaster recovery)",
-          "PCI DSS v4.0 §12.10.2 (Annual testing of incident response and DR procedures)",
-          "PCI DSS v4.0 §10 (Log and monitor all access to system components)",
-          "PCI DSS v4.0 §11.3 (Network-layer segmentation — cardholder data environment)",
+          "PCI DSS v4.0.1 §12.10 (Incident Response Plan — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §12.10.1 (Documented business continuity / disaster recovery — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §12.10.2 (Annual testing of incident response and DR procedures — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §10 (Log and monitor all access to system components — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §11.3 (Network-layer segmentation — cardholder data environment; exact row text pending permitted official PDF acquisition)",
           "PCI SSC Information Supplement: Best Practices for Maintaining PCI DSS Compliance (DR section)"
         ],
-        "rationale": "PCI-DSS v4.0 focuses on cardholder-data segmentation, encryption, and documented incident response timing. 24h RTO + 1h RPO reflects the regulator's tolerance for backup-restore within a documented business-continuity policy. Per-region active-active topology is NOT mandated by PCI-DSS itself; tenants requiring tighter availability compose PCI with SOC2 or ISO 27001 floors. Annual testing matches §12.10.2 explicit requirement.",
+        "rationale": "PCI DSS v4.0.1 source-version reconciliation keeps the stable PCI-DSS-L1-v4 floor id while requiring exact source-row acquisition before evidence acceptance. 24h RTO + 1h RPO remains a planning DR floor for backup-restore within a documented business-continuity policy. Per-region active-active topology is NOT mandated by this planning floor itself; tenants requiring tighter availability compose PCI with SOC2 or ISO 27001 floors. Annual testing remains the planned cadence, but exact §12.10.2 text must be reconciled after permitted official PDF acquisition.",
         "effective_at": "2026-05-21T00:00:00Z",
         "sunset_at": null,
         "cedar_fragment_id": "pack-pci-dss-l1-v4-dr-floor-satisfaction",

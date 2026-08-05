@@ -1,19 +1,27 @@
-# Managed K8s Tenant Quota — Operational Boundaries
+# Managed K8s Cluster Lifecycle — Operational Boundaries
 
-## Capacity Model
+## Capacity model
 
-- `evaluate()` is O(1); sub-microsecond on the lifecycle hot path.
-- In-memory store: suitable for single-node bring-up only.
-- Production: Postgres-backed adapter (follow-on wave).
+- Current scope is the dogfood/design deterministic create-admission foundation.
+- The lifecycle hot path is bounded to request validation, one quota-decision port
+  call, and one control-plane-host port call only after quota allow.
+- Cluster-lifecycle owns no quota store, quota RBAC administration, provider
+  reconciler, operation ledger, billing adapter, or measured SLO pipeline in this
+  wave.
 
-## Incident Response
+## Incident response
 
-- On store failure: return `QuotaPortError::Persistence`; cluster-lifecycle
-  treats this as deny (fail-closed).
-- On Cedar boot failure: service exits non-zero; orchestrator restarts.
-- On quota not found: HTTP 404; caller must set quota first.
+- On quota dependency failure: fail closed; do not invoke control-plane-host.
+- On quota deny or not-found: return an admission failure and require quota-service
+  remediation through the `managed-k8s-tenant-quota` owner path.
+- On malformed or mismatched tenant principal: reject before any dependency call.
+- On control-plane-host failure after quota allow: surface provisioning failure;
+  do not claim live provider rollback or reconciliation until follow-on operation
+  ledger support exists.
 
-## Multi-region
+## Multi-region and production claims
 
-- In-memory store is not replicated. Production Postgres adapter should use
-  per-cell Postgres (ADR-0339 shared IaC module library).
+- No production multi-region replication, public SLA, billing readiness, DPIA
+  completion, or measured SLO compliance is claimed by this service-local document.
+- Future placement, operation-ledger, and observability work must add explicit
+  evidence before upgrading the claim ceiling.

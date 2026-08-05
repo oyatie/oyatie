@@ -1,7 +1,10 @@
+# Preview planning inventory only; not a live Kubernetes NetworkPolicy.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: oya-treasury-default-deny
+  annotations:
+    oyatie.com/authority-scope: preview-planning-non-authoritative
 spec:
   podSelector:
     matchLabels:

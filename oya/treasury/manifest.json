@@ -4,6 +4,29 @@
   "title": "Treasury",
   "status": "reserved-wave-3-g-anchor",
   "date": "2026-05-20",
+  "authority": {
+    "prd_ref": "specs/microservices/treasury.json",
+    "prd_status": "preview",
+    "scope": "metadata-only public-surface inventory; not runtime readiness evidence",
+    "non_claims": [
+      "No live bank connectivity, bank API call, SWIFT/host-to-host transport, or payment execution.",
+      "No durable persistence, Postgres/RLS, Workflow execution, accounting ledger mutation, statutory filing, runtime audit-chain emission, or cloud deployment.",
+      "No SAP, Oracle, or treasury workstation exhaustive parity claim."
+    ],
+    "runtime_inventory_boundary": "Legacy runtime-looking sections below are preserved only as planning inventory. They are not current implementation, deployment, runtime audit-chain, persistence, SLO/DR, GA, production-readiness, or live bank/payment evidence.",
+    "runtime_inventory_sections": [
+      "keystone_adr_field_roster",
+      "audit_chain",
+      "mesh_layering",
+      "capacity_model",
+      "sustainability_emission_model",
+      "sharding_automation",
+      "dr",
+      "pod_runtime_tier",
+      "consumes_upstream_oss",
+      "iac_module_invocations"
+    ]
+  },
   "tier": "product",
   "tier_subtype": "erp-parity-single-concern",
   "binding_adrs": [
@@ -160,7 +183,7 @@
     ],
     "time_coordination": "HLC default; TrueTime-compatible external evidence accepted when source system supplies it",
     "transport": "HTTP/3 default; fallback HTTP/2 then HTTP/1.1; TLS 1.3; ECH advertised; PQC hybrid offered where supported",
-    "deployment_shape": "Kubernetes plus Cloud Hypervisor/Kata-compatible isolation for regulated workers",
+    "deployment_shape": "planning inventory only: Kubernetes plus Cloud Hypervisor/Kata-compatible isolation is not a current treasury cloud deployment claim",
     "intelligence_dispatch": "library-first when local binding exists; network-opt-in for model-backed analysis",
     "ontology_read_path": "library-first projections with freshness_floor per bounded context",
     "semver_policy": "SemVer for REST/event/gRPC/SDK contracts",
@@ -168,7 +191,7 @@
       "metrics",
       "traces",
       "structured logs",
-      "audit-chain events",
+      "audit-chain event names (planning inventory only; no runtime audit-chain emission)",
       "dashboards"
     ],
     "consent": "per-purpose only when user-facing flows collect personal data",
@@ -233,7 +256,8 @@
     "jurisdictional-tax"
   ],
   "audit_chain": {
-    "enabled": true,
+    "enabled": false,
+    "status": "preview-planning-only; seal_events are reserved event names, not runtime audit-chain emission evidence",
     "seal_events": [
       "EVT-TREASURY-CASH_POSITION-CHANGED",
       "EVT-TREASURY-LIQUIDITY_FORECAST-CHANGED",
@@ -244,6 +268,7 @@
     ]
   },
   "mesh_layering": {
+    "status": "preview-planning-only; mesh labels are future inventory and not current Cilium/Istio deployment evidence",
     "cilium_l4": true,
     "ambient_ztunnel": true,
     "ambient_waypoint": false,
@@ -297,6 +322,7 @@
   "layer": "rest",
   "doc_class": "Machine-Readable-Spec",
   "capacity_model": {
+    "scope": "planning target only; no durable persistence, Postgres/RLS, live bank/SWIFT fan-out, measured capacity, or production readiness is claimed",
     "baseline_cpu_per_tenant": 0.16,
     "baseline_ram_per_tenant": 512,
     "storage_per_tenant": 16,
@@ -307,7 +333,41 @@
     },
     "scaling_dimension": "per_query",
     "cell_placement_class": "Tier-3",
-    "notes": "Cash-position, FX, and bank graph screens are query-heavy with higher outbound bank/SWIFT fan-out."
+    "notes": "Cash-position, FX, and bank graph screens are future planning benchmarks only; no outbound bank/SWIFT fan-out exists in the preview PRD scope."
+  },
+  "sustainability_emission_model": {
+    "scope": "fixture-only planning metadata; no runtime telemetry, measured SLO, cloud deployment, or live FinOps claim",
+    "pod_runtime_tier_ref": "self.pod_runtime_tier",
+    "power_model": {
+      "cpu_watts_per_vcpu_second": 0.46,
+      "memory_watts_per_gib_second": 0.0032,
+      "storage_watts_per_gib_hour": 0.0011,
+      "network_watts_per_gib": 0.095,
+      "tier_overhead_factor": {
+        "tier_0_kata_clh": 1.4,
+        "tier_1_kata_clh": 1.4,
+        "tier_2_runc": 1.0,
+        "tier_3_runc_edge": 1.05
+      }
+    },
+    "price_model": {
+      "source": "provider_sku_pricing",
+      "binding": "cloud/cloud-billing/manifest.json#provider-sku-pricing-advisory-binding",
+      "pin_window_hours": 24
+    },
+    "workload_signal_source": {
+      "signal_family": "per_query",
+      "source_ref": "oya/treasury/manifest.json#audit_chain.seal_events:EVT-TREASURY-CASH_POSITION-CHANGED+EVT-TREASURY-LIQUIDITY_FORECAST-CHANGED"
+    },
+    "emission_path_tests": [
+      "oya/treasury/crates/oya-treasury-cash-domain/tests/cash_position.rs",
+      "SPEC-FINOPS-EMISSION-BATCH-ERP-OPS-001 fixture-only: cash-position and liquidity query assertions must add cost/co2/watt_hours/provider/region before any live FinOps claim"
+    ],
+    "validation_baseline": {
+      "expected_watt_hours_per_request_p50_mwh": 9.6,
+      "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.00384,
+      "tolerance_pct": 20
+    }
   },
   "sharding_automation": {
     "autosharding": "control_plane_driven",
@@ -316,7 +376,8 @@
       "trigger_load_skew_threshold_percent": 30,
       "honors_residency": true,
       "honors_compliance_packs": true,
-      "audit_chain_emit": true
+      "audit_chain_emit": false,
+      "audit_chain_emit_note": "preview non-claim; no runtime audit-chain emission exists"
     },
     "dynamic_sharding": {
       "enabled": false,
@@ -324,13 +385,15 @@
       "hot_split_utilization_threshold_percent": 80,
       "cold_merge_utilization_threshold_percent": 20,
       "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
+      "audit_chain_emit": false,
+      "audit_chain_emit_note": "preview non-claim; no runtime audit-chain emission exists"
     }
   },
   "dr": {
+    "status": "preview-planning-target-only; no measured DR readiness, active-active deployment, cloud deployment, durable persistence, or production readiness is claimed",
     "rto_p99_seconds": 1800,
     "rpo_p99_seconds": 300,
-    "multi_region_active_active": true,
+    "multi_region_active_active": false,
     "backup_substrate": [
       "postgres_wal_g",
       "valkey",
@@ -342,7 +405,8 @@
     "replication_shape": "active-active-multi-az-cross-region-warm"
   },
   "pod_runtime_tier": 2,
-  "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
+  "pod_runtime_tier_justification": "Planning classification only for a future first-party application runtime; the preview treasury scope does not currently handle tenant workflows, durable tenant records, runtime audit emission, or cloud deployment.",
+  "pod_runtime_tier_surface_evidence_status": "future planning/provenance only; the IP references are not current implementation evidence",
   "pod_runtime_tier_surface_evidence": [
     "microservices/treasury/ARCHITECTURE.md",
     "microservices/treasury/IP-017-payment-execution-via-iso20022-pain-001.md",
@@ -360,13 +424,13 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/treasury/contracts/openapi-v1.yaml"
+        "2026-05-21": "oya/treasury/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/treasury/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "oya/treasury/contracts/asyncapi-v1.yaml"
       },
       "proto": {
-        "2026-05-21": "microservices/treasury/contracts/treasury-v1.proto"
+        "2026-05-21": "oya/treasury/contracts/treasury-v1.proto"
       }
     }
   },
@@ -379,6 +443,7 @@
     "kafka",
     "opentelemetry"
   ],
+  "iac_module_invocations_status": "planning inventory only; no Terraform/OpenTofu/Helm module invocation, Postgres database, Valkey cluster, audit-chain sink, or cloud deployment is authorized for the preview treasury PRD",
   "iac_module_invocations": [
     {
       "context": "oyatie-as-cloud-provider",

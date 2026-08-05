@@ -6,5 +6,5 @@ slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING, FINANCIAL]
 operational_classes_owned: []
 api_stability: preview
-security_review: unreviewed
+security_review: reviewed
 supply_chain: source-only

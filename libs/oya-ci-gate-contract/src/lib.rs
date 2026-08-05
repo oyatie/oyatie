@@ -21,7 +21,10 @@ pub const SDK_ABI_VERSION: u32 = 1;
 pub const CONTRACT_CRATE_NAME: &str = "oya-ci-gate-contract";
 
 /// The crate semver used by registries and gate manifests.
-pub const CONTRACT_SEMVER: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_SEMVER: &str = match option_env!("CARGO_PKG_VERSION") {
+    Some(version) => version,
+    None => "0.1.0",
+};
 
 /// A keyed gate violation: stable `code` plus the offending unit `key`.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -297,8 +300,10 @@ mod tests {
             findings
         }
 
-        fn remediate(&self, finding: &Finding, _face: &serde_json::Value) -> Remediation {
-            if finding.code == "manifest_missing_license" {
+        fn remediate(&self, finding: &Finding, face: &serde_json::Value) -> Remediation {
+            if finding.code == "manifest_missing_license"
+                && face.get("has_license").and_then(serde_json::Value::as_bool) == Some(false)
+            {
                 Remediation::AutoFix(Edit::new(
                     "libs/example/Cargo.toml",
                     ByteRange::new(37, 37).expect("valid insert range"),
@@ -336,6 +341,29 @@ mod tests {
                 ByteRange::new(37, 37).expect("valid insert range"),
                 "license = \"Apache-2.0\"\n",
             ))
+        );
+    }
+
+    #[test]
+    fn remediate_returns_none_after_the_described_fix_is_present() {
+        let gate = FixtureGate::new();
+        let finding = Finding::new("manifest_missing_license", "libs/example/Cargo.toml");
+
+        let tier = gate
+            .manifest()
+            .codes
+            .iter()
+            .find(|code| code.code == "manifest_missing_license")
+            .map(|code| &code.remediation_tier);
+
+        assert_eq!(tier, Some(&RemediationTier::AutoFix));
+        assert!(
+            gate.evaluate_keyed(&json!({"has_license": true}))
+                .is_empty()
+        );
+        assert_eq!(
+            gate.remediate(&finding, &json!({"has_license": true})),
+            Remediation::None
         );
     }
 

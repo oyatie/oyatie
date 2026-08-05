@@ -5,8 +5,12 @@ metadata:
   labels:
     service: supply-chain-planning
     sap_code: "SCM/APO"
+  annotations:
+    inventory_classification: target-provenance
+    visible_repo_path: oya/supply-chain-planning/slos/demand-plan-success-rate.openslo.yaml
+    authority_ceiling: "Metadata-only preview target; no measured SLO, runtime telemetry, cloud deployment, DR, or GA readiness claim."
 spec:
-  description: "Supply Chain Planning demand-plan-success-rate objective; benchmarks SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning"
+  description: "Target/provenance demand-plan success-rate objective for the metadata-only Supply Chain Planning preview; benchmarks SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning; not measured runtime SLO evidence."
   service: supply-chain-planning
   indicator:
     metadata:

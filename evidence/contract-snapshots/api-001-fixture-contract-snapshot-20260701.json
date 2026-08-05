@@ -1,0 +1,337 @@
+{
+  "artifact_id": "API-001-FIXTURE-CONTRACT-SNAPSHOT-20260701",
+  "artifact_type": "fixture_contract_snapshot",
+  "generated_at_utc": "2026-07-01T09:03:39Z",
+  "kanban_task_id": "t_885677fc",
+  "source_task_ids": {
+    "graph_edit": "t_a4e8d70d",
+    "api_substrate": "t_9f82f89e",
+    "descendants": [
+      "t_69f99449",
+      "t_9574c74d",
+      "t_c14f66bc",
+      "t_e43dadd0"
+    ]
+  },
+  "claim_boundary": {
+    "allowed_claim": "This snapshot is a mock/fixture contract for spec and static UX descendants only.",
+    "explicit_non_claims": [
+      "No production API implementation or public API readiness is claimed.",
+      "No Apicurio registry publication, schema-registry runtime, compatibility gate, or per-cell deployment is claimed.",
+      "No Rust-native contract source, OpenAPI/proto/GraphQL generator, drift gate, resolver, or SDK release is implemented.",
+      "No billing runtime, invoice ledger, provider-live resource CRUD, OpenTofu/Argo actuation, quota runtime, Cedar runtime, audit persistence, or customer-facing invoice publication is claimed.",
+      "No generated SDK or generated face may be hand-edited from this snapshot."
+    ],
+    "production_api_dependency": "t_9f82f89e API-001 remains the serialized owner for production schema registry, public API versioning, SDK/release, and integration work."
+  },
+  "sources_inspected": [
+    {
+      "path": "specs/schema-registry-canonical.json",
+      "lines": "20-21,36-45,59-62,89-105",
+      "used_for": "Apicurio Registry 3.x, subject naming, semver compatibility levels, publication/runtime-consumer assumptions."
+    },
+    {
+      "path": "docs/decisions/ADR-0166-schema-registry.md",
+      "lines": "47-109",
+      "used_for": "Accepted schema-registry doctrine and compatibility behavior."
+    },
+    {
+      "path": "docs/decisions/ADR-0258-api-versioning-model.md",
+      "lines": "56-84,86-133,135-224",
+      "used_for": "X-Oyatie-API-Version public header, internal /vN mesh URLs, 12-month sunset, SDK generation contract."
+    },
+    {
+      "path": "docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md",
+      "lines": "255-268,321-342,369-396",
+      "used_for": "Ontology schema_revision semver and ACTIVE -> DEPRECATED -> TOMBSTONED lifecycle expectation."
+    },
+    {
+      "path": "specs/api-contract-ssot-canonical.json",
+      "lines": "21-25,28-40,62-66",
+      "used_for": "Target SSOT model: Rust-native source with REST/OpenAPI, gRPC/proto3, GraphQL projections and non-claims."
+    },
+    {
+      "path": "specs/api-surface-separation.json",
+      "lines": "81-109",
+      "used_for": "Public/internal surface defaults, auth/rate-limit/stability fields, route classification field."
+    },
+    {
+      "path": "docs/decisions/ADR-0004-plane-separation-control-data-analytics.md",
+      "lines": "28-75,89-123",
+      "used_for": "Plane enum, cross_plane_calls shape, oya-governance-plane invalid fixture, per-plane SLO expectations."
+    },
+    {
+      "path": "specs/cloud-control-plane-canonical.json",
+      "lines": "24-45,47-81,82-96,97-149",
+      "used_for": "Resource hierarchy, ORN, operation ledger, per-resource contract, nine control-plane facets, non-claims."
+    },
+    {
+      "path": "specs/cloud-resource-catalog-target.json",
+      "lines": "24-36,37-142,148-150",
+      "used_for": "Representative cloud resource services/types and target non-claim."
+    },
+    {
+      "path": "specs/masterplan.json",
+      "lines": "144-257",
+      "used_for": "Cloud control-plane directives, developer portal provisioning scope, FOCUS/OpenCost requirement, resource facets."
+    },
+    {
+      "path": "specs/design-system/catalog.json",
+      "lines": "47-80",
+      "used_for": "Design-system accessibility/loading/voice principles and verification expectations."
+    },
+    {
+      "path": "specs/design-system/audit-evidence-timeline.json",
+      "lines": "14-40",
+      "used_for": "Audit/evidence timeline fixture UI component assumptions."
+    },
+    {
+      "path": "specs/design-system/cloud-cell-topology-map.json",
+      "lines": "14-40",
+      "used_for": "Cell/region/canary/topology fixture UI assumptions."
+    },
+    {
+      "path": "specs/design-system/entity-action-policy-preview.json",
+      "lines": "14-40",
+      "used_for": "Cedar/default-deny policy preview fixture assumptions."
+    },
+    {
+      "path": "specs/design-system/ops-deployment-status-panel.json",
+      "lines": "14-41",
+      "used_for": "Operation/deployment/rollback fixture UI assumptions."
+    }
+  ],
+  "shared_fixture_envelope": {
+    "required_fields": [
+      "fixture_id",
+      "fixture_kind",
+      "fixture_scope",
+      "claim_boundary",
+      "api_surface",
+      "stability_tier",
+      "provisional_schema_subject",
+      "schema_kind",
+      "schema_revision",
+      "public_api_generation",
+      "public_api_generation_is_mock",
+      "mesh_major_version",
+      "route",
+      "method",
+      "operation_id",
+      "idempotency_key",
+      "tenant_scope",
+      "data_class",
+      "cedar_policy_ref",
+      "audit_chain_ref",
+      "response_headers",
+      "source_refs",
+      "reconciliation_after_api_001"
+    ],
+    "field_semantics": {
+      "claim_boundary": "MUST say fixture/mock only and MUST NOT imply production readiness.",
+      "api_surface": "One of public or internal; public uses the request-time header model, internal mesh uses /vN URL/package major-version selection.",
+      "provisional_schema_subject": "A placeholder following the current Apicurio subject convention <schema-kind>.<microservice>.<surface>.<event-class-or-resource>; API-001 must replace or ratify it before registry publication.",
+      "schema_revision": "SemVer for fixture/object shape evolution; breaking fixture shape changes require a major bump and deprecation-handshake note even before runtime exists.",
+      "public_api_generation": "A mock YYYY-MM-DD generation value may appear in fixture transcripts only when public_api_generation_is_mock is true; it is not a minted production generation.",
+      "tenant_scope": "Must include organization_id, account_id, project_id, region, and cell when modeling cloud/control-plane resources.",
+      "response_headers": "For public API fixture transcripts, include X-Oyatie-API-Version, X-Oyatie-Default-Version, X-Oyatie-Latest-Version and optional Sunset/Deprecation placeholders."
+    },
+    "recommended_mock_values": {
+      "public_api_generation": "2026-07-01",
+      "public_api_generation_is_mock": true,
+      "mesh_major_version": "v1",
+      "data_class": "INTERNAL_FIXTURE_ONLY"
+    }
+  },
+  "route_and_schema_assumptions": {
+    "versioning": [
+      "Public fixture APIs model ADR-0258 request-time pinning with X-Oyatie-API-Version; header absence is represented as default_public_version resolution, not as no-version behavior.",
+      "Internal fixture APIs model ADR-0258 mesh routing with /v1/ URL path or v1 package names; minor/patch changes stay schema/subject semver and do not change the URL.",
+      "Every fixture transcript that shows a deprecated generation must include Deprecation/Sunset placeholders and a migration/evidence link, but it must remain marked mock-only."
+    ],
+    "schema_registry": [
+      "Fixture subjects are provisional and follow the shape <schema-kind>.<microservice>.<surface>.<event-class-or-resource> until API-001 ratifies exact microservice/surface/resource tokens.",
+      "Default compatibility assumptions: BACKWARD for events and REST responses, FORWARD for REST requests, FULL for ontology/audit-chain, NONE only with explicit ADR carve-out.",
+      "Fixture schemas may be JSON Schema evidence records now; production REST/gRPC/GraphQL/AsyncAPI artifacts remain API-001 output."
+    ],
+    "surface_separation": [
+      "Public fixture routes use api_surface=public, hostname=api.oyatie.com, auth=oauth2-plus-key-signature, rate_limit_tier=per-public-key-per-ip, semver_discipline=mandatory.",
+      "Internal fixture routes use api_surface=internal, hostname=internal-api.oyatie.com, auth=mesh-mtls-spiffe-only, rate_limit_tier=per-microservice-internal, semver_discipline=optional."
+    ],
+    "security_and_privacy": [
+      "Every fixture that crosses tenant/account/project boundaries must include a cross-tenant denial or zero-result case.",
+      "Cedar/default-deny is represented by policy decision fixtures only; no runtime policy evaluator is claimed.",
+      "Support/admin views must show redaction behavior and must not leak another tenant resource's existence through filters or aggregates.",
+      "No raw secrets, raw provider internals, credential values, or real customer invoice rows may appear in fixtures."
+    ],
+    "design_system": [
+      "Use existing component contracts where possible: tenant-context-switcher, entity-action-policy-preview, audit-evidence-timeline, cloud-cell-topology-map, ops-deployment-status-panel, score-card-result-table, spec-diff-viewer, policy-disclosure-banner.",
+      "Fixture UX must preserve catalog principles: WCAG 2.2 AA, keyboard-first, precise operational copy, skeleton/progressive loading, and visible error/remediation states."
+    ]
+  },
+  "descendant_safety_matrix": [
+    {
+      "task_id": "t_69f99449",
+      "title": "PLANE-001: plane separation catalog + cross-plane gate slice",
+      "safe_to_proceed_from_snapshot": true,
+      "safe_scope": "Spec/manifest/gate fixture only: plane assignments, explicit cross_plane_calls, reviewer labels, per-plane SLO catalog, and one invalid cross-plane fixture.",
+      "provisional_subjects": [
+        "jsonschema.architecture.fixture.plane-assignment",
+        "jsonschema.architecture.fixture.cross-plane-call-invalid"
+      ],
+      "must_not_do": [
+        "Do not mutate production API/runtime code.",
+        "Do not claim ADR-0004 production enforcement beyond the fixture/gate evidence."
+      ],
+      "api_001_reconciliation_needed": "Replace provisional subject IDs with API-001 registry subjects and route any real gate output through the production schema registry/compatibility lane."
+    },
+    {
+      "task_id": "t_9574c74d",
+      "title": "FINOPS-UX-001A: static Cost Explorer budget/anomaly fixture",
+      "safe_to_proceed_from_snapshot": true,
+      "safe_scope": "Static fixture/API contract for one tenant/account/project cost explorer path with budget threshold, anomaly alert, invoice-line/audit pointers, FOCUS/OpenCost labels, and cross-tenant denial behavior.",
+      "provisional_subjects": [
+        "jsonschema.finops.fixture.cost-explorer-budget-anomaly",
+        "jsonschema.finops.fixture.invoice-line-evidence-pointer"
+      ],
+      "required_mock_fields": [
+        "tenant_id",
+        "account_id",
+        "project_id",
+        "resource_id",
+        "resource_type",
+        "resource_group",
+        "cost_center",
+        "workload_class",
+        "compliance_pack",
+        "region",
+        "cell",
+        "meter_dimension",
+        "usage_hour",
+        "quantity",
+        "currency",
+        "money_minor_units",
+        "tax_vat_fields",
+        "price_book_ref_placeholder",
+        "rate_card_ref_placeholder",
+        "invoice_line_id",
+        "operation_id",
+        "audit_chain_ref",
+        "report_event_id",
+        "idempotency_key",
+        "restatement_status",
+        "freeze_status",
+        "data_class"
+      ],
+      "must_not_do": [
+        "Do not invent customer-facing SKU names, real price numbers, real invoices, or founder-ratified pricing decisions.",
+        "Do not implement billing aggregation, invoice ledger, price-book mutation, tax runtime, or external invoice publication."
+      ],
+      "api_001_reconciliation_needed": "Promote the fixture schema into production API/SDK contracts only after API-001 ratifies registry subject, OpenAPI/proto/GraphQL projections, public generation, and SDK compatibility behavior."
+    },
+    {
+      "task_id": "t_c14f66bc",
+      "title": "CONTROLPLANE-UX-001A: read-only Resource Explorer index and operation timeline fixture",
+      "safe_to_proceed_from_snapshot": true,
+      "safe_scope": "Read-only fixture for exactly one representative cloud resource type, resource hierarchy, ORN search/list/detail, nine control-plane facets, and operation-ledger timeline entries.",
+      "provisional_subjects": [
+        "jsonschema.cloud-control-plane.fixture.resource-explorer-resource",
+        "jsonschema.cloud-control-plane.fixture.operation-timeline-entry"
+      ],
+      "required_mock_fields": [
+        "organization_id",
+        "account_id",
+        "project_id",
+        "region",
+        "cell",
+        "resource_group_id",
+        "resource_id",
+        "orn",
+        "service",
+        "resource_type",
+        "lifecycle_state",
+        "owner",
+        "policy_state",
+        "quota_cost",
+        "billing_meters",
+        "audit_events",
+        "slo_tier",
+        "observability_ref",
+        "rollback_state",
+        "reconciliation_state",
+        "operation_id",
+        "client_idempotency_key",
+        "actor",
+        "requested_mutation",
+        "operation_state",
+        "timestamps",
+        "retry_classification",
+        "rollback_compensation_state",
+        "audit_chain_ref",
+        "error_remediation"
+      ],
+      "must_not_do": [
+        "Do not implement provider CRUD, resource registry persistence, operation-ledger persistence, quota/billing/Cedar runtime, OpenTofu/Argo actuation, or production provisioning.",
+        "Do not broaden beyond one representative resource type in the fixture slice."
+      ],
+      "api_001_reconciliation_needed": "Replace mock route/schema envelope with API-001 public/internal versioning contracts before claiming stable control-plane API readiness."
+    },
+    {
+      "task_id": "t_e43dadd0",
+      "title": "DEVPORTAL-001A: create service from approved template provisioning slice",
+      "safe_to_proceed_from_snapshot": true,
+      "safe_scope": "Fixture-backed Developer Portal provisioning flow for approved service template selection, parameter validation, quota/cost preview, policy decision, idempotent operation result, generated artifact references, and audit/evidence rows.",
+      "provisional_subjects": [
+        "jsonschema.developer-portal.fixture.service-catalog-entity",
+        "jsonschema.developer-portal.fixture.provisioning-request",
+        "jsonschema.developer-portal.fixture.provisioning-operation",
+        "jsonschema.developer-portal.fixture.generated-artifact",
+        "jsonschema.developer-portal.fixture.resource-facet-evidence"
+      ],
+      "required_mock_entities": [
+        "ServiceCatalogEntity",
+        "ApprovedTemplate",
+        "TemplateVersion",
+        "TemplateParameter",
+        "ProvisioningRequest",
+        "ProvisioningOperation",
+        "GeneratedArtifact",
+        "PreviewEnvironment",
+        "ResourceFacetEvidence"
+      ],
+      "must_not_do": [
+        "Do not run provider-live provisioning, OpenTofu/Kubernetes apply, Backstage destination work, generated JSON hand edits, or new operator CLI work.",
+        "Do not claim production portal provisioning while API-001 and dependent contracts remain unresolved."
+      ],
+      "api_001_reconciliation_needed": "API-001 must ratify route versions, schema subjects, SDK/generated contract boundaries, and public/internal surface split before implementation can graduate beyond fixture-backed UX/API evidence."
+    }
+  ],
+  "reconciliation_needs_after_api_001": [
+    "Resolve the OpenAPI version mismatch: schema-registry-canonical still names OpenAPI 3.1 while api-contract-ssot-canonical and ADR-0258 require OpenAPI 3.2.0; API-001 owns the migration/ratification.",
+    "Ratify exact microservice, surface, and resource tokens for Apicurio subjects and replace all provisional fixture subjects before registry publication.",
+    "Create or ratify manifest fields for public_api_generations, default_public_version, mesh_api_major_versions, and default_mesh_major_version for any descendant that graduates from fixture to production contract.",
+    "Replace mock public_api_generation values with minted API generations and real changelog/audit-chain rows; keep fixture generation values out of production SDKs.",
+    "Generate or validate REST/OpenAPI, gRPC/proto3, GraphQL SDL/resolver contracts, and AsyncAPI/event contracts from the API-001 Rust-native SSOT before SDK/release work.",
+    "Wire compatibility checks: BACKWARD/FORWARD/FULL defaults, major-version ADR/sunset requirements, and per-subject publication into the cloud-ci required context only after the owner lane implements them.",
+    "Bind ontology object-type schema_revision and ACTIVE -> DEPRECATED -> TOMBSTONED lifecycle to any Resource/Template/Cost/Plane domain objects that become public contracts.",
+    "Reconcile child-card ADR clarification flags separately; this snapshot is non-mutating fixture evidence and does not elevate Proposed ADRs or authorize product/cloud runtime mutation.",
+    "Confirm release-governance impact, rollback/no-deploy rationale, and observation-harvest links when descendants move from fixture/spec to implementation/review."
+  ],
+  "verification_expectations_for_descendants": {
+    "minimum_fixture_checks": [
+      "JSON/schema fixture validates with python3 -m json.tool or stricter owner schema when available.",
+      "Browser/user-story evidence is required for UI descendants; browser N/A is not acceptable for t_9574c74d, t_c14f66bc, or t_e43dadd0.",
+      "Cross-tenant denial/zero-result fixture is present for any tenant-scoped data surface.",
+      "No generated JSON, SDK, face, or production API artifact is hand-edited.",
+      "Kanban handoff cites this snapshot and records non-production fixture claim ceiling."
+    ],
+    "recommended_review_lenses": [
+      "API/contract compatibility",
+      "frontend/accessibility",
+      "security/authz/tenant isolation",
+      "FinOps/accounting where cost data appears",
+      "control-plane/resource lifecycle",
+      "release-governance/no-production-claim"
+    ]
+  }
+}

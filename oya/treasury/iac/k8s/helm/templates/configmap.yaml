@@ -1,3 +1,4 @@
+# Preview planning inventory only; not runtime configuration authority.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,10 +7,12 @@ metadata:
     app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
     oyatie.com/adr-0181: signed-image-promotion-required
     oyatie.com/adr-0349: argocd-managed
+    oyatie.com/authority-scope: preview-planning-non-authoritative
 data:
   microservice: {{ .Values.microservice.id | quote }}
   cargo_package: {{ .Values.microservice.cargoPackage | quote }}
   environment: {{ .Values.config.environment | quote }}
   audit_chain_enabled: {{ .Values.config.auditChainEnabled | quote }}
+  audit_chain_non_claim: "planning-inventory-only-no-runtime-audit-chain-emission"
   image_signature_policy: {{ .Values.config.imagePromotionPolicy | quote }}
   cosign_required: {{ .Values.image.cosign.required | quote }}

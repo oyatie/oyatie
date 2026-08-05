@@ -8,7 +8,7 @@ CARGO ?= cargo
 # infra/gitops (ADR-0375, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
 CLOUDFLARE_DIR := infra/cloudflare
 
-.PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops fleet check-tofu
+.PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops fleet fleet-preflight check-tofu
 
 help:
 	@printf '%s\n' 'Oyatie deployment entrypoints (OpenTofu edge + CAPI/Talos fleet; no SSH troubleshooting)'
@@ -18,6 +18,7 @@ help:
 	@printf '%s\n' '  make plan                   Preview Cloudflare edge changes'
 	@printf '%s\n' '  make apply                  Apply Cloudflare edge changes'
 	@printf '%s\n' '  make fleet                  Show the Talos/CAPI fleet bring-up entrypoints'
+	@printf '%s\n' '  make fleet-preflight        Non-mutating ADR-0375 fleet bootstrap readiness preflight'
 	@printf '%s\n' '  make ops                    Show day-2 ops surface'
 	@printf '%s\n' '  make verify                 Run deployment contract gate + OpenTofu fmt check'
 
@@ -47,10 +48,15 @@ fleet:
 	@printf '%s\n' 'Talos + Cluster API + Argo CD fleet (ADR-0375):'
 	@printf '%s\n' '  Control-plane media : CONTROLPLANE_ENDPOINT=https://<cp-ip>:6443 infra/talos/installation-media/gen-media.sh control-plane'
 	@printf '%s\n' '  Node media    : CONFIG_URL=https://join.oyatie.dev/config infra/talos/installation-media/gen-media.sh node'
-	@printf '%s\n' '  CAPI install  : KUBECONFIG=<control-plane> infra/capi/init.sh   (then infra/capi/crs/render.sh)'
+	@printf '%s\n' '  CAPI install  : KUBECONFIG=<control-plane> infra/capi/init.sh   (then infra/capi/crs/render.sh for CRS ConfigMaps)'
 	@printf '%s\n' '  Spokes        : add cells to infra/capi/clusters/values.yaml, then'
-	@printf '%s\n' '                  helm template oya-spokes infra/capi/clusters -f <cells>.yaml | kubectl apply -f - ; CAPI reconciles'
+	@printf '%s\n' '                  helm template oya-spokes infra/capi/clusters -f <cells>.yaml | kubectl apply -f - ; Talos extraManifests fetch Argo CD CRDs'
+	@printf '%s\n' '                  ApplyOnce CRS installs Cilium + Argo CD controllers; Reconcile CRS applies the root Application'
+	@printf '%s\n' '  Safe preflight: make fleet-preflight (cloud-ci: FLEET_PREFLIGHT_STRICT=1)'
 	@printf '%s\n' '  NOTE: fleet bring-up is hardware-gated + multi-step (boot media on real nodes); this target only PRINTS the sequence.'
+
+fleet-preflight:
+	bash infra/capi/fleet-preflight.sh
 
 ops:
 	@printf '%s\n' 'Day-2 operations surface: https://ops.oyatie.com'

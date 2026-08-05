@@ -11,7 +11,8 @@ use oya_payroll_run_api::{
 };
 use oya_payroll_run_infrastructure::{
     PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH, PAYROLL_HEALTH_PATH,
-    PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH, PAYROLL_TRIAL_CLOSE_PATH, dispatch_payroll_request,
+    PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH, PAYROLL_STATUTORY_CALCULATION_PREVIEW_PATH,
+    PAYROLL_TRIAL_CLOSE_PATH, PAYROLL_YEAR_END_SETTLEMENT_PREVIEW_PATH, dispatch_payroll_request,
     payroll_runtime_routes, payroll_server_config,
 };
 
@@ -106,12 +107,22 @@ fn payroll_runtime_rejects_invalid_json_and_domain_errors_without_panicking() {
 #[test]
 fn payroll_runtime_manifest_and_health_preserve_honest_non_claims() {
     let routes = payroll_runtime_routes();
-    assert_eq!(routes.len(), 4);
     assert!(
         routes
             .iter()
             .any(|route| route.path == PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH)
     );
+    assert!(
+        routes
+            .iter()
+            .any(|route| route.path == PAYROLL_STATUTORY_CALCULATION_PREVIEW_PATH)
+    );
+    assert!(
+        routes
+            .iter()
+            .any(|route| route.path == PAYROLL_YEAR_END_SETTLEMENT_PREVIEW_PATH)
+    );
+    assert!(routes.iter().any(|route| route.path == PAYROLL_HEALTH_PATH));
 
     let config = payroll_server_config();
     assert_eq!(config.max_body_bytes, 64 * 1024);
@@ -127,9 +138,13 @@ fn payroll_runtime_manifest_and_health_preserve_honest_non_claims() {
     let body: serde_json::Value = serde_json::from_slice(&health.body).expect("health json");
     assert_eq!(health.status, 200);
     assert_eq!(body["runtimeAdapter"], "router-ready");
+    assert_eq!(body["closeHealthGate"], "domain-local-only");
+    assert_eq!(body["rollbackObservability"], "metadata-only");
+    assert_eq!(body["productionCloseController"], false);
     assert_eq!(body["deployedListener"], false);
     assert_eq!(body["storageAttached"], false);
     assert_eq!(body["workflowDispatch"], false);
+    assert_eq!(body["opentofuOpsConvergence"], false);
     assert_eq!(body["statutoryFilingRails"], false);
 }
 

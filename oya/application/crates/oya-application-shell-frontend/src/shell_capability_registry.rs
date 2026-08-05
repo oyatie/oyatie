@@ -187,6 +187,17 @@ const REGISTERED_MODULES: &[RegisteredModule] = &[
         description: "Team communication with care-context labels",
         action_label: "Open messages",
     },
+    RegisteredModule {
+        capability_id: "customer-support-advisory",
+        display_name: "Customer Support",
+        module_id: "support-advisory",
+        required_action: "support.view",
+        route_prefix: "/support",
+        upstream_service: "oya-support-advisory",
+        group: "Operations",
+        description: "Support cases, diagnostic bundles, and trusted-advisor recommendations",
+        action_label: "Open support",
+    },
 ];
 
 /// PDP actions granted to each operator context.
@@ -203,6 +214,7 @@ fn granted_actions(context: OperatorContext) -> BTreeSet<&'static str> {
             "finops.review",
             "workflow.design",
             "audit.inspect",
+            "support.view",
         ]
         .into_iter()
         .collect(),
@@ -237,10 +249,9 @@ fn contextual_copy(
         (OperatorContext::CorporateOffice, "workflow-studio") => {
             Some(("Draft team workflows from templates", "Draft workflow"))
         }
-        (OperatorContext::HealthcareClinician, "workflow-studio") => Some((
-            "Draft safe care coordination workflows",
-            "Draft care flow",
-        )),
+        (OperatorContext::HealthcareClinician, "workflow-studio") => {
+            Some(("Draft safe care coordination workflows", "Draft care flow"))
+        }
         _ => None,
     }
 }

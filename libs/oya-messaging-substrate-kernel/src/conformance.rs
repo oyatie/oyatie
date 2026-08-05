@@ -72,11 +72,13 @@ fn scratch_subscription(
     SubscriptionName::parse(name).map_err(|e| violation(check, e.to_string()))
 }
 
-fn envelope(check: &'static str, key: Option<&str>, ordinal: u32) -> Result<MessageEnvelope, ConformanceViolation> {
+fn envelope(
+    check: &'static str,
+    key: Option<&str>,
+    ordinal: u32,
+) -> Result<MessageEnvelope, ConformanceViolation> {
     let key = match key {
-        Some(value) => {
-            Some(MessageKey::parse(value).map_err(|e| violation(check, e.to_string()))?)
-        }
+        Some(value) => Some(MessageKey::parse(value).map_err(|e| violation(check, e.to_string()))?),
         None => None,
     };
     Ok(MessageEnvelope {

@@ -449,11 +449,11 @@ clickhouse = { version = "0.13", default-features = false, features = ["lz4"] }
 
 # Kubernetes client + controller-runtime + API types (ADR-0376 managed-k8s
 # control-plane-host adapter seam; policy_ref ADR-0092 layer_seam adapter-only).
-# Isolated to oya-managed-k8s-control-plane-host-adapter-capi ONLY — the live
-# Kamaji TenantControlPlane / Talos control-plane CRD reconciliation is
-# honest-deferred (registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration),
-# so the adapter references kube-rs's dynamic API surface and returns a typed
-# Unimplemented rather than faking reconciliation. See registry/dependency-rationales.json.
+# Isolated to oya-managed-k8s-control-plane-host-adapter-capi ONLY — the hosted
+# tier now creates/reads/deletes the LTS-pinned Kamaji TenantControlPlane through
+# kube-rs's dynamic API, while the dedicated tier records an opaque Talos/CAPI
+# reference path without holding tenant kubeconfig material. See
+# registry/dependency-rationales.json.
 kube = { version = "3.1", default-features = false, features = ["client", "runtime", "rustls-tls"] }
 kube-runtime = { version = "3.1", default-features = false }
 k8s-openapi = { version = "0.27", default-features = false, features = ["latest"] }

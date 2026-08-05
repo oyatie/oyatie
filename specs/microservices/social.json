@@ -9,7 +9,124 @@
     "status": "Draft",
     "owner_team": "communications-service-council",
     "created_at": "2026-05-17T10:20:00Z",
-    "purpose": "Community Social microservice PRD: visual-social product combining Instagram + Snapchat patterns — photo/video feed, stories, reels, AR effects, close-friends rings, collaborative posts, DM integration — with strict professional/personal dual-context isolation and deep Workflow/Ontology/Foundry ecosystem integration."
+    "authority_lock_task": "t_df502234",
+    "purpose": "Community Social microservice PRD: visual-social product combining Instagram + Snapchat patterns — photo/video feed, stories, reels, AR effects, close-friends rings, collaborative posts, DM integration — with strict professional/personal dual-context isolation and deep Workflow/Ontology/intelligence ecosystem integration. Former Foundry wording is retained only as historical/provenance context through the source map below."
+  },
+  "authority_resolution": {
+    "current_authority": "/specs/microservices/social.json",
+    "prd_status_disposition": "Draft retained explicitly; this card locks source-map authority for RED fixture/contract planning only and does not promote the PRD to Accepted or authorize Build fanout.",
+    "manifest_index_ref": "/specs/microservices/manifests-index.json#microservices[name=social]",
+    "manifest_index_pointer_state": "The manifests-index social row points to /oya/social/manifest.json plus this Draft PRD; fd001_material=false; it is not a runtime/product-readiness claim.",
+    "manifest_inventory_ref": "/oya/social/manifest.json",
+    "manifest_inventory_state": "Tracked service inventory/provenance only. Legacy microservices/social/* path references inside inventory must be mapped to current /oya/social/* paths when verified, or quarantined as unresolved legacy references; microservices/social/manifest.json is absent and must not be restored.",
+    "layout_authority": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-24-28",
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-60-63",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-24-27",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-53-62"
+    ],
+    "canonical_service_root": "/oya/social/",
+    "community_boundary": "Community FD-001 authority may be used for boundary consistency only. It does not replace this social-specific source lock and does not authorize social implementation work.",
+    "retired_authority_mapping": {
+      "foundry": {
+        "status": "retired_historical_term",
+        "absorbed_by": "intelligence",
+        "rule": "Active model/agent/moderation/discovery scope routes through current intelligence plus Workflow/Ontology contracts; do not create active Foundry backlog from this Draft PRD."
+      },
+      "shorts": {
+        "status": "retired_service_absorbed_as_social_media_flavor",
+        "authority_adr": "docs/decisions/ADR-0334-shorts-microservice-merged-into-social.md",
+        "rule": "Short-video requirements may remain in social as a media flavor, but standalone shorts service work is retired/provenance only."
+      }
+    },
+    "claim_boundary": "Source authority for planning, source-map validation, RED fixture/contract decomposition, and review handoff only. No product code, runtime handler, storage adapter, deployment, live SLO, production readiness, GA, external availability, Release Please metadata, generated JSON edit, or customer-facing readiness claim is made by this artifact."
+  },
+  "source_reference_map": {
+    "verified_current_paths": [
+      {
+        "category": "service_root",
+        "current_path": "oya/social/",
+        "authority_use": "canonical service-local source/inventory root under ADR-0131 as amended by ADR-0512",
+        "fanout_boundary": "inspectable source/provenance; not readiness evidence without RED/Build/review gates"
+      },
+      {
+        "category": "rest_contract",
+        "current_path": "oya/social/contracts/openapi/social.yaml",
+        "authority_use": "service-local social REST source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate OpenAPI shape and expected dual-context denials before handlers depend on it"
+      },
+      {
+        "category": "async_contract",
+        "current_path": "oya/social/contracts/asyncapi/social-events.yaml",
+        "authority_use": "service-local social async/event source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate event schemas, idempotency keys, and audit envelopes"
+      },
+      {
+        "category": "proto_contract",
+        "current_path": "oya/social/contracts/proto/social.proto",
+        "authority_use": "service-local social proto source candidate for future compatibility checks",
+        "fanout_boundary": "future RED cards must validate proto compatibility and generated projection boundaries"
+      },
+      {
+        "category": "privacy_security",
+        "current_path": "oya/social/dpia/dpia.md",
+        "authority_use": "DPIA/procedure context for personal/professional context isolation and moderation evidence",
+        "fanout_boundary": "wave doctrine-propagation DPIA only; product data-flow/privacy plan must be expanded before implementation"
+      },
+      {
+        "category": "community_boundary",
+        "current_path": "specs/microservices/community.json",
+        "authority_use": "FD-001 community source lock for boundary consistency checks only",
+        "fanout_boundary": "not a substitute social implementation authority"
+      }
+    ],
+    "legacy_manifest_reference_disposition": [
+      {
+        "legacy_pattern": "microservices/social/manifest.json",
+        "current_path": null,
+        "disposition": "absent_retired_manifest_pointer; do not restore or cite as active authority"
+      },
+      {
+        "legacy_pattern": "microservices/social/contracts/openapi/social.yaml",
+        "current_path": "oya/social/contracts/openapi/social.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/social/contracts/asyncapi/social-events.yaml",
+        "current_path": "oya/social/contracts/asyncapi/social-events.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/social/contracts/proto/social.proto",
+        "current_path": "oya/social/contracts/proto/social.proto",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/social/capabilities/T0-suggest.yaml",
+        "current_path": "oya/social/capabilities/T0-suggest.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/social/capabilities/T1-assist.yaml",
+        "current_path": "oya/social/capabilities/T1-assist.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/social/capabilities/T2-auto.yaml",
+        "current_path": "oya/social/capabilities/T2-auto.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/social/slos/*.openslo.yaml",
+        "current_path": "oya/social/slos/*.openslo.yaml",
+        "disposition": "mapped_to_current_service_root; individual SLOs must be replayed by future RED/Build cards before becoming gate evidence"
+      },
+      {
+        "legacy_pattern": "microservices/social/IP-001..IP-015*.md",
+        "current_path": null,
+        "disposition": "quarantined_unresolved_legacy_ip_references; oya/social/manifest.json intentionally omits stale ips[*].file pointers for these absent legacy paths; future workers must not recreate microservices/social and must instead author current Plan/Spec cards under accepted allowed paths after review approval"
+      }
+    ]
   },
   "identity": {
     "product_id": "social",
@@ -228,7 +345,7 @@
       "GA": [
         "full AR effects SDK (third-party effect developers)",
         "creator monetization (personal: fan subscriptions; professional: sponsored content program)",
-        "Foundry agentic discovery feed (relevance model per context)",
+        "intelligence agentic discovery feed (successor to retired Foundry vocabulary; relevance model per context)",
         "regional packs: KR, US, EU locale UX + content-moderation overlays",
         "Live streaming (personal and professional)",
         "Ads integration (context-isolated ad auction; personal ads never use work data)"
@@ -281,12 +398,13 @@
       "boundary_contract": "All cross-product reads/writes are mediated by Workflow and Ontology contracts; PR #130 ships the contract text only.",
       "enforcement_status": "advisory_until_community_social_expansion_gates"
     },
-    "foundry": {
+    "intelligence": {
       "contracts": [
-        "FeedRelevanceModel — Foundry agentic model surfaces per-context ranked feed",
-        "ContentModerationAgent — Foundry agent flags policy-violating content in professional context",
-        "CreatorDiscoveryAgent — Foundry agent surfaces creator recommendations per context"
-      ]
+        "FeedRelevanceModel — intelligence successor capability surfaces per-context ranked feed",
+        "ContentModerationAgent — intelligence successor capability flags policy-violating content in professional context",
+        "CreatorDiscoveryAgent — intelligence successor capability surfaces creator recommendations per context"
+      ],
+      "legacy_foundry_disposition": "Former Foundry terms are retired/provenance only; current active scope routes through intelligence plus Workflow/Ontology contracts."
     },
     "workspace": "professional social feed integrates with Workspace newsfeed via Workflow cross-post contract; no direct import",
     "ads": "context-isolated ad auction; personal ad signals never cross to professional context; professional sponsored content requires explicit campaign consent"
@@ -329,16 +447,16 @@
         "enterprise-grade dual-context isolation",
         "audit chain for professional stories",
         "AR without biometric persistence",
-        "Foundry agentic discovery replacing algorithmic opacity"
+        "intelligence successor discovery replacing algorithmic opacity"
       ],
-      "measurable_target": "story ephemeral purge < 60s; AR in-session only; Foundry feed relevance p95 < 200ms"
+      "measurable_target": "story ephemeral purge < 60s; AR in-session only; intelligence feed relevance p95 < 200ms"
     }
   ],
   "industry_patterns_adopted": [
     {
       "pattern": "ephemeral_stories_ttl",
       "source": "Instagram Stories, Snapchat",
-      "implementation": "story artifact carries ttl_expires_at; a scheduled Foundry task purges CDN + index + Ontology node on expiry",
+      "implementation": "story artifact carries ttl_expires_at; a scheduled Workflow/intelligence successor task purges CDN + index + Ontology node on expiry",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
@@ -359,7 +477,7 @@
     {
       "pattern": "ar_effect_marketplace",
       "source": "Instagram / Snapchat Lens Studio",
-      "implementation": "third-party AR effect bundles distributed via Foundry catalog; effects run client-side WebAssembly; face-mesh data never leaves device",
+      "implementation": "third-party AR effect bundles distributed via the current intelligence/capability catalog successor; effects run client-side WebAssembly; face-mesh data never leaves device",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
@@ -395,8 +513,8 @@
     },
     {
       "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
-      "why": "Foundry relevance model must be auditable and explainable per context",
-      "detection_lane": "oya-governance-foundry-model-auditability",
+      "why": "intelligence relevance model successor must be auditable and explainable per context; retired Foundry wording is provenance only",
+      "detection_lane": "oya-governance-intelligence-model-auditability",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
@@ -454,7 +572,7 @@
     {
       "dimension": "unit_cost_target",
       "target": "planning target: <= USD 0.20 per 1,000 feed loads excluding media egress",
-      "planned_verification_ref": "oya gate validate community-social-cost-envelope",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: community-social-cost-envelope",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "FinOps target only; no cost gate ships in PR #130."
     }
@@ -482,12 +600,12 @@
     },
     {
       "gate": "doc-coverage",
-      "check": "oya gate validate community-social-doc-coverage",
+      "check": "cloud-ci/Rust gate packet: community-social-doc-coverage",
       "must_pass": true
     },
     {
       "gate": "regional-pack-KR",
-      "check": "oya gate validate community-social-regional-pack --pack KR",
+      "check": "cloud-ci/Rust gate packet: community-social-regional-pack --pack KR",
       "must_pass": true
     }
   ],
@@ -704,7 +822,7 @@
       "id": "R-SOCIAL-03",
       "severity": "high",
       "risk": "algorithmic feed creates filter bubble without transparency",
-      "mitigation": "Foundry relevance model is auditable and explainable; user can inspect feed signals",
+      "mitigation": "intelligence relevance model successor is auditable and explainable; user can inspect feed signals",
       "owner": "communications-service-council"
     }
   ],
@@ -814,7 +932,7 @@
       },
       {
         "name": "manual ops runbooks as deployment authority",
-        "reason": "OpenTofu, root Makefile targets, and Rust oya gates own deployment and validation"
+        "reason": "OpenTofu, root Makefile targets, and Rust cloud-ci gate packets own deployment and validation"
       }
     ]
   },
@@ -838,7 +956,7 @@
   "patterns": [
     {
       "pattern": "ephemeral_stories_ttl",
-      "when_to_use": "story artifact carries ttl_expires_at; a scheduled Foundry task purges CDN + index + Ontology node on expiry",
+      "when_to_use": "story artifact carries ttl_expires_at; a scheduled Workflow/intelligence successor task purges CDN + index + Ontology node on expiry",
       "reference": "Instagram Stories, Snapchat"
     },
     {
@@ -853,7 +971,7 @@
     },
     {
       "pattern": "ar_effect_marketplace",
-      "when_to_use": "third-party AR effect bundles distributed via Foundry catalog; effects run client-side WebAssembly; face-mesh data never leaves device",
+      "when_to_use": "third-party AR effect bundles distributed via the current intelligence/capability catalog successor; effects run client-side WebAssembly; face-mesh data never leaves device",
       "reference": "Instagram / Snapchat Lens Studio"
     },
     {
@@ -880,39 +998,39 @@
     },
     {
       "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
-      "why_forbidden": "Foundry relevance model must be auditable and explainable per context",
-      "detection_lane": "oya-governance-foundry-model-auditability"
+      "why_forbidden": "intelligence relevance model successor must be auditable and explainable per context; retired Foundry wording is provenance only",
+      "detection_lane": "oya-governance-intelligence-model-auditability"
     }
   ],
   "goals": {
     "scalability": {
       "target": "visual feed, stories, and social graph support multi-region personal and professional audiences",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/social.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/social.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "security": {
       "target": "feed, search, suggest, AR effects, and social graph are separated by context and ownership pillar",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/social.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/social.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "performance": {
       "target": "feed, story, post composer, and AR session hot paths stay under 150ms p95",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/social.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/social.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "efficiency": {
       "target": "media storage, feed fanout, and creator analytics are metered per context and tenant",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/social.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/social.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "reliability": {
       "target": "99.95% GA availability with story TTL purge and audit replay coverage",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "oya gate validate product-prd-json --product specs/microservices/social.json",
+      "planned_verification_ref": "cloud-ci/Rust gate packet: product-prd-json --product specs/microservices/social.json",
       "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "enforcement_status": "advisory_until_community_social_expansion_gates",

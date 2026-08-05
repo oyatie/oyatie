@@ -99,8 +99,8 @@
       "artifact_id": "cloud-ci-enforcement-liveness-face",
       "path": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/enforcement-liveness.generated.json",
       "artifact_class": "main-materialized-aggregate",
-      "materialization_mode": "merge-candidate-regenerated",
-      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "materialization_mode": "ci-artifact-only",
+      "merge_policy": "not-tracked-in-git",
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "tools/hooks/*.sh",
@@ -108,8 +108,8 @@
         ".codex/hooks.json",
         "oya-ci.toml"
       ],
-      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift then byte-compares the materialized workspace output against a fresh regeneration.",
-      "public_product_contract": "Enforcement liveness is generated hook wiring metadata and must be regenerated rather than hand-merged.",
+      "final_tree_validation": "cloud-ci materializes this face from the checked-out candidate tree before gates consume it; registry-drift byte-compares the materialized workspace output against a fresh regeneration, but the face is no longer a tracked merge surface.",
+      "public_product_contract": "Enforcement liveness is generated hook wiring metadata; it is CI-materialized and byte-parity checked rather than hand-merged or tracked in git.",
       "generator": {
         "runner": "buck2",
         "generator_target": "//cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app:oya-cloud-ci-accounting-registry-app-bin",

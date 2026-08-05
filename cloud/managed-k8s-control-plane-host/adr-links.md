@@ -11,11 +11,12 @@
 | [ADR-0131](../../docs/decisions/ADR-0131-per-microservice-flat-layout.md) | Per-microservice flat layout | Single-concern flat layout; `src/` canonical crate root. |
 | [ADR-0132](../../docs/decisions/ADR-0132-no-grouping-microservices.md) | No platform/bundle microservices | This is a single-concern microservice (control-plane-host), not a suite. |
 
-## Deferred / follow-on
+## Live-integration pins / follow-on
 
-- `registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration`
-  — the live Kamaji `TenantControlPlane` / Talos control-plane CRD reconcile (a
-  follow-on ADR owns the real CRD wiring + the concrete Kamaji/CAPI-provider
-  version pin in `registry/lts-pins.yaml`).
+- `registry/lts-pins.yaml#pins.managed-k8s-control-plane-host` — concrete
+  Kamaji/CAPI/Talos/kube/Cilium/Istio live-integration pin authority for this
+  service.
+- Live/sandbox management-cluster proof remains a separate follow-on artifact:
+  target, credentials boundary, objects created/deleted, rollback, and approval.
 - `oya-managed-k8s-commercial-ga` (named in ADR-0376 §Decision) — billing, public
   SLA, DPIA, external multi-tenant GA.
