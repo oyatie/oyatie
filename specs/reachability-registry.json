@@ -402,6 +402,14 @@
       "prefix": "infra/arc/README.md"
     },
     {
+      "anchor": "ADR-0630 D9 / issue #1504 + PR #1564 CI-heavy: exact human operator runbook for unlocking general ARC maxRunners=4 via dual-worker 120Gi workspace admission and DoNotSchedule topology spread; agents do not apply. breadth: exact path only",
+      "prefix": "infra/arc/RUNBOOK-scale-runners.md"
+    },
+    {
+      "anchor": "ADR-0630 capacity reconsider 2026-08-05: exact CI-heavy Talos CPU/RAM/disk profile and host budget for the merge-authority laptop cell (target 8 vCPU/48 GiB workers, maxRunners=4). breadth: exact path only",
+      "prefix": "infra/arc/CAPACITY-PROFILE-CI-HEAVY.md"
+    },
+    {
       "anchor": "ADR-0630 D5/D9 / issue #1504: exact source-contract test locking bounded Talos selection, separate provisioner identity, both runner workspace mounts, concurrency, and telemetry declarations.",
       "prefix": "infra/arc/tests/ci_workspace_capacity.rs"
     },

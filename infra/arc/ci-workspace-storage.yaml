@@ -79,8 +79,12 @@ metadata:
   name: local-path-config
   namespace: oya-ci-workspace-storage
 data:
+  # Dual-worker general: both workers admit /var/mnt/ci-workspace-general so the
+  # general scale set can place one 44Gi ephemeral claim per 48Gi physical volume
+  # (maxRunners=2 with required hostname anti-affinity). live-postgres stays on
+  # worker-2 only, on a distinct path/volume. Fail-closed: no DEFAULT_PATH entry.
   config.json: |-
-    {"nodePathMap":[{"node":"oya-talos-worker-1","paths":["/var/mnt/ci-workspace-general"]},{"node":"oya-talos-worker-2","paths":["/var/mnt/ci-workspace-live-postgres"]}]}
+    {"nodePathMap":[{"node":"oya-talos-worker-1","paths":["/var/mnt/ci-workspace-general"]},{"node":"oya-talos-worker-2","paths":["/var/mnt/ci-workspace-general","/var/mnt/ci-workspace-live-postgres"]}]}
   setup: |-
     #!/bin/sh
     set -eu
