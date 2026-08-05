@@ -1,0 +1,43 @@
+{
+  "pr": 1567,
+  "head": "b27092d8ce06c2c4a5dc0377cf2a7405e4e27235",
+  "critic_id": "A",
+  "verdict": "APPROVE",
+  "lenses": [
+    "cartesian_doubt",
+    "red_team",
+    "chestertons_fence"
+  ],
+  "summary": "Move-plan hygiene only: inventory 11 rows, delete 8 spent landed plans with old_paths GONE / new_paths PRESENT / no hard consumers; KEEP load-bearing ci-move-plan (gate_registration SSOT), PARKED remainder, BLOCKED kernel. No codemod apply. Hosted CI reds were OS file-watch limit infra flakes, not content.",
+  "findings": [
+    {
+      "severity": "info",
+      "claim": "Exactly eight spent plans deleted; residual retains ci + PARKED + BLOCKED",
+      "evidence": "git diff origin/dev...HEAD -- specs/reorg/; ls specs/reorg/ after rebase shows ci-move-plan, ci-graph-additions, PARKED, BLOCKED, plus nativelink from #1563 (out of inventory scope)"
+    },
+    {
+      "severity": "info",
+      "claim": "ci-move-plan correctly retained as load-bearing SSOT",
+      "evidence": "gate_registration.rs reads specs/reorg/ci-move-plan.json; precedent cfcbcf967 restore after unsafe delete"
+    },
+    {
+      "severity": "info",
+      "claim": "No live hard consumers of deleted plans",
+      "evidence": "rg consumers only ADRs/evidence historical cites + hygiene inventory; no gate_registration or codemod path refs"
+    },
+    {
+      "severity": "info",
+      "claim": "No second active move execution / no codemod apply in this PR",
+      "evidence": "diff is deletes + evidence JSON only"
+    },
+    {
+      "severity": "low",
+      "claim": "Inventory head stamp is pre-rebase; disposition claims still hold on tip",
+      "evidence": "evidence authority head is inventory-time SHA; path disposition verified on rebased tip b27092d8c / post-evidence tip"
+    }
+  ],
+  "blockers": [],
+  "severity_max": "low",
+  "reviewed_at": "2026-08-05T19:15Z",
+  "reviewer": "dual-critic-A"
+}
