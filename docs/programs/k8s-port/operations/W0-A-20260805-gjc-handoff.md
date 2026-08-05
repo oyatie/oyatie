@@ -39,7 +39,7 @@ This section supersedes the historical “when authored” statements later in t
 - **Pushed branch:** `agent/k8s-port-w0a-20260805`.
 - **Signed source/content commit:** `7f9fe56b650e5178fb9ab9fbcacecebba06a3ce4` (`feat(k8s): admit deterministic Go-to-Rust port W0`).
 - **Signed producer-settle commit:** `a2f9ca8317ba4ba0c7a669b04a8b3830ebfe7264` (`chore: settle k8s port governance projections`).
-- **Draft PR:** <https://github.com/jason931225/oyatie/pull/1561>, base `dev`, head `a2f9ca8317ba4ba0c7a669b04a8b3830ebfe7264`, mergeable with no content conflict when last inspected.
+- **Draft PR:** <https://github.com/jason931225/oyatie/pull/1561>, base `dev`, mergeable with no content conflict when last inspected. The live PR head is authoritative and is intentionally not hardcoded because committing this journal advances it; verify it against local HEAD and the pushed branch before acting.
 - **Protected pipeline:** the `oya-ci-required` jobs are queued/pending. They are not green evidence. The PR has no formal GitHub review and remains blocked/draft.
 - **Durable tracking:** Beads `oyatie-7xf` remains `in_progress` with external reference `gh-1561`; the Ultragoal ledger records stabilization, push, PR, review, and model-fallback facts.
 - **Delegation fallback:** Fable-backed lanes may trigger cybersecurity restrictions. Use another bundled role/model or bounded inline work, record the fallback in Beads and the Ultragoal ledger, and preserve every acceptance and review gate.
