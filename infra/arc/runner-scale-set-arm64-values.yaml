@@ -21,10 +21,14 @@ controllerServiceAccount:
 # toolchain. That is a KNOWN, DELIBERATE gap at this slice — a warm pool is
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
-# This set has its own physically separate 48 Gi Talos user volume. Local-path
-# does not enforce the advertised 44 Gi request, so maxRunners=1 prevents a
-# second claim from sharing that filesystem; no 4 Gi reserve is claimed.
-maxRunners: 1
+#
+# maxRunners=4 on two general workers (≈2 per node) after expanding each
+# general user volume to 120 Gi on the 150 Gi data disk (ADR-0630 capacity
+# reconsider 2026-08-05). Local-path still does not enforce claim size; topology
+# spread DoNotSchedule maxSkew=1 caps ~2 general runners per hostname so
+# 2×44 Gi + reserve fits under 120 Gi. Host has headroom for larger Talos VMs
+# (see CAPACITY-PROFILE-CI-HEAVY). Does not activate CAS warm / RE.
+maxRunners: 4
 minRunners: 0
 listenerMetrics:
   gauges:
@@ -60,9 +64,30 @@ template:
     # Without this a runner for THIS scale set can schedule onto a node of
     # another architecture and silently build for the wrong platform, poisoning
     # that platform's buck2 cache namespace (action keys include cpu:/os:).
+    # Hostname is intentionally *not* pinned: dual-worker general capacity
+    # spreads across oya-talos-worker-{1,2} via required anti-affinity below.
+    # WaitForFirstConsumer + nodePathMap admit general only on those two nodes.
     nodeSelector:
       kubernetes.io/arch: arm64
-      kubernetes.io/hostname: oya-talos-worker-1
+    # Soft anti-affinity + hard topology spread: allow up to ~2 general runners
+    # per hostname (maxRunners=4 across 2 workers) while still preferring spread.
+    # DoNotSchedule maxSkew=1 on 4 pods / 2 nodes => 2+2. See ADR-0630.
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  oya.io/ci-cell: general
+              topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            oya.io/ci-cell: general
     securityContext:
       fsGroup: 1001
       fsGroupChangePolicy: OnRootMismatch
@@ -124,8 +149,9 @@ template:
             # by the 44Gi generic ephemeral PVC instead.
             ephemeral-storage: "4Gi"
           limits:
-            # 8Gi memory plus maxRunners=1 leaves more than 20Gi of the current
-            # 28.6Gi allocatable node for co-tenants.
+            # 8Gi memory per runner; with required anti-affinity each arm64
+            # worker hosts at most one general runner, leaving headroom for
+            # co-tenants (and on worker-2 the live-postgres cell when scheduled).
             memory: "8Gi"
             # The root filesystem now carries only image/writable-layer growth.
             # Keep a hard ceiling so tool installers cannot refill Talos

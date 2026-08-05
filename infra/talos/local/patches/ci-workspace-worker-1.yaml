@@ -12,10 +12,14 @@ name: ci-workspace-general
 provisioning:
   diskSelector:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
-  # Local Path Provisioner does not enforce PVC byte requests. A dedicated
-  # filesystem plus maxRunners=1 is the enforceable blast-radius boundary.
-  minSize: 48GiB
-  maxSize: 48GiB
+  # Local Path Provisioner does not enforce PVC byte requests. Blast radius is
+  # Up to two 44Gi general claims per 120Gi physical volume per node
+  # (2×44 + 4 Gi reserve). maxRunners=4 is enforced by dual-worker admission +
+  # DoNotSchedule topology spread (≤2 general runners per hostname), not by
+  # trusting local-path size enforcement. CPU/RAM for the guest itself: see
+  # infra/arc/CAPACITY-PROFILE-CI-HEAVY.md (target 8 vCPU / 48 GiB workers).
+  minSize: 120GiB
+  maxSize: 120GiB
 filesystem:
   type: xfs
   projectQuotaSupport: true

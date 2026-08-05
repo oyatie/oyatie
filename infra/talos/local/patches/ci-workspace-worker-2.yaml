@@ -12,11 +12,14 @@ name: ci-workspace-general
 provisioning:
   diskSelector:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
-  # Unadmitted rollback reserve. The provisioner's fail-closed nodePathMap does
-  # not expose this path while the general runner is placed on worker 1. Keep it
-  # until the dual-worker rollout is proven; removal is a separate destructive act.
-  minSize: 48GiB
-  maxSize: 48GiB
+  # Dual-worker general cell: admitted by ci-workspace-storage.yaml nodePathMap
+  # so the general scale set can place one runner here while worker-1 hosts the
+  # Up to two 44Gi general claims on this 120Gi volume (paired with worker-1).
+  # maxRunners=4 uses topology spread across both workers. Live-postgres remains
+  # a separate path/volume on this node. Guest CPU/RAM target: CAPACITY-PROFILE.
+  # Removal is a separate destructive act after scale-set capacity is reduced.
+  minSize: 120GiB
+  maxSize: 120GiB
 filesystem:
   type: xfs
   projectQuotaSupport: true
