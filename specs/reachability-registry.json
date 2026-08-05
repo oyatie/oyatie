@@ -424,6 +424,14 @@
     {
       "anchor": "ADR-0556 D2 + ADR-0560 / issues #1551 and #1534: exact suspended, zero-replica commissioning manifest for the CAS writer/reader network and workload-identity proof. It is repository-side evidence only until explicit activation after Cilium/Hubble and secret recovery; it grants no live apply, warm-read, or remote-execution authority.",
       "prefix": "infra/arc/cas-network-proof.k8s.yaml"
+    },
+    {
+      "anchor": "ADR-0637 + ADR-0638: the machine-readable Kubernetes Go-to-Rust W0 policy corpus (immutable upstream pin, whole-corpus scope, governed divergence ledger, and fail-closed licensing requirements) is the reviewed source of truth for the oya-port program and its R-DOC/gate consumers.",
+      "prefix": "specs/k8s-port/"
+    },
+    {
+      "anchor": "ADR-0637 + ADR-0638 §Records: the lane-first Kubernetes port program records (operations, reusable prescriptions, and doctrine) are the R-DOC-governed procedural memory for mechanical upstream absorption; chronology is secondary and binding doctrine graduates to ADRs.",
+      "prefix": "docs/programs/k8s-port/"
     }
   ]
 }

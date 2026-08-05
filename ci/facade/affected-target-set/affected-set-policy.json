@@ -196,6 +196,21 @@
     "specs/markdown-retirement-policy.json": [
       "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
     ],
+    "docs/programs/k8s-port/**": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "specs/port-rules/**": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "specs/k8s-port/rules/**": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
     "docs/**": [],
     "**/*.md": [],
     "**/*.mdx": [],
