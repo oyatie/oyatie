@@ -70,10 +70,22 @@ env:
 
 # Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
 # collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
-# PR supersession is different: an older head SHA can never satisfy branch protection after a newer
-# head exists, so keep only the newest run per PR. Push / merge_group / manual runs retain the full
-# non-cancelling surface-all behavior for integration evidence. Group by workflow name instead of a
-# repository-specific literal so the pattern remains reusable by the owned cloud-ci adapter.
+#
+# Concurrency (ADR-0639 D6; Wave4 scarce-runner queue hygiene): per-PR group with
+# cancel-in-progress so superseded heads free scarce runners. Bun superseding-run lesson:
+# cancel stale work to drain the queue; cancel is never a merge-green substitute — only a
+# successful oya-ci-required on the current head admits.
+#
+# PR supersession: an older head SHA can never satisfy branch protection after a newer head
+# exists, so keep only the newest run per PR. Push / merge_group (Tide) / workflow_dispatch
+# retain non-cancelling surface-all behavior (`cancel-in-progress` is false unless
+# event_name == pull_request). Tide merge_group checks_requested runs share no PR-number
+# key with open-PR synchronize runs (pull_request.number is empty on merge_group; fallback
+# is github.sha), so a PR push cannot cancel an in-flight merge queue validation and a
+# merge_group run cannot cancel an open PR's work.
+#
+# Group by workflow name instead of a repository-specific literal so the pattern remains
+# reusable by the owned cloud-ci adapter.
 #
 # CI-CLASS-FIX (trunk self-cancellation, measured 2026-08-02): the non-PR fallback used to be
 # `github.ref`, which on a `push` to dev is the CONSTANT `refs/heads/dev` — so every trunk commit
@@ -86,12 +98,12 @@ env:
 # successor created 00:00:53), while run 30723769427 held the single running slot for 2h10m. That is
 # pending eviction, not runner-fleet starvation and not `cancel-in-progress`.
 #
-# Keying the non-PR arm on `github.sha` gives every trunk commit its own group, so each one gets its
-# own verdict. PR grouping is UNCHANGED and still keyed on the PR number: superseding an older head
-# SHA is correct there, because an older head can never satisfy branch protection once a newer head
-# exists. `cancel-in-progress` needs no change — it already evaluates false for push/merge_group, and
-# per-SHA groups make it moot there (a re-run of the same SHA queues behind rather than killing the
-# in-flight one). The 4 cancelled runs that DID schedule jobs are a separate, unrelated cause.
+# Keying the non-PR arm on `github.sha` (NOT github.ref) gives every trunk / merge_group commit
+# its own group, so each one gets its own verdict. Do not "simplify" back to github.ref — that
+# reopens the measured trunk pending-eviction class. PR grouping is UNCHANGED and still keyed
+# on the PR number: superseding an older head SHA is correct there. `cancel-in-progress` is
+# already false for push/merge_group; per-SHA groups make pending eviction moot there (a re-run
+# of the same SHA queues behind rather than killing the in-flight one).
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
