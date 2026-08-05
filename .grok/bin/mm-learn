@@ -1,0 +1,489 @@
+#!/usr/bin/env python3
+"""Hermes-inspired learning loop without Hermes CLI.
+
+Reads process_edits / grade / ledger and writes:
+  - reflection (Daily Reflection lane)
+  - tip (Setup Tip lane)
+  - optional skill draft under .grok/skills/
+  - trajectory compress note
+  - KPI repeat detect + human-gated promote suggestions (slice 3.1)
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def utc_date() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/learning-loop.v1.json").is_file():
+            return p
+    return cur
+
+
+def load_json(path: Path) -> Any:
+    return json.loads(path.read_text())
+
+
+def write_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def slugify(s: str) -> str:
+    s = s.lower().strip()
+    s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+    return s[:60] or "tip"
+
+
+def maybe_quant_learn_hook(repo: Path, run_id: str = "") -> Optional[Dict[str, Any]]:
+    """Optionally invoke mm-quant learn-hook when present (advisory; never merge authority).
+
+    Wired from LEARN / from-run so SCORE_GRADE→LEARN can share one quantitative path
+    without a second pipeline or new Rhai workflow. Missing binary is a soft skip.
+    """
+    quant = repo / ".grok" / "bin" / "mm-quant"
+    if not quant.is_file():
+        return None
+    cmd = [str(quant), "learn-hook", "--cwd", str(repo)]
+    if run_id:
+        cmd.extend(["--run-id", run_id])
+    try:
+        p = subprocess.run(cmd, text=True, capture_output=True, check=False, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return {"available": True, "ok": False, "error": str(e), "cmd": "mm-quant learn-hook"}
+    return {
+        "available": True,
+        "ok": p.returncode in (0, 3),  # 3 = external harness soft-unavailable
+        "exit": p.returncode,
+        "cmd": "mm-quant learn-hook",
+        "stdout_tail": (p.stdout or "")[-400:],
+        "stderr_tail": (p.stderr or "")[-200:],
+    }
+
+
+def load_learning_loop(repo: Path) -> dict:
+    path = repo / ".grok/harness/learning-loop.v1.json"
+    if path.is_file():
+        return load_json(path)
+    return {}
+
+
+def kpi_detector_config(loop: dict) -> dict:
+    """Resolve KPI repeat detector knobs (defaults keep F-LEARN human-gated)."""
+    det = loop.get("kpi_repeat_detector") or {}
+    threshold = det.get("threshold")
+    if threshold is None:
+        threshold = (loop.get("triggers") or {}).get("after_repeat_failure_class", 2)
+    try:
+        threshold = int(threshold)
+    except (TypeError, ValueError):
+        threshold = 2
+    if threshold < 1:
+        threshold = 1
+    ledger = det.get("ledger") or "mm-runs/_ledger/kpi.jsonl"
+    surfaces = det.get("promote_surfaces") or [
+        "harness/stage-lens-packs.v1.json",
+        "multi-model-roles.json",
+        "harness/pipeline.json",
+    ]
+    return {
+        "threshold": threshold,
+        "ledger": ledger,
+        "suggest_promote": det.get("suggest_promote", True),
+        "auto_promote_packs": bool(det.get("auto_promote_packs", False)),
+        "promote_surfaces": surfaces,
+        "write_suggest_artifact": det.get("write_suggest_artifact", True),
+    }
+
+
+def read_kpi_ledger(repo: Path, ledger_rel: str) -> List[dict]:
+    path = repo / ".grok" / ledger_rel
+    if not path.is_file():
+        return []
+    rows: List[dict] = []
+    for line in path.read_text(errors="replace").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict):
+            rows.append(obj)
+    return rows
+
+
+def detect_kpi_repeats(
+    repo: Path,
+    *,
+    threshold: Optional[int] = None,
+    focus_classes: Optional[List[str]] = None,
+    run_id: Optional[str] = None,
+) -> dict:
+    """Scan KPI ledger; flag failure classes that meet/exceed the repeat threshold.
+
+    Never auto-patches packs (F-LEARN-NOT-AUTO-PROMOTED close-gap is human PR only).
+    """
+    loop = load_learning_loop(repo)
+    cfg = kpi_detector_config(loop)
+    if threshold is not None:
+        cfg["threshold"] = max(1, int(threshold))
+
+    rows = read_kpi_ledger(repo, cfg["ledger"])
+    class_runs: Dict[str, List[dict]] = defaultdict(list)
+    class_counts: Counter = Counter()
+
+    for row in rows:
+        classes = row.get("failure_classes") or []
+        if not isinstance(classes, list):
+            continue
+        # de-dupe classes within a single ledger line
+        seen = set()
+        for fc in classes:
+            if not fc or fc in seen:
+                continue
+            seen.add(fc)
+            class_counts[str(fc)] += 1
+            class_runs[str(fc)].append(
+                {
+                    "ts": row.get("ts"),
+                    "run_id": row.get("run_id"),
+                    "letter": row.get("letter"),
+                    "score": row.get("score"),
+                    "mode": row.get("mode"),
+                }
+            )
+
+    repeats: List[dict] = []
+    for fc, count in sorted(class_counts.items(), key=lambda x: (-x[1], x[0])):
+        if focus_classes and fc not in focus_classes:
+            continue
+        if count < cfg["threshold"]:
+            continue
+        evidence = class_runs[fc][-5:]  # last up to 5 hits
+        suggest = {
+            "failure_class": fc,
+            "count": count,
+            "threshold": cfg["threshold"],
+            "meets_threshold": True,
+            "auto_promoted": False,
+            "human_gated": True,
+            "action": "human_pr_to_promote_surfaces",
+            "promote_surfaces": list(cfg["promote_surfaces"]),
+            "evidence": evidence,
+            "rationale": (
+                f"failure class `{fc}` appeared {count} times in KPI ledger "
+                f"(threshold={cfg['threshold']}); edit process packs via human PR — "
+                "do not auto-promote."
+            ),
+        }
+        if not cfg["suggest_promote"]:
+            suggest["action"] = "record_only"
+        if cfg["auto_promote_packs"]:
+            # Policy hard-stop: detector may never flip this on in practice.
+            suggest["auto_promoted"] = False
+            suggest["notes"] = "auto_promote_packs ignored; always human-gated"
+        repeats.append(suggest)
+
+    out: Dict[str, Any] = {
+        "detected_at": now(),
+        "ledger": cfg["ledger"],
+        "threshold": cfg["threshold"],
+        "entries_scanned": len(rows),
+        "class_counts": dict(class_counts),
+        "repeats": repeats,
+        "repeat_count": len(repeats),
+        "auto_promote_packs": False,
+        "human_gated": True,
+        "run_id": run_id,
+        "focus_classes": focus_classes or [],
+    }
+
+    # optional artifact for process operators
+    artifact_path = None
+    if cfg["write_suggest_artifact"] and repeats:
+        behind = repo / ".grok" / "memory" / "behind"
+        behind.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        artifact_path = behind / f"kpi-repeat-promote-suggest-{stamp}.md"
+        lines = [
+            "# KPI repeat promote suggestions (human-gated)",
+            "",
+            f"- detected_at: {out['detected_at']}",
+            f"- threshold: {cfg['threshold']}",
+            f"- ledger: `{cfg['ledger']}`",
+            f"- entries_scanned: {len(rows)}",
+            f"- run_id_context: {run_id or '(none)'}",
+            "",
+            "## Policy",
+            "",
+            "- **Never** auto-edit stage-lens packs or role prompts from this detector.",
+            "- Human opens a draft PR against `dev` after reviewing evidence.",
+            "- Not merge authority; required context remains project `oya-ci-required`.",
+            "- Forbidden CLIs: gjc, omc, omx, hermes.",
+            "",
+            "## Repeats at/above threshold",
+            "",
+        ]
+        for r in repeats:
+            lines.append(f"### `{r['failure_class']}` ×{r['count']}")
+            lines.append("")
+            lines.append(f"- action: `{r['action']}`")
+            lines.append(f"- surfaces: {', '.join(f'`{s}`' for s in r['promote_surfaces'])}")
+            lines.append(f"- rationale: {r['rationale']}")
+            lines.append("- evidence (recent):")
+            for e in r["evidence"]:
+                lines.append(
+                    f"  - {e.get('ts')} run=`{e.get('run_id')}` "
+                    f"letter={e.get('letter')} mode={e.get('mode')}"
+                )
+            lines.append("")
+        artifact_path.write_text("\n".join(lines) + "\n")
+        out["suggest_artifact"] = str(artifact_path)
+        # also write machine-readable sibling
+        json_path = artifact_path.with_suffix(".json")
+        write_json(json_path, out)
+        out["suggest_json"] = str(json_path)
+    else:
+        out["suggest_artifact"] = None
+        out["suggest_json"] = None
+
+    return out
+
+
+def cmd_kpi_repeat(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    focus = list(args.failure_class) if args.failure_class else None
+    result = detect_kpi_repeats(
+        repo,
+        threshold=args.threshold,
+        focus_classes=focus,
+        run_id=args.run_id or None,
+    )
+    if args.out:
+        outp = Path(args.out)
+        if not outp.is_absolute():
+            outp = repo / outp
+        write_json(outp, result)
+        result = dict(result)
+        result["written"] = str(outp)
+    print(json.dumps(result, indent=2))
+    # exit 0 always: detection is advisory; callers check repeat_count
+    # exit 3 if --fail-on-repeat and any repeats (automation opt-in)
+    if args.fail_on_repeat and result.get("repeat_count", 0) > 0:
+        return 3
+    return 0
+
+
+def cmd_from_run(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    run_dir = repo / ".grok" / "mm-runs" / args.run_id
+    if not run_dir.is_dir():
+        raise SystemExit(f"unknown run {args.run_id}")
+
+    grade_path = run_dir / "grade.json"
+    edits_path = run_dir / "process_edits.md"
+    score_path = run_dir / "scorecard.json"
+    grade = load_json(grade_path) if grade_path.is_file() else {}
+    score = load_json(score_path) if score_path.is_file() else {}
+
+    letter = grade.get("letter", "?")
+    classes = grade.get("failure_classes") or []
+    hard = grade.get("hard_fails") or []
+
+    # Daily reflection
+    mem = repo / ".grok" / "memory"
+    ref_dir = mem / "reflections"
+    ref_dir.mkdir(parents=True, exist_ok=True)
+    date = utc_date()
+    ref_path = ref_dir / f"{date}.md"
+    block = [
+        f"\n## Run `{args.run_id}` ({now()})\n",
+        f"- grade: **{letter}** ship_ready={grade.get('ship_ready')}\n",
+        f"- failure_classes: {', '.join(classes) or '(none)'}\n",
+        f"- hard_fails: {', '.join(hard) or '(none)'}\n",
+        f"- mode: {score.get('mode') or grade.get('mode')}\n",
+        "\n### Learned\n",
+        "- Prefer process edits over re-prompt thrash when classes repeat.\n",
+        "- Verified empty / plan-only incomplete is not ship-ready.\n",
+        "\n### Failure examples\n",
+    ]
+    if edits_path.is_file():
+        block.append("See process_edits.md for this run.\n")
+    else:
+        block.append("- (no process_edits.md)\n")
+    with ref_path.open("a") as f:
+        f.writelines(block)
+
+    # Setup tip when process debt
+    tip_path = None
+    if letter in ("C", "D", "F") or hard or classes:
+        tips = mem / "tips"
+        tips.mkdir(parents=True, exist_ok=True)
+        title = classes[0] if classes else (hard[0] if hard else "process-debt")
+        tip_path = tips / f"{slugify(title)}.md"
+        if not tip_path.is_file():
+            tip_path.write_text(
+                f"# Setup Tip — {title}\n\n"
+                f"- **run:** `{args.run_id}`\n"
+                f"- **grade:** {letter}\n\n"
+                f"## Rule\n\n"
+                f"When failure class `{title}` appears, apply harness/prompt patch before expanding delivery scope.\n\n"
+                f"## Evidence\n\n"
+                f"- `mm-runs/{args.run_id}/grade.json`\n"
+                f"- `mm-runs/{args.run_id}/process_edits.md`\n\n"
+                f"## Do not\n\n"
+                f"- Invent work when verified empty.\n"
+                f"- Claim merge authority without oya-ci-required.\n"
+                f"- Call gjc/omc/omx/hermes CLIs from this harness.\n"
+            )
+
+    # KPI repeat detector (slice 3.1) — drives skill draft when threshold met
+    kpi = detect_kpi_repeats(
+        repo,
+        focus_classes=list(classes) if classes else None,
+        run_id=args.run_id,
+    )
+    # If no focus classes but global repeats exist, still keep full scan on disk via second pass? 
+    # from-run focuses on this run's classes; write full scan only when empty focus produced nothing useful.
+    if not classes:
+        kpi = detect_kpi_repeats(repo, run_id=args.run_id)
+
+    repeat_hit = bool(kpi.get("repeats"))
+    write_json(run_dir / "kpi-repeat.json", kpi)
+
+    # Skill draft when repeat class, D/F, or --force-skill
+    skill_path = None
+    if args.force_skill or (classes and letter in ("D", "F")) or (repeat_hit and classes):
+        name = slugify(classes[0] if classes else (kpi["repeats"][0]["failure_class"] if kpi.get("repeats") else "process-hardening"))
+        skill_dir = repo / ".grok" / "skills" / name
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        skill_path = skill_dir / "SKILL.md"
+        if not skill_path.is_file() or args.force_skill:
+            thr = kpi.get("threshold", 2)
+            skill_path.write_text(
+                f"---\n"
+                f"name: {name}\n"
+                f"description: Auto-drafted skill from harness learning loop (run {args.run_id})\n"
+                f"---\n\n"
+                f"# {name}\n\n"
+                f"## When to use\n\n"
+                f"When grade reports failure class: `{classes[0] if classes else 'unknown'}` "
+                f"or KPI ledger shows the class ≥ {thr} times.\n\n"
+                f"## Steps\n\n"
+                f"1. Read `process_edits.md`, `grade.json`, and `kpi-repeat.json` for the run.\n"
+                f"2. Run `mm-learn kpi-repeat` to confirm class counts and promote surfaces.\n"
+                f"3. Patch the named harness config (lens pack, admit rule, role system prompt) via **human PR**.\n"
+                f"4. Re-run PREFLIGHT on origin/dev base.\n"
+                f"5. Re-score with `mm-score` / `mm-grade` until letter ≥ B or human accepts residual risk.\n\n"
+                f"## Non-goals\n\n"
+                f"- Do not invoke gjc, omc, omx, or hermes CLIs.\n"
+                f"- Do not skip dual-critic or tests to go green.\n"
+                f"- Do not auto-promote packs; human gate only (F-LEARN-NOT-AUTO-PROMOTED).\n"
+            )
+
+    # trajectory compress
+    traj = run_dir / "trajectory.jsonl"
+    if not traj.is_file():
+        # synthesize minimal trajectory from grade
+        with traj.open("a") as f:
+            f.write(json.dumps({"ts": now(), "event": "learn", "grade": grade}) + "\n")
+    tdir = mem / "trajectories"
+    tdir.mkdir(parents=True, exist_ok=True)
+    tmd = tdir / f"{args.run_id}.md"
+    tmd.write_text(
+        f"# Trajectory compress `{args.run_id}`\n\n"
+        f"- graded: {letter}\n"
+        f"- classes: {classes}\n"
+        f"- hard_fails: {hard}\n"
+        f"- kpi_repeats: {kpi.get('repeat_count', 0)}\n"
+        f"- reflection: {ref_path}\n"
+        f"- tip: {tip_path}\n"
+        f"- skill: {skill_path}\n"
+        f"- kpi_repeat: {run_dir / 'kpi-repeat.json'}\n"
+    )
+
+    # Quantitative path (reward + features + process SPC + bandit): optional soft hook
+    quant_hook = maybe_quant_learn_hook(repo, args.run_id)
+    if quant_hook is not None:
+        write_json(run_dir / "quant-learn-hook.json", quant_hook)
+
+    print(
+        json.dumps(
+            {
+                "reflection": str(ref_path),
+                "tip": str(tip_path) if tip_path else None,
+                "skill": str(skill_path) if skill_path else None,
+                "trajectory": str(tmd),
+                "kpi_repeat": {
+                    "repeat_count": kpi.get("repeat_count", 0),
+                    "class_counts": kpi.get("class_counts") or {},
+                    "repeats": [r.get("failure_class") for r in (kpi.get("repeats") or [])],
+                    "path": str(run_dir / "kpi-repeat.json"),
+                    "suggest_artifact": kpi.get("suggest_artifact"),
+                },
+                "quant_learn_hook": quant_hook,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="mm-learn closed learning loop")
+    ap.add_argument("--cwd", default=".")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--cwd", default=".")
+
+    sp = sub.add_parser("from-run", parents=[common], help="learn from a graded run")
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--force-skill", action="store_true")
+    sp.set_defaults(func=cmd_from_run)
+
+    sp = sub.add_parser(
+        "kpi-repeat",
+        parents=[common],
+        help="detect failure classes repeated in KPI ledger (human-gated promote suggest)",
+    )
+    sp.add_argument("--threshold", type=int, default=None, help="override learning-loop threshold")
+    sp.add_argument(
+        "--failure-class",
+        action="append",
+        default=[],
+        help="limit to class (repeatable)",
+    )
+    sp.add_argument("--run-id", default="", help="optional run context stamped on report")
+    sp.add_argument("--out", default="", help="optional path to write full JSON report")
+    sp.add_argument(
+        "--fail-on-repeat",
+        action="store_true",
+        help="exit 3 when any class meets threshold (advisory automation)",
+    )
+    sp.set_defaults(func=cmd_kpi_repeat)
+
+    args = ap.parse_args()
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

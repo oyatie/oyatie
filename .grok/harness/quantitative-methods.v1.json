@@ -1,0 +1,99 @@
+{
+  "version": "1.0.0",
+  "name": "mm-quantitative-methods",
+  "description": "Quantitative / ML / RL / LLM-assisted methods for the single mm-delivery pipeline. Implemented by Python workers under .grok/python/mm_ml/. Fine-tune here; do not add parallel pipelines.",
+  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "python": {
+    "package": "python/mm_ml",
+    "runner": "bin/mm-quant",
+    "requirements_optional": "python/requirements-ml.txt",
+    "stdlib_only_default": true,
+    "note": "Core path is pure Python. Optional extras (numpy/scikit-learn) enable richer estimators when installed; workers degrade gracefully."
+  },
+  "external_harness": {
+    "path": "/Users/jasonlee/Developer/harness",
+    "description": "Evidence-gated control plane (stdlib). mm-quant imports process_metrics, mm_bridge, router, model_economics, review_lenses when present.",
+    "modules": {
+      "process_spc": "mm_bridge.summarize_ledger / process_metrics.assess_process",
+      "routing_priors": "router.rank / model_economics.EconomicRouter",
+      "review_substance": "review_lenses (future dual-critic calibration)",
+      "distill": "distill (future obligation harvest from failure classes)"
+    },
+    "continue_development": [
+      "mm_bridge KPI↔SPC bridge (landed)",
+      "optional export of EconomicRouter decisions into bandit arms",
+      "optional review_lenses packet validation for CRITIC_DIFF",
+      "never promote external harness to Oyatie merge authority"
+    ],
+    "authority": "NOT lifecycle/merge authority for Oyatie; oya-ci-required remains sole protected context"
+  },
+  "pipeline_hooks": {
+    "SCORE_GRADE": ["mm-quant reward --write", "mm-quant features --write"],
+    "LEARN": ["mm-quant process --write", "mm-quant bandit --write", "mm-learn kpi-repeat"],
+    "POSTMORTEM": ["mm-quant learn-hook"]
+  },
+  "reward": {
+    "description": "Scalar reward for RL-style process improvement (not product merge authority).",
+    "components": {
+      "grade_letter": { "A": 1.0, "B": 0.75, "C": 0.4, "D": 0.15, "F": 0.0, "?": 0.0 },
+      "ship_ready_bonus": 0.15,
+      "hard_fail_penalty": -0.5,
+      "failure_class_penalty": -0.08,
+      "plan_only_cap": 0.55,
+      "dual_admit_bonus": 0.1
+    },
+    "clip": [-1.0, 1.2]
+  },
+  "features": {
+    "from_kpi_ledger": [
+      "letter_onehot",
+      "score_norm",
+      "ship_ready",
+      "hard_fail_count",
+      "failure_class_counts",
+      "mode_plan_only"
+    ],
+    "window": 50
+  },
+  "bandit": {
+    "description": "Contextual multi-armed bandit over model-routing priors (human-gated apply).",
+    "algorithm": "ucb1",
+    "arms_from": "harness/model-routing.v1.json#priors",
+    "state_path": "mm-runs/_ledger/bandit-state.json",
+    "suggest_path": "memory/behind/bandit-routing-suggest-{date}.json",
+    "exploration_c": 1.414,
+    "min_pulls_before_suggest": 3,
+    "auto_apply_routing": false
+  },
+  "llm_assisted": {
+    "description": "Optional LLM-as-judge for process_edits quality and dual-critic calibration. Never merge authority.",
+    "enabled": false,
+    "judge_schema": "python/mm_ml/schemas/judge_verdict.v1.json",
+    "use_when": ["grade_lt_B", "hard_fail", "repeat_failure_class"],
+    "inputs": ["process_edits.md", "scorecard.json", "critic artifacts if present"],
+    "outputs": ["judge_verdict.json under run dir"],
+    "calibration": {
+      "track_agreement_with_deterministic_grade": true,
+      "ledger": "mm-runs/_ledger/llm-judge.jsonl"
+    }
+  },
+  "optional_ml": {
+    "sklearn_failure_class_predictor": {
+      "enabled_if_importable": true,
+      "min_rows": 20,
+      "artifact": "mm-runs/_ledger/sklearn-failure-class-model.joblib",
+      "purpose": "Predict likely failure_class from feature window; advisory only"
+    },
+    "embedding_trajectory_similarity": {
+      "enabled_if_importable": false,
+      "note": "Future: embed trajectory compress notes for near-duplicate process debt"
+    }
+  },
+  "safety": {
+    "not_merge_authority": true,
+    "human_gate_routing_changes": true,
+    "never_auto_edit_pipeline_json": true,
+    "deterministic_score_remains_primary": true,
+    "ml_suggests_only": true
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "description": "Fine-tune stage→lens packs and orthogonal critic perspectives. Do not apply all 16 every time.",
+  "defaults": {
+    "max_lenses_per_stage": 5,
+    "orthogonal_critics": 2
+  },
+  "stages": {
+    "CONTRACT": {
+      "pack": ["systems_thinking", "blast_radius_cell", "chestertons_fence", "opportunity_cost"],
+      "perspectives": [
+        { "id": "socratic", "lenses": ["socratic", "cartesian_doubt"] },
+        { "id": "contrarian", "lenses": ["contrarian", "essentialism_yagni"] }
+      ]
+    },
+    "THREAT": {
+      "pack": ["red_team", "zero_trust", "blast_radius_cell", "telemetry_first"],
+      "perspectives": [
+        { "id": "redteam", "lenses": ["red_team", "zero_trust"] },
+        { "id": "observe", "lenses": ["telemetry_first", "operability_day2"] }
+      ]
+    },
+    "PLAN": {
+      "pack": ["essentialism_yagni", "pragmatism", "opportunity_cost", "operability_day2"],
+      "perspectives": [
+        { "id": "constant_work", "lenses": ["constant_work", "systems_thinking"] },
+        { "id": "finops", "lenses": ["finops", "essentialism_yagni"] }
+      ]
+    },
+    "CRITIC_PLAN": {
+      "pack": ["cartesian_doubt", "red_team", "contrarian"],
+      "perspectives": [
+        { "id": "critic_a", "lenses": ["cartesian_doubt", "red_team"] },
+        { "id": "critic_b", "lenses": ["contrarian", "systems_thinking"] }
+      ]
+    },
+    "EXECUTE": {
+      "pack": ["essentialism_yagni", "pragmatism", "blast_radius_cell"],
+      "perspectives": []
+    },
+    "VERIFY": {
+      "pack": ["cartesian_doubt", "telemetry_first", "constant_work"],
+      "perspectives": []
+    },
+    "CRITIC_DIFF": {
+      "pack": ["cartesian_doubt", "red_team", "zero_trust"],
+      "perspectives": [
+        { "id": "critic_a", "lenses": ["cartesian_doubt", "red_team"] },
+        { "id": "critic_b", "lenses": ["zero_trust", "operability_day2"] }
+      ]
+    },
+    "SCORE": {
+      "pack": ["cartesian_doubt", "opportunity_cost", "systems_thinking"],
+      "perspectives": [
+        { "id": "meta_contrarian", "lenses": ["contrarian", "cartesian_doubt"] }
+      ]
+    },
+    "POSTMORTEM": {
+      "pack": ["cartesian_doubt", "systems_thinking", "pragmatism", "opportunity_cost"],
+      "perspectives": [
+        { "id": "what_failed", "lenses": ["cartesian_doubt", "red_team"] },
+        { "id": "process_edit", "lenses": ["essentialism_yagni", "pragmatism"] }
+      ]
+    }
+  },
+  "risk_overrides": {
+    "high": {
+      "require_lenses": ["cartesian_doubt", "red_team", "zero_trust"],
+      "min_perspectives": 2
+    },
+    "critical": {
+      "require_lenses": ["cartesian_doubt", "red_team", "zero_trust", "blast_radius_cell"],
+      "min_perspectives": 2,
+      "human_admit": true
+    }
+  }
+}

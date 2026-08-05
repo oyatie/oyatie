@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0",
+  "name": "mm-drive",
+  "description": "Ultragoal/Ralph-style outer drive loop for the single mm-delivery pipeline. No gjc/omc/omx/hermes. Merge only after independent APPROVE + green + no critical blockers (user directive).",
+  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "stop_hook": {
+    "max_blocks_per_turn": 3,
+    "wait_ci_blocks_stop": false,
+    "block_on_resolvable": true,
+    "allow_stop_if_only": [
+      "human_blocked",
+      "waiting_ci",
+      "idle_complete",
+      "sequenced_blocked",
+      "unknown"
+    ]
+  },
+  "re_query": {
+    "gh_pr_checks": true,
+    "timeout_s": 30,
+    "fail_soft_offline": true
+  },
+  "human_gate_classes": [
+    "independent_github_review",
+    "security_credential_rotation",
+    "founder_ratification"
+  ],
+  "merge_policy": {
+    "enabled": true,
+    "require_oya_ci_required_success": true,
+    "require_independent_approve": false,
+    "require_agent_dual_critic": true,
+    "agent_review_paths": [
+      "programs/**/evidence/*review*.json",
+      "programs/**/evidence/*CRITIC*.json",
+      "programs/**/evidence/pr-*-dual-critic.json"
+    ],
+    "agent_review_require_fields": ["verdict", "critics"],
+    "agent_review_admit_verdicts": ["APPROVE", "CLEAR", "admit"],
+    "forbid_self_approve": true,
+    "require_not_draft": true,
+    "require_mergeable": true,
+    "require_merge_state_clean_or_unstable_ok": false,
+    "forbid_changes_requested": true,
+    "forbid_unresolved_conversations": true,
+    "merge_method": "squash",
+    "delete_branch": false,
+    "auto_undraft": true,
+    "post_merge": "fill_packet_template_R3_then_recheck_trunk",
+    "note": "Human GH APPROVE is NOT mandatory. Cross-model dual-critic packet with admit verdicts + oya-ci-required SUCCESS clears merge. Self-approve GH reviews still never count. Original harness: Grok orchestrates, dual CRITIC independence, not merge authority without CI."
+  },
+  "aggregate_complete": {
+    "require_quality_gate": true,
+    "forbid_from_draft_only": true,
+    "forbid_from_local_green_only": true
+  },
+  "classes": {
+    "resolvable": "CI red fixable, open kit slice, missing local verify, or merge_ready PR to execute — block Stop and continue",
+    "waiting_ci": "Checks pending after push — default allow Stop (avoid thrash)",
+    "human_blocked": "Awaiting independent APPROVE, secrets, or ratify — allow Stop",
+    "merge_ready": "APPROVE + oya-ci-required green + no critical blockers — agent may squash-merge",
+    "idle_complete": "Terminal evidence recorded for that story — allow Stop",
+    "sequenced_blocked": "Gated on another story (e.g. W0-B after G001) — allow Stop",
+    "unknown": "Could not re-query — allow Stop fail-soft"
+  },
+  "ledger": "mm-runs/_ledger/drive-tick.jsonl",
+  "workstream_source": "harness/pipeline.json#workstreams.active",
+  "program_status_source": "programs/*/PROGRAM.json"
+}
