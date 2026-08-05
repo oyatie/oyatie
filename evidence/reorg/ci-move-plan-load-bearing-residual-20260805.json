@@ -1,0 +1,173 @@
+{
+  "schema": "oyatie/reorg-ci-move-plan-load-bearing-residual/v1",
+  "bead": "oyatie-oso.27",
+  "card": "RR-MOVEPLAN residual (post hygiene #1567 R2/R4)",
+  "generated_at": "2026-08-05T12:40:00Z",
+  "class": "refactor",
+  "subclass": "PLAN_only_inventory",
+  "capability_span": "single (ci) + consumer touchpoints in libs/oya-ci-config",
+  "authority": {
+    "branch": "agent/rr-moveplan-residual-20260805",
+    "origin_dev": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "doctrine": ".grok/programs/REORG-DOCTRINE.md (delete class only with consumer proof)",
+    "adrs": [
+      "ADR-0614 (move-plan is recipe; not eternal SSOT for runtime/tests)",
+      "ADR-0562/0563 (ci keystone rename + lockfile graph companion)",
+      "ADR-0515 (oya-ci-required admission floor)"
+    ],
+    "related_prs": {
+      "hygiene_delete_spent": "#1567 (oyatie-oso.19) — retires 8 spent plans; keeps ci-move-plan load-bearing",
+      "unsafe_delete_rolled_back": "c538536bd deleted ci plan; cfcbcf967 restored load-bearing file"
+    },
+    "hygiene_evidence": "evidence/reorg/move-plan-hygiene-20260805.json recommendations R2/R4"
+  },
+  "non_goals": [
+    "No delete of specs/reorg/ci-move-plan.json in this PR",
+    "No delete of specs/reorg/ci-graph-additions.json in this PR",
+    "No codemod apply",
+    "No new *-move-plan.json",
+    "No gate_registration.rs code change",
+    "No bulk multi-cap moves",
+    "No libs/* disposition (RR-LIBS-DISPOSITION separate card)"
+  ],
+  "current_state": {
+    "path": "specs/reorg/ci-move-plan.json",
+    "filename_markers": {
+      "parked": false,
+      "blocked": false,
+      "matches_active_glob": true
+    },
+    "landed_status": "landed (every old_path GONE; every new_path PRESENT on origin/dev)",
+    "codemod_role": "plan_is_landed excludes it from active move-plan selection; empty active set OK for materializer",
+    "plan_shape": {
+      "capability": "ci",
+      "moves": 46,
+      "artifacts": 1,
+      "semantic_renames_non_prefix": 32,
+      "note": "Semantic renames (e.g. oya-cloud-ci-accounting-registry-app -> ci-artifact-inventory-registry) mean gate_id textual strip cannot replace the bijection"
+    },
+    "companion": {
+      "path": "specs/reorg/ci-graph-additions.json",
+      "role": "ADR-0563 lockfile graph mutations beyond rename bijection; not a move-plan; not discovered by *-move-plan.json glob"
+    }
+  },
+  "hard_consumers": [
+    {
+      "id": "H1",
+      "path": "ci/facade/baseline-ratchet/tests/gate_registration.rs",
+      "symbol": "ci_move_new_dir",
+      "kind": "runtime_test_ssot_reader",
+      "detail": "Reads specs/reorg/ci-move-plan.json; maps old_cargo_name -> new_path tail (ci/facade/<dir>). Call sites resolve producer-face / required-workflow matrix crate dirs. Semantic de-brand makes this the only authority.",
+      "must_migrate_before_delete": true,
+      "severity_if_deleted_now": "gate_registration meta-test / cloud-ci-firewall fail-closed"
+    },
+    {
+      "id": "H2",
+      "path": "libs/oya-ci-config/src/bundled/gate-disposition.json",
+      "json_path": "$._stub_gates.topology-manifest-contract.reference",
+      "kind": "documentation_reference_field",
+      "detail": "reference string points at specs/reorg/ci-move-plan.json for topology-manifest-contract stub disposition (build-or-cut).",
+      "must_migrate_before_delete": true,
+      "severity_if_deleted_now": "low (reference text) unless a gate asserts file existence via that field"
+    },
+    {
+      "id": "H3",
+      "path": "specs/reorg/ci-graph-additions.json",
+      "kind": "companion_contract",
+      "detail": "Comment and operational contract name the move-plan bijection as peer input to lockfile-move transform.",
+      "must_migrate_before_delete": false,
+      "note": "Companion can outlive plan as historical lockfile contract, or be archived together after H1 migration"
+    }
+  ],
+  "soft_consumers": [
+    {
+      "kind": "docs_history",
+      "examples": [
+        "docs/decisions/ADR-0562-*.md narrative of load-bearing ci plan",
+        "docs/decisions/ADR-0563-*.md keystone plan citation"
+      ],
+      "policy": "history citations OK after delete; do not treat as live SSOT"
+    }
+  ],
+  "retirement_plan": {
+    "goal": "Delete specs/reorg/ci-move-plan.json only after zero hard consumers remain",
+    "preferred_end_state": "Owned rename table under ci/ (or libs/oya-ci-config) that is not a reorg move-plan filename, so spent-plan hygiene cannot collide with gate SSOT",
+    "stages": [
+      {
+        "id": "S0",
+        "class": "inventory",
+        "status": "this_pr",
+        "work": "Record consumers + PLAN; no code change"
+      },
+      {
+        "id": "S1",
+        "class": "refactor",
+        "status": "follow_on",
+        "work": "Extract bijection to owned artifact (recommended path below); point ci_move_new_dir at new path; keep ci-move-plan temporarily as dual-read or delete in same PR if tests green",
+        "recommended_artifact_options": [
+          {
+            "option": "A",
+            "path": "ci/facade/baseline-ratchet/testdata/ci-gate-rename-map.json",
+            "pros": "Colocated with sole code reader; not under specs/reorg active glob",
+            "cons": "Test-tree ownership of production-adjacent map"
+          },
+          {
+            "option": "B",
+            "path": "libs/oya-ci-config/src/bundled/ci-gate-rename-map.json",
+            "pros": "Config crate already holds gate-disposition; reusable",
+            "cons": "libs touch; must not hand-edit generated faces"
+          },
+          {
+            "option": "C",
+            "path": "inline const table in gate_registration.rs",
+            "pros": "No extra file; delete plan in same refactor PR",
+            "cons": "Large const; harder to reuse; noisy review"
+          }
+        ],
+        "acceptance": [
+          "gate_registration tests pass without reading specs/reorg/ci-move-plan.json",
+          "rg specs/reorg/ci-move-plan.json --glob '!docs/**' --glob '!evidence/**' empty OR only companion comment",
+          "cloud-ci-firewall / gate-registration meta-test green"
+        ]
+      },
+      {
+        "id": "S2",
+        "class": "delete",
+        "status": "follow_on",
+        "work": "Delete specs/reorg/ci-move-plan.json after S1 consumer-absence proof; optionally archive bijection copy under evidence/reorg/ for forensics",
+        "acceptance": [
+          "REORG-DOCTRINE delete class: hard_consumers empty",
+          "codemod discover_committed_move_plans no longer sees ci plan",
+          "ci-graph-additions retention decision recorded (keep historical vs retire)"
+        ]
+      },
+      {
+        "id": "S3",
+        "class": "delete_or_park",
+        "status": "optional",
+        "work": "Decide ci-graph-additions.json: keep as ADR-0563 historical lockfile contract OR move to evidence/ and drop from specs/reorg/"
+      }
+    ],
+    "explicitly_not_a_move_plan": "S1 artifact must NOT be named *-move-plan.json under specs/reorg/ (would re-enter active glob / singleton surface)"
+  },
+  "risks": [
+    {
+      "id": "R-semantic",
+      "detail": "32+ semantic renames; any prefix-strip heuristic will mis-map gates and false-green registration"
+    },
+    {
+      "id": "R-chesterton",
+      "detail": "Prior unsafe delete c538536bd proved load-bearing; do not repeat without H1 migration"
+    },
+    {
+      "id": "R-singleton",
+      "detail": "Landed-but-present ci plan is inert for codemod active set but still occupies mental/singleton surface; retirement is hygiene not urgency for concurrent moves"
+    }
+  ],
+  "verify_this_pr": [
+    "git diff --stat is evidence-only under evidence/reorg/",
+    "JSON parses; hard_consumers paths exist on origin/dev",
+    "No specs/reorg/ mutation",
+    "Dual-critic APPROVE; oya-ci-required green (docs/evidence)"
+  ]
+}
