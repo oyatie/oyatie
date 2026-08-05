@@ -1,0 +1,32 @@
+{
+  "$id": "critique.v1",
+  "type": "object",
+  "required": ["findings", "overall_real", "summary"],
+  "properties": {
+    "summary": { "type": "string" },
+    "overall_real": { "type": "boolean" },
+    "admit_recommendation": {
+      "type": "string",
+      "enum": ["admit", "reject", "revise"]
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "required": ["id", "real", "severity", "issue", "evidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "real": { "type": "boolean" },
+          "severity": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
+          "issue": { "type": "string" },
+          "evidence": { "type": "string" },
+          "fix_class": {
+            "type": "string",
+            "enum": ["process", "gate", "docs", "code", "dismiss"]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "program_id": "k8s-port-w0a-1561",
+  "title": "Deterministic Go-to-Rust port W0-A governance admission",
+  "pr": 1561,
+  "pr_url": "https://github.com/jason931225/oyatie/pull/1561",
+  "handoff_journal": "docs/programs/k8s-port/operations/W0-A-20260805-gjc-handoff.md",
+  "worktree": "/Users/jasonlee/Developer/oyatie/.worktrees/k8s-port-w0a",
+  "branch": "agent/k8s-port-w0a-20260805",
+  "head_at_inherit": "1e33500d6584e164df59cd9f1f58234bbf945504",
+  "beads": "oyatie-7xf",
+  "approved_plan_sha256": "7010aebc4a1423d5edc2df40548a9945135a509b52fb9a8085080b7ff8e3e888",
+  "ultragoal_status": "active_g001_ci_green_awaiting_review_merge",
+  "active_story": "G001-w0a-governance-admission",
+  "pause_reason": "human_blocked_independent_review_plus_ci_in_flight",
+  "hard_stops": [
+    "keep_draft_until_ready",
+    "no_self_approve",
+    "no_w0b_until_g001_promoted",
+    "no_hand_edit_generated_json",
+    "no_w1_plus"
+  ],
+  "trunk": {
+    "origin_dev_at_handoff_journal": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+    "origin_dev_at_inherit": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+    "merge_base_at_inherit": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+    "behind_trunk": true,
+    "note": "rebase_may_be_required_before_green"
+  },
+  "ci": {
+    "run": "https://github.com/jason931225/oyatie/actions/runs/30993375926",
+    "oya_ci_required": "SUCCESS",
+    "status": "green"
+  },
+  "remaining_stories": [
+    "G002-W0-B",
+    "G003-W0-C",
+    "G004-W0-D",
+    "G005-W0-E",
+    "G006-W0-F",
+    "G007-W0-G",
+    "G008-W0-H"
+  ],
+  "orchestration": {
+    "allowed": [
+      "mm-goals",
+      "mm-pipeline",
+      "git",
+      "gh",
+      "bd",
+      "buck2",
+      "cargo"
+    ],
+    "forbidden": [
+      "gjc",
+      "omc",
+      "omx",
+      "hermes"
+    ]
+  },
+  "inherited_at": "2026-08-05Tpost-compaction",
+  "parallel_with": [
+    "cas-fabric-1560",
+    "mm-harness-kit"
+  ],
+  "requery_at": "2026-08-05T09:34:38Z",
+  "next": "formal independent review + undraft + squash merge + post-merge packet + beads close + G001 checkpoint",
+  "session_backlog": "programs/SESSION-BACKLOG.md",
+  "lane_board": "programs/hyperscaler-delivery-lanes/LANES.md",
+  "authority_mined_backlog": "programs/AUTHORITY-AND-MINED-BACKLOG.md"
+}

@@ -1,0 +1,159 @@
+{
+  "$schema_note": "Multi-model role routing for Grok-orchestrated delivery. Not merge authority; oya-ci-required remains the sole required admission context (ADR-0515).",
+  "version": "2.0.0",
+  "orchestrator": {
+    "role": "ORCHESTRATOR",
+    "provider": "xai",
+    "model": "grok-4.5",
+    "effort": "high",
+    "responsibilities": [
+      "run PREFLIGHT against origin/dev before any execute",
+      "decompose work and assign roles",
+      "invoke workers via .grok/bin/mm-role",
+      "admit/reject outputs against stage schemas",
+      "enforce dual-adversarial bars before claiming done",
+      "never claim merge readiness without oya-ci-required evidence"
+    ]
+  },
+  "roles": {
+    "PLANNER": {
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "cli": "codex",
+      "mode": "read-only",
+      "sandbox": "read-only",
+      "timeout_s": 1800,
+      "system": "You are PLANNER only. Produce a concrete, sequenced plan with verification steps and Definition of Done. Do not implement. Prefer smallest sufficient change. Slice work for incremental delivery. Respect ADR-0515: plain git + protected PR against dev + single required context oya-ci-required. Never propose skipping or weakening tests.",
+      "outputs": ["plan.md", "acceptance_criteria.json"],
+      "output_schema": "plan.v1"
+    },
+    "EXECUTOR": {
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "cli": "codex",
+      "mode": "workspace-write",
+      "sandbox": "workspace-write",
+      "timeout_s": 3600,
+      "requires_preflight_green": true,
+      "system": "You are EXECUTOR only. Implement exactly one admitted plan slice. Do not expand scope. Do not skip, delete, or weaken tests. Prefer process/gate fixes that prevent recurrence. Work only in the provided isolated worktree. Forbidden: git reset --hard, git stash, force-push, hand-editing *.generated.json.",
+      "outputs": ["diff", "test_commands", "notes.md"],
+      "output_schema": "execute_report.v1"
+    },
+    "ARCHITECT": {
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "high",
+      "cli": "claude",
+      "mode": "read-only",
+      "timeout_s": 1800,
+      "system": "You are ARCHITECT only. Define boundaries, contracts, blast radius, and non-goals. Map patterns before implementation (Bun prep-contract analogue). Do not implement. Flag false-green, dual-authority, and dirty-baseline risks. Authority surface is ADR-0515 / oya-ci-required.",
+      "outputs": ["architecture.md", "contracts.json", "non_goals.md"],
+      "output_schema": "contract.v1"
+    },
+    "CRITIC": {
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "effort": "high",
+      "cli": "claude",
+      "mode": "read-only",
+      "timeout_s": 1800,
+      "adversarial": true,
+      "min_instances": 2,
+      "system": "You are CRITIC only in a split context. You did not author the artifact. Assume it is wrong until evidence proves otherwise. Hunt bugs, false-green, admission gaps, process failures, and test-skipping. Prefer process/gate fixes over one-off patches. real=true only with independent evidence you inspected.",
+      "outputs": ["critique.md", "verdicts.json"],
+      "output_schema": "critique.v1"
+    },
+    "SECURITY": {
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "effort": "high",
+      "cli": "claude",
+      "mode": "read-only",
+      "timeout_s": 1800,
+      "system": "You are SECURITY only. Review trust boundaries, secrets handling, supply-chain risks (especially hand-edited generated artifacts), privilege escalation, and fail-open paths. Do not implement. Fail closed on missing evidence.",
+      "outputs": ["security.md", "findings.json"],
+      "output_schema": "critique.v1"
+    },
+    "VERIFIER": {
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "cli": "codex",
+      "mode": "read-only",
+      "sandbox": "read-only",
+      "timeout_s": 1800,
+      "system": "You are VERIFIER only. Propose and/or record exact verification commands with expected fail-closed behavior. Never recommend skipping tests. Output structured verify_report with commands and how to interpret non-zero exits. Prefer gate tests and existing suite commands over new flaky checks.",
+      "outputs": ["verify_report.json"],
+      "output_schema": "verify_report.v1"
+    }
+  },
+  "budgets": {
+    "default_max_stages": 32,
+    "default_dual_critics": 2,
+    "default_wall_clock_s": 14400,
+    "max_executor_slices_per_run": 8
+  },
+  "isolation": {
+    "preferred": "git_worktree_from_origin_dev",
+    "forbidden_git_commands": [
+      "git reset --hard",
+      "git stash",
+      "git push --force",
+      "git push -f",
+      "git clean -fdx"
+    ],
+    "base_ref": "origin/dev"
+  },
+  "process_edit_triggers": [
+    "stub out",
+    "skip test",
+    "#[ignore]",
+    "TODO: implement later",
+    "hand-edit generated",
+    ".generated.json edited manually"
+  ],
+  "default_pipeline": [
+    "PREFLIGHT",
+    "CONTRACT",
+    "THREAT_LIGHT",
+    "PLAN",
+    "CRITIC_PLAN",
+    "ADMIT_PLAN",
+    "EXECUTE_SLICE",
+    "VERIFY",
+    "CRITIC_DIFF",
+    "ADMIT_SLICE",
+    "PR_PACKET",
+    "POST_MERGE_HINT"
+  ],
+  "methodology": {
+    "source": "https://bun.com/blog/bun-in-rust",
+    "rules": [
+      "split implementer and critic context windows",
+      "dual adversarial confirmation for high-risk claims",
+      "fail closed on missing evidence",
+      "fix the process when workers repeat mistakes",
+      "never skip tests to go green",
+      "deterministic work-lists in the harness; workers do judgment",
+      "trial run before full fan-out",
+      "enforce origin/dev baseline before execute"
+    ]
+  },
+  "governance": {
+    "merge_authority": "reviewer APPROVE + single required context oya-ci-required (ADR-0515)",
+    "pr_target": "dev",
+    "not_merge_authority": [
+      "this harness",
+      "mm-role outputs",
+      "CLI tools",
+      "OMC"
+    ]
+  },
+  "auth_notes": {
+    "codex": "Uses local codex auth (~/.codex); model often gpt-5.6-sol",
+    "claude": "Uses local claude auth; model aliases claude-opus-5 / claude-fable-5",
+    "grok": "Grok Build session is the orchestrator surface"
+  }
+}

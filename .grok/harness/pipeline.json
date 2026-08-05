@@ -1,0 +1,255 @@
+{
+  "version": "1.0.0",
+  "name": "mm-delivery",
+  "description": "Bun + enterprise multi-model delivery pipeline. Grok orchestrates; workers via mm-role.",
+  "base_ref": "origin/dev",
+  "pr_target": "dev",
+  "stages": [
+    {
+      "id": "PREFLIGHT",
+      "kind": "harness",
+      "action": "preflight",
+      "fail_closed": true,
+      "description": "Fetch origin/dev; enforce behind=0, dirty allowlist, auth probes"
+    },
+    {
+      "id": "CONTRACT",
+      "kind": "role",
+      "role": "ARCHITECT",
+      "fail_closed": true,
+      "description": "Lock authority, non-goals, focus surfaces, blast radius"
+    },
+    {
+      "id": "THREAT_LIGHT",
+      "kind": "role",
+      "role": "SECURITY",
+      "fail_closed": true,
+      "skip_if_risk_in": ["low"],
+      "description": "Light security/threat pass on objective and surfaces"
+    },
+    {
+      "id": "PLAN",
+      "kind": "role",
+      "role": "PLANNER",
+      "fail_closed": true,
+      "description": "Sequenced slices + verify + DoD"
+    },
+    {
+      "id": "CRITIC_PLAN",
+      "kind": "dual_critic",
+      "role": "CRITIC",
+      "instances": 2,
+      "target": "plan",
+      "fail_closed": true,
+      "description": "Dual adversarial review of plan (split context)"
+    },
+    {
+      "id": "ADMIT_PLAN",
+      "kind": "harness",
+      "action": "admit_plan",
+      "fail_closed": true,
+      "human_gate_if_risk_in": ["high", "critical"],
+      "description": "Code admit: dual critic both real; schema ok; human if high risk"
+    },
+    {
+      "id": "TRIAL",
+      "kind": "optional",
+      "description": "Optional small shard before full execute"
+    },
+    {
+      "id": "EXECUTE_SLICE",
+      "kind": "role",
+      "role": "EXECUTOR",
+      "requires_preflight_green": true,
+      "requires_admitted_plan": true,
+      "fail_closed": true,
+      "description": "Implement one admitted slice in isolated worktree"
+    },
+    {
+      "id": "VERIFY",
+      "kind": "role",
+      "role": "VERIFIER",
+      "fail_closed": true,
+      "description": "Record verification commands and fail-closed interpretation"
+    },
+    {
+      "id": "CRITIC_DIFF",
+      "kind": "dual_critic",
+      "role": "CRITIC",
+      "instances": 2,
+      "target": "diff",
+      "fail_closed": true,
+      "description": "Dual adversarial review of implementation diff"
+    },
+    {
+      "id": "SECURITY_DIFF",
+      "kind": "role",
+      "role": "SECURITY",
+      "skip_if_risk_in": ["low"],
+      "fail_closed": true,
+      "description": "Security review of diff when risk warrants"
+    },
+    {
+      "id": "ADMIT_SLICE",
+      "kind": "harness",
+      "action": "admit_slice",
+      "fail_closed": true,
+      "description": "Code admit for slice; loop execute until plan complete"
+    },
+    {
+      "id": "PR_PACKET",
+      "kind": "harness",
+      "action": "pr_packet",
+      "fail_closed": true,
+      "description": "DoD checklist + evidence index for PR against dev"
+    },
+    {
+      "id": "POST_MERGE_HINT",
+      "kind": "harness",
+      "action": "post_merge_hint",
+      "fail_closed": false,
+      "description": "Post-merge product-completion checklist (human executes)"
+    },
+    {
+      "id": "SCORE_GRADE",
+      "kind": "harness",
+      "action": "score_grade",
+      "fail_closed": true,
+      "description": "mm-score + mm-grade (deterministic primary) then mm-quant reward/features (advisory)",
+      "workers": [
+        "bin/mm-score",
+        "bin/mm-grade",
+        "bin/mm-quant reward --write",
+        "bin/mm-quant features --write"
+      ]
+    },
+    {
+      "id": "LEARN",
+      "kind": "harness",
+      "action": "learn",
+      "fail_closed": false,
+      "description": "mm-learn + mm-quant process (Developer/harness SPC) + bandit routing suggest (human-gated)",
+      "workers": [
+        "bin/mm-learn from-run",
+        "bin/mm-quant process --write",
+        "bin/mm-quant bandit --write"
+      ]
+    },
+    {
+      "id": "POSTMORTEM",
+      "kind": "role",
+      "role": "CRITIC",
+      "fail_closed": false,
+      "description": "Gaebal-gajae-style reflection: what failed, process edit, verified empty ok"
+    }
+  ],
+  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "fine_tune": {
+    "lenses": ".grok/harness/lenses.v1.json",
+    "stage_lens_packs": ".grok/harness/stage-lens-packs.v1.json",
+    "model_routing": ".grok/harness/model-routing.v1.json",
+    "learning_loop": ".grok/harness/learning-loop.v1.json",
+    "parallelism": ".grok/harness/parallelism.v1.json",
+    "rubric": ".grok/harness/rubrics/run-grade.v1.json",
+    "quantitative_methods": ".grok/harness/quantitative-methods.v1.json",
+    "drive": ".grok/harness/drive.v1.json",
+    "external_harness": "/Users/jasonlee/Developer/harness",
+    "note": "Edit these JSON files to improve the pipeline over time. Do not spawn new workflow files per program or lane. Outer autonomous loop: bin/mm-drive + Stop hook. Quantitative/ML workers under .grok/python/mm_ml may import Developer/harness."
+  },
+  "workstreams": {
+    "description": "Concurrent contexts under the SAME pipeline stages — not separate products. Full lane board: programs/hyperscaler-delivery-lanes/LANES.md. agent_drive=false → mm-drive classifies human/ops/sequenced, does not thrash.",
+    "board": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+    "active": [
+      {
+        "id": "R5-cas-g039-1558",
+        "layer": "L0+L2+L5-prep",
+        "agent_drive": true,
+        "program": "programs/cas-fabric/PROGRAM.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie-lanes-20260805/cas-proof-bootstrap",
+        "story": "G003-fix-1558-ci",
+        "pr": 1558
+      },
+      {
+        "id": "R7-k8s-w0a-1561",
+        "layer": "L2+L3",
+        "agent_drive": false,
+        "program": "programs/k8s-port/PROGRAM.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie/.worktrees/k8s-port-w0a",
+        "story": "G001-w0a-admission",
+        "pr": 1561
+      },
+      {
+        "id": "R8-mm-drive-kit",
+        "layer": "L7",
+        "agent_drive": true,
+        "program": "harness/kit.v1.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+        "story": "pipeline-kit-improve"
+      },
+      {
+        "id": "R4-local-assist",
+        "layer": "L0-L1",
+        "agent_drive": true,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+        "story": "local-prepush-yaml-recipe"
+      },
+      {
+        "id": "R1-runner-capacity",
+        "layer": "L2-ops",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "scale-ci-runners-queue-wait"
+      },
+      {
+        "id": "R2-premerge-shape",
+        "layer": "L2-workflow",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "path-filter-materialize-once-planned"
+      },
+      {
+        "id": "R3-postmerge-trunk",
+        "layer": "L4",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "trunk-packet-writers-planned"
+      },
+      {
+        "id": "R6-re-sandbox",
+        "layer": "L6",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "re-after-cas-sequenced"
+      },
+      {
+        "id": "R9-talos-1541",
+        "layer": "security",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "credential-rotation",
+        "issue": 1541
+      }
+    ]
+  },
+  "admit_rules": {
+    "dual_critic_both_must_confirm": true,
+    "missing_evidence_is_reject": true,
+    "test_skip_is_reject": true,
+    "generated_face_hand_edit_is_reject": true,
+    "behind_origin_dev_blocks_execute": true
+  },
+  "improvement_loop": {
+    "entry": "mm-pipeline run | workflows/lens-delivery-plan.rhai for plan-only",
+    "after_run": ["SCORE_GRADE", "LEARN", "POSTMORTEM"],
+    "edit_surface": "harness/*.v1.json + pipeline.json stages",
+    "anti_pattern": "new workflow file per lane/program"
+  }
+}
+
+

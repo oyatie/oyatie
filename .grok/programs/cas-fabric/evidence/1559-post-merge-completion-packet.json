@@ -1,0 +1,25 @@
+{
+  "packet_type": "post_merge_product_completion",
+  "pr": 1559,
+  "title": "docs(adr): record amenders on Accepted ADRs that claimed currency",
+  "promoted_commit": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+  "branch": "dev",
+  "oya_ci_required": {
+    "status": "success",
+    "run_url": "https://github.com/jason931225/oyatie/actions/runs/30990439972",
+    "head_sha": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+    "completed_at": "2026-08-05T09:48:49Z"
+  },
+  "rollout_verification": "Docs-only ADR amended_by backlinks; no runtime deployment. Verified origin/dev tip equals promoted squash commit.",
+  "rollback_note": "Revert a4a5ace5 on dev if amended_by edges are wrong; no infra/data migration.",
+  "observability_check": "N/A for docs-only ADR metadata; no new metrics/SLOs.",
+  "browser_user_story_evidence": "N/A — no user-facing UI change.",
+  "release_governance_release_note_impact": "No Release Please product release; documentation/ADR graph only.",
+  "agent_observation_harvest": {
+    "cards_created_or_linked": "none",
+    "rationale": "No new product defect; completion of outstanding post-merge CI evidence for #1559 only."
+  },
+  "completion_packet_closed": true,
+  "recorded_at": "2026-08-05Tpost-green-requery",
+  "authority": "Not merge authority for other PRs; closes G004 monitor only."
+}

@@ -1,0 +1,36 @@
+{
+  "$id": "grade.v1",
+  "type": "object",
+  "required": [
+    "run_id",
+    "letter",
+    "score",
+    "ship_ready",
+    "hard_fails",
+    "failure_classes",
+    "loop_backs",
+    "graded_at"
+  ],
+  "properties": {
+    "run_id": { "type": "string" },
+    "letter": { "type": "string", "enum": ["A", "B", "C", "D", "F"] },
+    "score": { "type": "number" },
+    "ship_ready": { "type": "boolean" },
+    "hard_fails": { "type": "array", "items": { "type": "string" } },
+    "failure_classes": { "type": "array", "items": { "type": "string" } },
+    "loop_backs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["class", "action"],
+        "properties": {
+          "class": { "type": "string" },
+          "action": { "type": "string" },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "graded_at": { "type": "string" }
+  }
+}

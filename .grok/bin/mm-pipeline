@@ -1,0 +1,446 @@
+#!/usr/bin/env python3
+"""Multi-model delivery pipeline runner (harness control plane helpers).
+
+Grok (orchestrator) owns judgment; this tool owns deterministic gates:
+PREFLIGHT, dual-critic admission math, journals, PR packet scaffolding.
+
+It invokes mm-role for role stages. Live model calls are opt-in (not dry by default
+only when --execute-roles is set).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+
+ROOT_MARKER = ".grok/harness/pipeline.json"
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def find_repo_root(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ROOT_MARKER).is_file():
+            return p
+        if (p / ".git").exists() and (p / ".grok").exists():
+            return p
+    return cur
+
+
+def load_json(path: Path) -> Any:
+    return json.loads(path.read_text())
+
+
+def write_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def run_preflight(repo: Path, out: Path, allow_diverged: bool = False) -> dict:
+    cmd = [
+        str(repo / ".grok/bin/mm-preflight"),
+        "--cwd",
+        str(repo),
+        "--out",
+        str(out),
+        "--json-always",
+    ]
+    if allow_diverged:
+        cmd.append("--allow-diverged")
+    p = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if out.is_file():
+        return load_json(out)
+    # fallback parse stdout/stderr
+    blob = p.stdout or p.stderr
+    return json.loads(blob)
+
+
+def dual_critic_admit(critiques: List[dict]) -> dict:
+    """Fail closed: need >=2 critiques each overall_real true with non-empty evidence findings or explicit admit."""
+    blockers: List[str] = []
+    if len(critiques) < 2:
+        blockers.append(f"need >=2 critic reports, got {len(critiques)}")
+        return {
+            "admitted": False,
+            "stage": "CRITIC",
+            "blockers": blockers,
+            "evidence_refs": [],
+        }
+
+    oks = 0
+    refs: List[str] = []
+    for i, c in enumerate(critiques):
+        refs.append(f"critic[{i}]")
+        if not isinstance(c, dict):
+            blockers.append(f"critic[{i}] not an object")
+            continue
+        rec = c.get("admit_recommendation")
+        overall = c.get("overall_real")
+        # For plan critique, overall_real means "problems are real".
+        # Admission uses admit_recommendation when present.
+        if rec in ("admit",):
+            oks += 1
+        elif rec in ("reject", "revise"):
+            blockers.append(f"critic[{i}] recommends {rec}: {c.get('summary', '')}")
+        elif overall is False and rec is None:
+            # no severe issues claimed
+            oks += 1
+        else:
+            blockers.append(f"critic[{i}] missing clear admit_recommendation")
+
+    admitted = oks >= 2 and not any("recommends reject" in b or "recommends revise" in b for b in blockers)
+    # stricter: both must explicitly admit
+    explicit = sum(1 for c in critiques if isinstance(c, dict) and c.get("admit_recommendation") == "admit")
+    admitted = explicit >= 2
+    if not admitted and not blockers:
+        blockers.append("dual critic did not both recommend admit")
+    return {
+        "admitted": admitted,
+        "stage": "DUAL_CRITIC",
+        "blockers": [] if admitted else blockers,
+        "evidence_refs": refs,
+        "notes": f"explicit_admit={explicit}/2",
+    }
+
+
+def detect_test_skip(text: str) -> bool:
+    needles = [
+        "skip test",
+        "skipping test",
+        "#[ignore]",
+        "tests skipped",
+        "delete the test",
+        "weaken the gate",
+    ]
+    low = text.lower()
+    return any(n in low for n in needles)
+
+
+def cmd_start(args: argparse.Namespace) -> int:
+    repo = find_repo_root(Path(args.cwd))
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+    run_dir = repo / ".grok" / "mm-runs" / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    pipeline = load_json(repo / ".grok/harness/pipeline.json")
+    roles = load_json(repo / ".grok/multi-model-roles.json")
+    dod = load_json(repo / ".grok/harness/dod-checklist.json")
+
+    preflight_path = run_dir / "preflight.json"
+    pre = run_preflight(repo, preflight_path, allow_diverged=args.allow_diverged)
+
+    run = {
+        "run_id": run_id,
+        "created_at": now(),
+        "objective": args.objective,
+        "risk": args.risk,
+        "focus": args.focus,
+        "repo": str(repo),
+        "status": "blocked" if not pre.get("ok") else "ready",
+        "stage_pointer": "PREFLIGHT",
+        "preflight_ok": bool(pre.get("ok")),
+        "origin_dev_sha": pre.get("origin_dev_sha"),
+        "head_sha": pre.get("head_sha"),
+        "stages_completed": ["PREFLIGHT"] if pre.get("ok") else [],
+        "pipeline_version": pipeline.get("version"),
+        "roles_version": roles.get("version"),
+        "human_admit_plan": False,
+        "admitted_plan": False,
+        "notes": [],
+    }
+    if not pre.get("ok"):
+        run["notes"].append("PREFLIGHT failed; fix baseline before multi-model execute")
+        run["blockers"] = pre.get("blockers", [])
+
+    write_json(run_dir / "run.json", run)
+    write_json(run_dir / "pipeline.snapshot.json", pipeline)
+    write_json(run_dir / "dod.snapshot.json", dod)
+    (run_dir / "objective.md").write_text(
+        f"# Objective\n\n{args.objective}\n\n"
+        f"- risk: {args.risk}\n- focus: {args.focus}\n"
+        f"- created_at: {run['created_at']}\n"
+        f"- origin_dev_sha: {run.get('origin_dev_sha')}\n"
+    )
+
+    print(json.dumps({"run_id": run_id, "run_dir": str(run_dir), "preflight_ok": pre.get("ok"), "blockers": pre.get("blockers", [])}, indent=2))
+    return 0 if pre.get("ok") else 2
+
+
+def load_run(repo: Path, run_id: str) -> tuple[Path, dict]:
+    run_dir = repo / ".grok" / "mm-runs" / run_id
+    run_path = run_dir / "run.json"
+    if not run_path.is_file():
+        raise SystemExit(f"unknown run_id: {run_id}")
+    return run_dir, load_json(run_path)
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    print(json.dumps({"run_dir": str(run_dir), **run}, indent=2))
+    return 0
+
+
+def cmd_preflight(args: argparse.Namespace) -> int:
+    repo = find_repo_root(Path(args.cwd))
+    out = Path(args.out) if args.out else repo / ".grok" / "mm-runs" / "_ad-hoc" / "preflight.json"
+    pre = run_preflight(repo, out, allow_diverged=args.allow_diverged)
+    print(json.dumps(pre, indent=2))
+    return 0 if pre.get("ok") else 2
+
+
+def cmd_admit_plan(args: argparse.Namespace) -> int:
+    """Deterministic admit from critic JSON files."""
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    if not run.get("preflight_ok"):
+        admission = {
+            "admitted": False,
+            "stage": "ADMIT_PLAN",
+            "blockers": ["preflight not green"],
+            "evidence_refs": [str(run_dir / "preflight.json")],
+        }
+        write_json(run_dir / "stages" / "ADMIT_PLAN" / "admission.json", admission)
+        print(json.dumps(admission, indent=2))
+        return 2
+
+    critic_paths = list((run_dir / "stages" / "CRITIC_PLAN").glob("**/critique.json"))
+    if args.critic_json:
+        critic_paths = [Path(p) for p in args.critic_json]
+
+    critiques = []
+    for p in critic_paths:
+        critiques.append(load_json(p))
+
+    admission = dual_critic_admit(critiques)
+    admission["stage"] = "ADMIT_PLAN"
+
+    # risk human gate
+    if run.get("risk") in ("high", "critical") and not run.get("human_admit_plan"):
+        admission["admitted"] = False
+        admission["blockers"] = list(admission.get("blockers") or []) + [
+            "human_admit_plan required for high/critical risk (mm-pipeline human-admit --run-id ...)"
+        ]
+
+    # scan plan text for test-skip language if present
+    plan_path = run_dir / "stages" / "PLAN" / "result.md"
+    if plan_path.is_file() and detect_test_skip(plan_path.read_text()):
+        admission["admitted"] = False
+        admission["blockers"] = list(admission.get("blockers") or []) + [
+            "plan text appears to skip/weaken tests"
+        ]
+
+    write_json(run_dir / "stages" / "ADMIT_PLAN" / "admission.json", admission)
+    run["admitted_plan"] = bool(admission["admitted"])
+    run["stage_pointer"] = "ADMIT_PLAN"
+    if admission["admitted"]:
+        run.setdefault("stages_completed", []).append("ADMIT_PLAN")
+        run["status"] = "plan_admitted"
+    else:
+        run["status"] = "plan_rejected"
+    write_json(run_dir / "run.json", run)
+    print(json.dumps(admission, indent=2))
+    return 0 if admission["admitted"] else 2
+
+
+def cmd_human_admit(args: argparse.Namespace) -> int:
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    run["human_admit_plan"] = True
+    run.setdefault("notes", []).append(f"human_admit_plan at {now()}: {args.reason or 'ok'}")
+    write_json(run_dir / "run.json", run)
+    print(json.dumps({"human_admit_plan": True, "run_id": args.run_id}, indent=2))
+    return 0
+
+
+def cmd_pr_packet(args: argparse.Namespace) -> int:
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    dod = load_json(run_dir / "dod.snapshot.json") if (run_dir / "dod.snapshot.json").is_file() else load_json(repo / ".grok/harness/dod-checklist.json")
+    lines = [
+        "# PR packet (multi-model harness)",
+        "",
+        f"- run_id: `{run['run_id']}`",
+        f"- objective: {run.get('objective')}",
+        f"- risk: {run.get('risk')}",
+        f"- origin_dev_sha: `{run.get('origin_dev_sha')}`",
+        f"- head_sha: `{run.get('head_sha')}`",
+        f"- admitted_plan: {run.get('admitted_plan')}",
+        "",
+        "## Governance",
+        "",
+        "- PR target: `dev`",
+        "- Merge authority: reviewer APPROVE + **oya-ci-required** only (ADR-0515)",
+        "- This harness is **not** merge authority",
+        "",
+        "## Definition of Done",
+        "",
+    ]
+    for item in dod.get("items", []):
+        lines.append(f"- [ ] {item['id']}: {item['text']}")
+    lines += [
+        "",
+        "## Evidence index",
+        "",
+        f"- preflight: `{(run_dir / 'preflight.json')}`",
+        f"- run: `{(run_dir / 'run.json')}`",
+        f"- stages: `{(run_dir / 'stages')}`",
+        "",
+        "## Post-merge product completion (human)",
+        "",
+        "- [ ] promoted commit oya-ci-required green",
+        "- [ ] rollout verification",
+        "- [ ] rollback note validated",
+        "- [ ] observability check",
+        "- [ ] browser/user-story evidence if UI",
+        "- [ ] release-note impact assessed",
+        "",
+    ]
+    out = run_dir / "evidence" / "admission-packet.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines))
+    print(json.dumps({"path": str(out)}, indent=2))
+    return 0
+
+
+def cmd_close_run(args: argparse.Namespace) -> int:
+    """score → grade → evaluate → learn (deterministic close loop)."""
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    steps = [
+        [str(repo / ".grok/bin/mm-score"), "--cwd", str(repo), "--run-id", args.run_id],
+        [str(repo / ".grok/bin/mm-grade"), "--cwd", str(repo), "--run-id", args.run_id],
+        [str(repo / ".grok/bin/mm-evaluate"), "full", "--cwd", str(repo), "--run-id", args.run_id],
+        [str(repo / ".grok/bin/mm-learn"), "from-run", "--cwd", str(repo), "--run-id", args.run_id],
+    ]
+    results = []
+    for cmd in steps:
+        p = subprocess.run(cmd, text=True, capture_output=True, check=False)
+        results.append(
+            {
+                "cmd": Path(cmd[0]).name,
+                "exit": p.returncode,
+                "stdout_tail": (p.stdout or "")[-500:],
+                "stderr_tail": (p.stderr or "")[-300:],
+            }
+        )
+        if p.returncode != 0 and Path(cmd[0]).name in ("mm-score", "mm-grade"):
+            print(json.dumps({"ok": False, "failed": Path(cmd[0]).name, "results": results}, indent=2))
+            return p.returncode
+    run["status"] = "closed"
+    run["stage_pointer"] = "LEARN"
+    write_json(run_dir / "run.json", run)
+    print(json.dumps({"ok": True, "run_id": args.run_id, "results": results}, indent=2))
+    return 0
+
+
+def cmd_role(args: argparse.Namespace) -> int:
+    """Invoke mm-role and journal under stages/<STAGE>/."""
+    repo = find_repo_root(Path(args.cwd))
+    run_dir, run = load_run(repo, args.run_id)
+    if args.role == "EXECUTOR" and not run.get("preflight_ok"):
+        print("mm-pipeline: EXECUTOR blocked: preflight not green", file=sys.stderr)
+        return 2
+    if args.role == "EXECUTOR" and not run.get("admitted_plan") and not args.force:
+        print("mm-pipeline: EXECUTOR blocked: plan not admitted (use --force only with human intent)", file=sys.stderr)
+        return 2
+
+    stage = args.stage or args.role
+    out_dir = run_dir / "stages" / stage / f"{args.role}-{now().replace(':', '')}"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    mm_role = repo / ".grok/bin/mm-role"
+    cmd = [str(mm_role), args.role, "--cwd", str(repo), "--out", str(out_dir)]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.prompt_file:
+        cmd.extend(["--prompt-file", args.prompt_file])
+    else:
+        prompt = args.prompt or (run_dir / "objective.md").read_text()
+        cmd.extend(["--", prompt])
+
+    print("mm-pipeline: running:", " ".join(cmd[:6]), "...", file=sys.stderr)
+    p = subprocess.run(cmd, check=False)
+    run.setdefault("stages_completed", [])
+    if p.returncode == 0:
+        if stage not in run["stages_completed"]:
+            run["stages_completed"].append(stage)
+        run["stage_pointer"] = stage
+    write_json(run_dir / "run.json", run)
+    return p.returncode
+
+
+def build_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(description="Multi-model harness pipeline")
+    # Parent so --cwd works before or after subcommand patterns via inheritance
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--cwd", default=".", help="repo root or subdir")
+
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    sp = sub.add_parser("start", parents=[common], help="start a run (always runs PREFLIGHT)")
+    sp.add_argument("--objective", required=True)
+    sp.add_argument("--risk", default="medium", choices=["low", "medium", "high", "critical"])
+    sp.add_argument("--focus", default="full")
+    sp.add_argument("--allow-diverged", action="store_true")
+    sp.set_defaults(func=cmd_start)
+
+    sp = sub.add_parser("status", parents=[common], help="show run status")
+    sp.add_argument("--run-id", required=True)
+    sp.set_defaults(func=cmd_status)
+
+    sp = sub.add_parser("preflight", parents=[common], help="run PREFLIGHT only")
+    sp.add_argument("--out", default="")
+    sp.add_argument("--allow-diverged", action="store_true")
+    sp.set_defaults(func=cmd_preflight)
+
+    sp = sub.add_parser("admit-plan", parents=[common], help="deterministic plan admission from critic JSON")
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--critic-json", nargs="*", default=[])
+    sp.set_defaults(func=cmd_admit_plan)
+
+    sp = sub.add_parser("human-admit", parents=[common], help="record human admit for high/critical plans")
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--reason", default="")
+    sp.set_defaults(func=cmd_human_admit)
+
+    sp = sub.add_parser("pr-packet", parents=[common], help="write PR admission packet")
+    sp.add_argument("--run-id", required=True)
+    sp.set_defaults(func=cmd_pr_packet)
+
+    sp = sub.add_parser("role", parents=[common], help="run a role via mm-role and journal it")
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--role", required=True, choices=["PLANNER", "EXECUTOR", "ARCHITECT", "CRITIC", "SECURITY", "VERIFIER"])
+    sp.add_argument("--stage", default="")
+    sp.add_argument("--prompt", default="")
+    sp.add_argument("--prompt-file", default="")
+    sp.add_argument("--dry-run", action="store_true")
+    sp.add_argument("--force", action="store_true")
+    sp.set_defaults(func=cmd_role)
+
+    sp = sub.add_parser("close-run", parents=[common], help="score → grade → evaluate → learn")
+    sp.add_argument("--run-id", required=True)
+    sp.set_defaults(func=cmd_close_run)
+
+    return ap
+
+
+def main() -> int:
+    ap = build_parser()
+    args = ap.parse_args()
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    sys.exit(main())

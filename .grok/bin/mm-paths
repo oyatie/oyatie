@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Path-disjoint checks for parallel executor shards."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import List, Sequence
+
+
+def norm(p: str) -> str:
+    p = p.strip().strip("/")
+    return p
+
+
+def overlaps(a: str, b: str) -> bool:
+    a, b = norm(a), norm(b)
+    if not a or not b:
+        return True  # empty = whole tree = overlap everything
+    if a == b:
+        return True
+    # prefix relationship
+    if a.startswith(b + "/") or b.startswith(a + "/"):
+        return True
+    # simple glob *: treat as directory prefix without *
+    a0 = a.split("*")[0].rstrip("/")
+    b0 = b.split("*")[0].rstrip("/")
+    if a0 and b0 and (a0 == b0 or a0.startswith(b0 + "/") or b0.startswith(a0 + "/")):
+        return True
+    return False
+
+
+def any_overlap(paths: Sequence[str]) -> List[tuple]:
+    hits = []
+    n = list(paths)
+    for i in range(len(n)):
+        for j in range(i + 1, len(n)):
+            if overlaps(n[i], n[j]):
+                hits.append((n[i], n[j]))
+    return hits
+
+
+def groups_disjoint(groups: Sequence[Sequence[str]]) -> bool:
+    """Each group is a slice's paths; groups are disjoint if no path in A overlaps any in B."""
+    for i in range(len(groups)):
+        for j in range(i + 1, len(groups)):
+            for pa in groups[i]:
+                for pb in groups[j]:
+                    if overlaps(pa, pb):
+                        return False
+    return True
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--check", nargs="+", help="paths to check pairwise")
+    ap.add_argument("--groups-json", default="", help='JSON array of path arrays')
+    ap.add_argument("--json", action="store_true")
+    args = ap.parse_args()
+    if args.groups_json:
+        groups = json.loads(args.groups_json)
+        ok = groups_disjoint(groups)
+        out = {"disjoint": ok}
+        print(json.dumps(out, indent=2) if args.json else ("DISJOINT" if ok else "OVERLAP"))
+        return 0 if ok else 1
+    if args.check:
+        hits = any_overlap(args.check)
+        out = {"overlap": bool(hits), "pairs": hits}
+        if args.json:
+            print(json.dumps(out, indent=2))
+        else:
+            print("OVERLAP" if hits else "OK")
+            for a, b in hits:
+                print(f"  {a} ~ {b}")
+        return 1 if hits else 0
+    ap.print_help()
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
