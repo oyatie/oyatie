@@ -4,8 +4,8 @@
 // Dual-worker general (CI-heavy): maxRunners may exceed 1 when (a) distinct nodes admit one
 // claim each (≥ maxRunners), (b) a single physical volume stacks max_runners*request+reserve,
 // or (c) distributed stack: every admitting node holds ceil(max/n)*request+reserve AND hard
-// hostname topology spread. This slice uses two 120Gi general volumes (≤2×44Gi+reserve each)
-// with maxRunners=4. Live-postgres stays maxRunners=1 on worker-2.
+// hostname topology spread. This slice uses two 140Gi general volumes (≤3×44Gi+reserve each)
+// with maxRunners=6 (GitHub-standard 2vCPU/8Gi units). Live-postgres stays maxRunners=1.
 #![allow(clippy::expect_used, clippy::panic)]
 
 use serde::Deserialize;
@@ -19,12 +19,12 @@ const LIVE_POSTGRES_VALUES: &str = "infra/arc/runner-scale-set-live-postgres-arm
 const QEMU_CILIUM_PATCH: &str = "infra/talos/qemu-cilium.patch.yaml";
 const LOCAL_PATH_STORAGE: &str = "infra/gitops/local-path-storage.yaml";
 const GENERAL_WORKERS: [&str; 2] = ["oya-talos-worker-1", "oya-talos-worker-2"];
-/// Hard ceiling for this declaration slice; raising past 4 needs a new capacity plan.
-const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 4;
+/// Hard ceiling for this declaration slice; raising past 6 needs disk grow / profile B–C.
+const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 6;
 /// Spare GiB required when stacking multiple claims on one physical volume.
 const STACK_RESERVE_GIB: u64 = 4;
-/// General user volume size declared in Talos patches (fits 2×44Gi + reserve).
-const GENERAL_VOLUME_GIB: u64 = 120;
+/// General user volume size declared in Talos patches (fits 3×44Gi + reserve on 150Gi disk).
+const GENERAL_VOLUME_GIB: u64 = 140;
 /// Live-postgres user volume stays single-claim sized.
 const LIVE_POSTGRES_VOLUME_GIB: u64 = 48;
 
@@ -645,7 +645,7 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
                 LIVE_POSTGRES_VOLUME_GIB,
             ),
         ]),
-        "general volumes are 120Gi (2×44+reserve); live-postgres stays 48Gi"
+        "general volumes are 140Gi (3×44+reserve); live-postgres stays 48Gi"
     );
 
     validate_capacity_contract(&runners, &storage_paths, &path_nodes, &filesystems_gib)
@@ -739,17 +739,17 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         ),
     ]);
 
-    // Happy path: dual-worker general max=4 with distributed stack + spread + live max=1.
+    // Happy path: dual-worker general max=6 with distributed stack + spread + live max=1.
     assert!(
         validate_capacity_contract(
-            &[general(4, None, true), live(1)],
+            &[general(6, None, true), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
         )
         .is_ok()
     );
-    // Still valid at max=2 one-per-node on 120Gi volumes.
+    // Still valid at max=2 one-per-node on 140Gi volumes.
     assert!(
         validate_capacity_contract(
             &[general(2, None, true), live(1)],
@@ -798,10 +798,10 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         "48Gi cannot host 2×44Gi claims"
     );
 
-    // Multi-node without anti-affinity/topology spread fails (even with 120Gi).
+    // Multi-node without anti-affinity/topology spread fails (even with 140Gi).
     assert!(
         validate_capacity_contract(
-            &[general(4, None, false), live(1)],
+            &[general(6, None, false), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -812,7 +812,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     // Hostname pin with maxRunners>1 fails.
     assert!(
         validate_capacity_contract(
-            &[general(4, Some("oya-talos-worker-1"), true), live(1)],
+            &[general(6, Some("oya-talos-worker-1"), true), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -912,11 +912,11 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         "full-stack path: physical_gib >= max_runners * requested + reserve"
     );
 
-    // Distributed stack: 120Gi on each of 2 nodes admits maxRunners=4 with spread
-    // (ceil(4/2)=2 → 2*44+4=92 ≤ 120) but fails without spread.
+    // Distributed stack: 140Gi on each of 2 nodes admits maxRunners=6 with spread
+    // (ceil(6/2)=3 → 3*44+4=136 ≤ 140) but fails without spread.
     assert!(
         validate_capacity_contract(
-            &[general(4, None, true), live(1)],
+            &[general(6, None, true), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -926,7 +926,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     );
     assert!(
         validate_capacity_contract(
-            &[general(4, None, false), live(1)],
+            &[general(6, None, false), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems

@@ -1,46 +1,64 @@
-# CI-heavy Talos + ARC capacity profile (host ≥ 96–128 GiB RAM)
+# CI-heavy capacity profile — GitHub-standard runner units
 
-**Host observed (2026-08-05):** 128 GiB RAM, 18 logical CPUs, multi-Ti free disk.  
-**Live QEMU cluster (`oya-talos`) was undersized relative to that host:**
+**Host (2026-08-05):** 128 GiB RAM, 18 logical CPUs, multi-Ti free disk.  
+**Unit of capacity = one GitHub-standard Linux runner:**
 
-| Node | Live vCPU | Live RAM | Live data disk | Notes |
-|------|-----------|----------|----------------|-------|
-| controlplane-1 | 3 | ~8 GiB | 50 GiB system | lightly loaded (~18% CPU requests) |
-| worker-1 | **5** | **~30 GiB** | 50 + 150 GiB | general runners |
-| worker-2 | **5** | **~30 GiB** | 50 + 150 GiB | general + live-postgres; **~95% CPU requests** under load |
-| **Total** | **13** | **~68 GiB** | | host spare ≈ 5 CPU + 60 GiB |
+| Surface | vCPU | RAM | Notes |
+|---------|------|-----|--------|
+| **GitHub-hosted Linux (Ubuntu)** | **2** | **7–8 GiB** | baseline we match |
+| GitHub-hosted Windows | 2 | 7–8 GiB | N/A here |
+| GitHub-hosted macOS | 3–4 | 14 GiB | N/A here |
+| GitHub slim Linux | 1 | 5 GiB | optional “pack” mode only |
+| **Oyatie general ARC (this profile)** | **2 request, no CPU limit** | **7 GiB request / 8 GiB limit** | same class as GH Linux |
 
-**Bottleneck evidence:** concurrency is limited by (1) ARC `maxRunners`, (2) workspace FS size, and (3) **worker CPU** — not host RAM. Raising only `maxRunners` without more vCPU starves cargo/buck2 jobs that already request 2 CPU each.
+Matching GH dimensions means wall-clock and job density are comparable to hosted; concurrency is then pure packing math on the laptop cell.
 
 ---
 
-## Target live topology (merge-authority laptop cell)
+## Live Talos (today) vs target
 
-| Node | vCPU | RAM | System disk | Data disk (`vdb`) | Role |
-|------|------|-----|-------------|-------------------|------|
-| controlplane-1 | **4** | **12 GiB** | 50 GiB | — | API/etcd (+ headroom) |
-| worker-1 | **8** | **48 GiB** | 80 GiB | **150–200 GiB** | general CI; UserVolume general **120 GiB** |
-| worker-2 | **8** | **48 GiB** | 80 GiB | **150–200 GiB** | general CI + live-postgres cell (48 GiB) |
+| Node | Live vCPU | Live RAM | Target vCPU | Target RAM | Data disk |
+|------|-----------|----------|-------------|------------|-----------|
+| controlplane-1 | 3 | ~8 GiB | **4** | **12 GiB** | 50 GiB system |
+| worker-1 | **5** | **~30 GiB** | **10** | **56 GiB** | 150→**250 GiB** |
+| worker-2 | **5** | **~30 GiB** | **10** | **56 GiB** | 150→**250 GiB** |
+| **Guest total** | 13 | ~68 GiB | **24** | **124 GiB** | mild vCPU overcommit on 18 host cores; RAM near full host |
 
-**Host budget (guest):** 4+8+8 = **20 vCPU** (mild overcommit on 18 physical is acceptable for HVF; dial workers to 7 if host feels contended) and 12+48+48 = **108 GiB** guest RAM on a 128 GiB host (≈20 GiB for macOS + other processes).
+**Why 10 vCPU workers:** each GH-standard runner wants **2** CPU. System + buildkitd + nativelink + postgres cell eat ~2–3 CPU/node.  
+10 − 3 = **7 usable → 3 concurrent GH-units per worker** without starving co-tenants. Two workers → **6** concurrent general runners at GH size (comfortable). Path to **8–12** below.
 
-### CPU math (why 8 vCPU workers)
+---
 
-| Concurrent load | CPU requests | Fits on 5 vCPU live? | Fits on 8 vCPU target? |
-|-----------------|--------------|----------------------|------------------------|
-| 2 general @ 2 CPU | 4 | tight (+system) | yes |
-| 2 general + 1 live-postgres @ 2 | 6 | **no** (worker-2 already 95%) | yes with headroom |
-| 2 general @ 2 on one node | 4 | marginal | yes |
-| 2 general @ 3 (optional raise) | 6 | no | yes |
+## How many runners fit? (answer: more than 4)
 
-Runner template today: `requests.cpu: "2"`, `memory: "4Gi"` / `limits.memory: "8Gi"`. Keep 2 CPU request until workers are reprovisioned; optional follow-up is 3 CPU / 6 Gi request after 8 vCPU is live.
+### Disk packing (local-path does not enforce PVC size)
 
-### RAM math (why 48 GiB workers)
+| General UserVolume | Max 44 Gi claims/node | maxRunners on 2 workers (topology maxSkew=1) |
+|--------------------|------------------------|-----------------------------------------------|
+| 48 GiB (legacy) | **1** | **2** |
+| 120 GiB | 2 (2×44+4) | **4** |
+| **140 GiB** (fits live **150 GiB** `vdb`) | **3** (3×44+4=136) | **6** |
+| 200 GiB (after `qemu-img` grow) | **4** (4×44+4=180) | **8** |
+| 3rd worker + 140 GiB each | 3 × 3 nodes | **9** |
 
-| Load | Memory limits | On 30 GiB live | On 48 GiB target |
-|------|---------------|----------------|------------------|
-| 2 general @ 8 Gi limit | 16 Gi | fits, thin | comfortable |
-| + live-postgres + system + nativelink co-tenancy | higher | risk OOM / throttle | intended headroom |
+### CPU packing (GH-standard 2 vCPU unit)
+
+| Worker vCPU | System reserve | GH-units @ 2 CPU | 2 workers |
+|-------------|----------------|------------------|-----------|
+| 5 (live) | ~2.5 | **1** hard / 2 soft | 2–4 (CPU-starved at 2) |
+| 8 | ~2.5 | **2–3** | 4–6 |
+| **10** | ~2.5 | **3** | **6** |
+| 12 (aggressive) | ~2.5 | **4** | **8** |
+
+### RAM packing (8 GiB limit per GH unit)
+
+| Worker RAM | System ~8 GiB | GH-units @ 8 GiB | 2 workers |
+|------------|---------------|------------------|-----------|
+| 30 GiB live | ~8 | **2** | 4 |
+| 48 GiB | ~8 | **5** | 10 (CPU/disk bind first) |
+| **56 GiB** | ~8 | **6** | 12 (CPU/disk bind first) |
+
+**Conclusion:** On this host, **6 concurrent GH-standard general runners** is the sweet spot on **current 150 GiB data disks** (volume 140 GiB, 3/node). **8–12** is realistic after disk grow + 10 vCPU / 56 GiB workers (or a third worker). **4 was never a hardware ceiling** — it was a conservative dual-worker + 120 GiB planning step.
 
 ---
 
@@ -48,61 +66,70 @@ Runner template today: `requests.cpu: "2"`, `memory: "4Gi"` / `limits.memory: "8
 
 | Knob | Value | Rationale |
 |------|-------|-----------|
-| `maxRunners` | **4** | 2 workers × ≤2 runners (topology spread) |
-| workspace PVC | 44 GiB | per claim |
-| general user volume | **120 GiB** | 2×44 + 4 Gi reserve ≤ 120 per node |
-| spread | preferred anti-affinity + **topologySpread DoNotSchedule maxSkew=1** | hard cap ~2 general runners per hostname |
-| live-postgres | maxRunners=1 | unchanged disk-heavy cell |
+| `maxRunners` | **6** | 2 workers × 3 GH-units; topology DoNotSchedule maxSkew=1 |
+| Runner CPU | **2** request, no limit | GitHub Linux standard |
+| Runner memory | **7 GiB** req / **8 GiB** limit | GitHub Linux standard |
+| workspace PVC | 44 GiB | unchanged claim size |
+| general UserVolume | **140 GiB** | 3×44 + 4 reserve on 150 GiB `vdb` |
+| live-postgres | maxRunners=1 | separate cell / GH-sized unit on worker-2 |
+
+Optional **slim pack** (not default): 1 CPU / 5 GiB like GH slim — can raise maxRunners toward 8–10 on same disks if builds remain correct under contention; measure first.
 
 ---
 
-## Apply path (ordered)
+## Stretch: 8 or 12 general runners
 
-### A. Immediate concurrency (no VM recreate)
+| Profile | Workers | vCPU/RAM each | Data disk | maxRunners | Host fit |
+|---------|---------|---------------|-----------|------------|----------|
+| **A (now)** | 2 | 10 / 56 GiB | 150 GiB → vol 140 | **6** | 20 vCPU guest, ~124 GiB |
+| **B** | 2 | 12 / 56 GiB | 250 GiB → vol 200 | **8** | 28 vCPU overcommit, same RAM |
+| **C** | 3 | 6 / 40 GiB | 150 GiB → vol 140 | **9** | 22 vCPU, ~132 GiB |
 
-Works on **current** 5 vCPU / 30 GiB workers if ≤2 general pods/node (topology spread). Expect **CPU contention** until step B.
+Prefer **A → B** (fewer nodes, simpler topology). **C** only if dual-worker disk contention dominates.
+
+---
+
+## Live apply order
+
+### 1. Immediate concurrency (no VM recreate)
 
 ```bash
-# From repo root, committed values only — never a scratchpad copy.
-helm upgrade oya-arm64 oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
-  --namespace arc-runners --version 0.14.2 \
+# GH-standard resources + maxRunners=6 from committed values
+helm upgrade oya-arm64 \
+  oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set \
+  -n arc-runners --version 0.14.2 \
   -f infra/arc/runner-scale-set-arm64-values.yaml
 ```
 
-### B. Grow general UserVolume to 120 GiB (disk already 150 GiB)
+Until UserVolumes are **≥140 GiB**, scheduler may only place **1 claim/node** if still on 48 GiB FS (disk pressure). Grow volumes (step 2) before expecting 3/node.
 
-Patches: `infra/talos/local/patches/ci-workspace-worker-{1,2}.yaml` (`minSize`/`maxSize` 120GiB).  
-**Human apply:** Talos machine config patch + grow XFS / re-provision UserVolume (may need brief worker drain). Do **not** shrink below live claims.
+### 2. UserVolume → 140 GiB (fits existing 150 GiB data disks)
 
-### C. Full CPU/RAM bump (best outcome) — QEMU recreate
+`infra/talos/local/patches/ci-workspace-worker-{1,2}.yaml` — human Talos machine-config apply.
 
-`talosctl` QEMU VMs do **not** hot-resize vCPU/RAM. Capture kubeconfig, registry mirror, machine patches, then recreate:
+### 3. QEMU CPU/RAM bump (destructive window)
 
 ```text
-talosctl cluster create oya-talos \
-  --workers 2 \
-  --cpus 4 --memory 12288 \
-  --cpus-workers 8 --memory-workers 49152 \
-  --disk-workers … \
-  + second blank data disk 150–200G per worker \
-  + existing config patches (CNI none, registry mirror, workspace volumes)
+workers: --cpus-workers 10 --memory-workers 57344   # 56 GiB
+control-plane: --cpus 4 --memory 12288
+# optional disk grow: qemu-img resize worker-*-1.disk 250G before 8-runner profile
 ```
 
-Exact flags must match the original `oya-talos` bootstrap (see live `~/.talos/clusters/oya-talos/state.yaml`). Prefer a planned maintenance window: this is **destructive** to the live merge-authority cell.
+### 4. Stretch to 8
 
-vfkit multinode alternative: `infra/talos/local/MULTINODE-RUNBOOK.md` CI specialty sizes are smaller; this profile supersedes them for the **CI-heavy laptop** merge cell.
+Grow data disks to ≥220 GiB, UserVolume 200 GiB, `maxRunners: 8`, optional worker vCPU 12.
 
 ---
 
-## Rollback
+## CAS note (cache hits, not runner count)
 
-1. `maxRunners: 1` or `2` via committed values + helm/Argo.  
-2. Do not wipe UserVolumes as part of scale-down.  
-3. CPU/RAM rollback only by recreating smaller VMs (same destroy/create path).
+NativeLink is live but **mTLS client certs are not mounted on runners** (logs: `NoCertificatesPresented`). Raising maxRunners without mounting `nativelink-client-reader`/`writer` keeps **0% remote cache hits**. Wire certs + `OYA_CI_RE_CACHE_MODE=rw` on cache-writer in parallel.
+
+---
 
 ## Explicit non-goals
 
-- Does not activate warm CAS / Remote Execution.  
-- Does not raise live-postgres `maxRunners`.  
-- Does not claim local-path enforces PVC size.  
-- Does not auto-destroy the live QEMU cluster from an agent.
+- Does not activate warm CAS/RE by itself.  
+- Does not admin-merge product PRs.  
+- Does not raise live-postgres above 1.  
+- Does not claim local-path enforces PVC size.

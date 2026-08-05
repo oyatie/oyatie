@@ -4,28 +4,25 @@
 **Agents do not apply** Talos patches, Helm upgrades, or Argo syncs. This file is
 the apply checklist for the git declarations under `infra/arc/`.
 
-**Goal of this declaration:** unlock `maxRunners: 4` on `oya-arm64` across two
-workers with **120 GiB** general UserVolumes and hard topology spread
-(≤2 general runners per hostname). Companion profile:
-[`CAPACITY-PROFILE-CI-HEAVY.md`](./CAPACITY-PROFILE-CI-HEAVY.md) (CPU/RAM target
-and host budget).
+**Goal of this declaration:** unlock `maxRunners: 6` on `oya-arm64` — two
+workers × three **GitHub-standard Linux** units (2 vCPU / ~8 GiB class) with
+**140 GiB** general UserVolumes and topology spread (≤3 general runners per
+hostname). Companion profile: [`CAPACITY-PROFILE-CI-HEAVY.md`](./CAPACITY-PROFILE-CI-HEAVY.md).
 
 **Out of scope:** CAS warm pools, Remote Execution, live-postgres `maxRunners`
-(stays 1), credentials, and any change that raises general `maxRunners` above 4
-without a new capacity plan.
+(stays 1), credentials, and raising general `maxRunners` above 6 without the
+stretch profile (disk grow → 8, or third worker → 9).
 
 ## Why not just raise maxRunners
 
 Local-path does not enforce PVC size. Each general claim requests 44 GiB.
-With only 48 GiB volumes, two concurrent general runners on one volume would
-overcommit disk. This slice grows each general volume to **120 GiB** and uses
-**DoNotSchedule topology spread maxSkew=1** so each node hosts at most ~2 claims
-(2×44 + 4 reserve ≤ 120).
+Runner resources match **GitHub-hosted Linux** (2 vCPU request, 7–8 GiB RAM).
+This slice grows each general volume to **140 GiB** so three claims fit
+(3×44 + 4 reserve ≤ 140) under **DoNotSchedule topology spread maxSkew=1**.
 
-Separately, live workers today are **5 vCPU / ~30 GiB**. That starves CPU when
-two general runners (2 CPU request each) share a node with live-postgres or
-system pods. Target workers are **8 vCPU / 48 GiB** (see capacity profile).
-QEMU does not hot-resize vCPU/RAM — that step is a planned recreate.
+Live workers today are **5 vCPU / ~30 GiB** — too small for three concurrent
+2-CPU GH units. Target workers are **10 vCPU / 56 GiB** (see capacity profile).
+QEMU does not hot-resize vCPU/RAM — recreate is a planned window.
 
 ## Prerequisites (read-only)
 
@@ -40,9 +37,8 @@ kubectl get nodes -o custom-columns=NAME:.metadata.name,CPU:.status.capacity.cpu
 kubectl get node oya-talos-worker-1 oya-talos-worker-2 --show-labels
 ```
 
-Both workers must show Ready and arm64. General volumes should report **120 GiB**
-after step 1; until then keep `maxRunners` ≤ number of 48 GiB-safe concurrent
-slots (historically 2 with required one-per-node anti-affinity).
+Both workers must show Ready and arm64. General volumes should report **140 GiB**
+after step 1; until then keep `maxRunners` ≤ one claim per volume (legacy 48 GiB).
 
 ## Apply order (human)
 
@@ -68,13 +64,13 @@ kubectl -n oya-ci-workspace-storage rollout status deploy/oya-ci-workspace-local
 Readback must show general on **both** workers. Do not introduce
 `DEFAULT_PATH_FOR_NON_LISTED_NODES` for the CI workspace provisioner.
 
-### 2. Grow general UserVolume to 120 GiB (if still 48 GiB)
+### 2. Grow general UserVolume to 140 GiB (if still 48/120 GiB)
 
 Source: `infra/talos/local/patches/ci-workspace-worker-{1,2}.yaml`.
 
-Data disk is already 150 GiB on the live QEMU cell; only the UserVolume bound
-needs to grow. This is a **Talos machine-config** change — drain the worker if
-required by your patch procedure; do not destroy volumes with active claims.
+Data disk is already 150 GiB on the live QEMU cell; only the UserVolume bound
+needs to grow to 140 GiB. **Talos machine-config** change — drain if required;
+do not destroy volumes with active claims.
 
 ### 3. General runner scale set values
 
@@ -82,7 +78,8 @@ Source of truth: `infra/arc/runner-scale-set-arm64-values.yaml`
 
 Expected shape:
 
-- `maxRunners: 4`
+- `maxRunners: 6`
+- runner resources: `cpu: "2"`, `memory: 7Gi` request / `8Gi` limit (GH Linux)
 - `nodeSelector`: only `kubernetes.io/arch: arm64` (no hostname pin)
 - preferred hostname anti-affinity + `topologySpreadConstraints` DoNotSchedule
   maxSkew=1 on `oya.io/ci-cell: general`
@@ -106,23 +103,23 @@ Do **not** change `runner-scale-set-live-postgres-arm64-values.yaml` in this sli
 ```sh
 kubectl -n arc-runners get pods -o wide
 kubectl -n arc-runners get pvc -o wide
-# Under load: up to 4 general pods, at most 2 per kubernetes.io/hostname
+# Under load: up to 6 general pods, at most 3 per kubernetes.io/hostname
 kubectl -n arc-runners get pods -l oya.io/ci-cell=general -o wide
 kubectl describe nodes | rg -A8 'Allocated resources'
 ```
 
 Confirm:
 
-1. At most two general runner Pods per `kubernetes.io/hostname` under max=4.
+1. At most three general runner Pods per `kubernetes.io/hostname` under max=6.
 2. Each general PVC binds on the same node as its Pod (WaitForFirstConsumer).
-3. Paths under `/var/mnt/ci-workspace-general` do not overcommit past 120 GiB.
+3. Paths under `/var/mnt/ci-workspace-general` do not overcommit past 140 GiB.
 4. Live-postgres set remains max one runner on worker-2.
-5. No DiskPressure / unexpected eviction; watch CPU steal if workers still 5 vCPU.
+5. No DiskPressure / unexpected eviction; watch CPU if workers still 5 vCPU.
 
 ### 5. Optional: reprovision Talos CPU/RAM (planned window)
 
-See [`CAPACITY-PROFILE-CI-HEAVY.md`](./CAPACITY-PROFILE-CI-HEAVY.md) section C.
-Target: CP **4 vCPU / 12 GiB**, workers **8 vCPU / 48 GiB** each.  
+See [`CAPACITY-PROFILE-CI-HEAVY.md`](./CAPACITY-PROFILE-CI-HEAVY.md).
+Target profile A: CP **4 / 12 GiB**, workers **10 vCPU / 56 GiB**.  
 **Destructive** to the QEMU cell — not an agent default action.
 
 ## Safe scale-down / rollback
@@ -136,7 +133,7 @@ Target: CP **4 vCPU / 12 GiB**, workers **8 vCPU / 48 GiB** each.
 ## Explicit non-goals
 
 - Does not enable CAS warm, Remote Execution, or workflow edits.
-- Does not raise general `maxRunners` above 4 without a new plan.
+- Does not raise general `maxRunners` above 6 without the stretch profile (8/9/12).
 - Does not claim XFS project quotas enforce PVC size without separate proof.
 - Does not store or print credentials.
 - Does not auto-destroy the live `oya-talos` QEMU cluster.

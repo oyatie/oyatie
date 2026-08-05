@@ -22,13 +22,12 @@ controllerServiceAccount:
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
 #
-# maxRunners=4 on two general workers (≈2 per node) after expanding each
-# general user volume to 120 Gi on the 150 Gi data disk (ADR-0630 capacity
-# reconsider 2026-08-05). Local-path still does not enforce claim size; topology
-# spread DoNotSchedule maxSkew=1 caps ~2 general runners per hostname so
-# 2×44 Gi + reserve fits under 120 Gi. Host has headroom for larger Talos VMs
-# (see CAPACITY-PROFILE-CI-HEAVY). Does not activate CAS warm / RE.
-maxRunners: 4
+# maxRunners=6: two workers × three GitHub-standard Linux units (2 vCPU / 8 GiB
+# class — same ballpark as hosted Ubuntu runners). Requires general UserVolume
+# 140 GiB (3×44 Gi + 4 Gi reserve) on the existing 150 GiB data disks. Topology
+# DoNotSchedule maxSkew=1 → ~3+3. Stretch to 8–12 needs larger disks and/or a
+# third worker — see CAPACITY-PROFILE-CI-HEAVY.md. Does not activate CAS warm/RE.
+maxRunners: 6
 minRunners: 0
 listenerMetrics:
   gauges:
@@ -69,9 +68,9 @@ template:
     # WaitForFirstConsumer + nodePathMap admit general only on those two nodes.
     nodeSelector:
       kubernetes.io/arch: arm64
-    # Soft anti-affinity + hard topology spread: allow up to ~2 general runners
-    # per hostname (maxRunners=4 across 2 workers) while still preferring spread.
-    # DoNotSchedule maxSkew=1 on 4 pods / 2 nodes => 2+2. See ADR-0630.
+    # Soft anti-affinity + hard topology spread: allow up to ~3 general runners
+    # per hostname (maxRunners=6 across 2 workers) while preferring spread.
+    # DoNotSchedule maxSkew=1 on 6 pods / 2 nodes => 3+3.
     affinity:
       podAntiAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -138,20 +137,20 @@ template:
         # sidecar cell declared by runner-scale-set-live-postgres-arm64-values.yaml.
         resources:
           requests:
-            # 2 CPU tracks the MEASURED buck2 scaling knee (j=2 87s, j=4 67s,
-            # j=8 71s, j=18 98s) — over-parallelism degrades, so a wide request
-            # would buy nothing and crowd out co-tenants.
+            # Match GitHub-hosted Linux standard runners: 2 vCPU, ~7–8 GiB RAM.
+            # (Hosted slim is 1/5Gi — optional pack mode only; not default.)
+            # Measured buck2 knee still favors j≈4 internal parallelism on 2
+            # unrestricted cores; we do not set a CPU limit (see below).
             cpu: "2"
-            memory: "4Gi"
+            memory: "7Gi"
             # Build outputs live on the dedicated workspace volume below. This
             # request accounts only for image + writable-layer pressure on the
             # Talos system filesystem; the 31Gi incident workspace is accounted
             # by the 44Gi generic ephemeral PVC instead.
             ephemeral-storage: "4Gi"
           limits:
-            # 8Gi memory per runner; with required anti-affinity each arm64
-            # worker hosts at most one general runner, leaving headroom for
-            # co-tenants (and on worker-2 the live-postgres cell when scheduled).
+            # Cap at GitHub-hosted Linux RAM class so packing math stays honest
+            # against Talos worker allocatable (3×8Gi + system on a 56Gi worker).
             memory: "8Gi"
             # The root filesystem now carries only image/writable-layer growth.
             # Keep a hard ceiling so tool installers cannot refill Talos
