@@ -1364,5 +1364,18 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
     assert!(runner_text.contains("/etc/openbao/ca"));
     assert!(runner_text.contains("nativelink-server-ca"));
     assert!(runner_text.contains("/etc/nativelink/ca"));
-    assert_eq!(runner_text.matches("optional\":true").count(), 2);
+    // W2: optional mTLS client leaf secret (nativelink-client-reader) joins the two
+    // optional CA ConfigMaps. Still secret-free in git — only empty optional mounts.
+    assert!(runner_text.contains("nativelink-client-reader"));
+    assert!(runner_text.contains("/etc/nativelink/client"));
+    assert!(runner_text.contains("OYA_CACHE_TLS_CLIENT_CERT"));
+    assert_eq!(
+        runner_text.matches("optional\":true").count(),
+        3,
+        "exactly three optional mounts: openbao CA, nativelink server CA, nativelink client leaf"
+    );
+    assert!(
+        !runner_text.contains("PRIVATE KEY") && !runner_text.contains("BEGIN CERTIFICATE"),
+        "runner values must stay secret-free (no PEM material)"
+    );
 }
