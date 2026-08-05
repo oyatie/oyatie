@@ -5,7 +5,7 @@ wave: W0-A
 run_id: k8s-go-rust-rewrite-20260805
 incident_class: planned-agent-handoff
 recorded_at: 2026-08-05
-terminal_state: interrupted-handoff
+terminal_state: stabilized-handoff
 ---
 # W0-A 2026-08-05 GJC handoff
 
@@ -13,7 +13,7 @@ terminal_state: interrupted-handoff
 
 | Authority | Version this document was authored against | Status at handoff (2026-08-05) |
 |---|---|---|
-| Repository baseline | `origin/dev` @ `b64eaaf4ab40f7428e3a27d7cd4b02930404eee9` | Re-fetched immediately before handoff; isolated worktree HEAD equals current `origin/dev`. Local `dev` is stale and MUST NOT be used. |
+| Repository baseline | `origin/dev` @ `b64eaaf4ab40f7428e3a27d7cd4b02930404eee9` | Re-fetched during stabilization; branch merge-base equals current `origin/dev`. Local `dev` is stale and MUST NOT be used. |
 | Upstream Kubernetes pin | `v1.36.1`; annotated tag object `5b824a493a7ca248b726b6ea09d53842b9b992c2`; peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Resolved with `git ls-remote`; fleet basis is `infra/talos/installation-media/presets.yaml`. |
 | Engine | `build/port-engine/*`, v0 | W0-B pending; no engine crate exists yet. |
 | Neutral and corpus rules | `specs/port-rules/**` and `specs/k8s-port/rules/**`, v0 | W0-B pending; no rule is loaded yet. |
@@ -28,8 +28,24 @@ terminal_state: interrupted-handoff
 - **Current durable story:** `G001`, W0-A governance admission. `G002` through `G008` are pending and are summarized below.
 - **Beads issue:** `oyatie-7xf`, status `in_progress`, claimed by Jason Lee.
 - **Worktree:** `/Users/jasonlee/Developer/oyatie/.worktrees/k8s-port-w0a`.
-- **Branch:** `agent/k8s-port-w0a-20260805`, tracking `origin/dev`.
+- **Branch:** `agent/k8s-port-w0a-20260805`, tracking `origin/agent/k8s-port-w0a-20260805`; its merge-base is the `origin/dev` baseline named above.
 - **Pre-handoff content digest:** `sha256:af476a34c73269227fcb0f474f434aa60f0b38a37322dbabb6b43d419154c1ea`, computed over sorted changed/untracked paths and bytes before adding this journal; this journal is intentionally excluded to avoid a self-referential digest.
+
+## Authoritative stabilization update
+
+This section supersedes the historical “when authored” statements later in this journal. It is the current resume point for a process with no prior context.
+
+- **Remote state:** `origin/dev` and this branch's merge-base are both `b64eaaf4ab40f7428e3a27d7cd4b02930404eee9`; refreshed immediately before this update. Local `dev` is irrelevant and MUST NOT be used.
+- **Pushed branch:** `agent/k8s-port-w0a-20260805`.
+- **Signed source/content commit:** `7f9fe56b650e5178fb9ab9fbcacecebba06a3ce4` (`feat(k8s): admit deterministic Go-to-Rust port W0`).
+- **Signed producer-settle commit:** `a2f9ca8317ba4ba0c7a669b04a8b3830ebfe7264` (`chore: settle k8s port governance projections`).
+- **Draft PR:** <https://github.com/jason931225/oyatie/pull/1561>, base `dev`, head `a2f9ca8317ba4ba0c7a669b04a8b3830ebfe7264`, mergeable with no content conflict when last inspected.
+- **Protected pipeline:** the `oya-ci-required` jobs are queued/pending. They are not green evidence. The PR has no formal GitHub review and remains blocked/draft.
+- **Durable tracking:** Beads `oyatie-7xf` remains `in_progress` with external reference `gh-1561`; the Ultragoal ledger records stabilization, push, PR, review, and model-fallback facts.
+- **Delegation fallback:** Fable-backed lanes may trigger cybersecurity restrictions. Use another bundled role/model or bounded inline work, record the fallback in Beads and the Ultragoal ledger, and preserve every acceptance and review gate.
+- **Scope boundary:** this handoff covers W0-A closeout and then W0-B through W0-H only. W1+ remains unapproved.
+
+Do not rewrite history to make queued CI, local review, or a draft PR look complete. The fresh agent owns the remaining protected-PR lifecycle and must record current evidence rather than trusting this snapshot.
 
 ## Scope and inputs
 
@@ -55,7 +71,7 @@ The architectural contract is:
 
 ## Judgment
 
-W0-A is implemented in the working tree but is **not complete** because no signed commit, push, PR, protected-context result, merge, or post-merge packet exists yet.
+W0-A source and generated projections are implemented, reviewed, SSH-signed, pushed, and present in draft PR #1561. W0-A is **not complete** because `oya-ci-required`, formal GitHub review, thread resolution, branch-protection admission, squash merge, the post-merge packet, and the G001 durable checkpoint remain outstanding.
 
 Implemented source surfaces:
 
@@ -115,17 +131,17 @@ Known non-green local evidence that MUST NOT be hidden:
 
 Resource posture used locally: Apple arm64 workstation, default local Buck/Cargo scheduling, no cgroup override, no external credentials, no cluster mutation. Network access was used only to fetch `origin/dev` and resolve the immutable upstream Kubernetes tag.
 
-Before any push, the fresh agent MUST:
+Fresh-agent resume procedure:
 
 1. Re-read this journal and run `git status --short --branch`; treat any unexpected delta as other work and investigate rather than reverting it.
-2. Confirm `git fetch origin dev` still leaves the branch based on current `origin/dev`. Rebase only if origin moved, preserving all reviewed changes and rerunning affected verification.
-3. Run `cargo fmt -p ci-k8s-program-docs -- --check` and `rustfmt --check ci/facade/affected-target-set/tests/affected_set.rs`, then the focused Cargo/Buck commands above, ADR index check, masterplan projection check, JSON parsing/canonical gate, and `git diff --check`. Workspace/package-wide format checks expose unrelated drift and MUST NOT be repaired in this lane.
-4. Keep source and generated-face commits separate. Stage and SSH-sign the source/content commit first while leaving `docs/ADR-INDEX.md` and `docs/machine-readable/decisions.json` unstaged. Then rerun the sanctioned generators/materializer from committed source, stage only PR-owned generated diffs, and SSH-sign a second settle commit.
-5. Follow the generated-face protocol from `ci/facade/generated-artifact-freshness/src/lib.rs`: materialize with the sanctioned Buck target or `infra/ci/materialize-cloud-ci-generated-faces.sh`; never hand-edit `*.generated.json`; run face-settle `--verify` last before every push. Controller-owned faces are not contributor-authored.
-6. Push `agent/k8s-port-w0a-20260805`, open a PR against `dev`, and cite `oyatie-7xf`, ADR-0637/0638, the approved plan, all tests, known local limitations, and both architect approvals in the PR body.
-7. Do not merge on green CI alone. Require all review threads resolved, no conflict, branch protection satisfied, independent review approval, and the singleton `oya-ci-required` context green. Then squash merge.
-8. Record the post-merge completion packet: promoted commit `oya-ci-required` green, rollout/non-runtime verification, rollback note, observability impact, user-story evidence, release-note/governance impact, and observation harvest.
-9. Only then close `oyatie-7xf` and checkpoint Ultragoal `G001` complete with a deferred quality gate containing real targeted-verification evidence. Do not call the aggregate `goal complete`; `G002` through `G008` remain.
+2. Run `git fetch origin dev`; compare `origin/dev`, branch merge-base, PR head, and local HEAD. If `origin/dev` moved, rebase only when the protected-PR procedure requires it, preserve reviewed changes, and rerun affected verification.
+3. Inspect PR #1561 and its exact check runs. Queued/pending is not passing. If any cloud check fails, diagnose the authoritative job log, repair the source cause, rerun affected local verification and independent review, keep source and generated-settle commits separate, and rerun face-settle before pushing.
+4. For any new source change, run `cargo fmt -p ci-k8s-program-docs -- --check`, `rustfmt --check ci/facade/affected-target-set/tests/affected_set.rs`, the focused Cargo/Buck commands above, ADR index check, masterplan projection check, JSON parsing/canonical gate, and `git diff --check`. Workspace/package-wide format checks expose unrelated drift and MUST NOT be repaired in this lane.
+5. Never hand-edit generated projections. Materialize with the sanctioned Buck target or `infra/ci/materialize-cloud-ci-generated-faces.sh`, commit PR-owned generated deltas separately, and run face-settle `--verify` last before every push. Controller-owned faces are not contributor-authored.
+6. Keep PR #1561 draft until the actual current diff and all checks are ready. Then obtain formal GitHub approval, resolve every review thread, confirm no merge conflict, confirm branch protection, and require the singleton `oya-ci-required` context green. Green CI alone is insufficient.
+7. Squash merge only after every admission condition in step 6 is satisfied.
+8. Record the post-merge completion packet: promoted commit and `oya-ci-required` status URL, rollout/non-runtime verification, rollback note, observability impact, user-story evidence, release-governance/release-note impact, and agent-observation harvest with created/linked cards or duplicate/no-action rationale.
+9. Close Beads `oyatie-7xf` only after merge evidence exists. Checkpoint Ultragoal `G001` complete with a deferred quality gate containing real targeted-verification evidence. Do not call aggregate `goal complete`; start `G002` only after the G001 durable receipt exists.
 
 ## Remaining program stories
 
@@ -145,7 +161,7 @@ Reviewers were independent bundled architect lanes. Both final verdicts are APPR
 
 ## Terminal state
 
-**Interrupted for deliberate fresh-agent handoff; no human-only blocker.** Work is locally implemented and reviewed, but G001 remains active until the protected PR lifecycle and post-merge evidence complete. No commit, push, PR, merge, or Ultragoal checkpoint existed when this record was authored.
+**Stabilized for deliberate fresh-agent handoff; no human-only blocker.** W0-A is committed, pushed, and represented by draft PR #1561, but G001 remains active until the protected PR lifecycle, post-merge evidence, Beads closeout, and durable Ultragoal checkpoint complete. W0-B through W0-H remain pending; W1+ is not approved.
 
 ## Graduation links
 
