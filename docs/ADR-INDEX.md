@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 447
-- **Numbering:** ADR-0001..ADR-0638 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0170, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
-- **Next ADR number:** 0639
-- **Status counts:** Accepted 183, Accepted (amendment) 2, Amended 2, Proposed 155, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Rejected 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
+- **Total ADRs:** 448
+- **Numbering:** ADR-0001..ADR-0639 (non-contiguous; gaps: 0012, 0033, 0037, 0041, 0050, 0068, 0070..0082, 0084..0089, 0125..0127, 0170, 0224..0233, 0247, 0256, 0259..0262, 0264..0271, 0274..0275, 0277..0279, 0281..0283, 0285..0291, 0322..0323, 0327, 0342, 0345, 0385..0386, 0395..0396, 0398..0475, 0477, 0483..0505, 0574..0579, 0583..0585, 0594, 0601..0602)
+- **Next ADR number:** 0640
+- **Status counts:** Accepted 185, Accepted (amendment) 2, Amended 2, Proposed 154, Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass) 1, Proposed (target: Accepted upon PR #143 merge to dev) 1, Rejected 1, Superseded 35, accepted 34, deprecated 1, proposed 31, superseded 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -459,7 +459,7 @@ doc_status: published
 | ADR-0627 | Proposed | Enforce the facade→core layering rule, keyed to survive the remaining migration | council-architecture | [`ADR-0627-facade-core-layering-gate.md`](decisions/ADR-0627-facade-core-layering-gate.md) |
 | ADR-0628 | Proposed | Scan-root liveness | council-architecture | [`ADR-0628-scan-root-liveness-gate.md`](decisions/ADR-0628-scan-root-liveness-gate.md) |
 | ADR-0629 | Proposed | Crate-catalog coverage | council-architecture | [`ADR-0629-crate-catalog-coverage-gate.md`](decisions/ADR-0629-crate-catalog-coverage-gate.md) |
-| ADR-0630 | Proposed | ARC as the interim owned-runner substrate | council-architecture | [`ADR-0630-arc-owned-runner-fleet-interim-substrate.md`](decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md) |
+| ADR-0630 | Accepted | ARC as the interim owned-runner substrate | council-architecture | [`ADR-0630-arc-owned-runner-fleet-interim-substrate.md`](decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md) |
 | ADR-0631 | Proposed | a capability that spans strata has a wrong boundary | council-architecture | [`ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md`](decisions/ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md) |
 | ADR-0632 | Accepted | Product protocol and owned-fabric posture | council-architecture | [`ADR-0632-product-protocol-and-owned-fabric-posture.md`](decisions/ADR-0632-product-protocol-and-owned-fabric-posture.md) |
 | ADR-0633 | Proposed | enforcement belongs to the layer that owns the fact | council-architecture | [`ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md`](decisions/ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md) |
@@ -468,11 +468,12 @@ doc_status: published
 | ADR-0636 | Accepted | Bound interim cross-run affected-set baseline reuse to immutable producer provenance | council-architecture | [`ADR-0636-bounded-cross-run-affected-baseline-reuse.md`](decisions/ADR-0636-bounded-cross-run-affected-baseline-reuse.md) |
 | ADR-0637 | Accepted | Owned deterministic Go-to-Rust port engine | council-architecture | [`ADR-0637-owned-deterministic-go-to-rust-port-engine.md`](decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md) |
 | ADR-0638 | Accepted | Mechanically maintained Kubernetes Rust port | council-architecture | [`ADR-0638-mechanically-maintained-kubernetes-rust-port.md`](decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md) |
+| ADR-0639 | Accepted | Path- and event-conditional constituents under the single `oya-ci-required` fan-in | council-architecture | [`ADR-0639-path-event-optional-legs-under-oya-ci-required.md`](decisions/ADR-0639-path-event-optional-legs-under-oya-ci-required.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0639), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0640), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -517,6 +518,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 447 ADR files (sorted ascending)
+- `decisions/` directory listing — 448 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

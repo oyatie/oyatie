@@ -1,7 +1,8 @@
 ---
 id: ADR-0630
 title: "Actions Runner Controller as the interim owned-runner substrate, declared in infra/arc/, behind the ADR-0515 D5 owned-CI destination"
-status: Proposed
+status: Accepted
+doc_status: published
 planning_impact: false
 deciders: founder
 date: 2026-07-29
@@ -11,7 +12,11 @@ supersedes: []
 superseded_by: []
 depends_on: [ADR-0515, ADR-0560, ADR-0556]
 amends: []
-related: [ADR-0131, ADR-0523, ADR-0535, ADR-0612, ADR-0554]
+related: [ADR-0131, ADR-0523, ADR-0535, ADR-0612, ADR-0554, ADR-0639]
+related_specs:
+  - /infra/arc/runner-scale-set-arm64-values.yaml
+  - /infra/arc/runner-scale-set-live-postgres-arm64-values.yaml
+  - /infra/arc/RUNBOOK-scale-runners.md
 milestone: W3
 ---
 
@@ -19,10 +24,10 @@ milestone: W3
 
 ## Status
 
-**Proposed — 2026-07-29.** Ratifies, and declares, a runner fleet that was brought up
-imperatively the same day. Written because the fleet already holds merge authority and had
-**no decision record**: `git grep -iE 'autoscalingrunnerset|gha-runner-scale-set' origin/dev`
-returned zero hits while three helm revisions existed only as cluster secrets.
+**Accepted — 2026-08-05** (originally Proposed 2026-07-29; ratified with dual-worker
+general capacity amend). Ratifies a runner fleet that was brought up imperatively and
+holds merge authority. Original gap: no decision record while helm revisions existed only
+as cluster secrets.
 
 ## Context
 
@@ -107,26 +112,37 @@ cell deliberately carries neither label.
 
 The general scale set requests `cpu 2 / memory 4Gi / root ephemeral-storage 4Gi /
 workspace PVC 44Gi`, limits `memory 8Gi / root ephemeral-storage 8Gi`, and carries **no CPU
-limit**. It is temporarily capped at `maxRunners: 1`.
+limit**.
+
+**Capacity model (amended 2026-08-05):** the general-purpose set `oya-arm64` is authorized at
+**`maxRunners: 2`** with **required pod anti-affinity on `kubernetes.io/hostname`** so concurrent
+general runners prefer distinct workers. Each worker that admits general workspaces exposes a
+dedicated ~48Gi Talos user volume path for the general StorageClass. Local Path Provisioner does
+not enforce PVC byte requests; the blast-radius boundary is **one general runner per physical
+general volume (per node)**, not “free CPU implies free concurrency.” Raising above 2 requires a
+new capacity measurement and an amendment.
 
 - `cpu 2` tracks the MEASURED buck2 scaling knee (j=2 87.19s, j=4 67.06s, j=8 71.29s,
   j=18 98.09s) — over-parallelism degrades, so a wider request buys nothing and crowds
   co-tenants.
-- `memory 8Gi` plus concurrency one leaves more than 20Gi of the current 28.6Gi allocatable
-  worker for co-tenants.
+- `memory 8Gi` per runner; two concurrent general runners must still leave headroom for
+  co-tenants on each worker (nativelink, control-plane components).
 - The build tree is a generic ephemeral PVC mounted at `/home/runner/_work`, not a writable
-  layer on Talos `EPHEMERAL`. Each scale set's 44Gi request uses its own StorageClass, path, and
-  fixed 48Gi Talos user-volume filesystem: general on worker 1 and live PostgreSQL on worker 2,
-  each selected from that worker's exact blank 150Gi `/dev/vdb`.
-  Local Path Provisioner does not enforce the advertised claim size, so **no 4Gi reserve is
-  claimed**. The enforceable boundary is one runner per scale set plus one separate 48Gi
-  filesystem per set on distinct nodes: either runner can fill its own filesystem, but cannot
-  consume the other's workspace or the Talos system filesystem. Worker 2's earlier general
-  filesystem remains on disk as an unadmitted rollback reserve and is not a capacity claim.
+  layer on Talos `EPHEMERAL`. Each claim uses StorageClass `oya-ci-workspace-general` with
+  nodePathMap admitting `/var/mnt/ci-workspace-general` on the general workers.
+  Local Path Provisioner does not enforce the advertised claim size, so **no soft reserve is
+  treated as hard isolation**. Either runner can fill its own node’s general volume, but
+  anti-affinity plus per-node volumes prevent two general runners from sharing one 48Gi volume.
+- Live-postgres remains a **separate** scale set capped at `maxRunners: 1` on its own volume
+  (D7). Path-optional scheduling of those jobs is governed by ADR-0639, not by raising postgres
+  concurrency.
 - Root `ephemeral-storage` remains bounded at 4Gi/8Gi for image, tool installer, and writable
   layer pressure. A runaway installer is evicted rather than filling the Talos system filesystem.
 - **No CPU limit deliberately**: a throttled compile presents as a flaky slow test, which is
   harder to diagnose than a noisy neighbour we can observe.
+- **Apply residual:** git declarations under `infra/arc/` are the apply source; capacity is not
+  live until GitOps/helm apply succeeds. Human runbook: `infra/arc/RUNBOOK-scale-runners.md`.
+  Agents do not mutate the cluster.
 
 ### D6 — Declared in `infra/arc/`, and the declaration is drift-checked
 

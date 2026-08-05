@@ -118,6 +118,15 @@
           "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
           "hold_state": "HOLD(Planning)",
           "note": "Accepted W0 mechanically maintained Kubernetes Rust-port authority propagation. It binds the already-ratified MPV2-0045..MPV2-0052 W0 sequencing into planning authority without minting additional work items, dispatching a wave, or creating a baseline carveout."
+        },
+        {
+          "id": "ADR-0639",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted path/event-optional fan-in legs under singleton oya-ci-required. Binds CI FinOps classification without minting product work-items or authorizing docs-skip of A-always admission gates."
         }
       ],
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
@@ -538,7 +547,7 @@
           "cloud-marketplace",
           "cloud-fsh"
         ],
-        "gate_criteria": "all phase-0 µservices coherence-audit substance bar met + parity matrix complete",
+        "gate_criteria": "all phase-0 \u00b5services coherence-audit substance bar met + parity matrix complete",
         "dependencies": []
       },
       {
@@ -559,7 +568,7 @@
           "network",
           "cell"
         ],
-        "note": "foundry intentionally excluded — absorbed by Phase 2 µservices per ADR-0255-amendment + ADR-0247",
+        "note": "foundry intentionally excluded \u2014 absorbed by Phase 2 \u00b5services per ADR-0255-amendment + ADR-0247",
         "dependencies": [
           0
         ]
@@ -579,10 +588,10 @@
           "intelligence": "LLM library-first binding (per ADR-0255-amendment)",
           "workflow-engine": "agentic-pipeline durable function runtime",
           "workflow-studio": "visual editor + AI-assisted node generation for agentic workflows",
-          "ontology": "agent state + cross-µservice entity projection",
+          "ontology": "agent state + cross-\u00b5service entity projection",
           "governance_tenancy": "oyatie.foundry.* Cedar principal namespace"
         },
-        "foundry_retirement_queue": "microservices/intelligence/ retired 2026-05-21 per ADR-0335 (Wave 15I); RETIRED.md marker at microservices/intelligence/RETIRED.md; absorption authority intelligence µservice manifest",
+        "foundry_retirement_queue": "microservices/intelligence/ retired 2026-05-21 per ADR-0335 (Wave 15I); RETIRED.md marker at microservices/intelligence/RETIRED.md; absorption authority intelligence \u00b5service manifest",
         "foundry_retirement_landed_adr": "ADR-0335",
         "foundry_retirement_landed_at": "2026-05-21",
         "foundry_retirement_marker": "microservices/intelligence/RETIRED.md",
@@ -697,7 +706,7 @@
             "family": "oracle-business",
             "microservices": [],
             "priority": 7,
-            "note": "absorbed by ERP+CRM µservices"
+            "note": "absorbed by ERP+CRM \u00b5services"
           },
           {
             "sub_id": "4A.8",
@@ -739,8 +748,8 @@
       "dependencies": []
     },
     "waves_2_through_13": {
-      "description": "12 batches of 8 codex agents, ownership-coherence audit per µservice",
-      "gate_per_batch": "4 audit docs per µservice + orchestrator-sampled",
+      "description": "12 batches of 8 codex agents, ownership-coherence audit per \u00b5service",
+      "gate_per_batch": "4 audit docs per \u00b5service + orchestrator-sampled",
       "dependencies": [
         "wave_1"
       ],
@@ -815,14 +824,14 @@
         "ADR-0348": {
           "path": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
           "queued_sub_wave": "15-ZD-autosharding-doctrine",
-          "purpose_excerpt": "Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: (1) AUTOSHARDING — tenant→cell/shard placement is computed by the control plane automatically, with no human operator picking placement; (2) AUTO-REBALANCE — when cell load skews beyond promotion-gate criteria, cross-cell tenant migration moves tenants from hot cells to cooler cells; (3) DYNAMIC SHARDING — shard count within a cell adjusts based on load. OWNERSHIP AMENDED by ADR-0351: cross-cell rebalance is owned by the cell-rebalancer µservice (NOT 'composed across tenancy + observability'), cell lifecycle by the cell-lifecycle µservice, and within-cell hot-split/cold-merge sharding by the oya-shuffle-sharding crate.",
+          "purpose_excerpt": "Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: (1) AUTOSHARDING \u2014 tenant\u2192cell/shard placement is computed by the control plane automatically, with no human operator picking placement; (2) AUTO-REBALANCE \u2014 when cell load skews beyond promotion-gate criteria, cross-cell tenant migration moves tenants from hot cells to cooler cells; (3) DYNAMIC SHARDING \u2014 shard count within a cell adjusts based on load. OWNERSHIP AMENDED by ADR-0351: cross-cell rebalance is owned by the cell-rebalancer \u00b5service (NOT 'composed across tenancy + observability'), cell lifecycle by the cell-lifecycle \u00b5service, and within-cell hot-split/cold-merge sharding by the oya-shuffle-sharding crate.",
           "enforced_by": [
-            "oya-governance-sharding-automation-coverage (new lane; refuses any µservice manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema; allowlist for µservices on the EXEMPT_FROM_CELLULAR list at .omc/state/cellular-exemption-allowlist-2026-05-21.json — e.g., static-only edge surfaces, no-tenant-state µservices)",
+            "oya-governance-sharding-automation-coverage (new lane; refuses any \u00b5service manifest.json that lacks a complete `sharding_automation` block with autosharding + auto_rebalance + dynamic_sharding sub-blocks declared per the D-1 schema; allowlist for \u00b5services on the EXEMPT_FROM_CELLULAR list at .omc/state/cellular-exemption-allowlist-2026-05-21.json \u2014 e.g., static-only edge surfaces, no-tenant-state \u00b5services)",
             "oya-governance-autosharding-manual-mode-refusal (new lane; refuses any manifest.json that declares the sharding_automation.autosharding field set to the value manual; the canonical autosharding mode is control_plane_driven; a manual-mode exception requires an ADR-amendment to this ADR enumerating the surface justifying the exception)",
             "oya-governance-auto-rebalance-residency-honored (new lane; greps every manifest declaring sharding_automation.auto_rebalance.enabled true and refuses if the same manifest also declares honors_residency false OR omits the field; cross-jurisdiction rebalance without Cedar permit is refused at admission time per ADR-0243)",
-            "oya-governance-dynamic-sharding-threshold-coverage (new lane; refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits ANY of the four canonical thresholds (hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours); default-fill is REJECTED to force per-µservice declaration of load characteristics)",
+            "oya-governance-dynamic-sharding-threshold-coverage (new lane; refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits ANY of the four canonical thresholds (hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours); default-fill is REJECTED to force per-\u00b5service declaration of load characteristics)",
             "oya-governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)",
-            "oya-governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)"
+            "oya-governance-tenant-migration-reversibility (new lane; refuses any \u00b5service IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)"
           ]
         },
         "ADR-0349": {
@@ -834,7 +843,7 @@
             "oya-governance-argocd-application-cosign-verified (bridge/reference lane; refuses ArgoCD Application CRD sources that reference an image without a cosign-verify policy attached per D-6 + ADR-0181 while Argo remains an adapter)",
             "oya-governance-argocd-tenant-namespace-isolation (bridge/reference lane; refuses ArgoCD Application authoring that crosses tenant namespaces without a Cedar policy gate granting cross-tenant access per D-11 + ADR-0243)",
             "oya-governance-ci-jcasc-only (bridge-only lane; refuses CI controller state declared via UI while legacy CI remains a transition adapter)",
-            "oya-governance-deploy-audit-chain-emit (bridge/reference lane; refuses deploy/sync transitions that do not emit an audit-chain row per ADR-0263 §D.4 deploy-event class)"
+            "oya-governance-deploy-audit-chain-emit (bridge/reference lane; refuses deploy/sync transitions that do not emit an audit-chain row per ADR-0263 \u00a7D.4 deploy-event class)"
           ]
         }
       },
@@ -870,7 +879,7 @@
             "manifest.json substrate_dependencies",
             "env vars VALKEY_* (NOT REDIS_*)",
             "OpenSLO docs Valkey-named SLI/SLO",
-            "PRD §B + ARCHITECTURE.md substrate sections",
+            "PRD \u00a7B + ARCHITECTURE.md substrate sections",
             "Cedar entity types Valkey*::\"...\"",
             "observability metric labels substrate=\"valkey\"",
             "audit-chain event classes valkey.*",
@@ -907,7 +916,7 @@
             "manifest.json substrate_dependencies (iceberg canonical; delta-ingest-adapter / hudi-ingest-adapter adapter-scoped only)",
             "env vars ICEBERG_* (NOT DELTA_* / HUDI_* for canonical write paths)",
             "OpenSLO docs Iceberg-named SLI/SLO targets (snapshot commit latency, catalog availability, compaction completion rate, snapshot expiration completion, CAS-collision rate)",
-            "PRD §B + ARCHITECTURE.md substrate sections updated to declare Iceberg canonical and ClickHouse layered",
+            "PRD \u00a7B + ARCHITECTURE.md substrate sections updated to declare Iceberg canonical and ClickHouse layered",
             "observability metric labels olap_table_format=\"iceberg\" + audit-chain event classes iceberg.*"
           ],
           "sunset_window": "30 days post-ADR-0337-Acceptance OR Wave 15-OLAP landing, whichever later",
@@ -919,7 +928,7 @@
             "oya-governance-clickhouse-compute-layering",
             "oya-governance-counterpart-fact-preservation (existing; reused from ADR-0336)"
           ],
-          "preserve_counterpart_fact": "Databricks defaults to Delta Lake; Onehouse + Uber use Hudi; Apple + Netflix authored Iceberg — references remain quote-bound",
+          "preserve_counterpart_fact": "Databricks defaults to Delta Lake; Onehouse + Uber use Hudi; Apple + Netflix authored Iceberg \u2014 references remain quote-bound",
           "preserve_customer_migration_playbooks": "from-Delta-on-AWS and from-Hudi-on-AWS migration playbooks retain source-substrate name; target substrate is Iceberg",
           "preserve_clickhouse": "ClickHouse 26.3 LTS canonical as OLAP compute engine layered on Iceberg via ClickHouse iceberg engine; ClickHouse-internal MergeTree permitted for projections / dictionaries / materialized views only",
           "amends_microservice_artifacts": [
@@ -938,19 +947,19 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0338",
-          "scope": "corpus-wide pod_runtime_tier ∈ {0,1,2,3} manifest declaration + per-cell nodepool topology (kata-pool + runc-pool + optional runc-edge-pool) + three RuntimeClasses (kata-cloud-hypervisor / runc / runc-edge) + Kyverno admission policy enforce-pod-runtime-tier; amendment to ADR-0254 K8s + Cloud Hypervisor + Kata invariant; numbering aligns with ADR-0248 cellular tier convention (Tier 0 = highest blast-radius)",
+          "scope": "corpus-wide pod_runtime_tier \u2208 {0,1,2,3} manifest declaration + per-cell nodepool topology (kata-pool + runc-pool + optional runc-edge-pool) + three RuntimeClasses (kata-cloud-hypervisor / runc / runc-edge) + Kyverno admission policy enforce-pod-runtime-tier; amendment to ADR-0254 K8s + Cloud Hypervisor + Kata invariant; numbering aligns with ADR-0248 cellular tier convention (Tier 0 = highest blast-radius)",
           "dispatch_mode": "codex-bucket fan-out, per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "twelve_surfaces": [
             "manifest.json pod_runtime_tier field declaration + pod_runtime_tier_justification + pod_runtime_tier_surface_evidence",
-            "four-tier definition: Tier 0 = tenant-customer untrusted code (Kata + Cloud Hypervisor); Tier 1 = substrate touching tenant data plane (Kata + Cloud Hypervisor); Tier 2 = first-party app µservices (runc); Tier 3 = edge / static / perf-critical (runc + dedicated edge nodepool)",
+            "four-tier definition: Tier 0 = tenant-customer untrusted code (Kata + Cloud Hypervisor); Tier 1 = substrate touching tenant data plane (Kata + Cloud Hypervisor); Tier 2 = first-party app \u00b5services (runc); Tier 3 = edge / static / perf-critical (runc + dedicated edge nodepool)",
             "per-cell two-nodepool topology kata-pool + runc-pool (+ optional runc-edge-pool for Tier 3)",
             "three RuntimeClass declarations per cell (kata-cloud-hypervisor / runc / runc-edge) + node labels + taints + tolerations",
             "Kyverno admission policy enforce-pod-runtime-tier refuses pod admission on tier-vs-nodepool mismatch",
             "CI lane oya-check-pod-runtime-tier validates declaration + surface-evidence + Helm chart RuntimeClass binding",
             "capacity model implications (kata-pool ~1.5x density-scaled vs runc baseline; bounded to Tier 0 + Tier 1 workloads)",
             "quarterly tier review process (founder + council-security walks corpus for promotion/demotion candidates)",
-            "default tier for new µservices = Tier 2 (no evidence required); Tier 0 / Tier 1 / Tier 3 require surface-evidence",
-            "tier promotion criteria (Tier 2 → Tier 1 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md)",
+            "default tier for new \u00b5services = Tier 2 (no evidence required); Tier 0 / Tier 1 / Tier 3 require surface-evidence",
+            "tier promotion criteria (Tier 2 \u2192 Tier 1 evidence pack at microservices/<name>/IPs/IP-tier-promotion-2-to-1.md)",
             "cellular tier integration (ADR-0248 cellular Tier 0..Tier 4 co-varies with pod runtime Tier 0..Tier 3)",
             "incident-response classification (Tier 0 + Tier 1 = Sev-1 floor; Tier 2 + Tier 3 = Sev-2 floor; PHI / cardholder / sovereign-data automatic audit-chain seal)"
           ],
@@ -989,7 +998,7 @@
           ],
           "tier_default_new_microservices": 2,
           "amends_microservice_artifacts": [
-            "microservices/<name>/manifest.json (every µservice; pod_runtime_tier declaration field added)",
+            "microservices/<name>/manifest.json (every \u00b5service; pod_runtime_tier declaration field added)",
             "microservices/<name>/helm/values.yaml (runtimeClassName + nodeSelector + tolerations set per declared tier)",
             "specs/microservices/manifest-schema.json (pod_runtime_tier integer-enum field added)",
             "specs/microservices/cell.json (per-cell nodepool topology updated)",
@@ -998,7 +1007,7 @@
           ],
           "depends_on": [
             "ADR-0338 Acceptance",
-            "ADR-0339 candidate (shared IaC module library for nodepool primitives) — soft dependency; this sub-wave can proceed with inline OpenTofu nodepool work until ADR-0339 lands"
+            "ADR-0339 candidate (shared IaC module library for nodepool primitives) \u2014 soft dependency; this sub-wave can proceed with inline OpenTofu nodepool work until ADR-0339 lands"
           ]
         },
         "15Q-IaC-modules": {
@@ -1077,30 +1086,30 @@
           ],
           "amends_microservice_artifacts": [
             "microservices/cloud-iac/modules/<context>/<primitive>/ (~50 canonical primitives authored)",
-            "microservices/<name>/iac/<context>/main.tf (every µservice; converted to thin-wrapper sourcing canonical modules)",
+            "microservices/<name>/iac/<context>/main.tf (every \u00b5service; converted to thin-wrapper sourcing canonical modules)",
             "docs/iac-catalog/ (module discovery + version + ADR cross-refs)",
             "specs/iac-module-library.json (machine-readable catalog)",
             "tools/hooks/_canonical-primitives.md (IaC module library section added)"
           ],
           "depends_on": [
             "ADR-0339 Acceptance",
-            "ADR-0336 (Valkey iac/<context>/valkey/ primitives) — already landed",
-            "ADR-0338 (pod-runtime-tier nodepool primitives) — soft dependency; nodepool primitives co-authored"
+            "ADR-0336 (Valkey iac/<context>/valkey/ primitives) \u2014 already landed",
+            "ADR-0338 (pod-runtime-tier nodepool primitives) \u2014 soft dependency; nodepool primitives co-authored"
           ]
         },
         "15T-Cell-Promotion-Gates": {
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0341",
-          "scope": "explicit machine-checkable promotion-gate criteria for every cellular tier-edge per ADR-0248 Tier 0..Tier 4 numbering (Tier 0 = highest blast-radius / most isolated; Tier 4 = best-effort / edge / lowest blast-radius) + symmetric demotion edges + auto-promotion via cell-orchestrator µservice (running inside tenancy + observability per ADR-0148); amends ADR-0248 by carving out the explicit gate-set + warm-soak floors + quiet windows + auto-promotion mechanism",
-          "dispatch_mode": "Claude orchestrator authors lane evaluator + per-cell telemetry snapshot schema + manifest field additions; codex-bucket fan-out for per-µservice manifest cell_promotion_gates + cell_promotion_history field additions under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
+          "scope": "explicit machine-checkable promotion-gate criteria for every cellular tier-edge per ADR-0248 Tier 0..Tier 4 numbering (Tier 0 = highest blast-radius / most isolated; Tier 4 = best-effort / edge / lowest blast-radius) + symmetric demotion edges + auto-promotion via cell-orchestrator \u00b5service (running inside tenancy + observability per ADR-0148); amends ADR-0248 by carving out the explicit gate-set + warm-soak floors + quiet windows + auto-promotion mechanism",
+          "dispatch_mode": "Claude orchestrator authors lane evaluator + per-cell telemetry snapshot schema + manifest field additions; codex-bucket fan-out for per-\u00b5service manifest cell_promotion_gates + cell_promotion_history field additions under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "six_gate_inputs": [
-            "Gate 1 — Error budget intact (≥ 99 % of SLO budget remaining on current tier per OpenSLO + ADR-0186)",
-            "Gate 2 — Warm-soak floor (≥ N days in current tier; per-edge: Tier 0 → 1 = 7d; Tier 1 → 2 = 14d; Tier 2 → 3 = 28d; Tier 3 → 4 = 56d; inverse edges Tier 4 → 3 → 2 → 1 → 0 symmetric)",
-            "Gate 3 — Canary cohort SLO compliance ≥ 99.5 % over warm-soak window (canary cohort per ADR-0186)",
-            "Gate 4 — Cell-mesh health: cross-cell call success ≥ 99.95 % over warm-soak window per ADR-0044 inter-cell mesh tunnel telemetry",
-            "Gate 5 — tenant-class coverage: both demo_trial + paid tenant_class present on current tier per ADR-0330",
-            "Gate 6 — compliance-pack coverage: every applicable pack per ADR-0251 (HIPAA/GDPR-strict/SOC2/PCI/CSAP/EU-AI-Act-Annex-III/ISO27001/KR-ISMS-P/JP-FISC/etc.) validated + signed off"
+            "Gate 1 \u2014 Error budget intact (\u2265 99 % of SLO budget remaining on current tier per OpenSLO + ADR-0186)",
+            "Gate 2 \u2014 Warm-soak floor (\u2265 N days in current tier; per-edge: Tier 0 \u2192 1 = 7d; Tier 1 \u2192 2 = 14d; Tier 2 \u2192 3 = 28d; Tier 3 \u2192 4 = 56d; inverse edges Tier 4 \u2192 3 \u2192 2 \u2192 1 \u2192 0 symmetric)",
+            "Gate 3 \u2014 Canary cohort SLO compliance \u2265 99.5 % over warm-soak window (canary cohort per ADR-0186)",
+            "Gate 4 \u2014 Cell-mesh health: cross-cell call success \u2265 99.95 % over warm-soak window per ADR-0044 inter-cell mesh tunnel telemetry",
+            "Gate 5 \u2014 tenant-class coverage: both demo_trial + paid tenant_class present on current tier per ADR-0330",
+            "Gate 6 \u2014 compliance-pack coverage: every applicable pack per ADR-0251 (HIPAA/GDPR-strict/SOC2/PCI/CSAP/EU-AI-Act-Annex-III/ISO27001/KR-ISMS-P/JP-FISC/etc.) validated + signed off"
           ],
           "per_edge_quiet_windows_hours": {
             "tier_0_to_1": 24,
@@ -1110,16 +1119,16 @@
           },
           "twelve_enforcement_surfaces": [
             "ADR-0248 cellular tier numbering preserved verbatim (Tier 0 = highest criticality)",
-            "six gate inputs defined per ADR-0341 §D-2",
-            "per-edge warm-soak floors per ADR-0341 §D-3",
-            "auto-promotion execution path via cell-orchestrator per ADR-0341 §D-4 (signed audit-chain row per ADR-0263 + Kyverno-admitted node label mutation + manifest history update via self-modification PR per ADR-0247)",
-            "demotion path symmetric inverse with stricter thresholds per ADR-0341 §D-5",
+            "six gate inputs defined per ADR-0341 \u00a7D-2",
+            "per-edge warm-soak floors per ADR-0341 \u00a7D-3",
+            "auto-promotion execution path via cell-orchestrator per ADR-0341 \u00a7D-4 (signed audit-chain row per ADR-0263 + Kyverno-admitted node label mutation + manifest history update via self-modification PR per ADR-0247)",
+            "demotion path symmetric inverse with stricter thresholds per ADR-0341 \u00a7D-5",
             "Rust-strict gate-evaluator crate oya-cell-orchestrator-gate-evaluator per feedback_rust_strict_only_no_python_2026_05_20",
-            "evidence pack for emergency-override-path promotions per ADR-0341 §D-7",
-            "Kyverno admission policy enforce-cell-promotion-gates per ADR-0341 §D-8",
-            "emergency-override path with multi-party authorization (incident commander + on-call SRE + council-security) per ADR-0341 §D-9",
-            "per-µservice manifest cell_promotion_gates block + cell_promotion_history array per ADR-0341 §D-10",
-            "Wave 15T-Cell-Promotion-Gates authoring sequence per ADR-0341 §D-11 (lane evaluator + telemetry schema + manifest field additions + Kyverno policy + cell-orchestrator gate-evaluator gRPC contract + dashboard; full cell-orchestrator µservice implementation is a SEPARATE follow-on sub-wave under ADR-0148)",
+            "evidence pack for emergency-override-path promotions per ADR-0341 \u00a7D-7",
+            "Kyverno admission policy enforce-cell-promotion-gates per ADR-0341 \u00a7D-8",
+            "emergency-override path with multi-party authorization (incident commander + on-call SRE + council-security) per ADR-0341 \u00a7D-9",
+            "per-\u00b5service manifest cell_promotion_gates block + cell_promotion_history array per ADR-0341 \u00a7D-10",
+            "Wave 15T-Cell-Promotion-Gates authoring sequence per ADR-0341 \u00a7D-11 (lane evaluator + telemetry schema + manifest field additions + Kyverno policy + cell-orchestrator gate-evaluator gRPC contract + dashboard; full cell-orchestrator \u00b5service implementation is a SEPARATE follow-on sub-wave under ADR-0148)",
             "cell-orchestrator binding inside tenancy + observability substrate per ADR-0148 + oyatie.foundry.* Cedar namespace per ADR-0247 + pod_runtime_tier 1 (Kata + Cloud Hypervisor) per ADR-0338"
           ],
           "sunset_window": "30 days post-ADR-0341-Acceptance OR Wave 15T-Cell-Promotion-Gates landing, whichever later",
@@ -1134,19 +1143,19 @@
             "enforce-cell-promotion-gates (ClusterPolicy; validationFailureAction audit at landing, enforce at sunset)"
           ],
           "amends_microservice_artifacts": [
-            "microservices/<name>/manifest.json (every µservice; cell_promotion_gates block + cell_promotion_history array added)",
+            "microservices/<name>/manifest.json (every \u00b5service; cell_promotion_gates block + cell_promotion_history array added)",
             "specs/microservices/manifest-schema.json (cell_promotion_gates + cell_promotion_history fields added)",
             "specs/microservices/cell.json (per-cell telemetry snapshot schema reference added)",
             "specs/platform-architecture.json (cell-promotion-gates substrate documented)",
             "microservices/observability/snapshots/cell-telemetry-schema.json (new schema)",
             "microservices/observability/dashboards/cell-promotion-gates.md (new dashboard)",
-            "microservices/cell-orchestrator/contracts/gate-evaluator.proto3 (new gRPC contract; stub server only — full µservice implementation is separate sub-wave under ADR-0148)",
+            "microservices/cell-orchestrator/contracts/gate-evaluator.proto3 (new gRPC contract; stub server only \u2014 full \u00b5service implementation is separate sub-wave under ADR-0148)",
             "tools/hooks/_canonical-primitives.md (Cell Promotion Gates section added)"
           ],
           "out_of_scope_for_this_sub_wave": [
-            "full cell-orchestrator µservice implementation (sequenced as separate follow-on sub-wave under ADR-0148 + ADR-0328)",
+            "full cell-orchestrator \u00b5service implementation (sequenced as separate follow-on sub-wave under ADR-0148 + ADR-0328)",
             "per-cell Raft consensus implementation (part of cell-orchestrator full implementation)",
-            "production deployment of Kyverno policy as BLOCKER (lands at G.3 of ADR-0341 sunset schedule, ≥ 30 days post-Acceptance)"
+            "production deployment of Kyverno policy as BLOCKER (lands at G.3 of ADR-0341 sunset schedule, \u2265 30 days post-Acceptance)"
           ],
           "depends_on": [
             "ADR-0341 Acceptance",
@@ -1156,7 +1165,7 @@
             "ADR-0251 compliance-pack-cell-certification-levels (pack coverage feeds Gate 6)",
             "ADR-0263 observability-emission-contract (telemetry substrate for all six gates)",
             "ADR-0148 cell-orchestrator-control-plane (full implementation is SEPARATE follow-on sub-wave; this sub-wave only authors the gate-evaluator gRPC contract + stub server)",
-            "ADR-0338 pod-runtime-tier-0-to-3 (cell-orchestrator µservice runs at pod_runtime_tier 1)",
+            "ADR-0338 pod-runtime-tier-0-to-3 (cell-orchestrator \u00b5service runs at pod_runtime_tier 1)",
             "ADR-0247 self-hosting-self-modification-doctrine (oyatie.foundry.* principal namespace for cell-orchestrator)"
           ]
         },
@@ -1164,15 +1173,15 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0342",
-          "scope": "corpus-wide public-API HYBRID versioning adoption: date-based (YYYY-MM-DD) version carriers across OpenAPI 3.2.0 endpoints + signed/versioned webhooks + AsyncAPI 3.1.0 channels + SSE/WebSocket messages + SDK semver (major.minor.patch) across 10 SDK languages (TS/Python/Go/Java/Kotlin/Swift/Rust/.NET-C#/C/C++) per feedback_developer_sdk_stainless_generator_2026_05_20. Public carriers are header Oyatie-Version + URL prefix /v/<YYYY-MM-DD>/ + webhook/event/realtime message metadata. Support window N=3 versions for ≥180 days post-deprecation per RFC 8594 Sunset + RFC 9745 Deprecation + RFC 5988 Link headers. Per-tenant version pinning uses the manifest tenant_version_pinning block. Internal-mesh gRPC/proto3 over HTTP/2 is EXEMPT and remains governed by ADR-0145/ADR-0632; no public proto3 carrier or public RPC discovery service is planned. SDK releases pin one date version under the hood; cosign-attested per ADR-0181.",
-          "dispatch_mode": "Coordinator authors the manifest-schema tenant_version_pinning block, canonical-primitives API Versioning section, eight CI lanes, and the un-versioned public REST discovery endpoint; per-µservice contract carrier authoring covers OpenAPI, webhooks, AsyncAPI, SSE/WebSocket, and SDK semver-to-date pinning under ADR-0322 substance-bar + ADR-0324 anti-template discipline.",
+          "scope": "corpus-wide public-API HYBRID versioning adoption: date-based (YYYY-MM-DD) version carriers across OpenAPI 3.2.0 endpoints + signed/versioned webhooks + AsyncAPI 3.1.0 channels + SSE/WebSocket messages + SDK semver (major.minor.patch) across 10 SDK languages (TS/Python/Go/Java/Kotlin/Swift/Rust/.NET-C#/C/C++) per feedback_developer_sdk_stainless_generator_2026_05_20. Public carriers are header Oyatie-Version + URL prefix /v/<YYYY-MM-DD>/ + webhook/event/realtime message metadata. Support window N=3 versions for \u2265180 days post-deprecation per RFC 8594 Sunset + RFC 9745 Deprecation + RFC 5988 Link headers. Per-tenant version pinning uses the manifest tenant_version_pinning block. Internal-mesh gRPC/proto3 over HTTP/2 is EXEMPT and remains governed by ADR-0145/ADR-0632; no public proto3 carrier or public RPC discovery service is planned. SDK releases pin one date version under the hood; cosign-attested per ADR-0181.",
+          "dispatch_mode": "Coordinator authors the manifest-schema tenant_version_pinning block, canonical-primitives API Versioning section, eight CI lanes, and the un-versioned public REST discovery endpoint; per-\u00b5service contract carrier authoring covers OpenAPI, webhooks, AsyncAPI, SSE/WebSocket, and SDK semver-to-date pinning under ADR-0322 substance-bar + ADR-0324 anti-template discipline.",
           "ten_adoption_surfaces": [
-            "manifest.json tenant_version_pinning block (declared_versions + default_version + supported_window_size≥3 + supported_window_minimum_days≥180 + supports_per_tenant_pinning + deprecation_calendar + public_surface_files per-version path map)",
+            "manifest.json tenant_version_pinning block (declared_versions + default_version + supported_window_size\u22653 + supported_window_minimum_days\u2265180 + supports_per_tenant_pinning + deprecation_calendar + public_surface_files per-version path map)",
             "OpenAPI 3.2.0 endpoint version carrier: header Oyatie-Version + URL prefix /v/<YYYY-MM-DD>/",
             "Signed/versioned webhook and AsyncAPI 3.1.0 message metadata version carrier",
             "SSE and bidirectional WebSocket message metadata version carrier",
             "SDK semver across 10 languages (TS/Python/Go/Java/Kotlin/Swift/Rust/.NET-C#/C/C++) with per-release date-version pinning under the hood",
-            "tenant manifest api_version_pinning block (default + per-µservice overrides + auto_advance_policy)",
+            "tenant manifest api_version_pinning block (default + per-\u00b5service overrides + auto_advance_policy)",
             "un-versioned public REST discovery surface GET /v/versions",
             "RFC 8594 Sunset + RFC 9745 Deprecation + RFC 5988 Link header emission on deprecated endpoints",
             "Internal-mesh gRPC/proto3 over HTTP/2 exemption (ADR-0145 and ADR-0632 preserved; no public proto3 carrier)",
@@ -1191,7 +1200,7 @@
           ],
           "amends_microservice_artifacts": [
             "specs/microservices/manifest-schema.json (tenant_version_pinning block added)",
-            "microservices/<name>/manifest.json (per-µservice tenant_version_pinning declaration)",
+            "microservices/<name>/manifest.json (per-\u00b5service tenant_version_pinning declaration)",
             "microservices/<name>/contracts/openapi*.yaml (date-version URL prefix + header)",
             "microservices/<name>/contracts/asyncapi*.yaml (message header version)",
             "microservices/developer-sdk/templates/<lang>/*.tmpl (SDK semver-to-date pinning)",
@@ -1209,19 +1218,19 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0340",
-          "scope": "corpus-wide per-µservice manifest.json capacity_model block declaration: baseline_cpu_per_tenant (vCPU decimal) + baseline_ram_per_tenant (MiB integer) + storage_per_tenant (GB integer) + connections_per_tenant.{valkey,postgres,outbound_http} (integers) + scaling_dimension (closed enum: per_user/per_request/per_capability/per_message/per_query/per_workflow_run) + cell_placement_class (closed enum: Tier-0..Tier-4 per ADR-0248 cellular criticality numbering — DISTINCT from ADR-0338 pod_runtime_tier; co-variance table in ADR-0340 D-6) + optional tenant_class_deltas (demo_trial vs paid per ADR-0330+0331) + optional compliance_pack_overrides (hipaa/pci-dss/gdpr-strict/soc2/csap/eu-ai-act-annex-iii per ADR-0251) + notes; drives autoscaler (Karpenter NodePool + HPA + KEDA per ADR-0198) + cell sizing (per ADR-0009 + ADR-0248) + FinOps projection (per ADR-0174 + ADR-0199) + cellular placement determinism (oya-shuffle-sharding per ADR-0333)",
-          "dispatch_mode": "Claude orchestrator authors schema fragment + seven CI lanes + Kyverno admission policy + autoscaler/cell-sizer/FinOps consumer wiring stubs; codex-bucket fan-out for per-µservice manifest capacity_model declarations under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
+          "scope": "corpus-wide per-\u00b5service manifest.json capacity_model block declaration: baseline_cpu_per_tenant (vCPU decimal) + baseline_ram_per_tenant (MiB integer) + storage_per_tenant (GB integer) + connections_per_tenant.{valkey,postgres,outbound_http} (integers) + scaling_dimension (closed enum: per_user/per_request/per_capability/per_message/per_query/per_workflow_run) + cell_placement_class (closed enum: Tier-0..Tier-4 per ADR-0248 cellular criticality numbering \u2014 DISTINCT from ADR-0338 pod_runtime_tier; co-variance table in ADR-0340 D-6) + optional tenant_class_deltas (demo_trial vs paid per ADR-0330+0331) + optional compliance_pack_overrides (hipaa/pci-dss/gdpr-strict/soc2/csap/eu-ai-act-annex-iii per ADR-0251) + notes; drives autoscaler (Karpenter NodePool + HPA + KEDA per ADR-0198) + cell sizing (per ADR-0009 + ADR-0248) + FinOps projection (per ADR-0174 + ADR-0199) + cellular placement determinism (oya-shuffle-sharding per ADR-0333)",
+          "dispatch_mode": "Claude orchestrator authors schema fragment + seven CI lanes + Kyverno admission policy + autoscaler/cell-sizer/FinOps consumer wiring stubs; codex-bucket fan-out for per-\u00b5service manifest capacity_model declarations under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "ten_declaration_surfaces": [
             "manifest schema fragment at /specs/microservices/manifest-schema.json (capacity_model object property per ADR-0340 D-1)",
-            "per-µservice manifest.json capacity_model block declaration (every workload-producing µservice)",
+            "per-\u00b5service manifest.json capacity_model block declaration (every workload-producing \u00b5service)",
             "scaling_dimension closed enum {per_user, per_request, per_capability, per_message, per_query, per_workflow_run}",
             "cell_placement_class closed enum {Tier-0, Tier-1, Tier-2, Tier-3, Tier-4} per ADR-0248 cellular criticality numbering",
             "connections_per_tenant sub-object (valkey + postgres + outbound_http; sanity-ceiling 1024 per kind)",
-            "co-variance table pod_runtime_tier × cell_placement_class per ADR-0340 D-6 (machine-checkable via oya-check-capacity-model-cellular-tier-coherence)",
+            "co-variance table pod_runtime_tier \u00d7 cell_placement_class per ADR-0340 D-6 (machine-checkable via oya-check-capacity-model-cellular-tier-coherence)",
             "autoscaler input wiring (Karpenter NodePool + HPA + KEDA ScaledObject derive targets from capacity_model values per ADR-0340 D-7)",
-            "FinOps cost projection wiring (cost_floor = baseline_cpu × cpu_unit + baseline_ram × ram_unit / 1024 + storage × storage_unit per ADR-0340 D-8)",
+            "FinOps cost projection wiring (cost_floor = baseline_cpu \u00d7 cpu_unit + baseline_ram \u00d7 ram_unit / 1024 + storage \u00d7 storage_unit per ADR-0340 D-8)",
             "cell sizing input wiring (tenants_per_cell_max formula + capacity_saturation_ratio SLI per ADR-0340 D-9)",
-            "sub-wave dispatch + sunset per ADR-0340 D-10 (REPORT-ONLY at landing; BLOCKER 30 days post-Acceptance for new authoring; per-µservice BLOCKER as each declaration bucket lands)"
+            "sub-wave dispatch + sunset per ADR-0340 D-10 (REPORT-ONLY at landing; BLOCKER 30 days post-Acceptance for new authoring; per-\u00b5service BLOCKER as each declaration bucket lands)"
           ],
           "sunset_window": "30 days post-ADR-0340-Acceptance OR Wave 15U-Capacity-Model-declaration landing, whichever later",
           "new_ci_lanes": [
@@ -1253,7 +1262,7 @@
           },
           "amends_microservice_artifacts": [
             "specs/microservices/manifest-schema.json (capacity_model object property added per ADR-0340 D-1)",
-            "microservices/<name>/manifest.json (every workload-producing µservice; capacity_model block declared)",
+            "microservices/<name>/manifest.json (every workload-producing \u00b5service; capacity_model block declared)",
             "microservices/<name>/helm/values.yaml (Karpenter NodePool + HPA + KEDA ScaledObject interpolations consume capacity_model)",
             "microservices/finops-portal/dashboards/per-tenant-cost-floor.md (new dashboard consuming capacity_model)",
             "microservices/observability/dashboards/per-cell-capacity-saturation.md (new dashboard with capacity_saturation_ratio SLI)",
@@ -1262,10 +1271,10 @@
             "tools/hooks/_canonical-primitives.md (Capacity Model section added)"
           ],
           "out_of_scope_for_this_sub_wave": [
-            "ADR-0341 (cellular promotion gates) full integration — sequenced separately",
-            "ADR-0343 (DR matrix per µservice + per pack) consumption of capacity_model.storage_per_tenant — sequenced separately",
-            "ADR-0344 (sustainability + finops dimensional model) consumption of capacity_model.scaling_dimension — sequenced separately",
-            "production deployment of Kyverno policy as BLOCKER (lands at H.2 of ADR-0340 sunset schedule, ≥ 30 days post-Acceptance)"
+            "ADR-0341 (cellular promotion gates) full integration \u2014 sequenced separately",
+            "ADR-0343 (DR matrix per \u00b5service + per pack) consumption of capacity_model.storage_per_tenant \u2014 sequenced separately",
+            "ADR-0344 (sustainability + finops dimensional model) consumption of capacity_model.scaling_dimension \u2014 sequenced separately",
+            "production deployment of Kyverno policy as BLOCKER (lands at H.2 of ADR-0340 sunset schedule, \u2265 30 days post-Acceptance)"
           ],
           "depends_on": [
             "ADR-0340 Acceptance",
@@ -1289,7 +1298,7 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0344",
-          "scope": "corpus-wide sustainability + finops dimensional model: every audit-chain row emitted under ADR-0263 carries the five-field tuple {cost_usd_minor_units, co2_grams, watt_hours, provider, region} computed at emission time on the same HLC tick per ADR-0252; per-microservice sustainability_emission_model manifest block; electricityMaps API integration with Valkey hot cache + provider-grid-avg fallback + sovereign-published override chain; finops-portal owns the canonical six-axis dimensional rollup (tenant / product / capability / provider / cell / compliance_pack); three regulator-export evidence file formats (CSRD ESRS E1 / SB-253 / SEC climate disclosure) cosign-signed + HLC-ordered; carbon-aware-scheduling Cedar fragment library with Tier 0/1 + realtime-mandated-compliance-pack exclusions; ADR-0174 chargeback formula widened with carbon_cost opt-in factor and anomaly thresholds widened with carbon_spike + watt_hours_creep; audit envelope schema version bumps oyatie/log/v1 → oyatie/log/v2",
+          "scope": "corpus-wide sustainability + finops dimensional model: every audit-chain row emitted under ADR-0263 carries the five-field tuple {cost_usd_minor_units, co2_grams, watt_hours, provider, region} computed at emission time on the same HLC tick per ADR-0252; per-microservice sustainability_emission_model manifest block; electricityMaps API integration with Valkey hot cache + provider-grid-avg fallback + sovereign-published override chain; finops-portal owns the canonical six-axis dimensional rollup (tenant / product / capability / provider / cell / compliance_pack); three regulator-export evidence file formats (CSRD ESRS E1 / SB-253 / SEC climate disclosure) cosign-signed + HLC-ordered; carbon-aware-scheduling Cedar fragment library with Tier 0/1 + realtime-mandated-compliance-pack exclusions; ADR-0174 chargeback formula widened with carbon_cost opt-in factor and anomaly thresholds widened with carbon_spike + watt_hours_creep; audit envelope schema version bumps oyatie/log/v1 \u2192 oyatie/log/v2",
           "dispatch_mode": "codex-bucket fan-out for per-microservice sustainability_emission_model manifest authoring + Claude orchestrator for finops-portal dimensional rollup surface + three regulator-export evidence format modules + carbon-aware-scheduler Cedar fragment library + per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "eleven_adoption_surfaces": [
             "audit row envelope extension with five new fields + carbon_intensity_source enum (oyatie/log/v2 schema bump)",
@@ -1353,19 +1362,19 @@
           ],
           "out_of_scope_for_adr": [
             "ADR-0344 does NOT author the electricityMaps API integration; sequenced in this sub-wave via microservices/observability/src/carbon_intensity/electricitymaps_client.rs",
-            "ADR-0344 does NOT author per-microservice sustainability_emission_model blocks; sequenced per-µservice via microservices/<name>/IPs/IP-sustainability-emission-model.md",
+            "ADR-0344 does NOT author per-microservice sustainability_emission_model blocks; sequenced per-\u00b5service via microservices/<name>/IPs/IP-sustainability-emission-model.md",
             "ADR-0344 does NOT author the three regulator-export evidence file formats; sequenced via microservices/finops-portal/src/regulator_export/<format>/",
             "ADR-0344 does NOT author the carbon-aware-scheduler Cedar fragment library; sequenced via microservices/governance/cedar/sustainability/"
           ],
           "amends_microservice_artifacts": [
-            "microservices/<name>/manifest.json (every workload-emitting µservice; sustainability_emission_model block added)",
+            "microservices/<name>/manifest.json (every workload-emitting \u00b5service; sustainability_emission_model block added)",
             "microservices/finops-portal/ARCHITECTURE.md (dimensional rollup surface authored)",
             "microservices/finops-portal/src/rollup/ (ClickHouse-on-Iceberg query layer)",
             "microservices/finops-portal/src/regulator_export/csrd_esrs_e1/ (CSRD XBRL ESEF exporter)",
             "microservices/finops-portal/src/regulator_export/sb_253/ (California CARB exporter)",
             "microservices/finops-portal/src/regulator_export/sec_climate_disclosure/ (SEC XBRL exporter)",
             "microservices/observability/src/carbon_intensity/electricitymaps_client.rs (canonical intensity client)",
-            "microservices/observability/src/carbon_intensity/zone_mapping.json (provider region → electricityMaps zone mapping)",
+            "microservices/observability/src/carbon_intensity/zone_mapping.json (provider region \u2192 electricityMaps zone mapping)",
             "microservices/cloud-billing/src/pricing/<provider>_client.rs (per-provider pricing clients)",
             "microservices/governance/cedar/sustainability/ (carbon-aware Cedar fragment library)",
             "microservices/audit-chain/ARCHITECTURE.md (envelope extension at v2)",
@@ -1487,15 +1496,15 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0345",
-          "scope": "corpus-wide OSS stewardship class declaration (Maintainer / Contributor / Consumer) per direct upstream + canonical registry at /specs/oss-stewardship-registry.json + per-microservice manifest oss_stewardship_class + consumes_upstream_oss fields across ~77 µservices + ~200+ oya-* crates; CVE-response SLA per class (Contributor 7d P0 + 30d P1; Consumer 14d pin update); per-class resourcing (Maintainer engineering-time-percent; Contributor dev-days/quarter; Consumer audit-subscription USD); SOC2 + ISO 27001 vendor-risk-management evidence pipeline binding",
-          "dispatch_mode": "codex-bucket fan-out for the per-µservice + per-crate manifest declarations + Claude orchestrator for the registry edits + per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
+          "scope": "corpus-wide OSS stewardship class declaration (Maintainer / Contributor / Consumer) per direct upstream + canonical registry at /specs/oss-stewardship-registry.json + per-microservice manifest oss_stewardship_class + consumes_upstream_oss fields across ~77 \u00b5services + ~200+ oya-* crates; CVE-response SLA per class (Contributor 7d P0 + 30d P1; Consumer 14d pin update); per-class resourcing (Maintainer engineering-time-percent; Contributor dev-days/quarter; Consumer audit-subscription USD); SOC2 + ISO 27001 vendor-risk-management evidence pipeline binding",
+          "dispatch_mode": "codex-bucket fan-out for the per-\u00b5service + per-crate manifest declarations + Claude orchestrator for the registry edits + per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "twelve_adoption_surfaces": [
             "/specs/oss-stewardship-registry.json canonical registry path",
             "per-entry schema (dep_name + stewardship_class + owner_team + CVE SLA + resourcing + license + source_url + adr_provenance + mitigation_strategies + notes)",
             "Maintainer-class enumeration (oya-* crates roll-up + key substrate crates; ~200+ entries via Wave 15X-OSS-stewardship per-crate manifest authoring)",
             "Contributor-class enumeration (Cilium / Istio / Valkey / OpenTofu / Cedar / OpenBao / Wasmtime / Iceberg / Kafka / OpenSearch / Kyverno; 11 floor entries)",
             "Consumer-class enumeration (PostgreSQL / ClickHouse / Linux distros / Talos / distroless / OpenTelemetry / rust-toolchain / cloud-ci-supply-chain-policy / cloud-ci-vendor-provenance-policy / cosign; ~15-20 floor entries)",
-            "per-microservice manifest.json consumes_upstream_oss field (lists dep_name references; per-µservice authoring)",
+            "per-microservice manifest.json consumes_upstream_oss field (lists dep_name references; per-\u00b5service authoring)",
             "SBOM cross-reference contract (every direct upstream in SBOM references registry by dep_name)",
             "SOC2 + ISO 27001 audit evidence pipeline (evidence/audit/oss-stewardship/<auditor-pack>/)",
             "quarterly stewardship review (founder + council-security + ops-supply-chain joint quarterly walk)",
@@ -1565,7 +1574,7 @@
             "maintainer_engineering_time_percent_default": "5-12 percent per substrate crate (declared per-crate under Wave 15X-OSS-stewardship)",
             "consumer_audit_subscription_cost_usd_aggregate": "varies; ~90,000 USD/year baseline for paid OS subscriptions (RHEL + SLES)"
           },
-          "sunset_window": "30 days post-ADR-0345-Acceptance for new authoring (E.1..E.6); day 1 for vocabulary discipline (E.7 oya-governance-stewardship-class-vocabulary refuses 'tier' applied to OSS stewardship); per-µservice manifest declaration follows ADR-0328 canonical-build phase order",
+          "sunset_window": "30 days post-ADR-0345-Acceptance for new authoring (E.1..E.6); day 1 for vocabulary discipline (E.7 oya-governance-stewardship-class-vocabulary refuses 'tier' applied to OSS stewardship); per-\u00b5service manifest declaration follows ADR-0328 canonical-build phase order",
           "new_ci_lanes": [
             "oya-check-oss-stewardship-registry-presence",
             "oya-check-oss-stewardship-class-declaration",
@@ -1578,11 +1587,11 @@
           ],
           "terminology_binding": "OSS stewardship uses 'class' (relationship label: Maintainer / Contributor / Consumer); the word 'tier' is RESERVED for ADR-0248 cellular tiers (Tier 0..4) and ADR-0338 pod runtime tiers (Tier 0..3); enforced day-1 by oya-governance-stewardship-class-vocabulary lane",
           "amends_microservice_artifacts": [
-            "microservices/<name>/manifest.json (every µservice; consumes_upstream_oss field added)",
+            "microservices/<name>/manifest.json (every \u00b5service; consumes_upstream_oss field added)",
             "crates/<oya-*>/manifest declarations (every Maintainer crate; oss_stewardship_class field + maintainer_engineering_time_percent)",
             "specs/microservices/manifest-schema.json (oss_stewardship_class + consumes_upstream_oss fields admitted)",
             "specs/oss-stewardship-registry.json (canonical registry; authored under ADR-0345)",
-            "docs/standards/dependency-policy.md (gains §11 cross-reference to the registry)",
+            "docs/standards/dependency-policy.md (gains \u00a711 cross-reference to the registry)",
             "docs/standards/security-review.md (vendor-risk-management evidence references registry)",
             "tools/hooks/_canonical-primitives.md (OSS Stewardship section added)"
           ],
@@ -1612,19 +1621,19 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0348",
-          "scope": "cell-orchestrator implementation (logical responsibility composed across tenancy=placement-registry + observability=load-skew-detection + cloud-iac=cell-provisioning+shard-catalog + audit-chain=event-emission + oya-shuffle-sharding-crate=algorithm + api-gateway=cell-aware-routing per ADR-0333) for the three control-plane-driven automation modes declared by ADR-0348: (a) autosharding = tenant→cell/shard placement automatically computed by control plane consuming capacity_model (ADR-0340) + compliance pack constraints (ADR-0251) + ResidencyClass (ADR-0240) + cell_placement_class (ADR-0248 Tier 0..4) + shuffle-sharding algorithm (ADR-0333); (b) auto-rebalance = automatic tenant migration from hot cells to cooler cells when cell load skews beyond promotion-gate criteria (ADR-0341); honors residency + compliance packs; cross-jurisdiction migration requires explicit Cedar permit per ADR-0243; reversible via audit-chain trail; emits per ADR-0263; (c) dynamic sharding = within-cell shard count automatically adjusts via hot-split (p99 > SLO OR utilization > 80%) + cold-merge (utilization < 20% for > 24h; per-µservice declarable thresholds rejected from default-fill); atomic + audit-emit; reversible. NOT a new µservice; cross-µservice coordinator pattern per ADR-0145 + ADR-0263; orchestrator principal = oyatie.foundry.cell-orchestrator per ADR-0247. Per-µservice manifest.json sharding_automation block (declared in specs/microservices/manifest-schema.json) carries autosharding mode + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt µservice manifest declarations + EXEMPT_FROM_CELLULAR allowlist at .omc/state/cellular-exemption-allowlist-2026-05-21.json.",
-          "dispatch_mode": "codex-bucket fan-out for the per-µservice manifest declarations + Claude orchestrator for tenancy + observability + cloud-iac + audit-chain coordinator-subsystem authoring + per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
+          "scope": "cell-orchestrator implementation (logical responsibility composed across tenancy=placement-registry + observability=load-skew-detection + cloud-iac=cell-provisioning+shard-catalog + audit-chain=event-emission + oya-shuffle-sharding-crate=algorithm + api-gateway=cell-aware-routing per ADR-0333) for the three control-plane-driven automation modes declared by ADR-0348: (a) autosharding = tenant\u2192cell/shard placement automatically computed by control plane consuming capacity_model (ADR-0340) + compliance pack constraints (ADR-0251) + ResidencyClass (ADR-0240) + cell_placement_class (ADR-0248 Tier 0..4) + shuffle-sharding algorithm (ADR-0333); (b) auto-rebalance = automatic tenant migration from hot cells to cooler cells when cell load skews beyond promotion-gate criteria (ADR-0341); honors residency + compliance packs; cross-jurisdiction migration requires explicit Cedar permit per ADR-0243; reversible via audit-chain trail; emits per ADR-0263; (c) dynamic sharding = within-cell shard count automatically adjusts via hot-split (p99 > SLO OR utilization > 80%) + cold-merge (utilization < 20% for > 24h; per-\u00b5service declarable thresholds rejected from default-fill); atomic + audit-emit; reversible. NOT a new \u00b5service; cross-\u00b5service coordinator pattern per ADR-0145 + ADR-0263; orchestrator principal = oyatie.foundry.cell-orchestrator per ADR-0247. Per-\u00b5service manifest.json sharding_automation block (declared in specs/microservices/manifest-schema.json) carries autosharding mode + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt \u00b5service manifest declarations + EXEMPT_FROM_CELLULAR allowlist at .omc/state/cellular-exemption-allowlist-2026-05-21.json.",
+          "dispatch_mode": "codex-bucket fan-out for the per-\u00b5service manifest declarations + Claude orchestrator for tenancy + observability + cloud-iac + audit-chain coordinator-subsystem authoring + per-microservice bespoke authoring under ADR-0322 substance-bar + ADR-0324 anti-template discipline",
           "eight_adoption_surfaces": [
-            "per-µservice manifest.json sharding_automation block (autosharding + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt manifests)",
-            "cell-orchestrator responsibility composition (logical across tenancy + observability + cloud-iac + audit-chain + oya-shuffle-sharding crate + api-gateway; cross-µservice coordinator pattern; NOT new µservice per ADR-0333)",
-            "autosharding placement algorithm (canonical 7-step algorithm in oya-shuffle-sharding crate place_tenant API; Tier match → residency match → compliance pack match → capacity headroom → shuffle hash; deterministic per tenant_id)",
+            "per-\u00b5service manifest.json sharding_automation block (autosharding + auto_rebalance + dynamic_sharding sub-blocks; ~65-70 non-exempt manifests)",
+            "cell-orchestrator responsibility composition (logical across tenancy + observability + cloud-iac + audit-chain + oya-shuffle-sharding crate + api-gateway; cross-\u00b5service coordinator pattern; NOT new \u00b5service per ADR-0333)",
+            "autosharding placement algorithm (canonical 7-step algorithm in oya-shuffle-sharding crate place_tenant API; Tier match \u2192 residency match \u2192 compliance pack match \u2192 capacity headroom \u2192 shuffle hash; deterministic per tenant_id)",
             "auto-rebalance trigger + candidate-selection + migration execution (load-skew detection from observability; candidate filter by residency + compliance packs + Tier + capacity headroom + Cedar permit; atomic ACID transition in tenancy assignment registry + api-gateway routing + session state)",
             "dynamic sharding hot-split + cold-merge execution (oya-shuffle-sharding crate split + merge primitives; atomic cell-registry shard-count transition; api-gateway routing transition; in-flight transaction draining per ADR-0252 HLC semantics; brief read-only window on cold-merge)",
             "audit-chain emission per ADR-0263 for every automation event (event_type + microservice + cell_id + shard_id + tenant_id + pre_state + post_state + residency_check_result + compliance_pack_check_result + cedar_permit_id + initiated_by + HLC timestamp + audit_chain_seal)",
             "tenant migration reversibility (IP authoring rollback_path section enumerating audit-chain-trail-based reversal + operator-role authorization + Cedar policy fragment + edge cases for in-flight transactions + session state + cross-jurisdiction rollback)",
             "six new CI lane scaffolds (.github/workflows/<lane>.yml + registry/quality/lanes.yaml + registry/catalog/<lane>.yaml + crates/<lane>-* scaffold; REPORT-ONLY at ADR-0348 Acceptance; BLOCKER 30 days post-Wave-15-ZD-completion)"
           ],
-          "sunset_window": "30 days post-Wave-15-ZD-completion for new authoring (E.1..E.6 promote REPORT-ONLY → BLOCKER); E.7 oya-governance-cell-orchestrator-no-new-microservice remains informational indefinitely",
+          "sunset_window": "30 days post-Wave-15-ZD-completion for new authoring (E.1..E.6 promote REPORT-ONLY \u2192 BLOCKER); E.7 oya-governance-cell-orchestrator-no-new-microservice remains informational indefinitely",
           "new_ci_lanes": [
             "oya-governance-sharding-automation-coverage",
             "oya-governance-autosharding-manual-mode-refusal",
@@ -1647,13 +1656,13 @@
           "orchestrator_principal": "oyatie.foundry.cell-orchestrator",
           "cell_orchestrator_no_new_microservice": "ADR-0333 preserved; logical responsibility composed across tenancy + observability + cloud-iac + audit-chain + oya-shuffle-sharding crate + api-gateway",
           "amends_adrs": [
-            "ADR-0248 (cellular topology baseline; tenant→cell/shard placement control-plane-driven; hot-cell rebalancing automatic; shard count dynamic)",
+            "ADR-0248 (cellular topology baseline; tenant\u2192cell/shard placement control-plane-driven; hot-cell rebalancing automatic; shard count dynamic)",
             "ADR-0341 (cellular promotion gates; tenant-level + shard-level automation layered underneath cell-level promotion gates)",
-            "ADR-0333 (cell-orchestrator is logical responsibility composed across tenancy + observability + cloud-iac + audit-chain; NOT a new µservice)",
+            "ADR-0333 (cell-orchestrator is logical responsibility composed across tenancy + observability + cloud-iac + audit-chain; NOT a new \u00b5service)",
             "ADR-0340 (capacity_model consumed as input to autosharding placement algorithm)"
           ],
           "amends_microservice_artifacts": [
-            "microservices/<name>/manifest.json (every non-exempt µservice; sharding_automation block added; ~65-70 manifests)",
+            "microservices/<name>/manifest.json (every non-exempt \u00b5service; sharding_automation block added; ~65-70 manifests)",
             "specs/microservices/manifest-schema.json (sharding_automation block schema admission)",
             "microservices/tenancy/PRD.md (cross-reference to cell-orchestrator composition section + placement registry responsibility)",
             "microservices/tenancy/ARCHITECTURE.md (cell-orchestrator subsystem within tenancy)",
@@ -1669,7 +1678,7 @@
           "preserve_cell_placement_class_field": "ADR-0248 Tier 0..4 declaration remains a separate manifest field from sharding_automation; autosharding control plane reads cell_placement_class as one of its inputs",
           "preserve_capacity_model_schema": "ADR-0340 schema preserved verbatim; field is READ by the autosharding control plane as one of its inputs",
           "preserve_cellular_promotion_gates": "ADR-0341 cell-level promotion gates preserved verbatim; auto-rebalance triggers underneath the gates when a cell breaches promotion-gate criteria due to load skew",
-          "preserve_compliance_pack_constraints": "ADR-0251 packs constrain auto-rebalance candidate cells; PHI cross-pack migration refused absent BYOK + ADR-0251 §D-10 permit",
+          "preserve_compliance_pack_constraints": "ADR-0251 packs constrain auto-rebalance candidate cells; PHI cross-pack migration refused absent BYOK + ADR-0251 \u00a7D-10 permit",
           "depends_on": [
             "ADR-0348 Acceptance",
             "ADR-0248 amazon-shape-cellular-architecture (cellular topology baseline)",
@@ -1683,8 +1692,8 @@
             "ADR-0263 observability-emission-contract (audit-chain emission contract for every automation event)",
             "ADR-0247 self-modification-doctrine (orchestrator principal oyatie.foundry.cell-orchestrator)",
             "ADR-0252 hlc-default-truetime-tier (atomicity invariants for hot-split + cold-merge + auto-rebalance via HLC semantics)",
-            "ADR-0322 substance-bar (per-µservice bespoke authoring of sharding_automation declarations + coordinator-subsystem authoring)",
-            "ADR-0324 anti-script-authoring (template-stamping of manifest declarations refused; bespoke per-µservice authoring)",
+            "ADR-0322 substance-bar (per-\u00b5service bespoke authoring of sharding_automation declarations + coordinator-subsystem authoring)",
+            "ADR-0324 anti-script-authoring (template-stamping of manifest declarations refused; bespoke per-\u00b5service authoring)",
             "ADR-0328 substance-bar-as-canonical-sequence-and-batch-discipline (Wave 15 batching; doctrine PR lands before this sub-wave)"
           ]
         },
@@ -1704,7 +1713,7 @@
           "status": "queued",
           "queued_at": "2026-05-21",
           "adr": "ADR-0347",
-          "scope": "bulk rename oya-governance-* → oya-governance-* across 10 GitHub Actions workflows + ~40 lane records in registry/quality/lanes.yaml + 28 catalog records at registry/catalog/oya-governance-*.yaml + ~51 crate dirs at crates/oya-governance-*-* + workspace Cargo.toml + Cargo.lock regeneration + ~41 ADR cross-citations under docs/decisions/ + 1 file docs/standards/ + 1 file .omc/state/ + 14 sub-wave entries in specs/master-plan-sequencing.json + tools/hooks/_canonical-primitives.md + .github/branch-protection.yaml required-status-checks. Pre-rename inventory at .omc/state/oya-governance-rename-inventory-2026-05-21.json (machine-readable list of 34 lanes + their target governance-* names). E.1 oya-governance-no-foundry-fitness-residue + E.2 oya-governance-lane-prefix-vocabulary + E.3 oya-governance-rename-inventory-presence + E.4 oya-governance-rename-residue-allowlist-integrity.",
+          "scope": "bulk rename oya-governance-* \u2192 oya-governance-* across 10 GitHub Actions workflows + ~40 lane records in registry/quality/lanes.yaml + 28 catalog records at registry/catalog/oya-governance-*.yaml + ~51 crate dirs at crates/oya-governance-*-* + workspace Cargo.toml + Cargo.lock regeneration + ~41 ADR cross-citations under docs/decisions/ + 1 file docs/standards/ + 1 file .omc/state/ + 14 sub-wave entries in specs/master-plan-sequencing.json + tools/hooks/_canonical-primitives.md + .github/branch-protection.yaml required-status-checks. Pre-rename inventory at .omc/state/oya-governance-rename-inventory-2026-05-21.json (machine-readable list of 34 lanes + their target governance-* names). E.1 oya-governance-no-foundry-fitness-residue + E.2 oya-governance-lane-prefix-vocabulary + E.3 oya-governance-rename-inventory-presence + E.4 oya-governance-rename-residue-allowlist-integrity.",
           "dispatch_mode": "1 codex orchestrator for the mechanical rename across 34 lane prefixes + ~200 cross-references + workspace Cargo.toml + Cargo.lock regen + 4 new governance lanes",
           "depends_on": [
             "ADR-0347 Acceptance",
@@ -1899,7 +1908,7 @@
     "contexts": [
       {
         "id": "oyatie-public-cloud",
-        "scope": "Oyatie-operated managed cloud cells where the tenant buys Oyatie as the provider and every managed GA µservice must expose tenant, IAM, network, observability, and billing seams through Oyatie control planes.",
+        "scope": "Oyatie-operated managed cloud cells where the tenant buys Oyatie as the provider and every managed GA \u00b5service must expose tenant, IAM, network, observability, and billing seams through Oyatie control planes.",
         "iac_target": "OpenTofu modules under iac/oyatie-public-cloud/",
         "tenant_class_default": "paid"
       },
@@ -1929,8 +1938,8 @@
       },
       {
         "id": "oyatie-as-cloud-provider",
-        "scope": "Oyatie sells compute, storage, networking, IAM, KMS, billing, marketplace, capacity, and cell primitives as its own IaaS/PaaS surface to external customers; cloud-* µservices are not AWS/OCI wrappers.",
-        "iac_target": "cloud-* µservices ARE the IaaS surface; iac/oyatie-iaas/",
+        "scope": "Oyatie sells compute, storage, networking, IAM, KMS, billing, marketplace, capacity, and cell primitives as its own IaaS/PaaS surface to external customers; cloud-* \u00b5services are not AWS/OCI wrappers.",
+        "iac_target": "cloud-* \u00b5services ARE the IaaS surface; iac/oyatie-iaas/",
         "tenant_class_default": "multi-tenant"
       }
     ],
@@ -1953,7 +1962,7 @@
       "on-prem": "MinIO+lock-table",
       "oyatie-public-cloud": "internal OCI",
       "colo": "MinIO+lock-table",
-      "oyatie-as-cloud-provider": "internal cloud-storage µservice"
+      "oyatie-as-cloud-provider": "internal cloud-storage \u00b5service"
     },
     "orchestrator_microservice": "cloud-iac",
     "forbidden_patterns": [
@@ -1963,7 +1972,7 @@
       "hand-edited tfstate",
       "unsigned modules"
     ],
-    "tenant_onboarding_invocation": "tofu init → tofu plan → tofu apply",
+    "tenant_onboarding_invocation": "tofu init \u2192 tofu plan \u2192 tofu apply",
     "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-16"
   },
   "supported_oses": {
@@ -2016,7 +2025,7 @@
       "windows": "winui3-csharp-dotnet-net8+",
       "web": "leptos-rust-wasm-ssr-with-selective-island-hydration"
     },
-    "frontend_scoping": "frontend/<platform>/ only; backend Rust µservices never depend on frontend languages",
+    "frontend_scoping": "frontend/<platform>/ only; backend Rust \u00b5services never depend on frontend languages",
     "non_rust_authorized_extensions_backend": [
       ".tf",
       ".cedar",
@@ -2043,7 +2052,7 @@
       "fsharp"
     ],
     "build_invocation": "buck2 build //...",
-    "exception_protocol": "per-µservice ADR under microservices/<name>/decisions/ADR-MS-NNN-non-rust-justification.md",
+    "exception_protocol": "per-\u00b5service ADR under microservices/<name>/decisions/ADR-MS-NNN-non-rust-justification.md",
     "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-18"
   },
   "oci_always_free": {
@@ -2051,7 +2060,7 @@
     "scope": "OCI deployment context sub-profile (guest-on-oci tenant_class IN ['demo', 'sandbox', 'trial', 'dev'])",
     "compute_budget": "4 OCPU + 24 GB RAM total (Ampere A1) + 2x AMD E2.1.Micro",
     "storage_budget": "200 GB block + 10 GB object + 10 GB archive",
-    "database_budget": "2x Autonomous DB × 20 GB",
+    "database_budget": "2x Autonomous DB \u00d7 20 GB",
     "network_budget": "10 TB egress/month; 10 Mbps LB",
     "per_microservice_module": "iac/oci-guest/always-free/",
     "bronze_tier_oci": "always-free",
