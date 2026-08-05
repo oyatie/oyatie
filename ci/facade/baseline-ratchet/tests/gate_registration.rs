@@ -320,6 +320,19 @@ fn buck2_matrix_step_requires_pwsh_structurally_regardless_of_key_order() {
 const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
     "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential";
 
+/// Hosted-safe Buck2 hermetic test env for rustup home.
+/// Prefer runner `RUSTUP_HOME` (ARC `/opt/rust/rustup`); fall back to `~/.rustup` on
+/// GitHub-hosted images where the var is unset under `set -u`.
+const RUSTUP_HOME_BUCK2_TEST_ENV: &str =
+    "-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"";
+
+/// True when a command line forwards the owned/hosted-safe RUSTUP_HOME into Buck2's
+/// hermetic test executor. Rejects bare `${RUSTUP_HOME}` (unbound on public GHA under `set -u`).
+fn line_forwards_hosted_safe_rustup_home(line: &str) -> bool {
+    line.contains(RUSTUP_HOME_BUCK2_TEST_ENV)
+        || line.contains("RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}")
+}
+
 fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) -> bool {
     // W1 (2026-08-05): merge CI is GitHub-hosted `ubuntu-latest` (agent-fleet throughput).
     // The portable Cargo differential still binds on the required buck2 lane with the
@@ -334,7 +347,7 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
         .any(|line| {
             line.contains("buck2 test ")
                 && line.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
-                && line.contains("RUSTUP_HOME=${RUSTUP_HOME}")
+                && line_forwards_hosted_safe_rustup_home(&line)
         });
     let buck2_on_admitted_linux = buck2_job.lines().map(str::trim).any(|line| {
         line.starts_with("runs-on:")
@@ -519,8 +532,8 @@ fn merge_base_test_health_forwards_the_owned_rustup_home(workflow: &str) -> bool
     step.contains("--phase materialize-merge-base-test-health-baseline --")
         && step.lines().any(|line| {
             let t = line.trim();
-            t.starts_with("buck2 test //... --keep-going -- --env \"RUSTUP_HOME=")
-                && t.contains("RUSTUP_HOME=${RUSTUP_HOME}")
+            t.starts_with("buck2 test //... --keep-going ")
+                && line_forwards_hosted_safe_rustup_home(t)
         })
 }
 
@@ -1642,12 +1655,19 @@ fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
         "removing the differential target from the binding Buck2 lane must fail the registration guard"
     );
 
-    let without_rustup_home = workflow
-        .replace("-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"", "")
-        .replace("-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"", "");
+    let without_rustup_home = workflow.replace(RUSTUP_HOME_BUCK2_TEST_ENV, "");
     assert!(
         !workspace_resolver_differential_is_self_hosted_and_binding(&without_rustup_home),
         "removing the owned rustup home from the hermetic Buck2 test executor must fail the registration guard"
+    );
+
+    let bare_unbound_rustup = workflow.replace(
+        RUSTUP_HOME_BUCK2_TEST_ENV,
+        "-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
+    );
+    assert!(
+        !workspace_resolver_differential_is_self_hosted_and_binding(&bare_unbound_rustup),
+        "bare ${{RUSTUP_HOME}} without hosted default is unbound under set -u on public GHA"
     );
 }
 
@@ -2223,17 +2243,20 @@ fn merge_base_test_health_uses_the_same_rustup_executor_contract_as_head() {
         merge_base_test_health_forwards_the_owned_rustup_home(&workflow),
         "the merge-base test baseline must forward the owned RUSTUP_HOME exactly like the affected-set head test invocation"
     );
-    let without_env = workflow
-        .replace(
-            "--keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"",
-            "--keep-going",
-        )
-        .replace(
-            "--keep-going -- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
-            "--keep-going",
-        );
+    let without_env = workflow.replace(
+        &format!("--keep-going {RUSTUP_HOME_BUCK2_TEST_ENV}"),
+        "--keep-going",
+    );
     assert!(
         !merge_base_test_health_forwards_the_owned_rustup_home(&without_env),
         "removing the merge-base rustup executor environment must be detected"
+    );
+    let bare_unbound = workflow.replace(
+        RUSTUP_HOME_BUCK2_TEST_ENV,
+        "-- --env \"RUSTUP_HOME=${RUSTUP_HOME}\"",
+    );
+    assert!(
+        !merge_base_test_health_forwards_the_owned_rustup_home(&bare_unbound),
+        "bare ${{RUSTUP_HOME}} without hosted default must fail the merge-base rustup contract"
     );
 }
