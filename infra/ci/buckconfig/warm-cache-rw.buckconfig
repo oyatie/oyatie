@@ -23,6 +23,11 @@
 # exposure — GitHub-hosted runners cannot resolve them, which is part of why this
 # wiring ships dark in slice 1.
 
+[buck2]
+  # The Rust prelude leaves per-action upload preference unset, so the pinned
+  # Buck2 defaults locally executed actions to no upload unless this is true.
+  default_allow_cache_upload = true
+
 [buck2_re_client]
   engine_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
   cas_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
