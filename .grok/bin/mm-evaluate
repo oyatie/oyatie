@@ -148,61 +148,115 @@ def eval_static(repo: Path) -> dict:
         pe_sig.append(f"forbidden_cli_hits={forb}")
     dims["prompt_engineering"] = dim(pe_score, pe_sig)
 
-    # Dual-critic packet contract (static): drive policy + critique schema + admit rules.
-    # Not merge authority — only verifies the harness can host dual-critic packets.
+    # Dual-critic packet contract (static): drive policy + critique schema + admit rules
+    # + kit 2.2 parallel critic spawn metrics surface.
+    # Not merge authority — only verifies the harness can host dual-critic packets/metrics.
     dc_score, dc_sig = 0.0, []
     drive_path = repo / ".grok/harness/drive.v1.json"
     critique_schema = repo / ".grok/harness/schemas/critique.v1.json"
+    spawn_schema = repo / ".grok/harness/schemas/critic_spawn_metrics.v1.json"
     pipe_path = repo / ".grok/harness/pipeline.json"
+    par_path = repo / ".grok/harness/parallelism.v1.json"
     if drive_path.is_file():
         try:
             drive = load_json(drive_path)
             mp = drive.get("merge_policy") or {}
             if mp.get("require_agent_dual_critic"):
-                dc_score += 30
+                dc_score += 25
                 dc_sig.append("drive_require_agent_dual_critic")
             else:
                 dc_sig.append("drive_dual_critic_optional")
-                dc_score += 10
+                dc_score += 8
             paths = mp.get("agent_review_paths") or []
             if paths:
-                dc_score += 25
+                dc_score += 20
                 dc_sig.append(f"dual_critic_packet_globs={len(paths)}")
             else:
                 dc_sig.append("dual_critic_packet_globs_missing")
             admit_v = mp.get("agent_review_admit_verdicts") or []
             if admit_v:
-                dc_score += 10
+                dc_score += 8
                 dc_sig.append(f"admit_verdicts={len(admit_v)}")
             if mp.get("forbid_self_approve", False):
-                dc_score += 10
+                dc_score += 8
                 dc_sig.append("forbid_self_approve")
         except Exception as e:
             dc_sig.append(f"drive_parse_error:{e}")
     else:
         dc_sig.append("drive_v1_missing")
     if critique_schema.is_file():
-        dc_score += 15
+        dc_score += 10
         dc_sig.append("critique_schema_present")
         try:
             cs = load_json(critique_schema)
             props = (cs.get("properties") or {})
             if "admit_recommendation" in props or "findings" in props:
-                dc_score += 5
+                dc_score += 4
                 dc_sig.append("critique_schema_has_admit_or_findings")
         except Exception as e:
             dc_sig.append(f"critique_schema_parse_error:{e}")
     else:
         dc_sig.append("critique_schema_missing")
+    if spawn_schema.is_file():
+        dc_score += 8
+        dc_sig.append("critic_spawn_metrics_schema")
+    else:
+        dc_sig.append("critic_spawn_metrics_schema_missing")
+    if par_path.is_file():
+        try:
+            par = load_json(par_path)
+            critics = par.get("critics") or {}
+            metrics = par.get("metrics") or {}
+            if critics.get("parallel") and int(critics.get("default_instances") or 0) >= 2:
+                dc_score += 8
+                dc_sig.append(
+                    f"parallelism_critics_parallel instances={critics.get('default_instances')}"
+                )
+            else:
+                dc_sig.append("parallelism_critics_not_parallel_or_lt2")
+            if metrics.get("record_critic_spawn"):
+                dc_score += 4
+                dc_sig.append("parallelism_record_critic_spawn")
+            else:
+                dc_sig.append("parallelism_record_critic_spawn_off")
+        except Exception as e:
+            dc_sig.append(f"parallelism_parse_error:{e}")
+    else:
+        dc_sig.append("parallelism_v1_missing")
     if pipe_path.is_file():
         try:
             pipe = load_json(pipe_path)
             admit = pipe.get("admit_rules") or {}
             if admit.get("dual_critic_both_must_confirm"):
-                dc_score += 5
+                dc_score += 3
                 dc_sig.append("pipeline_dual_critic_both_must_confirm")
+            dual_stages = [
+                s
+                for s in (pipe.get("stages") or [])
+                if isinstance(s, dict) and s.get("kind") == "dual_critic"
+            ]
+            ok_inst = [s for s in dual_stages if int(s.get("instances") or 0) >= 2]
+            if ok_inst:
+                dc_score += 4
+                dc_sig.append(f"pipeline_dual_critic_instances>={len(ok_inst)}stages")
+            elif dual_stages:
+                dc_sig.append("pipeline_dual_critic_instances_lt2")
+            else:
+                dc_sig.append("pipeline_dual_critic_stages_missing")
         except Exception as e:
             dc_sig.append(f"pipeline_parse_error:{e}")
+    # CLI surface for plan/record (kit 2.2)
+    pipe_bin = repo / ".grok/bin/mm-pipeline"
+    if pipe_bin.is_file():
+        try:
+            t = pipe_bin.read_text(errors="replace")
+            if "plan-critics" in t and "record-critics" in t and "critic_spawn_metrics" in t:
+                dc_score += 3
+                dc_sig.append("mm_pipeline_critic_spawn_cli")
+            else:
+                dc_sig.append("mm_pipeline_critic_spawn_cli_missing")
+        except Exception as e:
+            dc_sig.append(f"mm_pipeline_read_error:{e}")
     dims["dual_critic_packet"] = dim(min(dc_score, 100.0), dc_sig)
 
     # hyperscaler design checklist in configs
@@ -261,29 +315,59 @@ def eval_run(repo: Path, run_id: str) -> dict:
     packet_t = packet.read_text(errors="replace") if packet.is_file() else ""
     goals = load_json(run_dir / "goals.json") if (run_dir / "goals.json").is_file() else {}
 
-    # throughput (limited instrumentation in v1)
-    t_score, t_sig = 40.0, ["partial_instrumentation"]  # baseline if we only know structure
+    # throughput — kit 2.2 critic spawn metrics when present
+    t_score, t_sig = 30.0, ["partial_instrumentation"]
     meta_files = list(run_dir.rglob("meta.json")) if run_dir.exists() else []
     if meta_files:
-        durations = []
         for m in meta_files:
             try:
                 mj = load_json(m)
                 if mj.get("started_at") and mj.get("finished_at"):
-                    # rough parse not full ISO always
                     t_sig.append("has_role_timestamps")
+                    break
             except Exception:
                 pass
-        t_score += 20
+        t_score += 15
         t_sig.append(f"role_metas={len(meta_files)}")
     # dual critic parallel intended
     if (run_dir / "stages" / "CRITIC_PLAN").exists() or grade:
-        t_score += 20
+        t_score += 15
         t_sig.append("critic_stage_present_or_graded")
     # serial execute policy awareness
-    t_score += 20
+    t_score += 15
     t_sig.append("executor_serial_policy_documented")
-    dims["concurrent_throughput"] = dim(t_score, t_sig)
+
+    # critic spawn metrics (plan/record artifacts)
+    spawn_paths = list(run_dir.rglob("critic_spawn_metrics.json")) if run_dir.exists() else []
+    plan_paths = list(run_dir.rglob("critic_spawn_plan.json")) if run_dir.exists() else []
+    if spawn_paths or plan_paths:
+        t_score += 10
+        t_sig.append(f"critic_spawn_artifacts plan={len(plan_paths)} record={len(spawn_paths)}")
+    agg_path = run_dir / "critic_spawn_metrics.json"
+    if agg_path.is_file():
+        try:
+            sm = load_json(agg_path)
+            counts = sm.get("counts") or {}
+            planned = int(counts.get("planned") or 0)
+            recorded = int(counts.get("recorded") or 0)
+            t_sig.append(f"critic_spawn_planned={planned}")
+            t_sig.append(f"critic_spawn_recorded={recorded}")
+            if recorded >= 2:
+                t_score += 10
+                t_sig.append("critic_spawn_recorded_ge2")
+            elif planned >= 2:
+                t_score += 5
+                t_sig.append("critic_spawn_planned_ge2_not_yet_recorded")
+            paths = sm.get("paths") or []
+            if paths:
+                t_sig.append(f"critic_packet_paths={len(paths)}")
+            pe = (sm.get("duration_ms") or {}).get("parallel_efficiency")
+            if pe is not None:
+                t_score += 5
+                t_sig.append(f"critic_spawn_parallel_efficiency={pe}")
+        except Exception as e:
+            t_sig.append(f"critic_spawn_metrics_parse_error:{e}")
+    dims["concurrent_throughput"] = dim(min(t_score, 100.0), t_sig)
 
     # outcome quality
     o_score, o_sig = 0.0, []

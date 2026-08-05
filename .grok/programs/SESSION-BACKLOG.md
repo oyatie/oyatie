@@ -95,7 +95,7 @@
 | S-KIT-D5 | scheduler /loop docs | **Backlog** |
 | S-KIT-D6 | live Stop-hook trial + hooks-trust | **Backlog** |
 | S-KIT-1.2 | Console bootstrap | **Human gate** |
-| S-KIT-2.2 | Parallel critic metrics | **Backlog** (next kit slice after D3/D4) |
+| S-KIT-2.2 | Parallel critic metrics | **Done** (`mm-pipeline plan-critics/record-critics` + evaluate/learn surface) |
 | S-KIT-5.2 | Docs consolidation | **Backlog** (alt next slice) |
 | S-KIT-DUAL-CRITIC-STATIC | evaluate static dual-critic packet signal | **Done** (`dual_critic_packet` dim) |
 | S-NO-SPRAWL | Retire parallel-lane Rhai product | **Done** |

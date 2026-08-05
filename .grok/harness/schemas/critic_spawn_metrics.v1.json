@@ -1,0 +1,78 @@
+{
+  "$id": "critic_spawn_metrics.v1",
+  "description": "Measurable dual/parallel critic spawn plan and record (counts, duration if known, packet paths). Not merge authority.",
+  "type": "object",
+  "required": ["version", "stage", "kind", "counts", "paths"],
+  "properties": {
+    "version": { "type": "string" },
+    "kind": {
+      "type": "string",
+      "enum": ["plan", "record", "aggregate"]
+    },
+    "stage": { "type": "string" },
+    "planned_at": { "type": "string" },
+    "recorded_at": { "type": "string" },
+    "parallel": { "type": "boolean" },
+    "role": { "type": "string" },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "planned": { "type": "integer", "minimum": 0 },
+        "recorded": { "type": "integer", "minimum": 0 },
+        "with_duration": { "type": "integer", "minimum": 0 },
+        "admit": { "type": "integer", "minimum": 0 },
+        "reject": { "type": "integer", "minimum": 0 },
+        "revise": { "type": "integer", "minimum": 0 },
+        "other": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "duration_ms": {
+      "type": "object",
+      "properties": {
+        "wall_span_ms": { "type": ["number", "null"] },
+        "sum_agent_ms": { "type": ["number", "null"] },
+        "max_agent_ms": { "type": ["number", "null"] },
+        "min_agent_ms": { "type": ["number", "null"] },
+        "parallel_efficiency": {
+          "type": ["number", "null"],
+          "description": "sum_agent_ms / (wall_span_ms * recorded) when parallel; null if unknown"
+        }
+      }
+    },
+    "paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Relative or absolute paths to critique packets"
+    },
+    "critics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "path": { "type": "string" },
+          "started_at": { "type": ["string", "null"] },
+          "finished_at": { "type": ["string", "null"] },
+          "duration_ms": { "type": ["number", "null"] },
+          "admit_recommendation": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "pipeline": { "type": "string" },
+        "parallelism": { "type": "string" },
+        "stage_kind": { "type": "string" }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

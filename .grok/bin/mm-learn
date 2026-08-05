@@ -293,6 +293,33 @@ def cmd_kpi_repeat(args: argparse.Namespace) -> int:
     return 0
 
 
+def load_critic_spawn_summary(run_dir: Path) -> Optional[Dict[str, Any]]:
+    """Surface kit 2.2 parallel critic spawn metrics if present (advisory)."""
+    agg = run_dir / "critic_spawn_metrics.json"
+    if not agg.is_file():
+        # fall back to any stage-level record
+        stage_hits = sorted(run_dir.rglob("critic_spawn_metrics.json"))
+        if not stage_hits:
+            return None
+        agg = stage_hits[0]
+    try:
+        data = load_json(agg)
+    except Exception as e:
+        return {"ok": False, "error": str(e), "path": str(agg)}
+    counts = data.get("counts") or {}
+    return {
+        "ok": True,
+        "path": str(agg),
+        "kind": data.get("kind"),
+        "stage": data.get("stage"),
+        "parallel": data.get("parallel"),
+        "counts": counts,
+        "duration_ms": data.get("duration_ms"),
+        "paths": data.get("paths") or [],
+        "packet_count": len(data.get("paths") or []),
+    }
+
+
 def cmd_from_run(args: argparse.Namespace) -> int:
     repo = find_repo(Path(args.cwd))
     run_dir = repo / ".grok" / "mm-runs" / args.run_id
@@ -304,6 +331,7 @@ def cmd_from_run(args: argparse.Namespace) -> int:
     score_path = run_dir / "scorecard.json"
     grade = load_json(grade_path) if grade_path.is_file() else {}
     score = load_json(score_path) if score_path.is_file() else {}
+    critic_spawn = load_critic_spawn_summary(run_dir)
 
     letter = grade.get("letter", "?")
     classes = grade.get("failure_classes") or []
@@ -321,6 +349,15 @@ def cmd_from_run(args: argparse.Namespace) -> int:
         f"- failure_classes: {', '.join(classes) or '(none)'}\n",
         f"- hard_fails: {', '.join(hard) or '(none)'}\n",
         f"- mode: {score.get('mode') or grade.get('mode')}\n",
+    ]
+    if critic_spawn and critic_spawn.get("ok"):
+        c = critic_spawn.get("counts") or {}
+        block.append(
+            f"- critic_spawn: planned={c.get('planned')} recorded={c.get('recorded')} "
+            f"packets={critic_spawn.get('packet_count')} "
+            f"parallel_eff={(critic_spawn.get('duration_ms') or {}).get('parallel_efficiency')}\n"
+        )
+    block += [
         "\n### Learned\n",
         "- Prefer process edits over re-prompt thrash when classes repeat.\n",
         "- Verified empty / plan-only incomplete is not ship-ready.\n",
@@ -409,17 +446,27 @@ def cmd_from_run(args: argparse.Namespace) -> int:
     tdir = mem / "trajectories"
     tdir.mkdir(parents=True, exist_ok=True)
     tmd = tdir / f"{args.run_id}.md"
-    tmd.write_text(
-        f"# Trajectory compress `{args.run_id}`\n\n"
-        f"- graded: {letter}\n"
-        f"- classes: {classes}\n"
-        f"- hard_fails: {hard}\n"
-        f"- kpi_repeats: {kpi.get('repeat_count', 0)}\n"
-        f"- reflection: {ref_path}\n"
-        f"- tip: {tip_path}\n"
-        f"- skill: {skill_path}\n"
-        f"- kpi_repeat: {run_dir / 'kpi-repeat.json'}\n"
-    )
+    tmd_lines = [
+        f"# Trajectory compress `{args.run_id}`\n\n",
+        f"- graded: {letter}\n",
+        f"- classes: {classes}\n",
+        f"- hard_fails: {hard}\n",
+        f"- kpi_repeats: {kpi.get('repeat_count', 0)}\n",
+        f"- reflection: {ref_path}\n",
+        f"- tip: {tip_path}\n",
+        f"- skill: {skill_path}\n",
+        f"- kpi_repeat: {run_dir / 'kpi-repeat.json'}\n",
+    ]
+    if critic_spawn and critic_spawn.get("ok"):
+        c = critic_spawn.get("counts") or {}
+        tmd_lines += [
+            f"- critic_spawn_path: {critic_spawn.get('path')}\n",
+            f"- critic_spawn_planned: {c.get('planned')}\n",
+            f"- critic_spawn_recorded: {c.get('recorded')}\n",
+            f"- critic_packet_paths: {critic_spawn.get('packet_count')}\n",
+            f"- critic_parallel_efficiency: {(critic_spawn.get('duration_ms') or {}).get('parallel_efficiency')}\n",
+        ]
+    tmd.write_text("".join(tmd_lines))
 
     # Quantitative path (reward + features + process SPC + bandit): optional soft hook
     quant_hook = maybe_quant_learn_hook(repo, args.run_id)
@@ -440,6 +487,7 @@ def cmd_from_run(args: argparse.Namespace) -> int:
                     "path": str(run_dir / "kpi-repeat.json"),
                     "suggest_artifact": kpi.get("suggest_artifact"),
                 },
+                "critic_spawn": critic_spawn,
                 "quant_learn_hook": quant_hook,
             },
             indent=2,
