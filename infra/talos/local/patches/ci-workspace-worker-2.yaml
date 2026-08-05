@@ -14,11 +14,12 @@ provisioning:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
   # Dual-worker general cell: admitted by ci-workspace-storage.yaml nodePathMap
   # so the general scale set can place one runner here while worker-1 hosts the
-  # other (maxRunners=2 + required hostname anti-affinity). Same path as
-  # worker-1; live-postgres remains a separate path/volume on this node.
+  # Up to two 44Gi general claims on this 120Gi volume (paired with worker-1).
+  # maxRunners=4 uses topology spread across both workers. Live-postgres remains
+  # a separate path/volume on this node. Guest CPU/RAM target: CAPACITY-PROFILE.
   # Removal is a separate destructive act after scale-set capacity is reduced.
-  minSize: 48GiB
-  maxSize: 48GiB
+  minSize: 120GiB
+  maxSize: 120GiB
 filesystem:
   type: xfs
   projectQuotaSupport: true

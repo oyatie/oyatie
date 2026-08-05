@@ -22,14 +22,13 @@ controllerServiceAccount:
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
 #
-# maxRunners=2 is justified by one 48 Gi physical Talos user volume *per node*
-# across two admitted general cells (worker-1 + worker-2), not by free CPU
-# alone. Local-path does not enforce the advertised 44 Gi request, so two
-# concurrent general runners on the *same* 48 Gi filesystem would overcommit
-# disk. Required hostname anti-affinity + dual-worker nodePathMap keep one
-# runner (and one 44 Gi ephemeral claim) per node. This does not activate
-# CAS warm pools or Remote Execution.
-maxRunners: 2
+# maxRunners=4 on two general workers (≈2 per node) after expanding each
+# general user volume to 120 Gi on the 150 Gi data disk (ADR-0630 capacity
+# reconsider 2026-08-05). Local-path still does not enforce claim size; topology
+# spread DoNotSchedule maxSkew=1 caps ~2 general runners per hostname so
+# 2×44 Gi + reserve fits under 120 Gi. Host has headroom for larger Talos VMs
+# (see CAPACITY-PROFILE-CI-HEAVY). Does not activate CAS warm / RE.
+maxRunners: 4
 minRunners: 0
 listenerMetrics:
   gauges:
@@ -70,18 +69,25 @@ template:
     # WaitForFirstConsumer + nodePathMap admit general only on those two nodes.
     nodeSelector:
       kubernetes.io/arch: arm64
-    # Hard spread: two concurrent general runners must not land on the same
-    # hostname. Selector uses the cell label we set above (merged onto every
-    # ephemeral runner Pod). Preferring ARC's actions.github.com/scale-set-name
-    # is equivalent once the controller injects it; the owned cell label is
-    # present in this declaration without depending on chart label merge order.
+    # Soft anti-affinity + hard topology spread: allow up to ~2 general runners
+    # per hostname (maxRunners=4 across 2 workers) while still preferring spread.
+    # DoNotSchedule maxSkew=1 on 4 pods / 2 nodes => 2+2. See ADR-0630.
     affinity:
       podAntiAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchLabels:
-                oya.io/ci-cell: general
-            topologyKey: kubernetes.io/hostname
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  oya.io/ci-cell: general
+              topologyKey: kubernetes.io/hostname
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            oya.io/ci-cell: general
     securityContext:
       fsGroup: 1001
       fsGroupChangePolicy: OnRootMismatch

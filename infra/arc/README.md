@@ -4,23 +4,29 @@ Issue #1504 isolates disposable ARC build work from the Talos system filesystem.
 The repository declaration has four parts:
 
 1. `infra/talos/local/patches/ci-workspace-worker-1.yaml` allocates the general
-   runner's fixed 48 GiB XFS user volume on worker 1's exact blank 150 GiB `/dev/vdb`.
+   runner's fixed **120 GiB** XFS user volume on worker 1's blank 150 GiB `/dev/vdb`.
    `ci-workspace-worker-2.yaml` allocates both a general volume (dual-worker general
-   cell) and the live-PostgreSQL volume on worker 2's blank 150 GiB `/dev/vdb`.
+   cell, **120 GiB**) and the live-PostgreSQL volume (**48 GiB**) on worker 2's
+   blank 150 GiB `/dev/vdb`.
 2. `ci-workspace-storage.yaml` runs a separate local-path provisioner identity and
    admits `/var/mnt/ci-workspace-general` on **both** `oya-talos-worker-1` and
    `oya-talos-worker-2`, and `/var/mnt/ci-workspace-live-postgres` only on
    `oya-talos-worker-2`.
 3. The general scale set (`runner-scale-set-arm64-values.yaml`) mounts a 44 GiB
    generic ephemeral PVC at `/home/runner/_work`, pins only `kubernetes.io/arch:
-   arm64` (no hostname pin), requires hostname pod anti-affinity on
-   `oya.io/ci-cell: general`, and caps `maxRunners: 2`. Capacity is one 48 GiB
-   physical volume **per node** × two nodes — not free CPU alone. Local-path does
-   not enforce each 44 GiB request; required anti-affinity keeps one general
-   runner (and one claim) per node. The live-PostgreSQL scale set stays
-   `maxRunners: 1` and hostname-pinned to worker 2 on its own 48 GiB volume.
+   arm64` (no hostname pin), prefers hostname anti-affinity, hard-caps spread with
+   topologySpread DoNotSchedule maxSkew=1 on `oya.io/ci-cell: general`, and sets
+   `maxRunners: 4` (≤2 general runners per node on 120 GiB volumes). Local-path
+   does not enforce each 44 GiB request; topology spread is the packing guard.
+   The live-PostgreSQL scale set stays `maxRunners: 1` and hostname-pinned to
+   worker 2 on its own 48 GiB volume.
 4. `ci-workspace-alerts.yaml` covers node pressure, PVC free space, runner writable
    layer growth, eviction, delayed PVC cleanup, and ARC startup/queue latency.
+
+**CPU/RAM** for the Talos VMs themselves (live was 5 vCPU / ~30 GiB workers on a
+128 GiB host) is documented in
+[`CAPACITY-PROFILE-CI-HEAVY.md`](./CAPACITY-PROFILE-CI-HEAVY.md) — target workers
+**8 vCPU / 48 GiB**; QEMU recreate is a human maintenance window.
 
 Human apply steps for raising concurrency live under
 [`RUNBOOK-scale-runners.md`](./RUNBOOK-scale-runners.md). This declaration slice

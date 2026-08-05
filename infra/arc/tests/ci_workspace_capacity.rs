@@ -1,10 +1,11 @@
 // #1504 repository-side capacity contract. Source declarations are parsed structurally; rollout,
 // CNI enforcement, and cold-concurrency evidence remain external acceptance steps.
 //
-// Dual-worker general (R1): maxRunners may exceed 1 only when distinct nodes admit the general
-// cell path (≥ maxRunners) *or* a single physical volume is large enough for
-// max_runners * requested_gib + reserve. This slice uses two 48Gi volumes (one per worker), not
-// single-node stacking. Live-postgres stays maxRunners=1 on worker-2.
+// Dual-worker general (CI-heavy): maxRunners may exceed 1 when (a) distinct nodes admit one
+// claim each (≥ maxRunners), (b) a single physical volume stacks max_runners*request+reserve,
+// or (c) distributed stack: every admitting node holds ceil(max/n)*request+reserve AND hard
+// hostname topology spread. This slice uses two 120Gi general volumes (≤2×44Gi+reserve each)
+// with maxRunners=4. Live-postgres stays maxRunners=1 on worker-2.
 #![allow(clippy::expect_used, clippy::panic)]
 
 use serde::Deserialize;
@@ -18,11 +19,14 @@ const LIVE_POSTGRES_VALUES: &str = "infra/arc/runner-scale-set-live-postgres-arm
 const QEMU_CILIUM_PATCH: &str = "infra/talos/qemu-cilium.patch.yaml";
 const LOCAL_PATH_STORAGE: &str = "infra/gitops/local-path-storage.yaml";
 const GENERAL_WORKERS: [&str; 2] = ["oya-talos-worker-1", "oya-talos-worker-2"];
-/// Hard ceiling for this declaration slice; raising past 2 needs a new capacity plan.
-const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 2;
+/// Hard ceiling for this declaration slice; raising past 4 needs a new capacity plan.
+const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 4;
 /// Spare GiB required when stacking multiple claims on one physical volume.
-/// Dual-worker general does not stack; this reserve only admits future single-node growth.
 const STACK_RESERVE_GIB: u64 = 4;
+/// General user volume size declared in Talos patches (fits 2×44Gi + reserve).
+const GENERAL_VOLUME_GIB: u64 = 120;
+/// Live-postgres user volume stays single-claim sized.
+const LIVE_POSTGRES_VOLUME_GIB: u64 = 48;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -221,10 +225,12 @@ fn volume_name_from_path(path: &str) -> Result<&str, String> {
 }
 
 /// Capacity contract:
-/// - maxRunners > 1 only when distinct admitting nodes with physical volume ≥ maxRunners
-///   OR some single physical volume ≥ max_runners * requested_gib + STACK_RESERVE_GIB
+/// - maxRunners > 1 when any of:
+///   (a) distinct admitting nodes ≥ maxRunners (one claim per node) + hard hostname spread
+///   (b) some single volume ≥ max_runners * requested + STACK_RESERVE (full stack)
+///   (c) every admitting node ≥ ceil(max/n) * requested + STACK_RESERVE + hard hostname spread
 /// - scale sets must not share the same workspace path
-/// - every claim is 44Gi against a 48Gi physical bound when using the dual-worker model
+/// - every claim is 44Gi; general volumes are GENERAL_VOLUME_GIB in this slice
 fn validate_capacity_contract(
     runners: &[RunnerWorkspace],
     storage_paths: &BTreeMap<String, String>,
@@ -301,8 +307,9 @@ fn validate_capacity_contract(
             continue;
         }
 
-        // max_runners > 1: multi-node one-claim-per-volume *or* single-node stack with reserve.
-        let multi_node_ok = (admitting.len() as u64) >= runner.max_runners
+        let n_nodes = admitting.len() as u64;
+        // (a) one claim per node across enough nodes
+        let multi_node_ok = n_nodes >= runner.max_runners
             && admitting.iter().all(|node| {
                 filesystems_gib
                     .get(&(node.clone(), volume_name.to_owned()))
@@ -311,7 +318,8 @@ fn validate_capacity_contract(
                     >= runner.requested_gib
             });
 
-        let stack_ok = admitting.iter().any(|node| {
+        // (b) some node can hold the entire maxRunners stack
+        let full_stack_ok = admitting.iter().any(|node| {
             filesystems_gib
                 .get(&(node.clone(), volume_name.to_owned()))
                 .copied()
@@ -319,22 +327,37 @@ fn validate_capacity_contract(
                 >= runner.max_runners * runner.requested_gib + STACK_RESERVE_GIB
         });
 
-        if !multi_node_ok && !stack_ok {
+        // (c) every node holds ceil(max/n) claims + reserve (distributed stack)
+        let per_node_ceiling = runner.max_runners.div_ceil(n_nodes);
+        let distributed_stack_ok = n_nodes > 0
+            && admitting.iter().all(|node| {
+                filesystems_gib
+                    .get(&(node.clone(), volume_name.to_owned()))
+                    .copied()
+                    .unwrap_or(0)
+                    >= per_node_ceiling * runner.requested_gib + STACK_RESERVE_GIB
+            });
+
+        if !multi_node_ok && !full_stack_ok && !distributed_stack_ok {
             return Err(format!(
-                "{} allows maxRunners={} but neither distinct general cells (≥ maxRunners) nor a stackable physical volume ({} * {} + {} Gi) exist for {path}",
+                "{} allows maxRunners={} but neither distinct cells (≥ maxRunners), full stack ({} * {} + {} Gi), nor distributed stack (ceil={}/node) fit for {path}",
                 runner.storage_class,
                 runner.max_runners,
                 runner.max_runners,
                 runner.requested_gib,
-                STACK_RESERVE_GIB
+                STACK_RESERVE_GIB,
+                per_node_ceiling
             ));
         }
 
-        // When multi-node is the only justification, require hard hostname spread so two
-        // claims cannot land on one undersized filesystem (local-path does not enforce size).
-        if multi_node_ok && !stack_ok && !runner.spreads_across_hostnames {
+        // Paths that rely on multi-node or distributed packing need hard hostname spread
+        // (local-path does not enforce PVC size).
+        if (multi_node_ok || distributed_stack_ok)
+            && !full_stack_ok
+            && !runner.spreads_across_hostnames
+        {
             return Err(format!(
-                "{} maxRunners={} relies on multi-node cells but lacks required hostname anti-affinity or DoNotSchedule topology spread",
+                "{} maxRunners={} relies on multi-node/distributed packing but lacks required hostname anti-affinity or DoNotSchedule topology spread",
                 runner.storage_class, runner.max_runners
             ));
         }
@@ -447,7 +470,7 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     let general = &runners[0];
     let live = &runners[1];
 
-    // Dual-worker general cell.
+    // Dual-worker general cell (CI-heavy maxRunners=4 with distributed stack).
     assert_eq!(general.max_runners, MAX_GENERAL_RUNNERS_THIS_SLICE);
     assert_eq!(general.storage_class, "oya-ci-workspace-general");
     assert!(
@@ -456,26 +479,28 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     );
     assert!(
         general.spreads_across_hostnames,
-        "general maxRunners=2 requires required hostname anti-affinity or topology spread"
+        "general maxRunners>1 requires required hostname anti-affinity or DoNotSchedule topology spread"
     );
-    // Structural check on the anti-affinity term (label + topology).
-    let anti = at(
+    // Structural check: hard topology spread on hostname (DoNotSchedule maxSkew=1).
+    let spreads = at(
         &general_values,
-        &[
-            "template",
-            "spec",
-            "affinity",
-            "podAntiAffinity",
-            "requiredDuringSchedulingIgnoredDuringExecution",
-        ],
+        &["template", "spec", "topologySpreadConstraints"],
     )
     .as_sequence()
-    .expect("required anti-affinity sequence");
-    assert_eq!(anti.len(), 1);
-    assert_eq!(string_at(&anti[0], &["topologyKey"]), "kubernetes.io/hostname");
+    .expect("topologySpreadConstraints sequence");
+    assert!(!spreads.is_empty());
+    assert_eq!(
+        string_at(&spreads[0], &["topologyKey"]),
+        "kubernetes.io/hostname"
+    );
+    assert_eq!(
+        string_at(&spreads[0], &["whenUnsatisfiable"]),
+        "DoNotSchedule"
+    );
+    assert_eq!(u64_at(&spreads[0], &["maxSkew"]), 1);
     assert_eq!(
         string_at(
-            &anti[0],
+            &spreads[0],
             &["labelSelector", "matchLabels", "oya.io/ci-cell"]
         ),
         "general"
@@ -603,24 +628,24 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
                     "oya-talos-worker-1".to_owned(),
                     "ci-workspace-general".to_owned(),
                 ),
-                48,
+                GENERAL_VOLUME_GIB,
             ),
             (
                 (
                     "oya-talos-worker-2".to_owned(),
                     "ci-workspace-general".to_owned(),
                 ),
-                48,
+                GENERAL_VOLUME_GIB,
             ),
             (
                 (
                     "oya-talos-worker-2".to_owned(),
                     "ci-workspace-live-postgres".to_owned(),
                 ),
-                48,
+                LIVE_POSTGRES_VOLUME_GIB,
             ),
         ]),
-        "worker-2 general volume is the second dual-worker general cell (not a silent third path)"
+        "general volumes are 120Gi (2×44+reserve); live-postgres stays 48Gi"
     );
 
     validate_capacity_contract(&runners, &storage_paths, &path_nodes, &filesystems_gib)
@@ -673,21 +698,21 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
                 "oya-talos-worker-1".to_owned(),
                 "ci-workspace-general".to_owned(),
             ),
-            48,
+            GENERAL_VOLUME_GIB,
         ),
         (
             (
                 "oya-talos-worker-2".to_owned(),
                 "ci-workspace-general".to_owned(),
             ),
-            48,
+            GENERAL_VOLUME_GIB,
         ),
         (
             (
                 "oya-talos-worker-2".to_owned(),
                 "ci-workspace-live-postgres".to_owned(),
             ),
-            48,
+            LIVE_POSTGRES_VOLUME_GIB,
         ),
     ]);
     let dual_worker_paths = BTreeMap::from([
@@ -714,7 +739,17 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         ),
     ]);
 
-    // Happy path: dual-worker general max=2 with anti-affinity + live max=1.
+    // Happy path: dual-worker general max=4 with distributed stack + spread + live max=1.
+    assert!(
+        validate_capacity_contract(
+            &[general(4, None, true), live(1)],
+            &dual_worker_paths,
+            &dual_worker_nodes,
+            &dual_worker_filesystems
+        )
+        .is_ok()
+    );
+    // Still valid at max=2 one-per-node on 120Gi volumes.
     assert!(
         validate_capacity_contract(
             &[general(2, None, true), live(1)],
@@ -763,10 +798,10 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         "48Gi cannot host 2×44Gi claims"
     );
 
-    // Multi-node without anti-affinity fails.
+    // Multi-node without anti-affinity/topology spread fails (even with 120Gi).
     assert!(
         validate_capacity_contract(
-            &[general(2, None, false), live(1)],
+            &[general(4, None, false), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -777,7 +812,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     // Hostname pin with maxRunners>1 fails.
     assert!(
         validate_capacity_contract(
-            &[general(2, Some("oya-talos-worker-1"), true), live(1)],
+            &[general(4, Some("oya-talos-worker-1"), true), live(1)],
             &dual_worker_paths,
             &dual_worker_nodes,
             &dual_worker_filesystems
@@ -848,8 +883,8 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
         .is_err()
     );
 
-    // Stackable single-node volume (hypothetical grow) may admit maxRunners>1 without
-    // multi-node admission or anti-affinity. Live topology stays at 48Gi dual-worker.
+    // Full stack on a single node may admit maxRunners>1 without multi-node admission
+    // or anti-affinity when the volume holds the entire stack.
     let stackable_fs = BTreeMap::from([
         (
             (
@@ -874,7 +909,30 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
             &stackable_fs
         )
         .is_ok(),
-        "stack path: physical_gib >= max_runners * requested + reserve"
+        "full-stack path: physical_gib >= max_runners * requested + reserve"
+    );
+
+    // Distributed stack: 120Gi on each of 2 nodes admits maxRunners=4 with spread
+    // (ceil(4/2)=2 → 2*44+4=92 ≤ 120) but fails without spread.
+    assert!(
+        validate_capacity_contract(
+            &[general(4, None, true), live(1)],
+            &dual_worker_paths,
+            &dual_worker_nodes,
+            &dual_worker_filesystems
+        )
+        .is_ok(),
+        "distributed stack path with topology spread"
+    );
+    assert!(
+        validate_capacity_contract(
+            &[general(4, None, false), live(1)],
+            &dual_worker_paths,
+            &dual_worker_nodes,
+            &dual_worker_filesystems
+        )
+        .is_err(),
+        "distributed stack without hard hostname spread must fail"
     );
 }
 
