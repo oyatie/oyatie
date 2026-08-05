@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "task_id": "t_f60cb75d",
+  "service": "governance",
+  "claim_ceiling": "ADR-0344 Proposed/advisory manifest declaration only; no runtime instrumentation or governance lane runtime changes, measured emissions, live billing, OpenCost/FOCUS export, generated JSON, or production FinOps readiness claim.",
+  "manifest": "oya/governance/manifest.json",
+  "included_by_inventory_gate": "specs/microservices/manifests-index.json#governance",
+  "source_refs": [
+    "oya/governance/manifest.json#capacity_model",
+    "oya/governance/manifest.json#slos.oya-governance-gate-validate-latency",
+    "oya/governance/manifest.json#audit_chain.seal_events.oya.governance.lane-execute",
+    "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-2"
+  ],
+  "workload_signal_source": {
+    "signal_family": "per_workflow_run",
+    "source_ref": "policy lane execution, evidence emission, check-crate invocation, finding query, and promotion-event workflows",
+    "audit_event_refs": [
+      "oya.governance.audit-refresh",
+      "oya.governance.finding-query",
+      "oya.governance.lane-execute"
+    ],
+    "slo_refs": [
+      "oya-governance-gate-validate-latency",
+      "oya-governance-per-lane-runtime-budget",
+      "oya-governance-conformance-evidence-freshness"
+    ]
+  },
+  "resource_accounting_fixture": {
+    "cpu_seconds": 1.1,
+    "memory_gib_seconds": 0.6,
+    "storage_gib_hours": 0.003,
+    "network_gib": 0.012,
+    "provider": "provider_sku_pricing",
+    "region": "fixture-region",
+    "carbon_intensity_source": "fixture_grid_400gco2_per_kwh"
+  },
+  "power_model": {
+    "cpu_watts_per_vcpu_second": 0.46,
+    "memory_watts_per_gib_second": 0.0026,
+    "storage_watts_per_gib_hour": 0.001,
+    "network_watts_per_gib": 0.09,
+    "tier_overhead_factor_applied": 1.4,
+    "derivation_note": "Values reflect medium CPU check-lane work, governance evidence storage, and higher outbound policy/evidence lookups; signal remains per_workflow_run rather than per_request."
+  },
+  "price_model": {
+    "source": "provider_sku_pricing",
+    "binding": "cloud/cloud-billing/README.md#per-usage-meter:governance.per_workflow_run",
+    "pin_window_hours": 1,
+    "non_claim": "Fixture binds governance workflow SKU attribution only and does not charge tenants or mutate release governance evidence."
+  },
+  "validation_baseline": {
+    "formula_ref": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-6.4",
+    "expected_watt_hours_per_request_p50_mwh": 0.197806,
+    "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.000079122,
+    "tolerance_pct": 20
+  },
+  "review_notes": {
+    "no_carbon_deferral": "Tier 1 policy/evidence gates cannot be deferred when they guard release, compliance, or security decisions.",
+    "security_tenant_data_plane": "Governance touches tenant-scoped evidence, policy decisions, and promotion state rather than customer-authored code.",
+    "audit_chain": "Lane-execute and audit-refresh rows are the future attribution source for governance workflow emissions."
+  },
+  "failure_cases": [
+    "lane-execute row missing one ADR-0344 field",
+    "check-crate invocation treated as workload-free",
+    "evidence-emitter storage left out of baseline",
+    "governance gate delayed by carbon-aware scheduling"
+  ],
+  "recalibration": {
+    "cadence": "quarterly",
+    "owner_team": "axis-governance",
+    "evidence_floor": "samples for policy gate validation, evidence emission, and conformance-query workflows"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "replay_artifact_id": "TASKS-REPLAY-SOURCE-MAP-AUTHORITY-001",
+  "parent_fixture_id": "tasks_source_map_authority_fixture",
+  "plan_slice_id": "TASKS-PS-00",
+  "replay_artifact_path": "specs/fixtures/tasks/replay/source-map/source-map-authority-replay.json",
+  "red_gate_task": "t_91fc5a1f",
+  "build_task": "t_4221a299",
+  "status": "PASSED_SELECTED_SLICE_REPLAY",
+  "red_status_closed": "RED_UNTIL_TASKS_REPLAY_ARTIFACT_EXISTS",
+  "source_map_ref": "specs/microservices/tasks.json",
+  "source_paths": [
+    "specs/microservices/tasks.json#authority_resolution",
+    "plan/tasks/tasks-workplace-backlog-slices.json#TASKS-PS-00",
+    "specs/fixtures/tasks/red-fixtures.json#tasks_source_map_authority_fixture",
+    "oya/tasks/manifest.json#legacy_manifest_reference_disposition"
+  ],
+  "assertions_covered": [
+    "every downstream tasks Plan/Spec, RED, Build, Review/fix, Merge/Rollout/E2E, and Learning card cites specs/microservices/tasks.json",
+    "oya/tasks/manifest.json remains inventory/provenance and is not readiness evidence",
+    "ADR-0131 and ADR-0512 keep canonical service paths under oya/tasks/**"
+  ],
+  "rejections_covered": [
+    "missing specs/microservices/tasks.json citation",
+    "live destination claim from microservices/tasks/**",
+    "runtime readiness claim from manifest, SLO, catalog, runbook, or contract inventory alone"
+  ],
+  "source_map_replay": {
+    "accepted_authority": "specs/microservices/tasks.json",
+    "canonical_service_root": "oya/tasks/**",
+    "legacy_destination_rejected": "microservices/tasks/**",
+    "inventory_boundary": "oya/tasks/manifest.json is inventory/provenance and not readiness evidence",
+    "layout_authority": ["ADR-0131", "ADR-0512"],
+    "verified_outcome": "source-map guard is green for selected TASKS-PS-00 build scope"
+  },
+  "browser_user_story_accessibility_evidence": {
+    "runtime_ui_changed": false,
+    "rationale": "source-map guard only; no UI runtime path changed"
+  },
+  "non_claims": [
+    "no runtime readiness",
+    "no generated JSON hand edits",
+    "no production readiness claim",
+    "deferred fixtures remain RED"
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/drive-contract-replay-artifact.schema.json",
+  "fixture_id": "drive_file_folder_crud_contract_fixture",
+  "status": "GREEN_FOR_SELECTED_BUILD_SLICE",
+  "selected_by": "DRIVE-RED-001",
+  "build_task": "t_13abe2e5",
+  "source_lock": {
+    "prd": "specs/microservices/drive.json#acceptance_criteria[AC-DRIVE-01]",
+    "red_fixture_manifest": "specs/fixtures/drive/red-fixtures.json#fixtures[drive_file_folder_crud_contract_fixture]",
+    "canonical_service_root": "oya/drive/",
+    "inventory_boundary": "oya/drive/manifest.json remains inventory/provenance only"
+  },
+  "contract_refs": {
+    "openapi_paths_plain": [
+      "/files",
+      "/files/{file_id}",
+      "/folders"
+    ],
+    "openapi": [
+      "oya/drive/contracts/openapi/drive.yaml#/paths/~1files",
+      "oya/drive/contracts/openapi/drive.yaml#/paths/~1files~1{file_id}",
+      "oya/drive/contracts/openapi/drive.yaml#/paths/~1folders"
+    ],
+    "proto": [
+      "oya/drive/contracts/proto/drive.proto#FileStore",
+      "oya/drive/contracts/proto/drive.proto#FolderHierarchy"
+    ],
+    "asyncapi": [
+      "oya/drive/contracts/asyncapi/drive-events.yaml#channels/drive.file.lifecycle.v1",
+      "oya/drive/contracts/asyncapi/drive-events.yaml#components/schemas/FileLifecycleEvent"
+    ]
+  },
+  "implementation_refs": [
+    "oya/drive/crates/oya-drive-domain/src/lib.rs#DriveSourceLockedFile",
+    "oya/drive/crates/oya-drive-domain/src/lib.rs#DriveSourceLockedFolder",
+    "oya/drive/crates/oya-drive-domain/src/lib.rs#drive_file_folder_crud_contract_fixture_records_source_locked_metadata_and_audit_visibility",
+    "oya/drive/crates/oya-drive-domain/src/lib.rs#drive_file_folder_crud_contract_fixture_denies_legal_hold_delete_and_soft_deletes_without_bypass"
+  ],
+  "must_assert": [
+    "file create stores tenant/context metadata through tenant_or_person_scope and DriveContextKind",
+    "folder create preserves tenant/context and tree boundary without using microservices/drive runtime roots",
+    "content_hash and object_version_ref are immutable source-locked metadata fields",
+    "scan-pending files are not visible to readers until a clean scan verdict records audit evidence",
+    "delete is soft-delete and legal-hold/WORM denies mutation bypass",
+    "legal-hold denial records audit-chain event id without changing lifecycle state",
+    "audit-chain event id is required before visibility and for mutation replay"
+  ],
+  "must_reject": [
+    "file visible before scan verdict",
+    "folder move across tenant boundary remains out of scope for this first slice",
+    "metadata update without expected version remains follow-up backlog",
+    "legal-hold delete succeeds",
+    "generated JSON hand edit",
+    "microservices/drive/** as live runtime root"
+  ],
+  "verification_commands": [
+    "CARGO_TARGET_DIR=/tmp/oyatie-t_13abe2e5-drive-target cargo test -p oya-drive-domain drive_file_folder_crud_contract_fixture -- --nocapture",
+    "python3 specs/fixtures/drive/drive_contract_replay_check.py"
+  ],
+  "deferred_build_backlog_fixture_ids": [
+    "drive_upload_download_range_multipart_fixture",
+    "drive_permissions_acl_inheritance_fixture",
+    "drive_share_link_ttl_revocation_view_cap_fixture",
+    "drive_preview_sandbox_fixture",
+    "drive_dlp_virus_scan_fixture",
+    "drive_search_index_authorization_fixture",
+    "drive_sync_conflict_resolution_fixture",
+    "drive_immutability_legal_hold_fixture",
+    "drive_audit_chain_emission_fixture",
+    "drive_ontology_projection_lag_fixture",
+    "drive_policy_denied_share_download_negative_fixture",
+    "drive_cross_tenant_leakage_negative_fixture",
+    "drive_stale_scan_negative_fixture",
+    "drive_residency_pack_mismatch_negative_fixture"
+  ],
+  "non_claims": [
+    "No upload/download runtime",
+    "No share-link runtime",
+    "No permissions inheritance runtime beyond first CRUD metadata guard",
+    "No preview/search/sync/immutability workflow runtime",
+    "No browser UI readiness claim",
+    "No generated-face hand edits",
+    "No production readiness or measured SLO claim"
+  ]
+}

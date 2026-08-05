@@ -1,0 +1,52 @@
+# RETENTION-QK03 retention + DSR evidence contract fixture
+# Task: t_2e5715fc
+# Purpose: RED-capable contract snapshot only. This fixture records the evidence
+# markers future implementation lanes must satisfy before QK-03 privacy/data-
+# governance can be marked green. It is not a purge executor, KMS runtime,
+# Cedar matrix, migration, measured dogfood receipt, or production claim.
+
+contract_id=RETENTION-QK03-RED-001
+qk_id=QK-03-privacy-data-governance
+source_contract=libs/oya-data-boundary-kernel/src/retention_policy.rs
+claim_status=blocked_until_future_runtime_evidence
+adr_0536_context=D-8_KMS_and_D-16_Audit_are_planning_context_only
+
+# Executable defaults mirrored from RetentionPolicy::from_level.
+retention.default.CRITICAL|window_days=30|purge_action=CryptoShred|examples=PHI,PCI,SENSITIVE_PIPA_ART23,CHILDREN
+retention.default.SENSITIVE|window_days=90|purge_action=SecureErase|examples=PII_IDENTIFYING,PII_QUASI_IDENTIFIER,FINANCIAL,BEHAVIORAL_ADS,SEARCH_QUERY
+retention.default.RESTRICTED|window_days=365|purge_action=LogicalDelete|examples=INTERNAL_ONLY,AUDIT,SECRET,USAGE
+retention.default.UNRESTRICTED|window_days=730|purge_action=LogicalDelete|examples=PUBLIC
+
+# Serialization/conflict boundaries. These are handoff seams, not owned here.
+conflict_boundary=TRUST-005:t_bce85039:crypto_shred_kms_executor
+conflict_boundary=AUDIT-002:t_c157a3ae:retrieval_and_proof_emission
+conflict_boundary=PRIVACY-001:t_2fc04777:dub_cedar_matrix
+conflict_boundary=DATA-003:t_bbe5db45:data_boundary_storage_integration
+conflict_boundary=QK-EVIDENCE:t_cf995f91:quality_kit_evidence_decomposition
+
+# QK-03 scenario rows. Future harnesses may replace this fixture only after
+# they emit measured evidence records and reviewer-approved receipts.
+scenario=QK-03-S01-personal-data-inventory|requires=data_flow_map|status=red_contract_only|future_owner=PRIVACY-001
+scenario=QK-03-S02-residency-enforcement|requires=cedar_residency_constraint|status=red_contract_only|future_owner=PRIVACY-001
+scenario=QK-03-S03-retention-expiry|requires=retention_expiry_decision|status=red_contract_only|future_owner=DATA-003
+scenario=QK-03-S04-deletion-erasure|requires=purge_action_selection|status=red_contract_only|future_owner=TRUST-005
+scenario=QK-03-S05-export-portability|requires=dsr_export_receipt|status=red_contract_only|future_owner=PRIVACY-001
+scenario=QK-03-S06-no-pii-telemetry-redaction|requires=telemetry_redaction_check|status=red_contract_only|future_owner=AUDIT-002
+scenario=QK-03-DSR-round-trip-proof|requires=dsr_delete_export_proof+audit_proof_emission+trust_portal_publication_semantics|status=red_contract_only|future_owner=AUDIT-002+PRIVACY-001
+
+# Evidence output keys consumed by downstream gates/reviewers.
+evidence_output=data_flow_map
+evidence_output=retention_expiry_decision
+evidence_output=purge_action_selection
+evidence_output=dsr_delete_export_proof
+evidence_output=audit_proof_emission
+evidence_output=trust_portal_publication_semantics
+evidence_output=telemetry_redaction_check
+
+# Honest-claim guardrails: this fixture keeps QK-03 red until real runtime
+# evidence, receipts, and review exist.
+forbidden_claim=production_readiness_green
+forbidden_claim=runtime_harness_implemented
+forbidden_claim=measured_dogfood_receipt_exists
+forbidden_claim=trust_portal_publication_live
+forbidden_claim=hyperscaler_production_maturity

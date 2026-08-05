@@ -1,0 +1,125 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/tasks-plan-spec-backlog-slices.schema.json",
+  "task_id": "t_2e92e2f3",
+  "service": "tasks",
+  "source_authority": "specs/microservices/tasks.json",
+  "claim_boundary": "Plan/Spec backlog only; no runtime, generated JSON, shared manifest-index, cloud/runtime, Release Please, or product-readiness claim.",
+  "lifecycle": [
+    "Research/source lock",
+    "Plan/Spec",
+    "RED fixture/contract",
+    "Build",
+    "Review/fix",
+    "Merge/Rollout/E2E",
+    "Learning/observation harvest"
+  ],
+  "global_non_goals": [
+    "runtime code before RED",
+    "generated JSON hand edits",
+    "shared specs/microservices/manifests-index.json edits",
+    "cloud/runtime surfaces",
+    "Release Please metadata",
+    "product-readiness claims",
+    "restoring or recreating microservices/tasks as canonical"
+  ],
+  "slices": [
+    {
+      "id": "TASKS-PS-00",
+      "title": "source-map guard and stale-reference quarantine",
+      "bounded_contexts": ["source-authority-cross-cutting"],
+      "conflict_class": "tasks-source-map-authority-serialized",
+      "allowed_prefixes": ["specs/microservices/tasks.json", "plan/tasks/", "evidence/tasks/", "specs/fixtures/tasks/source-map/", "scripts/tests/tasks_source_map_*.py"],
+      "fixture_plan": "Fail when fanout omits specs/microservices/tasks.json, treats oya/tasks/manifest.json as readiness evidence, or cites stale legacy microservices/tasks/** as a live destination.",
+      "api_contract_replay": "N/A for source-map-only checks; asserts downstream contract replay prerequisites.",
+      "browser_user_story_accessibility": "N/A; no UI touched.",
+      "non_goals": ["shared manifest-index edits", "runtime code", "legacy source-root restoration", "generated JSON"]
+    },
+    {
+      "id": "TASKS-PS-01",
+      "title": "task-store lifecycle contract",
+      "bounded_contexts": ["task-store"],
+      "conflict_class": "tasks-task-store-contract-and-domain",
+      "allowed_prefixes": ["oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/proto/tasks.proto", "oya/tasks/crates/oya-tasks-domain/", "oya/tasks/crates/oya-tasks-task-store*/", "oya/tasks/policy/", "oya/tasks/cedar/", "oya/tasks/slos/task-create-latency.openslo.yaml", "oya/tasks/slos/task-update-latency.openslo.yaml", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED create/read/update/archive/delete, idempotency, tenant mismatch denial, legal hold/retention refusal, audit metadata, RLS/tenant-DEK, malformed/custom field rejection.",
+      "api_contract_replay": "OpenAPI plus proto task lifecycle replay with authorization negative cases.",
+      "browser_user_story_accessibility": "Employee creates/edits/archives a task and sees policy/audit state; keyboard and screen-reader support required if UI touched.",
+      "non_goals": ["project-board drag/drop", "recurrence", "search", "importer", "webhook", "AI auto-assign", "storage production readiness"]
+    },
+    {
+      "id": "TASKS-PS-02",
+      "title": "project-list and view-engine board/list semantics",
+      "bounded_contexts": ["project-list", "view-engine"],
+      "conflict_class": "tasks-project-view-ui-contract",
+      "allowed_prefixes": ["oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/asyncapi/tasks-events.yaml", "oya/tasks/crates/oya-tasks-domain/", "oya/tasks/crates/oya-tasks-project-list*/", "oya/tasks/crates/oya-tasks-view-engine*/", "oya/tasks/policy/", "oya/tasks/runbooks/", "oya/tasks/slos/task-list-render-latency.openslo.yaml", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED project/list/board/sprint/milestone CRUD, board status transitions, drag/drop conflict states, realtime event semantics, unauthorized board/list reads.",
+      "api_contract_replay": "OpenAPI/AsyncAPI replay for project/list/board reads and update events, including stale-view and conflict/error responses.",
+      "browser_user_story_accessibility": "Board move and blocker-resolution story with keyboard drag/drop alternative, focus order, screen-reader announcements, reduced motion, high contrast, and no spinner-only waits.",
+      "non_goals": ["dependency graph internals", "recurrence materialisation", "search backend", "bulk-update implementation"]
+    },
+    {
+      "id": "TASKS-PS-03",
+      "title": "dependency-graph and bulk update refusal semantics",
+      "bounded_contexts": ["dependency-graph", "bulk-update-seam"],
+      "conflict_class": "tasks-dependency-graph-cycle-and-bulk-update",
+      "allowed_prefixes": ["oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/asyncapi/tasks-events.yaml", "oya/tasks/contracts/proto/tasks.proto", "oya/tasks/crates/oya-tasks-domain/", "oya/tasks/crates/oya-tasks-dependency-graph*/", "oya/tasks/slos/dependency-cycle-detection-correctness.openslo.yaml", "oya/tasks/slos/bulk-update-latency.openslo.yaml", "oya/tasks/runbooks/dependency-cycle-corruption.md", "oya/tasks/runbooks/bulk-edit-throttle.md", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED self-edge, two-node cycle, multi-hop cycle, cycle-introducing batch patch, atomic/refusal semantics, partial-failure reporting, throttling/backpressure, audit refusal metadata.",
+      "api_contract_replay": "OpenAPI/proto dependency edge and bulk patch replay; AsyncAPI dependency/bulk events and dead-letter behavior.",
+      "browser_user_story_accessibility": "Dependency and bulk update flows require clear cycle-refusal/atomicity feedback plus keyboard and screen-reader support if UI touched.",
+      "non_goals": ["full task lifecycle storage", "recurrence", "search", "importer", "AI auto-assign"]
+    },
+    {
+      "id": "TASKS-PS-04",
+      "title": "recurrence materialisation",
+      "bounded_contexts": ["recurrence"],
+      "conflict_class": "tasks-recurrence-idempotency-timezone",
+      "allowed_prefixes": ["oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/asyncapi/tasks-events.yaml", "oya/tasks/contracts/proto/tasks.proto", "oya/tasks/crates/oya-tasks-domain/", "oya/tasks/crates/oya-tasks-recurrence*/", "oya/tasks/slos/recurring-materialise-latency.openslo.yaml", "oya/tasks/runbooks/recurring-task-materialisation-failure.md", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED bounded RRULE subset, timezone transitions, idempotency, duplicate prevention, backfill limits, paused/cancelled series, legal-hold interaction, and unbounded expansion backpressure.",
+      "api_contract_replay": "OpenAPI/proto recurrence create/update/materialise/backfill replay; AsyncAPI materialisation events with idempotency/replay metadata.",
+      "browser_user_story_accessibility": "Recurring task story requires keyboard recurrence builder, localized timezone display, and screen-reader announcements if UI touched.",
+      "non_goals": ["calendar event ownership", "full RFC5545 implementation", "storage/deployment readiness"]
+    },
+    {
+      "id": "TASKS-PS-05",
+      "title": "search-index and authorization-aware saved views",
+      "bounded_contexts": ["search-index"],
+      "conflict_class": "tasks-search-auth-projection",
+      "allowed_prefixes": ["oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/asyncapi/tasks-events.yaml", "oya/tasks/crates/oya-tasks-domain/", "oya/tasks/crates/oya-tasks-search-index*/", "oya/tasks/policy/", "oya/tasks/slos/search-latency.openslo.yaml", "oya/tasks/runbooks/search-index-rebuild.md", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED authorized search/filter/saved-view results, cross-tenant denial, legal-hold filtering, stale-index rebuild safety, delete/update propagation, confidential/regulated redaction.",
+      "api_contract_replay": "OpenAPI search/filter/saved-view replay plus AsyncAPI projection update/rebuild events.",
+      "browser_user_story_accessibility": "Search/filter saved-view story with keyboard search, result-count live region, empty/error states, high contrast, and no spinner-only rebuild state if UI touched.",
+      "non_goals": ["Meilisearch production deployment", "complete observability evidence", "unrelated ontology projection implementation"]
+    },
+    {
+      "id": "TASKS-PS-06",
+      "title": "importers, webhooks, and external handoff review",
+      "bounded_contexts": ["importers", "webhook-event-seam"],
+      "conflict_class": "tasks-importer-webhook-idempotent-fanout",
+      "allowed_prefixes": ["oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/asyncapi/tasks-events.yaml", "oya/tasks/contracts/proto/tasks.proto", "oya/tasks/crates/oya-tasks-importers*/", "oya/tasks/runbooks/webhook-fanout-degraded.md", "oya/tasks/slos/webhook-fire-latency.openslo.yaml", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED importer mapping review, duplicate detection, correlation identifiers, idempotent writes, webhook signing/authorization, retry/dead-letter/replay, audit-chain events, external source not canonical.",
+      "api_contract_replay": "OpenAPI importer endpoints, AsyncAPI webhook/event fanout, and proto import/job surfaces with replay/dead-letter negative cases.",
+      "browser_user_story_accessibility": "Importer review story with keyboard-accessible review table and screen-reader import progress/errors if UI touched.",
+      "non_goals": ["third-party systems as canonical source", "broad connector platform", "live webhook claims without replay evidence"]
+    },
+    {
+      "id": "TASKS-PS-07",
+      "title": "AI-assist policy, fairness, and disclosure seam",
+      "bounded_contexts": ["ai-assist-policy-seam"],
+      "conflict_class": "tasks-ai-assist-fairness-employment-refusal",
+      "allowed_prefixes": ["oya/tasks/capabilities/", "oya/tasks/policy/", "oya/tasks/cedar/", "oya/tasks/contracts/openapi/tasks.yaml", "oya/tasks/contracts/asyncapi/tasks-events.yaml", "oya/tasks/crates/oya-tasks-domain/", "oya/tasks/slos/auto-assign-fairness-correctness.openslo.yaml", "oya/tasks/runbooks/ai-assign-classifier-rollback.md", "plan/tasks/", "evidence/tasks/"],
+      "fixture_plan": "RED T0/T1/T2 AI-assist refusal unless fairness evidence, protected-class exclusion, human override, explicit disclosure, audit evidence, and employment-context policy allow it.",
+      "api_contract_replay": "OpenAPI/AsyncAPI AI-assist request/response, override, refusal, audit, and event emission with deterministic fixtures.",
+      "browser_user_story_accessibility": "Accessible recommendation disclosure, confidence/refusal state, human override, keyboard controls, and screen-reader announcements if UI touched.",
+      "non_goals": ["provider integration", "model routing", "autonomous employment decisioning", "hidden assignment automation", "production fairness claims"]
+    }
+  ],
+  "recommended_order_after_red": [
+    "TASKS-PS-00",
+    "TASKS-PS-01",
+    "TASKS-PS-03",
+    "TASKS-PS-04",
+    "TASKS-PS-05",
+    "TASKS-PS-02",
+    "TASKS-PS-06",
+    "TASKS-PS-07"
+  ]
+}

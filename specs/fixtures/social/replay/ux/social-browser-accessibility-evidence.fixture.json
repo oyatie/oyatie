@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/social-prd-replay-fixture.schema.json",
+  "claim_boundary": "First social workplace slice evidence only: no production readiness, no hyperscaler claim, no UI readiness, no deployment, no durable storage, no live SLO, no generated JSON hand edits, no standalone shorts authority.",
+  "contract_replay_family": "social-prd-first-slice-v1",
+  "coverage_class": "service_local_domain_first_slice",
+  "fixture_id": "social_prd_browser_accessibility_evidence_fixture",
+  "implementation_refs": [],
+  "kanban_task": "t_4c158581",
+  "observability_slo_note": "No live SLO or telemetry is claimed; future runtime cards must add measured service metrics before production or hyperscaler claims.",
+  "parent_red_fixture_task": "t_b70fe698",
+  "replay_assertions": [
+    "Explicit N/A for first slice: no UI/browser surface is implemented; only service-local API/domain replay exists"
+  ],
+  "replay_rejections": [
+    "runtime or product readiness inferred from this first-slice fixture"
+  ],
+  "replay_status": "deferred_not_claimed_for_first_slice",
+  "rollback_note": "Remove oya/social/crates/oya-social-domain and these specs/fixtures/social/replay artifacts to return to RED metadata-only baseline; no deployed state or durable storage exists.",
+  "source_contract_refs": [
+    "specs/microservices/social.json#acceptance_criteria",
+    "oya/social/contracts/openapi/social.yaml",
+    "oya/social/contracts/asyncapi/social-events.yaml",
+    "oya/social/contracts/proto/social.proto"
+  ],
+  "verification_commands": [
+    "cargo test -p oya-social-domain --test social_workplace_slice",
+    "python3 scripts/tests/social_prd_red_fixture_contract_check.py"
+  ]
+}

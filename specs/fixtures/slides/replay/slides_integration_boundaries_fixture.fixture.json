@@ -1,0 +1,84 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/slides-prd-replay-artifact.schema.json",
+  "artifact_id": "slides_integration_boundaries_fixture.fixture",
+  "replay_artifact_path": "specs/fixtures/slides/replay/slides_integration_boundaries_fixture.fixture.json",
+  "parent_fixture_id": "slides_integration_boundaries_fixture",
+  "fixture_kind": "integration_boundary_replay",
+  "source_map_ref": "specs/microservices/slides.json",
+  "red_gate_task": "t_7e63e03d",
+  "build_task": "t_14ab9752",
+  "status": "SOURCE_BACKED_REPLAY_PASS",
+  "red_status_closed": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS",
+  "replay_family": "slides-first-build-source-backed-contract-replay",
+  "contract_surface": "Slides PRD source-backed static contract replay for REST/OpenAPI, AsyncAPI/WebSocket/workflow, proto/gRPC/streaming, policy, accessibility, and boundary assertions.",
+  "source_authority_refs": [
+    "specs/microservices/slides.json#fixture_plan",
+    "kanban:t_228dc16e",
+    "kanban:t_62dcb74a",
+    "kanban:t_7e63e03d",
+    "kanban:t_14ab9752"
+  ],
+  "source_paths": [
+    "specs/microservices/slides.json",
+    "specs/microservices/sheets.json",
+    "specs/microservices/messenger.json",
+    "specs/microservices/mail.json",
+    "specs/microservices/intelligence.json",
+    "oya/slides/cedar/policies.cedar",
+    "oya/slides/policy/tenant-scope.cedar",
+    "oya/slides/manifest.json"
+  ],
+  "assertions_covered": [
+    "sheets",
+    "drive",
+    "messenger",
+    "social/community",
+    "mail",
+    "identity",
+    "intelligence",
+    "sibling-unready",
+    "ACL-revoked"
+  ],
+  "rejections_covered": [
+    "sibling inventory as readiness evidence"
+  ],
+  "replay_steps": [
+    "Replay the parent RED fixture terms against the cited slides PRD/source-map and current oya/slides source paths.",
+    "Confirm the fixture closes the RED missing-artifact status without creating handlers, generated faces, release metadata, or runtime readiness claims.",
+    "Carry forward future runtime, browser, accessibility, observability, and protected CI evidence requirements for user-visible slices."
+  ],
+  "api_contract_replay_evidence": {
+    "openapi": false,
+    "asyncapi": false,
+    "proto": false,
+    "notes": "Source-backed static contract replay artifact; no handler/runtime, generated face, release metadata, or broad product readiness claim is created by this slice."
+  },
+  "browser_user_story_accessibility_evidence": {
+    "applicable": false,
+    "runtime_ui_changed": false,
+    "n_a_rationale": "No browser/UI runtime path changes in t_14ab9752; future user-visible slices must supply Chromium, Firefox, WebKit, keyboard, screen-reader, reduced-motion, create-deck, co-edit, present, import/export, per-slide ACL, and alt-text evidence."
+  },
+  "audit_observability_hooks": {
+    "audit_events_preserved": [
+      "DeckSaved",
+      "AclChanged",
+      "AiDesignSuggested",
+      "AiContentGenerated",
+      "ExportJobCompleted",
+      "ImportJobCompleted",
+      "EVT-SLIDES-RENDER-TIER-SELECTED"
+    ],
+    "observability_refs": [
+      "specs/microservices/slides.json#observability_and_slo",
+      "oya/slides/slos/crdt-merge-no-silent-loss.openslo.yaml"
+    ],
+    "runtime_slo_claim": false,
+    "tenant_payload_in_evidence": false
+  },
+  "non_claims": [
+    "No runtime readiness, product readiness, production readiness, GA, customer availability, live SLO, or hyperscaler maturity claim is made.",
+    "No generated JSON hand edits are made.",
+    "No legacy microservices/slides/manifest.json restoration is authorized.",
+    "Green CI alone is not UI readiness evidence."
+  ]
+}

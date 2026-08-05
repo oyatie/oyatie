@@ -1,0 +1,29 @@
+[package]
+name = "oya-trust-center-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Tenant-scoped Trust Center compliance evidence API/read-model contract for TRUSTCENTER-API-001."
+
+[package.metadata.oya]
+microservice = "trust"
+bounded_context = "trust-center"
+layer = "api"
+owner_team = "council-security"
+adr_anchors = ["TRUSTCENTER-001"]
+spec = "specs/trust-center-compliance-evidence-portal.json"
+data_classification = "TENANT_TRUST_EVIDENCE, REGULATED_EXPORT_EVIDENCE, OPERATOR_SECURITY_INTERNAL"
+
+[lib]
+name = "oya_trust_center_api"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

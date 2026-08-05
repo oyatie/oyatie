@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "task_id": "t_f60cb75d",
+  "service": "messenger",
+  "claim_ceiling": "ADR-0344 Proposed/advisory manifest declaration only; no runtime instrumentation (including message runtime paths), measured emissions, live billing, OpenCost/FOCUS export, generated JSON, or production FinOps readiness claim.",
+  "manifest": "oya/messenger/manifest.json",
+  "included_by_inventory_gate": "specs/microservices/manifests-index.json#messenger",
+  "source_refs": [
+    "oya/messenger/manifest.json#capacity_model",
+    "oya/messenger/manifest.json#slos.messenger-message-send-latency",
+    "oya/messenger/manifest.json#slos.messenger-voice-video-quality",
+    "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-2"
+  ],
+  "workload_signal_source": {
+    "signal_family": "per_message",
+    "source_ref": "message send, fanout, read receipt, presence, attachment scan, and huddle/media paths",
+    "audit_event_refs": [
+      "oya.messenger.thread-summary-and-action-item-extract",
+      "oya.messenger.auto-mute-categorize-translate"
+    ],
+    "slo_refs": [
+      "messenger-message-send-latency",
+      "messenger-mention-fanout",
+      "messenger-read-receipt-fanout",
+      "messenger-voice-video-quality"
+    ]
+  },
+  "resource_accounting_fixture": {
+    "cpu_seconds": 0.32,
+    "memory_gib_seconds": 0.18,
+    "storage_gib_hours": 0.0018,
+    "network_gib": 0.0065,
+    "provider": "provider_sku_pricing",
+    "region": "fixture-region",
+    "carbon_intensity_source": "fixture_grid_400gco2_per_kwh"
+  },
+  "power_model": {
+    "cpu_watts_per_vcpu_second": 0.42,
+    "memory_watts_per_gib_second": 0.0022,
+    "storage_watts_per_gib_hour": 0.0011,
+    "network_watts_per_gib": 0.082,
+    "tier_overhead_factor_applied": 1.4,
+    "derivation_note": "Values reflect messenger's lower per-message CPU, high Valkey fanout, attachment/media network profile, and Tier-1 MLS/key-recovery placement; not copied from ADR illustrative coefficients."
+  },
+  "price_model": {
+    "source": "provider_sku_pricing",
+    "binding": "cloud/cloud-billing/README.md#per-usage-meter:messenger.per_message",
+    "pin_window_hours": 1,
+    "non_claim": "Fixture records message/meter SKU binding only; no paid-tenant per_usage billing component is charged."
+  },
+  "validation_baseline": {
+    "formula_ref": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md#D-6.4",
+    "expected_watt_hours_per_request_p50_mwh": 0.052629,
+    "expected_co2_grams_per_request_p50_at_grid_400gco2_per_kwh": 0.000021051,
+    "tolerance_pct": 20
+  },
+  "review_notes": {
+    "no_carbon_deferral": "Tier 1 encrypted messaging, MLS recovery, attachment, and huddle signaling paths cannot be deferred for carbon optimization.",
+    "security_tenant_data_plane": "Message fanout and encrypted attachment paths touch tenant data and authentication-adjacent secrets through OpenBao-backed recovery surfaces.",
+    "audit_chain": "Future attribution must bind message-send/fanout/media audit rows to the five ADR-0344 fields without leaking message content."
+  },
+  "failure_cases": [
+    "message send emits cost/co2/watt_hours without provider or region",
+    "media minute path incorrectly reuses text-message coefficients",
+    "attachment storage omitted from the resource-accounting sample",
+    "carbon-aware scheduling defers real-time Tier-1 huddle traffic"
+  ],
+  "recalibration": {
+    "cadence": "quarterly",
+    "owner_team": "axis-messenger",
+    "evidence_floor": "separate samples for text fanout, attachment scan/storage, and huddle/media traffic before measured claims"
+  }
+}

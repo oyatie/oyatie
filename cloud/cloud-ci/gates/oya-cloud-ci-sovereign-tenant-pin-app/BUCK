@@ -1,0 +1,33 @@
+rust_library(
+    name = "oya-cloud-ci-sovereign-tenant-pin-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_ci_sovereign_tenant_pin_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-sovereign-tenant-pin-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_cloud_ci_sovereign_tenant_pin_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-sovereign-tenant-pin-app-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "oya_cloud_ci_sovereign_tenant_pin_app_corpus",
+    crate_root = "tests/sovereign_tenant_pin.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-cloud-ci-sovereign-tenant-pin-app",
+        "third-party//:serde_json",
+    ],
+)

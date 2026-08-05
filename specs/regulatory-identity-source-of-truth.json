@@ -5,15 +5,15 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-REGULATORY-IDENTITY-SOURCE-OF-TRUTH",
-    "version": "0.1.1",
+    "version": "0.1.3",
     "status": "planning-source-of-truth",
     "created_at": "2026-07-01T00:05:43Z",
     "owner_team": "ops-compliance + axis-identity + council-security + council-privacy + legal-review",
     "lane": "regulatory-identity/source-of-truth",
     "kanban_task": "t_eebd8980",
     "purpose": "Exact source-index and machine-readable control backlog for Korean/global identity, KYC, passkey, compliance and PQC floors. This artifact is planning/spec inventory only; it does not mutate product code, create CLI surface, or introduce oya/cloud reorg debt.",
-    "claim_ceiling_status": "planning_inventory_only_no_certification_or_readiness_claim",
-    "last_claim_ceiling_review_at_utc": "2026-07-01T00:31:35Z",
+    "claim_ceiling_status": "planning_inventory_and_source_extraction_queue_only_no_certification_or_readiness_claim",
+    "last_claim_ceiling_review_at_utc": "2026-07-01T13:30:42Z",
     "northstar": "Passkey-first hyperscaler identity/KYC with statutory identity-proofing and compliance evidence modeled as API/queryable evidence artifacts, not Korean legacy UX.",
     "non_goals": [
       "No product-code mutation in this lane",
@@ -23,11 +23,13 @@
       "No claim that passkeys alone satisfy statutory KYC or Korean 본인확인기관 requirements"
     ],
     "source_fetch_summary": {
-      "fetched_at_utc": "2026-07-01T00:04:50Z",
+      "fetched_at_utc": "2026-07-01T13:30:42Z",
       "tooling": "curl -L --compressed with SHA-256 over fetched bytes; local repo files hashed with Python hashlib",
-      "fetched_ok_count": 29,
-      "blocked_or_unresolved_count": 3
-    }
+      "fetched_ok_count": 33,
+      "blocked_or_unresolved_count": 4
+    },
+    "last_updated_by_kanban_task": "t_6c8a5f94",
+    "last_source_extraction_queue_update_at_utc": "2026-07-01T13:30:42Z"
   },
   "contract": {
     "source_index_required_fields": [
@@ -73,7 +75,24 @@
       "resolution_path"
     ],
     "state_policy": "state=blocker means row-level policy, certification/readiness, launch, or evidence-acceptance claims fail closed until the row is resolved; state=allowed_unknown permits bounded planning/crosswalk inventory only and still forbids readiness or certification claims.",
-    "claim_ceiling_policy": "This artifact may claim source-index/planning coverage only. It cannot claim KISA/KMCC designation, ISMS-P certification, CSAP certification, PCI DSS Level 1 readiness, US/EU obliged-entity launch readiness, PQC deployment readiness, WebAuthn PQC readiness, production readiness, or regulatory certification."
+    "claim_ceiling_policy": "This artifact may claim source-index/planning coverage only. It cannot claim KISA/KMCC designation, ISMS-P certification, CSAP certification, PCI DSS Level 1 readiness, US/EU obliged-entity launch readiness, PQC deployment readiness, WebAuthn PQC readiness, production readiness, or regulatory certification.",
+    "source_extraction_queue_required_fields": [
+      "queue_id",
+      "title",
+      "source_url_or_path",
+      "publisher",
+      "version_or_date",
+      "retrieval_status",
+      "hash_or_unresolved_reason",
+      "original_text_or_korean_text_state",
+      "normalized_summary",
+      "applicability",
+      "evidence_producer",
+      "freshness_cadence",
+      "owner",
+      "supersession_state"
+    ],
+    "source_extraction_queue_policy": "source_extraction_queue rows are extraction work records only. They may carry official source metadata, hashes, unresolved reasons, and bounded normalized summaries, but they must not hand-transcribe row/table text or create policy/runtime/control claims before the referenced source rows are machine-extracted and reviewed."
   },
   "claim_ceiling": {
     "claim_status": "planning_inventory_only_no_certification_or_readiness_claim",
@@ -246,27 +265,620 @@
     {
       "blocker_id": "REGGOV-SB-007",
       "state": "allowed_unknown",
-      "summary": "Base PQC FIPS standards are indexed, but federal transition deadlines, WebAuthn/browser/authenticator support and vendor timelines are not normalized.",
+      "summary": "Base PQC FIPS standards and SP 800-227 KEM guidance are indexed for planning, but federal transition deadlines, WebAuthn/browser/authenticator support, vendor timelines, and accepted internal runtime authority are not normalized.",
       "source_refs": [
         "NIST-FIPS-203-ML-KEM-PDF",
         "NIST-FIPS-204-ML-DSA-PDF",
         "NIST-FIPS-205-SLH-DSA-PDF",
-        "ADR-0188"
+        "ADR-0188",
+        "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+        "W3C-WEBAUTHN-3-TR",
+        "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+        "W3C-WEBAUTHN-L4-MILESTONE-27",
+        "ADR-0354-PROPOSED-PQC-HYBRID"
       ],
       "owner": "council-security + crypto-platform + axis-identity",
       "freshness_cadence": "quarterly for standards and vendor/browser support; immediate review on NIST/OMB/CISA transition update or WebAuthn/FIDO support milestone",
       "expires_at_utc": "2026-10-01T00:00:00Z",
-      "resolution_path": "Add federal transition memoranda, browser/WebAuthn/FIDO authenticator support matrices, vendor library roadmaps and migration exception policy before implementation or readiness claims beyond cryptographic inventory planning.",
+      "resolution_path": "Add federal transition memoranda, browser/WebAuthn/FIDO authenticator support matrices, vendor library roadmaps, migration exception policy, and accepted internal authority before implementation or readiness claims beyond cryptographic inventory planning; clause-extract SP 800-227 before any KEM-combiner/KDF policy.",
       "allowed_while_open": [
         "PQC cryptographic inventory planning",
-        "long-lived evidence-signing migration design as target-state inventory"
+        "long-lived evidence-signing migration design as target-state inventory",
+        "ML-KEM cryptographic boundary inventory planning",
+        "hybrid/KEM-combiner and no-bespoke-KDF policy planning from official source rows"
       ],
       "blocked_while_open": [
         "PQC deployment readiness",
         "WebAuthn/browser/authenticator PQC support readiness",
-        "production migration or tenant credential-posture claims"
+        "production migration or tenant credential-posture claims",
+        "bespoke KEM combiner, bespoke KDF, or unaudited hybrid-construction implementation",
+        "production PQC implementation claim based only on source/control rows"
       ],
-      "claim_ceiling": "PQC/WebAuthn rows are planning inputs only; no PQC implementation, migration, browser/WebAuthn support, or production-readiness claim is allowed while this allowed_unknown is open."
+      "claim_ceiling": "PQC/WebAuthn rows are planning inputs only; no PQC implementation, migration, browser/WebAuthn/authenticator support, production-readiness, bespoke KEM-combiner/KDF, or tenant credential-posture claim is allowed while this allowed_unknown is open."
+    }
+  ],
+  "source_extraction_queue": [
+    {
+      "queue_id": "REGSRC-Q-001",
+      "title": "KISA/KMCC/KCC 87-item official evaluation-row OCR queue",
+      "source_refs": [
+        "KR-IDV-2024-EVALUATION-CRITERIA-PDF",
+        "KR-IDV-GUIDE-PAGE-2024-02",
+        "KR-IDV-EDU-TRANSCRIPT-87-ITEMS"
+      ],
+      "blocker_ref": "REGGOV-SB-001",
+      "source_url_or_path": "https://identity.kisa.or.kr/web/main/file/download/uu/c3ec68479e38470abd2d9c20bcf41e02",
+      "publisher": "KISA 본인확인 지원포털",
+      "version_or_date": "2024.2 attachment; filename from Content-Disposition + 2024.2 page title + current page at retrieval",
+      "retrieval_status": "fetched-ok",
+      "hash_or_unresolved_reason": "KR-IDV-2024-EVALUATION-CRITERIA-PDF=sha256:b7136fdb863712b77d9fcc3b523ccd5ebf4484a23cf0d5d019097cd62a8965bf; KR-IDV-GUIDE-PAGE-2024-02=sha256:9f5ec8886e493536b6d71d8a73e9bb47cd546bec767c37611320a852019355f3; KR-IDV-EDU-TRANSCRIPT-87-ITEMS=sha256:306dc0ea09e08d70a9a613d77d911970093fddf09c611d42eef1e6a9910c97c9",
+      "source_records": [
+        {
+          "source_id": "KR-IDV-2024-EVALUATION-CRITERIA-PDF",
+          "url_or_path": "https://identity.kisa.or.kr/web/main/file/download/uu/c3ec68479e38470abd2d9c20bcf41e02",
+          "publisher": "KISA 본인확인 지원포털",
+          "version_or_date": "2024.2 attachment; filename from Content-Disposition",
+          "retrieval_status": "fetched-ok",
+          "sha256": "b7136fdb863712b77d9fcc3b523ccd5ebf4484a23cf0d5d019097cd62a8965bf",
+          "unresolved_reason": null,
+          "content_type": "application/octet-stream;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:04:50Z"
+        },
+        {
+          "source_id": "KR-IDV-GUIDE-PAGE-2024-02",
+          "url_or_path": "https://identity.kisa.or.kr/web/main/bbs/guide/38?baCommSelec=false&baNotice=false&baOpenDay=false&baUse=true&bcId=guide&cp=1&sortDirection=DESC&sortOrder=BA_REGDATE&sv=2024",
+          "publisher": "KISA 본인확인 지원포털",
+          "version_or_date": "2024.2 page title",
+          "retrieval_status": "fetched-ok",
+          "sha256": "9f5ec8886e493536b6d71d8a73e9bb47cd546bec767c37611320a852019355f3",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-IDV-EDU-TRANSCRIPT-87-ITEMS",
+          "url_or_path": "https://identity.kisa.or.kr/web/main/bbs/edu_identification/55",
+          "publisher": "KISA 본인확인 지원포털",
+          "version_or_date": "current page at retrieval",
+          "retrieval_status": "fetched-ok",
+          "sha256": "306dc0ea09e08d70a9a613d77d911970093fddf09c611d42eef1e6a9910c97c9",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Korean original row/table text is not manually transcribed in this queue; extract from hashed PDF with page/table coordinates and source hash.",
+      "normalized_summary": "Official 2024 KISA/KMCC/KCC evaluation guide PDF is captured and hashed; exact 87-item Korean table rows, scoring flags and coordinates remain machine/OCR extraction work.",
+      "applicability": "KR identity-confirmation agency designation and regular-review evidence only; planning/source-row extraction before any row-level KR policy or readiness claim.",
+      "evidence_producer": "ops-compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + axis-identity-kr",
+      "supersession_state": "open-blocked-by-machine-ocr",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-002",
+      "title": "ISMS-P official checklist/source-row retry queue",
+      "source_refs": [
+        "KR-ISMSP-ADMIN-RULE-2100000244750",
+        "KR-ISMSP-CERT-PROCESS-PAGE",
+        "KR-ISMSP-INTRO-UNRESOLVED-DNS"
+      ],
+      "blocker_ref": "REGGOV-SB-002",
+      "source_url_or_path": "https://law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000244750",
+      "publisher": "Korea law.go.kr + ISMS-P official portal + KISA / ISMS-P portal",
+      "version_or_date": "admRulSeq=2100000244750 + current page at retrieval + unresolved at retrieval",
+      "retrieval_status": "fetched-ok + unresolved-dns",
+      "hash_or_unresolved_reason": "KR-ISMSP-ADMIN-RULE-2100000244750=sha256:876183d8ba38f447ad1113e72602f01e93001be058f4c7f063b5dbb7513fff58; KR-ISMSP-CERT-PROCESS-PAGE=sha256:334194e7d18ee0cf3101edcef58affaab1881386cb3ff3d4e8882dcb60547192; KR-ISMSP-INTRO-UNRESOLVED-DNS=unresolved:DNS failed from task environment; current official intro URL/checklist count needs retry or browser/manual verification.",
+      "source_records": [
+        {
+          "source_id": "KR-ISMSP-ADMIN-RULE-2100000244750",
+          "url_or_path": "https://law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000244750",
+          "publisher": "Korea law.go.kr",
+          "version_or_date": "admRulSeq=2100000244750",
+          "retrieval_status": "fetched-ok",
+          "sha256": "876183d8ba38f447ad1113e72602f01e93001be058f4c7f063b5dbb7513fff58",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-ISMSP-CERT-PROCESS-PAGE",
+          "url_or_path": "https://www.isms-p.or.kr/cert/aply/selectCertPrcdDetail.do",
+          "publisher": "ISMS-P official portal",
+          "version_or_date": "current page at retrieval",
+          "retrieval_status": "fetched-ok",
+          "sha256": "334194e7d18ee0cf3101edcef58affaab1881386cb3ff3d4e8882dcb60547192",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-ISMSP-INTRO-UNRESOLVED-DNS",
+          "url_or_path": "https://isms-p.kisa.or.kr/main/ispims/intro/",
+          "publisher": "KISA / ISMS-P portal",
+          "version_or_date": "unresolved at retrieval",
+          "retrieval_status": "unresolved-dns",
+          "sha256": null,
+          "unresolved_reason": "DNS failed from task environment; current official intro URL/checklist count needs retry or browser/manual verification.",
+          "content_type": null,
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Korean checklist/control text is not extracted; retry official source or alternate official guide/PDF and capture row ids/text/hash.",
+      "normalized_summary": "law.go.kr and process-page snapshots are indexed, but the official intro/checklist source remains unresolved and must be reacquired before checklist-level rows.",
+      "applicability": "KR ISMS-P/ISMS management-system evidence planning only; blocks checklist completeness and certification-readiness claims.",
+      "evidence_producer": "ops-compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + council-privacy + council-security",
+      "supersession_state": "open-blocked-by-official-checklist-source",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-003",
+      "title": "CSAP official portal/materials source-row retry queue",
+      "source_refs": [
+        "KR-CSAP-ADMIN-RULE-2100000218804",
+        "KR-CSAP-INTRO-UNRESOLVED-DNS",
+        "OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21"
+      ],
+      "blocker_ref": "REGGOV-SB-003",
+      "source_url_or_path": "https://www.law.go.kr/admRulInfoP.do?admRulSeq=2100000218804",
+      "publisher": "Korea law.go.kr + KISA ISMS/CSAP portal + Oyatie repository",
+      "version_or_date": "admRulSeq=2100000218804 + unresolved at retrieval + version 1.0.0",
+      "retrieval_status": "fetched-ok + unresolved-dns + local-file-read",
+      "hash_or_unresolved_reason": "KR-CSAP-ADMIN-RULE-2100000218804=sha256:385f187d0cbdb3af70b36e1f4dc4cd295a6e4682f78e6839f3ec30bd5f9ff176; KR-CSAP-INTRO-UNRESOLVED-DNS=unresolved:DNS failed from task environment; current KISA CSAP type/count summary must be retried or manually verified.; OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21=sha256:39d5a2508f853c1f02e13ef8b4ea52ab6abb7da2ca19c42933af157e586373b6",
+      "source_records": [
+        {
+          "source_id": "KR-CSAP-ADMIN-RULE-2100000218804",
+          "url_or_path": "https://www.law.go.kr/admRulInfoP.do?admRulSeq=2100000218804",
+          "publisher": "Korea law.go.kr",
+          "version_or_date": "admRulSeq=2100000218804",
+          "retrieval_status": "fetched-ok",
+          "sha256": "385f187d0cbdb3af70b36e1f4dc4cd295a6e4682f78e6839f3ec30bd5f9ff176",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-CSAP-INTRO-UNRESOLVED-DNS",
+          "url_or_path": "https://isms.kisa.or.kr/main/csap/intro/index.jsp",
+          "publisher": "KISA ISMS/CSAP portal",
+          "version_or_date": "unresolved at retrieval",
+          "retrieval_status": "unresolved-dns",
+          "sha256": null,
+          "unresolved_reason": "DNS failed from task environment; current KISA CSAP type/count summary must be retried or manually verified.",
+          "content_type": null,
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21",
+          "url_or_path": "/specs/compliance-pack-floors.json",
+          "publisher": "Oyatie repository",
+          "version_or_date": "version 1.0.0",
+          "retrieval_status": "local-file-read",
+          "sha256": "39d5a2508f853c1f02e13ef8b4ea52ab6abb7da2ca19c42933af157e586373b6",
+          "unresolved_reason": null,
+          "content_type": "application/json",
+          "retrieved_at_utc": "2026-07-01T00:05:43Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Korean CSAP portal/checklist text is not extracted; retry official portal/materials and capture current service types/control counts/hash.",
+      "normalized_summary": "law.go.kr CSAP rule is indexed, while KISA CSAP portal/material source is unresolved and service-type/control-count rows remain unavailable.",
+      "applicability": "KR CSAP cloud-service/certified-cell planning only; blocks CSAP certification, public-sector tenant activation and checklist/control-count claims.",
+      "evidence_producer": "ops-compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + cloud-control-plane-governance",
+      "supersession_state": "open-blocked-by-official-portal-source",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-004",
+      "title": "Korean IoT security certification guide-file extraction queue",
+      "source_refs": [
+        "KR-IOT-CERT-INTRO-PAGE",
+        "KR-IOT-CERT-APPLICATION-PAGE",
+        "KR-IOT-CERT-ADMIN-RULE-2100000204704",
+        "KR-IOT-PUBLIC-DATA-GUIDE-20230927"
+      ],
+      "blocker_ref": null,
+      "source_url_or_path": "https://www.ksecurity.or.kr/kisis/subIndex/160.do",
+      "publisher": "Ksecurity / KISA + Korea law.go.kr + data.go.kr / KISA",
+      "version_or_date": "current page at retrieval + admRulSeq=2100000204704 + dateModified=2025-07-16 observed on page; data title 20230927",
+      "retrieval_status": "fetched-ok",
+      "hash_or_unresolved_reason": "KR-IOT-CERT-INTRO-PAGE=sha256:4f141dcc02b65c8e8474224940e7bd91b9ecc8409ed4b28944061c230c35703d; KR-IOT-CERT-APPLICATION-PAGE=sha256:5f954d8d1db72de331784cf5c56ac6fde6b5b45a2c0b49fe1c3eb3d808bc4385; KR-IOT-CERT-ADMIN-RULE-2100000204704=sha256:1b5be7240bb6302464a52f201ee41a98899f652bce10e0deb310a113326be913; KR-IOT-PUBLIC-DATA-GUIDE-20230927=sha256:5c09a695099d81f22fe1f5f868f00568fe5c6b11541348cc08665d835b1e1900",
+      "source_records": [
+        {
+          "source_id": "KR-IOT-CERT-INTRO-PAGE",
+          "url_or_path": "https://www.ksecurity.or.kr/kisis/subIndex/160.do",
+          "publisher": "Ksecurity / KISA",
+          "version_or_date": "current page at retrieval",
+          "retrieval_status": "fetched-ok",
+          "sha256": "4f141dcc02b65c8e8474224940e7bd91b9ecc8409ed4b28944061c230c35703d",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=utf-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-IOT-CERT-APPLICATION-PAGE",
+          "url_or_path": "https://www.ksecurity.or.kr/kisis/subIndex/248.do",
+          "publisher": "Ksecurity / KISA",
+          "version_or_date": "current page at retrieval",
+          "retrieval_status": "fetched-ok",
+          "sha256": "5f954d8d1db72de331784cf5c56ac6fde6b5b45a2c0b49fe1c3eb3d808bc4385",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=utf-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-IOT-CERT-ADMIN-RULE-2100000204704",
+          "url_or_path": "https://www.law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000204704",
+          "publisher": "Korea law.go.kr",
+          "version_or_date": "admRulSeq=2100000204704",
+          "retrieval_status": "fetched-ok",
+          "sha256": "1b5be7240bb6302464a52f201ee41a98899f652bce10e0deb310a113326be913",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "KR-IOT-PUBLIC-DATA-GUIDE-20230927",
+          "url_or_path": "https://www.data.go.kr/data/15139153/fileData.do",
+          "publisher": "data.go.kr / KISA",
+          "version_or_date": "dateModified=2025-07-16 observed on page; data title 20230927",
+          "retrieval_status": "fetched-ok",
+          "sha256": "5c09a695099d81f22fe1f5f868f00568fe5c6b11541348cc08665d835b1e1900",
+          "unresolved_reason": null,
+          "content_type": "text/html;charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Korean guide-file row text is not extracted; capture official file endpoint/hash before row-level IoT control extraction.",
+      "normalized_summary": "Ksecurity, law.go.kr and data.go.kr pages are indexed; the actual guide-file download endpoint must be persisted before detailed row extraction.",
+      "applicability": "KR IoT/network-connected device certification planning only; applies only if Oyatie ships KR-bound devices/apps/authenticators.",
+      "evidence_producer": "ops-compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + device-security",
+      "supersession_state": "open-guide-file-endpoint-needed",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-005",
+      "title": "PCI DSS v4.0.1 permitted PDF acquisition and row extraction queue",
+      "source_refs": [
+        "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+        "PCI-DSS-V4-0-1-PDF-BLOCKED"
+      ],
+      "blocker_ref": "REGGOV-SB-004",
+      "source_url_or_path": "https://www.pcisecuritystandards.org/document_library/?category=pcidss&document=pci_dss",
+      "publisher": "PCI Security Standards Council",
+      "version_or_date": "document library at retrieval; direct v4.0.1 PDF link discovered in page HTML + v4.0.1 direct link candidate",
+      "retrieval_status": "fetched-ok + blocked-http-403",
+      "hash_or_unresolved_reason": "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS=sha256:226912e46f424530d0c1a43416b4a3c55d0c232fef2b7958a1e57d93396bf129; PCI-DSS-V4-0-1-PDF-BLOCKED=sha256:aca9897463cb028556ee7aa5c9cd050e0a2ebba345da8ef3a76e3588bfe3d8ae",
+      "source_records": [
+        {
+          "source_id": "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+          "url_or_path": "https://www.pcisecuritystandards.org/document_library/?category=pcidss&document=pci_dss",
+          "publisher": "PCI Security Standards Council",
+          "version_or_date": "document library at retrieval; direct v4.0.1 PDF link discovered in page HTML",
+          "retrieval_status": "fetched-ok",
+          "sha256": "226912e46f424530d0c1a43416b4a3c55d0c232fef2b7958a1e57d93396bf129",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:04:12Z"
+        },
+        {
+          "source_id": "PCI-DSS-V4-0-1-PDF-BLOCKED",
+          "url_or_path": "https://docs-prv.pcisecuritystandards.org/PCI%20DSS/Standard/PCI-DSS-v4_0_1.pdf",
+          "publisher": "PCI Security Standards Council",
+          "version_or_date": "v4.0.1 direct link candidate",
+          "retrieval_status": "blocked-http-403",
+          "sha256": "aca9897463cb028556ee7aa5c9cd050e0a2ebba345da8ef3a76e3588bfe3d8ae",
+          "unresolved_reason": "Hash is the 403 HTML body, not the PCI DSS PDF; exact requirement text must be acquired from PCI SSC under permitted access terms.",
+          "content_type": "text/html",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Original PCI DSS v4.0.1 requirement text is not extracted; the recorded hash for the direct URL is the 403 body, not standard text.",
+      "normalized_summary": "PCI SSC document library is indexed, but direct v4.0.1 PDF fetch returned 403 HTML; exact standard text must be acquired under permitted access terms.",
+      "applicability": "Payment-card/CDE planning only; blocks PCI DSS Level 1, ROC/AOC/QSA/ASV and v4.0.1 control-completeness claims.",
+      "evidence_producer": "payments compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + payments-security",
+      "supersession_state": "open-blocked-by-permitted-pdf-access",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-006",
+      "title": "US CIP/CDD baseline and entity-overlay extraction queue",
+      "source_refs": [
+        "US-CIP-ECFR-31-CFR-1020-220",
+        "US-CDD-ECFR-31-CFR-1010-230"
+      ],
+      "blocker_ref": "REGGOV-SB-005",
+      "source_url_or_path": "https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1020/subpart-B/section-1020.220",
+      "publisher": "eCFR",
+      "version_or_date": "current eCFR section at retrieval",
+      "retrieval_status": "fetched-ok",
+      "hash_or_unresolved_reason": "US-CIP-ECFR-31-CFR-1020-220=sha256:95d90c22ad7ac622900d8574f6f0f1cc98f16a2c22b442901ac97b8f36c47fdc; US-CDD-ECFR-31-CFR-1010-230=sha256:a1ab77cb3904933370b3c16ae97c405f3750968ec2a4d36cfa7b685ec694c2d2",
+      "source_records": [
+        {
+          "source_id": "US-CIP-ECFR-31-CFR-1020-220",
+          "url_or_path": "https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1020/subpart-B/section-1020.220",
+          "publisher": "eCFR",
+          "version_or_date": "current eCFR section at retrieval",
+          "retrieval_status": "fetched-ok",
+          "sha256": "95d90c22ad7ac622900d8574f6f0f1cc98f16a2c22b442901ac97b8f36c47fdc",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=utf-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "US-CDD-ECFR-31-CFR-1010-230",
+          "url_or_path": "https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230",
+          "publisher": "eCFR",
+          "version_or_date": "current eCFR section at retrieval",
+          "retrieval_status": "fetched-ok",
+          "sha256": "a1ab77cb3904933370b3c16ae97c405f3750968ec2a4d36cfa7b685ec694c2d2",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=utf-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "English eCFR section text is not clause-extracted here; section crosswalk and entity-specific overlays remain later extraction work.",
+      "normalized_summary": "eCFR CIP and CDD baseline pages are fetched and hashed; non-bank obliged-entity and BOI/CTA overlays remain child-source work.",
+      "applicability": "US regulated-financial-service planning only; baseline bank/customer sections are indexed, entity-class overlays require selection and legal review.",
+      "evidence_producer": "US compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + legal-us + axis-identity",
+      "supersession_state": "allowed-unknown-until-entity-scope-selected",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-007",
+      "title": "EU AMLR/eIDAS/GDPR member-state overlay extraction queue",
+      "source_refs": [
+        "EU-AMLR-2024-1624",
+        "EU-EIDAS-2014-910",
+        "EU-EIDAS-AMENDMENT-2024-1183",
+        "EU-GDPR-2016-679"
+      ],
+      "blocker_ref": "REGGOV-SB-006",
+      "source_url_or_path": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1624",
+      "publisher": "EUR-Lex",
+      "version_or_date": "CELEX:32024R1624 + CELEX:32014R0910 + CELEX:32024R1183 + CELEX:32016R0679",
+      "retrieval_status": "fetched-ok",
+      "hash_or_unresolved_reason": "EU-AMLR-2024-1624=sha256:d1ef703f3990cddf41f33f3dc31825fde4049599bbb86aef4fc1c5496d20c5c5; EU-EIDAS-2014-910=sha256:81b5100f2287cd3da7a6bfb22695ed8a90ed2ab3f62cc7c18f98b2e868c76698; EU-EIDAS-AMENDMENT-2024-1183=sha256:7bcfd9532d48bb7dabc3b7af8c49135ed2421a8cf6a67e966e8044196f5961a2; EU-GDPR-2016-679=sha256:e43569ea032144cd054e88d3af79f2dc08f262f8c8cc89a55e4ccaef76928d36",
+      "source_records": [
+        {
+          "source_id": "EU-AMLR-2024-1624",
+          "url_or_path": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1624",
+          "publisher": "EUR-Lex",
+          "version_or_date": "CELEX:32024R1624",
+          "retrieval_status": "fetched-ok",
+          "sha256": "d1ef703f3990cddf41f33f3dc31825fde4049599bbb86aef4fc1c5496d20c5c5",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "EU-EIDAS-2014-910",
+          "url_or_path": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014R0910",
+          "publisher": "EUR-Lex",
+          "version_or_date": "CELEX:32014R0910",
+          "retrieval_status": "fetched-ok",
+          "sha256": "81b5100f2287cd3da7a6bfb22695ed8a90ed2ab3f62cc7c18f98b2e868c76698",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "EU-EIDAS-AMENDMENT-2024-1183",
+          "url_or_path": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1183",
+          "publisher": "EUR-Lex",
+          "version_or_date": "CELEX:32024R1183",
+          "retrieval_status": "fetched-ok",
+          "sha256": "7bcfd9532d48bb7dabc3b7af8c49135ed2421a8cf6a67e966e8044196f5961a2",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        },
+        {
+          "source_id": "EU-GDPR-2016-679",
+          "url_or_path": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679",
+          "publisher": "EUR-Lex",
+          "version_or_date": "CELEX:32016R0679",
+          "retrieval_status": "fetched-ok",
+          "sha256": "e43569ea032144cd054e88d3af79f2dc08f262f8c8cc89a55e4ccaef76928d36",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=UTF-8",
+          "retrieved_at_utc": "2026-07-01T00:03:50Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Official article text is not clause-extracted here; member-state and implementing-act source rows must be added per selected market.",
+      "normalized_summary": "EUR-Lex AMLR/eIDAS/eIDAS2/GDPR sources are fetched and hashed; local DPA/supervisory/implementing-act rows remain child-source work.",
+      "applicability": "EU KYC/eID/privacy planning only; member-state, supervisory, implementing-act and obliged-entity overlays are required before launch/readiness claims.",
+      "evidence_producer": "EU compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "ops-compliance + legal-eu + axis-identity",
+      "supersession_state": "allowed-unknown-until-member-state-scope-selected",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-008",
+      "title": "NIST SP 800-63-4/63A-4 identity assurance section-crosswalk queue",
+      "source_refs": [
+        "NIST-SP-800-63-4-PDF",
+        "NIST-SP-800-63A-4-PDF"
+      ],
+      "blocker_ref": null,
+      "source_url_or_path": "https://doi.org/10.6028/NIST.SP.800-63-4",
+      "publisher": "NIST",
+      "version_or_date": "SP 800-63-4 DOI; resolved to nvlpubs PDF + SP 800-63A-4 DOI; resolved to nvlpubs PDF",
+      "retrieval_status": "fetched-ok",
+      "hash_or_unresolved_reason": "NIST-SP-800-63-4-PDF=sha256:2f5b107de218a0fc3fe7f7e91b2ece5babb001eda5745b7c568a3cc876002f2d; NIST-SP-800-63A-4-PDF=sha256:f83654182f0b012f17f6901e6d03e12ef2ba422b341aee875e837094f23e9ad3",
+      "source_records": [
+        {
+          "source_id": "NIST-SP-800-63-4-PDF",
+          "url_or_path": "https://doi.org/10.6028/NIST.SP.800-63-4",
+          "publisher": "NIST",
+          "version_or_date": "SP 800-63-4 DOI; resolved to nvlpubs PDF",
+          "retrieval_status": "fetched-ok",
+          "sha256": "2f5b107de218a0fc3fe7f7e91b2ece5babb001eda5745b7c568a3cc876002f2d",
+          "unresolved_reason": null,
+          "content_type": "application/pdf",
+          "retrieved_at_utc": "2026-07-01T00:04:12Z"
+        },
+        {
+          "source_id": "NIST-SP-800-63A-4-PDF",
+          "url_or_path": "https://doi.org/10.6028/NIST.SP.800-63A-4",
+          "publisher": "NIST",
+          "version_or_date": "SP 800-63A-4 DOI; resolved to nvlpubs PDF",
+          "retrieval_status": "fetched-ok",
+          "sha256": "f83654182f0b012f17f6901e6d03e12ef2ba422b341aee875e837094f23e9ad3",
+          "unresolved_reason": null,
+          "content_type": "application/pdf",
+          "retrieved_at_utc": "2026-07-01T00:04:12Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Original NIST section text is not copied here; extract section references and normalized clause summaries in a child crosswalk artifact.",
+      "normalized_summary": "NIST SP 800-63-4 and 800-63A-4 PDFs are fetched and hashed; section-level mapping to Oyatie evidence/API controls remains extraction work.",
+      "applicability": "Digital identity and identity-proofing planning baseline; supports future IAL/AAL/FAL and enrollment evidence crosswalks without readiness claims.",
+      "evidence_producer": "identity compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "axis-identity + council-security",
+      "supersession_state": "open-section-crosswalk-needed",
+      "claim_ceiling": "Planning/source-row extraction queue only; no certification, readiness, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
+    },
+    {
+      "queue_id": "REGSRC-Q-009",
+      "title": "NIST FIPS PQC plus WebAuthn/vendor transition watch extraction queue",
+      "source_refs": [
+        "NIST-FIPS-203-ML-KEM-PDF",
+        "NIST-FIPS-204-ML-DSA-PDF",
+        "NIST-FIPS-205-SLH-DSA-PDF",
+        "ADR-0188",
+        "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+        "W3C-WEBAUTHN-3-TR",
+        "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+        "W3C-WEBAUTHN-L4-MILESTONE-27",
+        "ADR-0354-PROPOSED-PQC-HYBRID"
+      ],
+      "blocker_ref": "REGGOV-SB-007",
+      "source_url_or_path": "https://doi.org/10.6028/NIST.FIPS.203 + https://doi.org/10.6028/NIST.SP.800-227 + WebAuthn TR/milestone watchlist + internal ADR context",
+      "publisher": "NIST + W3C/WebAuthn + Oyatie repository",
+      "version_or_date": "FIPS 203/204/205 PDFs + SP 800-227 PDF + WebAuthn Level 3 TR + WebAuthn L4 unavailable/milestone watchlist + ADR-0188 accepted + ADR-0354 proposed context",
+      "retrieval_status": "fetched-ok + blocked-http-404 + local-file-read",
+      "hash_or_unresolved_reason": "NIST-FIPS-203-ML-KEM-PDF=sha256:fe1f12f32a7e44ec9fdebbf400cda843a40b506dee676725234dc6f7923b6cac; NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF=sha256:41e427a461c1ae0ceed2a68dc29507400983d1d495c35631306d0f4803ca4614; W3C-WEBAUTHN-3-TR=sha256:cd9be6587c6560ffe6f2b7175324d0bc4cd33963cf752ad414160affd7f8e163; W3C-WEBAUTHN-4-TR-UNAVAILABLE=HTTP 404; W3C-WEBAUTHN-L4-MILESTONE-27=sha256:898fede2d54553d22a472e3dc48e1cdde415a8e6399a6003eff451e66eebbce0; ADR-0354-PROPOSED-PQC-HYBRID=sha256:deed0e03b4685c2371cfb1325a6beeef010f44a906828383d1c1da486a95c1cd",
+      "source_records": [
+        {
+          "source_id": "NIST-FIPS-203-ML-KEM-PDF",
+          "url_or_path": "https://doi.org/10.6028/NIST.FIPS.203",
+          "publisher": "NIST",
+          "version_or_date": "FIPS 203 DOI; resolved to nvlpubs PDF",
+          "retrieval_status": "fetched-ok",
+          "sha256": "fe1f12f32a7e44ec9fdebbf400cda843a40b506dee676725234dc6f7923b6cac",
+          "unresolved_reason": null,
+          "content_type": "application/pdf",
+          "retrieved_at_utc": "2026-07-01T00:04:12Z"
+        },
+        {
+          "source_id": "NIST-FIPS-204-ML-DSA-PDF",
+          "url_or_path": "https://doi.org/10.6028/NIST.FIPS.204",
+          "publisher": "NIST",
+          "version_or_date": "FIPS 204 DOI; resolved to nvlpubs PDF",
+          "retrieval_status": "fetched-ok",
+          "sha256": "57239b9f84c03227eda3ca0991204dc7764c79af9ce2e6824eda774918d46b6b",
+          "unresolved_reason": null,
+          "content_type": "application/pdf",
+          "retrieved_at_utc": "2026-07-01T00:04:12Z"
+        },
+        {
+          "source_id": "NIST-FIPS-205-SLH-DSA-PDF",
+          "url_or_path": "https://doi.org/10.6028/NIST.FIPS.205",
+          "publisher": "NIST",
+          "version_or_date": "FIPS 205 DOI; resolved to nvlpubs PDF",
+          "retrieval_status": "fetched-ok",
+          "sha256": "8ef34228276f3386d23cb0da8c14592b8cfb0db3358016bba64df7a004f8d13d",
+          "unresolved_reason": null,
+          "content_type": "application/pdf",
+          "retrieved_at_utc": "2026-07-01T00:04:12Z"
+        },
+        {
+          "source_id": "ADR-0188",
+          "url_or_path": "/docs/decisions/ADR-0188-passkey-webauthn-substrate.md",
+          "publisher": "Oyatie repository",
+          "version_or_date": "ADR accepted state as of local snapshot",
+          "retrieval_status": "local-file-read",
+          "sha256": "3f849294bf79946662ca01c0b36059cd507da8189cd1245c8d48911ff33185a3",
+          "unresolved_reason": null,
+          "content_type": "text/markdown",
+          "retrieved_at_utc": "2026-07-01T00:42:00Z"
+        },
+        {
+          "source_id": "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+          "url_or_path": "https://doi.org/10.6028/NIST.SP.800-227",
+          "publisher": "NIST",
+          "version_or_date": "SP 800-227 DOI; resolved to nvlpubs PDF",
+          "retrieval_status": "fetched-ok",
+          "sha256": "41e427a461c1ae0ceed2a68dc29507400983d1d495c35631306d0f4803ca4614",
+          "unresolved_reason": null,
+          "content_type": "application/pdf",
+          "retrieved_at_utc": "2026-07-01T13:30:42Z"
+        },
+        {
+          "source_id": "W3C-WEBAUTHN-3-TR",
+          "url_or_path": "https://www.w3.org/TR/webauthn-3/",
+          "publisher": "W3C",
+          "version_or_date": "TR snapshot fetched during REGPQC-001 source-row audit",
+          "retrieval_status": "fetched-ok",
+          "sha256": "cd9be6587c6560ffe6f2b7175324d0bc4cd33963cf752ad414160affd7f8e163",
+          "unresolved_reason": null,
+          "content_type": "text/html; charset=utf-8",
+          "retrieved_at_utc": "2026-07-01T13:30:42Z"
+        },
+        {
+          "source_id": "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+          "url_or_path": "https://www.w3.org/TR/webauthn-4/",
+          "publisher": "W3C",
+          "version_or_date": "HTTP 404 during 2026-07-01 REGPQC-001 audit",
+          "retrieval_status": "blocked-http-404",
+          "sha256": null,
+          "unresolved_reason": "No TR-level WebAuthn Level 4 document was available at this URL during audit; do not treat L4 as implementation floor or readiness evidence.",
+          "content_type": null,
+          "retrieved_at_utc": "2026-07-01T13:30:42Z"
+        },
+        {
+          "source_id": "W3C-WEBAUTHN-L4-MILESTONE-27",
+          "url_or_path": "https://api.github.com/repos/w3c/webauthn/milestones/27",
+          "publisher": "W3C WebAuthn GitHub repository",
+          "version_or_date": "milestone 27 open; due_on 2026-06-17T00:00:00Z; title L4 (First Published Working Draft)",
+          "retrieval_status": "fetched-ok",
+          "sha256": "898fede2d54553d22a472e3dc48e1cdde415a8e6399a6003eff451e66eebbce0",
+          "unresolved_reason": null,
+          "content_type": "application/json; charset=utf-8",
+          "retrieved_at_utc": "2026-07-01T13:30:42Z"
+        },
+        {
+          "source_id": "ADR-0354-PROPOSED-PQC-HYBRID",
+          "url_or_path": "/docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+          "publisher": "Oyatie repository",
+          "version_or_date": "Proposed ADR snapshot; advisory-until-edge-pop-and-pqc-libs-land",
+          "retrieval_status": "local-file-read",
+          "sha256": "deed0e03b4685c2371cfb1325a6beeef010f44a906828383d1c1da486a95c1cd",
+          "unresolved_reason": null,
+          "content_type": "text/markdown",
+          "retrieved_at_utc": "2026-07-01T13:30:42Z"
+        }
+      ],
+      "original_text_or_korean_text_state": "Original FIPS/SP 800-227/WebAuthn text is not clause-extracted here; WebAuthn L4 TR is unavailable and browser/FIDO/authenticator/vendor support matrices remain open source work.",
+      "normalized_summary": "NIST FIPS 203/204/205 and SP 800-227 are fetched and hashed; WebAuthn Level 3 TR is reachable; WebAuthn Level 4 remains watchlist-only via unavailable TR URL plus open FPWD milestone; ADR-0354 is proposed/internal context only. The queue supports ML-KEM readiness inventory planning but not implementation/readiness claims.",
+      "applicability": "PQC ML-KEM cryptographic-boundary inventory planning only: record KEM/key-establishment boundary, hybrid/KEM-combiner constraints, no-bespoke-KDF rule, browser/authenticator dependency status, migration triggers, owner, cadence, and non-claim ceiling before any product/runtime/API work.",
+      "evidence_producer": "crypto compliance evidence librarian",
+      "freshness_cadence": "monthly while blocked/unresolved or allowed_unknown is open; quarterly plus source-update event after resolution",
+      "owner": "council-security + crypto-platform + axis-identity",
+      "supersession_state": "allowed-unknown-until-transition-vendor-browser-authenticator-and-accepted-runtime-authority-sources-added",
+      "claim_ceiling": "Planning/source-control row extraction queue only; no production PQC implementation, WebAuthn/browser/authenticator support readiness, bespoke KEM-combiner/KDF, certification, runtime enforcement, launch, auditor/regulator acceptance, or control completeness claim."
     }
   ],
   "source_index": [
@@ -971,6 +1583,121 @@
       "evidence_artifact_type": "internal_pack_snapshot",
       "extraction_state": "indexed as crosswalk anchor",
       "unknowns": []
+    },
+    {
+      "source_id": "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+      "title": "NIST SP 800-227 Recommendations for Key-Encapsulation Mechanisms",
+      "publisher": "NIST",
+      "jurisdiction": "US/federal + global cryptographic baseline",
+      "baseline_scope": "Key-encapsulation mechanism recommendations, KEM usage boundaries, and KEM-combiner/KDF planning guardrails for ML-KEM migration inventory",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://doi.org/10.6028/NIST.SP.800-227",
+      "effective_or_version": "SP 800-227 DOI; resolved to nvlpubs PDF",
+      "retrieved_at_utc": "2026-07-01T13:30:42Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "size_bytes": 902987,
+      "sha256": "41e427a461c1ae0ceed2a68dc29507400983d1d495c35631306d0f4803ca4614",
+      "freshness_cadence": "semi-annual plus on NIST SP 800-227 errata/revision or KEM-combiner guidance update",
+      "owner": "council-security + crypto-platform",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed for KEM readiness planning; clause-level combiner/KDF guidance remains child crosswalk work",
+      "unknowns": [
+        "Exact SP 800-227 clause mapping to Oyatie hybrid/KEM combiner and KDF policy is not extracted in this source row; do not author bespoke KEM combiner/KDF behavior from this planning inventory."
+      ]
+    },
+    {
+      "source_id": "W3C-WEBAUTHN-3-TR",
+      "title": "Web Authentication: An API for accessing Public Key Credentials - Level 3",
+      "publisher": "W3C",
+      "jurisdiction": "global/web-platform",
+      "baseline_scope": "Current reachable WebAuthn Level 3 TR context for passkey/browser/authenticator dependency planning",
+      "source_type": "official-standards-web-page",
+      "canonical_url": "https://www.w3.org/TR/webauthn-3/",
+      "effective_or_version": "TR snapshot fetched during REGPQC-001 source-row audit",
+      "retrieved_at_utc": "2026-07-01T13:30:42Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "size_bytes": 2738728,
+      "sha256": "cd9be6587c6560ffe6f2b7175324d0bc4cd33963cf752ad414160affd7f8e163",
+      "freshness_cadence": "quarterly plus on W3C TR publication/status update",
+      "owner": "axis-identity + council-security",
+      "evidence_artifact_type": "official_standards_snapshot",
+      "extraction_state": "indexed as WebAuthn floor context only; no PQC/browser/authenticator readiness inferred",
+      "unknowns": [
+        "This row does not establish WebAuthn PQC support or authenticator/browser availability; it is a reachable Level 3 standards context row only."
+      ]
+    },
+    {
+      "source_id": "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+      "title": "WebAuthn Level 4 TR URL unavailable during REGPQC-001 audit",
+      "publisher": "W3C",
+      "jurisdiction": "global/web-platform",
+      "baseline_scope": "Negative source observation for WebAuthn Level 4 TR availability; supports watchlist-only claim ceiling",
+      "source_type": "official-standards-url-candidate",
+      "canonical_url": "https://www.w3.org/TR/webauthn-4/",
+      "effective_or_version": "HTTP 404 during 2026-07-01 REGPQC-001 audit",
+      "retrieved_at_utc": "2026-07-01T13:30:42Z",
+      "retrieval_status": "blocked-http-404",
+      "http_status": 404,
+      "content_type": null,
+      "size_bytes": 0,
+      "sha256": null,
+      "freshness_cadence": "quarterly and immediately on W3C WebAuthn Level 4 FPWD/TR publication",
+      "owner": "axis-identity + council-security",
+      "evidence_artifact_type": "unresolved_source_pointer",
+      "extraction_state": "unavailable; watchlist only until a TR document is published and reviewed",
+      "unknowns": [
+        "No TR-level WebAuthn Level 4 document was available at this URL during audit; do not treat L4 as implementation floor or readiness evidence."
+      ]
+    },
+    {
+      "source_id": "W3C-WEBAUTHN-L4-MILESTONE-27",
+      "title": "W3C WebAuthn GitHub milestone 27 — L4 (First Published Working Draft)",
+      "publisher": "W3C WebAuthn GitHub repository",
+      "jurisdiction": "global/web-platform",
+      "baseline_scope": "WebAuthn L4 first-public-working-draft milestone status for watchlist timing only",
+      "source_type": "standards-working-group-github-api",
+      "canonical_url": "https://api.github.com/repos/w3c/webauthn/milestones/27",
+      "effective_or_version": "milestone 27 open; due_on 2026-06-17T00:00:00Z; title L4 (First Published Working Draft)",
+      "retrieved_at_utc": "2026-07-01T13:30:42Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "size_bytes": 1517,
+      "sha256": "898fede2d54553d22a472e3dc48e1cdde415a8e6399a6003eff451e66eebbce0",
+      "freshness_cadence": "quarterly plus on milestone close/update or FPWD/TR publication",
+      "owner": "axis-identity + council-security",
+      "evidence_artifact_type": "standards_working_group_status_snapshot",
+      "extraction_state": "indexed as watchlist signal only",
+      "unknowns": [
+        "A GitHub milestone is not a normative standard, browser support matrix, authenticator support matrix, or PQC readiness signal."
+      ]
+    },
+    {
+      "source_id": "ADR-0354-PROPOSED-PQC-HYBRID",
+      "title": "ADR-0354 Proposed amendment: HTTP/3 fallback, strict TLS, ECH, PQC hybrid",
+      "publisher": "Oyatie repository",
+      "jurisdiction": "global/internal",
+      "baseline_scope": "Proposed internal transport/PQC-hybrid planning context only; not binding authority for REGPQC-001 source/control-row mutation",
+      "source_type": "internal-proposed-architecture-decision-record",
+      "canonical_url": "/docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+      "effective_or_version": "Proposed ADR snapshot; advisory-until-edge-pop-and-pqc-libs-land",
+      "retrieved_at_utc": "2026-07-01T13:30:42Z",
+      "retrieval_status": "local-file-read",
+      "http_status": null,
+      "content_type": "text/markdown",
+      "size_bytes": 35578,
+      "sha256": "deed0e03b4685c2371cfb1325a6beeef010f44a906828383d1c1da486a95c1cd",
+      "freshness_cadence": "per ADR status update and before any transport/PQC implementation claim",
+      "owner": "council-architecture + council-security",
+      "evidence_artifact_type": "internal_adr_snapshot",
+      "extraction_state": "indexed as non-binding planning context; accepted authority required before runtime/API/product mutation",
+      "unknowns": [
+        "ADR-0354 status is Proposed and cannot elevate REGPQC-001 beyond planning/source-control rows or authorize PQC runtime/readiness claims."
+      ]
     }
   ],
   "evidence_artifact_type_catalog": [
@@ -1315,24 +2042,32 @@
     },
     {
       "backlog_id": "REGID-CB-015",
-      "title": "PQC standards floor for identity/KYC cryptographic evidence",
+      "title": "PQC standards and ML-KEM readiness planning floor for identity/KYC cryptographic evidence",
       "jurisdiction": "US/federal + global cryptographic baseline",
-      "regulatory_floor": "NIST FIPS 203/204/205 PQC standards",
+      "regulatory_floor": "NIST FIPS 203/204/205 plus SP 800-227 KEM guidance; WebAuthn/browser/authenticator timelines are watchlist-only until normalized",
       "control_family": "post-quantum-cryptography-readiness",
       "source_refs": [
         "NIST-FIPS-203-ML-KEM-PDF",
         "NIST-FIPS-204-ML-DSA-PDF",
-        "NIST-FIPS-205-SLH-DSA-PDF"
+        "NIST-FIPS-205-SLH-DSA-PDF",
+        "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+        "W3C-WEBAUTHN-3-TR",
+        "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+        "W3C-WEBAUTHN-L4-MILESTONE-27",
+        "ADR-0354-PROPOSED-PQC-HYBRID"
       ],
       "owner": "council-security + crypto-platform + axis-identity",
       "freshness_cadence": "semi-annual and on NIST FIPS errata/revision; annual crypto-inventory review",
       "evidence_artifact_type": "control_crosswalk",
       "evidence_artifact_owner": "crypto platform owner",
-      "implementation_anchor": "cryptographic inventory, long-lived identity/KYC evidence signing, key-agreement migration plan, hybrid/PQC readiness attestations and exception register",
-      "northstar_guardrail": "PQC migration protects identity/KYC evidence durability without changing passkey-first user authentication semantics prematurely.",
+      "implementation_anchor": "cryptographic inventory, ML-KEM key-establishment boundary, long-lived identity/KYC evidence signing, key-agreement migration plan, hybrid/KEM-combiner and no-bespoke-KDF policy planning, readiness exception register",
+      "northstar_guardrail": "PQC migration protects identity/KYC evidence durability; source/control rows do not change passkey-first user authentication semantics or claim browser/authenticator/PQC production readiness.",
       "status": "ready-for-crypto-inventory-crosswalk",
       "unknowns": [
-        "Federal transition memoranda, browser/WebAuthn PQC timelines and vendor support matrices are child sources outside these base FIPS standards."
+        "Federal transition memoranda, browser/WebAuthn PQC timelines and vendor support matrices are child sources outside these base FIPS standards.",
+        "SP 800-227 clause-level KEM-combiner/KDF mapping is not extracted; no bespoke KEM combiner or KDF may be inferred from this row.",
+        "WebAuthn Level 4 TR is unavailable and milestone 27 is FPWD/watchlist-only; browser/authenticator support matrices remain open dependencies.",
+        "ADR-0354 is Proposed/internal context only and cannot authorize runtime/API/product mutation."
       ]
     },
     {
@@ -1397,6 +2132,36 @@
       "unknowns": [
         "Named reviewer/persona assignment is outside this task."
       ]
+    },
+    {
+      "backlog_id": "REGID-CB-019",
+      "title": "ML-KEM readiness inventory and hybrid/KEM-combiner non-claim control row",
+      "jurisdiction": "US/federal + global cryptographic/web-platform baseline",
+      "regulatory_floor": "NIST FIPS 203 ML-KEM, NIST SP 800-227 KEM recommendations, WebAuthn Level 3 context, WebAuthn Level 4 watchlist status, and proposed ADR-0354 context",
+      "control_family": "ml-kem-readiness-inventory",
+      "source_refs": [
+        "NIST-FIPS-203-ML-KEM-PDF",
+        "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+        "W3C-WEBAUTHN-3-TR",
+        "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+        "W3C-WEBAUTHN-L4-MILESTONE-27",
+        "ADR-0188",
+        "ADR-0354-PROPOSED-PQC-HYBRID"
+      ],
+      "owner": "council-security + crypto-platform + axis-identity",
+      "freshness_cadence": "quarterly plus immediate review on NIST SP/FIPS errata, OMB/CISA transition update, W3C/FIDO/WebAuthn milestone, browser/authenticator vendor support milestone, or ADR-0354 status change",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "crypto platform owner",
+      "implementation_anchor": "ML-KEM readiness inventory row: crypto boundary is KEM/key establishment only; hybrid/KEM-combiner constraints and KDFs must come from official standards and security review; no bespoke KDF or unaudited combiner; browser/authenticator dependency status stays open until official support matrices are normalized; migration trigger is source update plus accepted internal authority and review.",
+      "northstar_guardrail": "This is a source/control planning row only. It explicitly does not claim production PQC implementation, WebAuthn/browser/authenticator support readiness, tenant credential posture, certification, or runtime migration.",
+      "status": "planning-ready-source-control-row-only",
+      "unknowns": [
+        "SP 800-227 clause-level KEM-combiner/KDF policy is not extracted yet.",
+        "WebAuthn Level 4 TR returned 404 and milestone 27 is open FPWD/watchlist-only.",
+        "Browser, FIDO authenticator, platform authenticator, and vendor cryptography-library support matrices are not normalized.",
+        "Federal transition deadlines and Oyatie migration exception policy are not normalized.",
+        "ADR-0354 is Proposed and non-binding for runtime/API/product mutation."
+      ]
     }
   ],
   "unknowns_register": [
@@ -1459,14 +2224,18 @@
     },
     {
       "unknown_id": "REGID-UNK-007",
-      "summary": "PQC transition timelines and WebAuthn/browser support are outside base FIPS 203/204/205.",
+      "summary": "PQC transition timelines, SP 800-227 clause mappings, WebAuthn Level 4 publication status, and browser/FIDO/authenticator/vendor support are outside base FIPS 203/204/205.",
       "source_refs": [
         "NIST-FIPS-203-ML-KEM-PDF",
         "NIST-FIPS-204-ML-DSA-PDF",
-        "NIST-FIPS-205-SLH-DSA-PDF"
+        "NIST-FIPS-205-SLH-DSA-PDF",
+        "NIST-SP-800-227-KEM-RECOMMENDATIONS-PDF",
+        "W3C-WEBAUTHN-4-TR-UNAVAILABLE",
+        "W3C-WEBAUTHN-L4-MILESTONE-27",
+        "ADR-0354-PROPOSED-PQC-HYBRID"
       ],
-      "resolution_path": "Add federal transition memos and vendor/browser authenticator support sources during crypto migration design.",
-      "owner": "council-security + crypto-platform"
+      "resolution_path": "Clause-extract SP 800-227 for KEM-combiner/KDF constraints, add federal transition memos, add W3C/FIDO/browser/authenticator/vendor support matrices, and record accepted internal authority before crypto migration design or readiness claims.",
+      "owner": "council-security + crypto-platform + axis-identity"
     }
   ],
   "verification_notes": [
@@ -1475,6 +2244,8 @@
     "The KISA 2024 87-item PDF is hashed and marked for machine/OCR extraction rather than hand transcription.",
     "All control_backlog rows carry owner, freshness_cadence, evidence_artifact_type and unknowns.",
     "source_blocker_register carries seven explicit open states for KISA/KMCC OCR, ISMS-P DNS, CSAP DNS, PCI v4.0.1 PDF access, US entity/market overlays, EU member-state/entity overlays, and PQC/WebAuthn timeline unknowns; every row has owner, freshness_cadence, expires_at_utc, resolution_path and claim_ceiling.",
-    "claim_ceiling forbids certification, readiness, launch, runtime enforcement, tenant activation, regulator/auditor acceptance and production claims from this planning artifact."
+    "source_extraction_queue carries nine extraction work records for KISA/KMCC/KCC 87 items, ISMS-P, CSAP, IoT, PCI DSS v4.0.1, US CIP/CDD, EU AMLR/eIDAS/GDPR, NIST 800-63 and NIST FIPS PQC/WebAuthn watch sources; every queue row has URL/path, publisher, version/date, retrieval status, hash/unresolved reason, original/Korean text state, normalized summary, applicability, evidence producer, cadence, owner and supersession state.",
+    "claim_ceiling forbids certification, readiness, launch, runtime enforcement, tenant activation, regulator/auditor acceptance and production claims from this planning artifact.",
+    "REGSRC-VN-008: REGPQC-001 added ML-KEM readiness planning rows for SP 800-227 KEM guidance, WebAuthn Level 3/L4 watchlist state, ADR-0354 proposed-context ceiling, and REGID-CB-019 non-claim inventory; invariant checks require crypto boundary, hybrid/KEM-combiner constraints, no-bespoke-KDF rule, browser/authenticator dependency status, migration trigger, owner, freshness cadence, and explicit non-claim."
   ]
 }

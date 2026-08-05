@@ -1,0 +1,448 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/compliance-security-radar-cadence-contract.json",
+  "title": "Compliance Security Radar Cadence Contract",
+  "version": "0.1.0",
+  "_artifact_id": "compliance-security-radar-cadence-contract",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "SEC-REG-RADAR-CADENCE-001",
+    "status": "planning-procedure-contract",
+    "owner_team": "ops-compliance + council-security + platform-governance",
+    "created_at": "2026-07-01T06:15:57Z",
+    "kanban_task": "t_215f6237",
+    "source_radar_task": "t_36c086a5",
+    "purpose": "Codify the recurring compliance/security radar loop so source freshness, standards-watch, vulnerability intelligence, security-validation, air-gap, blocker-recovery, and customer-trust observations become deduped Kanban work instead of episodic chat sweeps.",
+    "claim_boundary": "Planning/procedure contract only. This artifact does not fetch or transcribe official sources, implement scanners or product security fixes, schedule cron/gateway notifications, or claim certification/readiness/security posture.",
+    "non_goals": [
+      "No certification, readiness, regulator, auditor, customer-trust, production, hyperscaler, scanner-enforcement, or security-posture claim.",
+      "No official source-row extraction or PDF/OCR transcription.",
+      "No product code, runtime service, scanner service, admission webhook, CLI authority, cron schedule, or gateway notification implementation.",
+      "No duplicate Kanban cards when an existing live card owns the source class and acceptance path."
+    ]
+  },
+  "source_artifacts": [
+    {
+      "path": "/specs/regulatory-identity-source-of-truth.json",
+      "role": "Regulatory source rows, source_blocker_register, claim ceiling, source freshness cadences, and source/control backlog rows."
+    },
+    {
+      "path": "/specs/security-validation-pipeline-matrix.json",
+      "role": "Security-validation lane inventory, evidence API contract, false-positive/VEX policy, and lane cadence expectations."
+    },
+    {
+      "path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "role": "Advisory feed freshness, SBOM/VEX/provenance, vulnerability prioritization, remediation/exception, and deployment/admission decision contract."
+    },
+    {
+      "path": "/Users/jasonlee/.hermes/kanban/boards/oyatie/workspaces/t_36c086a5/sec-reg-radar-report-20260701.md",
+      "role": "Point-in-time SEC-REG-RADAR-001 dedupe report and evidence for this cadence contract."
+    }
+  ],
+  "cadence_contract": {
+    "baseline_radar": {
+      "cadence": "monthly while any regulatory source_blocker_register row is open or while security/vulnerability source freshness is not mechanically enforced; otherwise quarterly plus event-triggered refresh",
+      "owner": "ops-compliance + council-security + platform-governance",
+      "output": "bounded Kanban comments and dispatcher-ready cards; no cron notification is scheduled by this contract"
+    },
+    "event_triggers": [
+      "regulator, standards body, vendor, NVD/CVE, OSV, RustSec, GitHub Advisory, PCI SSC, KISA/KMCC/KCC, ISMS-P, CSAP, W3C, FIDO, NIST, OMB, CISA, browser, authenticator, or cloud-provider source changes",
+      "source_blocker_register row reaches expires_at_utc or misses its freshness_cadence",
+      "a product, doc, spec, PR, card, or release note attempts a forbidden readiness/certification/security-posture claim",
+      "new or stale security review blockers appear in authz, identity, data, trust, SBOM/VEX, air-gap, security-validation, or trust-center lanes",
+      "existing dedupe target card is done/blocked/stale but a new finding still requires work"
+    ],
+    "stale_or_blocked_semantics": {
+      "source_stale": "If source freshness exceeds cadence or expires_at_utc, comment on the dedupe target card and create a source-refresh/fix-forward card only when no active card owns the remediation or when a readiness/security claim is at risk.",
+      "source_blocker": "If state=blocker, fail closed for row-level policy, certification/readiness, launch, or evidence-acceptance claims until the blocker is resolved and reviewed.",
+      "allowed_unknown": "Allowed-unknown rows may support bounded planning only; they must not become market/entity/readiness or production claims.",
+      "security_feed_stale": "If required advisory feeds exceed their freshness windows, create or update vulnerability-intelligence/SBOM/VEX work before any release, admission, or trust-center evidence claim can rely on the feed.",
+      "claim_overreach": "If a card, PR, doc, or spec overclaims certification/readiness/security posture, create a fix-forward or rollback card and link it to the affected lane."
+    }
+  },
+  "source_classes": [
+    {
+      "class_id": "kr_identity_kyc_kisa_kmcc_kcc",
+      "title": "KR identity/KYC and KISA/KMCC/KCC source rows",
+      "owner": "ops-compliance + axis-identity-kr + legal-review",
+      "cadence": "monthly while REGGOV-SB-001 is open; then quarterly and on KISA/KMCC/KCC guide/PDF update",
+      "stale_or_blocked_behavior": "REGGOV-SB-001 blocks KISA/KMCC designation, 87-row control completeness, scoring, and row-level accreditation policy claims until machine/OCR extraction and review land.",
+      "claim_ceiling": "Planning/source-index coverage only; no KISA/KMCC/KCC designation readiness, certification, scoring, or regulator acceptance.",
+      "dedupe_target": {
+        "card_id": "t_ebd17374",
+        "role": "official source-row extraction queue"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-001",
+        "KISA KMCC KCC",
+        "87-item",
+        "KR identity source row"
+      ]
+    },
+    {
+      "class_id": "kr_isms_p",
+      "title": "KR ISMS-P source rows and checklist blockers",
+      "owner": "ops-compliance + council-privacy + council-security",
+      "cadence": "monthly retry while official checklist/DNS is unresolved; then quarterly and on official source update",
+      "stale_or_blocked_behavior": "REGGOV-SB-002 blocks checklist completeness, certification-readiness, and row-level evidence acceptance claims until official checklist/source rows are reachable and normalized.",
+      "claim_ceiling": "Planning/source-index coverage only; no ISMS-P certification readiness or checklist completeness claim.",
+      "dedupe_target": {
+        "card_id": "t_ebd17374",
+        "role": "official source-row extraction queue"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-002",
+        "ISMS-P",
+        "official checklist",
+        "KISA DNS"
+      ]
+    },
+    {
+      "class_id": "kr_csap",
+      "title": "KR CSAP source rows and certified-cell blockers",
+      "owner": "ops-compliance + cloud-control-plane-governance + council-security",
+      "cadence": "monthly retry while CSAP portal/DNS is unresolved; then quarterly and on official CSAP source update",
+      "stale_or_blocked_behavior": "REGGOV-SB-003 blocks CSAP certification, certified-cell readiness, KR public-sector tenant activation, and checklist/control-count claims until official source rows are normalized.",
+      "claim_ceiling": "Planning/source-index coverage only; no CSAP certification, certified-cell readiness, or public-sector activation claim.",
+      "dedupe_target": {
+        "card_id": "t_ebd17374",
+        "role": "official source-row extraction queue"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-003",
+        "CSAP",
+        "certified cell",
+        "KR public-sector"
+      ]
+    },
+    {
+      "class_id": "pci_dss_v4_0_1",
+      "title": "PCI DSS v4.0.1 source/version reconciliation",
+      "owner": "payments-security + ops-compliance + council-security",
+      "cadence": "monthly retry while PCI DSS v4.0.1 PDF/source access is blocked; then quarterly and on PCI SSC update",
+      "stale_or_blocked_behavior": "REGGOV-SB-004 blocks PCI DSS Level 1 readiness, ROC/AOC/QSA/ASV readiness, v4.0.1 control completeness, and tenant CDE activation claims until official v4.0.1 text is acquired and normalized.",
+      "claim_ceiling": "Planning/source-version coverage only; no PCI DSS Level 1 readiness, ROC/AOC/QSA/ASV readiness, or CDE runtime claim.",
+      "dedupe_target": {
+        "card_id": "t_31f84dd9",
+        "role": "PCI v4.0.1 citation reconciliation"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-004",
+        "PCI DSS v4.0.1",
+        "ROC AOC QSA ASV",
+        "CDE"
+      ]
+    },
+    {
+      "class_id": "us_cip_cdd",
+      "title": "US CIP/CDD source and obliged-entity overlays",
+      "owner": "legal-us + ops-compliance + axis-identity",
+      "cadence": "quarterly and on eCFR/FFIEC/source amendment; mandatory review before US regulated financial-service or entity-class commitment",
+      "stale_or_blocked_behavior": "REGGOV-SB-005 is allowed_unknown for baseline planning only; create source-row work if a US entity class, market launch, or obliged-entity coverage claim appears.",
+      "claim_ceiling": "No US regulated financial-service launch readiness, entity-specific coverage, or complete US CIP/CDD policy row claim.",
+      "dedupe_target": {
+        "card_id": "t_ebd17374",
+        "role": "official source-row extraction queue"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-005",
+        "US CIP",
+        "CDD",
+        "obliged entity",
+        "eCFR"
+      ]
+    },
+    {
+      "class_id": "eu_amlr_eidas_gdpr",
+      "title": "EU AMLR/eIDAS/GDPR source and member-state overlays",
+      "owner": "legal-eu + ops-compliance + axis-identity + council-privacy",
+      "cadence": "quarterly and on EUR-Lex, implementing-act, DPA, supervisory, eIDAS, or GDPR source update; mandatory review before target EU member-state launch",
+      "stale_or_blocked_behavior": "REGGOV-SB-006 is allowed_unknown for planning only; create source-row work if member-state, supervisory, EUDI wallet, obliged-entity, or market-readiness claims appear.",
+      "claim_ceiling": "No EU member-state, supervisory, obliged-entity, EUDI wallet, or market-readiness claim.",
+      "dedupe_target": {
+        "card_id": "t_ebd17374",
+        "role": "official source-row extraction queue"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-006",
+        "EU AMLR",
+        "eIDAS",
+        "GDPR",
+        "EUDI",
+        "member-state"
+      ]
+    },
+    {
+      "class_id": "pqc_webauthn_standards_watch",
+      "title": "PQC/WebAuthn standards and vendor/browser watchlist",
+      "owner": "council-security + crypto-platform + axis-identity",
+      "cadence": "quarterly for standards/vendor/browser support and immediate review on NIST, OMB, CISA, FIDO, W3C, browser, authenticator, or vendor milestone",
+      "stale_or_blocked_behavior": "REGGOV-SB-007 and WebAuthn Level 4 material are watchlist/planning only; draft/non-normative standards cannot become implementation floors or readiness claims.",
+      "claim_ceiling": "No PQC implementation, migration, browser/WebAuthn/authenticator support, or production-readiness claim.",
+      "dedupe_target": {
+        "card_id": "t_5f010e11",
+        "role": "WebAuthn L4 watchlist claim governance"
+      },
+      "dedupe_queries": [
+        "REGGOV-SB-007",
+        "PQC",
+        "WebAuthn Level 4",
+        "FIDO",
+        "browser authenticator"
+      ]
+    },
+    {
+      "class_id": "vulnerability_advisory_feeds",
+      "title": "CVE/NVD, OSV, RustSec, GitHub Advisory, and vendor advisory feeds",
+      "owner": "council-security + ops-supply-chain + platform-toolchain + platform-cd",
+      "cadence": "24h minimum freshness for CVE/NVD, OSV, RustSec, and GitHub Advisories; 168h minimum freshness for vendor advisories",
+      "stale_or_blocked_behavior": "Stale feeds block release/admission/trust-center evidence claims that rely on current vulnerability posture; update the integration decision/card before creating a duplicate.",
+      "claim_ceiling": "No live scanner/admission/runtime vulnerability posture or safe-release claim from this planning contract.",
+      "dedupe_target": {
+        "card_id": "t_830bbeab",
+        "role": "vulnerability contract integration decision and drift prevention"
+      },
+      "dedupe_queries": [
+        "CVE NVD",
+        "OSV",
+        "RustSec",
+        "GitHub Advisories",
+        "vendor advisories",
+        "feed freshness"
+      ]
+    },
+    {
+      "class_id": "sbom_vex_provenance",
+      "title": "SBOM, VEX, SLSA/in-toto, provenance, remediation, and exceptions",
+      "owner": "ops-supply-chain + council-security + platform-cd + platform-toolchain",
+      "cadence": "per release/admission/trust-center evidence use, monthly while planning-only, and immediately on KEV/actively-exploited or critical/high vulnerability signal",
+      "stale_or_blocked_behavior": "Missing signed SPDX/CycloneDX SBOM, missing VEX, expired exception, missing provenance, or unresolved KEV/actively-exploited state is fail-closed for release/admission/trust-center evidence claims.",
+      "claim_ceiling": "No production admission, tenant artifact safety, or customer trust evidence completeness claim without signed, current evidence and implemented control-plane paths.",
+      "dedupe_target": {
+        "card_id": "t_830bbeab",
+        "role": "vulnerability/SBOM/VEX integration decision"
+      },
+      "dedupe_queries": [
+        "SBOM",
+        "VEX",
+        "SLSA",
+        "in-toto",
+        "exception expiry",
+        "admission"
+      ]
+    },
+    {
+      "class_id": "security_validation_lanes",
+      "title": "SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS, security chaos, automated pen-test, and continuous-control evidence lanes",
+      "owner": "platform-security + platform-toolchain + ops-sre-reliability + council-architecture",
+      "cadence": "per changed subject at PR/pre-merge where applicable, pre-release for service-facing claims, weekly/nightly where matrix rows require scheduled coverage, and continuous where evidence freshness is the control",
+      "stale_or_blocked_behavior": "Unknown applicability, missing evidence, stale evidence, candidate-weakened configuration, duplicate lane records, or suppressions without evidence are red/blocked for security-validation claims.",
+      "claim_ceiling": "No mechanically-enforced or production-ready security-validation claim until Rust gate/controller, RED/GREEN fixtures, live required context, and audit-chain evidence exist.",
+      "dedupe_target": {
+        "card_id": "t_b3d28267",
+        "role": "security validation evidence schema fixtures"
+      },
+      "dedupe_queries": [
+        "security validation",
+        "SAST DAST IAST",
+        "continuous_control_evidence",
+        "security-validation-pipeline-matrix"
+      ]
+    },
+    {
+      "class_id": "air_gap_security_evidence",
+      "title": "Air-gap advisory/SBOM/VEX/provenance mirror and offline evidence",
+      "owner": "regulated-cloud + council-security + ops-compliance + cloud-control-plane-governance",
+      "cadence": "monthly while planning-only; mandatory before sovereign/air-gapped cell, offline admission, or portable cached-verdict claim; immediate on feed freshness, VEX, or KEV emergency change",
+      "stale_or_blocked_behavior": "Stale mirror, expired VEX, missing SBOM/provenance, no-egress proof gap, or offline-replay ambiguity blocks air-gap readiness/evidence claims and should update the dedupe card before new card creation.",
+      "claim_ceiling": "No air-gap readiness, offline admission, mirror completeness, or sovereign-cell security claim from this planning contract.",
+      "dedupe_target": {
+        "card_id": "t_f15d213a",
+        "role": "air-gap security evidence contract"
+      },
+      "dedupe_queries": [
+        "air-gap",
+        "offline evidence",
+        "mirror",
+        "portable cached admission",
+        "no-egress"
+      ]
+    },
+    {
+      "class_id": "authz_identity_blockers",
+      "title": "Authz, identity, passkey, PDP, revocation, and related security blockers",
+      "owner": "axis-identity + axis-policy-engine + council-security",
+      "cadence": "weekly while affected cards are blocked/ready, and on every authz/identity/passkey/security review or PR status change",
+      "stale_or_blocked_behavior": "Passive review-required or stale blockers become fix-forward/review/governance work; comments alone do not unblock security-sensitive lanes.",
+      "claim_ceiling": "No authz/identity/passkey security readiness claim until the affected implementation/review/CI cards are resolved and independently reviewed.",
+      "dedupe_target": {
+        "card_id": "t_a4f4be03",
+        "role": "recover auth/identity blockers"
+      },
+      "dedupe_queries": [
+        "AUTHZ",
+        "IDP",
+        "identity blockers",
+        "passkey",
+        "PDP",
+        "revocation"
+      ]
+    },
+    {
+      "class_id": "data_trust_blockers",
+      "title": "Data, trust, tenant isolation, encryption, KMS, SVID, outbox, and secret blockers",
+      "owner": "axis-data + axis-trust + council-security + cloud-kms",
+      "cadence": "weekly while affected cards are blocked/ready, and on every data/trust/security review or PR status change",
+      "stale_or_blocked_behavior": "Passive review-required or stale blockers become fix-forward/review/governance work; resolved findings must be mapped to current cards, not left as historical comments.",
+      "claim_ceiling": "No data/trust/security readiness claim until affected implementation/review/CI cards are resolved and independently reviewed.",
+      "dedupe_target": {
+        "card_id": "t_c38ab014",
+        "role": "recover data/trust security blockers"
+      },
+      "dedupe_queries": [
+        "DATA",
+        "TRUST",
+        "tenant isolation",
+        "KMS",
+        "SVID",
+        "outbox",
+        "secret blockers"
+      ]
+    },
+    {
+      "class_id": "customer_trust_compliance_surface",
+      "title": "Customer trust center, compliance evidence portal, auditor/regulator/customer-facing evidence surface gaps",
+      "owner": "product-trust + ops-compliance + council-security + customer-success",
+      "cadence": "monthly during planning, and on any new compliance/security evidence contract, customer/auditor/regulator request, or release/governance claim that needs customer-facing evidence",
+      "stale_or_blocked_behavior": "If customer-facing evidence publication lacks tenant scope, evidence freshness, claim ceilings, or signed source refs, update the trust-center card or create a surface-fix card if the gap is not already owned.",
+      "claim_ceiling": "No customer, auditor, regulator, certification, trust-center completeness, or security-posture claim until source-backed evidence is implemented, scoped, fresh, and reviewed.",
+      "dedupe_target": {
+        "card_id": "t_157e833c",
+        "role": "customer trust/compliance evidence portal surface"
+      },
+      "dedupe_queries": [
+        "trust center",
+        "customer trust",
+        "compliance evidence portal",
+        "auditor",
+        "regulator"
+      ]
+    }
+  ],
+  "kanban_output_template": {
+    "radar_report_required_sections": [
+      "run_metadata: task id, timestamp, source artifacts parsed, board query snapshot, and claim boundary",
+      "source_freshness_table: one row per source class with owner, cadence, last_observed_source, stale/blocker state, claim ceiling, and dedupe target",
+      "dedupe_decisions: existing card comments vs new cards, with reason for every no-new-card decision",
+      "claim_ceiling_audit: any forbidden claim found, its path/card/PR, and fix-forward or rollback target",
+      "created_or_updated_cards: card ids, blocker class, affected lane, acceptance criteria, verification path, and dependency links",
+      "verification_evidence: JSON parse checks, board stats/list query, and card-target verification"
+    ],
+    "comment_existing_card_when": [
+      "The existing card's title/body already owns the source class, owner lane, acceptance path, and verification target.",
+      "The new observation only refreshes source freshness, blocker status, claim ceiling, or duplicate coverage without changing implementation scope.",
+      "The existing card is ready/running/blocked and can absorb the update without becoming ambiguous or oversized."
+    ],
+    "create_new_card_when": [
+      "No active non-archived card owns the source class or affected lane.",
+      "The observation introduces a new blocker class, new product/security fix, new source-class owner, or new acceptance path that would overload the existing card.",
+      "A readiness/certification/security-posture overclaim requires a separate fix-forward or rollback lane.",
+      "The dedupe target is done and the new observation requires executable follow-up work, not just historical annotation."
+    ],
+    "new_card_required_fields": [
+      "blocker_class",
+      "affected_card_ids_or_lanes",
+      "source_class_ids",
+      "north_star_or_maturity_gap",
+      "proposed_resolution",
+      "non_goals",
+      "acceptance_criteria",
+      "verification_path",
+      "suggested_owner_profile",
+      "dependencies_and_path_conflict_notes",
+      "claim_ceiling"
+    ]
+  },
+  "verification_against_current_cards": [
+    {
+      "card_id": "t_ebd17374",
+      "status_observed": "ready",
+      "covers": [
+        "kr_identity_kyc_kisa_kmcc_kcc",
+        "kr_isms_p",
+        "kr_csap",
+        "us_cip_cdd",
+        "eu_amlr_eidas_gdpr"
+      ]
+    },
+    {
+      "card_id": "t_31f84dd9",
+      "status_observed": "ready",
+      "covers": [
+        "pci_dss_v4_0_1"
+      ]
+    },
+    {
+      "card_id": "t_830bbeab",
+      "status_observed": "ready",
+      "covers": [
+        "vulnerability_advisory_feeds",
+        "sbom_vex_provenance"
+      ]
+    },
+    {
+      "card_id": "t_b3d28267",
+      "status_observed": "ready",
+      "covers": [
+        "security_validation_lanes"
+      ]
+    },
+    {
+      "card_id": "t_f15d213a",
+      "status_observed": "ready",
+      "covers": [
+        "air_gap_security_evidence"
+      ]
+    },
+    {
+      "card_id": "t_5f010e11",
+      "status_observed": "ready",
+      "covers": [
+        "pqc_webauthn_standards_watch"
+      ]
+    },
+    {
+      "card_id": "t_a4f4be03",
+      "status_observed": "ready",
+      "covers": [
+        "authz_identity_blockers"
+      ]
+    },
+    {
+      "card_id": "t_c38ab014",
+      "status_observed": "ready",
+      "covers": [
+        "data_trust_blockers"
+      ]
+    },
+    {
+      "card_id": "t_157e833c",
+      "status_observed": "running",
+      "covers": [
+        "customer_trust_compliance_surface"
+      ]
+    }
+  ],
+  "forbidden_claims": [
+    "KISA/KMCC/KCC designation readiness or certification",
+    "ISMS-P checklist completeness or certification readiness",
+    "CSAP certification, certified-cell readiness, or KR public-sector activation readiness",
+    "PCI DSS Level 1 readiness, v4.0.1 control completeness, ROC/AOC/QSA/ASV readiness, CDE runtime readiness, or tenant activation readiness",
+    "US/EU obliged-entity or market launch readiness or complete entity-class coverage",
+    "PQC/WebAuthn/browser/authenticator implementation readiness",
+    "Live scanner/admission/runtime vulnerability posture or security-validation enforcement",
+    "Air-gap readiness, offline admission completeness, or no-egress security readiness",
+    "Production readiness, hyperscaler readiness, customer/auditor/regulator acceptance, certification, or security posture"
+  ],
+  "allowed_claim": "The board has a reusable, deduped planning/procedure contract for recurring compliance/security radar work and its current source-class/card mapping."
+}

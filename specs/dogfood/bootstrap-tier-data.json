@@ -1,0 +1,1952 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/dogfood/bootstrap-tier-data.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-DOGFOOD-BOOTSTRAP-TIER-DATA",
+    "version": "0.1.0",
+    "status": "born-advisory-data-model",
+    "owner_team": "council-architecture + dogfood/bootstrap",
+    "created_at": "2026-06-30T00:00:00Z",
+    "source_task": "DOGFOOD-001 / t_68b47634",
+    "source_adrs": [
+      "ADR-0537",
+      "ADR-0536",
+      "ADR-0510",
+      "ADR-0520"
+    ],
+    "purpose": "Canonical data-only declaration of ADR-0537 bootstrap tiers 0..10 and the dependency semantics the DOGFOOD-002 Buck2 tier-dependency lint consumes; housed under specs/dogfood/ to avoid adding a new root-hub top-level pointer in this data-only slice."
+  },
+  "tier_contract": {
+    "field_name": "bootstrap_tier",
+    "minimum": 0,
+    "maximum": 10,
+    "lint_rollout": "born-advisory; promote shadow -> warn -> enforce per ADR-0536 D-7",
+    "runtime_rule": "A Tier-N service may link/call live clients only for services whose bootstrap_tier is <= N.",
+    "non_runtime_exemptions": [
+      "build_time",
+      "codegen",
+      "test_only",
+      "bootstrap_seed",
+      "static_config",
+      "transitional_adapter"
+    ]
+  },
+  "dependency_semantics": {
+    "authoritative_live_edge_fields": [
+      "service_declarations[*].live_client_dependencies",
+      "dependency_edges[kind=live_client]"
+    ],
+    "legacy_untyped_manifest_dependency_fields": [
+      "dependencies",
+      "substrate_dependencies",
+      "depends_on_microservices",
+      "integration_points"
+    ],
+    "legacy_untyped_manifest_dependency_policy": "Do not treat legacy untyped arrays as ADR-0537 live-client edges until each edge is re-declared with one of the semantics below.",
+    "kinds": [
+      {
+        "kind": "live_client",
+        "lint_scope": "tier_checked",
+        "definition": "A runtime link or network/client crate that requires the target Oyatie service to be live during normal operation or bootstrap."
+      },
+      {
+        "kind": "build_time",
+        "lint_scope": "exempt",
+        "definition": "Compilation, Buck/Cargo target, proc-macro, schema, or generator input only; target service need not be live."
+      },
+      {
+        "kind": "codegen",
+        "lint_scope": "exempt",
+        "definition": "IDL/OpenAPI/AsyncAPI/proto/model generation only; target service need not be live."
+      },
+      {
+        "kind": "test_only",
+        "lint_scope": "exempt",
+        "definition": "Test fixture/harness/dev dependency only; never shipped as runtime code."
+      },
+      {
+        "kind": "bootstrap_seed",
+        "lint_scope": "exempt_with_signature_or_hash",
+        "definition": "Static signed seed/snapshot material consumed before the producer service exists."
+      },
+      {
+        "kind": "static_config",
+        "lint_scope": "exempt_with_hash",
+        "definition": "Pinned local configuration that is not fetched from a live service."
+      },
+      {
+        "kind": "transitional_adapter",
+        "lint_scope": "owned_interface_required",
+        "definition": "ADR-0510 bridge implementation behind a stable owned Rust interface; not an Oyatie live-client edge."
+      }
+    ]
+  },
+  "tiers": [
+    {
+      "tier": 0,
+      "name": "root-ceremony-and-owned-stack-base",
+      "adr_0537_source": "step 0 + §3",
+      "meaning": "Offline root ceremony plus cloud-kernel/cloud-os/cloud-k8s base; no live service dependency."
+    },
+    {
+      "tier": 1,
+      "name": "kms-unseal",
+      "adr_0537_source": "step 1",
+      "meaning": "cloud-kms boots on its own local Raft quorum; explicitly not oya-data."
+    },
+    {
+      "tier": 2,
+      "name": "secrets-and-workload-identity",
+      "adr_0537_source": "step 2",
+      "meaning": "cloud-secrets and SPIFFE/workload identity; fetch-fail = deploy-fail."
+    },
+    {
+      "tier": 3,
+      "name": "identity-provider",
+      "adr_0537_source": "step 3",
+      "meaning": "IdP control plane and primordial operator domain seeded from the root ceremony."
+    },
+    {
+      "tier": 4,
+      "name": "embedded-cedar-pdp",
+      "adr_0537_source": "step 4",
+      "meaning": "Signed content-addressed Cedar policy bundle distribution; service PDPs evaluate locally."
+    },
+    {
+      "tier": 5,
+      "name": "network-dns",
+      "adr_0537_source": "step 5",
+      "meaning": "Network/DNS data plane serves hand-signed seed snapshot before its control plane exists."
+    },
+    {
+      "tier": 6,
+      "name": "persistence",
+      "adr_0537_source": "step 6",
+      "meaning": "oya-data/cloud-data persistence; bootstrap metadata lives in a separate single-Raft bootstrap metastore."
+    },
+    {
+      "tier": 7,
+      "name": "cas-storage",
+      "adr_0537_source": "step 7",
+      "meaning": "Object storage/CAS boots from static config; stores policy bundles, zone snapshots, audit anchors."
+    },
+    {
+      "tier": 8,
+      "name": "messaging",
+      "adr_0537_source": "step 8",
+      "meaning": "Queue/stream/bus substrate behind owned Rust client interface; launch-primary broker is transitional."
+    },
+    {
+      "tier": 9,
+      "name": "audit",
+      "adr_0537_source": "step 9",
+      "meaning": "Audit pipeline anchors signed digest chain with messaging and CAS WORM available."
+    },
+    {
+      "tier": 10,
+      "name": "commercial-and-products",
+      "adr_0537_source": "step 10",
+      "meaning": "Metering/billing/internal chargeback plus product/non-bootstrap services."
+    }
+  ],
+  "coverage": {
+    "top_level_manifest_count": 90,
+    "service_declaration_count": 95,
+    "top_level_manifest_globs": [
+      "cloud/*/manifest.json",
+      "oya/*/manifest.json"
+    ],
+    "excluded_globs": [
+      "*/packs/*/manifest.json",
+      "*/_legacy-*/manifest.json",
+      "libs/**/fixtures/**/manifest.json"
+    ],
+    "all_top_level_manifests_declared": true
+  },
+  "service_declarations": [
+    {
+      "service": "analytics",
+      "path": "oya/analytics/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "api-gateway",
+      "path": "oya/api-gateway/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "application",
+      "path": "oya/application/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "audit-chain",
+      "path": "oya/audit-chain/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 9,
+      "tier_assignment_source": "ADR-0537 step 9 + ADR-0536 D-16",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "messaging-substrate",
+        "cloud-storage",
+        "cloud-kms",
+        "identity",
+        "policy-engine"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "calendar",
+      "path": "oya/calendar/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cell-lifecycle",
+      "path": "cloud/cell-lifecycle/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cell-rebalancer",
+      "path": "cloud/cell-rebalancer/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "ci-webhook-gateway",
+      "path": "oya/ci-webhook-gateway/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-billing",
+      "path": "cloud/cloud-billing/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "ADR-0537 step 10 + ADR-0536 D-14",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "audit-chain",
+        "messaging-substrate",
+        "cloud-data",
+        "cloud-storage",
+        "identity",
+        "policy-engine"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-billing-tax",
+      "path": "cloud/cloud-billing-tax/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "ADR-0537 step 10 commercial/tax extension",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "cloud-billing",
+        "audit-chain",
+        "cloud-data",
+        "identity",
+        "policy-engine"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-data",
+      "path": "cloud/cloud-data/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 6,
+      "tier_assignment_source": "ADR-0537 step 6 + ADR-0536 D-10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "cloud-kms",
+        "cloud-secrets",
+        "identity",
+        "policy-engine",
+        "cloud-network"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-iac",
+      "path": "cloud/cloud-iac/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-iam",
+      "path": "cloud/cloud-iam/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 3,
+      "tier_assignment_source": "ADR-0537 step 3 identity-provider/control-plane equivalent",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "identity",
+        "identity-workload",
+        "cloud-kms",
+        "cloud-secrets"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-intelligence",
+      "path": "cloud/cloud-intelligence/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-k8s",
+      "path": "cloud/cloud-k8s/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 0,
+      "tier_assignment_source": "ADR-0537 §3 rust-owned stack ladder base rung",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-kernel",
+      "path": "cloud/cloud-kernel/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 0,
+      "tier_assignment_source": "ADR-0537 §3 rust-owned stack ladder base rung",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-kms",
+      "path": "cloud/cloud-kms/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 1,
+      "tier_assignment_source": "ADR-0537 step 1",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-network",
+      "path": "cloud/cloud-network/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 5,
+      "tier_assignment_source": "ADR-0537 step 5 + ADR-0536 D-9",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "policy-engine",
+        "identity",
+        "cloud-kms",
+        "cloud-secrets"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-network-dns",
+      "path": "cloud/cloud-network-dns/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 5,
+      "tier_assignment_source": "ADR-0537 step 5 + ADR-0536 D-9",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "cloud-network",
+        "policy-engine",
+        "identity",
+        "cloud-kms",
+        "cloud-secrets",
+        "static-dns-seed"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-os",
+      "path": "cloud/cloud-os/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 0,
+      "tier_assignment_source": "ADR-0537 §3 rust-owned stack ladder base rung",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-secrets",
+      "path": "cloud/cloud-secrets/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 2,
+      "tier_assignment_source": "ADR-0537 step 2",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "cloud-kms"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "cloud-storage",
+      "path": "cloud/cloud-storage/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 7,
+      "tier_assignment_source": "ADR-0537 step 7 + ADR-0536 D-11",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "cloud-data",
+        "cloud-kms",
+        "cloud-secrets",
+        "identity",
+        "policy-engine",
+        "cloud-network"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "comms-email",
+      "path": "oya/comms-email/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "community",
+      "path": "oya/community/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "compliance",
+      "path": "oya/compliance/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "connector",
+      "path": "oya/connector/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "consent-graph",
+      "path": "oya/consent-graph/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "contact-center",
+      "path": "oya/contact-center/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "contract-lifecycle-management",
+      "path": "oya/contract-lifecycle-management/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "crm",
+      "path": "oya/crm/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "data-pipeline",
+      "path": "oya/data-pipeline/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "data-warehouse",
+      "path": "oya/data-warehouse/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "design-collaboration",
+      "path": "oya/design-collaboration/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "detection",
+      "path": "oya/detection/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "developer-sdk",
+      "path": "oya/developer-sdk/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "diagnostics",
+      "path": "oya/diagnostics/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "docs",
+      "path": "oya/docs/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "drive",
+      "path": "oya/drive/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "emergency",
+      "path": "oya/emergency/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "emr",
+      "path": "oya/emr/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "feature-flags",
+      "path": "oya/feature-flags/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "financial-planning",
+      "path": "oya/financial-planning/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "finops-portal",
+      "path": "oya/finops-portal/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "forms",
+      "path": "oya/forms/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "global-trade",
+      "path": "oya/global-trade/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "governance",
+      "path": "oya/governance/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "healthcare-integration",
+      "path": "oya/healthcare-integration/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "identity",
+      "path": "oya/identity/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 2,
+      "tier_assignment_source": "ADR-0537 steps 2-3; earliest live surface is workload identity",
+      "bootstrap_surfaces": [
+        {
+          "surface": "workload-identity",
+          "bootstrap_tier": 2
+        },
+        {
+          "surface": "idp-control-plane",
+          "bootstrap_tier": 3
+        }
+      ],
+      "live_client_dependencies": [
+        "identity-workload",
+        "cloud-kms",
+        "cloud-secrets"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Service-level tier uses earliest live bootstrap surface; IdP control-plane surface is recorded as tier 3."
+    },
+    {
+      "service": "identity-workload",
+      "path": "oya/identity/manifest.json#bounded_contexts/workload-identity",
+      "service_kind": "bootstrap_surface",
+      "bootstrap_tier": 2,
+      "tier_assignment_source": "ADR-0537 step 2",
+      "bootstrap_surfaces": [
+        "spiffe-workload-identity",
+        "pod-admission-cert-issuance"
+      ],
+      "live_client_dependencies": [
+        "cloud-kms",
+        "cloud-secrets"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Split from identity IdP because ADR-0537 brings workload identity up before the IdP control plane."
+    },
+    {
+      "service": "imaging",
+      "path": "oya/imaging/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "incident-management",
+      "path": "oya/incident-management/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "intelligence",
+      "path": "oya/intelligence/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "itsm",
+      "path": "oya/itsm/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "learning-management",
+      "path": "oya/learning-management/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "mail",
+      "path": "oya/mail/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "managed-k8s-cluster-lifecycle",
+      "path": "cloud/managed-k8s-cluster-lifecycle/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "managed-k8s-control-plane-host",
+      "path": "cloud/managed-k8s-control-plane-host/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "managed-k8s-sla-observability",
+      "path": "cloud/managed-k8s-sla-observability/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "managed-k8s-tenant-quota",
+      "path": "cloud/managed-k8s-tenant-quota/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "marketing-automation",
+      "path": "oya/marketing-automation/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "marketplace",
+      "path": "oya/marketplace/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "meet",
+      "path": "oya/meet/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "messaging-substrate",
+      "path": "libs/oya-messaging-substrate-kernel",
+      "service_kind": "virtual_service_until_manifest_lands",
+      "bootstrap_tier": 8,
+      "tier_assignment_source": "ADR-0537 step 8 + ADR-0536 D-13",
+      "bootstrap_surfaces": [
+        "queue",
+        "stream",
+        "bus",
+        "owned-rust-pulsar-client-interface"
+      ],
+      "live_client_dependencies": [
+        "cloud-storage",
+        "cloud-data",
+        "cloud-kms",
+        "cloud-secrets",
+        "identity",
+        "policy-engine",
+        "cloud-network"
+      ],
+      "exempt_dependencies": [
+        {
+          "service": "pulsar",
+          "kind": "transitional_adapter",
+          "reason": "ADR-0510 launch-primary broker behind owned Rust interface"
+        }
+      ],
+      "notes": "The broker is not the product API; only the owned queue/stream/bus client interface is exposed to services."
+    },
+    {
+      "service": "messenger",
+      "path": "oya/messenger/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "notes",
+      "path": "oya/notes/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "observability",
+      "path": "oya/observability/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "ontology",
+      "path": "oya/ontology/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "ops-dashboard-control-center",
+      "path": "oya/ops-dashboard-control-center/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "patient-monitoring",
+      "path": "oya/patient-monitoring/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "payments",
+      "path": "oya/payments/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "performance-management",
+      "path": "oya/performance-management/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "pharmacy",
+      "path": "oya/pharmacy/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "plant-maintenance",
+      "path": "oya/plant-maintenance/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "plugin-app-store",
+      "path": "oya/plugin-app-store/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "policy-engine",
+      "path": "oya/policy/crates",
+      "service_kind": "virtual_service_until_manifest_lands",
+      "bootstrap_tier": 4,
+      "tier_assignment_source": "ADR-0537 step 4 + ADR-0536 D-2",
+      "bootstrap_surfaces": [
+        "embedded-cedar-pdp",
+        "signed-policy-bundle-distribution"
+      ],
+      "live_client_dependencies": [
+        "identity",
+        "identity-workload",
+        "cloud-kms",
+        "cloud-secrets"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Embedded PDP is local; central bundle publication/distribution is the live bootstrap surface represented here."
+    },
+    {
+      "service": "production-planning",
+      "path": "oya/production-planning/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "quality-management",
+      "path": "oya/quality-management/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "real-estate",
+      "path": "oya/real-estate/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "recordings",
+      "path": "oya/recordings/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "root-ceremony",
+      "path": null,
+      "service_kind": "offline_ceremony",
+      "bootstrap_tier": 0,
+      "tier_assignment_source": "ADR-0537 step 0",
+      "bootstrap_surfaces": [
+        "root-ca",
+        "kms-domain-root-material",
+        "sealed-fido2-break-glass",
+        "hand-signed-dns-seed-snapshot"
+      ],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Only manual/offline ceremony; not a live service and never a runtime client dependency."
+    },
+    {
+      "service": "sheets",
+      "path": "oya/sheets/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "sites",
+      "path": "oya/sites/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "slides",
+      "path": "oya/slides/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "social",
+      "path": "oya/social/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "static-dns-seed",
+      "path": null,
+      "service_kind": "signed_static_seed",
+      "bootstrap_tier": 0,
+      "tier_assignment_source": "ADR-0537 step 0 + step 5 recursion break",
+      "bootstrap_surfaces": [
+        "hand-signed-zone-snapshot"
+      ],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [
+        {
+          "service": "root-ceremony",
+          "kind": "bootstrap_seed",
+          "reason": "signed seed artifact, not a live client"
+        }
+      ],
+      "notes": "Data-plane DNS seed snapshot consumed before DNS control plane exists."
+    },
+    {
+      "service": "supply-chain-planning",
+      "path": "oya/supply-chain-planning/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "tasks",
+      "path": "oya/tasks/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "tenancy",
+      "path": "cloud/tenancy/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "translate",
+      "path": "oya/translate/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "treasury",
+      "path": "oya/treasury/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "warehouse",
+      "path": "oya/warehouse/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "whiteboard",
+      "path": "oya/whiteboard/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "workflow-engine",
+      "path": "oya/workflow-engine/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 8,
+      "tier_assignment_source": "ADR-0537 step 8 adjacency; event-bus surfaces consume the messaging substrate",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [
+        "messaging-substrate",
+        "cloud-storage",
+        "cloud-data",
+        "identity",
+        "policy-engine"
+      ],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "workflow-studio",
+      "path": "oya/workflow-studio/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    },
+    {
+      "service": "workplace-integration",
+      "path": "oya/workplace-integration/manifest.json",
+      "service_kind": "top_level_manifest",
+      "bootstrap_tier": 10,
+      "tier_assignment_source": "default_product_or_non_bootstrap_service_after_adr_0537_step_10",
+      "bootstrap_surfaces": [],
+      "live_client_dependencies": [],
+      "exempt_dependencies": [],
+      "notes": "Tier declaration is explicit for ADR-0537 lint input; legacy manifest dependency arrays remain untyped until migrated into live_client_dependencies."
+    }
+  ],
+  "dependency_edges": [
+    {
+      "from": "audit-chain",
+      "to": "messaging-substrate",
+      "kind": "live_client",
+      "from_bootstrap_tier": 9,
+      "to_bootstrap_tier": 8,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "audit-chain",
+      "to": "cloud-storage",
+      "kind": "live_client",
+      "from_bootstrap_tier": 9,
+      "to_bootstrap_tier": 7,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "audit-chain",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 9,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "audit-chain",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 9,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "audit-chain",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 9,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing",
+      "to": "audit-chain",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 9,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing",
+      "to": "messaging-substrate",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 8,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing",
+      "to": "cloud-data",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 6,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing",
+      "to": "cloud-storage",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 7,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing-tax",
+      "to": "cloud-billing",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 10,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing-tax",
+      "to": "audit-chain",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 9,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing-tax",
+      "to": "cloud-data",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 6,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing-tax",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-billing-tax",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 10,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-data",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 6,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-data",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 6,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-data",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 6,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-data",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 6,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-data",
+      "to": "cloud-network",
+      "kind": "live_client",
+      "from_bootstrap_tier": 6,
+      "to_bootstrap_tier": 5,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-iam",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 3,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-iam",
+      "to": "identity-workload",
+      "kind": "live_client",
+      "from_bootstrap_tier": 3,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-iam",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 3,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-iam",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 3,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network-dns",
+      "to": "cloud-network",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 5,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network-dns",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network-dns",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network-dns",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network-dns",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-network-dns",
+      "to": "static-dns-seed",
+      "kind": "live_client",
+      "from_bootstrap_tier": 5,
+      "to_bootstrap_tier": 0,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-secrets",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 2,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-storage",
+      "to": "cloud-data",
+      "kind": "live_client",
+      "from_bootstrap_tier": 7,
+      "to_bootstrap_tier": 6,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-storage",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 7,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-storage",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 7,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-storage",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 7,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-storage",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 7,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "cloud-storage",
+      "to": "cloud-network",
+      "kind": "live_client",
+      "from_bootstrap_tier": 7,
+      "to_bootstrap_tier": 5,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "identity",
+      "to": "identity-workload",
+      "kind": "live_client",
+      "from_bootstrap_tier": 2,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "identity",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 2,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "identity",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 2,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "identity-workload",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 2,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "identity-workload",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 2,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "cloud-storage",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 7,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "cloud-data",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 6,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "cloud-network",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 5,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "policy-engine",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 4,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "policy-engine",
+      "to": "identity-workload",
+      "kind": "live_client",
+      "from_bootstrap_tier": 4,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "policy-engine",
+      "to": "cloud-kms",
+      "kind": "live_client",
+      "from_bootstrap_tier": 4,
+      "to_bootstrap_tier": 1,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "policy-engine",
+      "to": "cloud-secrets",
+      "kind": "live_client",
+      "from_bootstrap_tier": 4,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "workflow-engine",
+      "to": "messaging-substrate",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 8,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "workflow-engine",
+      "to": "cloud-storage",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 7,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "workflow-engine",
+      "to": "cloud-data",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 6,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "workflow-engine",
+      "to": "identity",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 2,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "workflow-engine",
+      "to": "policy-engine",
+      "kind": "live_client",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": 4,
+      "allowed_by_tier_rule": true,
+      "rule": "Tier-N service may link/call a live client only when dependency bootstrap_tier <= N"
+    },
+    {
+      "from": "static-dns-seed",
+      "to": "root-ceremony",
+      "kind": "bootstrap_seed",
+      "from_bootstrap_tier": 0,
+      "to_bootstrap_tier": 0,
+      "allowed_by_tier_rule": true,
+      "rule": "Exempt dependency semantics are not live-client edges",
+      "reason": "signed seed artifact, not a live client"
+    },
+    {
+      "from": "messaging-substrate",
+      "to": "pulsar",
+      "kind": "transitional_adapter",
+      "from_bootstrap_tier": 8,
+      "to_bootstrap_tier": null,
+      "allowed_by_tier_rule": true,
+      "rule": "Exempt dependency semantics are not live-client edges",
+      "reason": "ADR-0510 launch-primary broker behind owned Rust interface"
+    }
+  ],
+  "forbidden_edges_assertion": [
+    {
+      "from": "cloud-kms",
+      "to": "cloud-data",
+      "reason": "ADR-0537 recursion break #1: oya-data encrypts with KMS keys, so KMS state must not live in oya-data."
+    },
+    {
+      "from": "cloud-data",
+      "to": "cloud-data",
+      "reason": "ADR-0537 recursion break #2: data substrate bootstrap metadata lives in a separate bootstrap metastore, not in oya-data itself."
+    },
+    {
+      "from": "cloud-storage",
+      "to": "messaging-substrate",
+      "reason": "ADR-0537 step 7 CAS must boot before messaging and cannot discover itself from systems depending on CAS."
+    },
+    {
+      "from": "policy-engine",
+      "to": "audit-chain",
+      "reason": "Policy distribution/PDP bootstrap precedes audit; audit depends on policy, not reverse."
+    },
+    {
+      "from": "identity-workload",
+      "to": "identity",
+      "reason": "Workload identity comes up before the IdP control plane per ADR-0537 step 2 -> step 3."
+    }
+  ],
+  "validation_invariants": [
+    "Every service_declarations[*].bootstrap_tier is an integer in [0, 10].",
+    "Every dependency_edges[kind=live_client] has to_bootstrap_tier <= from_bootstrap_tier.",
+    "Every top-level cloud/*/manifest.json and oya/*/manifest.json service is declared exactly once.",
+    "Legacy untyped manifest dependency arrays are not live-client authority until migrated to dependency_edges."
+  ]
+}

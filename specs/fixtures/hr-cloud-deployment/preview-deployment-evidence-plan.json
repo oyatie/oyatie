@@ -1,0 +1,438 @@
+{
+  "fixture_plan_id": "HR-CLOUD-DEPLOYMENT-EVIDENCE-PLAN-RED-001",
+  "kanban_task": "t_53c075b7",
+  "service": "hr",
+  "status": "preview_deployment_evidence_red",
+  "claim_boundary": "Plan/Spec/RED only: no production deploy, no GA readiness, no hyperscaler parity, and no live cloud deployment evidence are claimed by this fixture.",
+  "source_authority_refs": [
+    "specs/microservices/hr.json#acceptance_criteria[AC-12]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-13]",
+    "specs/microservices/hr.json#acceptance_criteria[AC-14]",
+    "specs/microservices/hr.json#decision_log[D-14]",
+    "specs/microservices/hr.json#decision_log[D-15]",
+    "specs/microservices/hr.json#decision_log[D-16]",
+    "specs/deployment-ops-contract.json#deployment_authority",
+    "specs/deployment-ops-contract.json#cluster_fleet",
+    "oya/hr/contracts/openapi-v1.yaml#/components/schemas/HrHealth",
+    "oya/hr/contracts/openapi-v1.meta.yaml#change_notes[CS-ENT-HR-008]",
+    "oya/hr/crates/oya-hr-employment-infrastructure/src/lib.rs#HrHealthResponse",
+    "oya/hr/crates/oya-hr-employment-storage-adapter-postgres/src/lib.rs#HrPostgresStorageCapabilities",
+    "kanban:t_71e1bfaf#runtime-listener-boundary",
+    "kanban:t_9daca2db#durable-storage-rls-seam",
+    "kanban:t_a0611892#tenant-rbac-admission-scope",
+    "kanban:t_3a7d8b2c#audit-event-class-contract",
+    "kanban:t_53c075b7#hr-cloud-deployment-plan-red"
+  ],
+  "runtime_claims": {
+    "productionDeploymentClaimed": false,
+    "gaClaimed": false,
+    "hyperscalerClaimed": false,
+    "deployedListener": false,
+    "cloudDeploymentEvidenceAttached": false,
+    "runtimeCloudIoAttached": false,
+    "runtimeDatabaseAttached": false,
+    "workflowExecutionAttached": false,
+    "payrollNetworkCallAttached": false,
+    "sensitiveDataFetchAttached": false,
+    "runtimeAuditEmissionAttached": false,
+    "generatedJsonHandEdited": false,
+    "releasePleaseAssumed": false
+  },
+  "preview_deployment_topology": {
+    "gateway": {
+      "component": "Gateway API HTTPRoute shape for /hr/v1/*",
+      "claim_status": "evidence_required",
+      "required_future_evidence": "controller Accepted=True observation, route namespace, host, and backend service binding"
+    },
+    "runtime": {
+      "component": "HR bounded prebound listener harness wrapping the repo-native Hyper adapter",
+      "claim_status": "preview_plan",
+      "required_future_evidence": "containerized runtime deployment availability and /hr/v1/healthz readiness only after Build/IaC review"
+    },
+    "storage": {
+      "component": "HR Postgres/RLS durable-storage seam",
+      "claim_status": "specified_not_implemented",
+      "required_future_evidence": "migration dry-run/live apply transcript, RLS policy observation, rollback SQL transcript, and no sensitive data retrieval claim"
+    },
+    "tenant_rbac": {
+      "component": "Tenant/RBAC PDP/DecisionAuthorizer admission for HR sensitive-read scope decisions",
+      "claim_status": "metadata_only",
+      "required_future_evidence": "deny-by-default workload admission and cross-tenant negative replay"
+    },
+    "audit_chain": {
+      "component": "HR audit event class contracts from the audit-event registry",
+      "claim_status": "contract_only",
+      "required_future_evidence": "deployment audit event class row and runtime emission evidence after producer Build card"
+    },
+    "observability": {
+      "component": "OpenTelemetry resource identity plus HR service SLO evidence",
+      "claim_status": "evidence_required",
+      "required_future_evidence": "service.name=hr, deployment.environment, tenant/cell labels, RED metrics, and trace/log correlation"
+    },
+    "rollout_controller": {
+      "component": "Argo CD sync/health with rollback path",
+      "claim_status": "evidence_required",
+      "required_future_evidence": "pinned Git revision, Argo CD synced/healthy state, rollback revision, and operator-free rollback transcript"
+    }
+  },
+  "tenant_isolation": {
+    "default_tenant_namespace": "oyatie-fd001-hr-dev",
+    "cross_tenant_default": "fail_closed",
+    "must_assert": [
+      "tenant namespace is HR-scoped and not default/kube-system",
+      "legal_entity_id remains part of HR storage and policy evidence",
+      "Postgres/RLS policies constrain tenant_id and legal_entity_id access",
+      "Tenant/RBAC PDP and DecisionAuthorizer gate sensitive-read scope decisions",
+      "NetworkPolicy defaults deny ingress/egress except approved Gateway/API/control-plane edges",
+      "ResourceQuota and LimitRange bound the HR namespace before workload availability can count",
+      "ServiceAccount is HR-specific and bound to least-privilege secret references"
+    ],
+    "must_reject": [
+      "cross-tenant replay accepted without PDP evidence",
+      "legal_entity_id omitted from persistence or audit evidence",
+      "default namespace, kube-system, or shared service account usage"
+    ]
+  },
+  "rollback_observability_slo": {
+    "health_check_path": "/hr/v1/healthz",
+    "rollout_policy": "Argo CD pinned revision plus automated rollback plan before live exposure; rollback remains N/A until live deployment evidence exists.",
+    "observability_policy": "OpenTelemetry resource identity, service.name=hr, deployment.environment, tenant/cell labels, logs/traces/metrics correlation, and audit event evidence are required before deployment success can be claimed.",
+    "slo_policy": "Preview SLO budget must name availability, p95/p99 latency, error-rate, and burn-rate rollback thresholds; SLO compliance is N/A until live traffic and dashboards exist.",
+    "audit_policy": "Deployment audit event evidence must reference a registered audit event class and must not append runtime audit-chain rows in this Plan/Spec/RED fixture.",
+    "must_reject": [
+      "green CI alone as deployment success",
+      "healthz pass without Argo CD/Gateway/namespace evidence",
+      "SLO claim without dashboard and live telemetry evidence"
+    ]
+  },
+  "secret_handling": {
+    "provider": "OpenBao primary through a SecretProvider seam",
+    "raw_secret_material_in_repo": false,
+    "secret_values_in_fixture": false,
+    "policy": "Use references only: secret names, custody refs, rotation refs, and digest/provenance pointers. No raw secret payload, bearer credential, private key, password, or token value belongs in source or fixture evidence.",
+    "rotation": "Future Build evidence must include rotation or revocation procedure, stale-reference rejection, and audit evidence without logging secret payloads.",
+    "must_reject": [
+      "literal credential values",
+      "unrotated static secret references",
+      "cluster Secret YAML containing data/stringData payloads in source"
+    ]
+  },
+  "local_vs_live_evidence": {
+    "local_replay_available": true,
+    "local_replay_path": "Run the HR bounded loopback listener health replay and JSON fixture validator locally; use /hr/v1/healthz and static source checks only.",
+    "live_deployment_available": false,
+    "production_rollout_required": false,
+    "production_rollout_na_rationale": "N/A: no live cluster, no HR Argo CD application, no Gateway HTTPRoute, no HR namespace, and no production rollout authority exist in this Plan/Spec/RED card.",
+    "must_reject": [
+      "production rollout claimed from local replay",
+      "live deployment available without Argo CD/Gateway/controller observations",
+      "manual kubectl/helm apply transcript as canonical authority"
+    ]
+  },
+  "fixtures": [
+    {
+      "fixture_id": "hr_preview_deployment_topology_fixture",
+      "fixture_kind": "topology_plan_red",
+      "source_authority_refs": [
+        "kanban:t_53c075b7#hr-cloud-deployment-plan-red",
+        "specs/deployment-ops-contract.json#cluster_fleet",
+        "oya/hr/contracts/openapi-v1.yaml#/components/schemas/HrHealth"
+      ],
+      "future_evidence_refs": [
+        "evidence/cloud-deployment/hr/topology.json"
+      ],
+      "must_assert": [
+        "Gateway API HTTPRoute is required before external exposure",
+        "Argo CD owns sync and health evidence",
+        "prebound listener remains local until containerized Build/IaC evidence",
+        "Postgres/RLS storage seam must be attached only by a later reviewed Build card",
+        "Tenant/RBAC admission and OpenTelemetry resource identity are mandatory before cloud readiness"
+      ],
+      "must_reject": [
+        "direct production listener claim",
+        "manual kubectl apply as deployment authority",
+        "cloud deployment claim without controller observations"
+      ],
+      "expected_red_status": "RED_UNTIL_LIVE_DEPLOYMENT_BUILD"
+    },
+    {
+      "fixture_id": "hr_tenant_isolation_fixture",
+      "fixture_kind": "tenant_isolation_red",
+      "source_authority_refs": [
+        "kanban:t_53c075b7#hr-cloud-deployment-plan-red",
+        "kanban:t_a0611892#tenant-rbac-admission-scope",
+        "kanban:t_9daca2db#durable-storage-rls-seam"
+      ],
+      "future_evidence_refs": [
+        "evidence/cloud-deployment/hr/tenant-isolation.json"
+      ],
+      "must_assert": [
+        "tenant namespace is HR-specific",
+        "legal_entity_id is present in storage and audit evidence",
+        "RLS constrains tenant_id and legal_entity_id",
+        "PDP and DecisionAuthorizer reject cross-tenant sensitive-read scope",
+        "NetworkPolicy, ResourceQuota, and ServiceAccount evidence exist before workload availability counts"
+      ],
+      "must_reject": [
+        "default namespace",
+        "shared service account",
+        "cross-tenant replay accepted without Tenant/RBAC decision evidence"
+      ],
+      "expected_red_status": "RED_UNTIL_LIVE_DEPLOYMENT_BUILD"
+    },
+    {
+      "fixture_id": "hr_rollback_observability_slo_fixture",
+      "fixture_kind": "rollback_observability_slo_red",
+      "source_authority_refs": [
+        "kanban:t_53c075b7#hr-cloud-deployment-plan-red",
+        "kanban:t_3a7d8b2c#audit-event-class-contract",
+        "oya/hr/contracts/openapi-v1.yaml#/paths/~1hr~1v1~1healthz"
+      ],
+      "future_evidence_refs": [
+        "evidence/cloud-deployment/hr/rollback-observability-slo.json"
+      ],
+      "must_assert": [
+        "rollback revision and operator-free rollback evidence are required",
+        "healthz readiness must pass through the deployed route, not only local loopback",
+        "SLO thresholds and burn-rate rollback policy are named",
+        "OpenTelemetry resource identity links service.name=hr to deployment.environment",
+        "audit event evidence references the registered HR deployment event class"
+      ],
+      "must_reject": [
+        "SLO success from green CI alone",
+        "rollback plan missing",
+        "audit event claim without registered class and evidence ref"
+      ],
+      "expected_red_status": "RED_UNTIL_LIVE_DEPLOYMENT_BUILD"
+    },
+    {
+      "fixture_id": "hr_secret_handling_fixture",
+      "fixture_kind": "secret_handling_red",
+      "source_authority_refs": [
+        "kanban:t_53c075b7#hr-cloud-deployment-plan-red",
+        "specs/deployment-ops-contract.json#node_config_serving_plane.machineconfig_custody"
+      ],
+      "future_evidence_refs": [
+        "evidence/cloud-deployment/hr/secret-provider-binding.json"
+      ],
+      "must_assert": [
+        "OpenBao is the primary custody provider",
+        "SecretProvider references only are stored in source",
+        "no raw secret material appears in fixture or source",
+        "rotation and revocation evidence are required before live use"
+      ],
+      "must_reject": [
+        "literal private key or password",
+        "unrotated static secret",
+        "Kubernetes Secret data/stringData payload committed to source"
+      ],
+      "expected_red_status": "RED_UNTIL_LIVE_DEPLOYMENT_BUILD"
+    },
+    {
+      "fixture_id": "hr_local_replay_and_live_na_fixture",
+      "fixture_kind": "local_replay_live_na_red",
+      "source_authority_refs": [
+        "kanban:t_53c075b7#hr-cloud-deployment-plan-red",
+        "kanban:t_71e1bfaf#runtime-listener-boundary",
+        "oya/hr/crates/oya-hr-employment-infrastructure/tests/runtime.rs#hr_runtime_serves_loopback_health_over_listener_boundary_without_deployment_claims"
+      ],
+      "future_evidence_refs": [
+        "evidence/cloud-deployment/hr/local-replay-live-na.json"
+      ],
+      "must_assert": [
+        "loopback local replay can prove JSON health non-claims",
+        "local replay is not live deployment evidence",
+        "live deployment N/A is explicit until a reviewed Build/IaC card attaches controller observations",
+        "production rollout N/A rationale cites no live cluster and no HR Argo CD application"
+      ],
+      "must_reject": [
+        "local loopback used as production rollout evidence",
+        "live Gateway/Argo status fabricated without evidence artifact"
+      ],
+      "expected_red_status": "RED_UNTIL_LIVE_DEPLOYMENT_BUILD"
+    },
+    {
+      "fixture_id": "hr_no_ga_cloud_claim_fixture",
+      "fixture_kind": "honest_claims_red",
+      "source_authority_refs": [
+        "kanban:t_53c075b7#hr-cloud-deployment-plan-red",
+        "specs/microservices/hr.json#scope.in_scope_per_wave.GA"
+      ],
+      "future_evidence_refs": [
+        "evidence/cloud-deployment/hr/no-ga-cloud-claim.json"
+      ],
+      "must_assert": [
+        "no GA claim is made by this fixture",
+        "no hyperscaler parity claim is made",
+        "no cloud deployment claim is made until live evidence exists",
+        "no Release Please assumption applies to this task",
+        "generated JSON not touched by hand"
+      ],
+      "must_reject": [
+        "GA readiness from preview topology",
+        "hyperscaler deployment claim",
+        "hand-edited generated JSON evidence"
+      ],
+      "expected_red_status": "RED_UNTIL_LIVE_DEPLOYMENT_BUILD"
+    }
+  ],
+  "evidence_requirements": [
+    {
+      "requirement_id": "argocd-application-sync",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://argo-cd.readthedocs.io/en/stable/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/argocd-sync.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "argocd-application-health",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://argo-cd.readthedocs.io/en/stable/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/argocd-health.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "git-revision-pin",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/git-revision.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "cosign-sbom-provenance",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://docs.sigstore.dev/cosign/verifying/verify/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/cosign-sbom-provenance.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "tenant-namespace-observed",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/tenant-namespace.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "resource-quota-observed",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/resource-quota.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "network-policy-observed",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/network-policy.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "service-account-observed",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/concepts/security/service-accounts/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/service-account.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "deployment-available-observed",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/deployment-available.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "readiness-healthz-green",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/readiness-healthz.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "gateway-httproute-accepted",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://gateway-api.sigs.k8s.io/guides/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/gateway-httproute.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "otel-resource-identity-observed",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://opentelemetry.io/docs/specs/semconv/resource/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/otel-resource-identity.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "deployment-audit-event-recorded",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://cloudevents.io/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/deployment-audit-event.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "rollback-plan-attached",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://argo-cd.readthedocs.io/en/stable/user-guide/rollbacks/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/rollback-plan.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "secret-provider-binding-verified",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://openbao.org/docs/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/secret-provider-binding.json",
+      "runtime_evidence_attached": false
+    },
+    {
+      "requirement_id": "local-loopback-replay-attached",
+      "status": "red_until_build_evidence_attached",
+      "official_doc_url": "https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/",
+      "expected_evidence_ref": "evidence/cloud-deployment/hr/local-loopback-replay.json",
+      "runtime_evidence_attached": false
+    }
+  ],
+  "future_build_splits": [
+    {
+      "title": "Build: HR preview deployment manifests and rollback runbook",
+      "conflict_class": "product-vertical:erp/hr cloud deployment",
+      "allowed_paths": [
+        "oya/hr/iac/k8s/**",
+        "oya/hr/runbooks/deployment-rollback.md",
+        "oya/hr/slos/**",
+        "oya/hr/dashboards/**"
+      ],
+      "acceptance": "Author HR-specific Argo CD/Gateway/namespace/quota/network-policy/service-account manifest sources plus rollback/SLO docs without applying them or claiming production deployment.",
+      "verification": "Static manifest render/lint, no generated JSON hand edits, no live apply, no manual kubectl/helm authority, and HR healthz readiness path preserved.",
+      "review_lenses": ["SRE", "security", "cloud", "governance"]
+    },
+    {
+      "title": "Build: HR cloud deployment evidence replay artifacts",
+      "conflict_class": "product-vertical:erp/hr cloud deployment evidence",
+      "allowed_paths": [
+        "evidence/cloud-deployment/hr/**"
+      ],
+      "acceptance": "Attach source-backed local replay and controller-observation evidence documents for the requirement IDs in this fixture; keep live evidence N/A unless a real reviewed deployment exists.",
+      "verification": "Run scripts/tests/hr_cloud_deployment_evidence_plan_check.py plus evidence JSON validation and no-overclaim scan.",
+      "review_lenses": ["SRE", "observability", "security", "governance"]
+    },
+    {
+      "title": "Integrator: HR cloud shared catalog/spec registration after review",
+      "conflict_class": "serialized-integrator:shared specs/registry/catalog cloud deployment",
+      "allowed_paths": [
+        "specs/fixtures/hr-cloud-deployment/replay/**",
+        "registry/catalog/oya-hr-cloud-deployment-*.yaml"
+      ],
+      "acceptance": "Only after review approval, register HR cloud deployment evidence/catalog rows with parser-visible conflict metadata and no generated-face edits.",
+      "verification": "Run fixture validator, catalog/schema validators if rows are added, dry-run dispatcher warning scan, and independent review/fix before downstream release/rollout work.",
+      "review_lenses": ["governance", "cloud", "release", "security"]
+    }
+  ],
+  "review_handoff": {
+    "required_lenses": ["SRE", "security", "cloud", "governance"],
+    "local_verification": [
+      "python3 scripts/tests/hr_cloud_deployment_evidence_plan_check.py",
+      "python3 scripts/tests/hr_cloud_deployment_evidence_plan_check.py --self-test",
+      "python3 -m json.tool specs/fixtures/hr-cloud-deployment/preview-deployment-evidence-plan.json"
+    ],
+    "production_rollout": "N/A: no live deployment is performed or claimed by this Plan/Spec/RED fixture."
+  }
+}

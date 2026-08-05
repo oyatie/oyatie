@@ -1,0 +1,50 @@
+{
+  "output_key": "cascading_failure_check",
+  "run_id": "qk01-t_5758c29f",
+  "scenario_checks": {
+    "QK-01-overload-fairness-S01": {
+      "downstream_dependency_saturation": false,
+      "evaluation_status": "passed",
+      "in_flight_protection": "protected_by_admission_before_work_start",
+      "peak_queue_depth": 24,
+      "queue_recovery": "recovered_to_steady_state_bound",
+      "queue_recovery_bound": 24,
+      "retry_amplification_factor": 0.76,
+      "retry_budget": 0.12,
+      "scenario_id": "QK-01-overload-fairness-S01"
+    },
+    "QK-01-overload-fairness-S02": {
+      "downstream_dependency_saturation": false,
+      "evaluation_status": "passed",
+      "in_flight_protection": "protected_by_admission_before_work_start",
+      "peak_queue_depth": 24,
+      "queue_recovery": "recovered_to_steady_state_bound",
+      "queue_recovery_bound": 24,
+      "retry_amplification_factor": 0.76,
+      "retry_budget": 0.1,
+      "scenario_id": "QK-01-overload-fairness-S02"
+    },
+    "QK-01-overload-fairness-S03": {
+      "downstream_dependency_saturation": false,
+      "evaluation_status": "passed",
+      "in_flight_protection": "protected_by_admission_before_work_start",
+      "peak_queue_depth": 24,
+      "queue_recovery": "recovered_to_steady_state_bound",
+      "queue_recovery_bound": 24,
+      "retry_amplification_factor": 0.76,
+      "retry_budget": 0.08,
+      "scenario_id": "QK-01-overload-fairness-S03"
+    },
+    "QK-01-overload-fairness-S04": {
+      "downstream_dependency_saturation": false,
+      "evaluation_status": "passed",
+      "in_flight_protection": "protected_by_admission_before_work_start",
+      "peak_queue_depth": 16,
+      "queue_recovery": "recovered_to_steady_state_bound",
+      "queue_recovery_bound": 24,
+      "retry_amplification_factor": 0.98,
+      "retry_budget": 0.18,
+      "scenario_id": "QK-01-overload-fairness-S04"
+    }
+  }
+}

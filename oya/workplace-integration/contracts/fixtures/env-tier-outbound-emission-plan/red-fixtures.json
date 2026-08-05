@@ -1,0 +1,446 @@
+{
+  "schema_version": "1.0",
+  "fixture_suite_id": "workplace-integration-env-tier-outbound-emission-plan-red-fixtures-v1",
+  "status": "metadata_only_red_guardrail",
+  "kanban_task": "t_b9a76f37",
+  "parent_plan_spec_task": "t_cf19286a",
+  "contract_under_test": "oya/workplace-integration/contracts/env-tier-outbound-emission-plan.contract.json",
+  "source_authority_refs": [
+    "specs/tenant-environment-tiers-canonical.json#tier_definitions",
+    "kanban:t_cf19286a#workplace-integration-requirements",
+    "kanban:t_732855bf#tenancy-env-tier-policy-evidence",
+    "kanban:t_86da510f#outbound-effect-inventory",
+    "oya/workplace-integration/manifest.json",
+    "oya/workplace-integration/contracts/openapi-v1.yaml",
+    "oya/workplace-integration/contracts/asyncapi-v1.yaml",
+    "oya/workplace-integration/contracts/workplace-integration-v1.proto"
+  ],
+  "claim_ceiling": [
+    "known-good and known-bad metadata fixtures only",
+    "no live e-sign provider call",
+    "no workplace external delivery",
+    "no payment execution",
+    "no webhook delivery",
+    "no production traffic",
+    "no runtime audit-chain emission",
+    "no hyperscaler maturity claim"
+  ],
+  "positive_fixtures": [
+    {
+      "name": "test_intercept_log_only_metadata_preserved",
+      "fixture_kind": "positive_metadata_contract",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "test",
+        "outbound_mode": "intercept",
+        "action_class": "roster_binding",
+        "destination_binding_ref": null,
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/test/consent-log-only/roster-binding-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/test/env-tier/intercept-log-only-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only intercept/log-only roster binding plan; no external delivery"
+      },
+      "expected_outcome": {
+        "policy_verdict": "PASS_METADATA_ONLY",
+        "derived_outbound_mode": "intercept",
+        "must_remain_runtime_authorized": false
+      }
+    },
+    {
+      "name": "staging_test_recipients_qa_destination_preserved",
+      "fixture_kind": "positive_metadata_contract",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "offer_generation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/staging/qa/offer-recipient-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/staging/consent-qa/offer-generation-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/staging/env-tier/qa-recipient-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only staging QA recipient plan; no live workplace/e-sign delivery"
+      },
+      "expected_outcome": {
+        "policy_verdict": "PASS_METADATA_ONLY",
+        "derived_outbound_mode": "test_recipients",
+        "must_remain_runtime_authorized": false
+      }
+    },
+    {
+      "name": "prod_live_with_policy_and_consent_evidence_metadata_preserved",
+      "fixture_kind": "positive_metadata_contract",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/esign-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only prod live e-sign plan with policy evidence; no provider call"
+      },
+      "expected_outcome": {
+        "policy_verdict": "PASS_METADATA_ONLY",
+        "derived_outbound_mode": "live",
+        "must_remain_runtime_authorized": false
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "missing_env_tier_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "outbound_mode": "intercept",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": null,
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/test/consent-log-only/missing-env-tier",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/test/env-tier/missing-env-tier",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-ENV-TIER-REQUIRED",
+        "reason": "missing_env_tier",
+        "deny_before": [
+          "workplace/e-sign/offer/roster/payment-adjacent emission plan admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::missing_env_tier_is_denied"
+    },
+    {
+      "name": "derived_outbound_mode_mismatch_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "intercept",
+        "action_class": "offer_generation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/offer-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/offer-generation-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-OUTBOUND-MODE-DERIVED",
+        "reason": "outbound_mode_not_derived_from_env_tier",
+        "deny_before": [
+          "destination binding selection",
+          "runtime adapter selection"
+        ]
+      },
+      "future_test_ref": "workplace_integration::outbound_mode_is_derived_from_env_tier"
+    },
+    {
+      "name": "test_intercept_external_delivery_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "test",
+        "outbound_mode": "intercept",
+        "action_class": "payment_adjacent_webhook",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/test/qa/forbidden-external-delivery",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/test/consent-log-only/no-delivery",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/test/env-tier/intercept-log-only",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture; test tier must remain intercept/log-only"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-TEST-INTERCEPT-ONLY",
+        "reason": "test_tier_external_delivery_forbidden",
+        "deny_before": [
+          "external e-sign provider call",
+          "workplace external delivery",
+          "payment-adjacent webhook delivery"
+        ]
+      },
+      "future_test_ref": "workplace_integration::test_tier_external_delivery_is_denied"
+    },
+    {
+      "name": "staging_without_qa_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "offer_generation",
+        "destination_binding_ref": null,
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/staging/consent-qa/offer-generation-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/staging/env-tier/qa-recipient-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-STAGING-QA-DESTINATION-REQUIRED",
+        "reason": "staging_qa_destination_required",
+        "deny_before": [
+          "staging e-sign/offer/roster/workplace/payment-adjacent metadata admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::staging_requires_qa_destination_binding"
+    },
+    {
+      "name": "staging_live_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "esign_signature_capture",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/esign-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/staging/consent-qa/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/staging/env-tier/qa-recipient-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-STAGING-NO-LIVE-DESTINATION",
+        "reason": "staging_destination_must_be_qa_or_test",
+        "deny_before": [
+          "staging destination binding admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::staging_rejects_live_destination_binding"
+    },
+    {
+      "name": "staging_live_destination_with_qa_label_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "esign_signature_capture",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/qa-shadow-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/staging/consent-qa/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/staging/env-tier/qa-recipient-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-STAGING-NO-LIVE-DESTINATION",
+        "reason": "staging_destination_must_be_qa_or_test",
+        "deny_before": [
+          "staging destination binding admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::staging_rejects_live_destination_even_with_qa_label"
+    },
+    {
+      "name": "prod_non_live_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/staging/qa/esign-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-PROD-LIVE-DESTINATION-REQUIRED",
+        "reason": "prod_destination_must_be_live",
+        "deny_before": [
+          "prod destination binding admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::prod_destination_must_use_prod_live_prefix"
+    },
+    {
+      "name": "evidence_ref_wrong_tenant_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/esign-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_beta/prod/consent-authorization/ten_alpha-shadow",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-EVIDENCE-REF-SCOPE-REQUIRED",
+        "reason": "evidence_ref_must_match_tenant_and_env_tier",
+        "deny_before": [
+          "consent/policy evidence reference admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::evidence_refs_must_bind_same_tenant_segment"
+    },
+    {
+      "name": "evidence_ref_wrong_env_tier_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "staging",
+        "outbound_mode": "test_recipients",
+        "action_class": "esign_signature_capture",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/staging/qa/esign-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/staging/env-tier/qa-recipient-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-EVIDENCE-REF-SCOPE-REQUIRED",
+        "reason": "evidence_ref_must_match_tenant_and_env_tier",
+        "deny_before": [
+          "consent/policy evidence reference admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::evidence_refs_must_bind_selected_env_tier"
+    },
+    {
+      "name": "prod_without_tenancy_env_tier_policy_evidence_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "offer_generation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/offer-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/offer-generation-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/missing-policy",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-PROD-TENANCY-ENV-TIER-EVIDENCE-REQUIRED",
+        "reason": "prod_tenancy_env_tier_evidence_required",
+        "deny_before": [
+          "prod live workplace/e-sign/offer/roster/payment-adjacent metadata admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::prod_requires_tenancy_env_tier_policy_evidence"
+    },
+    {
+      "name": "prod_without_consent_authorization_evidence_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "payment_adjacent_webhook",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/payment-adjacent-webhook-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/missing-consent",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-PROD-CONSENT-AUTHORIZATION-EVIDENCE-REQUIRED",
+        "reason": "prod_consent_authorization_evidence_required",
+        "deny_before": [
+          "prod live e-sign/offer/webhook/payment-adjacent metadata admission"
+        ]
+      },
+      "future_test_ref": "workplace_integration::prod_requires_consent_authorization_evidence"
+    },
+    {
+      "name": "cross_tenant_destination_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": "workplace-integration-destination/ten_beta/prod/live/esign-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-CROSS-TENANT-DESTINATION-DENIED",
+        "reason": "cross_tenant_destination_forbidden",
+        "deny_before": [
+          "destination binding admission",
+          "cross-tenant workplace/e-sign recipient leakage"
+        ]
+      },
+      "future_test_ref": "workplace_integration::cross_tenant_destination_is_denied"
+    },
+    {
+      "name": "cross_tenant_destination_with_matching_suffix_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": "workplace-integration-destination/ten_beta/prod/live/ten_alpha-shadow-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-CROSS-TENANT-DESTINATION-DENIED",
+        "reason": "cross_tenant_destination_forbidden",
+        "deny_before": [
+          "destination binding admission",
+          "cross-tenant workplace/e-sign recipient leakage"
+        ]
+      },
+      "future_test_ref": "workplace_integration::cross_tenant_destination_with_matching_suffix_is_denied"
+    },
+    {
+      "name": "secret_like_destination_or_evidence_ref_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "esign_session_initiation",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/raw-credential-marker",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/esign-session-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": false,
+        "claim_boundary": "metadata-only negative fixture"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-SECRET-LIKE-REF-DENIED",
+        "reason": "secret_like_destination_or_evidence_ref_forbidden",
+        "deny_before": [
+          "fixture acceptance",
+          "metadata reference acceptance"
+        ]
+      },
+      "future_test_ref": "workplace_integration::secret_like_destination_or_evidence_refs_are_denied"
+    },
+    {
+      "name": "runtime_delivery_claim_denied",
+      "fixture_kind": "negative",
+      "input": {
+        "tenant_id": "ten_alpha",
+        "env_tier": "prod",
+        "outbound_mode": "live",
+        "action_class": "payment_adjacent_webhook",
+        "destination_binding_ref": "workplace-integration-destination/ten_alpha/prod/live/payment-adjacent-webhook-binding",
+        "consent_policy_evidence_ref": "policy-evidence/workplace-integration/ten_alpha/prod/consent-authorization/payment-adjacent-webhook-001",
+        "tenancy_env_tier_evidence_ref": "tenancy-evidence/workplace-integration/ten_alpha/prod/env-tier/policy-allow-001",
+        "runtime_delivery_authorized": true,
+        "claim_boundary": "metadata-only negative fixture; runtime claim must remain forbidden"
+      },
+      "expected_denial": {
+        "rule_id": "WPI-RUNTIME-CLAIM-FORBIDDEN",
+        "reason": "runtime_delivery_claim_forbidden_in_metadata_lane",
+        "deny_before": [
+          "runtime delivery",
+          "e-sign provider call",
+          "webhook delivery",
+          "payment execution",
+          "production traffic"
+        ]
+      },
+      "future_test_ref": "workplace_integration::runtime_delivery_claim_is_denied"
+    }
+  ]
+}

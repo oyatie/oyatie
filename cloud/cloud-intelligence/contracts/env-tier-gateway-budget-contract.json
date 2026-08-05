@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "cloud-intelligence-env-tier-gateway-budget-v1",
+  "status": "plan_spec_red",
+  "doc_class": "Machine-Readable-Contract",
+  "task_refs": [
+    "t_a14a4135",
+    "t_86da510f",
+    "t_732855bf",
+    "t_90f6a9d8",
+    "t_9e9a32a5"
+  ],
+  "consumes_contract": "oya/intelligence/contracts/env-tier-model-budget-contract.json",
+  "purpose": "Cloud-intelligence gateway view of the tenant env-tier model-default and per-tier cost-budget contract. This is metadata-only Plan/Spec/RED evidence and does not implement provider dispatch, billing, production traffic, or runtime enforcement.",
+  "claim_ceiling": [
+    "metadata-only gateway contract shape",
+    "no production gateway readiness claim",
+    "no provider call",
+    "no production model traffic",
+    "no live budget ledger write",
+    "no hyperscaler maturity claim"
+  ],
+  "gateway_contract": {
+    "required_ingress_metadata": [
+      "tenant_id",
+      "env_tier",
+      "tier_cost_budget_policy_ref",
+      "tier_cost_budget_evidence_ref",
+      "model_default_policy_ref",
+      "model_route_registry_snapshot_ref",
+      "policy_decision_ref",
+      "trace_context_ref"
+    ],
+    "admission_order": [
+      "authenticate ingress realm",
+      "bind tenant_id to authenticated principal",
+      "validate env_tier enum",
+      "validate tier-specific model-default evidence",
+      "validate tier-specific hard budget evidence",
+      "admit to provider pool only after all metadata checks pass"
+    ],
+    "failure_behavior": {
+      "missing_env_tier": "deny before provider dispatch",
+      "wrong_model_default_for_tier": "deny before provider dispatch",
+      "missing_per_tier_cost_budget_evidence": "429 budget_exceeded or policy denial before provider dispatch",
+      "foundry_live_authority_resurrection": "deny and route to intelligence retirement-authority fix-forward, never to a foundry runtime"
+    },
+    "budget_policy": {
+      "test": {
+        "hard_cap_required": true,
+        "provider_pool_class": "small_cheap_non_prod",
+        "production_model_traffic_allowed": false
+      },
+      "staging": {
+        "hard_cap_required": true,
+        "provider_pool_class": "promotion_candidate_non_prod",
+        "production_model_traffic_allowed": false
+      },
+      "prod": {
+        "hard_cap_required": true,
+        "provider_pool_class": "production_grade_slo_backed",
+        "production_model_traffic_allowed": true
+      }
+    },
+    "usage_evidence": {
+      "emits_after_admission_only": "llm.usage.v1 metadata may be emitted only after env-tier and budget metadata have admitted the request; failed admission emits denial/budget metadata without provider token counts.",
+      "must_not_include": [
+        "raw prompt",
+        "raw completion",
+        "provider credential bytes",
+        "Authorization header",
+        "API key"
+      ]
+    }
+  },
+  "serialization_requirements": [
+    "cloud/cloud-intelligence/contracts and manifest refs serialize with gateway provider/budget contract lanes",
+    "runtime budget admission must wait for tenancy env-tier API/Cedar runtime endpoint completion and review",
+    "cloud-ci tenant-environment-tier packet remains separately serialized",
+    "generated *.generated.json must not be hand edited"
+  ],
+  "red_fixture_source": "oya/intelligence/contracts/fixtures/env-tier-model-budget/red-fixtures.json"
+}

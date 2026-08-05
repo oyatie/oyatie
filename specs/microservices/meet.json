@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/microservices/meet.json",
+  "title": "MicroservicePrd:Meet",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-MEET",
+    "version": "0.1.0",
+    "status": "Accepted",
+    "owner_team": "axis-meet",
+    "created_at": "2026-07-01",
+    "authority_lock_task": "t_13b685a0",
+    "purpose": "Meet source-authority lock and source map: authorizes source-backed Plan/Spec and RED fixture decomposition for meeting rooms, participant/lobby, media/session control, captions/transcription, recording handoff, webinar/breakout, live-stream egress, and E2E meeting encryption. This artifact does not authorize runtime implementation or production-readiness claims."
+  },
+  "authority_resolution": {
+    "current_authority": "/specs/microservices/meet.json",
+    "manifest_index_ref": "/specs/microservices/manifests-index.json#microservices[name=meet]",
+    "manifest_inventory_ref": "/oya/meet/manifest.json",
+    "manifest_index_fd001_material": false,
+    "manifest_index_boundary": "The manifests-index meet row marks oya/meet/manifest.json as tracked service inventory/provenance only and says no specs/microservices/meet.json PRD/source-authority file existed before this task. This artifact is the source lock for later planning; the manifest alone remains insufficient for RED/Build or readiness claims.",
+    "layout_authority": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-24-28",
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md#lines-60-63",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-24-27",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md#lines-53-62"
+    ],
+    "canonical_service_root": "/oya/meet/",
+    "legacy_root_disposition": "Paths beginning microservices/meet/ that appear inside oya/meet/manifest.json are legacy provenance/path-discovery inputs only. Future cards must use current oya/meet/** paths when they exist, or quarantine the legacy reference as unresolved rather than recreating the legacy root.",
+    "claim_boundary": "Source authority for planning, source-map validation, and future RED-contract decomposition only. No handler, storage adapter, media plane, deployment, live SLO, production readiness, hyperscaler maturity, GA, external availability, or customer-facing readiness claim is made by this artifact."
+  },
+  "identity": {
+    "product_id": "meet",
+    "owning_axis": "workspace-communications",
+    "product_class": "service",
+    "fd001_material": false,
+    "user_facing_surface": true,
+    "context_model": [
+      "work"
+    ],
+    "service_boundary": "Tenant-scoped workplace meeting service for room/session lifecycle, participant and lobby policy, audio/video/screen-share control, recording bridge handoff, transcription/captions/summaries, webinar/breakout/live-stream modes, and opt-in E2E meeting encryption. Calendar, recordings, intelligence, notes/drive, identity, tenancy, audit-chain, ontology, observability, and workflow-engine remain separate service boundaries connected by explicit contracts.",
+    "inventory_owner": "axis-meet",
+    "crate_refs_planned_or_inventory": [
+      "oya-meet-meeting-room-domain",
+      "oya-meet-meeting-room-kernel",
+      "oya-meet-meeting-room-rest",
+      "oya-meet-meeting-room-usecase",
+      "oya-meet-participant-domain",
+      "oya-meet-participant-kernel",
+      "oya-meet-participant-rest",
+      "oya-meet-participant-usecase",
+      "oya-meet-recording-bridge-kernel",
+      "oya-meet-transcription-kernel",
+      "oya-meet-e2e-encryption-kernel"
+    ],
+    "crate_claim_boundary": "Catalog and crate names are inventory/source-map candidates only until a RED/Build card verifies current files, package metadata, and compile/test evidence."
+  },
+  "inherits": {
+    "oyatie_specs": [
+      "$ref:specs/root-hub-pointers.json#entry_points.agent_operating_contract",
+      "$ref:specs/masterplan.json",
+      "$ref:specs/microservices/manifests-index.json#microservices[name=meet]",
+      "$ref:specs/microservices/calendar.json",
+      "$ref:specs/microservices/messenger.json",
+      "$ref:specs/microservices/workflow.json",
+      "$ref:specs/microservices/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "adrs": [
+      "$ref:docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "$ref:docs/decisions/ADR-0512-canonical-monorepo-pattern.md",
+      "$ref:docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md",
+      "$ref:docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+      "$ref:docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md",
+      "$ref:docs/decisions/ADR-0263-observability-emission-contract.md",
+      "$ref:docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "$ref:docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    ],
+    "inventory_context_not_fanout_authority": [
+      "$ref:oya/meet/manifest.json",
+      "$ref:oya/meet/README.md",
+      "$ref:oya/meet/dpia/dpia.md",
+      "$ref:oya/meet/catalog/*.yaml",
+      "$ref:oya/meet/contracts/openapi/meet.yaml",
+      "$ref:oya/meet/contracts/asyncapi/meet-events.yaml",
+      "$ref:oya/meet/contracts/proto/meet.proto",
+      "$ref:contracts/openapi/workspace/workspace-meet-v1.yaml"
+    ],
+    "user_story_and_evidence_candidates": [
+      "$ref:docs/user-journeys/j39-b2b-meeting-with-transcription/schemas/meeting-transcript-archive.json",
+      "$ref:docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json",
+      "$ref:docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/board-meeting-state-machine.yaml",
+      "$ref:docs/runbooks/workspace/meet-sfu-failover.md"
+    ]
+  },
+  "source_reference_map": {
+    "verified_current_paths": [
+      {
+        "category": "service_root",
+        "current_path": "oya/meet/",
+        "authority_use": "canonical service-local source/inventory root under ADR-0131 as amended by ADR-0512",
+        "fanout_boundary": "inspectable source/provenance; not a readiness claim without RED/Build/review evidence"
+      },
+      {
+        "category": "rest_contract",
+        "current_path": "oya/meet/contracts/openapi/meet.yaml",
+        "authority_use": "service-local meet REST source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate OpenAPI shape and replay expected endpoints before handlers depend on it"
+      },
+      {
+        "category": "async_contract",
+        "current_path": "oya/meet/contracts/asyncapi/meet-events.yaml",
+        "authority_use": "service-local meet async/event source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate event schemas and audit/idempotency envelopes"
+      },
+      {
+        "category": "proto_contract",
+        "current_path": "oya/meet/contracts/proto/meet.proto",
+        "authority_use": "service-local meet proto source candidate for future contract replay",
+        "fanout_boundary": "future RED cards must validate proto compatibility and generated projection boundaries"
+      },
+      {
+        "category": "workspace_api_projection",
+        "current_path": "contracts/openapi/workspace/workspace-meet-v1.yaml",
+        "authority_use": "workspace-facing meet session-start projection candidate",
+        "fanout_boundary": "must be reconciled against service-local contracts before implementation; central projection is not the sole service source of truth"
+      },
+      {
+        "category": "privacy_security",
+        "current_path": "oya/meet/dpia/dpia.md",
+        "authority_use": "DPIA/procedure context for automation evidence and tenant-scoped identifiers",
+        "fanout_boundary": "wave doctrine-propagation DPIA only; product data-flow/privacy plan must be expanded in Plan/Spec before implementation"
+      },
+      {
+        "category": "user_journey",
+        "current_path": "docs/user-journeys/j39-b2b-meeting-with-transcription/schemas/meeting-transcript-archive.json",
+        "authority_use": "meeting-with-transcription journey source candidate involving meet, intelligence, recordings, drive/notes, and observability",
+        "fanout_boundary": "Proposed journey schema; future cards must verify status/freshness and avoid treating it as implementation proof"
+      },
+      {
+        "category": "user_journey",
+        "current_path": "docs/user-journeys/j163-av-coordinator-jordan-park-board-meeting-cross-time-zone/schemas/openapi-meet-board-mode.json",
+        "authority_use": "board-meeting cross-time-zone/user-story source candidate for preflight, consent, recording envelope, executive session, captioning, and archival flows",
+        "fanout_boundary": "journey-level contract candidate; future cards must reconcile cross-service endpoints and avoid conflating meet with recordings/intelligence ownership"
+      }
+    ],
+    "legacy_manifest_reference_disposition": [
+      {
+        "legacy_pattern": "microservices/meet/contracts/openapi/meet.yaml",
+        "current_path": "oya/meet/contracts/openapi/meet.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/meet/contracts/asyncapi/meet-events.yaml",
+        "current_path": "oya/meet/contracts/asyncapi/meet-events.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/meet/contracts/proto/meet.proto",
+        "current_path": "oya/meet/contracts/proto/meet.proto",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/meet/capabilities/T0-suggest.yaml",
+        "current_path": "oya/meet/capabilities/T0-suggest.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/meet/capabilities/T1-assist.yaml",
+        "current_path": "oya/meet/capabilities/T1-assist.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/meet/capabilities/T2-auto.yaml",
+        "current_path": "oya/meet/capabilities/T2-auto.yaml",
+        "disposition": "mapped_to_current_service_root"
+      },
+      {
+        "legacy_pattern": "microservices/meet/slos/*.openslo.yaml",
+        "current_path": "oya/meet/slos/*.openslo.yaml",
+        "disposition": "mapped_to_current_service_root; individual SLOs must be verified by future Plan/Spec/RED cards before becoming gate evidence"
+      },
+      {
+        "legacy_pattern": "microservices/meet/IP-001..IP-015*.md",
+        "current_path": null,
+        "disposition": "quarantined_unresolved_legacy_ip_references; future workers must not recreate microservices/meet and must instead author current Plan/Spec cards under accepted allowed paths after review approval"
+      },
+      {
+        "legacy_pattern": "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml",
+        "current_path": null,
+        "disposition": "cross-service legacy provenance from manifest hyperscaler coverage; not a meet-owned source path and not a live meet readiness claim"
+      }
+    ]
+  },
+  "functional_scope": {
+    "in_scope_for_future_plan_spec": [
+      "meeting room create/read/update/archive and scheduled meeting binding",
+      "meeting instance lifecycle and SFU placement metadata",
+      "participant roles, lobby/waiting-room state, consent acknowledgement, host/co-host/presenter controls",
+      "audio/video/screen-share track state and mute/camera/share controls",
+      "recording bridge handoff with explicit consent, retention, legal-hold, and recordings-service boundary",
+      "captions, transcript, summary, and translation handoff with intelligence/data-use boundaries",
+      "webinar, breakout, and live-stream egress modes with broadcast-tier policy",
+      "opt-in E2E meeting encryption and key/MLS evidence boundaries",
+      "tenant/cell/region/residency/compliance-pack routing metadata",
+      "accessibility and keyboard/screen-reader semantics for join, leave, mute, camera, captions, transcript, recording consent, and error states"
+    ],
+    "out_of_scope_for_this_lock": [
+      "runtime handlers or storage adapters",
+      "media-plane/SFU implementation",
+      "RED fixture code before independent review approves this source lock",
+      "cloud deployment or production SLO assertions",
+      "generated JSON edits or materialized generated-face changes",
+      "Release Please metadata",
+      "legacy CLI or merge-authority changes",
+      "claiming oya/meet/manifest.json, catalog rows, or journey schemas as runtime/product-ready evidence"
+    ]
+  },
+  "dependency_boundaries": {
+    "consumes": [
+      {
+        "service": "identity",
+        "contract": "OIDC principal and tenant-scoped authorization context",
+        "boundary": "no direct identity data model coupling; use token/policy claims"
+      },
+      {
+        "service": "tenancy",
+        "contract": "tenant, region, cell, residency, compliance-pack scope",
+        "boundary": "tenant and cell metadata remain authoritative upstream"
+      },
+      {
+        "service": "calendar",
+        "contract": "calendar_event_id and invite/schedule handoff",
+        "boundary": "calendar remains source of schedule; meet owns live session state"
+      },
+      {
+        "service": "intelligence",
+        "contract": "caption/transcription/summary/translation processing handoff",
+        "boundary": "AI processing requires tenant opt-in, DEK/data-use controls, and explicit audit evidence before implementation"
+      },
+      {
+        "service": "observability",
+        "contract": "SLO, trace, metric, and audit signal consumption",
+        "boundary": "observability evidence is proof only after concrete emitters and dashboards are implemented and replayed"
+      }
+    ],
+    "produces": [
+      {
+        "contract": "meet.room.v1",
+        "description": "meeting room and lobby policy state"
+      },
+      {
+        "contract": "meet.instance.v1",
+        "description": "live meeting instance/session lifecycle state"
+      },
+      {
+        "contract": "meet.participant.v1",
+        "description": "participant role, lobby, consent, and connection state"
+      },
+      {
+        "contract": "meet.recording_bridge.v1",
+        "description": "recording-start/finalize handoff and consent/retention metadata to recordings boundary"
+      },
+      {
+        "contract": "meet.transcript_ref.v1",
+        "description": "caption/transcript/summary references with audit/content-hash boundaries"
+      }
+    ],
+    "separate_services_not_covered": [
+      "recordings",
+      "notes",
+      "drive",
+      "intelligence",
+      "calendar",
+      "messenger",
+      "mail",
+      "workflow-engine",
+      "ontology",
+      "ops-dashboard-control-center"
+    ]
+  },
+  "data_privacy_security_notes": {
+    "data_classes_planning_floor": [
+      "INTERNAL_ONLY",
+      "AUDIT",
+      "PII_IDENTIFYING",
+      "PII_QUASI_IDENTIFYING",
+      "SENSITIVE_PIPA_ART23 where meeting content or healthcare/regulated context demands it",
+      "PHI only when a healthcare pack/workflow explicitly scopes the meeting"
+    ],
+    "sensitive_artifacts": [
+      "participant identity and display names",
+      "meeting topics and room metadata",
+      "audio/video/screen-share content",
+      "recording blobs and content hashes",
+      "captions/transcripts/summaries/action items",
+      "consent acknowledgements and legal-hold state",
+      "E2E encryption material references and audit-chain seals"
+    ],
+    "required_controls_before_build": [
+      "tenant/RBAC and Cedar deny-by-default for host, co-host, presenter, attendee, guest, interpreter, auditor, and AV coordinator roles",
+      "explicit recording/transcription/captioning consent model with jurisdiction overlays and visible UX disclosure",
+      "retention and legal-hold plan for recordings, transcripts, summaries, chat/action items, and audit logs",
+      "E2E encryption opt-in model with no silent downgrade and auditable key/MLS state transitions",
+      "data minimization for transcript/summarization inputs and no model-training use without explicit tenant/legal basis",
+      "cross-service handoff audit rows for recordings, intelligence, notes/drive, observability, and workflow-engine",
+      "residency/cell placement rules for meeting media metadata and derived artifacts"
+    ],
+    "security_risks_to_fixture": [
+      {
+        "id": "R-MEET-01",
+        "risk": "recording or transcription starts without participant consent or jurisdiction disclosure",
+        "future_fixture": "RED contract should deny recording/transcription start until consent matrix and policy disclosure are present"
+      },
+      {
+        "id": "R-MEET-02",
+        "risk": "guest/lobby bypass grants meeting access without Cedar policy approval",
+        "future_fixture": "RED contract should prove lobby pending/denied states cannot join media/session state"
+      },
+      {
+        "id": "R-MEET-03",
+        "risk": "legacy inventory paths are treated as implementation readiness",
+        "future_fixture": "RED source-map guard should fail any fanout that cites microservices/meet/** as a live destination"
+      },
+      {
+        "id": "R-MEET-04",
+        "risk": "E2E meeting encryption silently downgrades while UI still implies protected mode",
+        "future_fixture": "RED contract should bind E2E mode, participant key state, and visible warning/error state"
+      }
+    ]
+  },
+  "plan_spec_requirements_before_build": [
+    "service-boundary Plan/Spec that cites this artifact, manifests-index, oya/meet/manifest.json, ADR-0131, and ADR-0512",
+    "source-map validation that rejects unresolved legacy microservices/meet/** references as live fanout authority",
+    "API-first contract source-of-truth decision for service-local OpenAPI/AsyncAPI/proto and workspace projection reconciliation",
+    "tenant/RBAC/Cedar policy model for room, participant, lobby, host controls, recording, transcription, webinar/breakout, and auditor access",
+    "data/privacy/security model for recording, transcription, summary, consent, legal hold, E2E encryption, retention, and regional pack overlays",
+    "SLO/observability plan covering join latency, room create latency, media glass-to-glass latency, caption lag, recording start latency, transcription quality, and webinar fanout",
+    "browser/user-story and accessibility evidence plan before any user-facing UI change claims completion",
+    "single-writer allowed paths, conflict class, generated-face no-hand-edit policy, and review lenses for each future slice"
+  ],
+  "red_fixture_strategy": {
+    "fixture_classes": [
+      {
+        "id": "RED-MEET-SOURCE-MAP-01",
+        "purpose": "Assert specs/microservices/meet.json is the required source authority before meet Plan/Spec, RED, or Build cards can fan out",
+        "expected_first_failure": "fanout attempt missing this source-authority citation is rejected"
+      },
+      {
+        "id": "RED-MEET-LEGACY-PATH-01",
+        "purpose": "Reject live destination claims from microservices/meet/** paths while allowing explicit stale-reference quarantine rows",
+        "expected_first_failure": "legacy path cited as live implementation source fails the source-map check"
+      },
+      {
+        "id": "RED-MEET-CONTRACT-01",
+        "purpose": "Replay meet room/session/participant/recording/transcript contract expectations from verified OpenAPI/AsyncAPI/proto surfaces",
+        "expected_first_failure": "handler/storage implementation absent or contract mismatch fails before build"
+      },
+      {
+        "id": "RED-MEET-CONSENT-01",
+        "purpose": "Prove recording/transcription/caption consent, legal-hold, retention, and audit fields are required before derived artifacts are created",
+        "expected_first_failure": "missing consent or audit envelope yields deny/error fixture"
+      },
+      {
+        "id": "RED-MEET-A11Y-01",
+        "purpose": "Prove user-facing join/leave/mute/camera/screen-share/captions/recording-consent flows have keyboard and screen-reader acceptance criteria before UI build",
+        "expected_first_failure": "UI story missing accessibility evidence cannot pass review"
+      }
+    ],
+    "future_validation_commands": [
+      "python3 -m json.tool specs/microservices/meet.json",
+      "python3 ~/.hermes/skills/productivity/doc-grounded-kanban-population/scripts/retired_authority_guard.py --repo /Users/jasonlee/Developer/oyatie --candidate-json <future-candidates.json> --fail-on-blocked",
+      "OpenAPI/AsyncAPI/proto validation command to be selected by the RED card after checking project tooling availability",
+      "cargo nextest or equivalent Rust/cloud-ci gate packet only after implementation crates and fixtures exist"
+    ]
+  },
+  "api_contract_replay_expectations": {
+    "required_surfaces": [
+      "oya/meet/contracts/openapi/meet.yaml",
+      "oya/meet/contracts/asyncapi/meet-events.yaml",
+      "oya/meet/contracts/proto/meet.proto",
+      "contracts/openapi/workspace/workspace-meet-v1.yaml where workspace shell integration is in scope"
+    ],
+    "must_cover": [
+      "room create/read/archive lifecycle and idempotency",
+      "meeting instance start/end state and tenant/cell/SFU placement metadata",
+      "participant role/lobby/consent lifecycle",
+      "recording start/finalize handoff with retention/legal-hold/audit fields",
+      "transcript/caption/summary references with content-hash/seal boundaries",
+      "webinar/breakout/live-stream mode transitions where scoped",
+      "authorization and negative cases for tenant mismatch, Cedar deny, idempotency conflict, missing consent, and stale source-map paths"
+    ],
+    "non_claim": "No contract replay has passed yet; this section defines expectations for future RED/Build cards."
+  },
+  "browser_user_story_accessibility_expectations": {
+    "critical_user_stories": [
+      "employee host creates or starts a tenant-scoped meeting from workspace/calendar context",
+      "attendee joins through lobby, acknowledges recording/transcription consent, then mutes/unmutes and toggles camera",
+      "presenter starts/stops screen share with visible state and keyboard path",
+      "host starts/stops recording and sees retention/legal-hold/consent disclosure",
+      "participant uses live captions/transcript and sees language/error states",
+      "AV coordinator runs board-mode preflight, consent matrix, executive session, captioning, and archive flow where j163 scope is selected"
+    ],
+    "accessibility_acceptance_floor": [
+      "WCAG 2.2 AA minimum for any user-facing meet surface",
+      "keyboard-only operation for join, leave, mute, camera, screen share, lobby admit/deny, caption toggle, and recording consent controls",
+      "screen-reader labels and live-region updates for participant state, recording/transcription status, captions, and errors",
+      "visible focus order and no spinner-only waiting state for lobby, SFU placement, or caption startup",
+      "captions/transcript controls support reduced motion, high contrast, localization, and clear consent/policy disclosure"
+    ],
+    "evidence_required_before_merge": "Browser or user-story replay evidence is required for UI-facing Build slices; if no UI is touched, the review must record an explicit N/A rationale and still replay API/contract paths."
+  },
+  "downstream_lifecycle_gates": {
+    "plan_spec_gate": "Independent review of this source lock must approve before any broader Plan/Spec decomposition or RED/Build descendants are created.",
+    "red_fixture_gate": "RED cards must create failing source-map, contract replay, consent/privacy, and accessibility/user-story checks before implementation begins.",
+    "build_gate": "Build cards may only begin after RED fixtures exist, have allowed path prefixes, declare conflict classes, and preserve generated-face policy.",
+    "review_fix_gate": "Architecture, authority, security/privacy, API/schema, data/audit-chain, observability/SLO, accessibility/UX, performance, localization, and no-overclaim lenses are required.",
+    "merge_rollout_gate": "Protected PR to dev, reviewer APPROVE, oya-ci-required green, API/contract replay, rollback/observability evidence, browser/user-story evidence where applicable, release-governance/release-note impact, and learning/observation harvest."
+  },
+  "conflict_and_path_policy": {
+    "conflict_class": "product-spec-authority-meet-workplace-source-lock",
+    "allowed_authority_paths_for_this_lock": [
+      "specs/microservices/meet.json"
+    ],
+    "future_plan_spec_allowed_prefixes_after_review": [
+      "specs/microservices/meet.json",
+      "plan/meet/",
+      "oya/meet/specs/",
+      "oya/meet/PRD.md",
+      "oya/meet/decisions/",
+      "evidence/meet/"
+    ],
+    "future_red_allowed_prefixes_after_plan_spec": [
+      "specs/fixtures/meet/",
+      "scripts/tests/meet_*.py",
+      "oya/meet/crates/**/tests/",
+      "contracts/openapi/workspace/workspace-meet-v1.yaml only if workspace projection reconciliation is explicitly in scope"
+    ],
+    "generated_faces_policy": "Never hand-edit *.generated.json; materializers own generated faces.",
+    "serialization_notes": "Do not combine source-authority edits with runtime/cloud/generated/Release Please/CLI authority changes. Contract projection and service-local source-of-truth work must be serialized through an explicit Plan/Spec or integrator card if they touch shared contract roots."
+  },
+  "acceptance_criteria": [
+    {
+      "id": "AC-MEET-AUTH-01",
+      "given": "a worker decomposes meet work",
+      "when": "it creates Plan/Spec, RED, Build, Merge/Rollout, or Learning cards",
+      "then": "each card cites this artifact, manifests-index, oya/meet/manifest.json as provenance only, and ADR-0131/ADR-0512 canonical-root authority"
+    },
+    {
+      "id": "AC-MEET-AUTH-02",
+      "given": "a worker encounters microservices/meet/** references in oya/meet/manifest.json",
+      "when": "it needs current source paths",
+      "then": "the reference is mapped to oya/meet/** when verified to exist or quarantined as unresolved legacy provenance; no legacy service root is recreated or treated as live destination authority"
+    },
+    {
+      "id": "AC-MEET-AUTH-03",
+      "given": "a worker encounters meet catalog, README, DPIA, contract, SLO, runbook, or user-journey sources",
+      "when": "it wants runtime/product readiness evidence",
+      "then": "the source remains inventory/provenance until RED/Build/review evidence validates the specific claim"
+    },
+    {
+      "id": "AC-MEET-AUTH-04",
+      "given": "a future implementation touches user-facing meet flows",
+      "when": "it seeks review or merge",
+      "then": "browser/user-story/accessibility evidence is present, or a reviewer records a scoped N/A rationale for non-UI-only work"
+    }
+  ],
+  "non_claims": [
+    "No meet runtime implementation is created or approved by this source lock.",
+    "No media-plane, SFU, TURN, recording, transcription, summary, LiveKit, Whisper, storage, queue, search, workflow, ontology projection, cloud deployment, live SLO, production readiness, hyperscaler maturity, or GA/customer-availability claim is made.",
+    "No implementation fanout may use oya/meet inventory, catalog rows, contract files, journey schemas, or manifest SLOs as live readiness evidence without source-backed Plan/Spec and RED fixture gates.",
+    "No legacy microservices/meet/** destination authority is authorized.",
+    "No generated JSON hand edits are authorized."
+  ]
+}

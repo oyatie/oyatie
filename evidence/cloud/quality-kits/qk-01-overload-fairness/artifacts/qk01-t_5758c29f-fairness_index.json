@@ -1,0 +1,72 @@
+{
+  "minimum_fairness_index": 0.9999,
+  "output_key": "fairness_index",
+  "run_id": "qk01-t_5758c29f",
+  "scenario_scores": {
+    "QK-01-overload-fairness-S01": {
+      "evaluation_status": "passed",
+      "fairness_index": 0.9999,
+      "normalized_admitted_work_by_tenant": {
+        "tenant-alpha": 1186.515,
+        "tenant-beta": 1200.015,
+        "tenant-gamma": 1213.515
+      },
+      "scenario_id": "QK-01-overload-fairness-S01",
+      "tenant_sample_set": [
+        "tenant-alpha",
+        "tenant-beta",
+        "tenant-gamma"
+      ],
+      "threshold": 0.9
+    },
+    "QK-01-overload-fairness-S02": {
+      "evaluation_status": "passed",
+      "fairness_index": 1.0,
+      "normalized_admitted_work_by_tenant": {
+        "tenant-alpha": 1130.97,
+        "tenant-beta": 1139.97,
+        "tenant-gamma": 1148.97
+      },
+      "scenario_id": "QK-01-overload-fairness-S02",
+      "tenant_sample_set": [
+        "tenant-alpha",
+        "tenant-beta",
+        "tenant-gamma"
+      ],
+      "threshold": 0.9
+    },
+    "QK-01-overload-fairness-S03": {
+      "evaluation_status": "passed",
+      "fairness_index": 0.9999,
+      "normalized_admitted_work_by_tenant": {
+        "tenant-alpha": 739.863,
+        "tenant-beta": 747.866,
+        "tenant-gamma": 755.869
+      },
+      "scenario_id": "QK-01-overload-fairness-S03",
+      "tenant_sample_set": [
+        "tenant-alpha",
+        "tenant-beta",
+        "tenant-gamma"
+      ],
+      "threshold": 0.9
+    },
+    "QK-01-overload-fairness-S04": {
+      "evaluation_status": "passed",
+      "fairness_index": 0.9999,
+      "normalized_admitted_work_by_tenant": {
+        "tenant-alpha": 1124.436,
+        "tenant-beta": 1136.991,
+        "tenant-gamma": 1149.546
+      },
+      "scenario_id": "QK-01-overload-fairness-S04",
+      "tenant_sample_set": [
+        "tenant-alpha",
+        "tenant-beta",
+        "tenant-gamma"
+      ],
+      "threshold": 0.9
+    }
+  },
+  "threshold": 0.9
+}

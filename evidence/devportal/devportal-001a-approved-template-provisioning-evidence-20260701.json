@@ -1,0 +1,155 @@
+{
+  "artifact_id": "DEVPORTAL-001A-APPROVED-TEMPLATE-PROVISIONING-EVIDENCE-20260701",
+  "generated_at_utc": "2026-07-01T14:05:50Z",
+  "kanban_task_id": "t_e43dadd0",
+  "claim_boundary": {
+    "allowed_claim": "fixture-backed Developer Portal / Leptos shell approved-template provisioning slice",
+    "explicit_non_claims": [
+      "no provider-live provisioning",
+      "no OpenTofu or Kubernetes apply",
+      "no Backstage destination commitment",
+      "no generated JSON hand edits",
+      "no new operator CLI surface",
+      "no billing runtime",
+      "no Cedar runtime",
+      "no audit persistence",
+      "no production API readiness"
+    ]
+  },
+  "browser_story": {
+    "surface": "http://127.0.0.1:3123/#developer-portal-provisioning",
+    "template": "Rust API + Leptos Shell Service",
+    "template_id": "svc-rust-axum-leptos",
+    "version": "1.0.0-fixture",
+    "parameters": {
+      "service_slug": "orders-api",
+      "owning_team": "axis-developer-experience",
+      "cell": "cell-us-east-2"
+    },
+    "actions": [
+      "Quota and cost preview",
+      "Submit provisioning request"
+    ],
+    "operation_result": {
+      "request_id": "prq-devportal-001a",
+      "operation_id": "op-devportal-001a",
+      "idempotency_key": "idem-prq-devportal-001a",
+      "state": "accepted_fixture",
+      "preview_environment": "prv-orders-api-001a",
+      "evidence_receipt": "REC-DEVPORTAL-001A"
+    }
+  },
+  "contract_entities": [
+    "ServiceCatalogEntity",
+    "ApprovedTemplate",
+    "TemplateVersion",
+    "TemplateParameter",
+    "ProvisioningRequest",
+    "ProvisioningOperation",
+    "GeneratedArtifact",
+    "PreviewEnvironment",
+    "ResourceFacetEvidence"
+  ],
+  "admission_sequence": [
+    "identity/tenant/project binding",
+    "template allowlist",
+    "parameter validation",
+    "Cedar/policy decision",
+    "quota reservation and cost preview",
+    "approval if required",
+    "idempotent operation ledger mutation",
+    "reconciler-owned actuation",
+    "generated artifact registration",
+    "audit/event emission"
+  ],
+  "generated_artifacts": [
+    "OpenSLO",
+    "runbook-live-doc-entry",
+    "progressive-delivery-policy",
+    "preview-environment-lifecycle",
+    "backing-resource-descriptor"
+  ],
+  "policy_denial_fixture": {
+    "decision": "deny",
+    "reason": "policy denied fixture: unapproved template version or quota over budget"
+  },
+  "audit_events": [
+    {
+      "event_type": "developer_portal.provisioning.requested",
+      "receipt": "REC-DEVPORTAL-001A"
+    },
+    {
+      "event_type": "developer_portal.provisioning.policy_denied",
+      "receipt": "REC-DEVPORTAL-001A-DENY"
+    },
+    {
+      "event_type": "developer_portal.generated_artifacts.registered",
+      "receipt": "REC-DEVPORTAL-001A-ARTIFACTS"
+    }
+  ],
+  "role_coverage": [
+    {
+      "role": "platform engineer",
+      "path": "publish/deprecate approved templates and inspect generated artifacts"
+    },
+    {
+      "role": "security reviewer",
+      "path": "inspect Cedar decisions, policy denials, and audit evidence"
+    },
+    {
+      "role": "tenant admin",
+      "path": "approve request, set quota/budget boundaries, view ownership and billing impact"
+    }
+  ],
+  "control_plane_facets": {
+    "resources": ["service", "database", "topic", "bucket"],
+    "required_facets": [
+      "lifecycle",
+      "identity",
+      "policy",
+      "quota",
+      "billing",
+      "audit",
+      "observability",
+      "rollback",
+      "reconciliation"
+    ],
+    "facet_contract_fail_closed": true
+  },
+  "accessibility": {
+    "source_labels_present": [
+      "aria-labelledby=\"developer-portal-provisioning-title\"",
+      "aria-label=\"Template parameters\"",
+      "aria-label=\"Generated artifacts\"",
+      "aria-label=\"Policy denial and audit evidence\"",
+      "aria-label=\"Developer Portal role coverage\"",
+      "aria-label=\"Developer Portal resource facet evidence\""
+    ],
+    "browser_dom_spot_check": {
+      "icon_only_buttons": 0,
+      "unlabeled_inputs": 0
+    }
+  },
+  "verification": [
+    {
+      "command": "cargo test -p oya-application-shell-frontend developer_portal_story_has_accessible_landmarks_for_fixture_paths --lib --features ssr --no-default-features",
+      "phase": "RED",
+      "result": "failed before implementation with missing aria-label=\"Template parameters\""
+    },
+    {
+      "command": "cargo test -p oya-application-shell-frontend developer_portal_story_has_accessible_landmarks_for_fixture_paths --lib --features ssr --no-default-features",
+      "phase": "GREEN focused",
+      "result": "1 passed, 0 failed"
+    },
+    {
+      "command": "cargo fmt -p oya-application-shell-frontend && cargo test -p oya-application-shell-frontend --lib --features ssr --no-default-features",
+      "phase": "GREEN crate",
+      "result": "41 passed, 0 failed"
+    },
+    {
+      "command": "python git diff substring check for oya/application/crates/oya-application-shell-frontend/src/app.rs",
+      "phase": "no-new-operator-CLI check",
+      "result": "diff contains DEVPORTAL markers and no operator CLI/dev-cli/oya-dev-cli strings"
+    }
+  ]
+}

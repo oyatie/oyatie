@@ -6,10 +6,11 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-SECURITY-VALIDATION-PIPELINE-MATRIX",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "status": "planning-gate-matrix",
     "owner_team": "platform-security + platform-toolchain + ops-sre-reliability + council-architecture",
     "created_at": "2026-06-30T00:00:00Z",
+    "updated_at": "2026-07-01T13:29:46Z",
     "source_request": "REGSEC-002: define a productized universal pipeline matrix for chaos engineering, security scanners, SAST, DAST, IAST, BAS, automated pentesting, NIST SSDF, OWASP ASVS/SAMM/WSTG, SLSA, and existing oya-check supply-chain evidence without mutating product code or assuming a GitHub Actions north star.",
     "claim_boundary": "Planning/gate matrix only. This spec does not claim any lane is implemented, wired to branch protection, or production-ready. Mechanically-enforced claims require a Rust gate/controller, RED/GREEN fixtures, live required-context evidence, and audit-chain records per the claim contract.",
     "related_specs": [
@@ -20,7 +21,7 @@
       "/specs/toolchain-tenant-isolation-fixtures.json"
     ],
     "related_code": [
-      "/governance/check/supply-chain/src/lib.rs"
+      "/libs/oya-check-supply-chain/src/lib.rs"
     ],
     "related_decisions": [
       "ADR-0039",
@@ -175,17 +176,24 @@
       "lane_id",
       "subject_kind",
       "subject_ref",
+      "scope_ref",
       "source_revision",
       "work_area_hash_or_artifact_digest",
+      "policy_version",
+      "owner_ref",
       "scanner_or_control_id",
       "scanner_or_control_version",
       "ruleset_version",
+      "adapter_provenance",
       "started_at_trusted",
       "ended_at_trusted",
       "result",
+      "finding_or_gap_state",
       "severity_summary",
       "findings_ref",
       "exception_refs",
+      "remediation_ref",
+      "freshness_checked_at_trusted",
       "audit_event_ref",
       "producer_identity",
       "retention_until"
@@ -244,6 +252,52 @@
       "read_path": "tenant-scoped evidence API plus audit-chain references; tenant admins only read their tenant evidence",
       "immutability": "append-only records; correction records supersede prior records without mutation",
       "minimum_retention": "per compliance pack; default 400 days for gate evidence and 7 years for regulated release/security-control evidence"
+    },
+    "shared_evidence_field_contract": {
+      "purpose": "REGVAL-001 fixture/schema contract: every security-validation lane result carries the same normalized evidence fields before lane-specific fields are interpreted.",
+      "claim_boundary": "Schema and fixture contract only; does not implement the evidence API, scanner adapters, aggregate gate, or runtime security-validation enforcement.",
+      "required_for_every_lane_result": [
+        "scope_ref",
+        "work_area_hash_or_artifact_digest",
+        "source_revision",
+        "policy_version",
+        "owner_ref",
+        "finding_or_gap_state",
+        "remediation_ref",
+        "freshness_checked_at_trusted",
+        "adapter_provenance"
+      ],
+      "field_meanings": {
+        "scope_ref": "Tenant/cell/service/artifact or change-scope reference from trusted policy or inventory, not candidate-supplied prose.",
+        "work_area_hash_or_artifact_digest": "Immutable digest for the work area, artifact, image, SBOM, corpus, contract, scenario pack, or control snapshot under validation.",
+        "source_revision": "Trusted revision identifier for the candidate source or controlled runtime snapshot being evaluated.",
+        "policy_version": "Trusted gate policy, matrix, exception, and severity-policy version used for the verdict.",
+        "owner_ref": "Responsible service/control/security owner for the result, finding, or gap and its remediation SLA.",
+        "finding_or_gap_state": "Normalized state for a discovered finding, applicability gap, stale evidence gap, or no-finding result.",
+        "remediation_ref": "Remediation issue, patch, rotation, compensating-control, exception, or explicit no_remediation_required reference.",
+        "freshness_checked_at_trusted": "Trusted-clock freshness evaluation time; candidate-provided timestamps are never accepted as freshness proof.",
+        "adapter_provenance": "Adapter, ruleset, normalization, and producer metadata proving how raw scanner/control output became this evidence record."
+      },
+      "allowed_finding_or_gap_states": [
+        "no_findings",
+        "open_findings",
+        "remediated",
+        "accepted_exception_active",
+        "not_applicable_with_policy_reason",
+        "blocked_missing_evidence",
+        "blocked_stale_evidence",
+        "blocked_candidate_weakened_policy",
+        "blocked_adapter_untrusted"
+      ],
+      "adapter_provenance_required_fields": [
+        "adapter_id",
+        "adapter_version",
+        "adapter_digest",
+        "normalization_version",
+        "ruleset_version",
+        "producer_identity",
+        "trusted_policy_ref"
+      ]
     }
   },
   "false_positive_and_vex_policy": {
@@ -304,45 +358,27 @@
   "lane_groups": [
     {
       "id": "static_shift_left",
-      "lanes": [
-        "sast",
-        "sca",
-        "secrets",
-        "iac"
-      ],
+      "lanes": ["sast", "sca", "secrets", "iac"],
       "purpose": "Fast deterministic pre-merge and nightly coverage over code, dependencies, secrets, and declarative infrastructure."
     },
     {
       "id": "artifact_integrity",
-      "lanes": [
-        "container"
-      ],
+      "lanes": ["container"],
       "purpose": "Image/file-system/package scanning, signatures, SBOM, provenance, and admission evidence for promotable artifacts."
     },
     {
       "id": "dynamic_runtime_validation",
-      "lanes": [
-        "dast",
-        "iast",
-        "fuzzing",
-        "api_fuzzing",
-        "automated_pen_test"
-      ],
+      "lanes": ["dast", "iast", "fuzzing", "api_fuzzing", "automated_pen_test"],
       "purpose": "Runtime and protocol validation against deployed or instrumented candidates."
     },
     {
       "id": "adversarial_resilience",
-      "lanes": [
-        "bas_purple_team",
-        "security_chaos"
-      ],
+      "lanes": ["bas_purple_team", "security_chaos"],
       "purpose": "Control-plane, detection, prevention, recovery, and fail-closed validation through bounded adversarial and fault-injection scenarios."
     },
     {
       "id": "continuous_assurance",
-      "lanes": [
-        "continuous_control_evidence"
-      ],
+      "lanes": ["continuous_control_evidence"],
       "purpose": "Ongoing evidence that controls remain present, fresh, effective, and tenant-scoped after merge and deployment."
     }
   ],
@@ -546,7 +582,7 @@
         "covers": [
           "Cargo.lock, package manifests, container package inventories, vendored tools, build plugins, generated SBOMs, and transitive dependency metadata",
           "vulnerability databases, license allow/deny policy, dependency maturity, stale direct dependencies, and known-exploited vulnerability overlays",
-          "existing check-supply-chain evidence fields for cargo-deny, cargo-audit, Trivy/osv, SBOM, Cosign/Rekor, and provenance posture"
+          "existing oya-check-supply-chain evidence fields for cargo-deny, cargo-audit, Trivy/osv, SBOM, Cosign/Rekor, and provenance posture"
         ],
         "applicability": "pre-merge for dependency/lockfile/build-tool changes; nightly for vulnerability database drift; release for artifact SBOM and provenance"
       },
@@ -603,7 +639,7 @@
         "OWASP SAMM: implementation/dependency management maturity"
       ],
       "productization_requirements": [
-        "Reuses and extends check-supply-chain evidence concepts instead of duplicating supply-chain policy",
+        "Reuses and extends oya-check-supply-chain evidence concepts instead of duplicating supply-chain policy",
         "SBOM and provenance records are immutable release artifacts",
         "VEX decisions are API records, not scanner inline suppressions"
       ]
@@ -809,7 +845,7 @@
         "OWASP SAMM: operations/deployment assurance"
       ],
       "productization_requirements": [
-        "Integrates with check-supply-chain release evidence fields",
+        "Integrates with oya-check-supply-chain release evidence fields",
         "Admission verifier records are required for deployment, not optional release notes",
         "Re-scans can turn a previously passing image red when fresh vulnerability intelligence changes risk"
       ]
@@ -1247,49 +1283,27 @@
     "minimum_lane_applicability": [
       {
         "when": "any source or policy change",
-        "lanes": [
-          "sast",
-          "secrets"
-        ]
+        "lanes": ["sast", "secrets"]
       },
       {
         "when": "dependency manifest, lockfile, build tooling, vendored code, or release artifact changes",
-        "lanes": [
-          "sca",
-          "secrets",
-          "container"
-        ]
+        "lanes": ["sca", "secrets", "container"]
       },
       {
         "when": "IaC, policy-as-code, branch protection, admission, network, identity, or secret configuration changes",
-        "lanes": [
-          "iac",
-          "secrets",
-          "continuous_control_evidence"
-        ]
+        "lanes": ["iac", "secrets", "continuous_control_evidence"]
       },
       {
         "when": "API/webhook/event contract or tenant-facing API behavior changes",
-        "lanes": [
-          "api_fuzzing",
-          "dast",
-          "iast"
-        ]
+        "lanes": ["api_fuzzing", "dast", "iast"]
       },
       {
         "when": "untrusted-byte parser, protocol decoder, document parser, or sandbox/tool boundary changes",
-        "lanes": [
-          "fuzzing",
-          "sast"
-        ]
+        "lanes": ["fuzzing", "sast"]
       },
       {
         "when": "identity, policy, audit, secrets, admission, CI/CD, or tenant-isolation control changes",
-        "lanes": [
-          "bas_purple_team",
-          "security_chaos",
-          "continuous_control_evidence"
-        ]
+        "lanes": ["bas_purple_team", "security_chaos", "continuous_control_evidence"]
       },
       {
         "when": "production-ready, hyperscaler-grade, secure, isolated, or regulated release claim is made",
@@ -1316,74 +1330,694 @@
     "target_resources": [
       {
         "resource": "SecurityValidationPolicy",
-        "key_fields": [
-          "policy_id",
-          "version",
-          "tenant_scope",
-          "lane_applicability",
-          "severity_policy",
-          "exception_policy"
-        ]
+        "key_fields": ["policy_id", "version", "tenant_scope", "lane_applicability", "severity_policy", "exception_policy"]
       },
       {
         "resource": "SecurityValidationRun",
-        "key_fields": [
-          "run_id",
-          "pipeline_run_id",
-          "subject_ref",
-          "source_revision",
-          "applicable_lanes",
-          "aggregate_result"
-        ]
+        "key_fields": ["run_id", "pipeline_run_id", "subject_ref", "source_revision", "applicable_lanes", "aggregate_result"]
       },
       {
         "resource": "SecurityValidationLaneResult",
-        "key_fields": [
-          "run_id",
-          "lane_id",
-          "result",
-          "severity_summary",
-          "findings_ref",
-          "exception_refs",
-          "audit_event_ref"
-        ]
+        "key_fields": ["run_id", "lane_id", "result", "severity_summary", "findings_ref", "exception_refs", "audit_event_ref"]
       },
       {
         "resource": "SecurityValidationFinding",
-        "key_fields": [
-          "finding_id",
-          "fingerprint",
-          "lane_id",
-          "severity",
-          "asset_ref",
-          "evidence_ref",
-          "remediation_ref"
-        ]
+        "key_fields": ["finding_id", "fingerprint", "lane_id", "severity", "asset_ref", "evidence_ref", "remediation_ref"]
       },
       {
         "resource": "SecurityValidationException",
-        "key_fields": [
-          "exception_id",
-          "finding_fingerprint",
-          "decision",
-          "justification",
-          "approver_identity_ref",
-          "expires_at_trusted"
-        ]
+        "key_fields": ["exception_id", "finding_fingerprint", "decision", "justification", "approver_identity_ref", "expires_at_trusted"]
       },
       {
         "resource": "SecurityControlSnapshot",
-        "key_fields": [
-          "snapshot_id",
-          "service_cell_tenant_scope",
-          "control_inventory_version",
-          "freshness_window",
-          "policy_decision_refs"
-        ]
+        "key_fields": ["snapshot_id", "service_cell_tenant_scope", "control_inventory_version", "freshness_window", "policy_decision_refs"]
       }
     ],
     "tenant_isolation": "Every API resource carries tenant_id and service/cell scope. Cross-tenant reads are denied by default; Oyatie internal dogfood runs use tenant_id=oyatie-internal without privileged sharing.",
     "audit_chain": "Every create/update/supersede action emits an audit-chain event with actor, producer_identity, trusted timestamp, subject, result, exception refs, and previous_record_ref when applicable."
+  },
+  "evidence_schema_fixtures": {
+    "claim_boundary": "REGVAL-001 schema fixtures only; these fixture records do not prove any scanner/control lane is implemented, wired to branch protection, or production-ready.",
+    "positive_fixture": {
+      "fixture_id": "REGVAL-001-GOOD-all-13-lanes-share-common-evidence-fields",
+      "expected_verdict": "GREEN_SCHEMA_ONLY",
+      "covers_lane_ids": [
+        "sast",
+        "secrets",
+        "sca",
+        "iac",
+        "container",
+        "dast",
+        "iast",
+        "fuzzing",
+        "api_fuzzing",
+        "bas_purple_team",
+        "security_chaos",
+        "automated_pen_test",
+        "continuous_control_evidence"
+      ],
+      "must_include_common_fields": [
+        "scope_ref",
+        "work_area_hash_or_artifact_digest",
+        "source_revision",
+        "policy_version",
+        "owner_ref",
+        "finding_or_gap_state",
+        "remediation_ref",
+        "freshness_checked_at_trusted",
+        "adapter_provenance"
+      ],
+      "lane_result_records": [
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-sast",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "sast",
+          "subject_kind": "source_change",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/sast",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:sast-rust-ts-policy",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "sast-rust-ts-policy",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:7361737400000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/sast/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/sast",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-secrets",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "secrets",
+          "subject_kind": "source_change",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/secrets",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:secret-scan-redacted",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "secret-scan-redacted",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:7365637265747300000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/secrets/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/secrets",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-sca",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "sca",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/sca",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:sca-sbom-vex",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "sca-sbom-vex",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:7363610000000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/sca/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/sca",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-iac",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "iac",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/iac",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:iac-policy-plan",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "iac-policy-plan",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6961630000000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/iac/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/iac",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-container",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "container",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/container",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:container-image-admission",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "container-image-admission",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:636f6e7461696e65720000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/container/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/container",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-dast",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "dast",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/dast",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:dast-authenticated-preview",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "dast-authenticated-preview",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6461737400000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/dast/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/dast",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-iast",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "iast",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/iast",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:0707070707070707070707070707070707070707070707070707070707070707",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:iast-runtime-trace",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "iast-runtime-trace",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6961737400000000000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/iast/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/iast",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-fuzzing",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "fuzzing",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/fuzzing",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:1818181818181818181818181818181818181818181818181818181818181818",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:fuzz-corpus-replay",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "fuzz-corpus-replay",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:66757a7a696e6700000000000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/fuzzing/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/fuzzing",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-api_fuzzing",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "api_fuzzing",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/api_fuzzing",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:2929292929292929292929292929292929292929292929292929292929292929",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:api-contract-negative-corpus",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "api-contract-negative-corpus",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6170695f66757a7a696e67000000000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/api_fuzzing/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/api_fuzzing",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-bas_purple_team",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "bas_purple_team",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/bas_purple_team",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:bas-purple-team-scenario",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "bas-purple-team-scenario",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6261735f707572706c655f7465616d0000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/bas_purple_team/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/bas_purple_team",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-security_chaos",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "security_chaos",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/security_chaos",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b4b",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:security-chaos-fail-closed",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "security-chaos-fail-closed",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:73656375726974795f6368616f73000000000000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/security_chaos/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/security_chaos",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-automated_pen_test",
+          "record_type": "security_validation_lane_result.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "automated_pen_test",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/automated_pen_test",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:automated-pen-test-safe-payload",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "automated-pen-test-safe-payload",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:6175746f6d617465645f70656e5f746573740000000000000000000000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/automated_pen_test/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/automated_pen_test",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        },
+        {
+          "record_id": "fixture:REGVAL-001-GOOD-continuous_control_evidence",
+          "record_type": "security_control_snapshot.v1",
+          "schema_version": "security-validation-evidence.v1",
+          "tenant_id": "oyatie-internal",
+          "pipeline_run_id": "fixture:security-validation-run-REGVAL-001",
+          "lane_id": "continuous_control_evidence",
+          "subject_kind": "release_candidate",
+          "subject_ref": "changeset://fixture/security-validation-evidence-schema",
+          "scope_ref": "scope://tenant/oyatie-internal/service/toolchain-security/lane/continuous_control_evidence",
+          "source_revision": "git:fixture-regval-001-source-revision",
+          "work_area_hash_or_artifact_digest": "sha256:6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d",
+          "policy_version": "security-validation-pipeline-matrix@0.2.0+REGVAL-001",
+          "owner_ref": "team://platform-security",
+          "scanner_or_control_id": "security-validation-adapter:continuous-control-snapshot",
+          "scanner_or_control_version": "fixture.0.1.0",
+          "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+          "adapter_provenance": {
+            "adapter_id": "continuous-control-snapshot",
+            "adapter_version": "fixture.0.1.0",
+            "adapter_digest": "sha256:636f6e74696e756f75735f636f6e74726f6c5f65766964656e63650000000000",
+            "normalization_version": "security-validation-normalizer.v1",
+            "ruleset_version": "trusted-ruleset:security-validation:2026-07-01",
+            "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+            "trusted_policy_ref": "specs/security-validation-pipeline-matrix.json#evidence_api_contract"
+          },
+          "started_at_trusted": "2026-07-01T00:00:00Z",
+          "ended_at_trusted": "2026-07-01T00:01:00Z",
+          "result": "pass",
+          "finding_or_gap_state": "no_findings",
+          "severity_summary": {
+            "critical": 0,
+            "high": 0,
+            "medium": 0,
+            "low": 0,
+            "info": 0
+          },
+          "findings_ref": "evidence://security-validation/fixtures/continuous_control_evidence/findings.json",
+          "exception_refs": [],
+          "remediation_ref": "remediation://security-validation/no-remediation-required",
+          "freshness_checked_at_trusted": "2026-07-01T00:01:30Z",
+          "audit_event_ref": "audit-chain://fixture/security-validation/continuous_control_evidence",
+          "producer_identity": "producer://cloud-ci/security-validation-fixture-normalizer",
+          "retention_until": "2027-08-05T00:00:00Z"
+        }
+      ]
+    },
+    "negative_fixtures": [
+      {
+        "fixture_id": "REGVAL-001-BAD-missing-policy-version",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-sast",
+        "remove_field": "policy_version",
+        "expected_violation": "Every lane result must cite the trusted policy/matrix version used for the verdict."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-missing-adapter-provenance",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-sca",
+        "remove_field": "adapter_provenance",
+        "expected_violation": "Scanner/control output is not trusted until adapter identity, digest, ruleset, normalization version, producer, and trusted policy ref are present."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-stale-freshness",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-continuous_control_evidence",
+        "set_fields": {
+          "result": "blocked_stale_evidence",
+          "finding_or_gap_state": "blocked_stale_evidence",
+          "freshness_checked_at_trusted": "2026-01-01T00:00:00Z"
+        },
+        "expected_violation": "Freshness is a trusted-clock gate; stale evidence cannot contribute to an aggregate green status."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-missing-remediation-ref",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-dast",
+        "remove_field": "remediation_ref",
+        "expected_violation": "Open findings, gaps, exceptions, and no-finding records must still carry a remediation or explicit no-remediation-required reference."
+      },
+      {
+        "fixture_id": "REGVAL-001-BAD-candidate-supplied-scope",
+        "expected_verdict": "RED",
+        "mutates_record": "fixture:REGVAL-001-GOOD-api_fuzzing",
+        "set_fields": {
+          "scope_ref": "candidate://untrusted/pr-provided-scope"
+        },
+        "expected_violation": "Scope must resolve to trusted policy/inventory data rather than candidate-supplied claims."
+      }
+    ]
   },
   "initial_gate_catalog_targets": [
     {
@@ -1402,7 +2036,7 @@
       "purpose": "Validate lane result/finding/exception/VEX/control snapshot records before the aggregate status consumes them.",
       "promotion_target": "blocking for security-validation aggregate",
       "fixtures_required": [
-        "good lane result with typed evidence",
+        "good lane result with typed REGVAL-001 shared evidence fields",
         "bad stale evidence",
         "bad candidate-supplied suppression",
         "bad missing audit_event_ref"
@@ -1421,8 +2055,8 @@
   ],
   "known_gaps_before_green": [
     "No Rust validator/gate is added by this planning matrix task.",
-    "No fixtures are added by this task; fixture rows above are target contracts for follow-up gate implementation.",
-    "Existing check-supply-chain covers a subset of SCA/container/release evidence but does not cover the full universal security-validation matrix.",
+    "REGVAL-001 adds schema fixtures only; no Rust validator/gate, evidence API, adapter, runner wiring, or aggregate enforcement is added by this task.",
+    "Existing oya-check-supply-chain covers a subset of SCA/container/release evidence but does not cover the full universal security-validation matrix.",
     "BAS, security-chaos, automated pen-test, DAST, IAST, fuzzing, and API fuzzing require safe sandbox/preview environment contracts before any live execution claim.",
     "Continuous-control evidence requires runtime control inventory and trusted-clock freshness before it can block release or production-ready claims."
   ]

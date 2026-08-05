@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/sheets-source-map-replay-artifact.schema.json",
+  "artifact_id": "sheets-browser-accessibility-evidence.fixture",
+  "replay_artifact_path": "specs/fixtures/sheets/source-map/replay/ux/sheets-browser-accessibility-evidence.fixture.json",
+  "parent_fixture_id": "sheets_browser_accessibility_evidence_fixture",
+  "fixture_kind": "browser_user_story_accessibility_contract",
+  "source_map_ref": "specs/microservices/sheets.json",
+  "red_gate_task": "t_48991095",
+  "build_task": "t_10bf9a15",
+  "status": "SOURCE_BACKED_REPLAY_PASS",
+  "red_status_closed": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS",
+  "replay_family": "sheets-browser-a11y-evidence-na",
+  "contract_surface": "browser/user-story/accessibility gate with explicit no-UI N/A rationale for this contract-only slice",
+  "source_authority_refs": [
+    "specs/microservices/sheets.json#evidence_expectations.browser_user_story_accessibility",
+    "specs/design-system/tenant-context-switcher.json",
+    "specs/design-system/policy-disclosure-banner.json"
+  ],
+  "source_paths": [
+    "specs/microservices/sheets.json",
+    "specs/design-system/tenant-context-switcher.json",
+    "specs/design-system/policy-disclosure-banner.json"
+  ],
+  "assertions_covered": [
+    "keyboard-only workbook open",
+    "grid navigation",
+    "formula error announcement",
+    "collaboration presence/conflict visibility",
+    "range selection",
+    "protected range denial",
+    "import/export progress/error",
+    "WCAG 2.2 AA"
+  ],
+  "rejections_covered": [
+    "UI readiness from green CI alone",
+    "browser evidence missing for UI path",
+    "keyboard traversal missing",
+    "screen-reader labels missing",
+    "protected range disclosure missing",
+    "collaboration conflict hidden"
+  ],
+  "replay_steps": [
+    "Record N/A rationale: this Build slice adds source-backed contract replay fixtures/checker logic only and changes no browser/UI runtime path.",
+    "Carry forward future UI evidence requirements for keyboard grid navigation, formula errors, collaboration visibility, protected range disclosure, and import/export states.",
+    "Reject green-CI-alone UI readiness until a user-visible implementation slice supplies browser/user-story/accessibility evidence."
+  ],
+  "api_contract_replay_evidence": {
+    "openapi": false,
+    "asyncapi": false,
+    "proto": false,
+    "notes": "Source-backed static contract replay artifact; no handler/runtime or generated face is created by this slice."
+  },
+  "browser_user_story_accessibility_evidence": {
+    "applicable": true,
+    "runtime_ui_changed": false,
+    "n_a_rationale": "No browser/UI runtime path changes in t_10bf9a15; future user-visible slices must supply keyboard, screen-reader, grid, formula-error, collaboration-conflict, protected-range, and import/export evidence."
+  },
+  "non_claims": [
+    "No runtime readiness, product readiness, production readiness, GA, customer availability, live SLO, or hyperscaler maturity claim is made.",
+    "No generated JSON hand edits are made.",
+    "No legacy microservices/sheets/manifest.json restoration is authorized.",
+    "Green CI alone is not UI readiness evidence."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "2.4.0-advisory-local",
+  "change_id": "t_3acb7585-qk05-review-fix",
+  "change_class_id": "CC-6_review_fix_contract_hardening",
+  "created_at": "2026-07-01T22:03:08Z",
+  "agent_id": "hermes-default-kanban",
+  "task_id": "t_3acb7585",
+  "branch": "preserve/hermes-w1-dirty-20260630",
+  "scope": {
+    "summary": "Independent Review/fix hardening for the QK-05 FOCUS cost-export Plan/Spec/RED artifact and fail-closed future harness validator.",
+    "files_touched": [
+      "evidence/cloud/quality-kits/qk-05-focus-cost-export/plan-spec-red.md",
+      "scripts/tests/qk_05_focus_cost_export_future_harness_check.py",
+      "evidence/multispectrum/t_3acb7585-qk05-review-fix-1782943388.json"
+    ],
+    "explicit_non_claims": [
+      "No runtime implementation, billing runtime, price-book/tax/invoice publication, Cost Explorer UI, TrustCenter publishing, provider/IaC state, live billing data, public-cloud fallback, or production-readiness claim is introduced.",
+      "The QK-05 checker remains a RED-only guard for future dogfood receipts; a future Build card must wire real runtime verification before positive status can pass.",
+      "Pre-existing dirty workspace changes outside this card were not reviewed as part of this changeset."
+    ]
+  },
+  "facets": {
+    "F1_traceability": [
+      "t_3acb7585",
+      "t_d0211b9f",
+      "specs/cloud-production-quality-kits-target.json:99-115",
+      "specs/cloud-production-quality-kit-evidence-backlog.json:1111-1293",
+      "specs/root-hub-pointers.json:250-255",
+      "docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md:105-118",
+      "docs/standards/finops-cost-attribution-canonical.md:124-134"
+    ],
+    "F2_correctness": "Corrected the root-hub pointer citation to the current cloud_production_quality_kits_target entry and made status=passed_after_future_runtime_evidence fail closed in the RED-only validator.",
+    "F3_security": "No secrets, credentials, provider/IaC state, generated JSON, live billing data, or broad product/control-plane surfaces were edited.",
+    "F4_data_boundary": "FOCUS references are schema/provenance contracts only; no tenant cost, invoice, or live billing records are introduced.",
+    "F5_testing": "py_compile, QK-05 self-test, cloud quality-kit backlog check, expected missing-receipt RED failure, and fabricated positive-status rejection were executed and recorded in Kanban closeout.",
+    "F6_rollback": "Revert the two QK-05 target files and remove this evidence packet if a newer source authority supersedes this RED-only contract.",
+    "F7_operability": "Future implementation handoff explicitly requires a real runtime verifier before positive dogfood evidence can pass.",
+    "F8_performance": "No runtime path is affected; validator changes are bounded to local JSON receipt checks.",
+    "F9_compliance": "Preserves FOCUS 1.3 normalization and FinOps attribution authority without redefining ADR-0199 or the canonical FinOps standard.",
+    "F10_reversibility": "Additive evidence/check hardening only; no generated artifact, root-hub, provider, or billing runtime mutation.",
+    "F11_observability": "Kanban closeout and this evidence packet capture the review verdict and verification outputs.",
+    "F13_migration": "Maintains the Plan/Spec/RED-to-future-Build boundary for quality-kit dogfood evidence migration."
+  },
+  "verification_plan": [
+    "python3 -m py_compile scripts/tests/qk_05_focus_cost_export_future_harness_check.py",
+    "python3 scripts/tests/qk_05_focus_cost_export_future_harness_check.py --self-test",
+    "python3 scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+    "python3 scripts/tests/qk_05_focus_cost_export_future_harness_check.py --dogfood-environment oyatie-dogfood-cell --emit-evidence evidence/cloud/quality-kits/qk-05-focus-cost-export/runs/red-missing-receipt.json (expected non-zero)",
+    "fabricated all-passed status=passed_after_future_runtime_evidence receipt probe (expected non-zero)"
+  ]
+}

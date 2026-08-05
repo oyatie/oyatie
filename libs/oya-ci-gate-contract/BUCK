@@ -1,6 +1,6 @@
 rust_library(
     name = "oya-ci-gate-contract",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_ci_gate_contract",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -12,7 +12,7 @@ rust_library(
 
 rust_test(
     name = "oya-ci-gate-contract-unittest",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.graphql", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "oya_ci_gate_contract",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

@@ -1,0 +1,100 @@
+{
+  "accounting": {
+    "execution_ready_fixed_mutants": "0",
+    "fixed_mutants": "200",
+    "known_generated_aliases": "0",
+    "known_generated_alternatives": "97",
+    "source_mutants": "170",
+    "validator_self_mutant_atomic_cases": "21",
+    "validator_self_mutant_families": "10"
+  },
+  "artifact_id": "stage1-phase-b-v06-executable-mutation-build-receipt-v0.2",
+  "builder_raw_sha256": "d117a021f31a13d64de9ddeb84f50d03f95643e685a0ec179ceef06dfcb66f70",
+  "claim_ceiling": "I1_LOCAL_PRIVATE_TMP_BUILD_AND_ACCOUNTING_ONLY_NO_INDEPENDENT_APPROVAL_NO_PROTECTED_IMMUTABILITY_NO_PLANNING",
+  "effects": "LOCAL_PRIVATE_TMP_ARTIFACT_BUILD_ONLY",
+  "evidence_identity": {
+    "approval_state": "DENIED",
+    "authority_level": "I1_NONAUTHORITY",
+    "canonicalization_profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+    "evidence_id": "stage1-phase-b-v06-executable-mutation-build-receipt",
+    "evidence_version": "0.2.0",
+    "freeze_state": "DENIED",
+    "identity_kind": "BUILD_EVIDENCE",
+    "integration_state": "DENIED"
+  },
+  "holds": [
+    "CLOSED_RECURSIVE_CANDIDATE_SCHEMA_AND_TARGET_MAPPING_MISSING",
+    "COMPLETE_EXTERNAL_REGISTRY_AND_FOREIGN_KEY_MEMBERSHIP_MISSING",
+    "CLOSED_PROJECTION_DAG_MISSING",
+    "FULL_ORDERED_ERROR_VECTOR_AND_PRECEDENCE_ORACLE_MISSING",
+    "TWO_DYNAMIC_ANY_DOMAINS_MISSING",
+    "ATOMIC_PATCH_CATALOG_FROM_SEMANTIC_VARIANTS_TO_CANDIDATE_FIELDS_MISSING",
+    "CANDIDATE_SCHEMA_MUST_DECLARE_BOUNDED_INTEGER_AND_REDUCED_RATIONAL_DECIMAL_STRING_FIELDS_EXACTLY",
+    "HOLD_UNTIL_EXTERNAL_CATALOGS_AND_DYNAMIC_DOMAIN_MEMBERSHIP_ARE_FROZEN"
+  ],
+  "integrity": {
+    "algorithm": "SHA256_SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1_AFTER_BLANKING_SELF_FIELD",
+    "canonicalization_profile_id": "SEMANTIC_DATA_JCS_ASCII_NFC_DECIMAL_STRING_V1",
+    "self_sha256_without_self_digest": "d52a103b8bcb1f51cc25710dba78bbc635480200a1c10fc7df4ee15ad16acdc2"
+  },
+  "outputs": [
+    {
+      "path": "mutation-normalization-oracle-v0.2.json",
+      "raw_sha256": "ae5128786b75941be7494d1dab5849e4d54b30e3a87e0927a935c3bb17452d23",
+      "self_sha256_without_self_digest": "e88c5c05a711969bdba68f016ffaa23d38c2548e4900aadb8cc5e2828b527cdc",
+      "size_bytes": "229813"
+    },
+    {
+      "path": "fixed-mutation-plan-v0.2.json",
+      "raw_sha256": "5dc48d17259a53f44eb3101bef33f71dc5facda60695a85e81801554e89dc01d",
+      "self_sha256_without_self_digest": "ac0fb8bbb79c6f4e71a4f3111a2e0a14bf76caf458b5f95fa7a5cf2727537285",
+      "size_bytes": "721925"
+    },
+    {
+      "path": "generated-mutation-protocol-v0.2.json",
+      "raw_sha256": "20b68fcf66923693afdea29fc2489be1803c4715c6fe1ad8acc7c2e135d2127a",
+      "self_sha256_without_self_digest": "5a49c5144e4386b10d9fca68969c36a33da272cd3d4468f06ec6940365e31031",
+      "size_bytes": "340435"
+    },
+    {
+      "path": "validator-self-mutants-v0.2.json",
+      "raw_sha256": "910518cf46ec2b7d8854998bfd1b59a6af4f4dfa7eece408c4c6f37c4e9f6f3c",
+      "self_sha256_without_self_digest": "9066af0d62dc4d9a8d93592af3dd59ad87a5c98ff051e9b981b96b8491aadc41",
+      "size_bytes": "11900"
+    }
+  ],
+  "planning_state": "HOLD(Planning)",
+  "record_class": "I1_LOCAL_DETERMINISTIC_BUILD_RECEIPT",
+  "schema_version": "0.2.0",
+  "source_bindings": [
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-producer-brief-v0.1.json",
+      "raw_sha256": "8762e4c2f7bae645dbb0046f9cef1a938b5b0a562c93b8e6498193fb179231d9"
+    },
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-linux-runtime-primary-source-verification-v0.1.json",
+      "raw_sha256": "a118c28151ed93d44b24be74367eb8f094f45972cac884d165ee45f9a165c27e"
+    },
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-statistical-contract-primary-source-verification-v0.1.json",
+      "raw_sha256": "3c34014ee8cd0df09fa815030cef6180ae85f52f3f921ca86d00abc3a402e105"
+    },
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-no-regrets-lifecycle-application-v0.1.json",
+      "raw_sha256": "2a21c7077198069b9b389cc5558cffc354548f93cdfa7419cdc96455fff2d084"
+    },
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-canonicalization-primary-source-verification-v0.3.json",
+      "raw_sha256": "4a492afa3b453f65cd7602abfece0c3b34af9b14fbdeeb1b3b203d3c2d9938cd"
+    },
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-canonicalization-primary-source-verification-validation-v0.3.json",
+      "raw_sha256": "551047bd13b21e9b9f621b7328d3597b5bb5631e6234e21a55801939c1be4c3e"
+    },
+    {
+      "path": "/private/tmp/stage1-phase-b-v06-mutation-protocol-fresh-verifier-v0.1.json",
+      "raw_sha256": "04a73a42a97f40f875d9ca0b27a362bb61e9bf3bab1f13a8ebd505f884d25b26"
+    }
+  ],
+  "verdict": "PASS_DETERMINISTIC_ACCOUNTING_HOLD_EXECUTION_READINESS"
+}
