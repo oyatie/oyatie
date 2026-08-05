@@ -689,11 +689,11 @@ impl RegenPort for Buck2RegenAdapter {
     fn regenerate(&self, repo_root: &Path) -> Result<Vec<String>, RegisterError> {
         let tools = build_face_tools(repo_root)?;
 
-        // 1. codemod(manifest): regenerate the committed move-manifest from the candidate tree, so
-        //    the emitter consumes a FRESH copy. The codemod is the authoritative selector: it
-        //    excludes landed/PARKED plans, fails closed on multiple active plans, and emits the
-        //    canonical empty manifest when none is active. ORDER is load-bearing (materialize.sh
-        //    step 1).
+        // 1. codemod(manifest): regenerate the de-committed move-manifest (ADR-0614) from the
+        //    candidate tree, so the emitter consumes a FRESH copy. The codemod is the authoritative
+        //    selector: it excludes landed/PARKED plans, fails closed on multiple active plans, and
+        //    emits the canonical empty manifest when none is active. ORDER is load-bearing
+        //    (materialize step 1).
         let manifest_out = repo_root.join(MOVE_MANIFEST_PATH);
         let mut codemod = Command::new(&tools.codemod);
         append_manifest_args(&mut codemod, repo_root, &manifest_out);

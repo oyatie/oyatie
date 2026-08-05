@@ -98,7 +98,8 @@ test-results/
 # source), validated by a determinism canary + merge-base-tree provenance. With no committed blob to
 # empty, de-commit is safe and the deadlock is impossible. It is declared materialization_mode:
 # not-tracked-in-git in registry/generated-artifact-control-plane.json and is covered by the broad
-# **/*.generated.json rule above — deliberately NOT negated (unlike move-manifest below).
+# **/*.generated.json rule above — deliberately NOT negated (move-manifest and the other
+# de-commit-class faces share that same non-negation posture; none of them re-enter git via `!`).
 
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
@@ -107,8 +108,8 @@ test-results/
 # consumers, whose gates re-derive content from the candidate tree; the freshness gate validates
 # regenerate-success + regenerate-twice determinism instead of byte parity, and the control-plane
 # gate forbids re-tracking them (materialization_mode: not-tracked-in-git). They are already
-# covered by the **/*.generated.json rule above and are intentionally NOT negated here (unlike
-# move-manifest and gate-baseline):
+# covered by the **/*.generated.json rule above and are intentionally NOT negated here (same as
+# move-manifest and gate-baseline — all de-commit-class faces share this posture):
 #   ci/facade/artifact-inventory-registry/accounting-registry.generated.json
 #   ci/facade/artifact-inventory-registry/decision-crosswalk.generated.json
 #   ci/facade/artifact-inventory-registry/enforcement-inventory.generated.json
@@ -152,9 +153,11 @@ registry/graph/active-artifact-contract-edges.json
 # rename-aware relabel reads it). registry-drift validates regenerate-twice determinism, not
 # committed-byte parity; the control-plane policy gate forbids re-tracking it (materialization_mode:
 # not-tracked-in-git). It is covered by the broad **/*.generated.json rule above and is intentionally
-# NOT negated. The path-resolver `load` still fails OPEN to identity on absence; ADR-0614 records the
-# fail-closed hardening as a follow-up, safe today because the materializer writes the manifest before
-# any relabel-read leg (audited: no CI leg runs the emitter without a preceding materialize step).
+# NOT negated. The path-resolver `load` is FAIL-CLOSED on absence (ADR-0614 shipped): a missing/
+# unreadable file is a hard materialization-precondition error, not a silent identity relabel. A
+# present-but-foreign/malformed body still collapses to identity (anti-laundering). The materializer
+# writes the manifest as step 1 before any relabel-read leg (audited: no CI leg runs the emitter
+# without a preceding materialize step).
 
 # buck2 build output
 /buck-out/
