@@ -923,6 +923,88 @@ pub fn trusted_dev_push_run_id(
     Ok(None)
 }
 
+/// The state of the trusted dev-push run that owns the baseline for a merge-base.
+///
+/// MEASURED MOTIVATION: the baseline for dev commit X is published only when X's own dev-push
+/// run completes, which takes ~81 min. `dev` moved 4x in 95 min on 2026-07-26. A PR opened
+/// against X inside that window finds no COMPLETED run, falls through, and pays a ~32.5 min cold
+/// rebuild of a baseline that is already being built. The cache's fill time exceeds its
+/// invalidation interval, so under load it can essentially never hit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TrustedRunState {
+    /// A successful trusted run exists; its artifact is consumable now.
+    Complete(u64),
+    /// A trusted run for this exact merge-base is still queued/running. Waiting for it is
+    /// strictly cheaper than rebuilding the same baseline alongside it, and consumes the SAME
+    /// artifact under the SAME exact-SHA validation — so it changes no soundness property.
+    InFlight(u64),
+    /// Nothing trusted for this merge-base: the caller must cold-rebuild.
+    Absent,
+}
+
+/// Classify the trusted dev-push run for `merge_base_sha`.
+///
+/// ANTI-LAUNDERING, unchanged from [`trusted_dev_push_run_id`]: every accepted property comes
+/// from GitHub Actions PROVENANCE, never from anything a candidate PR controls — `event=push`,
+/// `head_branch=dev`, exact `head_sha`, and the canonical workflow `path`. The ONLY relaxation
+/// here is that a run which has not yet concluded is reported as `InFlight` instead of being
+/// invisible. An `InFlight` run is NEVER consumed as a baseline: the caller must wait for it to
+/// conclude `success` and then re-classify. A run that concludes any other way publishes no
+/// artifact at all (the producer step is push-to-dev + end-of-job), so failing closed to a cold
+/// rebuild remains the default for every non-success outcome.
+///
+/// A COMPLETE run always wins over an in-flight one, regardless of array order.
+pub fn trusted_dev_push_run_state(
+    runs_json: &str,
+    merge_base_sha: &str,
+    expected_workflow_path: &str,
+) -> Result<TrustedRunState, String> {
+    let sha = validated_merge_base_sha(merge_base_sha)?;
+    let payload: Value = serde_json::from_str(runs_json)
+        .map_err(|e| format!("workflow-runs payload is not valid JSON: {e}"))?;
+    let runs = payload
+        .get("workflow_runs")
+        .and_then(Value::as_array)
+        .ok_or("workflow-runs payload has no `workflow_runs` array")?;
+
+    let mut in_flight: Option<u64> = None;
+    for run in runs {
+        let provenance_ok = run.get("head_sha").and_then(Value::as_str) == Some(sha)
+            && run.get("event").and_then(Value::as_str) == Some("push")
+            && run.get("head_branch").and_then(Value::as_str) == Some("dev")
+            && run.get("path").and_then(Value::as_str) == Some(expected_workflow_path);
+        if !provenance_ok {
+            continue;
+        }
+        let id = run
+            .get("id")
+            .and_then(Value::as_u64)
+            .ok_or("matching trusted workflow run has no numeric `id`".to_owned())?;
+        match run.get("conclusion").and_then(Value::as_str) {
+            // A concluded, successful run is the strongest answer available — take it now.
+            Some("success") => return Ok(TrustedRunState::Complete(id)),
+            // Any other CONCLUSION (failure, cancelled, timed_out, ...) publishes no artifact.
+            // Skip it; never wait on it, never treat it as a baseline.
+            Some(_) => continue,
+            // Not yet concluded. Only a genuinely active status is worth waiting for — an
+            // absent/unknown status is treated as not-waitable rather than assumed live.
+            None => {
+                if matches!(
+                    run.get("status").and_then(Value::as_str),
+                    Some("queued" | "in_progress" | "waiting" | "pending" | "requested")
+                ) {
+                    in_flight.get_or_insert(id);
+                }
+            }
+        }
+    }
+
+    Ok(match in_flight {
+        Some(id) => TrustedRunState::InFlight(id),
+        None => TrustedRunState::Absent,
+    })
+}
+
 /// Select the unexpired exact-name health baseline artifact from a trusted run.
 pub fn trusted_baseline_artifact_id(
     artifacts_json: &str,
