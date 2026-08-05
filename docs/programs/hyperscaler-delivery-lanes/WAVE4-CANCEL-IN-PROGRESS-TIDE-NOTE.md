@@ -1,3 +1,11 @@
+---
+doc_class: Program-Design-Note
+doc_status: published
+authority_tier: 3
+purpose: |
+  Wave4 design note: live oya-ci-required cancel-in-progress (ADR-0639 D6)
+  + Tide/merge_group isolation for scarce-runner queue hygiene.
+---
 # Wave4 design note: cancel-in-progress + Tide / merge_group
 
 **Status:** prep complete (workflow citation + Tide note under docs/programs; dual-critic under evidence/ci) — behavior already live on `dev`  
