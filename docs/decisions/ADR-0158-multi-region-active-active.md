@@ -6,6 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0343]
 related: [ADR-0009, ADR-0028, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0142, ADR-0148, ADR-0157]
 related_specs:
   - /specs/multi-region-disposition-canonical.json

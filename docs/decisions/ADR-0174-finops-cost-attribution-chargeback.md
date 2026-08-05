@@ -8,6 +8,7 @@ owners:
   - axis-cloud
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0344]
 related:
   - ADR-0028-cloud-microservice-architecture.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md

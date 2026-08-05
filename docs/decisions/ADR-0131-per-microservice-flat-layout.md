@@ -10,6 +10,7 @@ supersedes:
 amends:
   - "ADR-0119 (partial — product-owned specs colocate with their owner; /specs/ remains the flat root for cross-cutting specifications)"
 superseded_by: []
+amended_by: [ADR-0245, ADR-0333, ADR-0341, ADR-0512]
 related: [ADR-0015, ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0139, ADR-0512]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/masterplan.json, /specs/master-plan-sequencing.json]
 bominal_source: no Bominal equivalent

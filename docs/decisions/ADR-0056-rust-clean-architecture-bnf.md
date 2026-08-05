@@ -20,7 +20,7 @@ purpose: |
 canonical_authority: docs/CONSTITUTION.md
 supersedes: ~
 superseded_by: ~
-amended_by: [ADR-0565, ADR-0632]
+amended_by: [ADR-0105, ADR-0106, ADR-0107, ADR-0565, ADR-0632]
 related_adrs:
   - ADR-0015
   - ADR-0017

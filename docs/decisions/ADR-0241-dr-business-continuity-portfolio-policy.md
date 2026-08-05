@@ -9,6 +9,7 @@ owners:
   - ops-compliance
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0343]
 related:
   - ADR-0049-cross-region-replication-and-residency.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md

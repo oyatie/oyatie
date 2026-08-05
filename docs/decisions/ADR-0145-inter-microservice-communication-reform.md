@@ -6,6 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: [ADR-0140, ADR-0141]
 superseded_by: []
+amended_by: [ADR-0245, ADR-0252, ADR-0257, ADR-0280]
 related: [ADR-0064, ADR-0131, ADR-0132, ADR-0135, ADR-0136, ADR-0139]
 related_specs: [/specs/microservices/manifest-schema.json, /specs/hyperscaler-architecture-invariants.json]
 retires_feedback_memory: feedback_workflow_objectgraph_adapter_layer

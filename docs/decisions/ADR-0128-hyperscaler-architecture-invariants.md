@@ -8,6 +8,7 @@ owners:
   - ops-security
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0252]
 related:
   - ADR-0114-canary-observability-rollback.md
   - ADR-0119-specs-flat-root-topology.md
