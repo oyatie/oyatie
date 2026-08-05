@@ -6,6 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0263, ADR-0341]
 related: [ADR-0139, ADR-0145, ADR-0148, ADR-0153, ADR-0180-slo-composition-inheritance-arithmetic, ADR-0182, ADR-0183, ADR-0184, ADR-0185]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

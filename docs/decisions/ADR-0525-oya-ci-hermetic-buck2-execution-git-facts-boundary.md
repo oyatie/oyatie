@@ -9,6 +9,7 @@ door: one-way
 owner: founder
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0526]
 depends_on: [ADR-0515, ADR-0392, ADR-0522]
 amends: []
 related: [ADR-0515, ADR-0392, ADR-0516, ADR-0522, ADR-0523, ADR-0526, ADR-0527]

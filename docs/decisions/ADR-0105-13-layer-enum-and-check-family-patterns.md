@@ -8,7 +8,7 @@ owner: council-architecture
 date: 2026-05-15
 amends: [ADR-0056]
 supersedes: [ADR-0107]
-amended_by: [ADR-0565, ADR-0632]
+amended_by: [ADR-0106, ADR-0107, ADR-0565, ADR-0632]
 relates_to:
   - ADR-0056-rust-clean-architecture-bnf.md
   - ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
