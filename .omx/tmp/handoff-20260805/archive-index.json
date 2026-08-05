@@ -48,8 +48,19 @@
       "sha": "11c772c2107af09311f35cbae34ea0310fcf993d"
     }
   ],
+  "artifact_sha256": {
+    ".omc/ultragoal/HANDOFF-2026-08-05-FRESH-AGENT.md": "0b9092ce36faeabcaff2e1a591a76ba4ac81de97389311fde49ec8894a2e0ccb",
+    ".omx/plans/cas-re-hyperscaler-capability-reorg-20260805.md": "8833df33de2600f0bd960518f2402dce20b27ef828cb3cbf27878b4caeaebae5",
+    ".omx/ultragoal/brief.md": "dac138e95e12604dc4245fa9324587fd1395cd660d171c183d02743f0bc39df7",
+    ".omx/ultragoal/evidence/G038-cas-re-baseline-reconciliation-20260805.json": "8562a4ca2fd95fe6ee1fd7e2dbeb6e0289d430944c04fb7c80db8bfdb89e88ef",
+    ".omx/ultragoal/evidence/G038-independent-review-20260805.json": "f3eb1b80b9f6b2f4c2a447fc6d632fb384fea0b6553f7e134395aaba827e4713",
+    ".omx/ultragoal/goals.json": "e973489d9668d6de2d01904d74cadd941e49c598d0f5216338690c20638f6726",
+    ".omx/ultragoal/ledger.jsonl": "a02d0cb583654a2b08100c05449377d0513d87b3b3a15583195006655566a3e8"
+  },
   "captured_at": "2026-08-05T08:48:00Z",
   "claim_ceiling": "Recovery index only. Requery every volatile state and curate every archive path through normal protected PR governance.",
+  "durable_handoff_comment": "https://github.com/jason931225/oyatie/issues/1560#issuecomment-5189694302",
+  "handoff_branch": "archive/prewipe-20260805/fresh-agent-handoff",
   "icloud_recovery": [
     {
       "bytes": 4780467132,
@@ -64,6 +75,7 @@
       "sha256": "75da487e2dc0837373572a99610d32bfabf055a3a76a944a6368761f9610e0f7"
     }
   ],
+  "initial_handoff_commit": "b99aa0a4a0f6d2c682f75c86b834adf120caf754",
   "merged_pr_1559": {
     "head": "4d652c652e82c400793fa425e341fe6f470d2fbc",
     "postmerge_ci": {

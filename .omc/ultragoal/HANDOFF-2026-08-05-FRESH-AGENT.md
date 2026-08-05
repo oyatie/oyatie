@@ -4,6 +4,7 @@
 **Repository:** `/Users/jasonlee/Developer/oyatie`
 **Resume story:** `G039-run-the-representative-1558-storage`
 **Program SSOT:** [GitHub issue #1560](https://github.com/jason931225/oyatie/issues/1560) plus `.omx/ultragoal/goals.json` and `.omx/ultragoal/ledger.jsonl`
+**Durable handoff comment:** <https://github.com/jason931225/oyatie/issues/1560#issuecomment-5189694302>
 **Approved plan:** `.omx/plans/cas-re-hyperscaler-capability-reorg-20260805.md`
 **Approved plan SHA-256:** `8833df33de2600f0bd960518f2402dce20b27ef828cb3cbf27878b4caeaebae5`
 
