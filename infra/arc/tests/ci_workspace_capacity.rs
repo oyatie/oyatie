@@ -10,6 +10,8 @@ use std::path::{Path, PathBuf};
 
 const GENERAL_VALUES: &str = "infra/arc/runner-scale-set-arm64-values.yaml";
 const LIVE_POSTGRES_VALUES: &str = "infra/arc/runner-scale-set-live-postgres-arm64-values.yaml";
+const QEMU_CILIUM_PATCH: &str = "infra/talos/qemu-cilium.patch.yaml";
+const LOCAL_PATH_STORAGE: &str = "infra/gitops/local-path-storage.yaml";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -185,6 +187,92 @@ fn validate_capacity_contract(
         }
     }
     Ok(())
+}
+
+#[test]
+fn cas_proof_cell_has_minimal_network_and_storage_prerequisites() {
+    let root = repo_root();
+    let patch = yaml(&root, QEMU_CILIUM_PATCH);
+    assert_eq!(patch.as_mapping().expect("QEMU patch mapping").len(), 1);
+    assert_eq!(
+        string_at(&patch, &["cluster", "network", "cni", "name"]),
+        "none"
+    );
+    assert_eq!(
+        at(&patch, &["cluster", "proxy", "disabled"]).as_bool(),
+        Some(true)
+    );
+
+    let documents = yaml_documents(&root, LOCAL_PATH_STORAGE);
+    assert_eq!(documents.len(), 9);
+    let namespace = object(&documents, "Namespace", "local-path-storage");
+    assert_eq!(
+        string_at(
+            namespace,
+            &["metadata", "labels", "pod-security.kubernetes.io/enforce"]
+        ),
+        "privileged"
+    );
+
+    let deployment = object(&documents, "Deployment", "local-path-provisioner");
+    let container = named(
+        at(deployment, &["spec", "template", "spec", "containers"]),
+        "local-path-provisioner",
+    );
+    assert_eq!(
+        string_at(container, &["image"]),
+        "rancher/local-path-provisioner:v0.0.37@sha256:e757967a5ec338f6a9b371c5a9688bedaa8c3578ea3dd4db329ea0084be0a86f"
+    );
+    assert_eq!(
+        string_at(container, &["readinessProbe", "httpGet", "path"]),
+        "/ready"
+    );
+    assert_eq!(
+        at(container, &["securityContext", "runAsNonRoot"]).as_bool(),
+        Some(true)
+    );
+    assert_eq!(
+        string_at(container, &["securityContext", "seccompProfile", "type"]),
+        "RuntimeDefault"
+    );
+
+    let storage_class = object(&documents, "StorageClass", "local-path");
+    assert_eq!(
+        string_at(storage_class, &["provisioner"]),
+        "rancher.io/local-path"
+    );
+    assert_eq!(
+        string_at(storage_class, &["volumeBindingMode"]),
+        "WaitForFirstConsumer"
+    );
+
+    let config_map = object(&documents, "ConfigMap", "local-path-config");
+    let config: serde_json::Value =
+        serde_json::from_str(&string_at(config_map, &["data", "config.json"]))
+            .expect("parse local-path config.json");
+    assert_eq!(
+        config["nodePathMap"],
+        serde_json::json!([{
+            "node": "DEFAULT_PATH_FOR_NON_LISTED_NODES",
+            "paths": ["/var/mnt/local-path"]
+        }])
+    );
+    let helper: Value = serde_yaml::from_str(&string_at(config_map, &["data", "helperPod.yaml"]))
+        .expect("parse local-path helper pod");
+    assert_eq!(
+        string_at(
+            named(at(&helper, &["spec", "containers"]), "helper-pod"),
+            &["image"]
+        ),
+        "mirror.gcr.io/library/busybox:1.37.0@sha256:9db7b59979c38555a39def84a31fb98b5296952f9e3afd4f6f11f05b07adfab0"
+    );
+
+    let manifest = read(&root, LOCAL_PATH_STORAGE);
+    assert!(!manifest.contains("/opt/local-path-provisioner"));
+    assert!(
+        read(&root, "infra/gitops/bootstrap-sync.yaml")
+            .contains("include: 'local-path-storage.yaml'")
+    );
 }
 
 #[test]
