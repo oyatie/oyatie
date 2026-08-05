@@ -1,0 +1,10 @@
+{
+  "base_head": "4b993de406afb4e2cd2677d553a0469a4de23e1d",
+  "captured_at": "2026-08-05",
+  "preserved_dirty_path_count": 1,
+  "recovery": "Inspect the snapshot commit relative to base_head. Curate through a fresh origin/dev isolated-worktree PR; never merge wholesale.",
+  "schema": "oyatie-prewipe-dirty-worktree-snapshot/v1",
+  "source_branch": "feat/trusted-baseline-await",
+  "source_worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/baseline-race",
+  "status": "quarantine-recovery-only-not-implementation-or-merge-authority"
+}
