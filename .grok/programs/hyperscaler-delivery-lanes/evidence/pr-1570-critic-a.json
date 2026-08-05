@@ -1,0 +1,38 @@
+{
+  "pr": 1570,
+  "head": "58864ecc62d75d03773d29e96ab5cdfa6ea7ff3a",
+  "critic_id": "A",
+  "verdict": "APPROVE",
+  "lenses": [
+    "cartesian_doubt",
+    "red_team",
+    "chestertons_fence"
+  ],
+  "summary": "Wave4 authority/docs only: concurrency cancel-in-progress for pull_request already live; PR cites ADR-0639 D6 + Bun superseding-run lesson and Tide/merge_group isolation without changing group keys or cancel predicate. Refusing github.ref fallback preserves #1509 trunk pending-eviction fix.",
+  "findings": [
+    {
+      "severity": "info",
+      "claim": "Executable concurrency unchanged: group still workflow+PR#||sha; cancel-in-progress still event_name==pull_request",
+      "evidence": "git diff origin/dev...HEAD \u2014 concurrency keys byte-identical"
+    },
+    {
+      "severity": "info",
+      "claim": "No path-filters added",
+      "evidence": "diff: workflow comments + evidence + Tide note only"
+    },
+    {
+      "severity": "low",
+      "claim": "Naive github.ref non-PR fallback would re-open trunk self-cancellation",
+      "evidence": "CI-CLASS-FIX #1509; PR keeps github.sha"
+    },
+    {
+      "severity": "info",
+      "claim": "Cancel is not merge-green substitute (D6 + Bun lesson)",
+      "evidence": "workflow comment + WAVE4-CANCEL-IN-PROGRESS-TIDE-NOTE.md"
+    }
+  ],
+  "blockers": [],
+  "severity_max": "low",
+  "reviewed_at": "2026-08-05T15:45Z",
+  "reviewer": "dual-critic-A"
+}
