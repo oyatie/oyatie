@@ -5,18 +5,26 @@ The repository declaration has four parts:
 
 1. `infra/talos/local/patches/ci-workspace-worker-1.yaml` allocates the general
    runner's fixed 48 GiB XFS user volume on worker 1's exact blank 150 GiB `/dev/vdb`.
-   `ci-workspace-worker-2.yaml` allocates the live-PostgreSQL volume and retains
-   its earlier general volume as an unadmitted rollback reserve.
+   `ci-workspace-worker-2.yaml` allocates both a general volume (dual-worker general
+   cell) and the live-PostgreSQL volume on worker 2's blank 150 GiB `/dev/vdb`.
 2. `ci-workspace-storage.yaml` runs a separate local-path provisioner identity and
-   admits `/var/mnt/ci-workspace-general` only on `oya-talos-worker-1` and
-   `/var/mnt/ci-workspace-live-postgres` only on `oya-talos-worker-2`.
-3. Both runner scale sets mount a 44 GiB generic ephemeral PVC at
-   `/home/runner/_work`, pin to their respective node, and cap each scale set at one.
-   Local-path does not enforce each 44 GiB request. Safety comes from max one runner
-   per scale set and a separate fixed 48 GiB filesystem for each set; no capacity headroom
-   inside either admitted filesystem is claimed.
+   admits `/var/mnt/ci-workspace-general` on **both** `oya-talos-worker-1` and
+   `oya-talos-worker-2`, and `/var/mnt/ci-workspace-live-postgres` only on
+   `oya-talos-worker-2`.
+3. The general scale set (`runner-scale-set-arm64-values.yaml`) mounts a 44 GiB
+   generic ephemeral PVC at `/home/runner/_work`, pins only `kubernetes.io/arch:
+   arm64` (no hostname pin), requires hostname pod anti-affinity on
+   `oya.io/ci-cell: general`, and caps `maxRunners: 2`. Capacity is one 48 GiB
+   physical volume **per node** × two nodes — not free CPU alone. Local-path does
+   not enforce each 44 GiB request; required anti-affinity keeps one general
+   runner (and one claim) per node. The live-PostgreSQL scale set stays
+   `maxRunners: 1` and hostname-pinned to worker 2 on its own 48 GiB volume.
 4. `ci-workspace-alerts.yaml` covers node pressure, PVC free space, runner writable
    layer growth, eviction, delayed PVC cleanup, and ARC startup/queue latency.
+
+Human apply steps for raising concurrency live under
+[`RUNBOOK-scale-runners.md`](./RUNBOOK-scale-runners.md). This declaration slice
+does **not** activate CAS warm pools or Remote Execution.
 
 The current local cluster has no `monitoring.coreos.com` CRDs or `observability`
 namespace. The PrometheusRule is therefore a reviewed telemetry contract but is
@@ -48,7 +56,8 @@ NativeLink, OpenBao, and their PVCs are out of scope and must not be modified.
 
 ## Post-apply readback
 
-Record all of the following before allowing either scale set above zero:
+Record all of the following before allowing the general scale set above one
+runner, or the live-PostgreSQL scale set above zero:
 
 ```sh
 talosctl -n <worker-1-ip> get volumestatus u-ci-workspace-general -o yaml
@@ -60,14 +69,16 @@ talosctl -n <worker-2-ip> get mountstatus u-ci-workspace-live-postgres -o yaml
 kubectl get node oya-talos-worker-1 oya-talos-worker-2 --show-labels
 kubectl get storageclass oya-ci-workspace-general oya-ci-workspace-live-postgres -o yaml
 kubectl -n oya-ci-workspace-storage get deploy,pods,configmap -o wide
+kubectl -n oya-ci-workspace-storage get configmap local-path-config -o jsonpath='{.data.config\.json}{"\n"}'
 kubectl -n arc-runners get pvc,pods -o wide
 ```
 
-The admitted general and live-PostgreSQL volumes must be ready on workers 1 and 2 respectively,
-the provisioner identity must be `oyatie.io/ci-workspace-local-path`, each runner/PVC must bind
-to its declared worker, and the existing `local-path` StorageClass/PVs must be byte-for-byte
-unchanged. Worker 2's `ci-workspace-general` volume is rollback reserve only: it must remain
-unlisted in `nodePathMap` and unused by PVCs.
+Both workers' general volumes and worker 2's live-PostgreSQL volume must be ready,
+the provisioner identity must be `oyatie.io/ci-workspace-local-path`, the
+`nodePathMap` must list `/var/mnt/ci-workspace-general` on both workers, general
+runner PVCs must bind one-per-node under anti-affinity, live-postgres must stay
+on worker 2, and the existing `local-path` StorageClass/PVs must be byte-for-byte
+unchanged.
 
 ## Safe rollback
 
@@ -76,8 +87,9 @@ is the #1504 incident condition. First land a GitOps change setting both scale s
 `maxRunners: 0`,
 wait for all runner Pods and generic-ephemeral PVCs to disappear, and verify both
 workspace directories are empty. Then revert the ARC storage/placement Applications.
-Remove an admitted Talos `UserVolumeConfig` only after no Pod mounts it. Preserve worker 2's
-unadmitted general volume as rollback reserve unless a separately reviewed destructive change
-retires it. Talos leaves data on disk, so disk wiping is never part of this rollback. Branch
-protection and `oya-ci-required` remain intact;
+Remove an admitted Talos `UserVolumeConfig` only after no Pod mounts it. Worker 2's
+general volume is part of dual-worker capacity; retiring it requires first lowering
+general `maxRunners` to 1 and re-pinning general to worker 1 (or an equivalent
+reviewed plan). Talos leaves data on disk, so disk wiping is never part of this
+rollback. Branch protection and `oya-ci-required` remain intact;
 admission stays queued until safe runner capacity or hosted fallback exists.

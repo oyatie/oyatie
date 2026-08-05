@@ -21,10 +21,15 @@ controllerServiceAccount:
 # toolchain. That is a KNOWN, DELIBERATE gap at this slice — a warm pool is
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
-# This set has its own physically separate 48 Gi Talos user volume. Local-path
-# does not enforce the advertised 44 Gi request, so maxRunners=1 prevents a
-# second claim from sharing that filesystem; no 4 Gi reserve is claimed.
-maxRunners: 1
+#
+# maxRunners=2 is justified by one 48 Gi physical Talos user volume *per node*
+# across two admitted general cells (worker-1 + worker-2), not by free CPU
+# alone. Local-path does not enforce the advertised 44 Gi request, so two
+# concurrent general runners on the *same* 48 Gi filesystem would overcommit
+# disk. Required hostname anti-affinity + dual-worker nodePathMap keep one
+# runner (and one 44 Gi ephemeral claim) per node. This does not activate
+# CAS warm pools or Remote Execution.
+maxRunners: 2
 minRunners: 0
 listenerMetrics:
   gauges:
@@ -60,9 +65,23 @@ template:
     # Without this a runner for THIS scale set can schedule onto a node of
     # another architecture and silently build for the wrong platform, poisoning
     # that platform's buck2 cache namespace (action keys include cpu:/os:).
+    # Hostname is intentionally *not* pinned: dual-worker general capacity
+    # spreads across oya-talos-worker-{1,2} via required anti-affinity below.
+    # WaitForFirstConsumer + nodePathMap admit general only on those two nodes.
     nodeSelector:
       kubernetes.io/arch: arm64
-      kubernetes.io/hostname: oya-talos-worker-1
+    # Hard spread: two concurrent general runners must not land on the same
+    # hostname. Selector uses the cell label we set above (merged onto every
+    # ephemeral runner Pod). Preferring ARC's actions.github.com/scale-set-name
+    # is equivalent once the controller injects it; the owned cell label is
+    # present in this declaration without depending on chart label merge order.
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                oya.io/ci-cell: general
+            topologyKey: kubernetes.io/hostname
     securityContext:
       fsGroup: 1001
       fsGroupChangePolicy: OnRootMismatch
@@ -124,8 +143,9 @@ template:
             # by the 44Gi generic ephemeral PVC instead.
             ephemeral-storage: "4Gi"
           limits:
-            # 8Gi memory plus maxRunners=1 leaves more than 20Gi of the current
-            # 28.6Gi allocatable node for co-tenants.
+            # 8Gi memory per runner; with required anti-affinity each arm64
+            # worker hosts at most one general runner, leaving headroom for
+            # co-tenants (and on worker-2 the live-postgres cell when scheduled).
             memory: "8Gi"
             # The root filesystem now carries only image/writable-layer growth.
             # Keep a hard ceiling so tool installers cannot refill Talos

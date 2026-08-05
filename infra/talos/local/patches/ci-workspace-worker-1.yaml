@@ -12,8 +12,10 @@ name: ci-workspace-general
 provisioning:
   diskSelector:
     match: "!system_disk && disk.dev_path == '/dev/vdb' && disk.size == 150u * GiB"
-  # Local Path Provisioner does not enforce PVC byte requests. A dedicated
-  # filesystem plus maxRunners=1 is the enforceable blast-radius boundary.
+  # Local Path Provisioner does not enforce PVC byte requests. Blast radius is
+  # one 44Gi general claim per 48Gi physical volume per node; dual-worker
+  # concurrency (maxRunners=2) is enforced by admitting this path on both
+  # workers and required hostname anti-affinity, not by stacking on one disk.
   minSize: 48GiB
   maxSize: 48GiB
 filesystem:
