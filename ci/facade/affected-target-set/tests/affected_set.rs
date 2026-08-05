@@ -771,6 +771,26 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate_despite_docs_inert
     }
 }
 
+#[test]
+fn k8s_program_records_and_rules_seed_the_live_r_doc_gate() {
+    let expected = vec!["root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate".into()];
+
+    for path in [
+        "docs/programs/k8s-port/README.md",
+        "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+        "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+        "specs/port-rules/lang/go-rust/example.md",
+        "specs/k8s-port/rules/example.md",
+    ] {
+        assert_eq!(
+            shipped_decision_with_no_owner(path),
+            Decision::Affected {
+                seeds: expected.clone()
+            }
+        );
+    }
+}
+
 // ── The `**/OWNERS` governance-marker class (PR #1473 shape) ─────────────────────────────
 
 /// Resolve one path against the SHIPPED pack with an EMPTY owner map — the production shape for

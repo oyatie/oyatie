@@ -2913,6 +2913,124 @@
           "last_modified_at": "2026-08-01T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "k8s-port-upstream-pin",
+      "artifact_path": "/specs/k8s-port/upstream-pin.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-platform + council-architecture",
+      "purpose_short": "Immutable Kubernetes source pin and license identity for deterministic SourceModel extraction.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "ci/facade/canonical-json",
+          "command": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate"
+        },
+        "validation": {
+          "validator": "Canonical JSON is live at W0-A; source-specific semantic validation remains a W0-B/W0-C deliverable and is not claimed here."
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-08-05T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "k8s-port-scope",
+      "artifact_path": "/specs/k8s-port/scope.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-platform + council-architecture",
+      "purpose_short": "Fail-closed whole-of-Kubernetes PORT/CONSUME/EXCLUDE scope policy for SourceModel package accounting.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "ci/facade/canonical-json",
+          "command": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate"
+        },
+        "validation": {
+          "validator": "Canonical JSON is live at W0-A; SourceModel-derived totality validation remains a W0-B deliverable and is not claimed here."
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-08-05T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "k8s-port-divergence-ledger",
+      "artifact_path": "/specs/k8s-port/divergence-ledger.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-platform + council-architecture",
+      "purpose_short": "Governed doctrine-first divergence identities, activation conditions, expiry, and expected-red conformance accounting.",
+      "artifact_profile": "ledger",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "ci/facade/canonical-json",
+          "command": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate"
+        },
+        "validation": {
+          "validator": "Canonical JSON is live at W0-A; divergence activation and expected-red ID validation remain later wave-gate obligations and are not claimed here."
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-08-05T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "k8s-port-licensing",
+      "artifact_path": "/specs/k8s-port/licensing.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-platform + council-architecture",
+      "purpose_short": "Fail-closed upstream, seed, bootstrap-artifact, SBOM, provenance, attribution, and NOTICE policy for the port program.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "ci/facade/canonical-json",
+          "command": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate"
+        },
+        "validation": {
+          "validator": "Canonical JSON is live at W0-A; artifact SBOM, signature, provenance, and NOTICE admission checks remain pending and are not claimed here."
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-08-05T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "k8s-port-wave-registry",
+      "artifact_path": "/docs/programs/k8s-port/wave-registry.rdoc",
+      "artifact_format": "plain-text-manifest",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-platform + council-architecture",
+      "purpose_short": "Fail-closed W0 wave completion declarations bound to operations-journal entries and R-DOC liveness.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "k8s-program-docs"
+        },
+        "verification": {
+          "checker_crate": "ci/facade/k8s-program-docs",
+          "command": "buck2 test //ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+        },
+        "validation": {
+          "validator": "ci-k8s-program-docs line-oriented registry parser and live-corpus gate"
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-08-05T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

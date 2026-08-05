@@ -1,0 +1,19 @@
+[package]
+name = "ci-k8s-program-docs"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "ci_k8s_program_docs"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "ci-k8s-program-docs"
+path = "src/main.rs"
+
+[lints]
+workspace = true

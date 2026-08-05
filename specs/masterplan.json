@@ -5900,7 +5900,9 @@
       "ADR-0615",
       "ADR-0619",
       "ADR-0632",
-      "ADR-0635"
+      "ADR-0635",
+      "ADR-0637",
+      "ADR-0638"
     ],
     "bound_specs": [
       "specs/ci-farm-substrate-canonical.json",
@@ -8570,6 +8572,107 @@
           }
         ],
         "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0045",
+        "title": "Kubernetes Rust port W0-A: governance admission and exact upstream pin",
+        "status": "in-progress",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "definition",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": [
+          "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+          "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+          "specs/k8s-port/upstream-pin.json",
+          "specs/k8s-port/scope.json"
+        ]
+      },
+      {
+        "id": "MPV2-0046",
+        "title": "Kubernetes Rust port W0-B: neutral engine, SourceModel bootstrap, and rule pack v0",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "control-plane-contract",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0047",
+        "title": "Kubernetes Rust port W0-C: five live determinism gates and planted canaries",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "cutover-evidence",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0048",
+        "title": "Kubernetes Rust port W0-D: Talos second-corpus proof",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "cutover-evidence",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0049",
+        "title": "Kubernetes Rust port W0-E: expanded trial, measured ceilings, and process fixes",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "cutover-evidence",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0050",
+        "title": "Kubernetes Rust port W0-F: seam contracts and package-to-crate map",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "control-plane-contract",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0051",
+        "title": "Kubernetes Rust port W0-G: topology, composition root, and protection readback",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "control-plane-contract",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
+      },
+      {
+        "id": "MPV2-0052",
+        "title": "Kubernetes Rust port W0-H: threat, fuzz/property, and performance methods",
+        "status": "claimed-open",
+        "program": "P-OWNED-STACK-K8S",
+        "work_item_class": "cutover-evidence",
+        "source_refs": [
+          "ADR-0637",
+          "ADR-0638"
+        ],
+        "evidence_refs": []
       }
     ],
     "dependency_edge_semantics": "from is prerequisite, to is dependent",
@@ -8753,6 +8856,41 @@
         "from": "MPV2-0043",
         "to": "MPV2-0044",
         "relationship": "realignment-wave-ordering"
+      },
+      {
+        "from": "MPV2-0045",
+        "to": "MPV2-0046",
+        "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0046",
+        "to": "MPV2-0047",
+        "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0047",
+        "to": "MPV2-0048",
+        "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0048",
+        "to": "MPV2-0049",
+        "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0049",
+        "to": "MPV2-0050",
+        "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0050",
+        "to": "MPV2-0051",
+        "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0051",
+        "to": "MPV2-0052",
+        "relationship": "k8s-port-w0-phase-ordering"
       }
     ],
     "sequencing": {
@@ -8765,11 +8903,11 @@
         "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded"
       ],
       "rederivation": {
-        "rederived_at": "2026-07-02T00:00:00Z",
-        "repo_head_at_derivation": "c2d7691dd0f78c319b7284d055f19d832f305770",
-        "work_item_count": 45,
-        "dependency_edge_count": 36,
-        "wave_count": 5,
+        "rederived_at": "2026-08-05T00:00:00Z",
+        "repo_head_at_derivation": "b64eaaf4ab40f7428e3a27d7cd4b02930404eee9",
+        "work_item_count": 53,
+        "dependency_edge_count": 43,
+        "wave_count": 8,
         "wave_rule": "wave(n) = 0 when n has no prerequisite edges in masterplan_v2.dependency_edges; otherwise 1 + max(wave(prerequisite)) over all prerequisites of n; ties within a wave order lexicographically by work-item id, and work_item_order is the wave-major concatenation with contiguous zero-based indices",
         "inherited_orderings_ignored": [
           "/specs/master-plan-sequencing.json",
@@ -8897,113 +9035,153 @@
         },
         {
           "index": 23,
+          "work_item_id": "MPV2-0045",
+          "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 24,
           "work_item_id": "MPV2-0002",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 24,
+          "index": 25,
           "work_item_id": "MPV2-0003",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 25,
+          "index": 26,
           "work_item_id": "MPV2-0005",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 26,
+          "index": 27,
           "work_item_id": "MPV2-0006",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 27,
+          "index": 28,
           "work_item_id": "MPV2-0008",
           "derivation_basis": "depends on MPV2-0009, MPV2-0010, MPV2-0011, MPV2-0012, MPV2-0013, MPV2-0014, MPV2-0015, MPV2-0016, MPV2-0017 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 28,
+          "index": 29,
           "work_item_id": "MPV2-0018",
           "derivation_basis": "depends on MPV2-0019 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 29,
+          "index": 30,
           "work_item_id": "MPV2-0020",
           "derivation_basis": "depends on MPV2-0021, MPV2-0022 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 30,
+          "index": 31,
           "work_item_id": "MPV2-0029",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 31,
+          "index": 32,
           "work_item_id": "MPV2-0030",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 32,
+          "index": 33,
           "work_item_id": "MPV2-0031",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 33,
+          "index": 34,
           "work_item_id": "MPV2-0032",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 34,
+          "index": 35,
           "work_item_id": "MPV2-0033",
           "derivation_basis": "depends on MPV2-0034 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 35,
+          "index": 36,
           "work_item_id": "MPV2-0035",
           "derivation_basis": "depends on MPV2-0034 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 36,
+          "index": 37,
           "work_item_id": "MPV2-0037",
           "derivation_basis": "depends on MPV2-0036 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 37,
+          "index": 38,
           "work_item_id": "MPV2-0042",
           "derivation_basis": "depends on MPV2-0041 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 38,
+          "index": 39,
+          "work_item_id": "MPV2-0046",
+          "derivation_basis": "depends on MPV2-0045 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 40,
           "work_item_id": "MPV2-0004",
           "derivation_basis": "depends on MPV2-0001, MPV2-0002, MPV2-0005, MPV2-0006 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 39,
+          "index": 41,
           "work_item_id": "MPV2-0007",
           "derivation_basis": "depends on MPV2-0008, MPV2-0018, MPV2-0020 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 40,
+          "index": 42,
           "work_item_id": "MPV2-0038",
           "derivation_basis": "depends on MPV2-0037 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 41,
+          "index": 43,
           "work_item_id": "MPV2-0043",
           "derivation_basis": "depends on MPV2-0042 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 42,
+          "index": 44,
+          "work_item_id": "MPV2-0047",
+          "derivation_basis": "depends on MPV2-0046 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 45,
           "work_item_id": "MPV2-0039",
           "derivation_basis": "depends on MPV2-0038 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 43,
+          "index": 46,
           "work_item_id": "MPV2-0044",
           "derivation_basis": "depends on MPV2-0043 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 44,
+          "index": 47,
+          "work_item_id": "MPV2-0048",
+          "derivation_basis": "depends on MPV2-0047 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 48,
           "work_item_id": "MPV2-0040",
           "derivation_basis": "depends on MPV2-0039 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 49,
+          "work_item_id": "MPV2-0049",
+          "derivation_basis": "depends on MPV2-0048 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 50,
+          "work_item_id": "MPV2-0050",
+          "derivation_basis": "depends on MPV2-0049 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 51,
+          "work_item_id": "MPV2-0051",
+          "derivation_basis": "depends on MPV2-0050 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 52,
+          "work_item_id": "MPV2-0052",
+          "derivation_basis": "depends on MPV2-0051 in masterplan_v2.dependency_edges"
         }
       ],
       "execution_waves": [
@@ -9032,7 +9210,8 @@
             "MPV2-0028",
             "MPV2-0034",
             "MPV2-0036",
-            "MPV2-0041"
+            "MPV2-0041",
+            "MPV2-0045"
           ],
           "dispatch_state": "ratified-not-dispatched"
         },
@@ -9053,7 +9232,8 @@
             "MPV2-0033",
             "MPV2-0035",
             "MPV2-0037",
-            "MPV2-0042"
+            "MPV2-0042",
+            "MPV2-0046"
           ],
           "dispatch_state": "ratified-not-dispatched"
         },
@@ -9063,7 +9243,8 @@
             "MPV2-0004",
             "MPV2-0007",
             "MPV2-0038",
-            "MPV2-0043"
+            "MPV2-0043",
+            "MPV2-0047"
           ],
           "dispatch_state": "ratified-not-dispatched"
         },
@@ -9071,14 +9252,37 @@
           "wave_index": 3,
           "work_item_ids": [
             "MPV2-0039",
-            "MPV2-0044"
+            "MPV2-0044",
+            "MPV2-0048"
           ],
           "dispatch_state": "ratified-not-dispatched"
         },
         {
           "wave_index": 4,
           "work_item_ids": [
-            "MPV2-0040"
+            "MPV2-0040",
+            "MPV2-0049"
+          ],
+          "dispatch_state": "ratified-not-dispatched"
+        },
+        {
+          "wave_index": 5,
+          "work_item_ids": [
+            "MPV2-0050"
+          ],
+          "dispatch_state": "ratified-not-dispatched"
+        },
+        {
+          "wave_index": 6,
+          "work_item_ids": [
+            "MPV2-0051"
+          ],
+          "dispatch_state": "ratified-not-dispatched"
+        },
+        {
+          "wave_index": 7,
+          "work_item_ids": [
+            "MPV2-0052"
           ],
           "dispatch_state": "ratified-not-dispatched"
         }
@@ -9087,10 +9291,10 @@
         "decision_recorded": true,
         "decision_status": "ratified",
         "approved_by": "founder",
-        "recorded_at": "2026-07-02T00:00:00Z",
-        "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
-        "ratification_authority": "Founder-authored masterplan-v2 consolidation directive (Seed contract, 2026-07-02) requiring fully zero-based re-derived sequencing ratified by the founder before any execution wave dispatches; decision binds only to the sequencing content identified by ratified_sequencing_digest.",
-        "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
+        "recorded_at": "2026-08-05T00:00:00Z",
+        "decision_ref": "evidence/goals/k8s-port-w0-sequencing-founder-ratification-20260805.json",
+        "ratification_authority": "Founder-approved ralplan execution gate for the Kubernetes Go-to-Rust W0 program, durably expressed by Accepted ADR-0637 and ADR-0638; this decision binds only the exact sequencing content identified by ratified_sequencing_digest and does not authorize W1+.",
+        "ratified_sequencing_digest": "sha256:b96b6c480fbbab6a1c72e63ed6e460972ccc7e9cdf6702ded2fd640398a4c3de",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
         "required_before": "execution-wave-dispatch"
