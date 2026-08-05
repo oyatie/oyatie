@@ -1,0 +1,10 @@
+{
+  "base_head": "71dcfdff1b6bbc4aa823b396ab1c08d103f1ce5f",
+  "captured_at": "2026-08-05",
+  "preserved_dirty_path_count": 1,
+  "recovery": "Inspect the snapshot commit relative to base_head. Curate through a fresh origin/dev isolated-worktree PR; never merge wholesale.",
+  "schema": "oyatie-prewipe-dirty-worktree-snapshot/v1",
+  "source_branch": "worktree-agent-a5fbe8d35684023f8",
+  "source_worktree": "/Users/jasonlee/Developer/oyatie/.claude/worktrees/agent-a5fbe8d35684023f8",
+  "status": "quarantine-recovery-only-not-implementation-or-merge-authority"
+}
