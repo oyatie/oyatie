@@ -1,3 +1,9 @@
+---
+purpose: Hosted multi-arch CI + lab CAS direction for agent fleet (idea-refine accepted direction; not merge authority).
+doc_status: drafted
+related_adrs: [ADR-0515, ADR-0560, ADR-0630]
+---
+
 # Hosted multi-arch CI + lab CAS (agent fleet)
 
 **Status:** Accepted direction (idea-refine 2026-08-05) — **W1–W2 shipping with multi-arch posture**.  
