@@ -1,6 +1,6 @@
 ---
 id: ADR-0303
-status: Proposed
+status: Superseded
 date: 2026-05-20
 owners:
   - council-architecture

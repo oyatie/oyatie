@@ -1,6 +1,6 @@
 ---
 id: ADR-0381
-status: Proposed
+status: Superseded
 planning_impact: true
 deciders: founder, ops-platform, council-architecture
 date: 2026-05-28

@@ -1,7 +1,7 @@
 ---
 id: ADR-0397
 title: "Pulsar 4.x + Oxia canonical event-bus (reconstructed record)"
-status: Proposed
+status: Superseded
 date: 2026-06-12
 authority: founder-pending-ratification
 owner: council-architecture

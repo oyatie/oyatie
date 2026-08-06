@@ -1,6 +1,6 @@
 ---
 id: ADR-0384
-status: Proposed
+status: Superseded
 planning_impact: true
 deciders: founder, council-architecture
 date: 2026-05-28
