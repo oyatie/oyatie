@@ -48,6 +48,35 @@ RED_TEST → IMPLEMENT → GREEN_TEST → INTEGRATION_TEST → FALSE_GREEN_SCAN
 
 Fail closed: no implement without red proof; no skipped/deleted tests; false-green scan; dual review; simplify then harden; re-run green after each.
 
+### Soft reds / blocks → work queue
+
+```bash
+.grok/bin/mm-queue-ingest --cwd . --base dev   # upsert soft_red, ci_red, block lanes
+.grok/bin/mm-fabric-status --cwd .             # includes soft_red_ready counts
+```
+
+Soft CI legs must **not** be ignored: they become `task-board.v1.json` lanes until cleared.
+
+### Autonomy
+
+Agent dual-critic **APPROVE** + `oya-ci-required` green → `mm-drive merge` (human GH APPROVE not required).  
+Non-APPROVE → fix until APPROVE. Human supervises only.
+
+### Runner commands (`bin/mm-pipeline`)
+
+```bash
+mm-pipeline start --objective "…" --risk medium   # CAPTURE_INTENT + PREFLIGHT
+mm-pipeline role --run-id ID --role PROMPT_HARDENER --stage PROMPT_HARDEN
+mm-pipeline role --run-id ID --role PLANNER --stage DECOMPOSE
+mm-pipeline dispatch --run-id ID                  # path-overlap fail closed
+mm-pipeline role --run-id ID --role TEST_ENGINEER --stage RED_TEST
+mm-pipeline role --run-id ID --role EXECUTOR --stage IMPLEMENT   # blocked without red proof
+mm-pipeline false-green-scan --run-id ID
+mm-pipeline admit-slice --run-id ID
+mm-pipeline admit-dual-critic --packet path/to/dual-critic.json  # rejects same_family
+mm-pipeline close-run --run-id ID                 # score→grade→evaluate→learn
+```
+
 ## Ideas absorbed (not vendored)
 
 | Source | What we took |

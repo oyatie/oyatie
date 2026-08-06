@@ -2,7 +2,12 @@
   "version": "1.0.0",
   "name": "mm-delivery-kit",
   "description": "Portable multi-agent delivery harness. One pipeline (harness/pipeline.json); fine-tune JSON under harness/ only. No gjc/omc/omx/hermes CLIs.",
-  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "forbidden_clis": [
+    "gjc",
+    "omc",
+    "omx",
+    "hermes"
+  ],
   "axioms": [
     "not_merge_authority",
     "judgment_weight_before_speed",
@@ -44,7 +49,7 @@
     "runner": "bin/mm-quant",
     "optional_requirements": "python/requirements-ml.txt",
     "external_harness_env": "MM_EXTERNAL_HARNESS",
-    "external_harness_note": "Optional absolute path via env only — never hardcode developer home paths (F-PORTABILITY)"
+    "external_harness_note": "Optional absolute path via env only \u2014 never hardcode developer home paths (F-PORTABILITY)"
   },
   "drive": {
     "runner": "bin/mm-drive",
@@ -67,7 +72,10 @@
     "bin/mm-quant",
     "bin/mm-role",
     "bin/mm-score",
-    "bin/mm-sync-workflow-prompts"
+    "bin/mm-sync-workflow-prompts",
+    "bin/mm-fabric-status",
+    "bin/mm-fabric-heartbeat",
+    "bin/mm-queue-ingest"
   ],
   "note": "Single pipeline: pipeline.json SSOT. Outer drive: mm-drive + Stop hook. Plan face: lens-delivery-plan.rhai only. Quant: mm-quant + optional Developer/harness. No per-lane workflows; no gjc/omc/omx/hermes.",
   "evaluate_slo": {
@@ -76,7 +84,10 @@
   },
   "run_journal": {
     "root": "mm-runs/<run_id>/",
-    "required_on_start": ["run.json", "preflight.json"],
+    "required_on_start": [
+      "run.json",
+      "preflight.json"
+    ],
     "optional": [
       "goals.json",
       "ledger.jsonl",
@@ -88,5 +99,12 @@
       "findings.json",
       "evidence/admission-packet.md"
     ]
+  },
+  "delivery_fabric": {
+    "board": "programs/delivery-fabric/task-board.v1.json",
+    "doctrine": "programs/delivery-fabric/FABRIC-REFINED.md",
+    "min_active_workflows": 4,
+    "soft_red_ingest": "bin/mm-queue-ingest",
+    "autonomy": "agent dual-critic APPROVE + oya-ci-required => merge; soft reds always queued"
   }
 }

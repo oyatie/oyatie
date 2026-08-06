@@ -920,9 +920,71 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 def cmd_tick(args: argparse.Namespace) -> int:
     grok = find_grok(Path(args.cwd))
+    repo_root = grok.parent if grok.name == ".grok" else grok
+    # Soft reds / blocks → task board (never silent). Best-effort; never block tick.
+    queue_ingest = {"ok": False, "note": "skipped"}
+    try:
+        qi = grok / "bin" / "mm-queue-ingest"
+        if qi.is_file() and not args.offline:
+            p = subprocess.run(
+                [sys.executable, str(qi), "--cwd", str(repo_root), "--base", "dev"],
+                text=True,
+                capture_output=True,
+                timeout=120,
+                check=False,
+            )
+            try:
+                queue_ingest = (
+                    json.loads(p.stdout)
+                    if (p.stdout or "").strip()
+                    else {"ok": False, "stderr": (p.stderr or "")[:300]}
+                )
+            except json.JSONDecodeError:
+                queue_ingest = {"ok": False, "stderr": (p.stderr or p.stdout or "")[:400]}
+    except Exception as e:  # noqa: BLE001 — tick must continue
+        queue_ingest = {"ok": False, "error": str(e)[:200]}
+
     board = build_board(grok, do_gh=not args.offline)
     board["briefs"] = briefs_from_board(board)
-    append_ledger(grok, {"event": "tick", "counts": board.get("counts"), "resolvable": board.get("resolvable_ids")})
+    board["queue_ingest"] = queue_ingest
+    try:
+        tb_path = repo_root / ".grok/programs/delivery-fabric/task-board.v1.json"
+        if tb_path.is_file():
+            tb = load_json(tb_path)
+            board["task_board_queue_stats"] = tb.get("queue_stats")
+            board["soft_red_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "soft_red"
+                and L.get("status") == "ready"
+            )
+            board["ci_red_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "ci_red"
+                and L.get("status") == "ready"
+            )
+            board["block_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "block"
+                and L.get("status") == "ready"
+            )
+    except Exception:
+        pass
+    append_ledger(
+        grok,
+        {
+            "event": "tick",
+            "counts": board.get("counts"),
+            "resolvable": board.get("resolvable_ids"),
+            "soft_red_ready": board.get("soft_red_ready"),
+            "queue_ingest_ok": bool(queue_ingest.get("ok")),
+        },
+    )
     print(json.dumps(board, indent=2))
     return 0
 

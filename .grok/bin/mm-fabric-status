@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Assert delivery-fabric minimum activity (4 workflow classes).
+
+Fail closed if task board missing fabric classes or schedulers/runs look dead.
+Not merge authority. Exit 0 = productive enough; 2 = under-active.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/pipeline.json").is_file():
+            return p
+        if (p / ".git").exists() and (p / ".grok").exists():
+            return p
+    return cur
+
+
+def load(p: Path) -> dict:
+    return json.loads(p.read_text())
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--max-stale-min", type=int, default=45)
+    ap.add_argument("--json", action="store_true")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    board_path = repo / ".grok/programs/delivery-fabric/task-board.v1.json"
+    drive_path = repo / ".grok/harness/drive.v1.json"
+    required = [
+        "portfolio-work-manager",
+        "implement-claimed-lane",
+        "pr-babysit-lanes",
+        "workflow-productivity-watch",
+    ]
+    if board_path.is_file():
+        board = load(board_path)
+        required = list(board.get("fabric_classes") or required)
+        min_n = int(board.get("min_fabric_workflows_active") or 4)
+    else:
+        board = {}
+        min_n = 4
+
+    # Heartbeats file written by workflows
+    hb_path = repo / ".grok/mm-runs/_fabric/heartbeats.json"
+    heartbeats = load(hb_path) if hb_path.is_file() else {}
+
+    now = datetime.now(timezone.utc)
+    active = []
+    stale = []
+    missing = []
+    for cls in required:
+        entry = heartbeats.get(cls) or {}
+        ts = entry.get("at")
+        if not ts:
+            missing.append(cls)
+            continue
+        try:
+            # allow Z
+            t = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            age_min = (now - t).total_seconds() / 60.0
+        except Exception:
+            missing.append(cls)
+            continue
+        if age_min <= args.max_stale_min:
+            active.append({"class": cls, "age_min": round(age_min, 1), "note": entry.get("note")})
+        else:
+            stale.append({"class": cls, "age_min": round(age_min, 1)})
+
+    # scheduler hint: grepping is best-effort; productivity workflow re-arms
+    ok = len(active) >= min_n and len(missing) == 0 and len(stale) == 0
+    # soft: allow if active+stale covering all and stale few — still fail if any missing
+    if len(active) + len(stale) >= min_n and not missing and len(active) >= min_n:
+        ok = True
+    if len(active) < min_n:
+        ok = False
+
+    report = {
+        "ok": ok,
+        "min_required": min_n,
+        "active_count": len(active),
+        "active": active,
+        "stale": stale,
+        "missing": missing,
+        "board": str(board_path),
+        "heartbeats": str(hb_path),
+        "lanes_ready": sum(
+            1 for L in (board.get("lanes") or []) if (L or {}).get("status") == "ready"
+        ),
+        "lanes_in_progress": sum(
+            1
+            for L in (board.get("lanes") or [])
+            if (L or {}).get("status") in ("claimed", "in_progress", "implementing")
+        ),
+        "soft_red_ready": sum(
+            1
+            for L in (board.get("lanes") or [])
+            if (L or {}).get("source") == "soft_red" and (L or {}).get("status") == "ready"
+        ),
+        "ci_red_ready": sum(
+            1
+            for L in (board.get("lanes") or [])
+            if (L or {}).get("source") == "ci_red" and (L or {}).get("status") == "ready"
+        ),
+        "block_ready": sum(
+            1
+            for L in (board.get("lanes") or [])
+            if (L or {}).get("source") == "block" and (L or {}).get("status") == "ready"
+        ),
+        "queue_stats": board.get("queue_stats") or {},
+        "recommendation": (
+            "all four fabric classes heartbeating"
+            if ok
+            else "re-arm portfolio-work-manager, implement-claimed-lane, pr-babysit-lanes, workflow-productivity-watch"
+        ),
+    }
+    if args.json or True:
+        print(json.dumps(report, indent=2))
+    return 0 if ok else 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
