@@ -23,7 +23,7 @@
     "adrs_read_on_origin_dev": [
       {
         "id": "ADR-0615",
-        "path": "docs/decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md",
+        "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
         "status": "Accepted",
         "date": "2026-07-10",
         "amends": ["ADR-0562"],
@@ -32,13 +32,13 @@
       },
       {
         "id": "ADR-0562",
-        "path": "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+        "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
         "status": "Accepted",
         "note": "Read as amended by ADR-0615; bare 0562 alone is insufficient per REORG-DOCTRINE §1"
       },
       {
         "id": "ADR-0614",
-        "path": "docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
+        "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
         "status": "Accepted",
         "note": "Move-plan only for move-class bijections; this inventory does not open a move-plan"
       }

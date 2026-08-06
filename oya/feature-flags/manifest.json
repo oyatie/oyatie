@@ -32,22 +32,22 @@
     {
       "id": "ADR-0131",
       "title": "Per-microservice flat layout",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0159",
       "title": "Feature flag substrate",
-      "file": "docs/decisions/ADR-0159-feature-flag-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0160",
       "title": "Progressive delivery Flagger",
-      "file": "docs/decisions/ADR-0160-progressive-delivery-flagger.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0183",
       "title": "Policy engine separation",
-      "file": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0242",
@@ -67,7 +67,7 @@
     {
       "id": "ADR-0245",
       "title": "Substrate vs product",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0246",
@@ -82,7 +82,7 @@
     {
       "id": "ADR-0248",
       "title": "Cellular architecture",
-      "file": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0250",
@@ -122,7 +122,7 @@
     {
       "id": "ADR-0263",
       "title": "Observability emission contract",
-      "file": "docs/decisions/ADR-0263-observability-emission-contract.md"
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
     },
     {
       "id": "ADR-0276",
@@ -137,7 +137,7 @@
     {
       "id": "ADR-0284",
       "title": "Platform-owner name indirection",
-      "file": "docs/decisions/ADR-0284-platform-owner-name-indirection.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0292",
@@ -162,7 +162,7 @@
     {
       "id": "ADR-0296",
       "title": "Library-first credential sidecar",
-      "file": "docs/decisions/ADR-0296-library-first-credential-sidecar.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0297",

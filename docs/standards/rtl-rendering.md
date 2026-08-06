@@ -8,7 +8,7 @@ date: 2026-05-18
 purpose: |
   Canonical RTL (right-to-left) rendering rules. Locale-driven bidi flag from
   oya-shared-i18n-kernel determines per-surface direction.
-canonical_authority: docs/decisions/ADR-0206-i18n-substrate-fluent-icu.md
+canonical_authority: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 related_adrs:
   - ADR-0064
   - ADR-0206

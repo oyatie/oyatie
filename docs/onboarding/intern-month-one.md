@@ -814,7 +814,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0247](../deci
 
 ### Week 2 task 03
 Focus: Apply `ontology` doctrine to substrate microservices deep dive with ADR-0248 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-03` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -844,7 +844,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0250](../deci
 
 ### Week 2 task 06
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0251 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-06` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -874,7 +874,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../deci
 
 ### Week 2 task 09
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0254 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-09` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -904,7 +904,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../deci
 
 ### Week 2 task 12
 Focus: Apply `foundry` doctrine to substrate microservices deep dive with ADR-0258 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-12` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -934,7 +934,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0273](../deci
 
 ### Week 2 task 15
 Focus: Apply `policy-engine` doctrine to substrate microservices deep dive with ADR-0276 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-15` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -964,7 +964,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0284](../deci
 
 ### Week 2 task 18
 Focus: Apply `audit-chain` doctrine to substrate microservices deep dive with ADR-0292 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-18` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -994,7 +994,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0294](../deci
 
 ### Week 2 task 21
 Focus: Apply `tenancy` doctrine to substrate microservices deep dive with ADR-0295 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-21` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1024,7 +1024,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0311](../deci
 
 ### Week 2 task 24
 Focus: Apply `ontology` doctrine to substrate microservices deep dive with ADR-0313 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-24` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1054,7 +1054,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0317](../deci
 
 ### Week 2 task 27
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0242 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-27` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1084,7 +1084,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0244](../deci
 
 ### Week 2 task 30
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0245 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-30` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1114,7 +1114,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0247](../deci
 
 ### Week 2 task 33
 Focus: Apply `foundry` doctrine to substrate microservices deep dive with ADR-0248 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-33` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1144,7 +1144,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0250](../deci
 
 ### Week 2 task 36
 Focus: Apply `policy-engine` doctrine to substrate microservices deep dive with ADR-0251 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-36` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1174,7 +1174,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../deci
 
 ### Week 2 task 39
 Focus: Apply `audit-chain` doctrine to substrate microservices deep dive with ADR-0254 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-39` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1204,7 +1204,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../deci
 
 ### Week 2 task 42
 Focus: Apply `tenancy` doctrine to substrate microservices deep dive with ADR-0258 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-42` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1234,7 +1234,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0273](../deci
 
 ### Week 2 task 45
 Focus: Apply `ontology` doctrine to substrate microservices deep dive with ADR-0276 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-45` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1264,7 +1264,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0284](../deci
 
 ### Week 2 task 48
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0292 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-48` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1294,7 +1294,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0294](../deci
 
 ### Week 2 task 51
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0295 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-51` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1324,7 +1324,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0311](../deci
 
 ### Week 2 task 54
 Focus: Apply `foundry` doctrine to substrate microservices deep dive with ADR-0313 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-54` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1354,7 +1354,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0317](../deci
 
 ### Week 2 task 57
 Focus: Apply `policy-engine` doctrine to substrate microservices deep dive with ADR-0242 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-57` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1384,7 +1384,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0244](../deci
 
 ### Week 2 task 60
 Focus: Apply `audit-chain` doctrine to substrate microservices deep dive with ADR-0245 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-60` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1414,7 +1414,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0247](../deci
 
 ### Week 2 task 63
 Focus: Apply `tenancy` doctrine to substrate microservices deep dive with ADR-0248 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-63` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1444,7 +1444,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0250](../deci
 
 ### Week 2 task 66
 Focus: Apply `ontology` doctrine to substrate microservices deep dive with ADR-0251 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-66` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1474,7 +1474,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0253](../deci
 
 ### Week 2 task 69
 Focus: Apply `ops-dashboard` doctrine to substrate microservices deep dive with ADR-0254 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-69` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1504,7 +1504,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0257](../deci
 
 ### Week 2 task 72
 Focus: Apply `workflow` doctrine to substrate microservices deep dive with ADR-0258 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-72` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1534,7 +1534,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0273](../deci
 
 ### Week 2 task 75
 Focus: Apply `foundry` doctrine to substrate microservices deep dive with ADR-0276 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-2-75` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1546,7 +1546,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0276](../deci
 
 ### Week 3 task 01
 Focus: Apply `policy-engine` doctrine to capability tier authoring and journey catalog contribution with ADR-0246 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-01` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1576,7 +1576,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0248](../deci
 
 ### Week 3 task 04
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0249 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-04` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1606,7 +1606,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0251](../deci
 
 ### Week 3 task 07
 Focus: Apply `tenancy` doctrine to capability tier authoring and journey catalog contribution with ADR-0252 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-07` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1636,7 +1636,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0254](../deci
 
 ### Week 3 task 10
 Focus: Apply `ontology` doctrine to capability tier authoring and journey catalog contribution with ADR-0255 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-10` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1666,7 +1666,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0258](../deci
 
 ### Week 3 task 13
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0263 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-13` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1696,7 +1696,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0276](../deci
 
 ### Week 3 task 16
 Focus: Apply `workflow` doctrine to capability tier authoring and journey catalog contribution with ADR-0280 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-16` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1726,7 +1726,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0292](../deci
 
 ### Week 3 task 19
 Focus: Apply `foundry` doctrine to capability tier authoring and journey catalog contribution with ADR-0293 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-19` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1756,7 +1756,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0295](../deci
 
 ### Week 3 task 22
 Focus: Apply `policy-engine` doctrine to capability tier authoring and journey catalog contribution with ADR-0296 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-22` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1786,7 +1786,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0313](../deci
 
 ### Week 3 task 25
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0316 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-25` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1816,7 +1816,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0242](../deci
 
 ### Week 3 task 28
 Focus: Apply `tenancy` doctrine to capability tier authoring and journey catalog contribution with ADR-0243 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-28` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1846,7 +1846,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0245](../deci
 
 ### Week 3 task 31
 Focus: Apply `ontology` doctrine to capability tier authoring and journey catalog contribution with ADR-0246 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-31` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1876,7 +1876,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0248](../deci
 
 ### Week 3 task 34
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0249 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-34` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1906,7 +1906,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0251](../deci
 
 ### Week 3 task 37
 Focus: Apply `workflow` doctrine to capability tier authoring and journey catalog contribution with ADR-0252 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-37` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1936,7 +1936,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0254](../deci
 
 ### Week 3 task 40
 Focus: Apply `foundry` doctrine to capability tier authoring and journey catalog contribution with ADR-0255 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-40` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1966,7 +1966,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0258](../deci
 
 ### Week 3 task 43
 Focus: Apply `policy-engine` doctrine to capability tier authoring and journey catalog contribution with ADR-0263 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-43` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -1996,7 +1996,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0276](../deci
 
 ### Week 3 task 46
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0280 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-46` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2026,7 +2026,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0292](../deci
 
 ### Week 3 task 49
 Focus: Apply `tenancy` doctrine to capability tier authoring and journey catalog contribution with ADR-0293 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-49` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2056,7 +2056,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0295](../deci
 
 ### Week 3 task 52
 Focus: Apply `ontology` doctrine to capability tier authoring and journey catalog contribution with ADR-0296 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-52` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2086,7 +2086,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0313](../deci
 
 ### Week 3 task 55
 Focus: Apply `ops-dashboard` doctrine to capability tier authoring and journey catalog contribution with ADR-0316 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-55` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2116,7 +2116,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0242](../deci
 
 ### Week 3 task 58
 Focus: Apply `workflow` doctrine to capability tier authoring and journey catalog contribution with ADR-0243 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-58` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2146,7 +2146,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0245](../deci
 
 ### Week 3 task 61
 Focus: Apply `foundry` doctrine to capability tier authoring and journey catalog contribution with ADR-0246 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-61` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2176,7 +2176,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0248](../deci
 
 ### Week 3 task 64
 Focus: Apply `policy-engine` doctrine to capability tier authoring and journey catalog contribution with ADR-0249 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-64` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2206,7 +2206,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0251](../deci
 
 ### Week 3 task 67
 Focus: Apply `audit-chain` doctrine to capability tier authoring and journey catalog contribution with ADR-0252 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-67` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2236,7 +2236,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0254](../deci
 
 ### Week 3 task 70
 Focus: Apply `tenancy` doctrine to capability tier authoring and journey catalog contribution with ADR-0255 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-70` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2266,7 +2266,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0258](../deci
 
 ### Week 3 task 73
 Focus: Apply `ontology` doctrine to capability tier authoring and journey catalog contribution with ADR-0263 as the decision anchor.
-Read: Inspect `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `docs/decisions/ADR-0709-general-live-apex.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-3-73` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.

@@ -277,37 +277,37 @@
       "id": "ADR-0056",
       "title": "BNF v4.1",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13-layer enum + check family patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0123",
       "title": "Hyperscaler maturity claim gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0131",
       "title": "Per-microservice flat layout",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0132",
       "title": "Product platform and bundle dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "id": "ADR-0394",
       "title": "First-party Rust internal developer platform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"
+      "file": "docs/decisions/ADR-0704-k8s-port-live-apex.md"
     },
     {
       "id": "ADR-0185",
@@ -319,7 +319,7 @@
       "id": "ADR-0199",
       "title": "Per-tenant cost attribution + FinOps substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0211",
@@ -337,7 +337,7 @@
       "id": "ADR-0213",
       "title": "Ecosystem-as-a-Service architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

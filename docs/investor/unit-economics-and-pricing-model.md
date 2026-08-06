@@ -583,10 +583,10 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Forrester URL: https://www.forrester.com/press-newsroom/forrester-global-tech-forecast-2025-to-2030/
 - Zylo, 2026 SaaS Management Index: $75B plus spend dataset, $55.7M average SaaS spend, 305 average portfolio size, 78 percent unexpected AI or consumption charges.
 - Zylo URL: https://zylo.com/2026-saas-management-index
-- Internal source: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
-- Internal source: `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-- Internal source: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- Internal source: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
 - Internal source: `docs/standards/per-tenant-resource-quotas-canonical.md`.
 - Internal source: `microservices/intelligence/capability-tiers/tier-matrix.md`.
 - Internal source: local count of 78 microservice directories.

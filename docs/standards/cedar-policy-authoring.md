@@ -352,13 +352,13 @@ External authority: `https://docs.cedarpolicy.com/`.
 
 `docs/standards/cedar-policy-discipline.md` is the short canonical discipline.
 
-`docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md` binds Cedar and autonomy tiers.
+`docs/decisions/ADR-0702-identity-authz-live-apex.md` binds Cedar and autonomy tiers.
 
-`docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md` separates Cedar from admission policy.
+`docs/decisions/ADR-0709-general-live-apex.md` separates Cedar from admission policy.
 
-`docs/decisions/ADR-0243-cedar-as-universal-gate.md` binds Cedar as universal gate.
+`docs/decisions/ADR-0700-ci-admission-live-apex.md` binds Cedar as universal gate.
 
-`docs/decisions/ADR-0246-policy-engine-substrate-promotion.md` binds policy substrate.
+`docs/decisions/ADR-0701-monorepo-capability-live-apex.md` binds policy substrate.
 
 `docs/standards/capability-tier-matrix.md` binds tier policy coverage.
 

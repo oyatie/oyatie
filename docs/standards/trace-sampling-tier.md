@@ -8,7 +8,7 @@ date: 2026-05-18
 purpose: |
   Canonical OTel head + tail sampling policy. 1% baseline head sampling at agent collectors;
   100% tail sampling on errors / p99 / new-endpoint warm-up; per-µservice manifest-tunable.
-canonical_authority: docs/decisions/ADR-0210-otel-tail-sampling.md
+canonical_authority: docs/decisions/ADR-0706-observability-live-apex.md
 related_adrs:
   - ADR-0139
   - ADR-0145

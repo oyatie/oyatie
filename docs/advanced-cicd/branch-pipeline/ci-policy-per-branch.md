@@ -24,7 +24,7 @@ doc_status: published
 
 ## 1. Provider-agnostic CI adapter
 
-Every CI lane is invoked through `oya-intelligence-ci-runner-kernel` (NEW) + per-provider adapter, per [Directive 4](../../plans/MASTERPLAN.md) and the existing Foundry adapter posture ([ADR-0020](../../../docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md)):
+Every CI lane is invoked through `oya-intelligence-ci-runner-kernel` (NEW) + per-provider adapter, per [Directive 4](../../plans/MASTERPLAN.md) and the existing Foundry adapter posture ([ADR-0020](../../../docs/decisions/ADR-0709-general-live-apex.md)):
 
 - `oya-intelligence-ci-runner-adapter-github-actions` — GitHub Actions workflow_dispatch.
 - `oya-intelligence-ci-runner-adapter-buildkite` — Buildkite pipeline trigger.
@@ -39,7 +39,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 | Lane | Severity | Scope | Source |
 |---|---|---|---|
 | `oya-governance-cohesion` | BLOCKER | every PR / commit | [ADR-0001](../../../docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md) |
-| `oya-governance-supply-chain` | BLOCKER | every PR / commit | [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) |
+| `oya-governance-supply-chain` | BLOCKER | every PR / commit | [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) |
 | `oya-governance-api-semver` | BLOCKER | every PR touching `contracts/` | [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md) |
 | `oya-governance-pr-shape` | BLOCKER (PR-level) | every PR | repo PR template |
 | `oya-governance-pr-review-verdict-present` | BLOCKER (local-dev → origin/dev) | every PR | this composer; NEW |
@@ -50,7 +50,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 | `oya-governance-promotion-gate-staging-to-prod` | BLOCKER (gate-class) | staging → prod | this composer; NEW |
 | `oya-governance-canary-required` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/progressive-delivery-strategy.md` |
 | `oya-governance-rollback-evidence` | BLOCKER | prod | `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md` |
-| `cloud-ci-slo-coverage` | HIGH | every service | [ADR-0042](../../../docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md) |
+| `cloud-ci-slo-coverage` | HIGH | every service | [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md) |
 
 
 **CI policy:** none. Private workspace. Agents may run lanes locally via sanctioned tooling for personal confidence; results are not promoted to a shared store.

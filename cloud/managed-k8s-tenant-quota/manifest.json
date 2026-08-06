@@ -85,7 +85,7 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface",
       "acceptance_status": "accepted",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "IP-001-managed-k8s-tenant-quota",
@@ -114,7 +114,7 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0155",
@@ -126,7 +126,7 @@
       "id": "ADR-0092",
       "title": "Workspace dependency-seam policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0007",

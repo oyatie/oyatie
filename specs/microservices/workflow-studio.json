@@ -1177,7 +1177,7 @@
   ],
   "sources_scanned": [
     "$ref:bominal/decisions/ADR-0164-workflow-canonical-spec-format.md",
-    "$ref:docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+    "$ref:docs/decisions/ADR-0709-general-live-apex.md",
     "$ref:specs/products/workflow.json",
     "$ref:memory/feedback_workflow_studio_scope",
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",

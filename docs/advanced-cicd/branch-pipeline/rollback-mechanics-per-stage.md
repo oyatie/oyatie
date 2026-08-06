@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Scope
 
-Rollback procedures per layer of the four-layer pipeline. Every rollback emits D14 audit-chain evidence per [ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md) and signed-rollback artefact per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) §rollback-evidence.
+Rollback procedures per layer of the four-layer pipeline. Every rollback emits D14 audit-chain evidence per [ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md) and signed-rollback artefact per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) §rollback-evidence.
 
 ## 2. Layer 0 — worktree rollback
 
@@ -41,7 +41,7 @@ Rollback procedures per layer of the four-layer pipeline. Every rollback emits D
 
 **Mechanism.** A revert is a new PR through the standard local-dev → origin/dev path. The agent (or `staging-fixer` Mode-B) authors a revert commit in their local-dev clone, opens a PR, the 3-gate fires (PR shape + reviewer-agent verdict on the revert + CI green), and on merge the revert lands on `origin/dev`. **Cannot bypass the PR flow** — direct push to `origin/dev` is forbidden by `oya-governance-no-direct-origin-dev-commit` (BLOCKER).
 
-**Evidence.** D14 artefact: `revert_record { reverted_sha, revert_sha, reviewer_verdict_id, reason, reverted_at }`. Signed per [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md).
+**Evidence.** D14 artefact: `revert_record { reverted_sha, revert_sha, reviewer_verdict_id, reason, reverted_at }`. Signed per [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md).
 
 **Authority.** Any sanctioned agent; reviewer-agent verdict still required.
 
@@ -59,7 +59,7 @@ Rollback procedures per layer of the four-layer pipeline. Every rollback emits D
 
 ### 6.1 SLO-burn-rate-fast auto-rollback (the runtime safety net)
 
-Per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) and `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md`:
+Per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) and `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md`:
 
 - If `slo-burn-rate-fast` ≥ 14.4× (1h window) during a prod rollout → Argo Rollouts / Flagger auto-aborts and routes traffic to the previous revision.
 - Per-cell auto-rollback. A single bad cell reverts without disturbing healthy cells.
@@ -79,7 +79,7 @@ When a defect requires an out-of-band fix faster than the standard 4-layer caden
 5. Staging → prod gate set is **reduced** for emergency: gates 1 + 2 + 4 (comments-resolved, CI-green ≥ N=1 run on staging, zero open SLO-fast). Gate 3 (canary 100% ≥ M hours) is reduced to canary 100% ≥ 30 min. Gate 5 (optional reviewer re-affirm) is skipped except for `security-reviewer` / `database-reviewer` / `privacy-reviewer` classes.
 6. **Directive 12 human-orchestrator signature required.** `prod-promoter` refuses to fire the emergency-class promotion without a Cosign-signed approval commit from a `@council-architecture` member or the per-axis on-call lead (per `docs/RACI-OWNERSHIP.md`). This is the only place in the standard flow where a human button exists — and it exists only for emergency-class promotions.
 
-**Evidence.** D14 artefact: `hotfix_record { incident_id, fixed_sha, emergency_class, reviewer_verdict_id, human_signoff_identity, deployed_at }`. Per-tenant trust portal updated within 5 min (per [ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
+**Evidence.** D14 artefact: `hotfix_record { incident_id, fixed_sha, emergency_class, reviewer_verdict_id, human_signoff_identity, deployed_at }`. Per-tenant trust portal updated within 5 min (per [ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)).
 
 ### 6.3 Per-cell prod rollback unit
 
@@ -102,15 +102,15 @@ Every artefact verified by `oya-governance-rollback-evidence` (BLOCKER per [`gov
 
 ## 8. KMS root rotation (special case)
 
-KMS root rotation ([ADR-0043](../../../docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md)) is **never auto-rolled-back**. The blue/green stateful-surface protocol applies (per `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md`). Rollback is "re-shift traffic to blue (old root)"; the green root remains warm during the 7-day soak. Requires human-orchestrator signature per Directive 12.
+KMS root rotation ([ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)) is **never auto-rolled-back**. The blue/green stateful-surface protocol applies (per `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md`). Rollback is "re-shift traffic to blue (old root)"; the green root remains warm during the 7-day soak. Requires human-orchestrator signature per Directive 12.
 
 ## 9. Anti-scope
 
 This file does not own:
 
-- Progressive-delivery rollback math — owned by [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md).
-- Per-cell architecture — owned by [ADR-0009](../../../docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md).
-- KMS rotation — owned by [ADR-0043](../../../docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md).
+- Progressive-delivery rollback math — owned by [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
+- Per-cell architecture — owned by [ADR-0009](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
+- KMS rotation — owned by [ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md).
 
 ## 10. Lift target
 

@@ -18,7 +18,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
-  - ../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
+  - ../../docs/decisions/ADR-0709-general-live-apex.md
 doc_status: published
 ---
 

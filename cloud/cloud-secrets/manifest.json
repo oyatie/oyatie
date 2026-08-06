@@ -112,31 +112,31 @@
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0243",
       "title": "Cedar As Universal Gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0243-cedar-as-universal-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0338",
       "title": "Pod Runtime Tier 0 To 3",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0340",
       "title": "Capacity Model Per Microservice Manifest",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0342",
@@ -148,19 +148,19 @@
       "id": "ADR-0346",
       "title": "Oya Verify Must Run Full Ci Mirror",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0348",
       "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0349",
       "title": "Jenkins Argocd Self Hostable Ci Cd Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -216,7 +216,7 @@
       "paid"
     ],
     "paid_billing_components": [],
-    "source": "docs/decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md"
+    "source": "docs/decisions/ADR-0702-identity-authz-live-apex.md"
   },
   "packs": [
     "kr",

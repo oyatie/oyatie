@@ -77,7 +77,7 @@ Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-
 
 ## 8. Per-region phasing
 
-Workspace is region-heavy (latency-sensitive). Per-region phasing per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md): primary cell in primary region → secondary cells → secondary region → other regions.
+Workspace is region-heavy (latency-sensitive). Per-region phasing per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md): primary cell in primary region → secondary cells → secondary region → other regions.
 
 ## 9. Hyperscaler equivalent
 

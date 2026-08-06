@@ -19,7 +19,7 @@ companion_docs:
 - /specs/master-plan-sequencing.json
 - /specs/planning-closure-contract.json
 - /specs/planning-closure-status-closure-ledger.json
-- docs/decisions/ADR-0217-vertical-slice-rollout-order.md
+- docs/decisions/ADR-0709-general-live-apex.md
 authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json

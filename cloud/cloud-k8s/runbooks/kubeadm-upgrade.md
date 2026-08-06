@@ -9,7 +9,7 @@ date: 2026-05-17
 related_artifacts:
   - microservices/cloud-k8s/failure-modes.md (FM-11)
   - microservices/cloud-k8s/policy/cluster-isolation.md
-  - docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 doc_status: published
 ---
 

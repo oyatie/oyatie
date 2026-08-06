@@ -12,7 +12,7 @@
       "cloud/cloud-iam/contracts/BUCK",
       "cloud/cloud-iam/contracts/openapi/cloud/cloud-iam-v1.yaml",
       "cloud/cloud-iam/contracts/tests/openapi_parity.rs",
-      "docs/decisions/ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "evidence/audit-chain.jsonl",
       "evidence/multispectrum/waveA-cloud-iam-openapi-parity-20260625-1782426426.json",
       "specs/reachability-registry.json"

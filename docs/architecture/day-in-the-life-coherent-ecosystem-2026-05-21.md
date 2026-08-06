@@ -11,18 +11,18 @@ planned_enforcement_ref: 'oya-governance-doc-rigor'
 purpose: >
   Six long-form day-in-the-life narratives showing the unified ecosystem from different persona perspectives. Every moment demonstrates same passkey identity, explicit tenant context, role projection, shared UX vocabulary, Cedar policy, Workflow Engine, Ontology, audit-chain evidence, and no per-tool training friction.
 related_adrs:
-  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-  - docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-  - docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-  - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-  - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-  - docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-  - docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md
-  - docs/decisions/ADR-0318-collar-color-workspace-universality.md
-  - docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 in_flight_related_adrs:
   - ADR-0319 front-middle-back-office-scope-taxonomy (in flight; no local file present in checkout at authoring time)
 companion_docs:
@@ -7927,18 +7927,18 @@ The risk focus is work emergency data clears before personal return.
 - docs/architecture/keystone-bundle-2026-05-20-synthesis.md
 - docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
-- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-- docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- docs/decisions/ADR-0245-substrate-vs-product-layering.md
-- docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-- docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-- docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-- docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-- docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-- docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-- docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md
-- docs/decisions/ADR-0318-collar-color-workspace-universality.md
-- docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
 - Apple ecosystem and Human Interface Guidelines: https://developer.apple.com/design/human-interface-guidelines/ (device continuity, consistent interaction vocabulary, managed vs personal account separation, and human-centered interface hierarchy)
 - Apple Continuity: https://www.apple.com/macos/continuity/ (task continuity across phone, tablet, laptop, watch, and peripherals without requiring the user to relearn the action)
 - Microsoft 365: https://www.microsoft.com/en-us/microsoft-365/products-apps-services (Word, Excel, PowerPoint, Outlook, Teams, SharePoint, OneDrive, identity, compliance, and learning paths under one productivity estate)

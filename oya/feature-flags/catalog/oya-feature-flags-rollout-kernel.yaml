@@ -31,8 +31,8 @@ accepted_runtime_safety_authority:
   - specs/feature-flag-substrate-canonical.json
   - specs/brownout-degradation-signal.json
 context_only_runtime_safety_adrs:
-  - docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
-  - docs/decisions/ADR-0114-canary-observability-rollback.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 brownout_degradation_signal: specs/brownout-degradation-signal.json
 runtime_safety_claim_ceiling:
   declaration_only: true

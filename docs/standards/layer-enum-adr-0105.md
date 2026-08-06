@@ -15,7 +15,7 @@ enforced_by:
   - oya-governance-layer-enum
   - oya-governance-naming-convention
 canonical_paths:
-  - docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - docs/standards/clean-architecture.md
   - docs/standards/crate-naming-convention.md
   - crates/oya-dev-cli/src/layered_architecture_gates.rs
@@ -453,13 +453,13 @@ Suppressing a layer finding without an ADR is an anti-pattern.
 
 ## Cross-References
 
-`docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md` is the binding decision.
+`docs/decisions/ADR-0709-general-live-apex.md` is the binding decision.
 
-`docs/decisions/ADR-0056-rust-clean-architecture-bnf.md` binds crate-name grammar.
+`docs/decisions/ADR-0700-ci-admission-live-apex.md` binds crate-name grammar.
 
-`docs/decisions/ADR-0106-rename-application-to-usecase.md` binds the transition away from `application`.
+`docs/decisions/ADR-0703-cas-cache-live-apex.md` binds the transition away from `application`.
 
-`docs/decisions/ADR-0131-per-microservice-flat-layout.md` binds per-service layout.
+`docs/decisions/ADR-0701-monorepo-capability-live-apex.md` binds per-service layout.
 
 `docs/standards/clean-architecture.md` gives dependency-direction semantics.
 

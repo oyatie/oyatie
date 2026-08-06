@@ -307,5 +307,5 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 - Consumer contract: `microservices/messenger/contracts/asyncapi/messenger-events.yaml`.
 - Consumer contract: `microservices/intelligence/contracts/asyncapi/intelligence-events-v1.yaml`.
 - Standard: `docs/standards/documentation-rigor.md`.
-- ADR: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- ADR: `docs/decisions/ADR-0263-observability-emission-contract.md`.
+- ADR: `docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR: `docs/decisions/ADR-0706-observability-live-apex.md`.

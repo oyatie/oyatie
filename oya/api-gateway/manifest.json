@@ -30,43 +30,43 @@
       "id": "ADR-0056",
       "title": "Rust Clean Architecture BNF",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13-layer enum + check family",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0114",
       "title": "Canary observability rollback",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic SLO-gated promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0157",
       "title": "API gateway tier",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0157-api-gateway-tier.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0182",
       "title": "North-south vs east-west separation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0183",
       "title": "Policy engine separation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0242",
@@ -168,7 +168,7 @@
       "id": "ADR-0297",
       "title": "Abuse-defence baseline (in flight)",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "contracts": {

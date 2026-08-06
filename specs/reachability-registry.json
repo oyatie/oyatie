@@ -38,15 +38,15 @@
       "prefix": "oya/feature-flags/release/runtime-safety-policy.json"
     },
     {
-      "anchor": "ADR-0176 (brown-out + graceful-degradation signal API), with ADR-0165/0168/0180/0186/0210/0241: the messenger runtime-control-loop contract-slice tree (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs), homed under the comms capability per ADR-0562 §10.16 messenger move and enforced by the contract-slice-conformance gate; the contract is justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "anchor": "ADR-0176 (brown-out + graceful-degradation signal API), with ADR-0165/0168/0180/0186/0210/0241: the messenger runtime-control-loop contract-slice tree (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs), homed under the comms capability per ADR-0562 §10.16 messenger move and enforced by the contract-slice-conformance gate; the contract is justified in docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "prefix": "comms/messenger/resilience/"
     },
     {
-      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "prefix": "comms/messenger/chaos/"
     },
     {
-      "anchor": "ADR-0180 (SLO composition inheritance arithmetic) + ADR-0139 (SLO-home convention): the messenger per-service SLO home, including composition.openslo.yaml joining the per-service OpenSLO objectives referenced by the runtime-control-loop contract slo_gate_refs, homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "anchor": "ADR-0180 (SLO composition inheritance arithmetic) + ADR-0139 (SLO-home convention): the messenger per-service SLO home, including composition.openslo.yaml joining the per-service OpenSLO objectives referenced by the runtime-control-loop contract slo_gate_refs, homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "prefix": "comms/observability/slos/messenger/"
     },
     {

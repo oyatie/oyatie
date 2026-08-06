@@ -133,7 +133,7 @@
     },
     {
       "allowed_language_now": "retired from protected CI authority; residual local-surface retirement remains open",
-      "artifact": "docs/AGENTS.md + docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+      "artifact": "docs/AGENTS.md + docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "claim_text": "oya CLI retired from CI authority",
       "claim_tier": "spec_ready",
       "current_evidence": [
@@ -175,7 +175,7 @@
     },
     {
       "allowed_language_now": "future/reference ownership only; no live Tide claim",
-      "artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0513",
+      "artifact": "docs/decisions/ADR-0700-ci-admission-live-apex.md + historical ADR-0513",
       "claim_text": "Tide is a future/reference admission-controller shape; GitHub protected PRs remain current authority",
       "claim_tier": "spec_ready",
       "current_evidence": [

@@ -105,37 +105,37 @@
       "id": "ADR-0044",
       "title": "Service Mesh Istio Ambient And Envoy Gateway",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0148",
       "title": "Service Mesh Cilium Ambient Layered",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0253",
       "title": "Network Topology Edge Service Mesh",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"
+      "file": "docs/decisions/ADR-0708-platform-foundations-live-apex.md"
     },
     {
       "id": "ADR-0338",
       "title": "Pod Runtime Tier 0 To 3",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0348",
       "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0349",
       "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {},

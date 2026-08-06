@@ -26,7 +26,7 @@
       "pair_id": "pair-1-clean-architecture",
       "markdown": "docs/standards/clean-architecture.md",
       "markdown_size_bytes": 19000,
-      "partner": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md",
+      "partner": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "partner_size_bytes": 14200,
       "verdict": "PARTIAL-RESTATEMENT-MINOR-SLIM",
       "overlap_description": "Standard names the 12-layer enum and BNF role token; ADR-0056 is the authoritative source for these. Standard does not currently cite ADR-0056 in frontmatter (cites ADR-0015/0017/0053/0054). Standard's \u00a72-3 likely restates the layer enum that ADR-0056 declares \u2014 restatement risks drift.",

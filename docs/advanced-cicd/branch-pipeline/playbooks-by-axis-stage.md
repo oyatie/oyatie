@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Scope
 
-Per-axis differentiation of the four-layer pipeline. Every axis follows the same four layers and the same gate semantics; what differs is **cadence, canary cohort sizing, reviewer-agent re-affirm requirement, and hot-fix tolerance**. Extends the per-axis cadence table in [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) §per-axis-rollout-cadence.
+Per-axis differentiation of the four-layer pipeline. Every axis follows the same four layers and the same gate semantics; what differs is **cadence, canary cohort sizing, reviewer-agent re-affirm requirement, and hot-fix tolerance**. Extends the per-axis cadence table in [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) §per-axis-rollout-cadence.
 
 ## 2. SaaS platform axis
 

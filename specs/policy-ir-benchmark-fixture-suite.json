@@ -16,7 +16,7 @@
     "updated_at": "2026-07-02T00:00:00Z",
     "rubric_ref": "specs/policy-ir-benchmark-rubric.json",
     "doctrine_refs": [
-      "docs/decisions/ADR-0211-in-house-tech-stack-policy.md"
+      "docs/decisions/ADR-0709-general-live-apex.md"
     ],
     "ground_truth_refs": [
       "billing/core/accounting-journal (hardcoded Jurisdiction enum + KR statutory ground truth — source of Fixture 1 real rules)",

@@ -626,7 +626,7 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
             | "docs/ADR-LEGACY-REGRESSION-MAPPING.md"
             | "docs/CHANGELOG.md"
             | "docs/RISK-REGISTER.md"
-            | "docs/decisions/ADR-0052-inventory-grit-cutover.md"
+            | "docs/decisions/ADR-0709-general-live-apex.md"
             | "docs/teams/README.md"
             | "docs/teams/tactical-first-vertical-pilot/CHARTER.md"
     ) || path.starts_with("docs/decisions/ADR-0016-")

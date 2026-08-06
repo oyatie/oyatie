@@ -646,13 +646,13 @@ Best,
 
 - Internal: `registry/sample-tenants/tenant-acme-mid-market-saas.md`.
 - Internal: `registry/sample-tenants/tenant-helios-fortune-500-manufacturer.md`.
-- Internal: `docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal: `docs/decisions/ADR-0220-*`.
 - Internal: `docs/decisions/ADR-0243-*`.
 - Internal: `docs/decisions/ADR-0244-*`.
 - Internal: `docs/decisions/ADR-0251-*`.
 - Internal: `docs/decisions/ADR-0263-*`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal: `docs/decisions/ADR-0317-*`.
 - Internal: `specs/capability-tier-schema.json`.
 - Internal: `specs/pack-overlay-schema.json`.

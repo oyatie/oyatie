@@ -2036,11 +2036,11 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 - `oya/mail/`, `oya/messenger/`, `oya/drive/` (delivery surfaces)
 - `oya/audit-chain/`, `oya/policy-engine/`, `oya/ontology/`, `oya/tenancy/`, `oya/identity/`, `oya/intelligence/` (substrate dependencies)
 - `oya/plugin-app-store/PRD.md` (extension model)
-- `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
-- `docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
+- `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - `ADR-0242`
-- `docs/decisions/ADR-0245-substrate-vs-product-layering.md`
-- `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - `docs/decisions/ADR-0252-workflow-engine-per-step-idempotency.md`
 - `docs/products/_TEMPLATE.md` (PRD template)
 - Memory ledger: `feedback_oyatie_is_a_tenant_doctrine`, `feedback_substrate_vs_product_layering`, `feedback_workflow_studio_scope`, `feedback_quality_performance_scalability_bar`, `feedback_clean_architecture_requirements`, `feedback_autonomous_implementation_artifacts`, `feedback_canonical_base_localization`, `feedback_doc_coverage_enforced`, `feedback_no_silent_regression`
@@ -2472,15 +2472,15 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - docs/standards/documentation-rigor.md
 - docs/personas/MASTER-ROSTER-2026-05-21.md
 - docs/decisions/ADR-0242
-- docs/decisions/ADR-0243-cedar-as-universal-gate.md
-- docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- docs/decisions/ADR-0245-substrate-vs-product-layering.md
-- docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0708-platform-foundations-live-apex.md
 - docs/decisions/ADR-0252-workflow-engine-per-step-idempotency.md
 - docs/decisions/ADR-0255-intelligence-two-layer-model.md
 - docs/decisions/ADR-0263-audit-event-registry.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
-- docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
 - `registry/stores/instructions-store.json` D-CICD-AUTHORITY / D-CLOUD-NATIVE current CI authority
 - specs/products/workplace-integration.json
 - specs/oya/workflow-engine.json

@@ -7,9 +7,9 @@ Deployable-context assumption under test: all six canonical contexts unless evid
 Counterpart bar: AWS Secrets Manager, Google Secret Manager, HashiCorp Vault Secrets.
 Evidence standard: every finding below is tied to a local file line, canonical line, memory directive, chat-history line, or official counterpart source.
 
-Citation anchor 1: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2225` for §D-15 multi-context deployment.
-Citation anchor 1b: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2495` for §D-16 OpenTofu-only IaC and forbidden patterns.
-Citation anchor 1c: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md §D-17..§D-20` for OS matrix, Rust-strict policy, OCI Always Free, and audit-agent decision tree.
+Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2225` for §D-15 multi-context deployment.
+Citation anchor 1b: `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495` for §D-16 OpenTofu-only IaC and forbidden patterns.
+Citation anchor 1c: `docs/decisions/ADR-0700-ci-admission-live-apex.md §D-17..§D-20` for OS matrix, Rust-strict policy, OCI Always Free, and audit-agent decision tree.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for deployment contexts, OpenTofu substrate, supported OSes, language policy, and OCI Always Free.
 Citation anchor 3: `microservices/cloud-secrets/PRD.md:20-331` read for purpose, requirements, SDK, SLO, benchmark, and acceptance criteria evidence.
 Citation anchor 4: `microservices/cloud-secrets/ARCHITECTURE.md:3-704` read for architecture, dependency, tenant-scope, OpenBao, and credential-isolation evidence.
@@ -350,13 +350,13 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 
 1. Canonical-direction headline: drifted-fixable, but not currently aligned.
 2. Multi-context constraint classification: drifted-fixable.
-3. ADR-0328 requires every microservice to name supported deployment contexts and justify any N/A; citation: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2079-2087`.
+3. ADR-0328 requires every microservice to name supported deployment contexts and justify any N/A; citation: `docs/decisions/ADR-0700-ci-admission-live-apex.md:2079-2087`.
 4. Brief-template cloud-family guidance says cloud services generally need all six contexts, and KMS/secrets are mandatory for `oyatie-as-cloud-provider`; citation: `docs/standards/brief-template.md:666-740`.
 5. `cloud-secrets` has no manifest-level `deployment_contexts` field in `manifest.json`.
 6. `cloud-secrets` has no service-local N/A rationale with missing primitives, customer impact, remediation owner, and revisit gate.
 7. Multi-context classification result: P1 drift.
 8. OpenTofu constraint classification: drifted-fixable.
-9. ADR-0328 requires OpenTofu as canonical and forbids Terraform/Pulumi/CloudFormation as implementation substrate; citation: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2495`.
+9. ADR-0328 requires OpenTofu as canonical and forbids Terraform/Pulumi/CloudFormation as implementation substrate; citation: `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495`.
 10. The service has Helm/Kustomize IaC only, with no canonical context module directories.
 11. `compliance.md:982` mentions Helm/Kustomize/OpenTofu, but no service-local OpenTofu module path exists.
 12. `PRD.md:317` uses `helm install` acceptance evidence rather than OpenTofu `plan/apply` evidence.
@@ -376,7 +376,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 26. No generated-SDK exception ADR/provenance file was found.
 27. Rust-strict classification result: P1 documentation incoherence, P0 avoided because no forbidden source files were present.
 28. OCI Always Free constraint classification: drifted-fixable.
-29. ADR-0328 requires `iac/oci-guest/always-free/` and demo_trial-on-OCI as Always Free; citation: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md §D-19`.
+29. ADR-0328 requires `iac/oci-guest/always-free/` and demo_trial-on-OCI as Always Free; citation: `docs/decisions/ADR-0700-ci-admission-live-apex.md §D-19`.
 30. `specs/master-plan-sequencing.json:856-866` names the same OCI Always Free module path and forbids paid fallback in demo_trial.
 31. `retired tenant_class adoption artifact:11-27` prices demo_trial around USD 45/month and does not name OCI Always Free.
 32. `cost-budget.md:22-30` uses paid OCI cost surfaces rather than an Always Free demo_trial profile.
@@ -508,7 +508,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 ### §3.7 Dimension 7 - OpenTofu IaC coverage
 
 1. OpenTofu headline: no service-local canonical OpenTofu coverage found.
-2. ADR-0328 says OpenTofu is the canonical IaC engine and Terraform/Pulumi/CloudFormation are forbidden implementation substrates; citation: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2495`.
+2. ADR-0328 says OpenTofu is the canonical IaC engine and Terraform/Pulumi/CloudFormation are forbidden implementation substrates; citation: `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495`.
 3. Required per-context module directories are absent.
 4. Missing directory: `iac/oyatie-public-cloud/`.
 5. Missing directory: `iac/guest-on-aws/`.
@@ -677,7 +677,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 | P1 | D4 | Five canonical constraints are not fully satisfied | `specs/master-plan-sequencing.json:704-866` | Add multi-context, OpenTofu, OS, Rust, and OCI Always Free artifacts. |
 | P1 | D5 | Industry union parity is partial | official AWS/GCP/HashiCorp sources listed in §3.5 | Add leases, quotas, version aliases, replication, endpoint, sync, and policy semantics. |
 | P1 | D6 | All six deployment contexts are missing canonical IaC | `specs/master-plan-sequencing.json:704-746`; `microservices/cloud-secrets/iac/helm/openbao/Chart.yaml:1-11` | Add per-context OpenTofu modules or complete N/A records. |
-| P1 | D7 | No OpenTofu modules, state backends, or attestation wiring | `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2495`; `microservices/cloud-secrets/PRD.md:317` | Wrap Helm/Kustomize behind signed OpenTofu modules. |
+| P1 | D7 | No OpenTofu modules, state backends, or attestation wiring | `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495`; `microservices/cloud-secrets/PRD.md:317` | Wrap Helm/Kustomize behind signed OpenTofu modules. |
 | P1 | D8 | No `supported-oses.json` or OS package/CI matrix | `specs/master-plan-sequencing.json:777-816` | Add manifest with Tier-1/Tier-2/out-of-scope, packages, and CI lanes. |
 | P1 | D9 | Docs prescribe TypeScript/Python SDK/tooling without exception | `microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md:14-58`; `microservices/cloud-secrets/PRD.md:124-130` | Delete or convert to generated SDK exception with provenance. |
 | P1 | D4 | OCI demo_trial tenant_class is not mapped to Always Free | `microservices/cloud-secrets/retired tenant_class adoption artifact:11-27`; `microservices/cloud-secrets/cost-budget.md:22-30` | Add `iac/oci-guest/always-free/` and tenant_class limits. |

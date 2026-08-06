@@ -492,9 +492,9 @@ fn p3_identity_fixture(label: &str) -> PathBuf {
     }
     write_fixture_file(
         &root,
-        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         &std::fs::read(source_root.join(
-            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ))
         .expect("read selected ADR fixture"),
     );
@@ -1824,7 +1824,7 @@ fn root_commit_p3_control_reaches_named_bootstrap_shape_failure() {
 fn dormant_p3_identity_rejects_a_unicode_direct_adr_path_after_raw_tree_parsing() {
     let root = p3_identity_fixture("unicode-direct-adr");
     let source = root
-        .join("docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md");
+        .join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
     let unicode_path = "docs/decisions/ADR-0002-résumé.md";
     write_fixture_file(
         &root,
@@ -1956,7 +1956,7 @@ fn census_epoch_owners_is_adr_justified_and_not_hand_registered() {
     let repo_root = discover_repo_root().expect("discover repository root");
     let owners_path = "registry/adr-census-epoch/OWNERS";
     let adr = std::fs::read_to_string(
-        repo_root.join("docs/decisions/ADR-0624-stage-immutable-adr-census-epoch-transition.md"),
+        repo_root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
     )
     .expect("read ADR-0624");
     assert!(
@@ -2031,7 +2031,7 @@ fn dormant_p3_identity_is_bounded_to_selected_inputs() {
     for (label, path) in [
         (
             "direct-adr",
-            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ),
         ("producer-gate", "ci/facade/scm-facts-snapshot/src/main.rs"),
         (
@@ -2072,7 +2072,7 @@ fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary
     let repo_root = discover_repo_root().expect("discover repository root");
     let adr =
         std::fs::read_to_string(repo_root.join(
-            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ))
         .expect("read ADR-0515");
     assert!(adr.contains(

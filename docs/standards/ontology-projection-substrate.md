@@ -339,11 +339,11 @@ Treating ontology schemas as unversioned JSON examples is an anti-pattern.
 
 ## Cross-References
 
-`docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md` binds direct read path limits.
+`docs/decisions/ADR-0709-general-live-apex.md` binds direct read path limits.
 
-`docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md` binds projection pinning.
+`docs/decisions/ADR-0709-general-live-apex.md` binds projection pinning.
 
-`docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` binds capability tier projection.
+`docs/decisions/ADR-0709-general-live-apex.md` binds capability tier projection.
 
 `docs/standards/workflow-substrate-engine.md` binds mutating workflow templates.
 
@@ -537,9 +537,9 @@ derived_for:
   - service: observability
     path: microservices/observability/projections/tenant-access-context-v1.yaml
 related_adrs:
-  - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
   - docs/decisions/ADR-0258-contract-version-ratchet.md
-  - docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 source_events:
   - TenantCreatedV1
   - TenantPackAttachedV1

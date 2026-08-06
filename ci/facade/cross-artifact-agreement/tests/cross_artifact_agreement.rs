@@ -313,7 +313,7 @@ fn protected_scm_context_excludes_candidate_authored_facts() {
 fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     let root = repo_root();
     let adr = fs::read_to_string(root.join(
-        "docs/decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     ))
     .expect("read accepted ADR-0613");
     assert!(
@@ -363,10 +363,10 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
 fn portal_authority_keeps_backstage_one_way_and_runtime_free() {
     let root = repo_root();
     let first_party =
-        fs::read_to_string(root.join("docs/decisions/ADR-0394-bespoke-rust-idp-central-hub.md"))
+        fs::read_to_string(root.join("docs/decisions/ADR-0704-k8s-port-live-apex.md"))
             .expect("read ADR-0394");
     let roadmap =
-        fs::read_to_string(root.join("docs/decisions/ADR-0482-bespoke-substrate-roadmap.md"))
+        fs::read_to_string(root.join("docs/decisions/ADR-0701-monorepo-capability-live-apex.md"))
             .expect("read ADR-0482");
 
     assert!(
@@ -393,11 +393,11 @@ fn portal_authority_keeps_backstage_one_way_and_runtime_free() {
 fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
     let root = repo_root();
     let move_manifest = fs::read_to_string(
-        root.join("docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md"),
+        root.join("docs/decisions/ADR-0701-monorepo-capability-live-apex.md"),
     )
     .expect("read ADR-0614");
     let frozen_reference = fs::read_to_string(
-        root.join("docs/decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md"),
+        root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
     )
     .expect("read ADR-0616");
 
@@ -452,15 +452,15 @@ fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
 fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
     let root = repo_root();
     let zero_graphql = fs::read_to_string(
-        root.join("docs/decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md"),
+        root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
     )
     .expect("read ADR-0565");
     let network = fs::read_to_string(
-        root.join("docs/decisions/ADR-0253-network-topology-edge-service-mesh.md"),
+        root.join("docs/decisions/ADR-0708-platform-foundations-live-apex.md"),
     )
     .expect("read ADR-0253");
     let versioning =
-        fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
+        fs::read_to_string(root.join("docs/decisions/ADR-0705-product-protocol-live-apex.md"))
             .expect("read ADR-0258");
 
     assert!(
@@ -519,17 +519,17 @@ fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
 fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     let root = repo_root();
     let documentation =
-        fs::read_to_string(root.join("docs/decisions/ADR-0203-documentation-engine-three-tier.md"))
+        fs::read_to_string(root.join("docs/decisions/ADR-0709-general-live-apex.md"))
             .expect("read ADR-0203");
     let versioning =
-        fs::read_to_string(root.join("docs/decisions/ADR-0258-api-versioning-model.md"))
+        fs::read_to_string(root.join("docs/decisions/ADR-0705-product-protocol-live-apex.md"))
             .expect("read ADR-0258");
     let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
     let protocol_adrs = [
-        "docs/decisions/ADR-0157-api-gateway-tier.md",
-        "docs/decisions/ADR-0167-tenant-cli.md",
-        "docs/decisions/ADR-0176-brownout-degradation-signal-api.md",
-        "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+        "docs/decisions/ADR-0705-product-protocol-live-apex.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     ];
 
     assert!(
@@ -2629,7 +2629,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     // phantom_decision_citation is frozen-empty (born-blocking, FRIC-1781430000): the
     // phantom-0397 exhibit (seven governed surfaces citing "ADR-0397 Pulsar 4.x + Oxia
     // canonical event-bus" with no file at the number — audit register H-19) was healed
-    // 2026-06-12 by MINTING docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md,
+    // 2026-06-12 by MINTING docs/decisions/ADR-0709-general-live-apex.md,
     // and the pre-existing phantom inventory is grandfathered shrink-only DATA in the
     // producer (each id ledgered with its citation sites). Any edge here is NEW debt.
     let phantom_citations = crosswalk["phantom_citations"]

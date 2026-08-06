@@ -5,14 +5,14 @@ status: Proposed
 date: 2026-05-20
 microservice: global-trade
 related_oyatie_adrs:
-  - docs/decisions/ADR-0002-tenant-and-identity-kernel.md
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md
-  - docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
-  - docs/decisions/ADR-0010-regional-pack-architecture.md
-  - docs/decisions/ADR-0011-cross-microservice-contract-registry.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
   - docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
-  - docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 decision_owner: global-trade-platform-architecture
 ---
 

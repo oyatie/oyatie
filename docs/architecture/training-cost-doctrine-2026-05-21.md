@@ -11,18 +11,18 @@ planned_enforcement_ref: 'oya-governance-doc-rigor'
 purpose: >
   Doctrine for the 30-year career-arc claim: learning oyatie once creates transferable competence across personal life, education, apprenticeship, frontline work, office work, management, regulated roles, side businesses, and retirement-era personal use.
 related_adrs:
-  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-  - docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-  - docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-  - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-  - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-  - docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-  - docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md
-  - docs/decisions/ADR-0318-collar-color-workspace-universality.md
-  - docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 in_flight_related_adrs:
   - ADR-0319 front-middle-back-office-scope-taxonomy (in flight; no local file present in checkout at authoring time)
 companion_docs:
@@ -1180,20 +1180,20 @@ A case-study claim chain ties marketing copy to a sealed audit-chain projection 
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
 - docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 - docs/architecture/unified-ecosystem-thesis-2026-05-21.md
-- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-- docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- docs/decisions/ADR-0245-substrate-vs-product-layering.md
-- docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
 - docs/decisions/ADR-0251-compliance-pack-primitive.md
 - docs/decisions/ADR-0255-intelligence-two-layer-substrate.md
-- docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-- docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-- docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-- docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-- docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-- docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md
-- docs/decisions/ADR-0318-collar-color-workspace-universality.md
-- docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
 
 ### Implementation microservices referenced
 - oya-shared-ux-shell-action-router (planned; thirteen-verb enum enforcement)

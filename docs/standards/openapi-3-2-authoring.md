@@ -370,7 +370,7 @@ External authority: `https://spec.openapis.org/oas/v3.2.0.html`.
 
 `docs/standards/proto3-authoring.md` binds gRPC contracts.
 
-`docs/decisions/ADR-0258-api-versioning-model.md` binds API versioning.
+`docs/decisions/ADR-0705-product-protocol-live-apex.md` binds API versioning.
 
 ## Substance Bar Compliance Checklist
 

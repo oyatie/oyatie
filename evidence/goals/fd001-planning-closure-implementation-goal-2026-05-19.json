@@ -15,7 +15,7 @@
     "/specs/masterplan.json",
     "/specs/planning-closure-contract.json",
     "/specs/master-plan-sequencing.json",
-    "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+    "docs/decisions/ADR-0709-general-live-apex.md",
     "docs/standards/clean-architecture.md",
     "specs/hyperscaler-architecture-invariants.json",
     "specs/design-spec-maturity-claims.json",

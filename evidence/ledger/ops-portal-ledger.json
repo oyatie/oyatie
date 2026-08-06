@@ -64,7 +64,7 @@
       "evidence_refs": [
         ".omc/plans/ralplan-docs-portal-2026-05-13.md",
         "docs/decisions/ADR-0065-documentation-as-leptos-pages.md",
-        "docs/decisions/ADR-0066-live-code-introspection-docs-portal.md"
+        "docs/decisions/ADR-0704-k8s-port-live-apex.md"
       ],
       "blocked_reason": null
     },

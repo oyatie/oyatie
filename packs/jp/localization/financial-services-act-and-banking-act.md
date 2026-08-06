@@ -5,7 +5,7 @@ title: Japan Financial Services Act, FIEA, Banking Act, and Payment Services Loc
 status: canonical-draft
 date: 2026-05-20
 related_oyatie_adrs:
-  - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 citing_authority_url:
   - https://www.fsa.go.jp/en/laws_regulations/index.html
   - https://www.fsa.go.jp/en/policy/marketentry/guidebook/02.html

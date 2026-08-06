@@ -23,7 +23,7 @@ source_adr: ADR-0276
 - ADR-0276: docs/decisions/ADR-0276-cell-rebalancer-and-cell-lifecycle-microservices.md
 - ADR-0273: docs/decisions/ADR-0273-autosharding-auto-rebalance-dynamic-sharding.md
 - ADR-0266: docs/decisions/ADR-0266-cellular-promotion-gates-explicit-tier-criteria.md
-- ADR-0333: docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md
+- ADR-0333: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - ADR-0099: docs/decisions/ADR-0099-per-microservice-flat-layout.md
 - ADR-0207: docs/decisions/ADR-0207-compliance-pack-cell-certification-levels.md
 - ADR-0203: docs/decisions/ADR-0203-self-hosting-self-modification-doctrine.md

@@ -40,8 +40,8 @@ related_adrs:
   - ADR-0314
   - ADR-0315
 companion_docs:
-  - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-  - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 planned_enforcement_ref: D-GOVERNANCE-CENTRAL
 live_readiness_claim: target_non_claim_until_oya_ci_required_evidence
 ---
@@ -2499,15 +2499,15 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 
 - docs/standards/documentation-rigor.md
 - docs/personas/MASTER-ROSTER-2026-05-21.md
-- docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- docs/decisions/ADR-0245-substrate-vs-product-layering.md
-- docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0708-platform-foundations-live-apex.md
 - docs/decisions/ADR-0255-intelligence-two-layer-model.md
 - docs/decisions/ADR-0263-audit-event-registry.md
-- docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-- docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
 - docs/decisions/ADR-0316-capability-tier-deltas.md
-- docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
 - specs/microservices/accounting.json
 - specs/microservices/hr.json
 - specs/microservices/payroll.json

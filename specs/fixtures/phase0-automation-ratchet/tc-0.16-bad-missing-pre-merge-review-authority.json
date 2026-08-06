@@ -28,7 +28,7 @@
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": false,
       "reviewer_identity_distinct_from_author": false,
-      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer (missing/not live)",
       "review_authority_live": false,
       "review_authority_source": "target_branch_protection_shadow_only"

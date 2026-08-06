@@ -426,8 +426,8 @@ Audit-chain seals `GdprAutomatedDecisionReviewOpened` and `GdprAutomatedDecision
 | `packs/eu-localization/data-residency-and-cross-border.md` | Portability exports to non-EEA recipients. |
 | `packs/eu-localization/high-risk-ai-systems.md` | Article 22 and AI Act overlap. |
 | `packs/eu-localization/dora-operational-resilience.md` | DSR conflicts with financial-sector audit and incident retention. |
-| `docs/decisions/ADR-0243-cedar-as-universal-gate.md` | DSR authorization gates. |
-| `docs/decisions/ADR-0263-observability-emission-contract.md` | Audit event requirements. |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | DSR authorization gates. |
+| `docs/decisions/ADR-0706-observability-live-apex.md` | Audit event requirements. |
 | `specs/audit-event-class-registry.json` | Event registry structure. |
 
 ## Closure Checklist

@@ -139,7 +139,7 @@ This gate validates the **internal shape of one committed JSON document per slic
 to N documents evaluated in isolation via an optional `additional_specs` follow-up, with **no
 joins** between them). Out of scope, and owed to a **separate owned-Rust cross-reference /
 registry-integrity (and format-aware) gate** per
-[ADR-0618](../../../docs/decisions/ADR-0618-contract-slice-gate-scope-boundary.md):
+[ADR-0618](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md):
 
 - **C1** cross-document reference joins (a value in doc A must exist in doc B).
 - **C2** cross-fixture negative joins (a value in one fixture must be absent from another).

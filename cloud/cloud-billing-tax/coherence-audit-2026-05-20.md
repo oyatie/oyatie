@@ -14,7 +14,7 @@ top_3_counterparts:
   - TaxJar (Plus + SmartCalcs + AutoFile)
 authoring_mode: findings-only (per ADR-0328 D-4.28 default)
 canonical_anchors:
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md §D-1, §D-4, §D-15..§D-20
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md §D-1, §D-4, §D-15..§D-20
   - /Users/jasonlee/oyatie/specs/master-plan-sequencing.json §canonical_build_sequence (Phase 0 entry 13) and §deployment_contexts / §iac_substrate / §supported_oses / §language_policy / §oci_always_free
   - /Users/jasonlee/oyatie/docs/standards/brief-template.md §3.1 + §3.9..§3.12
   - /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md

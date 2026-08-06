@@ -130,7 +130,7 @@ moves into the new producer-rooted layout, not raw data loss.)
   below cleanup head — i.e. the aggressive deletions are the top 24 commits.
 
 **Firewall lives ONLY on cleanup.** Confirmed present on cleanup tree, absent on dev:
-- `docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - `cloud/cloud-ci/gates/cloud-ci-firewall/{src/lib.rs,tests/firewall.rs,gate-baseline.signoff.json}`
 - `cloud/cloud-ci/gates/accounting-registry-producer/*` (+ generated faces)
 - The one-way door `gate-baseline.signoff.json` currently has `_sign_off_additions: {}`

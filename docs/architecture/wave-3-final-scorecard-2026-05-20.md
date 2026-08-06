@@ -36,67 +36,67 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: accepted
 - depth: A-rigorous; lines=150; substance_markers=9
 - cross-ref-density: 38 refs / 150 lines = 25.33 per 100 lines
-- artifact: `docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0002 — ADR-0002-tenant-and-identity-kernel.md
 - status: proposed
 - depth: A-rigorous; lines=170; substance_markers=12
 - cross-ref-density: 42 refs / 170 lines = 24.71 per 100 lines
-- artifact: `docs/decisions/ADR-0002-tenant-and-identity-kernel.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0003 — ADR-0003-audit-chain-and-evidence-emission.md
 - status: proposed
 - depth: A-rigorous; lines=152; substance_markers=9
 - cross-ref-density: 39 refs / 152 lines = 25.66 per 100 lines
-- artifact: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0004 — ADR-0004-plane-separation-control-data-analytics.md
 - status: proposed
 - depth: A-rigorous; lines=165; substance_markers=9
 - cross-ref-density: 34 refs / 165 lines = 20.61 per 100 lines
-- artifact: `docs/decisions/ADR-0004-plane-separation-control-data-analytics.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0005 — ADR-0005-eventing-backbone-outbox-pattern.md
 - status: proposed
 - depth: A-rigorous; lines=170; substance_markers=8
 - cross-ref-density: 41 refs / 170 lines = 24.12 per 100 lines
-- artifact: `docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0006 — ADR-0006-ontology-typed-entity-layer.md
 - status: accepted
 - depth: B-complete; lines=130; substance_markers=6
 - cross-ref-density: 42 refs / 130 lines = 32.31 per 100 lines
-- artifact: `docs/decisions/ADR-0006-ontology-typed-entity-layer.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0007 — ADR-0007-cedar-authorization-policy-and-persona-tier.md
 - status: proposed
 - depth: A-rigorous; lines=202; substance_markers=9
 - cross-ref-density: 87 refs / 202 lines = 43.07 per 100 lines
-- artifact: `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0008 — ADR-0008-data-use-boundary.md
 - status: accepted
 - depth: A-rigorous; lines=215; substance_markers=11
 - cross-ref-density: 47 refs / 215 lines = 21.86 per 100 lines
-- artifact: `docs/decisions/ADR-0008-data-use-boundary.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0009 — ADR-0009-cell-architecture-per-tenant-per-region.md
 - status: proposed
 - depth: A-rigorous; lines=159; substance_markers=9
 - cross-ref-density: 46 refs / 159 lines = 28.93 per 100 lines
-- artifact: `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0010 — ADR-0010-regional-pack-architecture.md
 - status: proposed
 - depth: A-rigorous; lines=187; substance_markers=11
 - cross-ref-density: 39 refs / 187 lines = 20.86 per 100 lines
-- artifact: `docs/decisions/ADR-0010-regional-pack-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0011 — ADR-0011-cross-microservice-contract-registry.md
 - status: accepted
 - depth: A-rigorous; lines=159; substance_markers=8
 - cross-ref-density: 88 refs / 159 lines = 55.35 per 100 lines
-- artifact: `docs/decisions/ADR-0011-cross-microservice-contract-registry.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0012
 - status: MISSING
@@ -108,121 +108,121 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: proposed
 - depth: B-complete; lines=184; substance_markers=5
 - cross-ref-density: 26 refs / 184 lines = 14.13 per 100 lines
-- artifact: `docs/decisions/ADR-0013-product-license-policy.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0014 — ADR-0014-build-vs-buy-policy.md
 - status: proposed
 - depth: A-rigorous; lines=189; substance_markers=8
 - cross-ref-density: 45 refs / 189 lines = 23.81 per 100 lines
-- artifact: `docs/decisions/ADR-0014-build-vs-buy-policy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0015 — ADR-0015-architectural-flattening-target.md
 - status: accepted
 - depth: A-rigorous; lines=200; substance_markers=10
 - cross-ref-density: 54 refs / 200 lines = 27.0 per 100 lines
-- artifact: `docs/decisions/ADR-0015-architectural-flattening-target.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0016 — ADR-0016-wave-and-plane-integration-framework.md
 - status: proposed
 - depth: A-rigorous; lines=164; substance_markers=8
 - cross-ref-density: 43 refs / 164 lines = 26.22 per 100 lines
-- artifact: `docs/decisions/ADR-0016-wave-and-plane-integration-framework.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0017 — ADR-0017-brand-naming-and-repo-layout.md
 - status: accepted
 - depth: B-complete; lines=120; substance_markers=5
 - cross-ref-density: 16 refs / 120 lines = 13.33 per 100 lines
-- artifact: `docs/decisions/ADR-0017-brand-naming-and-repo-layout.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0018 — ADR-0018-glossary-and-terminology-canon.md
 - status: accepted
 - depth: B-complete; lines=118; substance_markers=6
 - cross-ref-density: 30 refs / 118 lines = 25.42 per 100 lines
-- artifact: `docs/decisions/ADR-0018-glossary-and-terminology-canon.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0019 — ADR-0019-doc-catalog-and-update-protocol.md
 - status: proposed
 - depth: A-rigorous; lines=179; substance_markers=9
 - cross-ref-density: 48 refs / 179 lines = 26.82 per 100 lines
-- artifact: `docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0020 — ADR-0020-intelligence-multi-provider-adapter-model.md
 - status: proposed
 - depth: A-rigorous; lines=176; substance_markers=7
 - cross-ref-density: 26 refs / 176 lines = 14.77 per 100 lines
-- artifact: `docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0021 — ADR-0021-intelligence-capability-registry-and-mcp-gateway.md
 - status: proposed
 - depth: A-rigorous; lines=145; substance_markers=11
 - cross-ref-density: 32 refs / 145 lines = 22.07 per 100 lines
-- artifact: `docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0022 — ADR-0022-autonomy-ceiling-runtime-enforcement.md
 - status: proposed
 - depth: A-rigorous; lines=176; substance_markers=9
 - cross-ref-density: 67 refs / 176 lines = 38.07 per 100 lines
-- artifact: `docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0023 — ADR-0023-intelligence-sandbox-wasmtime-firecracker.md
 - status: proposed
 - depth: A-rigorous; lines=160; substance_markers=8
 - cross-ref-density: 18 refs / 160 lines = 11.25 per 100 lines
-- artifact: `docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0024 — ADR-0024-intelligence-eval-harness-and-replay.md
 - status: proposed
 - depth: A-rigorous; lines=159; substance_markers=7
 - cross-ref-density: 23 refs / 159 lines = 14.47 per 100 lines
-- artifact: `docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0025 — ADR-0025-intelligence-as-engineering-platform.md
 - status: proposed
 - depth: A-rigorous; lines=167; substance_markers=9
 - cross-ref-density: 23 refs / 167 lines = 13.77 per 100 lines
-- artifact: `docs/decisions/ADR-0025-intelligence-as-engineering-platform.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0026 — ADR-0026-in-house-ai-model-substrate-roadmap.md
 - status: proposed
 - depth: B-complete; lines=162; substance_markers=5
 - cross-ref-density: 19 refs / 162 lines = 11.73 per 100 lines
-- artifact: `docs/decisions/ADR-0026-in-house-ai-model-substrate-roadmap.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0027 — ADR-0027-robotics-vision-speech-sub-substrates.md
 - status: proposed
 - depth: A-rigorous; lines=219; substance_markers=9
 - cross-ref-density: 28 refs / 219 lines = 12.79 per 100 lines
-- artifact: `docs/decisions/ADR-0027-robotics-vision-speech-sub-substrates.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0028 — ADR-0028-cloud-microservice-architecture.md
 - status: accepted
 - depth: A-rigorous; lines=147; substance_markers=7
 - cross-ref-density: 40 refs / 147 lines = 27.21 per 100 lines
-- artifact: `docs/decisions/ADR-0028-cloud-microservice-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0029 — ADR-0029-connect-dual-context-architecture.md
 - status: accepted
 - depth: B-complete; lines=176; substance_markers=5
 - cross-ref-density: 48 refs / 176 lines = 27.27 per 100 lines
-- artifact: `docs/decisions/ADR-0029-connect-dual-context-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0030 — ADR-0030-search-microservice-architecture.md
 - status: accepted
 - depth: B-complete; lines=155; substance_markers=6
 - cross-ref-density: 35 refs / 155 lines = 22.58 per 100 lines
-- artifact: `docs/decisions/ADR-0030-search-microservice-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0031 — ADR-0031-ads-and-analytics-microservice-architecture.md
 - status: accepted
 - depth: B-complete; lines=148; substance_markers=5
 - cross-ref-density: 38 refs / 148 lines = 25.68 per 100 lines
-- artifact: `docs/decisions/ADR-0031-ads-and-analytics-microservice-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0032 — ADR-0032-dcim-software-for-own-dc-ops.md
 - status: proposed
 - depth: A-rigorous; lines=214; substance_markers=11
 - cross-ref-density: 49 refs / 214 lines = 22.9 per 100 lines
-- artifact: `docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0033
 - status: MISSING
@@ -234,19 +234,19 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: accepted
 - depth: B-complete; lines=163; substance_markers=6
 - cross-ref-density: 41 refs / 163 lines = 25.15 per 100 lines
-- artifact: `docs/decisions/ADR-0034-per-microservice-data-class-overrides.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0035 — ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md
 - status: proposed
 - depth: A-rigorous; lines=183; substance_markers=11
 - cross-ref-density: 58 refs / 183 lines = 31.69 per 100 lines
-- artifact: `docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0036 — ADR-0036-plugin-substrate-wasm-and-trust.md
 - status: proposed
 - depth: A-rigorous; lines=227; substance_markers=10
 - cross-ref-density: 48 refs / 227 lines = 21.15 per 100 lines
-- artifact: `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0037 — ADR-0037-public-api-stability-tiers-and-deprecation.md
 - status: proposed
@@ -258,19 +258,19 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: proposed
 - depth: A-rigorous; lines=226; substance_markers=7
 - cross-ref-density: 67 refs / 226 lines = 29.65 per 100 lines
-- artifact: `docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md`
+- artifact: `docs/decisions/ADR-0703-cas-cache-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0039 — ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md
 - status: proposed
 - depth: A-rigorous; lines=235; substance_markers=7
 - cross-ref-density: 47 refs / 235 lines = 20.0 per 100 lines
-- artifact: `docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0040 — ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
 - status: proposed
 - depth: A-rigorous; lines=222; substance_markers=8
 - cross-ref-density: 39 refs / 222 lines = 17.57 per 100 lines
-- artifact: `docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0041 — ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md
 - status: proposed
@@ -282,49 +282,49 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: proposed
 - depth: A-rigorous; lines=234; substance_markers=8
 - cross-ref-density: 52 refs / 234 lines = 22.22 per 100 lines
-- artifact: `docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0043 — ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
 - status: proposed
 - depth: A-rigorous; lines=219; substance_markers=9
 - cross-ref-density: 53 refs / 219 lines = 24.2 per 100 lines
-- artifact: `docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0044 — ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
 - status: proposed
 - depth: A-rigorous; lines=220; substance_markers=8
 - cross-ref-density: 68 refs / 220 lines = 30.91 per 100 lines
-- artifact: `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0045 — ADR-0045-database-tier-strategy.md
 - status: proposed
 - depth: A-rigorous; lines=208; substance_markers=7
 - cross-ref-density: 48 refs / 208 lines = 23.08 per 100 lines
-- artifact: `docs/decisions/ADR-0045-database-tier-strategy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0046 — ADR-0046-vector-store-strategy.md
 - status: proposed
 - depth: B-complete; lines=218; substance_markers=6
 - cross-ref-density: 33 refs / 218 lines = 15.14 per 100 lines
-- artifact: `docs/decisions/ADR-0046-vector-store-strategy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0047 — ADR-0047-search-backend-strategy.md
 - status: proposed
 - depth: B-complete; lines=220; substance_markers=5
 - cross-ref-density: 41 refs / 220 lines = 18.64 per 100 lines
-- artifact: `docs/decisions/ADR-0047-search-backend-strategy.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0048 — ADR-0048-korean-morphology-and-multilingual-tokenization.md
 - status: proposed
 - depth: B-complete; lines=230; substance_markers=6
 - cross-ref-density: 29 refs / 230 lines = 12.61 per 100 lines
-- artifact: `docs/decisions/ADR-0048-korean-morphology-and-multilingual-tokenization.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0049 — ADR-0049-cross-region-replication-and-residency.md
 - status: proposed
 - depth: A-rigorous; lines=232; substance_markers=9
 - cross-ref-density: 57 refs / 232 lines = 24.57 per 100 lines
-- artifact: `docs/decisions/ADR-0049-cross-region-replication-and-residency.md`
+- artifact: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0050 — ADR-0050-automation-first-pipeline.md
 - status: proposed
@@ -336,25 +336,25 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: accepted
 - depth: B-complete; lines=107; substance_markers=7
 - cross-ref-density: 40 refs / 107 lines = 37.38 per 100 lines
-- artifact: `docs/decisions/ADR-0051-mobile-and-native-client-strategy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0052 — ADR-0052-inventory-grit-cutover.md
 - status: Superseded
 - depth: A-rigorous; lines=582; substance_markers=15
 - cross-ref-density: 68 refs / 582 lines = 11.68 per 100 lines
-- artifact: `docs/decisions/ADR-0052-inventory-grit-cutover.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0053 — ADR-0053-grit-icm-as-sanctioned-primitives.md
 - status: Accepted
 - depth: A-rigorous; lines=142; substance_markers=7
 - cross-ref-density: 15 refs / 142 lines = 10.56 per 100 lines
-- artifact: `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0054 — ADR-0054-grit-scaffold-claim-pattern.md
 - status: deprecated
 - depth: B-complete; lines=276; substance_markers=5
 - cross-ref-density: 22 refs / 276 lines = 7.97 per 100 lines
-- artifact: `docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0055 — ADR-0055-branch-pipeline.md
 - status: Accepted
@@ -366,73 +366,73 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: B-complete; lines=326; substance_markers=6
 - cross-ref-density: 24 refs / 326 lines = 7.36 per 100 lines
-- artifact: `docs/decisions/ADR-0056-rust-clean-architecture-bnf.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0057 — ADR-0057-cutover-mechanics-rename-plan-v4.md
 - status: Accepted
 - depth: B-complete; lines=195; substance_markers=6
 - cross-ref-density: 24 refs / 195 lines = 12.31 per 100 lines
-- artifact: `docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0058 — ADR-0058-flat-microservice-catalog.md
 - status: accepted
 - depth: B-complete; lines=176; substance_markers=6
 - cross-ref-density: 19 refs / 176 lines = 10.8 per 100 lines
-- artifact: `docs/decisions/ADR-0058-flat-microservice-catalog.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0059 — ADR-0059-workflow-ontology-ecosystem-adapter-layer.md
 - status: accepted
 - depth: C-partial; lines=157; substance_markers=4
 - cross-ref-density: 30 refs / 157 lines = 19.11 per 100 lines
-- artifact: `docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0060 — ADR-0060-bominal-inheritance-precedence.md
 - status: accepted
 - depth: A-rigorous; lines=138; substance_markers=9
 - cross-ref-density: 75 refs / 138 lines = 54.35 per 100 lines
-- artifact: `docs/decisions/ADR-0060-bominal-inheritance-precedence.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0061 — ADR-0061-application-b2b-unified-shell.md
 - status: accepted
 - depth: A-rigorous; lines=150; substance_markers=7
 - cross-ref-density: 50 refs / 150 lines = 33.33 per 100 lines
-- artifact: `docs/decisions/ADR-0061-application-b2b-unified-shell.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0062 — ADR-0062-quality-performance-scalability-bar.md
 - status: accepted
 - depth: A-rigorous; lines=204; substance_markers=9
 - cross-ref-density: 52 refs / 204 lines = 25.49 per 100 lines
-- artifact: `docs/decisions/ADR-0062-quality-performance-scalability-bar.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0063 — ADR-0063-documentation-set-coverage.md
 - status: accepted
 - depth: A-rigorous; lines=216; substance_markers=8
 - cross-ref-density: 28 refs / 216 lines = 12.96 per 100 lines
-- artifact: `docs/decisions/ADR-0063-documentation-set-coverage.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0064 — ADR-0064-canonical-base-and-localization-packs.md
 - status: accepted
 - depth: A-rigorous; lines=237; substance_markers=7
 - cross-ref-density: 41 refs / 237 lines = 17.3 per 100 lines
-- artifact: `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0065 — ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md
 - status: accepted
 - depth: A-rigorous; lines=308; substance_markers=9
 - cross-ref-density: 40 refs / 308 lines = 12.99 per 100 lines
-- artifact: `docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0066 — ADR-0066-live-code-introspection-docs-portal.md
 - status: accepted
 - depth: A-rigorous; lines=256; substance_markers=9
 - cross-ref-density: 41 refs / 256 lines = 16.02 per 100 lines
-- artifact: `docs/decisions/ADR-0066-live-code-introspection-docs-portal.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0067 — ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md
 - status: accepted
 - depth: A-rigorous; lines=214; substance_markers=11
 - cross-ref-density: 100 refs / 214 lines = 46.73 per 100 lines
-- artifact: `docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0068
 - status: MISSING
@@ -444,7 +444,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: accepted
 - depth: A-rigorous; lines=175; substance_markers=8
 - cross-ref-density: 61 refs / 175 lines = 34.86 per 100 lines
-- artifact: `docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0070
 - status: MISSING
@@ -528,7 +528,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: B-complete; lines=266; substance_markers=5
 - cross-ref-density: 24 refs / 266 lines = 9.02 per 100 lines
-- artifact: `docs/decisions/ADR-0083-rust-error-handling-tier-decision.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0084
 - status: MISSING
@@ -570,211 +570,211 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: accepted
 - depth: C-partial; lines=130; substance_markers=4
 - cross-ref-density: 9 refs / 130 lines = 6.92 per 100 lines
-- artifact: `docs/decisions/ADR-0090-hyper-canonical-http-backbone.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0091 — ADR-0091-governance-write-gate-foundations.md
 - status: accepted
 - depth: B-complete; lines=116; substance_markers=6
 - cross-ref-density: 10 refs / 116 lines = 8.62 per 100 lines
-- artifact: `docs/decisions/ADR-0091-governance-write-gate-foundations.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0092 — ADR-0092-workspace-dependency-seam-policy.md
 - status: accepted
 - depth: A-rigorous; lines=351; substance_markers=8
 - cross-ref-density: 54 refs / 351 lines = 15.38 per 100 lines
-- artifact: `docs/decisions/ADR-0092-workspace-dependency-seam-policy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0093 — ADR-0093-latency-budget-reporter-rename.md
 - status: accepted
 - depth: C-partial; lines=73; substance_markers=3
 - cross-ref-density: 5 refs / 73 lines = 6.85 per 100 lines
-- artifact: `docs/decisions/ADR-0093-latency-budget-reporter-rename.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0094 — ADR-0094-handler-trait-with-associated-error.md
 - status: accepted
 - depth: C-partial; lines=125; substance_markers=4
 - cross-ref-density: 7 refs / 125 lines = 5.6 per 100 lines
-- artifact: `docs/decisions/ADR-0094-handler-trait-with-associated-error.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0095 — ADR-0095-tenant-slug-in-tenancy-kernel.md
 - status: accepted
 - depth: C-partial; lines=142; substance_markers=4
 - cross-ref-density: 9 refs / 142 lines = 6.34 per 100 lines
-- artifact: `docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0096 — ADR-0096-supervisor-language-rust-not-node.md
 - status: accepted
 - depth: B-complete; lines=141; substance_markers=6
 - cross-ref-density: 22 refs / 141 lines = 15.6 per 100 lines
-- artifact: `docs/decisions/ADR-0096-supervisor-language-rust-not-node.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0097 — ADR-0097-intelligence-account-adapter-rename-target-slot-last.md
 - status: accepted
 - depth: D-thin; lines=156; substance_markers=1
 - cross-ref-density: 11 refs / 156 lines = 7.05 per 100 lines
-- artifact: `docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0098 — ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md
 - status: accepted
 - depth: C-partial; lines=209; substance_markers=4
 - cross-ref-density: 20 refs / 209 lines = 9.57 per 100 lines
-- artifact: `docs/decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0099 — ADR-0099-cedar-policy-extend-supervisor-capabilities.md
 - status: accepted
 - depth: A-rigorous; lines=253; substance_markers=8
 - cross-ref-density: 102 refs / 253 lines = 40.32 per 100 lines
-- artifact: `docs/decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0100 — ADR-0100-supervisor-public-contract-lean-a10.md
 - status: Accepted
 - depth: D-thin; lines=34; substance_markers=3
 - cross-ref-density: 6 refs / 34 lines = 17.65 per 100 lines
-- artifact: `docs/decisions/ADR-0100-supervisor-public-contract-lean-a10.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: thin rationale body; verification evidence absent
 ### ADR-0101 — ADR-0101-supervisor-mountpoint-direct-hyper.md
 - status: Accepted
 - depth: D-thin; lines=28; substance_markers=1
 - cross-ref-density: 2 refs / 28 lines = 7.14 per 100 lines
-- artifact: `docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: thin rationale body; low cross-reference density; alternatives/rejections not explicit; verification evidence absent
 ### ADR-0102 — ADR-0102-intelligence-settings-template-canonical-rendering.md
 - status: Accepted
 - depth: D-thin; lines=33; substance_markers=1
 - cross-ref-density: 2 refs / 33 lines = 6.06 per 100 lines
-- artifact: `docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: thin rationale body; low cross-reference density; alternatives/rejections not explicit; verification evidence absent
 ### ADR-0103 — ADR-0103-grit-cutover-inventory.md
 - status: Accepted
 - depth: C-partial; lines=66; substance_markers=4
 - cross-ref-density: 11 refs / 66 lines = 16.67 per 100 lines
-- artifact: `docs/decisions/ADR-0103-grit-cutover-inventory.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0104 — ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
 - status: Accepted
 - depth: D-thin; lines=133; substance_markers=2
 - cross-ref-density: 16 refs / 133 lines = 12.03 per 100 lines
-- artifact: `docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0105 — ADR-0105-13-layer-enum-and-check-family-patterns.md
 - status: Accepted
 - depth: A-rigorous; lines=187; substance_markers=7
 - cross-ref-density: 43 refs / 187 lines = 22.99 per 100 lines
-- artifact: `docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0106 — ADR-0106-rename-application-to-usecase.md
 - status: Accepted
 - depth: C-partial; lines=111; substance_markers=3
 - cross-ref-density: 22 refs / 111 lines = 19.82 per 100 lines
-- artifact: `docs/decisions/ADR-0106-rename-application-to-usecase.md`
+- artifact: `docs/decisions/ADR-0703-cas-cache-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0107 — ADR-0107-tools-implicit-app-convention.md
 - status: Superseded
 - depth: C-partial; lines=177; substance_markers=4
 - cross-ref-density: 59 refs / 177 lines = 33.33 per 100 lines
-- artifact: `docs/decisions/ADR-0107-tools-implicit-app-convention.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0108 — ADR-0108-sunset-lifecycle-automation.md
 - status: Accepted
 - depth: B-complete; lines=263; substance_markers=5
 - cross-ref-density: 54 refs / 263 lines = 20.53 per 100 lines
-- artifact: `docs/decisions/ADR-0108-sunset-lifecycle-automation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0109 — ADR-0109-lifecycle-automation-framework.md
 - status: Accepted
 - depth: B-complete; lines=280; substance_markers=6
 - cross-ref-density: 27 refs / 280 lines = 9.64 per 100 lines
-- artifact: `docs/decisions/ADR-0109-lifecycle-automation-framework.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0110 — ADR-0110-changeset-state-machine.md
 - status: Proposed
 - depth: C-partial; lines=245; substance_markers=4
 - cross-ref-density: 25 refs / 245 lines = 10.2 per 100 lines
-- artifact: `docs/decisions/ADR-0110-changeset-state-machine.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0111 — ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
 - status: Proposed
 - depth: C-partial; lines=212; substance_markers=4
 - cross-ref-density: 10 refs / 212 lines = 4.72 per 100 lines
-- artifact: `docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0112 — ADR-0112-webhook-driven-intelligence-agent-invocation.md
 - status: Proposed
 - depth: B-complete; lines=228; substance_markers=5
 - cross-ref-density: 21 refs / 228 lines = 9.21 per 100 lines
-- artifact: `docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0113 — ADR-0113-vcs-orchestrator-end-to-end.md
 - status: Proposed
 - depth: C-partial; lines=270; substance_markers=4
 - cross-ref-density: 25 refs / 270 lines = 9.26 per 100 lines
-- artifact: `docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0114 — ADR-0114-canary-observability-rollback.md
 - status: Proposed
 - depth: C-partial; lines=297; substance_markers=4
 - cross-ref-density: 24 refs / 297 lines = 8.08 per 100 lines
-- artifact: `docs/decisions/ADR-0114-canary-observability-rollback.md`
+- artifact: `docs/decisions/ADR-0706-observability-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0115 — ADR-0115-registry-consolidation-flat-singular.md
 - status: Accepted
 - depth: B-complete; lines=166; substance_markers=6
 - cross-ref-density: 40 refs / 166 lines = 24.1 per 100 lines
-- artifact: `docs/decisions/ADR-0115-registry-consolidation-flat-singular.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0116 — ADR-0116-retire-external-agent-coordination-tooling.md
 - status: accepted
 - depth: B-complete; lines=158; substance_markers=6
 - cross-ref-density: 48 refs / 158 lines = 30.38 per 100 lines
-- artifact: `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0117 — ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md
 - status: Accepted
 - depth: B-complete; lines=90; substance_markers=6
 - cross-ref-density: 16 refs / 90 lines = 17.78 per 100 lines
-- artifact: `docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0118 — ADR-0118-retire-archive-orphan-fitness-lane.md
 - status: Accepted
 - depth: B-complete; lines=81; substance_markers=5
 - cross-ref-density: 22 refs / 81 lines = 27.16 per 100 lines
-- artifact: `docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0119 — ADR-0119-specs-flat-root-topology.md
 - status: Accepted
 - depth: B-complete; lines=119; substance_markers=7
 - cross-ref-density: 91 refs / 119 lines = 76.47 per 100 lines
-- artifact: `docs/decisions/ADR-0119-specs-flat-root-topology.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0120 — ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md
 - status: accepted
 - depth: D-thin; lines=105; substance_markers=2
 - cross-ref-density: 7 refs / 105 lines = 6.67 per 100 lines
-- artifact: `docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0121 — ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md
 - status: accepted
 - depth: B-complete; lines=129; substance_markers=5
 - cross-ref-density: 33 refs / 129 lines = 25.58 per 100 lines
-- artifact: `docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0122 — ADR-0122-ontology-crate-rename-from-object-graph.md
 - status: Accepted
 - depth: C-partial; lines=86; substance_markers=4
 - cross-ref-density: 37 refs / 86 lines = 43.02 per 100 lines
-- artifact: `docs/decisions/ADR-0122-ontology-crate-rename-from-object-graph.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0123 — ADR-0123-hyperscaler-maturity-claim-gate.md
 - status: Accepted
 - depth: B-complete; lines=81; substance_markers=7
 - cross-ref-density: 13 refs / 81 lines = 16.05 per 100 lines
-- artifact: `docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0124 — ADR-0124-own-merge-queue-webhook-driven.md
 - status: accepted
 - depth: C-partial; lines=163; substance_markers=4
 - cross-ref-density: 17 refs / 163 lines = 10.43 per 100 lines
-- artifact: `docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0125
 - status: MISSING
@@ -798,253 +798,253 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: B-complete; lines=183; substance_markers=5
 - cross-ref-density: 24 refs / 183 lines = 13.11 per 100 lines
-- artifact: `docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0129 — ADR-0129-changeset-plan-dag-and-honest-claims-gate.md
 - status: Accepted
 - depth: C-partial; lines=128; substance_markers=4
 - cross-ref-density: 12 refs / 128 lines = 9.38 per 100 lines
-- artifact: `docs/decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0130 — ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md
 - status: accepted
 - depth: B-complete; lines=91; substance_markers=5
 - cross-ref-density: 30 refs / 91 lines = 32.97 per 100 lines
-- artifact: `docs/decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0131 — ADR-0131-per-microservice-flat-layout.md
 - status: Accepted
 - depth: A-rigorous; lines=392; substance_markers=10
 - cross-ref-density: 160 refs / 392 lines = 40.82 per 100 lines
-- artifact: `docs/decisions/ADR-0131-per-microservice-flat-layout.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0132 — ADR-0132-product-platform-and-bundle-dissolution.md
 - status: Accepted
 - depth: C-partial; lines=112; substance_markers=4
 - cross-ref-density: 74 refs / 112 lines = 66.07 per 100 lines
-- artifact: `docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0133 — ADR-0133-industry-best-practice-conformance-program.md
 - status: Accepted
 - depth: A-rigorous; lines=221; substance_markers=10
 - cross-ref-density: 68 refs / 221 lines = 30.77 per 100 lines
-- artifact: `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0134 — ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md
 - status: Proposed
 - depth: B-complete; lines=99; substance_markers=8
 - cross-ref-density: 9 refs / 99 lines = 9.09 per 100 lines
-- artifact: `docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0135 — ADR-0135-aspirational-enforcement-gate.md
 - status: Accepted
 - depth: B-complete; lines=130; substance_markers=5
 - cross-ref-density: 13 refs / 130 lines = 10.0 per 100 lines
-- artifact: `docs/decisions/ADR-0135-aspirational-enforcement-gate.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0136 — ADR-0136-intelligence-as-single-microservice.md
 - status: Accepted
 - depth: A-rigorous; lines=426; substance_markers=11
 - cross-ref-density: 115 refs / 426 lines = 27.0 per 100 lines
-- artifact: `docs/decisions/ADR-0136-intelligence-as-single-microservice.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0137 — ADR-0137-intelligence-bounded-contexts.md
 - status: Accepted
 - depth: A-rigorous; lines=366; substance_markers=9
 - cross-ref-density: 86 refs / 366 lines = 23.5 per 100 lines
-- artifact: `docs/decisions/ADR-0137-intelligence-bounded-contexts.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0138 — ADR-0138-intelligence-six-path-deprecation.md
 - status: Accepted
 - depth: A-rigorous; lines=369; substance_markers=10
 - cross-ref-density: 170 refs / 369 lines = 46.07 per 100 lines
-- artifact: `docs/decisions/ADR-0138-intelligence-six-path-deprecation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0139 — ADR-0139-agentic-slo-gated-promotion.md
 - status: Accepted
 - depth: A-rigorous; lines=261; substance_markers=10
 - cross-ref-density: 81 refs / 261 lines = 31.03 per 100 lines
-- artifact: `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0140 — ADR-0140-cross-cutting-carriers-adapter-exemption.md
 - status: Superseded
 - depth: A-rigorous; lines=351; substance_markers=7
 - cross-ref-density: 72 refs / 351 lines = 20.51 per 100 lines
-- artifact: `docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0141 — ADR-0141-workflow-ontology-read-path-direct.md
 - status: Superseded
 - depth: B-complete; lines=216; substance_markers=6
 - cross-ref-density: 40 refs / 216 lines = 18.52 per 100 lines
-- artifact: `docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0142 — ADR-0142-crdt-portability-trait.md
 - status: Accepted
 - depth: B-complete; lines=228; substance_markers=5
 - cross-ref-density: 14 refs / 228 lines = 6.14 per 100 lines
-- artifact: `docs/decisions/ADR-0142-crdt-portability-trait.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0143 — ADR-0143-intelligence-per-bc-release-pointer.md
 - status: Accepted
 - depth: A-rigorous; lines=232; substance_markers=7
 - cross-ref-density: 34 refs / 232 lines = 14.66 per 100 lines
-- artifact: `docs/decisions/ADR-0143-intelligence-per-bc-release-pointer.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0144 — ADR-0144-eu-ai-act-graduated-risk-tier-model.md
 - status: Accepted
 - depth: A-rigorous; lines=283; substance_markers=7
 - cross-ref-density: 37 refs / 283 lines = 13.07 per 100 lines
-- artifact: `docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0145 — ADR-0145-inter-microservice-communication-reform.md
 - status: Accepted
 - depth: A-rigorous; lines=198; substance_markers=10
 - cross-ref-density: 60 refs / 198 lines = 30.3 per 100 lines
-- artifact: `docs/decisions/ADR-0145-inter-microservice-communication-reform.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0146 — ADR-0146-container-base-image-distroless-nonroot.md
 - status: accepted
 - depth: C-partial; lines=132; substance_markers=3
 - cross-ref-density: 11 refs / 132 lines = 8.33 per 100 lines
-- artifact: `docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0147 — ADR-0147-container-sandboxing-runtime-ladder.md
 - status: Amended
 - depth: B-complete; lines=417; substance_markers=6
 - cross-ref-density: 40 refs / 417 lines = 9.59 per 100 lines
-- artifact: `docs/decisions/ADR-0147-container-sandboxing-runtime-ladder.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0148 — ADR-0148-service-mesh-cilium-ambient-layered.md
 - status: Accepted
 - depth: A-rigorous; lines=259; substance_markers=7
 - cross-ref-density: 130 refs / 259 lines = 50.19 per 100 lines
-- artifact: `docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0149 — ADR-0149-idempotency-keys-canonical.md
 - status: Accepted
 - depth: D-thin; lines=66; substance_markers=1
 - cross-ref-density: 11 refs / 66 lines = 16.67 per 100 lines
-- artifact: `docs/decisions/ADR-0149-idempotency-keys-canonical.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0150 — ADR-0150-cursor-pagination-canonical.md
 - status: Accepted
 - depth: D-thin; lines=63; substance_markers=0
 - cross-ref-density: 2 refs / 63 lines = 3.17 per 100 lines
-- artifact: `docs/decisions/ADR-0150-cursor-pagination-canonical.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: low cross-reference density; verification evidence absent
 ### ADR-0151 — ADR-0151-request-id-propagation.md
 - status: Accepted
 - depth: D-thin; lines=65; substance_markers=1
 - cross-ref-density: 5 refs / 65 lines = 7.69 per 100 lines
-- artifact: `docs/decisions/ADR-0151-request-id-propagation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0152 — ADR-0152-rpo-rto-canonical.md
 - status: Accepted
 - depth: D-thin; lines=61; substance_markers=1
 - cross-ref-density: 8 refs / 61 lines = 13.11 per 100 lines
-- artifact: `docs/decisions/ADR-0152-rpo-rto-canonical.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0153 — ADR-0153-outbox-pattern.md
 - status: Accepted
 - depth: D-thin; lines=70; substance_markers=1
 - cross-ref-density: 3 refs / 70 lines = 4.29 per 100 lines
-- artifact: `docs/decisions/ADR-0153-outbox-pattern.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0154 — ADR-0154-event-schema-versioning.md
 - status: Accepted
 - depth: D-thin; lines=65; substance_markers=1
 - cross-ref-density: 7 refs / 65 lines = 10.77 per 100 lines
-- artifact: `docs/decisions/ADR-0154-event-schema-versioning.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0155 — ADR-0155-per-tenant-resource-quotas.md
 - status: Accepted
 - depth: D-thin; lines=59; substance_markers=2
 - cross-ref-density: 2 refs / 59 lines = 3.39 per 100 lines
-- artifact: `docs/decisions/ADR-0155-per-tenant-resource-quotas.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: low cross-reference density; verification evidence absent
 ### ADR-0156 — ADR-0156-pii-registry-canonical.md
 - status: Accepted
 - depth: D-thin; lines=62; substance_markers=2
 - cross-ref-density: 9 refs / 62 lines = 14.52 per 100 lines
-- artifact: `docs/decisions/ADR-0156-pii-registry-canonical.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0157 — ADR-0157-api-gateway-tier.md
 - status: Accepted
 - depth: A-rigorous; lines=159; substance_markers=8
 - cross-ref-density: 72 refs / 159 lines = 45.28 per 100 lines
-- artifact: `docs/decisions/ADR-0157-api-gateway-tier.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0158 — ADR-0158-multi-region-active-active.md
 - status: Accepted
 - depth: B-complete; lines=165; substance_markers=6
 - cross-ref-density: 46 refs / 165 lines = 27.88 per 100 lines
-- artifact: `docs/decisions/ADR-0158-multi-region-active-active.md`
+- artifact: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0159 — ADR-0159-feature-flag-substrate.md
 - status: Accepted
 - depth: A-rigorous; lines=174; substance_markers=9
 - cross-ref-density: 82 refs / 174 lines = 47.13 per 100 lines
-- artifact: `docs/decisions/ADR-0159-feature-flag-substrate.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0160 — ADR-0160-progressive-delivery-flagger.md
 - status: Accepted
 - depth: A-rigorous; lines=156; substance_markers=8
 - cross-ref-density: 62 refs / 156 lines = 39.74 per 100 lines
-- artifact: `docs/decisions/ADR-0160-progressive-delivery-flagger.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0161 — ADR-0161-csi-storage-class-canonical.md
 - status: Accepted
 - depth: B-complete; lines=168; substance_markers=5
 - cross-ref-density: 37 refs / 168 lines = 22.02 per 100 lines
-- artifact: `docs/decisions/ADR-0161-csi-storage-class-canonical.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0162 — ADR-0162-per-tenant-audit-log-slicing.md
 - status: Accepted
 - depth: A-rigorous; lines=164; substance_markers=8
 - cross-ref-density: 73 refs / 164 lines = 44.51 per 100 lines
-- artifact: `docs/decisions/ADR-0162-per-tenant-audit-log-slicing.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0163 — ADR-0163-tenant-environment-tiers.md
 - status: Accepted
 - depth: A-rigorous; lines=166; substance_markers=8
 - cross-ref-density: 58 refs / 166 lines = 34.94 per 100 lines
-- artifact: `docs/decisions/ADR-0163-tenant-environment-tiers.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0164 — ADR-0164-sovereign-cloud-air-gapped.md
 - status: Accepted
 - depth: B-complete; lines=187; substance_markers=6
 - cross-ref-density: 57 refs / 187 lines = 30.48 per 100 lines
-- artifact: `docs/decisions/ADR-0164-sovereign-cloud-air-gapped.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0165 — ADR-0165-chaos-engineering-substrate.md
 - status: Accepted
 - depth: A-rigorous; lines=167; substance_markers=7
 - cross-ref-density: 44 refs / 167 lines = 26.35 per 100 lines
-- artifact: `docs/decisions/ADR-0165-chaos-engineering-substrate.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0166 — ADR-0166-schema-registry.md
 - status: Accepted
 - depth: C-partial; lines=191; substance_markers=4
 - cross-ref-density: 65 refs / 191 lines = 34.03 per 100 lines
-- artifact: `docs/decisions/ADR-0166-schema-registry.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0167 — ADR-0167-tenant-cli.md
 - status: Accepted
 - depth: A-rigorous; lines=213; substance_markers=7
 - cross-ref-density: 55 refs / 213 lines = 25.82 per 100 lines
-- artifact: `docs/decisions/ADR-0167-tenant-cli.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0168 — ADR-0168-public-status-page.md
 - status: Accepted
 - depth: B-complete; lines=211; substance_markers=5
 - cross-ref-density: 44 refs / 211 lines = 20.85 per 100 lines
-- artifact: `docs/decisions/ADR-0168-public-status-page.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0169 — ADR-0169-webhook-dlq-retry.md
 - status: Accepted
 - depth: B-complete; lines=222; substance_markers=6
 - cross-ref-density: 36 refs / 222 lines = 16.22 per 100 lines
-- artifact: `docs/decisions/ADR-0169-webhook-dlq-retry.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0170 — ADR-0170-developer-portal.md
 - status: Accepted
@@ -1056,319 +1056,319 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: B-complete; lines=208; substance_markers=5
 - cross-ref-density: 43 refs / 208 lines = 20.67 per 100 lines
-- artifact: `docs/decisions/ADR-0171-multi-cluster-federation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0172 — ADR-0172-cqrs-read-replicas.md
 - status: Accepted
 - depth: C-partial; lines=218; substance_markers=3
 - cross-ref-density: 41 refs / 218 lines = 18.81 per 100 lines
-- artifact: `docs/decisions/ADR-0172-cqrs-read-replicas.md`
+- artifact: `docs/decisions/ADR-0703-cas-cache-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0173 — ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md
 - status: accepted
 - depth: A-rigorous; lines=397; substance_markers=10
 - cross-ref-density: 95 refs / 397 lines = 23.93 per 100 lines
-- artifact: `docs/decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0174 — ADR-0174-finops-cost-attribution-chargeback.md
 - status: Accepted
 - depth: B-complete; lines=245; substance_markers=5
 - cross-ref-density: 38 refs / 245 lines = 15.51 per 100 lines
-- artifact: `docs/decisions/ADR-0174-finops-cost-attribution-chargeback.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0175 — ADR-0175-tenant-lifecycle-workflow.md
 - status: Accepted
 - depth: B-complete; lines=224; substance_markers=6
 - cross-ref-density: 33 refs / 224 lines = 14.73 per 100 lines
-- artifact: `docs/decisions/ADR-0175-tenant-lifecycle-workflow.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0176 — ADR-0176-brownout-degradation-signal-api.md
 - status: Accepted
 - depth: C-partial; lines=258; substance_markers=4
 - cross-ref-density: 27 refs / 258 lines = 10.47 per 100 lines
-- artifact: `docs/decisions/ADR-0176-brownout-degradation-signal-api.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0177 — ADR-0177-internal-external-api-surface-separation.md
 - status: Accepted
 - depth: B-complete; lines=207; substance_markers=6
 - cross-ref-density: 41 refs / 207 lines = 19.81 per 100 lines
-- artifact: `docs/decisions/ADR-0177-internal-external-api-surface-separation.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0178 — ADR-0178-layered-throttling-tiers.md
 - status: Accepted
 - depth: C-partial; lines=246; substance_markers=3
 - cross-ref-density: 34 refs / 246 lines = 13.82 per 100 lines
-- artifact: `docs/decisions/ADR-0178-layered-throttling-tiers.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0179 — ADR-0179-postgres-connection-pooling-pgcat.md
 - status: Accepted
 - depth: B-complete; lines=126; substance_markers=6
 - cross-ref-density: 37 refs / 126 lines = 29.37 per 100 lines
-- artifact: `docs/decisions/ADR-0179-postgres-connection-pooling-pgcat.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0180 — ADR-0180-slo-composition-inheritance-arithmetic.md
 - status: Accepted
 - depth: C-partial; lines=149; substance_markers=4
 - cross-ref-density: 29 refs / 149 lines = 19.46 per 100 lines
-- artifact: `docs/decisions/ADR-0180-slo-composition-inheritance-arithmetic.md`
+- artifact: `docs/decisions/ADR-0706-observability-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0181 — ADR-0181-container-image-promotion-pipeline.md
 - status: Accepted
 - depth: B-complete; lines=153; substance_markers=5
 - cross-ref-density: 46 refs / 153 lines = 30.07 per 100 lines
-- artifact: `docs/decisions/ADR-0181-container-image-promotion-pipeline.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0182 — ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
 - status: Accepted
 - depth: A-rigorous; lines=176; substance_markers=7
 - cross-ref-density: 67 refs / 176 lines = 38.07 per 100 lines
-- artifact: `docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0183 — ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md
 - status: Accepted
 - depth: B-complete; lines=176; substance_markers=6
 - cross-ref-density: 124 refs / 176 lines = 70.45 per 100 lines
-- artifact: `docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0184 — ADR-0184-storage-tier-layering.md
 - status: Accepted
 - depth: A-rigorous; lines=199; substance_markers=8
 - cross-ref-density: 40 refs / 199 lines = 20.1 per 100 lines
-- artifact: `docs/decisions/ADR-0184-storage-tier-layering.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0185 — ADR-0185-workflow-studio-client-stack.md
 - status: Accepted
 - depth: A-rigorous; lines=331; substance_markers=7
 - cross-ref-density: 48 refs / 331 lines = 14.5 per 100 lines
-- artifact: `docs/decisions/ADR-0185-workflow-studio-client-stack.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0186 — ADR-0186-observability-backplane-layering.md
 - status: Accepted
 - depth: B-complete; lines=217; substance_markers=6
 - cross-ref-density: 41 refs / 217 lines = 18.89 per 100 lines
-- artifact: `docs/decisions/ADR-0186-observability-backplane-layering.md`
+- artifact: `docs/decisions/ADR-0706-observability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0187 — ADR-0187-canonical-oidc-idp-zitadel-primary.md
 - status: Accepted
 - depth: A-rigorous; lines=175; substance_markers=8
 - cross-ref-density: 61 refs / 175 lines = 34.86 per 100 lines
-- artifact: `docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0188 — ADR-0188-passkey-webauthn-substrate.md
 - status: Accepted
 - depth: A-rigorous; lines=174; substance_markers=7
 - cross-ref-density: 23 refs / 174 lines = 13.22 per 100 lines
-- artifact: `docs/decisions/ADR-0188-passkey-webauthn-substrate.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0189 — ADR-0189-step-up-authentication-acr-classes.md
 - status: Accepted
 - depth: A-rigorous; lines=176; substance_markers=7
 - cross-ref-density: 57 refs / 176 lines = 32.39 per 100 lines
-- artifact: `docs/decisions/ADR-0189-step-up-authentication-acr-classes.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0190 — ADR-0190-scim-2-provisioning-enterprise-tenants.md
 - status: Accepted
 - depth: A-rigorous; lines=152; substance_markers=7
 - cross-ref-density: 24 refs / 152 lines = 15.79 per 100 lines
-- artifact: `docs/decisions/ADR-0190-scim-2-provisioning-enterprise-tenants.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0191 — ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md
 - status: Accepted
 - depth: C-partial; lines=178; substance_markers=4
 - cross-ref-density: 88 refs / 178 lines = 49.44 per 100 lines
-- artifact: `docs/decisions/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0192 — ADR-0192-vector-database-canonical-milvus.md
 - status: Accepted
 - depth: A-rigorous; lines=291; substance_markers=8
 - cross-ref-density: 82 refs / 291 lines = 28.18 per 100 lines
-- artifact: `docs/decisions/ADR-0192-vector-database-canonical-milvus.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0193 — ADR-0193-olap-analytics-warehouse-clickhouse.md
 - status: Accepted
 - depth: A-rigorous; lines=276; substance_markers=8
 - cross-ref-density: 63 refs / 276 lines = 22.83 per 100 lines
-- artifact: `docs/decisions/ADR-0193-olap-analytics-warehouse-clickhouse.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0194 — ADR-0194-tenant-facing-timeseries-timescaledb.md
 - status: Accepted
 - depth: A-rigorous; lines=244; substance_markers=8
 - cross-ref-density: 65 refs / 244 lines = 26.64 per 100 lines
-- artifact: `docs/decisions/ADR-0194-tenant-facing-timeseries-timescaledb.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0195 — ADR-0195-stream-processing-tier.md
 - status: Accepted
 - depth: B-complete; lines=224; substance_markers=6
 - cross-ref-density: 40 refs / 224 lines = 17.86 per 100 lines
-- artifact: `docs/decisions/ADR-0195-stream-processing-tier.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit; verification evidence absent
 ### ADR-0196 — ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md
 - status: Accepted
 - depth: A-rigorous; lines=305; substance_markers=9
 - cross-ref-density: 32 refs / 305 lines = 10.49 per 100 lines
-- artifact: `docs/decisions/ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0197 — ADR-0197-backup-substrate-velero-pgbackrest-restic.md
 - status: Accepted
 - depth: A-rigorous; lines=330; substance_markers=10
 - cross-ref-density: 41 refs / 330 lines = 12.42 per 100 lines
-- artifact: `docs/decisions/ADR-0197-backup-substrate-velero-pgbackrest-restic.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0198 — ADR-0198-k8s-node-autoscaling-karpenter.md
 - status: Accepted
 - depth: B-complete; lines=297; substance_markers=5
 - cross-ref-density: 26 refs / 297 lines = 8.75 per 100 lines
-- artifact: `docs/decisions/ADR-0198-k8s-node-autoscaling-karpenter.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0199 — ADR-0199-per-tenant-cost-attribution-finops-substrate.md
 - status: Accepted
 - depth: A-rigorous; lines=332; substance_markers=8
 - cross-ref-density: 37 refs / 332 lines = 11.14 per 100 lines
-- artifact: `docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0200 — ADR-0200-wasm-runtime-canonical-wasmtime.md
 - status: Accepted
 - depth: B-complete; lines=202; substance_markers=6
 - cross-ref-density: 25 refs / 202 lines = 12.38 per 100 lines
-- artifact: `docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0201 — ADR-0201-email-transactional-comms-adapter-substrate.md
 - status: Accepted
 - depth: A-rigorous; lines=266; substance_markers=8
 - cross-ref-density: 34 refs / 266 lines = 12.78 per 100 lines
-- artifact: `docs/decisions/ADR-0201-email-transactional-comms-adapter-substrate.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0202 — ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md
 - status: Accepted
 - depth: C-partial; lines=223; substance_markers=3
 - cross-ref-density: 26 refs / 223 lines = 11.66 per 100 lines
-- artifact: `docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0203 — ADR-0203-documentation-engine-three-tier.md
 - status: Accepted
 - depth: C-partial; lines=220; substance_markers=4
 - cross-ref-density: 32 refs / 220 lines = 14.55 per 100 lines
-- artifact: `docs/decisions/ADR-0203-documentation-engine-three-tier.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0204 — ADR-0204-workflow-studio-canvas-library.md
 - status: Accepted
 - depth: A-rigorous; lines=159; substance_markers=8
 - cross-ref-density: 31 refs / 159 lines = 19.5 per 100 lines
-- artifact: `docs/decisions/ADR-0204-workflow-studio-canvas-library.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0205 — ADR-0205-code-editor-canonical-codemirror.md
 - status: Accepted
 - depth: C-partial; lines=143; substance_markers=4
 - cross-ref-density: 26 refs / 143 lines = 18.18 per 100 lines
-- artifact: `docs/decisions/ADR-0205-code-editor-canonical-codemirror.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0206 — ADR-0206-i18n-substrate-fluent-icu.md
 - status: Accepted
 - depth: D-thin; lines=162; substance_markers=2
 - cross-ref-density: 14 refs / 162 lines = 8.64 per 100 lines
-- artifact: `docs/decisions/ADR-0206-i18n-substrate-fluent-icu.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0207 — ADR-0207-accessibility-wcag-2-2-aa.md
 - status: Accepted
 - depth: C-partial; lines=161; substance_markers=4
 - cross-ref-density: 19 refs / 161 lines = 11.8 per 100 lines
-- artifact: `docs/decisions/ADR-0207-accessibility-wcag-2-2-aa.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0208 — ADR-0208-realtime-transport-tier.md
 - status: Accepted
 - depth: C-partial; lines=178; substance_markers=3
 - cross-ref-density: 23 refs / 178 lines = 12.92 per 100 lines
-- artifact: `docs/decisions/ADR-0208-realtime-transport-tier.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0209 — ADR-0209-compliance-evidence-automation.md
 - status: Accepted
 - depth: B-complete; lines=164; substance_markers=5
 - cross-ref-density: 68 refs / 164 lines = 41.46 per 100 lines
-- artifact: `docs/decisions/ADR-0209-compliance-evidence-automation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0210 — ADR-0210-otel-tail-sampling.md
 - status: Accepted
 - depth: B-complete; lines=185; substance_markers=5
 - cross-ref-density: 36 refs / 185 lines = 19.46 per 100 lines
-- artifact: `docs/decisions/ADR-0210-otel-tail-sampling.md`
+- artifact: `docs/decisions/ADR-0706-observability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0211 — ADR-0211-in-house-tech-stack-policy.md
 - status: accepted
 - depth: A-rigorous; lines=226; substance_markers=10
 - cross-ref-density: 74 refs / 226 lines = 32.74 per 100 lines
-- artifact: `docs/decisions/ADR-0211-in-house-tech-stack-policy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0212 — ADR-0212-buildability-doctrine.md
 - status: accepted
 - depth: A-rigorous; lines=124; substance_markers=12
 - cross-ref-density: 16 refs / 124 lines = 12.9 per 100 lines
-- artifact: `docs/decisions/ADR-0212-buildability-doctrine.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0213 — ADR-0213-ecosystem-as-a-service-architecture.md
 - status: Proposed
 - depth: A-rigorous; lines=345; substance_markers=13
 - cross-ref-density: 168 refs / 345 lines = 48.7 per 100 lines
-- artifact: `docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0214 — ADR-0214-cross-tenant-real-time-visibility.md
 - status: Proposed (target: Accepted upon PR #143 merge to dev)
 - depth: A-rigorous; lines=269; substance_markers=12
 - cross-ref-density: 49 refs / 269 lines = 18.22 per 100 lines
-- artifact: `docs/decisions/ADR-0214-cross-tenant-real-time-visibility.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0215 — ADR-0215-multi-context-platform-architecture.md
 - status: accepted
 - depth: A-rigorous; lines=123; substance_markers=8
 - cross-ref-density: 48 refs / 123 lines = 39.02 per 100 lines
-- artifact: `docs/decisions/ADR-0215-multi-context-platform-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0216 — ADR-0216-open-integration-and-migration-out-policy.md
 - status: accepted
 - depth: B-complete; lines=111; substance_markers=7
 - cross-ref-density: 29 refs / 111 lines = 26.13 per 100 lines
-- artifact: `docs/decisions/ADR-0216-open-integration-and-migration-out-policy.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0217 — ADR-0217-vertical-slice-rollout-order.md
 - status: accepted
 - depth: A-rigorous; lines=131; substance_markers=13
 - cross-ref-density: 39 refs / 131 lines = 29.77 per 100 lines
-- artifact: `docs/decisions/ADR-0217-vertical-slice-rollout-order.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0218 — ADR-0218-tenant-granular-control-surface.md
 - status: accepted
 - depth: B-complete; lines=117; substance_markers=9
 - cross-ref-density: 39 refs / 117 lines = 33.33 per 100 lines
-- artifact: `docs/decisions/ADR-0218-tenant-granular-control-surface.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0219 — ADR-0219-no-code-first-ux-with-optional-ai-assist.md
 - status: accepted
 - depth: B-complete; lines=124; substance_markers=6
 - cross-ref-density: 23 refs / 124 lines = 18.55 per 100 lines
-- artifact: `docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0220 — ADR-0220-consumer-intelligence-substrate.md
 - status: accepted
 - depth: A-rigorous; lines=128; substance_markers=8
 - cross-ref-density: 35 refs / 128 lines = 27.34 per 100 lines
-- artifact: `docs/decisions/ADR-0220-consumer-intelligence-substrate.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0221 — ADR-0221-agentic-development-pipeline-hardening.md
 - status: accepted
 - depth: B-complete; lines=171; substance_markers=6
 - cross-ref-density: 30 refs / 171 lines = 17.54 per 100 lines
-- artifact: `docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0222 — ADR-0222-saga-compensation-portfolio-policy.md
 - status: Accepted
 - depth: A-rigorous; lines=241; substance_markers=8
 - cross-ref-density: 42 refs / 241 lines = 17.43 per 100 lines
-- artifact: `docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0223 — ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md
 - status: Accepted
 - depth: C-partial; lines=102; substance_markers=3
 - cross-ref-density: 14 refs / 102 lines = 13.73 per 100 lines
-- artifact: `docs/decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0224
 - status: MISSING
@@ -1440,73 +1440,73 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: C-partial; lines=75; substance_markers=7
 - cross-ref-density: 37 refs / 75 lines = 49.33 per 100 lines
-- artifact: `docs/decisions/ADR-0235-connect-core-public-contracts.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0236 — ADR-0236-op11-corpus-remediation-planning-contract.md
 - status: Proposed
 - depth: B-complete; lines=106; substance_markers=5
 - cross-ref-density: 13 refs / 106 lines = 12.26 per 100 lines
-- artifact: `docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0237 — ADR-0237-connect-dissolution-strangler-migration.md
 - status: Accepted
 - depth: B-complete; lines=425; substance_markers=6
 - cross-ref-density: 86 refs / 425 lines = 20.24 per 100 lines
-- artifact: `docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0238 — ADR-0238-connect-super-app-expansion.md
 - status: Accepted
 - depth: A-rigorous; lines=371; substance_markers=9
 - cross-ref-density: 151 refs / 371 lines = 40.7 per 100 lines
-- artifact: `docs/decisions/ADR-0238-connect-super-app-expansion.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0239 — ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
 - status: accepted
 - depth: B-complete; lines=106; substance_markers=5
 - cross-ref-density: 35 refs / 106 lines = 33.02 per 100 lines
-- artifact: `docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0240 — ADR-0240-sovereign-cloud-per-regional-pack.md
 - status: Accepted
 - depth: A-rigorous; lines=270; substance_markers=7
 - cross-ref-density: 53 refs / 270 lines = 19.63 per 100 lines
-- artifact: `docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md`
+- artifact: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0241 — ADR-0241-dr-business-continuity-portfolio-policy.md
 - status: Accepted
 - depth: A-rigorous; lines=255; substance_markers=8
 - cross-ref-density: 37 refs / 255 lines = 14.51 per 100 lines
-- artifact: `docs/decisions/ADR-0241-dr-business-continuity-portfolio-policy.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: verification evidence absent
 ### ADR-0242 — ADR-0242-oyatie-is-a-tenant-doctrine.md
 - status: Proposed
 - depth: A-rigorous; lines=1099; substance_markers=13
 - cross-ref-density: 311 refs / 1099 lines = 28.3 per 100 lines
-- artifact: `docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0243 — ADR-0243-cedar-as-universal-gate.md
 - status: Proposed
 - depth: A-rigorous; lines=1103; substance_markers=12
 - cross-ref-density: 567 refs / 1103 lines = 51.41 per 100 lines
-- artifact: `docs/decisions/ADR-0243-cedar-as-universal-gate.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0244 — ADR-0244-tenant-as-universal-scoping-primitive.md
 - status: Proposed
 - depth: A-rigorous; lines=2359; substance_markers=15
 - cross-ref-density: 580 refs / 2359 lines = 24.59 per 100 lines
-- artifact: `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0245 — ADR-0245-substrate-vs-product-layering.md
 - status: Proposed
 - depth: A-rigorous; lines=1901; substance_markers=15
 - cross-ref-density: 519 refs / 1901 lines = 27.3 per 100 lines
-- artifact: `docs/decisions/ADR-0245-substrate-vs-product-layering.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0246 — ADR-0246-policy-engine-substrate-promotion.md
 - status: Proposed
 - depth: A-rigorous; lines=2118; substance_markers=13
 - cross-ref-density: 879 refs / 2118 lines = 41.5 per 100 lines
-- artifact: `docs/decisions/ADR-0246-policy-engine-substrate-promotion.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0247 — ADR-0247-self-hosting-self-modification-doctrine.md
 - status: Proposed
@@ -1518,49 +1518,49 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=2296; substance_markers=13
 - cross-ref-density: 414 refs / 2296 lines = 18.03 per 100 lines
-- artifact: `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0249 — ADR-0249-multi-category-marketplace-doctrine.md
 - status: Proposed
 - depth: A-rigorous; lines=2987; substance_markers=14
 - cross-ref-density: 524 refs / 2987 lines = 17.54 per 100 lines
-- artifact: `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0250 — ADR-0250-build-ahead-of-certification-doctrine.md
 - status: Proposed
 - depth: A-rigorous; lines=1786; substance_markers=15
 - cross-ref-density: 449 refs / 1786 lines = 25.14 per 100 lines
-- artifact: `docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0251 — ADR-0251-compliance-pack-cell-certification-levels.md
 - status: Proposed
 - depth: A-rigorous; lines=2648; substance_markers=12
 - cross-ref-density: 614 refs / 2648 lines = 23.19 per 100 lines
-- artifact: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`
+- artifact: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0252 — ADR-0252-time-coordination-distributed-consistency.md
 - status: Proposed
 - depth: A-rigorous; lines=2028; substance_markers=11
 - cross-ref-density: 243 refs / 2028 lines = 11.98 per 100 lines
-- artifact: `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0253 — ADR-0253-network-topology-edge-service-mesh.md
 - status: Proposed
 - depth: A-rigorous; lines=1796; substance_markers=14
 - cross-ref-density: 364 refs / 1796 lines = 20.27 per 100 lines
-- artifact: `docs/decisions/ADR-0253-network-topology-edge-service-mesh.md`
+- artifact: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0254 — ADR-0254-deployment-model-spectrum.md
 - status: Proposed
 - depth: A-rigorous; lines=2222; substance_markers=14
 - cross-ref-density: 487 refs / 2222 lines = 21.92 per 100 lines
-- artifact: `docs/decisions/ADR-0254-deployment-model-spectrum.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0255 — ADR-0355-amendment-library-first-network-opt-in-clarification.md
 - status: Proposed
 - depth: A-rigorous; lines=1187; substance_markers=10
 - cross-ref-density: 244 refs / 1187 lines = 20.56 per 100 lines
-- artifact: `docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0256
 - status: MISSING
@@ -1572,13 +1572,13 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=1832; substance_markers=10
 - cross-ref-density: 282 refs / 1832 lines = 15.39 per 100 lines
-- artifact: `docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0258 — ADR-0258-api-versioning-model.md
 - status: Accepted
 - depth: A-rigorous; lines=1108; substance_markers=12
 - cross-ref-density: 226 refs / 1108 lines = 20.4 per 100 lines
-- artifact: `docs/decisions/ADR-0258-api-versioning-model.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0259
 - status: MISSING
@@ -1608,7 +1608,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=1907; substance_markers=12
 - cross-ref-density: 358 refs / 1907 lines = 18.77 per 100 lines
-- artifact: `docs/decisions/ADR-0263-observability-emission-contract.md`
+- artifact: `docs/decisions/ADR-0706-observability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0264
 - status: MISSING
@@ -1662,13 +1662,13 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=1846; substance_markers=14
 - cross-ref-density: 275 refs / 1846 lines = 14.9 per 100 lines
-- artifact: `docs/decisions/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0273 — ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md
 - status: Proposed
 - depth: A-rigorous; lines=1856; substance_markers=11
 - cross-ref-density: 175 refs / 1856 lines = 9.43 per 100 lines
-- artifact: `docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0274
 - status: MISSING
@@ -1686,7 +1686,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=2083; substance_markers=12
 - cross-ref-density: 240 refs / 2083 lines = 11.52 per 100 lines
-- artifact: `docs/decisions/ADR-0276-backup-portability-format-gdpr-article-20.md`
+- artifact: `docs/decisions/ADR-0704-k8s-port-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0277
 - status: MISSING
@@ -1710,7 +1710,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=2246; substance_markers=11
 - cross-ref-density: 473 refs / 2246 lines = 21.06 per 100 lines
-- artifact: `docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0281
 - status: MISSING
@@ -1734,7 +1734,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=1755; substance_markers=12
 - cross-ref-density: 288 refs / 1755 lines = 16.41 per 100 lines
-- artifact: `docs/decisions/ADR-0284-platform-owner-name-indirection.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0285
 - status: MISSING
@@ -1782,181 +1782,181 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=1945; substance_markers=13
 - cross-ref-density: 346 refs / 1945 lines = 17.79 per 100 lines
-- artifact: `docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0293 — ADR-0293-governance-meta-trust-root.md
 - status: Proposed
 - depth: A-rigorous; lines=1349; substance_markers=11
 - cross-ref-density: 210 refs / 1349 lines = 15.57 per 100 lines
-- artifact: `docs/decisions/ADR-0293-governance-meta-trust-root.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0294 — ADR-0294-cedar-fragment-soak-anomaly-rollback.md
 - status: Proposed
 - depth: A-rigorous; lines=1114; substance_markers=11
 - cross-ref-density: 253 refs / 1114 lines = 22.71 per 100 lines
-- artifact: `docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0295 — ADR-0295-bootstrap-ci-spiffe-kill-switch.md
 - status: Proposed
 - depth: A-rigorous; lines=1243; substance_markers=12
 - cross-ref-density: 139 refs / 1243 lines = 11.18 per 100 lines
-- artifact: `docs/decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0296 — ADR-0296-library-first-credential-sidecar.md
 - status: Proposed
 - depth: A-rigorous; lines=1378; substance_markers=10
 - cross-ref-density: 160 refs / 1378 lines = 11.61 per 100 lines
-- artifact: `docs/decisions/ADR-0296-library-first-credential-sidecar.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0297 — ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md
 - status: Proposed
 - depth: A-rigorous; lines=3115; substance_markers=13
 - cross-ref-density: 497 refs / 3115 lines = 15.96 per 100 lines
-- artifact: `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0298 — ADR-0298-emergency-services-bypass-life-safety.md
 - status: Proposed
 - depth: A-rigorous; lines=1669; substance_markers=13
 - cross-ref-density: 321 refs / 1669 lines = 19.23 per 100 lines
-- artifact: `docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0299 — ADR-0299-account-recovery-resilience.md
 - status: Proposed
 - depth: A-rigorous; lines=1557; substance_markers=13
 - cross-ref-density: 294 refs / 1557 lines = 18.88 per 100 lines
-- artifact: `docs/decisions/ADR-0299-account-recovery-resilience.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0300 — ADR-0300-whistleblower-press-freedom-anonymity.md
 - status: Proposed
 - depth: A-rigorous; lines=1650; substance_markers=13
 - cross-ref-density: 293 refs / 1650 lines = 17.76 per 100 lines
-- artifact: `docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md`
+- artifact: `docs/decisions/ADR-0707-trust-safety-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0301 — ADR-0301-survivor-safety-domestic-abuse-mode.md
 - status: Proposed
 - depth: A-rigorous; lines=1534; substance_markers=14
 - cross-ref-density: 263 refs / 1534 lines = 17.14 per 100 lines
-- artifact: `docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md`
+- artifact: `docs/decisions/ADR-0707-trust-safety-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0302 — ADR-0302-deceased-user-inheritance-doctrine.md
 - status: Proposed
 - depth: A-rigorous; lines=1596; substance_markers=13
 - cross-ref-density: 298 refs / 1596 lines = 18.67 per 100 lines
-- artifact: `docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md`
+- artifact: `docs/decisions/ADR-0707-trust-safety-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0303 — ADR-0303-cognitive-impairment-decision-resilience.md
 - status: Proposed
 - depth: A-rigorous; lines=1829; substance_markers=12
 - cross-ref-density: 331 refs / 1829 lines = 18.1 per 100 lines
-- artifact: `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0304 — ADR-0304-cross-jurisdiction-conflict-resolution.md
 - status: Proposed
 - depth: A-rigorous; lines=1527; substance_markers=11
 - cross-ref-density: 262 refs / 1527 lines = 17.16 per 100 lines
-- artifact: `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0305 — ADR-0305-delegated-agent-authority-chain.md
 - status: Proposed
 - depth: A-rigorous; lines=1560; substance_markers=11
 - cross-ref-density: 275 refs / 1560 lines = 17.63 per 100 lines
-- artifact: `docs/decisions/ADR-0305-delegated-agent-authority-chain.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0306 — ADR-0306-disaster-mode-cell-resilience.md
 - status: Proposed
 - depth: A-rigorous; lines=1640; substance_markers=13
 - cross-ref-density: 303 refs / 1640 lines = 18.48 per 100 lines
-- artifact: `docs/decisions/ADR-0306-disaster-mode-cell-resilience.md`
+- artifact: `docs/decisions/ADR-0707-trust-safety-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0307 — ADR-0307-detection-substrate-streaming-batch.md
 - status: Proposed
 - depth: A-rigorous; lines=1866; substance_markers=13
 - cross-ref-density: 368 refs / 1866 lines = 19.72 per 100 lines
-- artifact: `docs/decisions/ADR-0307-detection-substrate-streaming-batch.md`
+- artifact: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0308 — ADR-0308-ml-model-lifecycle-ai-act-compliance.md
 - status: Proposed
 - depth: A-rigorous; lines=1904; substance_markers=12
 - cross-ref-density: 267 refs / 1904 lines = 14.02 per 100 lines
-- artifact: `docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0309 — ADR-0309-detection-fairness-audit-civil-rights.md
 - status: Proposed
 - depth: A-rigorous; lines=1783; substance_markers=11
 - cross-ref-density: 205 refs / 1783 lines = 11.5 per 100 lines
-- artifact: `docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0310 — ADR-0310-investigation-case-management.md
 - status: Proposed
 - depth: A-rigorous; lines=2013; substance_markers=13
 - cross-ref-density: 348 refs / 2013 lines = 17.29 per 100 lines
-- artifact: `docs/decisions/ADR-0310-investigation-case-management.md`
+- artifact: `docs/decisions/ADR-0703-cas-cache-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0311 — ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
 - status: Proposed
 - depth: A-rigorous; lines=1803; substance_markers=13
 - cross-ref-density: 600 refs / 1803 lines = 33.28 per 100 lines
-- artifact: `docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md`
+- artifact: `docs/decisions/ADR-0702-identity-authz-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0312 — ADR-0312-court-warrant-scoped-piercing.md
 - status: Proposed
 - depth: A-rigorous; lines=1510; substance_markers=12
 - cross-ref-density: 312 refs / 1510 lines = 20.66 per 100 lines
-- artifact: `docs/decisions/ADR-0312-court-warrant-scoped-piercing.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0313 — ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
 - status: Proposed
 - depth: A-rigorous; lines=2987; substance_markers=13
 - cross-ref-density: 535 refs / 2987 lines = 17.91 per 100 lines
-- artifact: `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md`
+- artifact: `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0314 — ADR-0314-marketplace-as-universal-deal-settlement.md
 - status: Proposed
 - depth: A-rigorous; lines=1801; substance_markers=11
 - cross-ref-density: 1514 refs / 1801 lines = 84.06 per 100 lines
-- artifact: `docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md`
+- artifact: `docs/decisions/ADR-0705-product-protocol-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0315 — ADR-0315-erp-coverage-doctrine-sap-parity.md
 - status: Proposed
 - depth: A-rigorous; lines=2001; substance_markers=14
 - cross-ref-density: 6576 refs / 2001 lines = 328.64 per 100 lines
-- artifact: `docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0316 — ADR-0316-capability-tier-over-product-fragmentation.md
 - status: Proposed
 - depth: A-rigorous; lines=2145; substance_markers=16
 - cross-ref-density: 792 refs / 2145 lines = 36.92 per 100 lines
-- artifact: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0317 — ADR-0317-role-based-projection-unified-ux-shell.md
 - status: Proposed
 - depth: A-rigorous; lines=2152; substance_markers=11
 - cross-ref-density: 411 refs / 2152 lines = 19.1 per 100 lines
-- artifact: `docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0318 — ADR-0318-collar-color-workspace-universality.md
 - status: Proposed
 - depth: A-rigorous; lines=2951; substance_markers=13
 - cross-ref-density: 856 refs / 2951 lines = 29.01 per 100 lines
-- artifact: `docs/decisions/ADR-0318-collar-color-workspace-universality.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0319 — ADR-0319-front-middle-back-office-information-barrier.md
 - status: Proposed
 - depth: A-rigorous; lines=2268; substance_markers=14
 - cross-ref-density: 557 refs / 2268 lines = 24.56 per 100 lines
-- artifact: `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0320 — ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
 - status: Proposed
 - depth: A-rigorous; lines=1559; substance_markers=12
 - cross-ref-density: 796 refs / 1559 lines = 51.06 per 100 lines
-- artifact: `docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-0321 — ADR-0321-b2b-saas-industry-leader-coverage.md
 - status: Proposed
 - depth: A-rigorous; lines=20851; substance_markers=17
 - cross-ref-density: 3527 refs / 20851 lines = 16.92 per 100 lines
-- artifact: `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md`
 - named gaps: alternatives/rejections not explicit
 ### ADR-MS — ADR-MS-001-edge-admission-policy-and-pqc-contract.md
 - status: Proposed
@@ -4601,7 +4601,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 ### Standard lane `documentation-rigor`
 - artifacts: 108; lines=63825
 - marker hits: 8143
-- representative artifacts: docs/STANDARDS-AND-TEMPLATES.md, docs/decisions/ADR-0017-brand-naming-and-repo-layout.md, docs/decisions/ADR-0064-canonical-base-and-localization-packs.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/INDEX.md, docs/localization-packs/kr.md, docs/standards/migration-playbook.md, docs/standards/fintech-compliance.md
+- representative artifacts: docs/STANDARDS-AND-TEMPLATES.md, docs/decisions/ADR-0701-monorepo-capability-live-apex.md, docs/decisions/ADR-0709-general-live-apex.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/INDEX.md, docs/localization-packs/kr.md, docs/standards/migration-playbook.md, docs/standards/fintech-compliance.md
 - named gaps: none named; retain in regression audit
 ### Standard lane `naming-justification`
 - artifacts: 18; lines=15743
@@ -4611,17 +4611,17 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 ### Standard lane `layer-enum`
 - artifacts: 62; lines=39077
 - marker hits: 598
-- representative artifacts: docs/decisions/ADR-0017-brand-naming-and-repo-layout.md, docs/decisions/ADR-0064-canonical-base-and-localization-packs.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/kr.md, docs/standards/fintech-compliance.md, docs/standards/regulatory-pack-authzpolicy-overlays.md, docs/standards/layer-enum-adr-0105.md, docs/standards/cedar-policy-discipline.md
+- representative artifacts: docs/decisions/ADR-0701-monorepo-capability-live-apex.md, docs/decisions/ADR-0709-general-live-apex.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/kr.md, docs/standards/fintech-compliance.md, docs/standards/regulatory-pack-authzpolicy-overlays.md, docs/standards/layer-enum-adr-0105.md, docs/standards/cedar-policy-discipline.md
 - named gaps: none named; retain in regression audit
 ### Standard lane `localization`
 - artifacts: 189; lines=79014
 - marker hits: 21772
-- representative artifacts: docs/STANDARDS-AND-TEMPLATES.md, docs/decisions/ADR-0017-brand-naming-and-repo-layout.md, docs/decisions/ADR-0064-canonical-base-and-localization-packs.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/INDEX.md, docs/localization-packs/kr.md, docs/standards/security-review.md, docs/standards/helm-chart-convention.md
+- representative artifacts: docs/STANDARDS-AND-TEMPLATES.md, docs/decisions/ADR-0701-monorepo-capability-live-apex.md, docs/decisions/ADR-0709-general-live-apex.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/INDEX.md, docs/localization-packs/kr.md, docs/standards/security-review.md, docs/standards/helm-chart-convention.md
 - named gaps: none named; retain in regression audit
 ### Standard lane `canonical-primitives`
 - artifacts: 99; lines=60543
 - marker hits: 1699
-- representative artifacts: docs/STANDARDS-AND-TEMPLATES.md, docs/decisions/ADR-0064-canonical-base-and-localization-packs.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/INDEX.md, docs/localization-packs/kr.md, docs/standards/helm-chart-convention.md, docs/standards/fintech-compliance.md, docs/standards/release-management.md
+- representative artifacts: docs/STANDARDS-AND-TEMPLATES.md, docs/decisions/ADR-0709-general-live-apex.md, docs/architecture/standards-corpus-line-audit-2026-05-21.md, docs/localization-packs/INDEX.md, docs/localization-packs/kr.md, docs/standards/helm-chart-convention.md, docs/standards/fintech-compliance.md, docs/standards/release-management.md
 - named gaps: none named; retain in regression audit
 
 ## §8 Capability-Tier Registry Scorecard

@@ -162,7 +162,7 @@
       ],
       "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=cloud-intelligence)",
       "plan_refs": [
-        "docs/decisions/ADR-0373-llm-gateway-production-design.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         "microservices/cloud-intelligence/PRD.md",
         "microservices/cloud-intelligence/manifest.json"
       ]

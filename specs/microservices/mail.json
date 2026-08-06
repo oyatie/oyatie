@@ -43,7 +43,7 @@
       "$ref:specs/microservices/workflow.json",
       "$ref:specs/microservices/ontology.json",
       "$ref:specs/deployment-ops-contract.json",
-      "$ref:docs/decisions/ADR-0235-connect-core-public-contracts.md",
+      "$ref:docs/decisions/ADR-0709-general-live-apex.md",
       "$ref:specs/microservices/workflow.json",
       "$ref:specs/microservices/ontology.json"
     ],
@@ -230,7 +230,7 @@
       "mail.migration_audit.v1",
       "mail.alias.v1"
     ],
-    "public_contract_adr": "$ref:docs/decisions/ADR-0235-connect-core-public-contracts.md"
+    "public_contract_adr": "$ref:docs/decisions/ADR-0709-general-live-apex.md"
   },
   "data_model": {
     "entities_ref": [

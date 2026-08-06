@@ -191,7 +191,7 @@
     "Cargo.lock refreshed after each rename"
   ],
   "references": [
-    "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md — current canonical 12-layer enum",
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md — current canonical 12-layer enum",
     "specs/decision-principles.json#DP-06-bounded-scope-per-doc — naming discipline",
     "specs/governance-amendment.json — procedure for ratifying ADR-0056 amendment",
     "2026-05-15 user directive: 'audit enums layers as well ... if they are well defined and serve a purpose, consider adopting them. otherwise stick to canonical layer types.'"

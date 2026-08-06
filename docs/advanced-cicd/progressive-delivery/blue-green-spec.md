@@ -24,12 +24,12 @@ doc_status: published
 
 Blue/green is mandatory for:
 
-1. **Schema migrations** (DDL on production data, [ADR-0045](../../../docs/decisions/ADR-0045-database-tier-strategy.md)).
+1. **Schema migrations** (DDL on production data, [ADR-0045](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 2. **Runtime cutovers** (WASM substrate, agent runtime, KMS roots).
 3. **Capability cutovers** (Foundry capability replacing a published predecessor irreversibly).
-4. **Cross-region replication topology changes** ([ADR-0049](../../../docs/decisions/ADR-0049-cross-region-replication-and-residency.md)).
-5. **KMS root rotation** (HSM-backed; [ADR-0043](../../../docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md)).
-6. **Message-broker / event-bus upgrades** ([ADR-0005](../../../docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md)).
+4. **Cross-region replication topology changes** ([ADR-0049](../../../docs/decisions/ADR-0708-platform-foundations-live-apex.md)).
+5. **KMS root rotation** (HSM-backed; [ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)).
+6. **Message-broker / event-bus upgrades** ([ADR-0005](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 Everything else defaults to canary (see [`progressive-delivery-strategy.md`](progressive-delivery-strategy.md)).
 
@@ -41,7 +41,7 @@ Switchover is **traffic-shift**, not deployment-swap. The blue and green stacks 
 - Soak period observable in real traffic, not synthetic.
 - No DNS TTL games.
 
-Traffic-shift is driven by Argo Rollouts BlueGreen strategy or by Flagger's pre-promotion gates, both invoking the mesh (Istio Ambient per [ADR-0044](../../../docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md)) via `oya-platform-traffic-shift-kernel` (NEW; adapter pattern).
+Traffic-shift is driven by Argo Rollouts BlueGreen strategy or by Flagger's pre-promotion gates, both invoking the mesh (Istio Ambient per [ADR-0044](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)) via `oya-platform-traffic-shift-kernel` (NEW; adapter pattern).
 
 ## 3. Lifecycle
 
@@ -77,7 +77,7 @@ Every blue/green release MUST emit signed evidence covering all five rollback mo
 | **Down** | Re-shift traffic to blue (default rollback) | Traffic-shift log + blue-state snapshot |
 | **Dry-run** | Execute switchover in a non-prod cell with prod-shaped traffic | Mirror-diff report + smoke-test artefact |
 | **Per-tenant** | Re-shift one tenant back to blue while others stay on green | Per-tenant routing rule + cohort intersect log |
-| **Per-cell** | Re-shift one cell back to blue (default unit per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md)) | Per-cell traffic-shift log |
+| **Per-cell** | Re-shift one cell back to blue (default unit per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)) | Per-cell traffic-shift log |
 
 All five emitted by `oya-intelligence-evidence-kernel` and validated by `oya-governance-rollback-evidence` (NEW; BLOCKER if unsigned).
 

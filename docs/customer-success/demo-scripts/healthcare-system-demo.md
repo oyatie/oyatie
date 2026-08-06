@@ -645,12 +645,12 @@ Best,
 - Internal: `docs/COMPLIANCE-MATRIX.md`.
 - Internal: `specs/pack-overlay-schema.json`.
 - Internal: `specs/capability-tier-schema.json`.
-- Internal: `docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal: `docs/decisions/ADR-0243-*`.
 - Internal: `docs/decisions/ADR-0244-*`.
 - Internal: `docs/decisions/ADR-0251-*`.
 - Internal: `docs/decisions/ADR-0263-*`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal: `docs/decisions/ADR-0319-*`.
 - External: HHS HIPAA Privacy Rule, https://www.hhs.gov/hipaa/for-professionals/privacy/index.html.
 - External: HHS HIPAA Security Rule, https://www.hhs.gov/hipaa/for-professionals/security/index.html.

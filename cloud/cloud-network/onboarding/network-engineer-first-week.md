@@ -6,7 +6,7 @@ investigation.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md` — cells are the unit of blast radius; network is per-cell.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — cells are the unit of blast radius; network is per-cell.
 - `docs/decisions/ADR-0253-http3-quic-default-protocol.md` — HTTP/3 mandatory default.
 - `docs/decisions/ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md` — K8s + Cloud Hypervisor; Cilium is the CNI.
 - `microservices/cloud-network/retired tenant_class adoption artifact` — the tenant_class model.

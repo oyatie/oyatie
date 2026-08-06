@@ -31,7 +31,7 @@ doc_status: published
 - FOCUS dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/focus-export?orgId=1&var-period=current`.
 - Loki query: `{namespace="cloud-billing",runbook="per-tenant-cost-attribution-mismatch"}`.
 - Canonical FAQ: `microservices/cloud-billing/faqs/billing-engineer-faq.md`.
-- Related ADR: `docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md`.
+- Related ADR: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
 - Related bus: `cloud_billing.metering.v1`.
 
 ## Trigger Conditions

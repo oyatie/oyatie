@@ -73,7 +73,7 @@ Signal-based line classification (lines may match >1 signal; resolution order is
 **Finding F-0004** (`FINDINGS-LEDGER.md:18`): ~945 oya + ~260 cloud `ARCH/README/PRD` (and runbooks) carry **identical jenkins boilerplate generated from a canonical template** — recommendation is *"fix the template source + regenerate; never hand-scrub 1200 files."*
 
 **Root cause located (evidence):**
-- The boilerplate originates from **ADR-0349** (`docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md`): *"Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates."* Its `enforced_by` lane list — **`oya-governance-jenkins-github-actions-parity`** (841 occurrences) and **`oya-governance-jenkins-jcasc-only`** (738 occurrences) — is the dominant jenkins residue, stamped into per-service docs.
+- The boilerplate originates from **ADR-0349** (`docs/decisions/ADR-0709-general-live-apex.md`): *"Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates."* Its `enforced_by` lane list — **`oya-governance-jenkins-github-actions-parity`** (841 occurrences) and **`oya-governance-jenkins-jcasc-only`** (738 occurrences) — is the dominant jenkins residue, stamped into per-service docs.
 - The stamping vector: per-microservice doc-sets where the **same files repeat across ~80 services** — `IP-WAVE-15-ZD-sharding-automation.md` (80 copies), `hot-split.md`/`cold-merge.md`/`auto-rebalance.md` (82 each), `dpia.md` (87). md5 confirms each copy has per-service substitution but shares the jenkins lane/prose block (= templated injection, not hand-authored).
 - Distribution: jenkins is **318 lines in ADR source** (the SSOT), **225 lines in `*.generated.*`**, and **~4,000 lines in stamped per-service output**.
 

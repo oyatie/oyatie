@@ -592,7 +592,7 @@ impl Report {
 ///     "ADR-0552-x.md:ADR-0552!=ADR-0553"
 ///   ],
 ///   "phantom_citations": [             // cited id with no decision file (phantom-0397 shape)
-///     "ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md"
+///     "ADR-0397@docs/decisions/ADR-0709-general-live-apex.md"
 ///   ],
 ///   "next_free_id": "ADR-0554",        // allocator output (producer --next-adr)
 ///   "generated_face_axes": {           // shared values two generated faces must agree on
@@ -4393,7 +4393,7 @@ mod tests {
                 "in_spec": true, "in_masterplan": true, "in_roadmap": true
             }],
             "phantom_citations": [
-                "ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md"
+                "ADR-0397@docs/decisions/ADR-0709-general-live-apex.md"
             ]
         });
         let report = evaluate(&fixture);

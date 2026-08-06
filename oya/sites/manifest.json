@@ -253,25 +253,25 @@
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13 Layer Enum And Check Family Patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0106",
       "title": "Rename Application To Usecase",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
     },
     {
       "id": "ADR-0117",
       "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0234",
@@ -283,31 +283,31 @@
       "id": "ADR-0132",
       "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "id": "ADR-0236",
       "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0237",
       "title": "Dissolution Strangler Migration",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0238",
       "title": "Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

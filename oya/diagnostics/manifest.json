@@ -27,7 +27,7 @@
   "canonical_sources": [
     "microservices/diagnostics/PRD.md",
     "microservices/diagnostics/ARCHITECTURE.md",
-    "docs/decisions/ADR-0332-healthcare-domain-decomposition.md",
+    "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
     "docs/decisions/ADR-0132-no-grouping-policy.md",
     "microservices/imaging/PRD.md"
   ],

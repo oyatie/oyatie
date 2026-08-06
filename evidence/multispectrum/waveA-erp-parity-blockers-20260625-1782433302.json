@@ -11,7 +11,7 @@
     "files_touched": [
       "iam/facade/tenant-rbac-erp-parity-map/src/lib.rs",
       "iam/facade/tenant-rbac-erp-parity-map/tests/parity.rs",
-      "docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       "evidence/multispectrum/waveA-erp-parity-blockers-20260625-1782433302.json",
       "evidence/audit-chain.jsonl"
     ],

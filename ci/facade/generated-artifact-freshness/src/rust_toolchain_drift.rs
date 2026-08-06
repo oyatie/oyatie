@@ -33,7 +33,7 @@ const ACTIVE_TEXT_PATHS: [&str; 8] = [
     "docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md",
     "docs/architecture/",
     "docs/automation/",
-    "docs/decisions/ADR-0392-buck2-canonical-build-graph.md",
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "docs/plans/",
     "docs/standards/",
     "specs/oss-stewardship-registry.json",

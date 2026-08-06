@@ -1,6 +1,6 @@
 # Standard — WASM runtime canonical (Wasmtime)
 
-> ADR anchor: `docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md`.
+> ADR anchor: `docs/decisions/ADR-0709-general-live-apex.md`.
 > Code anchor: `crates/oya-shared-wasm-runtime-kernel/`.
 > Gate anchor: `crates/oya-check-wasm-runtime-discipline/`.
 > Authored 2026-05-18.

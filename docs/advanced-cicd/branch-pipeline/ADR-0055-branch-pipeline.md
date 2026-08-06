@@ -32,7 +32,7 @@ Three forces require revisiting:
 
 2. **Per-change-class reviewer roster.** `docs/AGENTS.md` defines 12 reviewer agents (rust / typescript / python / database / security / privacy / tdd / silent-failure / doc / capability / perf / doc-style). Their verdicts have to bind to a specific transition; trunk-based has only one transition (merge to main) and forces all verdicts to converge there.
 
-3. **Progressive-delivery binding.** [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) requires canary stages that take 24h+ to soak. Trunk-based pushes this work to feature flags; we have feature flags ([`feature-flag-architecture.md`](../progressive-delivery/feature-flag-architecture.md)) but use them for **cohort intersection**, not **release-stage surrogates**.
+3. **Progressive-delivery binding.** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) requires canary stages that take 24h+ to soak. Trunk-based pushes this work to feature flags; we have feature flags ([`feature-flag-architecture.md`](../progressive-delivery/feature-flag-architecture.md)) but use them for **cohort intersection**, not **release-stage surrogates**.
 
 We need a model where the **reviewer-agent verdict gates entry to the shared world**, **canary observation gates entry to production**, and **everything in between is autonomous**.
 
@@ -159,8 +159,8 @@ Each gate sits where its input data is available; no gate is invoked before its 
 ## References
 
 - `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy (the trunk-based default we deviate from)
-- [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) (canary + SLO mechanics inherited)
+- [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) (canary + SLO mechanics inherited)
 - [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md) (superseded)
-- [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) (Cosign + SLSA inherited)
+- [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) (Cosign + SLSA inherited)
 - `docs/AGENTS.md` (reviewer-agent roster)
 - `.omc/advanced-cicd/progressive-delivery/` (sister composer; runtime mechanics)

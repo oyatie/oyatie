@@ -13,7 +13,7 @@ Authoritative inputs, in precedence order for this plan:
 1. User direction: implement Oyatie from `/Users/jasonlee/Developer/source`, using `docs/decisions/` as the decision source; later ADRs override older conflicts.
 2. `/specs/masterplan.json` — current machine-readable masterplan authority.
 3. `/specs/master-plan-sequencing.json` — execution order, Oya VCS lifecycle, ChangeSet sizing, and Phase 0 build sequence.
-4. `docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md` — newest from-scratch architecture handoff in the active worktree.
+4. `docs/decisions/ADR-0709-general-live-apex.md` — newest from-scratch architecture handoff in the active worktree.
 5. `docs/PRD-OYATIE-FROM-SCRATCH-CANONICAL.md` — self-contained product/implementation PRD in the active worktree.
 6. Existing Cloud IAM implementation in `crates/oya-cloud-iam-*` and `microservices/cloud-iam/manifest.json`.
 
@@ -367,7 +367,7 @@ Live full-verify state after distrust-based inspection:
 - D-3 `cargo clippy --workspace --all-targets -- -D warnings` passed.
 - D-4 `cargo nextest run --workspace` failed six `oya-dev-cli::oya_verify_ci_mirror` tests with `oya verify: recursive invocation refused`.
 - D-5 `oya gate run-all --ci-required` passed 74/88 lanes and failed 14 lanes: claim-ceiling, data-class, doc-catalog, adr-citation, design-spec-maturity-claims, glossary-vocabulary, placeholder-debt, dependency-seam, readme-doc-coverage, layered-architecture-discipline, CI nextest mirror, VCS admission/provider proof due missing `trivy`, provider-execution proof due missing `trivy`, and GitHub required-secrets check due missing `gh`.
-- D-6 `oya doc adr-index --write` failed because `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md` is missing ADR metadata Owner.
+- D-6 `oya doc adr-index --write` failed because `docs/decisions/ADR-0709-general-live-apex.md` is missing ADR metadata Owner.
 - D-7 `oya lint adr-shape` passed because there are no new ADRs in `origin/dev...HEAD`.
 
 Closure status:
@@ -1491,10 +1491,10 @@ This ChangeSet repaired the D-6 ADR-index duplicate-id blocker. It does **not** 
 
 Repaired state:
 
-- The ADR-0246 amendment file is now `docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md` with frontmatter/H1 id `ADR-0353`; it still amends ADR-0246.
-- The ADR-0253 amendment file is now `docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md` with frontmatter/H1 id `ADR-0354`; it still amends ADR-0253.
-- The ADR-0255 amendment file is now `docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md` with frontmatter/H1 id `ADR-0355`; it still amends ADR-0255.
-- The ADR-0257 amendment file is now `docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md` with frontmatter/H1 id `ADR-0356`; it still amends ADR-0257.
+- The ADR-0246 amendment file is now `docs/decisions/ADR-0709-general-live-apex.md` with frontmatter/H1 id `ADR-0353`; it still amends ADR-0246.
+- The ADR-0253 amendment file is now `docs/decisions/ADR-0705-product-protocol-live-apex.md` with frontmatter/H1 id `ADR-0354`; it still amends ADR-0253.
+- The ADR-0255 amendment file is now `docs/decisions/ADR-0709-general-live-apex.md` with frontmatter/H1 id `ADR-0355`; it still amends ADR-0255.
+- The ADR-0257 amendment file is now `docs/decisions/ADR-0709-general-live-apex.md` with frontmatter/H1 id `ADR-0356`; it still amends ADR-0257.
 - Exact active-doc slug references for the four old amendment files were replaced with the new ADR-0353..ADR-0356 slugs.
 - `docs/ADR-INDEX.md` and `docs/machine-readable/decisions.json` were regenerated from the current ADR corpus.
 

@@ -5523,7 +5523,7 @@ fn stage0_prereqs_gate_is_dispatched() {
     )
     .expect("app lib written");
     fs::write(
-        temp.join("docs/decisions/ADR-0061-application-b2b-unified-shell.md"),
+        temp.join("docs/decisions/ADR-0709-general-live-apex.md"),
         "# ADR-0061\n",
     )
     .expect("adr written");

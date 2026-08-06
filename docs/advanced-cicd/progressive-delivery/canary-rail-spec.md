@@ -18,11 +18,11 @@ doc_status: published
 
 # Canary Rail Specification
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md).
+> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
 
 ## 1. Controllers
 
-**Primary:** [Flagger](https://flagger.app/) — CNCF, service-mesh-native, lightweight. Aligns with Istio Ambient ([ADR-0044](../../../docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md)).
+**Primary:** [Flagger](https://flagger.app/) — CNCF, service-mesh-native, lightweight. Aligns with Istio Ambient ([ADR-0044](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)).
 
 **Secondary:** [Argo Rollouts](https://argoproj.github.io/argo-rollouts/) — CNCF Graduated, richer analysis-templates, used where cross-axis lockstep promotion or BG primitives are needed.
 
@@ -73,7 +73,7 @@ spec:
 
 ## 4. Argo Rollouts Rollout (when needed)
 
-Used when: cross-axis lockstep promotion required; BG primitives needed; per-cell experiment graph required. See [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) for canonical manifest; we extend with the 1% stage at the head.
+Used when: cross-axis lockstep promotion required; BG primitives needed; per-cell experiment graph required. See [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) for canonical manifest; we extend with the 1% stage at the head.
 
 ## 5. Per-cell scope
 
@@ -82,7 +82,7 @@ Each Canary/Rollout is scoped to one cell. Cross-cell promotion is orchestrated 
 ## 6. Analysis sources
 
 - Prometheus 3.11+ (current mainline) — primary metric store ([lts-versions-verified](../../specs/lts-versions-verified-2026-05-12.md)).
-- VictoriaMetrics — long-retention fallback (per [ADR-0042](../../../docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md)).
+- VictoriaMetrics — long-retention fallback (per [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 - Datadog / Honeycomb — accessed via `oya-platform-metric-source-adapter-<provider>` if a tenant brings their own.
 
 Provider-neutral query is `oya-platform-slo-burn-rate-kernel` (NEW; see [`slo-burn-rate-rollback-spec.md`](slo-burn-rate-rollback-spec.md)).
@@ -93,7 +93,7 @@ On threshold breach: Flagger fires `traffic-shift: 0%` to canary; Argo Rollouts 
 
 ## 8. Pre-rollout gates (inherits from ADR-0040)
 
-- supply-chain PASS ([ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md)).
+- supply-chain PASS ([ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 - api-semver PASS ([ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md)).
 - SLO catalog freshness within 1 h.
 - canary-required lane PASS.

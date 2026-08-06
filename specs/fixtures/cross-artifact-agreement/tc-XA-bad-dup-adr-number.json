@@ -4,7 +4,7 @@
   "expected_violations": [
     "dual_decision_collision"
   ],
-  "description": "Frozen live exhibit: two distinct decision FILES carry the same id ADR-0377 (docs/decisions/ADR-0377-github-board-git-ref-cas-fallback.md and docs/decisions/ADR-0377-kafka-to-pulsar-via-kop.md). One id cannot identify two decisions; the crosswalk reports it as a duplicate_ids DATA signal. The lone decision row agrees on all faces so only the collision fires.",
+  "description": "Frozen live exhibit: two distinct decision FILES carry the same id ADR-0377 (docs/decisions/ADR-0703-cas-cache-live-apex.md and docs/decisions/ADR-0377-kafka-to-pulsar-via-kop.md). One id cannot identify two decisions; the crosswalk reports it as a duplicate_ids DATA signal. The lone decision row agrees on all faces so only the collision fires.",
   "decisions": [
     {
       "id": "ADR-0377",

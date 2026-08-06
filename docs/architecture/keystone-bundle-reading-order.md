@@ -152,7 +152,7 @@ they are written assuming each one comes before the next.
 
 ### 3.1 ADR-0242 — oyatie is a tenant (45-90 minutes)
 
-File: `/docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md`
+File: `/docs/decisions/ADR-0702-identity-authz-live-apex.md`
 
 **Read the frontmatter carefully.** Note that this ADR amends
 ADR-0136, ADR-0136-amendment, ADR-0220, ADR-0239, and ADR-0221.
@@ -189,7 +189,7 @@ customer-facing code; and how an engineer's local sandbox tenant
 
 ### 3.2 ADR-0243 — Cedar as Universal Gate (45-90 minutes)
 
-File: `/docs/decisions/ADR-0243-cedar-as-universal-gate.md`
+File: `/docs/decisions/ADR-0700-ci-admission-live-apex.md`
 
 **Read the frontmatter.** Note the `keystone_position: 2-of-14`
 and the `amends:` field listing ADR-0150 and ADR-0183. ADR-0150
@@ -225,7 +225,7 @@ are not stored in LaunchDarkly; you will be able to identify the
 
 ### 3.3 ADR-0244 — Tenant as Universal Scoping Primitive (45-90 minutes)
 
-File: `/docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`
+File: `/docs/decisions/ADR-0702-identity-authz-live-apex.md`
 
 **Read the frontmatter.** Note `keystone_position: 3-of-14` and the
 amends field. This ADR finalises the audience-as-tenant-property
@@ -260,7 +260,7 @@ in any older ADR or doc.
 
 ### 3.4 ADR-0245 — Substrate vs Product Layering (60-120 minutes)
 
-File: `/docs/decisions/ADR-0245-substrate-vs-product-layering.md`
+File: `/docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 
 **Read the frontmatter.** Note `keystone_position: 4-of-14`. Note
 the amends list (ADR-0131 layout authority, ADR-0132 forward policy,
@@ -318,7 +318,7 @@ boundary.
 
 ### 4.1 ADR-0248 — Amazon-shape Cellular Architecture (60-90 minutes)
 
-File: `/docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md`
+File: `/docs/decisions/ADR-0700-ci-admission-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 7-of-14.
 
@@ -355,7 +355,7 @@ runs in which cell tier.
 
 ### 4.2 ADR-0253 — Network topology (45-60 minutes)
 
-File: `/docs/decisions/ADR-0253-network-topology-edge-service-mesh.md`
+File: `/docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 12-of-14.
 
@@ -377,7 +377,7 @@ workload carries one.
 
 ### 4.3 ADR-0254 — Deployment model spectrum (45-60 minutes)
 
-File: `/docs/decisions/ADR-0254-deployment-model-spectrum.md`
+File: `/docs/decisions/ADR-0709-general-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 13-of-14.
 
@@ -399,7 +399,7 @@ behavioural differences.
 
 ### 4.4 ADR-0246 — Policy-Engine Substrate Promotion (60-75 minutes)
 
-File: `/docs/decisions/ADR-0246-policy-engine-substrate-promotion.md`
+File: `/docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 5-of-14.
 
@@ -475,7 +475,7 @@ which workflows belong in `dev-tools-cell` versus a tenant cell.
 
 ### 5.2 ADR-0252 — Time, Coordination, Distributed Consistency (60-90 minutes)
 
-File: `/docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
+File: `/docs/decisions/ADR-0709-general-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 11-of-14.
 
@@ -503,7 +503,7 @@ instead (saga compensation).
 
 ### 5.3 ADR-0255 — Intelligence as Two-Layer Substrate (60-90 minutes)
 
-File: `/docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md`
+File: `/docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 14-of-14
 (the final ADR in the bundle).
@@ -547,7 +547,7 @@ a first-class platform feature rather than as a deferred bolt-on.
 
 ### 6.1 ADR-0250 — Build-Ahead-of-Certification (60-90 minutes)
 
-File: `/docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md`
+File: `/docs/decisions/ADR-0709-general-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 9-of-14.
 
@@ -577,7 +577,7 @@ capability through the three-state lifecycle.
 
 ### 6.2 ADR-0251 — Compliance Pack and Cell Certification Levels (60-90 minutes)
 
-File: `/docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`
+File: `/docs/decisions/ADR-0708-platform-foundations-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 10-of-14.
 
@@ -619,7 +619,7 @@ the four anchor PRDs that show how products consume the substrates.
 
 ### 7.1 ADR-0249 — Multi-Category Marketplace Doctrine (45-60 minutes)
 
-File: `/docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`
+File: `/docs/decisions/ADR-0705-product-protocol-live-apex.md`
 
 **Read the frontmatter and Status.** This is keystone 8-of-14.
 

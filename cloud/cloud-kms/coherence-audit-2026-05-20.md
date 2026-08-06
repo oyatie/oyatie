@@ -10,7 +10,7 @@ read_scope: canonical direction, cloud-kms artifacts, reverse references, chat h
 
 ## Citation Anchor Block
 
-1. Canonical deployment/IaC/OS/language/OCI audit rules: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2235`, `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2494`, `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3756-4153`.
+1. Canonical deployment/IaC/OS/language/OCI audit rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2235`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2494`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable canonical sequence: `specs/master-plan-sequencing.json:704-868`, including deployment contexts, OpenTofu substrate, OS matrix, Rust language policy, and OCI Always Free profile.
 3. Microservice-owned product purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `microservices/cloud-kms/faqs/kms-engineer-faq.md:7-12`, with the missing local `PRD.md` recorded as a finding.
 4. Architecture equivalent read: `crates/oya-cloud-kms-domain/src/lib.rs:1-7`, `contracts/openapi/cloud/cloud-kms-v1.yaml:1-12`, `docs/products/cloud/PRD.md:121-121`, because `microservices/cloud-kms/ARCHITECTURE.md` is absent.

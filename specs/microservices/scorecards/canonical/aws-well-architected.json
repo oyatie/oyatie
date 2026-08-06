@@ -129,7 +129,7 @@
         {
           "id": "REL-06",
           "name": "ADR-0139 SLO-gated promotion",
-          "evidence_pattern": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md",
+          "evidence_pattern": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
           "passing": true
         }
       ]

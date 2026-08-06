@@ -1157,7 +1157,7 @@ mod tests {
             ],
             "maturity": {
                 "claim_boundary": "Registry metadata only; no runtime maturity claim is made without cloud-ci/oya-ci evidence.",
-                "admission_ref": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+                "admission_ref": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
             }
         })
     }
@@ -1197,7 +1197,7 @@ mod tests {
         .expect("test symbol fixture");
         std::fs::write(
             root.join(
-                "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+                "docs/decisions/ADR-0700-ci-admission-live-apex.md",
             ),
             "# ADR-0515\n",
         )

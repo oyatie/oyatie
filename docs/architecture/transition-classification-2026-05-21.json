@@ -424,82 +424,82 @@
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0002-tenant-and-identity-kernel.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0702-identity-authz-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0004-plane-separation-control-data-analytics.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0702-identity-authz-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0008-data-use-boundary.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0010-regional-pack-architecture.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0013-product-license-policy.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0014-build-vs-buy-policy.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0015-architectural-flattening-target.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0016-wave-and-plane-integration-framework.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0025-intelligence-as-engineering-platform.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
@@ -509,12 +509,12 @@
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
@@ -524,7 +524,7 @@
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
@@ -534,252 +534,252 @@
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0051-mobile-and-native-client-strategy.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0052-inventory-grit-cutover.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0083-rust-error-handling-tier-decision.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0103-grit-cutover-inventory.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0106-rename-application-to-usecase.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0703-cas-cache-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0107-tools-implicit-app-convention.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0108-sunset-lifecycle-automation.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0109-lifecycle-automation-framework.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0110-changeset-state-machine.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0114-canary-observability-rollback.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0115-registry-consolidation-flat-singular.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0131-per-microservice-flat-layout.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0133-industry-best-practice-conformance-program.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0704-k8s-port-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0139-agentic-slo-gated-promotion.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0142-crdt-portability-trait.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0704-k8s-port-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0186-observability-backplane-layering.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0243-cedar-as-universal-gate.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0258-api-versioning-model.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0299-account-recovery-resilience.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0707-trust-safety-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0707-trust-safety-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0707-trust-safety-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0305-delegated-agent-authority-chain.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0306-disaster-mode-cell-resilience.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0707-trust-safety-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0307-detection-substrate-streaming-batch.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0310-investigation-case-management.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0703-cas-cache-live-apex.md",
       "category": "A",
       "reason": "Forward-looking doc \u2014 rename oya-governance- \u2192 oya-governance-"
     },
@@ -1894,7 +1894,7 @@
       "reason": "Forward-looking microservice doc \u2014 rename"
     },
     {
-      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md",
+      "file": "/Users/jasonlee/oyatie/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "category": "A",
       "reason": "Forward-looking microservice doc \u2014 rename"
     },

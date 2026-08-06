@@ -48,7 +48,7 @@ and stop re-flagging them.
 
 ### Category A — ADR escape-hatch clauses (REMOVE or REFRAME)
 
-1. `docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md:1`
+1. `docs/decisions/ADR-0705-product-protocol-live-apex.md:1`
    — Title contains "agent-authoring policy (agents propose; humans
    approve **except for** catalog-validated additions)".
    - **Verdict:** REFRAME. The "except for" wording carves an exception;
@@ -56,14 +56,14 @@ and stop re-flagging them.
      catalog-validated additions are auto-approved by the catalog gate"
      — same behavior, no exception language.
 
-2. `docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md:156`
+2. `docs/decisions/ADR-0705-product-protocol-live-apex.md:156`
    — `Q1.` "Per-doc cadence baseline — quarterly default, **with
    exceptions**? Or per-doc declared?"
    - **Verdict:** REMOVE. The question itself is already-answered
      ("per-doc declared in the catalog row"); the "with exceptions"
      framing of the rejected branch should be eliminated.
 
-3. `docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md:167`
+3. `docs/decisions/ADR-0700-ci-admission-live-apex.md:167`
    — "Per-month review of any rollout that didn't follow stages
    (exceptions documented per ADR amendment)."
    - **Verdict:** REMOVE. Canonical: "stage adherence is mandatory;
@@ -71,7 +71,7 @@ and stop re-flagging them.
      ADR-amendment proposal whose acceptance is the canonical extension
      path. No grandfathered deviations."
 
-4. `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md:86`
+4. `docs/decisions/ADR-0700-ci-admission-live-apex.md:86`
    — "Plain text traffic permitted only via documented ADR + per-traffic-type
    **exception** (e.g. internal observability collector if ext-authz cost
    is prohibitive)."
@@ -80,7 +80,7 @@ and stop re-flagging them.
      mTLS-everywhere base; the extension is itself canonical, not an
      exception."
 
-5. `docs/decisions/ADR-0090-hyper-canonical-http-backbone.md:1,26`
+5. `docs/decisions/ADR-0705-product-protocol-live-apex.md:1,26`
    — Title and summary frame hyper-1.x decision as
    "LTS-exception for hyper 1.x".
    - **Verdict:** REFRAME. hyper 1.x IS the canonical HTTP backbone; LTS
@@ -88,16 +88,16 @@ and stop re-flagging them.
      extension path. Rewording: "Hyper canonical HTTP backbone
      (ADR-tracked LTS extension for hyper 1.x)".
 
-6. `docs/decisions/ADR-0092-workspace-dependency-seam-policy.md:290`
+6. `docs/decisions/ADR-0709-general-live-apex.md:290`
    — Threat T2 row: "A CVE on a workspace dep ages past 7 days without a
    patch-bump or **ADR exception**."
    - **Verdict:** REFRAME. "ADR exception" → "ADR-tracked extension".
      Same behavior; canonical wording.
 
-7. `docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md:1`
+7. `docs/decisions/ADR-0705-product-protocol-live-apex.md:1`
    (title-line "except for") — see A1 above.
 
-8. `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md:72`
+8. `docs/decisions/ADR-0709-general-live-apex.md:72`
    — "The canonical base alone is **not** shippable to a paying tenant
    — a pack is mandatory **unless explicitly exempted**."
    - **Verdict:** REMOVE. The "unless explicitly exempted" clause is the
@@ -105,7 +105,7 @@ and stop re-flagging them.
      neutrality CI lane (ADR-0064 §lane enforcement) refuses any
      paying-tenant deployment without a pack."
 
-9. `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md:208-209`
+9. `docs/decisions/ADR-0709-general-live-apex.md:208-209`
    — "per-µservice exceptions would create ADR drift" framing.
    - **Verdict:** KEEP-WITH-RESTRUCTURE. The cluster-rejected-alternative
      paragraph correctly diagnoses that cluster-level ADRs would force
@@ -114,17 +114,17 @@ and stop re-flagging them.
      changing meaning. Lighter touch: leave as-is since the surrounding
      paragraph rejects the alternative.
 
-10. `docs/decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md:152`
+10. `docs/decisions/ADR-0700-ci-admission-live-apex.md:152`
     — "Supervisor capabilities are **no exception**; they mutate session
     state and the [...]"
     - **Verdict:** KEEP. The phrasing is anti-exception ("are no
       exception"), which is canonical. No change required.
 
-11. `docs/decisions/ADR-0062-quality-performance-scalability-bar.md:122`
+11. `docs/decisions/ADR-0709-general-live-apex.md:122`
     — Section header: "No exceptions for internal µservices"
     - **Verdict:** KEEP. Anti-exception section, already canonical.
 
-12. `docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md:118`
+12. `docs/decisions/ADR-0700-ci-admission-live-apex.md:118`
     — "Either author `## Load test` sections with real content **or
     add exemption markers**."
     - **Verdict:** REMOVE. "exemption markers" is the escape hatch.
@@ -135,7 +135,7 @@ and stop re-flagging them.
 
 ### Category B — BNF / layer-enum exemptions (DEFERRED — Items 6+9 agent territory)
 
-13. `docs/decisions/ADR-0056-rust-clean-architecture-bnf.md:52,81,102,236-238,245,254`
+13. `docs/decisions/ADR-0700-ci-admission-live-apex.md:52,81,102,236-238,245,254`
     — "check-namespace exemption", "public_layers exemption", "BNF-exempt".
     - **Verdict:** DEFERRED (Items 6+9 agent owns ADR-0105/ADR-0107 +
       predictable-naming kernel + ADR-0056). Action: that agent must
@@ -143,7 +143,7 @@ and stop re-flagging them.
       13-layer enum (already started per ADR-0105) and the `public_layers`
       construct as a canonical declaration, not an exemption.
 
-14. `docs/decisions/ADR-0058-flat-microservice-catalog.md:90,108`
+14. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:90,108`
     — "(except for actual shared substrate crates)" and "no arm/group
     exceptions".
     - **Verdict:** DEFERRED — same naming-kernel territory; the "except
@@ -152,7 +152,7 @@ and stop re-flagging them.
       agent should restate as "crates whose canonical layer is `shared`
       are excluded from the refusal predicate by definition."
 
-15. `docs/decisions/ADR-0062-quality-performance-scalability-bar.md:96`
+15. `docs/decisions/ADR-0709-general-live-apex.md:96`
     — "check namespace (BNF-exempt)".
     - **Verdict:** DEFERRED — same naming-kernel territory.
 
@@ -164,17 +164,17 @@ and stop re-flagging them.
       until first Phase-Spec claims them; logged in the planned-set
       ledger" — same behavior, no exemption tone.
 
-17. `docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md:106,108,109`
+17. `docs/decisions/ADR-0709-general-live-apex.md:106,108,109`
     — "BNF v4.1 exempt namespace", "exemptions claimed".
     - **Verdict:** DEFERRED — same naming-kernel territory.
 
-18. `docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md:112,163,183`
+18. `docs/decisions/ADR-0709-general-live-apex.md:112,163,183`
     — "`public_layers` exemption", "named exception", "escape hatch
     documented in §7.3".
     - **Verdict:** DEFERRED. ADR-0054/ADR-0052/ADR-0057 are in the
       cutover-protected set per task brief. Listed for tracking.
 
-19. `docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md:89,93`
+19. `docs/decisions/ADR-0709-general-live-apex.md:89,93`
     — "Alt A — Keep existing names, add BNF exemption" + "BNF exemption
     requires a new ADR to extend the 12-value layer enum or carve out a
     special".
@@ -183,18 +183,18 @@ and stop re-flagging them.
       The wording "carve out a special" could be softened. DEFERRED to
       Items 6+9 agent (post their kernel-enum work).
 
-20. `docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md`
+20. `docs/decisions/ADR-0709-general-live-apex.md`
     — multiple "implicit", "exception", "tools/-implicit-app convention".
     - **Verdict:** DEFERRED — Items 6+9 agent owns ADR-0105 wholesale.
 
-21. `docs/decisions/ADR-0107-tools-implicit-app-convention.md`
+21. `docs/decisions/ADR-0709-general-live-apex.md`
     — entire ADR is the "tools/ directory is implicit app layer"
     exception clause.
     - **Verdict:** DEFERRED — Items 6+9 agent. The user directive
       explicitly named this clause as the canonical-violation example;
       that agent will eliminate it.
 
-22. `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md:52,67,75,81,110,119,120`
+22. `docs/decisions/ADR-0709-general-live-apex.md:52,67,75,81,110,119,120`
     — "carve-out" for `git`/`gh` bootstrap-window; "exception ADR" for
     LTS deps; "Refuse to provide any escape hatch" (anti-exception, OK).
     - **Verdict:** DEFERRED — ADR-0053 is in protected set (ip001/ip002
@@ -202,7 +202,7 @@ and stop re-flagging them.
       sunset on P5 merge per the ADR itself — structurally not an
       open-ended escape hatch.
 
-23. `docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md`
+23. `docs/decisions/ADR-0709-general-live-apex.md`
     — protected per task brief (ip001/ip002). DO NOT touch.
 
 ### Category C — Positive allowlists (KEEP — not escape hatches)

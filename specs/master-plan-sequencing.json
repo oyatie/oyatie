@@ -16,8 +16,8 @@
       "/specs/masterplan.json",
       "/specs/planning-closure-contract.json",
       "docs/MASTERPLAN.md",
-      "docs/decisions/ADR-0015-architectural-flattening-target.md",
-      "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       "docs/standards/clean-architecture.md",
       "docs/standards/hyperscaler-best-practices.md",
       "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
@@ -27,8 +27,8 @@
       "/templates/evidence-bundle-template.json",
       "/specs/gitops-vcs-replacement.json",
       "/specs/bespoke-cloud-toolchain-services.json",
-      "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
-      "docs/decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md"
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     ],
     "accepted_decision_propagation_dispositions": {
       "authority_note": "Gate-facing lifecycle propagation only. These markers satisfy the historical roadmap face of the artifact-inventory firewall; they do not restore this sidecar as live plan authority, mint work-item IDs, order work, or prove rollout.",
@@ -171,7 +171,7 @@
     "/specs/planning-closure-contract.json",
     "/specs/planning-closure-status-closure-ledger.json",
     "/specs/master-plan-sequencing.json",
-    "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+    "docs/decisions/ADR-0709-general-live-apex.md",
     "/specs/gitops-vcs-replacement.json",
     "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
     "docs/MASTERPLAN.md"
@@ -811,7 +811,7 @@
       ],
       "doctrine_propagation_adrs": {
         "ADR-0346": {
-          "path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+          "path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
           "queued_sub_wave": "15-ZA-oya-verify-full-ci-mirror",
           "purpose_excerpt": "ADR-0346 is amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its full-mirror semantics remain migration input only, never protected-branch merge/exit authority. Destination enforcement is Prow-shaped cloud-ci/oya-ci Rust required contexts with full-matrix gate packets, RED/GREEN fixtures, and branch protection.",
           "enforced_by": [
@@ -821,7 +821,7 @@
           ]
         },
         "ADR-0347": {
-          "path": "docs/decisions/ADR-0347-governance-fitness-bulk-rename.md",
+          "path": "docs/decisions/ADR-0709-general-live-apex.md",
           "queued_sub_wave": "15-ZB-foundry-fitness-to-governance-rename",
           "purpose_excerpt": "Declare that every `oya-governance-*` CI lane prefix in the Oyatie corpus RENAMES to `oya-governance-*` in a single bulk-rename pull request (Wave 15-ZB) rather than via 34 per-lane migration IPs as originally sequenced in CLAUDE.md `new_governance_lane_prefix`.",
           "enforced_by": [
@@ -831,7 +831,7 @@
           ]
         },
         "ADR-0348": {
-          "path": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+          "path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
           "queued_sub_wave": "15-ZD-autosharding-doctrine",
           "purpose_excerpt": "Declare that cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: (1) AUTOSHARDING — tenant→cell/shard placement is computed by the control plane automatically, with no human operator picking placement; (2) AUTO-REBALANCE — when cell load skews beyond promotion-gate criteria, cross-cell tenant migration moves tenants from hot cells to cooler cells; (3) DYNAMIC SHARDING — shard count within a cell adjusts based on load. OWNERSHIP AMENDED by ADR-0351: cross-cell rebalance is owned by the cell-rebalancer µservice (NOT 'composed across tenancy + observability'), cell lifecycle by the cell-lifecycle µservice, and within-cell hot-split/cold-merge sharding by the oya-shuffle-sharding crate.",
           "enforced_by": [
@@ -844,7 +844,7 @@
           ]
         },
         "ADR-0349": {
-          "path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+          "path": "docs/decisions/ADR-0709-general-live-apex.md",
           "queued_sub_wave": "15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
           "purpose_excerpt": "Historical bridge ADR for cloud-scm CI/CD substrates (superseded; current authority is /specs/bespoke-cloud-toolchain-services.json). Bespoke Rust cloud-ci/cloud-cd services are the destination; legacy bridge/reference adapters require deletion criteria, tenant isolation, trusted status production, and no sole/canonical authority claim.",
           "enforced_by": [
@@ -1832,7 +1832,7 @@
           "queued_at": "2026-06-12",
           "adr": "ADR-0557",
           "scope": "retire standalone Kafka as a cluster substrate per ADR-0557 (Accepted 2026-05-28; supersedes-in-part ADR-0005): Pulsar 4.x + Oxia is the sole canonical event-bus/log-broker, KoP proxy fronts Pulsar for all Kafka-wire clients (zero client-code changes in Phase 1), Phase 2 mirrors topics + cuts over ClickHouse/Flink connectors, Phase 3 decommissions standalone Kafka broker pods/Helm/ArgoCD manifests; outbox pattern, CloudEvents envelope, Protobuf payload, and per-tenant/per-cell partitioning carry forward broker-agnostic",
-          "provenance": "ADR-0557 was originally filed 2026-05-28 as a duplicate ADR-0377 (id already held by docs/decisions/ADR-0377-github-board-git-ref-cas-fallback.md) and renumbered via the accounting-registry allocator on 2026-06-12 (FRIC-1781390000); the duplicate id had masked this Accepted decision from the propagation faces, and this landing closes that gap",
+          "provenance": "ADR-0557 was originally filed 2026-05-28 as a duplicate ADR-0377 (id already held by docs/decisions/ADR-0703-cas-cache-live-apex.md) and renumbered via the accounting-registry allocator on 2026-06-12 (FRIC-1781390000); the duplicate id had masked this Accepted decision from the propagation faces, and this landing closes that gap",
           "depends_on": [
             "ADR-0195 Pulsar log-broker substrate (KoP introduced)",
             "ADR-0397 Pulsar 4.x + Oxia canonical event-bus"
@@ -1952,7 +1952,7 @@
         "tenant_class_default": "multi-tenant"
       }
     ],
-    "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-15"
+    "rationale_adr": "docs/decisions/ADR-0700-ci-admission-live-apex.md#D-15"
   },
   "iac_substrate": {
     "version": "1.0.0",
@@ -1982,7 +1982,7 @@
       "unsigned modules"
     ],
     "tenant_onboarding_invocation": "tofu init → tofu plan → tofu apply",
-    "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-16"
+    "rationale_adr": "docs/decisions/ADR-0700-ci-admission-live-apex.md#D-16"
   },
   "supported_oses": {
     "version": "1.0.0",
@@ -2022,7 +2022,7 @@
     ],
     "ci_lane_policy": "tier_1 = blocking; tier_2 = soft-gate",
     "per_microservice_manifest_required": true,
-    "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-17"
+    "rationale_adr": "docs/decisions/ADR-0700-ci-admission-live-apex.md#D-17"
   },
   "language_policy": {
     "version": "1.0.0",
@@ -2062,7 +2062,7 @@
     ],
     "build_invocation": "buck2 build //...",
     "exception_protocol": "per-µservice ADR under microservices/<name>/decisions/ADR-MS-NNN-non-rust-justification.md",
-    "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-18"
+    "rationale_adr": "docs/decisions/ADR-0700-ci-admission-live-apex.md#D-18"
   },
   "oci_always_free": {
     "version": "1.0.0",
@@ -2074,7 +2074,7 @@
     "per_microservice_module": "iac/oci-guest/always-free/",
     "bronze_tier_oci": "always-free",
     "cross_cloud_forbidden": true,
-    "rationale_adr": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md#D-19"
+    "rationale_adr": "docs/decisions/ADR-0700-ci-admission-live-apex.md#D-19"
   },
   "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
   "bespoke_cloud_toolchain_sequence": {

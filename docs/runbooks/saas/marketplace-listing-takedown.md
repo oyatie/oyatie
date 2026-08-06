@@ -85,4 +85,4 @@ Classify exactly one primary branch before recovery:
 - Update this runbook if the classified branch, state name, metric, or prevention gate was missing.
 
 ## Sources
-`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`, `docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md`, `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
+`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0705-product-protocol-live-apex.md`, `docs/decisions/ADR-0705-product-protocol-live-apex.md`, `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.

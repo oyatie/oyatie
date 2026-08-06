@@ -98,31 +98,31 @@
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0337",
       "title": "Iceberg Canonical Olap Write Path",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0338",
       "title": "Pod Runtime Tier 0 To 3",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0340",
       "title": "Capacity Model Per Microservice Manifest",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0342",
@@ -134,25 +134,25 @@
       "id": "ADR-0343",
       "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0344",
       "title": "Sustainability Finops Dimensional Model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0348",
       "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0349",
       "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

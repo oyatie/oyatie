@@ -492,7 +492,7 @@
   "adrs": [
     {
       "id": "ADR-0255",
-      "file": "docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0255-amendment-library-first",
@@ -508,11 +508,11 @@
     },
     {
       "id": "ADR-0244",
-      "file": "docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md"
+      "file": "docs/decisions/ADR-0702-identity-authz-live-apex.md"
     },
     {
       "id": "ADR-0245",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0246",
@@ -520,7 +520,7 @@
     },
     {
       "id": "ADR-0248",
-      "file": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0250",
@@ -544,7 +544,7 @@
     },
     {
       "id": "ADR-0263",
-      "file": "docs/decisions/ADR-0263-observability-emission-contract.md"
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
     },
     {
       "id": "ADR-0292",
@@ -552,7 +552,7 @@
     },
     {
       "id": "ADR-0296",
-      "file": "docs/decisions/ADR-0296-library-first-credential-sidecar.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0297",
@@ -564,11 +564,11 @@
     },
     {
       "id": "ADR-0131",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0145",
-      "file": "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

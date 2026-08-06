@@ -150,7 +150,7 @@ fn lint_adr_shape_accepts_valid_adr() {
         .args([
             "lint",
             "adr-shape",
-            "docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+            "docs/decisions/ADR-0709-general-live-apex.md",
         ])
         .output()
         .expect("adr shape lint runs");

@@ -466,15 +466,15 @@ Using a checker exception without an ADR is an anti-pattern.
 
 `docs/standards/openslo-authoring.md` owns SLO manifest rules.
 
-`docs/decisions/ADR-0056-rust-clean-architecture-bnf.md` records the BNF decision.
+`docs/decisions/ADR-0700-ci-admission-live-apex.md` records the BNF decision.
 
-`docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md` records layer enumeration.
+`docs/decisions/ADR-0709-general-live-apex.md` records layer enumeration.
 
-`docs/decisions/ADR-0106-rename-application-to-usecase.md` records role transition.
+`docs/decisions/ADR-0703-cas-cache-live-apex.md` records role transition.
 
-`docs/decisions/ADR-0131-per-microservice-flat-layout.md` records microservice layout.
+`docs/decisions/ADR-0701-monorepo-capability-live-apex.md` records microservice layout.
 
-`docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` records capability tier naming.
+`docs/decisions/ADR-0709-general-live-apex.md` records capability tier naming.
 
 ## Substance Bar Compliance Checklist
 

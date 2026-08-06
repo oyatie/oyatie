@@ -5,14 +5,14 @@ status: Published
 date: 2026-05-20
 owner: "council-security + ops-security"
 related_oyatie_adrs:
-  - docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
-  - docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
-  - docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
-  - docs/decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
   - microservices/messenger/decisions/ADR-MSG-001-mls-e2ee-key-delivery-architecture.md
 companion_docs:
   - docs/standards/documentation-rigor.md
@@ -101,7 +101,7 @@ Day-one artifact checklist:
 ## Week 1: Code Walkthrough
 
 Read these files in order. Do not browse randomly; the order teaches authority, doctrine, contract, implementation, test, and operational evidence.
-1. docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
+1. docs/decisions/ADR-0702-identity-authz-live-apex.md
 2. specs/cedar-fragment-schema.json
 3. registry/cedar-fragments.json
 4. docs/runbooks/cedar-fragment-emergency-rollback.md
@@ -109,7 +109,7 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 6. docs/standards/messenger-e2e-encryption-mls.md
 7. microservices/messenger/decisions/ADR-MSG-001-mls-e2ee-key-delivery-architecture.md
 8. microservices/messenger/runbooks/e2e-encryption-key-rotation.md
-9. docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+9. docs/decisions/ADR-0702-identity-authz-live-apex.md
 10. crates/oya-secrets-domain/src/lib.rs
 11. crates/oya-secrets-file-adapter/tests/file_secret_store.rs
 12. docs/runbooks/per-cell-hsm-rotation.md
@@ -373,7 +373,7 @@ Reference-reading protocol: open the resource, identify the authority section, w
 Use this ledger when you need extra practice or when a mentor asks for stronger evidence. Each drill is intentionally small but must end with a verifiable artifact.
 
 ### Drill SEC-001: Cedar hot-reload TOCTOU
-- Read: docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: Cedar fragment states: proposed, signed, soaking, activated, revoked, sunset
 - Build or inspect: a minimal artifact that proves Cedar hot-reload TOCTOU without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar hot-reload TOCTOU.
@@ -453,7 +453,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-008 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-009: bootstrap CI compromise
-- Read: docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: break-glass with evidence and dual control
 - Build or inspect: a minimal artifact that proves bootstrap CI compromise without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for bootstrap CI compromise.
@@ -523,7 +523,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-015 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-016: security incident tabletop
-- Read: docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: tenant secret custody, rotation, and shredding
 - Build or inspect: a minimal artifact that proves security incident tabletop without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for security incident tabletop.
@@ -603,7 +603,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-023 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-024: OpenBao path leak
-- Read: docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: per-tenant OpenBao paths and per-cell HSM partitions
 - Build or inspect: a minimal artifact that proves OpenBao path leak without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for OpenBao path leak.
@@ -673,7 +673,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-030 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-031: tenant secret custody audit
-- Read: docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: Cedar fragment states: proposed, signed, soaking, activated, revoked, sunset
 - Build or inspect: a minimal artifact that proves tenant secret custody audit without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant secret custody audit.
@@ -753,7 +753,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-038 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-039: default-deny escape attempt
-- Read: docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: break-glass with evidence and dual control
 - Build or inspect: a minimal artifact that proves default-deny escape attempt without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for default-deny escape attempt.
@@ -823,7 +823,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-045 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-046: provider credential leak
-- Read: docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: tenant secret custody, rotation, and shredding
 - Build or inspect: a minimal artifact that proves provider credential leak without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for provider credential leak.
@@ -903,7 +903,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-053 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-054: sovereign pack key constraint
-- Read: docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: per-tenant OpenBao paths and per-cell HSM partitions
 - Build or inspect: a minimal artifact that proves sovereign pack key constraint without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for sovereign pack key constraint.
@@ -973,7 +973,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-060 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-061: per-cell HSM rotation
-- Read: docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: Cedar fragment states: proposed, signed, soaking, activated, revoked, sunset
 - Build or inspect: a minimal artifact that proves per-cell HSM rotation without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for per-cell HSM rotation.
@@ -1053,7 +1053,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row SEC-068 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill SEC-069: redaction boundary test
-- Read: docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- Read: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - Connects to: break-glass with evidence and dual control
 - Build or inspect: a minimal artifact that proves redaction boundary test without widening beyond security engineer, platform security and tenant trust.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for redaction boundary test.

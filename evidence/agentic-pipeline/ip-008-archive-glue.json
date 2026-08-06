@@ -7,7 +7,7 @@
     "tools/oya-governance-archive-orphan/src/main.rs",
     ".omc/governance-lanes/archive-orphan.md",
     "docs/governance-lanes/archive-orphan.md",
-    "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+    "docs/decisions/ADR-0709-general-live-apex.md",
     ".omc/scratch/inventory-draft-oyatie-cutover.md",
     "docs/checklists/inventory-update-checklist.md",
     "/templates/checklists/inventory-update-checklist.md",
@@ -28,7 +28,7 @@
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/goals.json",
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.before-stale-g001-recovery.20260509T015645Z.jsonl",
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.jsonl",
-    "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md"
   ],
   "claim": {
@@ -190,7 +190,7 @@
   "purpose": "Auto-backfilled purpose for ip-008-archive-glue.json",
   "retirement": {
     "retired_on": "2026-05-16",
-    "retired_by": "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
+    "retired_by": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "replacement": "Foundry pipeline (M01-P18) per ADR-0116",
     "removed_workspace_members": [
       "crates/oya-governance-archive-orphan-kernel",

@@ -21,7 +21,7 @@
     ]
   },
   "sources": {
-    "adr": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md",
+    "adr": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
     "manifest_schema": "specs/microservices/manifest-schema.json",
     "compliance_pack_floors": "specs/compliance-pack-floors.json",
     "dr_business_continuity": "specs/dr-business-continuity.json",

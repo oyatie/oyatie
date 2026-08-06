@@ -6,8 +6,8 @@ and produce a FOCUS 1.1 export.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` — every usage row carries `tenant_id`.
-- `docs/decisions/ADR-0245-substrate-vs-product-layering.md` — `cloud-billing` is substrate; `finops-portal` is product.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md` — every usage row carries `tenant_id`.
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` — `cloud-billing` is substrate; `finops-portal` is product.
 - The FinOps Foundation FOCUS 1.1 spec (vendored at `vendor/focus-1.1/SCHEMA.md`).
 - `microservices/cloud-billing/tenant_class adoption record` — the two tenant classes.
 - Re-read on day 2 if anything is unclear: ECB reference rate methodology + OECD BEPS Pillar Two GloBE rules.

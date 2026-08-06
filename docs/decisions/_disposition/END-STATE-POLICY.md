@@ -82,3 +82,14 @@ Never treat `status: Accepted` as sufficient. Resolve supersession + `amended_by
 2. **Quarantine dir:** move non-live ADRs under `docs/decisions/_historical/` and exclude from agent/default globs **and** update census selector in same PR train.
 
 Do **not** blind-delete while P2 active.
+
+## E3–E5 completion (2026-08-06 autonomous)
+
+| Wave | Result |
+|------|--------|
+| **E3** | Folded Superseded gists into successors/apex (`e3-fold-log.json`) |
+| **E4** | Archived **448** historical ADRs to `docs/adr-archive/` (outside P3 census direct children) |
+| **E5** | **10 live apex ADRs** ADR-0700…0709 in `docs/decisions/`; members superseded then archived; path citations rewritten (~716 files) |
+| **Redirect** | `adr-redirect.v1.json` maps old numbers → live apex + archive path |
+
+**Live tree:** only Accepted apex files + README + `_disposition/`.

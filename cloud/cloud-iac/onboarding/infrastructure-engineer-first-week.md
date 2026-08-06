@@ -10,7 +10,7 @@ Goal: by Friday EOD you can trace a cloud-iac change from declarative source thr
 - `docs/decisions/ADR-0218-cloud-iac-canonical-declarative-infra.md` — binding definition for declarative infrastructure.
 - `docs/decisions/ADR-0247-self-modification.md` — cloud-scm/self-modification substrate; cloud-iac is a control-plane mutator and must preserve auditability.
 - `docs/decisions/ADR-0250-build-ahead-of-certification.md` — modules must be compliance-shaped from first authoring.
-- `docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md` — `oya-ci-required` is the single current blocking CI authority; `oya-ci-required`/controller evidence is shift-left evidence only.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — `oya-ci-required` is the single current blocking CI authority; `oya-ci-required`/controller evidence is shift-left evidence only.
 - `cloud/cloud-iac/PRD.md`, `cloud/cloud-iac/ARCHITECTURE.md`, and `cloud/cloud-iac/threat-model.md` — service-local product, architecture, trust boundaries, and failure-mode anchors.
 
 Work in a plain-git branch/worktree. Do not use retired `plain git` or `GitOps change-bundle` wrappers.

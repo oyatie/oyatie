@@ -18,7 +18,7 @@
       "ADR-0054"
     ],
     "related": [
-      "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       "docs/decisions/ADR-0052-inventory-ledger.md",
       ".omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md"
     ]

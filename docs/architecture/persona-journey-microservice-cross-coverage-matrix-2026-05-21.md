@@ -3510,7 +3510,7 @@ Cross-reference: `microservices/<svc>/PRD.md` for each µservice; enterprise-sof
 - **Per-µservice IP-journey-* slice count (derived from README microservices_touched lists):** 5.
 - **Per-pack overlays applicable:** per-cell-certification-level (ADR-0251).
 - **Critical-path responsibilities (per documentation-rigor.md §3.2.5):** row 1 (default-deny), row 8 (cross-tenant exfil), row 24 (audit-chain seal); plus role-specific rows.
-- **Pattern citation:** `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md` plus successor sections in tenancy, cloud-iac, observability, api-gateway, and audit-chain architecture docs.
+- **Pattern citation:** `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` plus successor sections in tenancy, cloud-iac, observability, api-gateway, and audit-chain architecture docs.
 
 ### §4.05 audit-chain — substrate (Tier-1; cell-tier T0)
 

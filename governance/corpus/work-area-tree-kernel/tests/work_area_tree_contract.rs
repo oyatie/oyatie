@@ -18,7 +18,7 @@ fn node_identity_names_work_area_hash_node_hash_and_source_locator() {
     let node_hash = NodeContentHash::from_bytes(digest(2));
     let span = SourceSpan::new(10, 42).expect("valid span");
     let locator = NodeLocator::new(
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         span,
     )
     .expect("valid locator");
@@ -28,7 +28,7 @@ fn node_identity_names_work_area_hash_node_hash_and_source_locator() {
         work_area_hash,
         node_hash,
         NodeLocator::new(
-            "docs/decisions/ADR-0520-owned-substrate-stack-transitional-impl-behind-interface.md",
+            "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
             SourceSpan::new(50, 72).expect("valid duplicate-content span"),
         )
         .expect("valid duplicate-content locator"),

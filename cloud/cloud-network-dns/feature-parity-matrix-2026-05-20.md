@@ -8,7 +8,7 @@ SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
 
 ## Header citation anchors
 
-1. ADR-0328 §D-15..§D-20 is the local authority for multi-context deployment, OpenTofu, OS support, Rust-only implementation, OCI Always Free, and audit dimensions; read anchors include `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
+1. ADR-0328 §D-15..§D-20 is the local authority for multi-context deployment, OpenTofu, OS support, Rust-only implementation, OCI Always Free, and audit dimensions; read anchors include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
 2. `specs/master-plan-sequencing.json:704-867` is the machine-readable deployment/IaC/OS/language/OCI profile source.
 3. Service-local purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`; service-local PRD is absent.
 4. Service-local architecture-equivalent evidence is `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5`; service-local ARCHITECTURE is absent.

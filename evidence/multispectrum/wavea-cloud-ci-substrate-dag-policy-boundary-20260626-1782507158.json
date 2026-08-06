@@ -82,7 +82,7 @@
       "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/src/main.rs",
       "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/substrate-dependency-dag-policy.json",
       "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app/tests/acyclicity.rs",
-      "docs/decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "evidence/multispectrum/wavea-cloud-ci-substrate-dag-policy-boundary-20260626-1782507158.json"
     ],
     "summary": "Move the substrate DAG gate's repo-specific DAG path into policy data and prove the boundary with Buck2 tests plus firewall accounting evidence."

@@ -1128,7 +1128,7 @@ mod tests {
     fn adr_0354() -> String {
         fs::read_to_string(
             repo_root()
-                .join("docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"),
+                .join("docs/decisions/ADR-0705-product-protocol-live-apex.md"),
         )
         .expect("ADR-0354 readable")
     }

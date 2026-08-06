@@ -18,13 +18,13 @@
       "id": "ADR-0237",
       "title": "dissolution strangler migration",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0238",
       "title": "super-app expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "contracts": {

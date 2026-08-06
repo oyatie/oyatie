@@ -7,8 +7,8 @@
   "version": "0.1.0",
   "owner": "axis-pharmacy",
   "authority_adr": "docs/decisions/ADR-0332-pharmacy-substrate.md",
-  "layout_authority": "docs/decisions/ADR-0131-per-microservice-flat-layout.md",
-  "grouping_policy": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md",
+  "layout_authority": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
+  "grouping_policy": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
   "summary": "Pharmacy clinical and operational substrate — medication catalog (NDC + RxNorm + GPI + ATC + UNII), formulary, ePrescribe (Surescripts + NCPDP SCRIPT + EPCS), drug interactions (DDI/DAI/DCI/DPI/DDxI/DLI/DFI/DDoseI), allergy + dose checking, pharmacist verification, compounding (USP 795/797/800), inventory, auto-dispensing cabinets (Pyxis/Omnicell/Carousel), BCMA, IV admixture + smart pump (Alaris/Plum/Hospira), controlled substances (DEA CII–CV + Form 222 + EPCS), reimbursement (340B + PBM NCPDP D.0), operations, interventions, medication reconciliation, outpatient retail/drive-through/mail/specialty, MTM (CMR/TMR/MAP/PML), DSCSA (SGTIN-198 + T1/T2/T3 + saleable returns + suspect product).",
   "bounded_contexts": [
     {
@@ -361,25 +361,25 @@
       "id": "ADR-0056",
       "title": "Rust Clean Architecture BNF",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13-Layer Enum And Check Family Patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0131",
       "title": "Per-Microservice Flat Layout",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0132",
       "title": "No-Grouping Microservices",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "id": "ADR-0145",
@@ -391,7 +391,7 @@
       "id": "ADR-0248",
       "title": "Amazon Shape Cellular Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0251",

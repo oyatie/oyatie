@@ -6,7 +6,7 @@ Goal: by Friday EOD you can mint a CMK, issue + use a DEK via envelope encryptio
 ## Day 1 — read before touching
 
 - `docs/decisions/ADR-0251-compliance-pack-primitive.md` — §D-10 binds the cryptography invariants.
-- `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` — tenant CMK isolation.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md` — tenant CMK isolation.
 - `docs/decisions/ADR-0247-self-modification.md` — Foundry as a tenant of `cloud-kms` for its own signing.
 - `docs/decisions/ADR-0255-byok-everywhere-credentials.md` — §D-4 distinguishes encryption-key BYOK from provider BYOK.
 - `microservices/cloud-kms/retired tenant_class adoption artifact` — the four tenant_classes and HSM backends.

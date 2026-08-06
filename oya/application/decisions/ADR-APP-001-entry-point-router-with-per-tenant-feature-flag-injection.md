@@ -5,16 +5,16 @@ status: Proposed
 date: 2026-05-20
 microservice: application
 related_oyatie_adrs:
-  - docs/decisions/ADR-0002-tenant-and-identity-kernel.md
-  - docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
-  - docs/decisions/ADR-0061-application-b2b-unified-shell.md
-  - docs/decisions/ADR-0131-per-microservice-flat-layout.md
-  - docs/decisions/ADR-0159-feature-flag-substrate.md
-  - docs/decisions/ADR-0177-internal-external-api-surface-separation.md
-  - docs/decisions/ADR-0189-step-up-authentication-acr-classes.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-application
 ---
 
@@ -228,10 +228,10 @@ decision_owner: axis-application
 
 - Internal: microservices/application/PRD.md
 - Internal: microservices/application/policy/route-isolation.md
-- Internal: docs/decisions/ADR-0061-application-b2b-unified-shell.md
-- Internal: docs/decisions/ADR-0159-feature-flag-substrate.md
-- Internal: docs/decisions/ADR-0177-internal-external-api-surface-separation.md
-- Internal: docs/decisions/ADR-0189-step-up-authentication-acr-classes.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- Internal: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
 - OpenFeature evaluation context specification: https://openfeature.dev/specification/sections/evaluation-context/
 - OpenFeature flag evaluation specification: https://openfeature.dev/specification/sections/flag-evaluation/
 - OpenAPI Specification: https://spec.openapis.org/oas/

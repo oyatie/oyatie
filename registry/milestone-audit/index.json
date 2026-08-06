@@ -37,8 +37,8 @@
     }
   ],
   "adr_references_current": [
-    "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md",
-    "docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md"
+    "docs/decisions/ADR-0709-general-live-apex.md",
+    "docs/decisions/ADR-0704-k8s-port-live-apex.md"
   ],
   "quality_bar": {
     "production_bar": "hyperscaler production bar only; no demo/sample carve-out; every done claim requires fresh evidence",

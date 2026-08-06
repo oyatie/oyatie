@@ -959,8 +959,8 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient iden
 ## Day 2. Tenant primitive, Cedar gate, workflow engine, and first PR
 
 ### Day 2 step 01
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0242 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0242 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-01` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -968,8 +968,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0242](../decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md) in the artifact.
 
 ### Day 2 step 02
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0243 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0243 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-02` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -977,8 +977,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0243](../decisions/ADR-0243-cedar-as-universal-gate.md) in the artifact.
 
 ### Day 2 step 03
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0244 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Cedar permit`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0244 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Cedar permit`.
 Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-03` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -986,8 +986,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0244](../decisions/ADR-0244-tenant-as-universal-scoping-primitive.md) in the artifact.
 
 ### Day 2 step 04
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0245 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0245 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-04` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -995,8 +995,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0245](../decisions/ADR-0245-substrate-vs-product-layering.md) in the artifact.
 
 ### Day 2 step 05
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0246 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0246 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1004,8 +1004,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 06
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0247 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Audit-chain`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0247 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Audit-chain`.
 Do: Run `rg -n "Audit-chain" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-06` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1013,8 +1013,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0247](../decisions/ADR-0247-self-hosting-self-modification-doctrine.md) in the artifact.
 
 ### Day 2 step 07
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0248 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0248 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-07` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1022,8 +1022,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0248](../decisions/ADR-0248-amazon-shape-cellular-architecture.md) in the artifact.
 
 ### Day 2 step 08
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0249 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0249 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-08` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1031,8 +1031,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Capability tier` and [ADR-0249](../decisions/ADR-0249-multi-category-marketplace-doctrine.md) in the artifact.
 
 ### Day 2 step 09
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0250 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0250 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
 Do: Run `rg -n "Dual-tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-09` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1040,8 +1040,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0250](../decisions/ADR-0250-build-ahead-of-certification-doctrine.md) in the artifact.
 
 ### Day 2 step 10
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0251 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0251 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-10` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1049,8 +1049,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient identity` and [ADR-0251](../decisions/ADR-0251-compliance-pack-cell-certification-levels.md) in the artifact.
 
 ### Day 2 step 11
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0252 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0252 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-11` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1058,8 +1058,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0252](../decisions/ADR-0252-time-coordination-distributed-consistency.md) in the artifact.
 
 ### Day 2 step 12
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0253 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0253 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-12` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1067,8 +1067,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 2 step 13
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0254 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Cedar permit`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0254 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Cedar permit`.
 Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-13` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1076,8 +1076,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0254](../decisions/ADR-0254-deployment-model-spectrum.md) in the artifact.
 
 ### Day 2 step 14
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0255 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0255 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1085,8 +1085,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 15
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0257 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0257 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-15` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1094,8 +1094,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 2 step 16
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0258 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Audit-chain`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0258 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Audit-chain`.
 Do: Run `rg -n "Audit-chain" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-16` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1103,8 +1103,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0258](../decisions/ADR-0258-api-versioning-model.md) in the artifact.
 
 ### Day 2 step 17
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0263 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0263 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-17` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1112,8 +1112,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0263](../decisions/ADR-0263-observability-emission-contract.md) in the artifact.
 
 ### Day 2 step 18
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0273 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0273 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-18` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1121,8 +1121,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Capability tier` and [ADR-0273](../decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md) in the artifact.
 
 ### Day 2 step 19
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0276 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0276 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
 Do: Run `rg -n "Dual-tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-19` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1130,8 +1130,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0276](../decisions/ADR-0276-backup-portability-format-gdpr-article-20.md) in the artifact.
 
 ### Day 2 step 20
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0280 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0280 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-20` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1139,8 +1139,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient identity` and [ADR-0280](../decisions/ADR-0280-substrate-of-substrate-dependency-doctrine.md) in the artifact.
 
 ### Day 2 step 21
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0284 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0284 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-21` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1148,8 +1148,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0284](../decisions/ADR-0284-platform-owner-name-indirection.md) in the artifact.
 
 ### Day 2 step 22
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0292 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0292 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-22` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1157,8 +1157,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0292](../decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md) in the artifact.
 
 ### Day 2 step 23
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0293 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Cedar permit`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0293 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Cedar permit`.
 Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1166,8 +1166,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0293](../decisions/ADR-0293-governance-meta-trust-root.md) in the artifact.
 
 ### Day 2 step 24
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0294 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0294 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-24` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1175,8 +1175,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0294](../decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md) in the artifact.
 
 ### Day 2 step 25
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0295 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0295 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-25` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1184,8 +1184,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0295](../decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md) in the artifact.
 
 ### Day 2 step 26
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0296 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Audit-chain`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0296 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Audit-chain`.
 Do: Run `rg -n "Audit-chain" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-26` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1193,8 +1193,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0296](../decisions/ADR-0296-library-first-credential-sidecar.md) in the artifact.
 
 ### Day 2 step 27
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0311 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0311 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-27` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1202,8 +1202,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0311](../decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md) in the artifact.
 
 ### Day 2 step 28
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0313 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0313 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-28` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1211,8 +1211,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Capability tier` and [ADR-0313](../decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md) in the artifact.
 
 ### Day 2 step 29
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0316 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0316 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
 Do: Run `rg -n "Dual-tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-29` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1220,8 +1220,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0316](../decisions/ADR-0316-capability-tier-over-product-fragmentation.md) in the artifact.
 
 ### Day 2 step 30
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0317 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0317 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-30` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1229,8 +1229,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient identity` and [ADR-0317](../decisions/ADR-0317-role-based-projection-unified-ux-shell.md) in the artifact.
 
 ### Day 2 step 31
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0242 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0242 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-31` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1238,8 +1238,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0242](../decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md) in the artifact.
 
 ### Day 2 step 32
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0243 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0243 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-32` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1247,8 +1247,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0243](../decisions/ADR-0243-cedar-as-universal-gate.md) in the artifact.
 
 ### Day 2 step 33
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0244 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Cedar permit`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0244 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Cedar permit`.
 Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-33` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1256,8 +1256,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0244](../decisions/ADR-0244-tenant-as-universal-scoping-primitive.md) in the artifact.
 
 ### Day 2 step 34
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0245 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0245 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-34` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1265,8 +1265,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0245](../decisions/ADR-0245-substrate-vs-product-layering.md) in the artifact.
 
 ### Day 2 step 35
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0246 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0246 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1274,8 +1274,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0246](../decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 36
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0247 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Audit-chain`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0247 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Audit-chain`.
 Do: Run `rg -n "Audit-chain" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-36` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1283,8 +1283,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0247](../decisions/ADR-0247-self-hosting-self-modification-doctrine.md) in the artifact.
 
 ### Day 2 step 37
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0248 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0248 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-37` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1292,8 +1292,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0248](../decisions/ADR-0248-amazon-shape-cellular-architecture.md) in the artifact.
 
 ### Day 2 step 38
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0249 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0249 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-38` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1301,8 +1301,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Capability tier` and [ADR-0249](../decisions/ADR-0249-multi-category-marketplace-doctrine.md) in the artifact.
 
 ### Day 2 step 39
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0250 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0250 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
 Do: Run `rg -n "Dual-tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-39` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1310,8 +1310,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0250](../decisions/ADR-0250-build-ahead-of-certification-doctrine.md) in the artifact.
 
 ### Day 2 step 40
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0251 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0251 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-40` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1319,8 +1319,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient identity` and [ADR-0251](../decisions/ADR-0251-compliance-pack-cell-certification-levels.md) in the artifact.
 
 ### Day 2 step 41
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0252 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Tenant` to ADR-0252 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-41` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1328,8 +1328,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0252](../decisions/ADR-0252-time-coordination-distributed-consistency.md) in the artifact.
 
 ### Day 2 step 42
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0253 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Principal` to ADR-0253 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-42` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1337,8 +1337,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0253](../decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md) in the artifact.
 
 ### Day 2 step 43
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0254 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Cedar permit`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Cedar permit` to ADR-0254 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Cedar permit`.
 Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-43` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1346,8 +1346,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0254](../decisions/ADR-0254-deployment-model-spectrum.md) in the artifact.
 
 ### Day 2 step 44
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0255 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Workflow` to ADR-0255 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1355,8 +1355,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0255](../decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md) in the artifact.
 
 ### Day 2 step 45
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0257 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Ontology` to ADR-0257 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-45` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1364,8 +1364,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0257](../decisions/ADR-0356-amendment-library-first-ontology-read-path.md) in the artifact.
 
 ### Day 2 step 46
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0258 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Audit-chain`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Audit-chain` to ADR-0258 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Audit-chain`.
 Do: Run `rg -n "Audit-chain" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-46` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1373,8 +1373,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0258](../decisions/ADR-0258-api-versioning-model.md) in the artifact.
 
 ### Day 2 step 47
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0263 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Role projection` to ADR-0263 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-47` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1382,8 +1382,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0263](../decisions/ADR-0263-observability-emission-contract.md) in the artifact.
 
 ### Day 2 step 48
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0273 and `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-Read: Open `docs/decisions/ADR-0245-substrate-vs-product-layering.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Capability tier` to ADR-0273 and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+Read: Open `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-48` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1391,8 +1391,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Capability tier` and [ADR-0273](../decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md) in the artifact.
 
 ### Day 2 step 49
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0276 and `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Read: Open `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Dual-tenant boundary` to ADR-0276 and `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Read: Open `docs/decisions/ADR-0702-identity-authz-live-apex.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
 Do: Run `rg -n "Dual-tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-49` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -1400,8 +1400,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0276](../decisions/ADR-0276-backup-portability-format-gdpr-article-20.md) in the artifact.
 
 ### Day 2 step 50
-Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0280 and `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-Read: Open `docs/decisions/ADR-0243-cedar-as-universal-gate.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the tenant primitive, cedar gate, workflow engine, and first pr path by tying `Transient identity` to ADR-0280 and `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+Read: Open `docs/decisions/ADR-0700-ci-admission-live-apex.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-2-50` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.

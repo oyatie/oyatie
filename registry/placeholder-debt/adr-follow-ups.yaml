@@ -141,7 +141,7 @@ follow_ups:
       the tenant). Tenant-zero is Oyatie itself (oyatie-dogfood-tenancy); the
       product is proven by self-use before external sale.
     driver_docs:
-      - docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - infra/capi/clusters/values.yaml
       - microservices/cloud-compute/PRD.md
     owner: council-architecture + axis-cloud-compute + gtm-customer-success
@@ -301,7 +301,7 @@ follow_ups:
       conformance program — when revisions land, this follow-up
       tracks the supersession ADR.
     driver_docs:
-      - docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
+      - docs/decisions/ADR-0709-general-live-apex.md
     owner: council-architecture
     trigger: Next industry baseline refresh cycle (annual).
     status: pending
@@ -336,7 +336,7 @@ follow_ups:
       ADR-0237-connect-dissolution-strangler-migration.
     driver_docs:
       - microservices/connector/RETIREMENT-PLAN.md
-      - docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md
+      - docs/decisions/ADR-0709-general-live-apex.md
     owner: axis-mail + axis-messenger + axis-tasks (joint receivers)
     trigger: All connect strangler slices land; final connect µservice deletion.
     status: pending
@@ -345,7 +345,7 @@ follow_ups:
     intent: |
       Upgrade SLSA Build provenance from L3 → L4 (hermetic + reproducible).
     driver_docs:
-      - docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
+      - docs/decisions/ADR-0709-general-live-apex.md
     owner: council-architecture + ops-security
     trigger: SLSA L4 toolchain reaches LTS pin parity with current L3 stack.
     status: pending
@@ -356,7 +356,7 @@ follow_ups:
       cadence (replaces the inline `runbooks/postmortem-template.md`
       with an ADR-bound canonical form).
     driver_docs:
-      - docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
+      - docs/decisions/ADR-0709-general-live-apex.md
     owner: ops-sre-reliability + ops-security
     trigger: First production incident post-M01 GA.
     status: pending
@@ -403,7 +403,7 @@ follow_ups:
       `SkeletonAuditChainClient::emit_seal` returning
       `SkeletonNotYetImplemented`.
     driver_docs:
-      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - crates/oya-shared-audit-chain-client-kernel/src/lib.rs
     owner: council-architecture + axis-audit-chain
     trigger: |
@@ -420,7 +420,7 @@ follow_ups:
       additionally integrate Istio Ambient telemetry. Replaces the
       skeleton's `SkeletonTracingClient` `unimplemented`-equivalent path.
     driver_docs:
-      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - docs/decisions/ADR-0148-service-mesh-cilium.md
       - crates/oya-shared-tracing-client-kernel/src/lib.rs
     owner: council-architecture + axis-observability
@@ -437,7 +437,7 @@ follow_ups:
       crate and asserts W3C traceparent injection on every outbound
       gRPC call. Replaces the kernel's `validate_strict` `unimplemented!`.
     driver_docs:
-      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - governance/check/otel-trace-propagation/src/lib.rs
     owner: council-architecture + axis-observability
     trigger: |
@@ -454,7 +454,7 @@ follow_ups:
       `registry/ontology/entities.json`. Replaces `validate_strict`
       `unimplemented!`.
     driver_docs:
-      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - specs/microservices/manifest-schema.json
       - governance/check/ontology-projection-coverage/src/lib.rs
     owner: council-architecture + axis-ontology
@@ -472,7 +472,7 @@ follow_ups:
       verbs emits a seal at its calling site. Replaces `validate_strict`
       `unimplemented!`.
     driver_docs:
-      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - governance/check/audit-chain-seal-coverage/src/lib.rs
     owner: council-architecture + axis-audit-chain
     trigger: |
@@ -493,7 +493,7 @@ follow_ups:
       state-changing op declares `Idempotency-Key`. Strict-mode
       promotion of `oya gate validate idempotency-key-coverage`.
     driver_docs:
-      - docs/decisions/ADR-0149-idempotency-keys-canonical.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/idempotency-keys-canonical.md
       - crates/oya-shared-idempotency-key-kernel/src/lib.rs
       - governance/check/idempotency-key-coverage/src/lib.rs
@@ -509,7 +509,7 @@ follow_ups:
       retrofit so every list op declares `cursor` + `page_size`.
       Strict-mode promotion of `oya gate validate cursor-pagination-coverage`.
     driver_docs:
-      - docs/decisions/ADR-0150-cursor-pagination-canonical.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/cursor-pagination-canonical.md
       - crates/oya-shared-cursor-pagination-kernel/src/lib.rs
     owner: council-architecture + axis-all-microservices
@@ -523,7 +523,7 @@ follow_ups:
       `specs/microservices/rpo-rto-targets.json`. Strict-mode promotion
       of `oya gate validate rpo-rto-coverage`.
     driver_docs:
-      - docs/decisions/ADR-0152-rpo-rto-canonical.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - specs/microservices/rpo-rto-targets.json
     owner: ops-sre-reliability + axis-all-microservices
     trigger: every µservice's backfill-replay.md declares both numbers.
@@ -535,7 +535,7 @@ follow_ups:
       high-cardinality labels at the metric layer. Strict-mode
       promotion of `oya gate validate metric-cardinality`.
     driver_docs:
-      - docs/decisions/ADR-0151-request-id-propagation.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/request-id-canonical.md
     owner: axis-observability + axis-all-microservices
     trigger: every µservice's ServiceMonitor declares labeldrop for the six canonical labels.
@@ -547,7 +547,7 @@ follow_ups:
       event `version` header. Strict-mode promotion of
       `oya gate validate event-schema-versioning`.
     driver_docs:
-      - docs/decisions/ADR-0154-event-schema-versioning.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/event-schema-versioning-canonical.md
     owner: council-architecture + axis-all-microservices
     trigger: every µservice's AsyncAPI message declares the canonical `version` header.
@@ -558,7 +558,7 @@ follow_ups:
       Production `TenantQuotaKernel` impl in the tenancy µservice plus
       per-µservice middleware integration.
     driver_docs:
-      - docs/decisions/ADR-0155-per-tenant-resource-quotas.md
+      - docs/decisions/ADR-0702-identity-authz-live-apex.md
       - docs/standards/per-tenant-resource-quotas-canonical.md
       - crates/oya-shared-tenant-quota-kernel/src/lib.rs
     owner: axis-tenancy + axis-all-microservices
@@ -571,7 +571,7 @@ follow_ups:
       ULID) + per-contract schema retrofit (`format: ulid` everywhere).
       Strict-mode promotion of `oya gate validate id-discipline`.
     driver_docs:
-      - docs/decisions/ADR-0156-pii-registry-canonical.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - crates/oya-shared-ulid-id-kernel/src/lib.rs
       - governance/check/id-discipline/src/lib.rs
     owner: council-architecture + axis-all-microservices
@@ -584,7 +584,7 @@ follow_ups:
       relational store, plus per-µservice outbox table migration and
       publisher worker integration.
     driver_docs:
-      - docs/decisions/ADR-0153-outbox-pattern.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/outbox-pattern-canonical.md
       - crates/oya-shared-outbox-pattern-kernel/src/lib.rs
     owner: council-architecture + axis-messenger + axis-mail + axis-social + axis-tasks + axis-calendar
@@ -598,7 +598,7 @@ follow_ups:
       controller refusing unsigned images. Strict-mode promotion of
       `oya gate validate image-signing-discipline`.
     driver_docs:
-      - docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md
+      - docs/decisions/ADR-0709-general-live-apex.md
       - docs/standards/image-signing-canonical.md
       - governance/check/image-signing-discipline/src/lib.rs
     owner: axis-supply-chain + council-security
@@ -618,7 +618,7 @@ follow_ups:
       etc.) before promotion. Promotion lands in the PR that completes
       the last owner's projection declaration.
     driver_docs:
-      - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - registry/quality/lanes.yaml#oya-governance-ontology-projection-coverage
       - governance/check/ontology-projection-coverage/src/lib.rs
     owner: axis-ontology + axis-mail + axis-calendar + axis-messenger + axis-tasks + axis-drive + axis-meet + axis-recordings + axis-network
@@ -1036,7 +1036,7 @@ follow_ups:
       `registry/lts-pins.yaml` (ADR-0376 left it version-agnostic). The drop-in
       fallback control-plane provider is k0smotron (ADR-0376 Door).
     driver_docs:
-      - docs/decisions/ADR-0376-managed-kubernetes-product-surface.md
+      - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
       - microservices/managed-k8s-control-plane-host/PRD.md
       - microservices/managed-k8s-control-plane-host/threat-model.md
       - crates/oya-managed-k8s-control-plane-host-adapter-capi/src/lib.rs

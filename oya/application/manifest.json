@@ -243,37 +243,37 @@
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0065",
       "title": "Docs As Leptos Webapp With Machine Readable Coemit",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13 Layer Enum And Check Family Patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0117",
       "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0121",
       "title": "Onprem K8s Stack Kubeadm Containerd Istio Envoy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0123",
       "title": "Hyperscaler Maturity Claim Gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0234",
@@ -285,25 +285,25 @@
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0215",
       "title": "Multi-context platform architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0218",
       "title": "Tenant granular control surface",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0218-tenant-granular-control-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0219",
       "title": "No-code-first UX with optional AI assist",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

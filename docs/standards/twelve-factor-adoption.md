@@ -328,11 +328,11 @@ Treating policy bypass as a dev convenience is an anti-pattern.
 
 External precedent: `https://www.12factor.net/`.
 
-`docs/decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md` binds provider-agnostic posture.
+`docs/decisions/ADR-0709-general-live-apex.md` binds provider-agnostic posture.
 
-`docs/decisions/ADR-0211-in-house-tech-stack-policy.md` binds self-owned substrate posture.
+`docs/decisions/ADR-0709-general-live-apex.md` binds self-owned substrate posture.
 
-`docs/decisions/ADR-0254-deployment-model-spectrum.md` binds hosted, BYOC, on-prem, and air-gap deployments.
+`docs/decisions/ADR-0709-general-live-apex.md` binds hosted, BYOC, on-prem, and air-gap deployments.
 
 `docs/standards/gitops-iac-cluster-tier-boundaries.md` binds cluster lifecycle.
 
@@ -527,9 +527,9 @@ crate_roots:
   - crates/oya-workflow-engine-runtime
 related_adrs:
   - docs/decisions/ADR-0105-layer-enum-ratchet.md
-  - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-  - docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md
-  - docs/decisions/ADR-0254-deployment-model-spectrum.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 factors:
   codebase:
     authority: one service ownership row in docs/SERVICE-CATALOG.md

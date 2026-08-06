@@ -28,15 +28,15 @@ Cloud-axis kernels under `crates/oya-cloud-*` ([ADR-0028](../../../docs/decision
 
 | Sub-axis | Rail | Rationale |
 |---|---|---|
-| `oya-cloud-kms-*` | **Blue/green** (mandatory) | KMS root rotation = atomic; HSM-backed; per [ADR-0043](../../../docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md) |
+| `oya-cloud-kms-*` | **Blue/green** (mandatory) | KMS root rotation = atomic; HSM-backed; per [ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md) |
 | `oya-cloud-storage-*` | Canary (BG for schema) | Per-cell canary; BG when block/object storage backends change |
 | `oya-cloud-network-*` | Canary, per-cell, **lockstep across regions** | Cross-region replication topology change → BG |
 | `oya-cloud-billing-*` | Canary + dark-launch (write-side) | Per [`dark-launch-spec.md`](dark-launch-spec.md) §2 — billing logic is high-risk |
 | `oya-cloud-observability-*` | Canary | OTel collector / metric source — provider-agnostic |
-| `oya-cloud-iam-*` | Canary + dark-launch (Cedar policy) | Per [ADR-0007](../../../docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md) — auth logic = high-risk |
+| `oya-cloud-iam-*` | Canary + dark-launch (Cedar policy) | Per [ADR-0007](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md) — auth logic = high-risk |
 | `oya-cloud-region-*` / `-cell-*` | Blue/green | Cell topology is stateful |
 | `oya-cloud-compute-*` | Canary | Compute fleet rollouts |
-| `oya-cloud-dcops-*` | Canary | DCIM software ([ADR-0032](../../../docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md)) |
+| `oya-cloud-dcops-*` | Canary | DCIM software ([ADR-0032](../../../docs/decisions/ADR-0709-general-live-apex.md)) |
 
 ## 3. KMS root rotation (special)
 
@@ -52,11 +52,11 @@ Planned advisory lane: `oya-governance-rollback-evidence` (D14 mandate) + an exi
 
 ## 4. Cross-region rollout halting
 
-Per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) §Open-question-Q4: a Sev-2 in region 1 halts rollout to region 2 by default. Cloud-axis playbook enforces this with no override below Sev-1-incident-commander.
+Per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) §Open-question-Q4: a Sev-2 in region 1 halts rollout to region 2 by default. Cloud-axis playbook enforces this with no override below Sev-1-incident-commander.
 
 ## 5. Per-cell rollback unit
 
-Default per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md). Cloud-axis cells correspond 1:1 to `oya-cloud-cell-app` instances.
+Default per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md). Cloud-axis cells correspond 1:1 to `oya-cloud-cell-app` instances.
 
 ## 6. SLO targets (cloud-specific)
 

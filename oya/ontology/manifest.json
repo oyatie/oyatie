@@ -227,73 +227,73 @@
       "id": "ADR-0006",
       "title": "Ontology Typed Entity Layer",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0006-ontology-typed-entity-layer.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0055",
       "title": "Object Graph Renamed To Ontology",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0055-object-graph-renamed-to-ontology.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0059",
       "title": "Workflow Ontology Ecosystem Adapter Layer",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13 Layer Enum And Check Family Patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0106",
       "title": "Rename Application To Usecase",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
     },
     {
       "id": "ADR-0107",
       "title": "Tools Implicit App Convention",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0110",
       "title": "Changeset State Machine",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0114",
       "title": "Canary Observability Rollback",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
     },
     {
       "id": "ADR-0122",
       "title": "Ontology Crate Rename From Object Graph",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0122-ontology-crate-rename-from-object-graph.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0123",
       "title": "Hyperscaler Maturity Claim Gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0234",
@@ -305,19 +305,19 @@
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0172",
       "title": "Cqrs Read Replicas",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0172-cqrs-read-replicas.md"
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
     },
     {
       "id": "ADR-0336",
       "title": "Valkey is the canonical in-memory KV / cache / pubsub substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0336-valkey-not-redis-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

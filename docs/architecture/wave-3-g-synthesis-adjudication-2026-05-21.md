@@ -1240,7 +1240,7 @@ failure-mode coverage sentences. Only the vendor name + coverage tier
 + destination µservice differ.
 
 **Evidence:**
-- `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:81-249`
+- `docs/decisions/ADR-0709-general-live-apex.md:81-249`
   Section D-001 (Salesforce Sales Cloud) through D-013 (Salesforce
   Field Service Lightning) — sampled in this pass.
 - Each row contains the sentence "templates are owned by workflow-
@@ -1528,7 +1528,7 @@ dossiers added late or test-fixtures present).
 from 56 to 69." Audit reports 70 directories present. Off-by-one.
 
 **Evidence:**
-- `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:75`
+- `docs/decisions/ADR-0709-general-live-apex.md:75`
 - `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:48`
 
 **Severity:** P2.
@@ -1655,9 +1655,9 @@ The deterministic walker tool (tools/doc-graph-walker/) is missing
 | 4 | docs/architecture/unified-ecosystem-thesis-2026-05-21.md | YES — cites docs/standards/* | 1-2 |
 | 5 | docs/architecture/training-cost-doctrine-2026-05-21.md | YES | 1-2 |
 | 6 | docs/architecture/day-in-the-life-coherent-ecosystem-2026-05-21.md | YES | 1-2 |
-| 7 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md | YES — companion_docs lists | 2 |
-| 8 | docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md | YES | 2 |
-| 9 | docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md | YES | 2 |
+| 7 | docs/decisions/ADR-0709-general-live-apex.md | YES — companion_docs lists | 2 |
+| 8 | docs/decisions/ADR-0709-general-live-apex.md | YES | 2 |
+| 9 | docs/decisions/ADR-0709-general-live-apex.md | YES | 2 |
 | 10 | microservices/production-planning/PRD.md | UNKNOWN (PRD-content thin) | ≥3-? |
 | 11 | microservices/crm/PRD.md | UNKNOWN | ≥3-? |
 | 12 | microservices/warehouse/PRD.md | UNKNOWN | ≥3-? |
@@ -1666,7 +1666,7 @@ The deterministic walker tool (tools/doc-graph-walker/) is missing
 | 15 | microservices/healthcare-integration/PRD.md | UNKNOWN | ≥3-? |
 | 16 | microservices/observability/ runbook (exemplar) | YES | 2-3 |
 | 17 | docs/standards/documentation-rigor.md | YES — itself the standard | 0 (self) |
-| 18 | docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md | YES | 2 |
+| 18 | docs/decisions/ADR-0702-identity-authz-live-apex.md | YES | 2 |
 | 19 | docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md | YES | 2 |
 | 20 | docs/user-journeys/CATALOG-j126-j150-ecosystem.md | YES — cited by archive docs | 2-3 |
 
@@ -2327,10 +2327,10 @@ From this doc to a primitive (e.g., Cedar fragment soak):
   numbers).
 - `docs/personas/MASTER-ROSTER-2026-05-21.md` (read first 200 lines —
   the §3.1 + §3.2 + §3.3 persona tables).
-- `docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md` (read
+- `docs/decisions/ADR-0709-general-live-apex.md` (read
   first 300 lines — covers §A + §B + §C + §D-1 module table + §D-1.A
   per-module notes through PLATFORM module).
-- `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md` (read
+- `docs/decisions/ADR-0709-general-live-apex.md` (read
   first 250 lines — covers §A + §B + §C + §D-001 through §D-013;
   grep-confirmed 165 vendor dossier count + 17/6/102/40 tier
   distribution).
@@ -3961,11 +3961,11 @@ synthesis to its source line(s). All paths are absolute repo-relative.
 
 | Finding | Severity | Primary source | Source line range |
 |---|---|---|---|
-| Template-stamped vendor dossiers | P0 | `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md` | §D-001 ff. (lines 81-249 sampled, full 165 dossiers run to ~2600) |
+| Template-stamped vendor dossiers | P0 | `docs/decisions/ADR-0709-general-live-apex.md` | §D-001 ff. (lines 81-249 sampled, full 165 dossiers run to ~2600) |
 | 700-clause loop in unified-ecosystem-thesis | P0 | `docs/architecture/unified-ecosystem-thesis-2026-05-21.md` | §1 clauses .01 through .37+ (lines 73-400+); full file 7369 lines |
 | 160-clause loop in training-cost-doctrine | P0 | `docs/architecture/training-cost-doctrine-2026-05-21.md` | §1 problem-clause-001 through 160 (lines 64-243+) |
-| ADR-0319 status: Accepted | P0 | `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md` | frontmatter status field |
-| ADR-0320 status: proposed (lowercase) | P0 | `docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md` | frontmatter status field |
+| ADR-0319 status: Accepted | P0 | `docs/decisions/ADR-0709-general-live-apex.md` | frontmatter status field |
+| ADR-0320 status: proposed (lowercase) | P0 | `docs/decisions/ADR-0709-general-live-apex.md` | frontmatter status field |
 | Brief 30+ vs corpus 25 ADRs | P0 | `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:50-51` | audit redo pass §1.1 |
 | 6-hops walker tool missing | P1 | `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:87-88` + `docs/standards/documentation-rigor.md:211-212` | audit + standard |
 | Marketplace µservice 15 artifacts | P1→P0-cascade | `docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:108` | audit §2.3 |

@@ -1686,7 +1686,7 @@
                 "dependency_additions": [],
                 "source_plan": null,
                 "source_spec": null,
-                "retired_by": "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
+                "retired_by": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
                 "naming_justification": "M01-P08-IP-008 keeps the archive-orphan wording because that is the historical implementation-packet id already cited by evidence."
               },
               {
@@ -8586,8 +8586,8 @@
           "ADR-0638"
         ],
         "evidence_refs": [
-          "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
-          "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+          "docs/decisions/ADR-0704-k8s-port-live-apex.md",
+          "docs/decisions/ADR-0704-k8s-port-live-apex.md",
           "specs/k8s-port/upstream-pin.json",
           "specs/k8s-port/scope.json"
         ]

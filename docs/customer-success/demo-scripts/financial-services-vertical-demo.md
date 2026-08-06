@@ -669,7 +669,7 @@ Best,
 - Internal: `docs/decisions/ADR-0251-*`.
 - Internal: `docs/decisions/ADR-0263-*`.
 - Internal: `docs/decisions/ADR-0304-*`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal: `docs/decisions/ADR-0319-*`.
 - External: DORA Regulation (EU) 2022/2554, https://eur-lex.europa.eu/eli/reg/2022/2554/oj.
 - External: EU AI Act Regulation (EU) 2024/1689, https://eur-lex.europa.eu/eli/reg/2024/1689/oj.

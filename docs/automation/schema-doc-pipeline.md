@@ -18,7 +18,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - ../../docs/PRIVACY-PROGRAM.md
-  - ../../docs/decisions/ADR-0008-data-use-boundary.md
+  - ../../docs/decisions/ADR-0709-general-live-apex.md
 doc_status: published
 ---
 

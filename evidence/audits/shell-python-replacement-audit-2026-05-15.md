@@ -165,7 +165,7 @@ Source-of-truth catalog tally (2026-05-15): 22 `application`, 6 `runtime`, 4 `te
 - LOC: `wc -l` over inventory output.
 - Workflow embedded-shell references: `grep -l "scripts/" .github/workflows/*.yml`.
 - Test-fixture consumer: `crates/oya-check-dependency-seam/tests/per_subcheck_unit_tests.rs:30,67-88` and `crates/oya-check-dependency-seam/src/lib.rs:119`.
-- Authorities cited: `/Users/jasonlee/oyatie/CLAUDE.md`; `docs/decisions/ADR-0083-rust-error-handling-tier-decision.md`; `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_no_exceptions_canonical.md`.
+- Authorities cited: `/Users/jasonlee/oyatie/CLAUDE.md`; `docs/decisions/ADR-0700-ci-admission-live-apex.md`; `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_no_exceptions_canonical.md`.
 
 ---
 
@@ -196,7 +196,7 @@ Open PR collision precheck: `gh pr list --base dev --state open --limit 100 --js
 | `oya/feature-flags/reference-implementations/python-asyncio-client.py` | Python | Unowned/reference SDK candidate (needs product-policy review before delete) | not listed | 0 | — |
 | `scripts/asyncapi-lint.mjs` | MJS | Lane 1 / worker-1 (root MJS lint shim retirement) | temporary_legacy_bridge | 3 | evidence/foundation/m01-p03-ip-002-audit-contracts.json, evidence/audits/doc-antipattern-audit-1778808000.json, cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json |
 | `scripts/emit_rust_tests.py` | Python | Lane 4 / worker-4 (Python/Buck generator and patch scripts) | temporary_legacy_bridge | 2 | docs/ideas/affected-gated-migration-engine.md, cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json |
-| `scripts/gen_first_party_buck.py` | Python | Lane 4 / worker-4 (Python/Buck generator and patch scripts) | temporary_legacy_bridge | 7 | oya/oya-meter/BUCK, docs/decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md, oya/oya-flags/BUCK, oya/oya-identity/BUCK ... |
+| `scripts/gen_first_party_buck.py` | Python | Lane 4 / worker-4 (Python/Buck generator and patch scripts) | temporary_legacy_bridge | 7 | oya/oya-meter/BUCK, docs/decisions/ADR-0700-ci-admission-live-apex.md, oya/oya-flags/BUCK, oya/oya-identity/BUCK ... |
 | `scripts/generate-erp-second-pass-docs.mjs` | MJS | Lane 3 / worker-3 (root doc-generator MJS scripts) | temporary_legacy_bridge | 2 | docs/standards/anti-patterns.md, cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json |
 | `scripts/generate-marketplace-workplace-doc-set.mjs` | MJS | Lane 3 / worker-3 (root doc-generator MJS scripts) | temporary_legacy_bridge | 1 | cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json |
 | `scripts/proto-lint.mjs` | MJS | Lane 1 / worker-1 (root MJS lint shim retirement) | temporary_legacy_bridge | 3 | evidence/foundation/m01-p03-ip-002-audit-contracts.json, evidence/audits/doc-antipattern-audit-1778808000.json, cloud/cloud-ci/gates/oya-cloud-ci-rust-first-automation-hygiene-app/rust-first-automation-policy.json |

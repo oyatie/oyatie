@@ -167,7 +167,7 @@ fn adr_census_builder_retains_only_the_first_parser_error_with_its_source_span()
 fn adr_fixture_produces_stable_heading_and_reference_ids() {
     let input = DocParseInput::new(
         "tenant-foundation",
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ADR_FIXTURE,
     );
 
@@ -303,13 +303,13 @@ fn adversarial_markdown_is_data_not_instruction_or_exfil() {
 fn tenant_namespace_is_external_while_source_path_remains_part_of_identity() {
     let tenant_a = parse_markdown_doc(&DocParseInput::new(
         "tenant-a",
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ADR_FIXTURE,
     ))
     .expect("tenant A parses");
     let tenant_b = parse_markdown_doc(&DocParseInput::new(
         "tenant-b",
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ADR_FIXTURE,
     ))
     .expect("tenant B parses");

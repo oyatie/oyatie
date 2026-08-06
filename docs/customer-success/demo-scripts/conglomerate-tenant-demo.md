@@ -671,9 +671,9 @@ Best,
 ## References
 
 - Internal: `registry/sample-tenants/tenant-helios-fortune-500-manufacturer.md`.
-- Internal: `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md`.
+- Internal: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - Internal: `docs/decisions/ADR-0314-*`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal: `docs/decisions/ADR-0243-*`.
 - Internal: `docs/decisions/ADR-0244-*`.
 - Internal: `docs/decisions/ADR-0251-*`.

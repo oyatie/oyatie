@@ -2458,13 +2458,13 @@ For high-risk surfaces:
 
 - `docs/decisions/ADR-0061-application-b2b-shell.md`
 - `docs/decisions/ADR-0064-canonical-base-plus-localization.md`
-- `docs/decisions/ADR-0185-workflow-studio-client-stack.md`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - `docs/decisions/ADR-0204-canvas-interaction.md`
 - `docs/decisions/ADR-0205-code-editor.md`
-- `docs/decisions/ADR-0206-i18n-substrate-fluent-icu.md`
-- `docs/decisions/ADR-0207-accessibility-wcag-2-2-aa.md`
-- `docs/decisions/ADR-0218-tenant-granular-control-surface.md`
-- `docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md`
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
+- `docs/decisions/ADR-0709-general-live-apex.md`
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
+- `docs/decisions/ADR-0709-general-live-apex.md`
 - `docs/decisions/ADR-0220-consumer-intelligence-ai-boundaries.md`
 - `docs/standards/a11y-canonical.md`
 - `docs/standards/wcag-2-2-aa-checklist.md`

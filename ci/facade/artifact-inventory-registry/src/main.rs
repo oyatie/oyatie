@@ -3701,7 +3701,7 @@ fn adr_citation_tokens(text: &str) -> BTreeSet<String> {
 /// on-disk decision id, excluding the grandfathered historical inventory. Governed
 /// surfaces: every decision file body, the roadmap/sequencing artifact, and the
 /// masterplan's `bound_adrs` arrays. Edge key shape: `<cited-id>@<source-path>`
-/// (e.g. `ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md`),
+/// (e.g. `ADR-0397@docs/decisions/ADR-0709-general-live-apex.md`),
 /// matching the GATE-1 `phantom_decision_citation` finding key.
 fn collect_phantom_citations(
     known_ids: &BTreeSet<String>,

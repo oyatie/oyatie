@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Surface
 
-Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya-intelligence-mcp-gateway-kernel` ([ADR-0021](../../../docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md)).
+Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya-intelligence-mcp-gateway-kernel` ([ADR-0021](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)).
 
 ## 2. Default rail
 
@@ -30,9 +30,9 @@ Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya
 
 ## 3. Pre-publish gates
 
-1. Eval-set PASS (per [ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md)) — capability run against versioned eval-set; pass rate ≥ baseline.
-2. Cosign signature ([ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md)) — capability artefact signed; SBOM attested.
-3. Autonomy-ceiling declaration ([ADR-0022](../../../docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md)) — capability declares max tier (T1–T4).
+1. Eval-set PASS (per [ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md)) — capability run against versioned eval-set; pass rate ≥ baseline.
+2. Cosign signature ([ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)) — capability artefact signed; SBOM attested.
+3. Autonomy-ceiling declaration ([ADR-0022](../../../docs/decisions/ADR-0709-general-live-apex.md)) — capability declares max tier (T1–T4).
 4. Audit-chain emit hook registered.
 
 ## 4. Rollout sequence
@@ -47,7 +47,7 @@ Foundry capability publishes through `oya-intelligence-capability-kernel` + `oya
 
 ## 5. Per-provider canary
 
-If the capability has multiple provider-adapter backings (Claude / OpenAI / Gemini per [ADR-0020](../../../docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md)), each adapter is canaried independently. Provider-A breach does not block Provider-B promotion.
+If the capability has multiple provider-adapter backings (Claude / OpenAI / Gemini per [ADR-0020](../../../docs/decisions/ADR-0709-general-live-apex.md)), each adapter is canaried independently. Provider-A breach does not block Provider-B promotion.
 
 ## 6. Rollback
 

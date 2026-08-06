@@ -9,7 +9,7 @@ VCS CLAIM: `./bin/oya vcs claim --agent codex-cloud-network-dns-audit --intent "
 
 ## Header citation anchors
 
-1. ADR-0328 §D-15..§D-20: deployment contexts, OpenTofu, OS matrix, Rust-strict, OCI Always Free, and audit dimensions are canonical; key line ranges read include `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
+1. ADR-0328 §D-15..§D-20: deployment contexts, OpenTofu, OS matrix, Rust-strict, OCI Always Free, and audit dimensions are canonical; key line ranges read include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
 2. Master plan machine contract: `specs/master-plan-sequencing.json:704-867` defines the six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
 3. Service PRD anchor: `microservices/cloud-network-dns/PRD.md` is absent in the service inventory; nearest service-local product-purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`.
 4. Service architecture anchor: `microservices/cloud-network-dns/ARCHITECTURE.md` is absent in the service inventory; nearest service-local architecture-equivalent evidence is `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5` and `microservices/cloud-network-dns/faqs/dns-engineer-faq.md:26-30`.
@@ -37,8 +37,8 @@ The implementation evidence outside the service path is much narrower: the OpenA
 The Rust API crate similarly describes tenant DNS zone creation, request normalization, idempotency, and authenticated projection before handing typed zone creation to the cloud network kernel (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`).
 The runtime tests prove public-zone creation, idempotent replay, and private-zone binding to a known VPC (`crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211`).
 This creates the core audit result: the service docs describe a full hyperscaler DNS product, but current local contract and runtime evidence only prove a zone-create control-plane slice.
-The right product boundary should remain ambitious because ADR-0328 places `cloud-network-dns` in Phase 0 shared infrastructure (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:450-465`).
-The service belongs in the network seam for public cloud and provider-mode contexts (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1752-1754` and `:1996`).
+The right product boundary should remain ambitious because ADR-0328 places `cloud-network-dns` in Phase 0 shared infrastructure (`docs/decisions/ADR-0700-ci-admission-live-apex.md:450-465`).
+The service belongs in the network seam for public cloud and provider-mode contexts (`docs/decisions/ADR-0700-ci-admission-live-apex.md:1752-1754` and `:1996`).
 The docs cannot yet support a GA claim across all six deployment contexts because no service-local manifest, IaC modules, SLOs, policies, or OpenTofu state-backend declarations exist.
 The product purpose is coherent as a target: Oyatie needs DNS as its own IaaS/network substrate to avoid a provider-wrapped Route 53 or Cloud DNS dependency.
 The artifact set is incoherent as a build package: the most critical documents and machine-readable surfaces are absent from the microservice directory.
@@ -127,7 +127,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 
 ### §3.2 Dimension 2 — outbound cross-references and inbound references
 
-1. ADR-0248 reference in onboarding resolves: `onboarding/dns-engineer-first-week.md:9` points to `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md`, and the file exists.
+1. ADR-0248 reference in onboarding resolves: `onboarding/dns-engineer-first-week.md:9` points to `docs/decisions/ADR-0700-ci-admission-live-apex.md`, and the file exists.
 2. ADR-0253 exact path in onboarding does not resolve: `onboarding/...:10` names `docs/decisions/ADR-0253-http3-quic-default-protocol.md`, but the repo contains differently named ADR-0253 files.
 3. Capability tenant_class cites ADR-0244, ADR-0248, ADR-0253, and ADR-0316 without paths (`retired tenant_class adoption artifact:3-5`); these are partially resolvable but should be exact links.
 4. Capability tenant_class cites RFC 4033-4035, RFC 8484, RFC 7858, and RFC 9230 (`tenant-class-adoption/...:4-5`); standards are appropriate external references for DNSSEC, DoH, DoT, and ODoH.
@@ -138,7 +138,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 9. FAQ names Apple Private Relay and Cloudflare ODoH proxy (`faqs/...:41-46`); external privacy interoperability is a product feature but not in contract.
 10. FAQ names Thales Luna 7 and Utimaco Se Gen2 HSM (`faqs/...:33-37`); no service-local hardware support matrix exists.
 11. FAQ names `cloud-network`, `cloud-iac`, Foundry, Cedar, `audit-chain`, and `observability` (`faqs/...:82-153`); no service-local cross-microservice handoff file exists.
-12. ADR-0273 references this service for DKIM/SPF/DMARC publication and propagation probing (`docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:326-365`, `:443-465`).
+12. ADR-0273 references this service for DKIM/SPF/DMARC publication and propagation probing (`docs/decisions/ADR-0700-ci-admission-live-apex.md:326-365`, `:443-465`).
 13. ADR-0273 expects `microservices/cloud-network-dns/iac/helm/dns-orchestrator/` (`docs/decisions/ADR-0273-...md:1330-1332`), but no `iac/` directory exists; P1 inbound broken expectation.
 14. `docs/products/cloud/PRD.md:138-143` lists `oya-cloud-network-dns-api` as the DNS zone create REST API, narrowing the runtime surface.
 15. `docs/products/cloud/PRD.md:161-176` places the DNS contract in the VPC/Network API family with p99 <=500 ms create-boundary SLO.
@@ -560,7 +560,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 | P1 | D1/D3 | Audit/event/query stream claims lack AsyncAPI/event schemas | `retired tenant_class adoption artifact:90-91`; `faqs/dns-engineer-faq.md:82-86` | Add AsyncAPI and event schema entries |
 | P1 | D1 | HSM/KSK import tenant_class statement is internally contradictory | `migration-playbooks/from-route53-and-ns1.md:88-98`; `retired tenant_class adoption artifact:74-80` | Rewrite import policy by tier: software key vs HSM |
 | P1 | D1 | Benchmark claims measured evidence, but cited evidence path is absent | `benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-5,119` | Mark as target numbers or land evidence bundle |
-| P1 | D2 | ADR-0273 expects DNS orchestrator IaC path that does not exist | `docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332` | Add IaC path or update ADR via owning workflow |
+| P1 | D2 | ADR-0273 expects DNS orchestrator IaC path that does not exist | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1330-1332` | Add IaC path or update ADR via owning workflow |
 | P1 | D3 | Full doc-set floor is not met: 7 artifacts versus >=70 floor | `docs/standards/documentation-rigor.md:62-81` | Build PR-143-style suite for this service |
 | P1 | D4/D6 | No six-context support matrix exists | `specs/master-plan-sequencing.json:704-745`; `feedback_multi_context_provider_agnostic_2026_05_20.md:32-38` | Add manifest/PRD context matrix |
 | P1 | D4/D7 | No OpenTofu `iac/` directory exists | `docs/decisions/ADR-0328-...md:2275-2295` | Add per-context OpenTofu modules |

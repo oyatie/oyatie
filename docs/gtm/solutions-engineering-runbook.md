@@ -7,7 +7,7 @@ owner: GoToMarket / Solutions Engineering
 related_oyatie_adrs:
   - docs/decisions/ADR-0009-tenant-isolation-and-cell-placement.md
   - docs/decisions/ADR-0010-tenant-data-residency-and-jurisdiction.md
-  - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - docs/decisions/ADR-0242-capability-tier-registry.md
   - docs/decisions/ADR-0244-business-continuity-dr-tier-registry.md
   - docs/decisions/ADR-0251-trust-score-and-eligibility-gates.md

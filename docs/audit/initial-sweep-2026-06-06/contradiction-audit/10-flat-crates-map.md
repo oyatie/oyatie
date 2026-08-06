@@ -27,16 +27,16 @@ ADR-0512 (Accepted, founder-locked, 2026-05-29) — CANONICAL
 
 Source frontmatter:
 
-- ADR-0015: `docs/decisions/ADR-0015-architectural-flattening-target.md:3` — `status: accepted`;
+- ADR-0015: `docs/decisions/ADR-0709-general-live-apex.md:3` — `status: accepted`;
   `:5` — `superseded_by: [ADR-0131]`;
   `:6` — `supersession_note: "Partial — ADR-0131 supersedes only the docs-vs-crates top-level split..."`
-- ADR-0131: `docs/decisions/ADR-0131-per-microservice-flat-layout.md:8-10` — `supersedes:` ADR-0015 (partial) + ADR-0119 (partial);
+- ADR-0131: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:8-10` — `supersedes:` ADR-0015 (partial) + ADR-0119 (partial);
   `:24-28` — **"Amended — 2026-06-02 (pure split):** ADR-0512/platform-readiness updates the top-level service root from `microservices/<ms>/` to `{oya,cloud}/<service>/`."`
-- ADR-0512: `docs/decisions/ADR-0512-canonical-monorepo-pattern.md:9-13` — `supersedes: [ADR-0357, ADR-0509]`, `amends: [ADR-0131]`;
+- ADR-0512: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:9-13` — `supersedes: [ADR-0357, ADR-0509]`, `amends: [ADR-0131]`;
   `:53-57` — `"Service code lives at {oya,cloud}/<service>/crates/<crate>/ ... A flat top-level crates/ directory is **forbidden**. microservices/ is legacy/removal-candidate"`;
   `:62` — `"The architecture-boundaries gate requires service code under {oya,cloud}/<service>/crates/ or shared code under libs/<lib>/ (flat crates/ rejected ...). Workspace-topology validation fails on: a flat crates/ directory; ..."`
 
-ADR-0357 is **Proposed**, not Accepted (`docs/decisions/ADR-0357-vertical-slice-monorepo-nesting.md:3` `status: Proposed`) —
+ADR-0357 is **Proposed**, not Accepted (`docs/decisions/ADR-0709-general-live-apex.md:3` `status: Proposed`) —
 ADR-0512 superseded a never-ratified proposal. ADR-0509 is `status: Accepted` (`ADR-0509-...:4`).
 
 ---
@@ -109,7 +109,7 @@ Other live gate-doc references to the flat-crates lane (each repeats the superse
 
 - `docs/MISTAKES-LEDGER.md:56` — MFL-0012, `oya-governance-flat-crates` "active gate" guarding against
   reintroducing `modules/services/platform` — framed around top-level `crates/` as the canonical destination.
-- `docs/PRIVACY-PROGRAM.md:178` and `docs/decisions/ADR-0008-data-use-boundary.md:126` — the
+- `docs/PRIVACY-PROGRAM.md:178` and `docs/decisions/ADR-0709-general-live-apex.md:126` — the
   `oya-governance-flat-crates` **GATE** "rejects any new flat crate whose dep graph imports an ads/analytics
   adapter" (naming-survives wording, but the gate name binds the superseded lane).
 - `docs/quality/ai-slop-defense/impossible-to-fail-environment-spec.md:69` — `MFL-0012 ... oya-governance-flat-crates | shipped`.
