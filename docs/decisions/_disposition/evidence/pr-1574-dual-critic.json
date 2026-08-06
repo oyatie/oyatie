@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "2197e6fe0a2a6b22c2b70ffa4892e6192e7ed8fe",
+  "head": "b72d344c2861875d284779811ab741ad39736edf",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; same_family recorded honestly for this W2 session",
   "critics": [
@@ -21,7 +21,7 @@
       "findings": [
         "Authoritative soft fail after RUSTUP fix: P3 census ParserSource (include_bytes CRLF vs git LF)",
         "line_ending_normalized equality + *.rs eol=lf gitattributes address root cause",
-        "Contract tests now use docs/decisions selector so CRLF green is real TDD"
+        "CENSUS_DECISION_PATH defined; contract tests green under docs/decisions selector"
       ],
       "residual": [
         "Await windows soft SUCCESS on this head"
@@ -41,7 +41,7 @@
       "findings": [
         "docs-decisions-direct-adr-v1 is intentional; archive paths must not launder as census decisions",
         "Soft red remains first-class until tip check clears",
-        "No product debt under cloud/oya; change is doc-parser contract + prior install-buck2/CRLF"
+        "No product debt under cloud/oya"
       ],
       "residual": [
         "oya-ci-required SUCCESS required for babysit merge"
@@ -50,11 +50,11 @@
   ],
   "summary": "APPROVE soft_red fix chain: RUSTUP_HOME cygpath -m, CRLF-tolerant parser identity, census contract path alignment. same_family honest.",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:35Z",
+  "reviewed_at": "2026-08-06T11:36Z",
   "reviewer": "implement-claimed-lane-w2",
   "soft_red_addressed": {
     "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
-    "fix": "CRLF-tolerant parser source identity + eol=lf + contract selector path",
+    "fix": "CRLF-tolerant parser source identity + eol=lf + CENSUS_DECISION_PATH contract",
     "prior_rustup": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
   }
 }
