@@ -20,6 +20,8 @@ enforced_by:
   - oya-governance-no-grouping
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: ERP SAP-parity — aspirational coverage; not admission law yet
+
 # ADR-0315: ERP Coverage Doctrine - SAP-Parity Goal
 
 ## Status

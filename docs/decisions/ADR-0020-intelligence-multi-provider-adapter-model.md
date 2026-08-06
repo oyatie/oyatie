@@ -1,8 +1,10 @@
 ---
 id: ADR-0020
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Foundry→intelligence naming; multi-provider adapter remains live doctrine
 
 # ADR-0020: Foundry multi-provider adapter model — `ProviderAdapter` trait, ProviderAuth, capability-level routing
 
@@ -17,7 +19,7 @@ doc_status: published
 
 ## Context
 
-Foundry is the force-multiplier axis: every other axis (cloud, search, ads, saas, vertical, workspace) invokes Foundry capabilities, and each capability invocation must reach a model provider. The current draft surfaces three frontier-LLM vendors (Anthropic, OpenAI, Google), each in two operating modes (subscription-auth, e.g. Claude Pro / ChatGPT Plus / Gemini Advanced — and API-auth, with billed keys). Without a normalized contract, every capability would either pin to a single provider (hard cost-floor; single point of vendor failure) or implement ad-hoc per-provider logic (combinatorial maintenance, no failover, no cost ceiling, no per-tenant routing).
+Intelligence is the force-multiplier axis: every other axis (cloud, search, ads, saas, vertical, workspace) invokes intelligence capabilities, and each capability invocation must reach a model provider. The current draft surfaces three frontier-LLM vendors (Anthropic, OpenAI, Google), each in two operating modes (subscription-auth, e.g. Claude Pro / ChatGPT Plus / Gemini Advanced — and API-auth, with billed keys). Without a normalized contract, every capability would either pin to a single provider (hard cost-floor; single point of vendor failure) or implement ad-hoc per-provider logic (combinatorial maintenance, no failover, no cost ceiling, no per-tenant routing).
 
 The forces are: (a) we want capability authors to write provider-agnostic code; (b) we want the runtime to route per tenant and per capability so a healthcare tenant can pin a regional pack while a marketing tenant maximizes throughput; (c) we want failover so that one provider's outage does not propagate to every Oyatie surface; (d) we want subscription-auth modes to remain first-class for the developer-tier experience without relaxing the audit posture; (e) we want a per-tenant cost ceiling that the router enforces before the model is hit, not after the bill arrives.
 

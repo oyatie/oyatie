@@ -1,10 +1,12 @@
 ---
 id: ADR-0023
-status: Rejected
+status: Accepted
 doc_status: published
 ---
 
-# ADR-0023: Foundry sandbox — Wasmtime + WASI Preview 2 for short-lived tools, Firecracker microVMs for full-kernel tools
+> **Disposition light-edit (2026-08-06):** Foundry→intelligence sandbox naming; Wasmtime/Firecracker posture remains
+
+# ADR-0023: intelligence sandbox — Wasmtime + WASI Preview 2 for short-lived tools, Firecracker microVMs for full-kernel tools
 
 > **Status:** Proposed
 > **Supersedes:** -

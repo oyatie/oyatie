@@ -1,7 +1,7 @@
 ---
 id: ADR-0571
 title: "Home the connect address-book domain into the comms capability and commission the contact-management port + usecase (wave1 strangler MOVE + cloud-agnostic core slice)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-22
@@ -17,6 +17,8 @@ related_specs:
   - /specs/reachability-registry.json
 milestone: W2
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Comms address-book into capability tree
 
 # ADR-0571: Home the connect address-book into `comms` + commission the contact-management port + usecase
 

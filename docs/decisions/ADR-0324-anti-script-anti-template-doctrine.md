@@ -1,6 +1,6 @@
 ---
 id: ADR-0324
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture
@@ -75,6 +75,8 @@ enforced_by:
   - oya-governance-no-template-stamping
 decision_owner: council-quality
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Anti-script anti-template doctrine
 
 # ADR-0324: Anti-Script Anti-Template Doctrine
 

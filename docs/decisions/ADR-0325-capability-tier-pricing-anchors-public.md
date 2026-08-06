@@ -1,6 +1,6 @@
 ---
 id: ADR-0325
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owner: council-product
 owners:
@@ -81,6 +81,8 @@ enforced_by:
   - oya-governance-pricing-anchor-drift-monitor
 decision_owner: council-product
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Capability tier pricing anchors
 
 # ADR-0325: Capability Tier Pricing Anchors Public
 

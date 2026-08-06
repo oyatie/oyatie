@@ -1,7 +1,7 @@
 ---
 id: ADR-0337
 title: Apache Iceberg is the canonical OLAP table-format write path (Delta + Hudi demoted to migration adapters; ClickHouse compute layered on Iceberg)
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -124,6 +124,8 @@ purpose: >
   Parquet data plane; the change is at the metadata-pointer / catalog /
   commit-protocol layer only.
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Iceberg OLAP table format
 
 # ADR-0337: Apache Iceberg is the canonical OLAP table-format write path (Delta + Hudi demoted to migration adapters; ClickHouse compute layered on Iceberg)
 

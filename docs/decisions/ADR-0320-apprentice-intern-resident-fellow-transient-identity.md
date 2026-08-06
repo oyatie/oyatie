@@ -45,6 +45,8 @@ verification_expectations:
   - cross_refs_present
   - regulatory_articles_exactly_named
 ---
+
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Apprentice/intern transient identity — niche; reopen with IAM pack
 # ADR-0320: Apprentice, Intern, Resident, and Fellow Transient Identity Doctrine
 
 Status: Proposed

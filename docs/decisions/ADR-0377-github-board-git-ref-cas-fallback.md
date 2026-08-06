@@ -1,6 +1,6 @@
 ---
 id: ADR-0377
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: council-architecture, ops-platform
 date: 2026-05-27
@@ -42,6 +42,8 @@ purpose: >
   Accepted until the thin claim/next client and board-sync generator are both
   implemented and tested.
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: GitHub board + git-ref CAS fallback
 
 # ADR-0377: GitHub board projection with git-ref CAS fallback
 

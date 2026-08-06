@@ -1,7 +1,7 @@
 ---
 id: ADR-0544
 title: "Friction-ledger closed-loop accounting meta-gate"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-10
@@ -16,6 +16,8 @@ related_specs:
   - /specs/root-hub-pointers.json
 milestone: W0
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Friction-ledger closed-loop accounting
 
 # ADR-0544: Friction-ledger closed-loop accounting meta-gate
 

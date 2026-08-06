@@ -1,6 +1,6 @@
 ---
 id: ADR-0254
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -102,6 +102,8 @@ enforced_by:
   - oya gate validate per-model-slo-declaration
   - oya gate validate cell-topology-per-model
 ---
+
+> **Disposition light-edit (2026-08-06):** Deployment model spectrum remains
 
 # ADR-0254: Deployment model spectrum
 

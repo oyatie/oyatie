@@ -16,6 +16,8 @@ purpose: >
   following pointers to any other existing file.
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: From-scratch architecture handoff — narrative dump; not a decision unit
+
 # ADR-0352: Oyatie from-scratch architecture handoff
 
 ## Status

@@ -78,6 +78,8 @@ enforced_by:
   - oya gate validate library-credential-sidecar-coherence-policy-engine
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Duplicate library-first amendment (pair with 355)
+
 # ADR-0353: Amendment — Library-First / Network-Opt-In Clarification
 
 ## Status

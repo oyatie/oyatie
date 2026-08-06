@@ -1,8 +1,10 @@
 ---
 id: ADR-0036
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Plugin Wasm substrate
 
 # ADR-0036: Plugin substrate — Wasmtime + WASI Preview 2 with capability-gated context, Cosign signing, trust tiers, marketplace economics
 

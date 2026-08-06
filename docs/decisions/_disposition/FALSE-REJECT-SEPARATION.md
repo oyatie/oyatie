@@ -310,3 +310,12 @@ Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.
   - No automatic disposition; needs human skim of body vs live Accepted set
 - **ADR-626** — Resolve fixup-ledger merges structurally instead of by hand
   - No automatic disposition; needs human skim of body vs live Accepted set
+
+
+## Pass 2026-08-06 go-ahead
+
+- Light-edit+Accept: 20 ADRs
+- Needs-review → Accept: 37
+- Needs-review → Keep Rejected: 13
+- Tree after: {'Accepted': 386, 'Superseded': 46, 'Rejected': 16}
+- Still Rejected numbers: [27, 32, 54, 111, 236, 284, 293, 315, 319, 320, 321, 347, 352, 353, 355, 356]

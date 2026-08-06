@@ -1,7 +1,7 @@
 ---
 id: ADR-0625
 title: "Commit OpenTofu provider dependency locks for every deployable root"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-26
@@ -16,6 +16,8 @@ related: [ADR-0013]
 related_specs: []
 milestone: W3
 ---
+
+> **Disposition light-edit (2026-08-06):** OpenTofu provider locks — IaC supply-chain
 
 # ADR-0625: Commit OpenTofu provider dependency locks for every deployable root
 

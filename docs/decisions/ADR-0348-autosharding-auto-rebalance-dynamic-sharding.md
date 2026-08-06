@@ -1,7 +1,7 @@
 ---
 id: ADR-0348
 title: Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible)
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -103,7 +103,7 @@ enforced_by:
   - oya-governance-auto-rebalance-residency-honored (new lane; greps every manifest declaring sharding_automation.auto_rebalance.enabled true and refuses if the same manifest also declares honors_residency false OR omits the field; cross-jurisdiction rebalance without Cedar permit is refused at admission time per ADR-0243)
   - oya-governance-dynamic-sharding-threshold-coverage (new lane; refuses any manifest declaring sharding_automation.dynamic_sharding.enabled true that omits ANY of the four canonical thresholds (hot_split_threshold_p99_ms, hot_split_utilization_threshold_percent, cold_merge_utilization_threshold_percent, cold_merge_minimum_quiet_hours); default-fill is REJECTED to force per-µservice declaration of load characteristics)
   - oya-governance-audit-chain-emit-on-automation-events (new lane; greps every manifest declaring auto_rebalance.enabled true OR dynamic_sharding.enabled true and refuses if the same manifest omits audit_chain_emit true on the corresponding sub-block; every automation event MUST emit per ADR-0263 observability-emission-contract)
-  - oya-governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under microservices/<ms>/IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
+  - oya-governance-tenant-migration-reversibility (new lane; refuses any µservice IP authoring under {oya,cloud}/<service>/ (legacy microservices/ removal-candidate) IPs/IP-*-auto-rebalance-*.md that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail)
 purpose: >
   Declare that cellular topology MUST support three control-plane-driven
   automation modes underneath the cell-level promotion gates already
@@ -138,6 +138,8 @@ purpose: >
   pack constraints per ADR-0251); Bominal sibling ADR (Bominal authors
   independently per feedback_bominal_inheritance_precedence).
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Autosharding / cellular topology — hyperscaler
 
 # ADR-0348: Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible)
 
@@ -640,7 +642,7 @@ D-6.5. The audit-chain seal hash is per ADR-0263 emission contract; the seal is 
 
 ### D-7: Tenant migration reversibility — IP authoring `rollback_path` section
 
-D-7.1. Every µservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` MUST carry an explicit `rollback_path` section.
+D-7.1. Every µservice IP authoring under `{oya,cloud}/<service>/ (legacy microservices/ removal-candidate) IPs/IP-*-auto-rebalance-*.md` MUST carry an explicit `rollback_path` section.
 
 D-7.2. The `rollback_path` section enumerates:
 - (a) How the automation-event-driven tenant migration is reversed via the audit-chain trail.
@@ -679,7 +681,7 @@ E.4 `oya-governance-dynamic-sharding-threshold-coverage` (new) — refuses any m
 
 E.5 `oya-governance-audit-chain-emit-on-automation-events` (new) — greps every manifest declaring `auto_rebalance.enabled: true` OR `dynamic_sharding.enabled: true` and refuses if the same manifest omits `audit_chain_emit: true` on the corresponding sub-block. Every automation event MUST emit per ADR-0263 observability-emission-contract. REPORT-ONLY at this ADR's Acceptance; promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
 
-E.6 `oya-governance-tenant-migration-reversibility` (new) — refuses any µservice IP authoring under `microservices/<ms>/IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail. The lane applies prospectively to new IP authoring; existing IPs are not retroactively required. REPORT-ONLY at this ADR's Acceptance; promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
+E.6 `oya-governance-tenant-migration-reversibility` (new) — refuses any µservice IP authoring under `{oya,cloud}/<service>/ (legacy microservices/ removal-candidate) IPs/IP-*-auto-rebalance-*.md` that lacks an explicit `rollback_path` section enumerating how an automation-event-driven tenant migration is reversed via the audit-chain trail. The lane applies prospectively to new IP authoring; existing IPs are not retroactively required. REPORT-ONLY at this ADR's Acceptance; promotes to BLOCKER 30 days post-Wave-15-ZD-completion for new authoring.
 
 E.7 `oya-governance-cell-orchestrator-no-new-microservice` (informational; not enforced as a blocker) — verifies that the corpus does not introduce a new `cell-orchestrator` µservice directory under `microservices/`. The cell-orchestrator responsibility is a logical composition across tenancy + observability + cloud-iac + audit-chain per ADR-0333; introducing a new µservice would revive cell µservice ownership shape that ADR-0333 retired. REPORT-ONLY indefinitely.
 

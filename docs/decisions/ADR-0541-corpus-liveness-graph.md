@@ -1,7 +1,7 @@
 ---
 id: ADR-0541
 title: "Corpus Liveness Graph: one content-addressed corpus graph with per-class decay invariants"
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-10
@@ -16,6 +16,8 @@ related_specs:
   - /specs/root-hub-pointers.json
 milestone: W2
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Corpus liveness graph
 
 # ADR-0541: Corpus Liveness Graph — one content-addressed corpus graph with per-class decay invariants
 

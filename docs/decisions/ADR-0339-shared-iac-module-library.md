@@ -1,7 +1,7 @@
 ---
 id: ADR-0339
-title: Shared IaC module library (`microservices/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)
-status: Rejected
+title: Shared IaC module library (`cloud/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -75,8 +75,8 @@ related_memory:
 companion_docs:
   - docs/standards/dependency-policy.md
   - docs/standards/iac-module-catalog.md
-  - microservices/cloud-iac/ARCHITECTURE.md
-  - microservices/cloud-iac/manifest.json
+  - cloud/cloud-iac/ARCHITECTURE.md
+  - cloud/cloud-iac/manifest.json
   - tools/hooks/_canonical-primitives.md
 inbound_citations:
   - /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_idea_refine_decisions_2026_05_21.md
@@ -95,7 +95,7 @@ enforced_by:
   - oya-check-iac-thin-wrapper-line-floor (new lane; advisory until crate lands; planned per-µservice `iac/<context>/main.tf` must be ≤ 80 LOC excluding comments; substance is in the wrapper's primitive selection, not its plumbing)
   - oya-check-iac-module-catalog-discoverability (new lane; advisory until crate lands; planned to refuse additions of new primitives to the library without a corresponding entry in `docs/standards/iac-module-catalog.md`)
 purpose: >
-  Establish `microservices/cloud-iac/modules/<context>/<primitive>/` as the
+  Establish `cloud/cloud-iac/modules/<context>/<primitive>/` as the
   canonical home for reusable, signed, OpenTofu module primitives across
   Oyatie's five deployment-contexts (aws-guest, oci-guest [+ always-free
   sub-context], on-prem, colo, oyatie-as-cloud-provider). Establish that
@@ -121,13 +121,15 @@ purpose: >
   canonical-build phase order.
 ---
 
-# ADR-0339: Shared IaC module library (`microservices/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)
+> **Disposition light-edit (2026-08-06):** Shared IaC modules: path microservices/cloud-iac → cloud/cloud-iac
+
+# ADR-0339: Shared IaC module library (`cloud/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)
 
 ## Status
 
 Proposed on 2026-05-21.
 
-This ADR is the canonical IaC-substrate-shape decision establishing the shared OpenTofu module library at `microservices/cloud-iac/modules/<context>/<primitive>/` as the home for every reusable per-context infrastructure primitive Oyatie ships, and establishing the per-µservice `iac/<context>/main.tf` file as a thin invocation wrapper that selects primitives from the library and supplies tenant-scoped parameters.
+This ADR is the canonical IaC-substrate-shape decision establishing the shared OpenTofu module library at `cloud/cloud-iac/modules/<context>/<primitive>/` as the home for every reusable per-context infrastructure primitive Oyatie ships, and establishing the per-µservice `iac/<context>/main.tf` file as a thin invocation wrapper that selects primitives from the library and supplies tenant-scoped parameters.
 
 IAC-001 materializes the first fixture slice under the de-branded `iac/modules/` capability home (the repo-current capability-first home for this ADR's `<context>/<primitive>/` library) while preserving this ADR's shared-module/thin-wrapper shape and non-runtime claim ceiling. The wrapper references the shared module by in-repo relative path (no Git ref pin) and the fixture asserts no cosign/SLSA attestation, since no signing generator exists to keep such digests fresh. The fixture-owned surfaces are `cloud/cloud-billing/iac/aws-guest/OWNERS`, `cloud/cloud-billing/iac/aws-guest/main.tofu`, `iac/modules/OWNERS`, `iac/modules/catalog.json`, `iac/modules/aws-guest/sg-baseline/README.md`, `iac/modules/aws-guest/sg-baseline/main.tofu`, `iac/modules/aws-guest/sg-baseline/outputs.tofu`, `iac/modules/aws-guest/sg-baseline/variables.tofu`, and `iac/modules/aws-guest/sg-baseline/versions.tofu`.
 
@@ -196,7 +198,7 @@ The shared-library shape is the cleanest match to these constraints:
 
 - A single OpenTofu module per primitive per context can be released, signed, and version-pinned once.
 - A per-µservice from-scratch HCL body cannot be signed as a single artifact because it carries µservice-specific values inline; only its source can be signed at the µservice-repo level.
-- Consumers of shared modules pin a version + verify cosign signature at the source pin: `source = "git::https://github.com/oyatie/oyatie//microservices/cloud-iac/modules/aws-guest/eks-cluster?ref=v1.2.3"` plus a `provider_meta` block referencing the cosign attestation.
+- Consumers of shared modules pin a version + verify cosign signature at the source pin: `source = "git::https://github.com/oyatie/oyatie//cloud/cloud-iac/modules/aws-guest/eks-cluster?ref=v1.2.3"` plus a `provider_meta` block referencing the cosign attestation.
 
 ### A.5 Named pressure: ADR-0336 Valkey migration just landed iac/<context>/valkey/ as a new path
 
@@ -204,12 +206,12 @@ ADR-0336 (Valkey not Redis substrate) D-2 requires every µservice that uses the
 
 Under this ADR, the canonical Valkey primitives live at:
 
-- `microservices/cloud-iac/modules/aws-guest/elasticache-valkey/`
-- `microservices/cloud-iac/modules/oci-guest/oci-cache-valkey/`
-- `microservices/cloud-iac/modules/oci-guest/always-free/valkey-free/` (within Always-Free perpetual ceiling)
-- `microservices/cloud-iac/modules/on-prem/valkey-cluster/`
-- `microservices/cloud-iac/modules/colo/valkey-cluster/` (alias of on-prem)
-- `microservices/cloud-iac/modules/oyatie-as-cloud-provider/valkey-cell-cluster/`
+- `cloud/cloud-iac/modules/aws-guest/elasticache-valkey/`
+- `cloud/cloud-iac/modules/oci-guest/oci-cache-valkey/`
+- `cloud/cloud-iac/modules/oci-guest/always-free/valkey-free/` (within Always-Free perpetual ceiling)
+- `cloud/cloud-iac/modules/on-prem/valkey-cluster/`
+- `cloud/cloud-iac/modules/colo/valkey-cluster/` (alias of on-prem)
+- `cloud/cloud-iac/modules/oyatie-as-cloud-provider/valkey-cell-cluster/`
 
 Per-µservice `iac/<context>/main.tf` invokes the canonical Valkey primitive per context with the µservice's tenant-scoped parameters (cluster size, TLS posture, AOF/RDB flavor, eviction policy, BYOK posture, observability label set). The thin wrapper for Valkey at any µservice is ~30 LOC of module invocation rather than ~300 LOC of from-scratch Valkey HCL.
 
@@ -227,7 +229,7 @@ Every hyperscaler-grade and CNCF precedent operates a shared module library with
 
 ### A.7 Anchors this ADR binds
 
-- Anchor 1: the user directive of 2026-05-21 captured in `feedback_idea_refine_decisions_2026_05_21.md` Decision 3 — "shared IaC module library; per-context canonical reusable IaC primitives live at `microservices/cloud-iac/modules/<context>/<primitive>/`; per-µservice `iac/<context>/main.tf` is a thin invocation".
+- Anchor 1: the user directive of 2026-05-21 captured in `feedback_idea_refine_decisions_2026_05_21.md` Decision 3 — "shared IaC module library; per-context canonical reusable IaC primitives live at `cloud/cloud-iac/modules/<context>/<primitive>/`; per-µservice `iac/<context>/main.tf` is a thin invocation".
 - Anchor 2: ADR-0215 (multi-context platform). The shared library serves all five contexts.
 - Anchor 3: ADR-0216 (deployment-context IaC layout). This ADR amends ADR-0216 so that the per-µservice context body is a thin wrapper, not a self-contained body.
 - Anchor 4: ADR-0218 (OpenTofu not Terraform). Shared modules are OpenTofu modules; HashiCorp Terraform syntax is forbidden everywhere including the shared library.
@@ -248,7 +250,7 @@ Every hyperscaler-grade and CNCF precedent operates a shared module library with
 - **A.8.4** Does not change which µservice owns which capability. The ownership shape is unchanged; only the shape of the IaC authoring changes.
 - **A.8.5** Does not change the OpenTofu-only constraint. HashiCorp Terraform remains forbidden everywhere, including the shared library.
 - **A.8.6** Does not change the cosign attestation pattern. The cosign attestation moves to the library primitive; per-µservice wrappers still cite the attestation pin.
-- **A.8.7** Does not introduce a SaaS registry dependency. The library lives in-tree under `microservices/cloud-iac/modules/` and is consumed via Git-tag-pinned module sources, not a HashiCorp Cloud / Terraform Registry SaaS.
+- **A.8.7** Does not introduce a SaaS registry dependency. The library lives in-tree under `cloud/cloud-iac/modules/` and is consumed via Git-tag-pinned module sources, not a HashiCorp Cloud / Terraform Registry SaaS.
 - **A.8.8** Does not retire any existing CI lane. New lanes are added (§E); existing lanes are preserved.
 - **A.8.9** Does not relax the substance-bar for per-µservice IaC. Per ADR-0322, the per-µservice IaC wrapper substance is **which primitives are invoked + which tenant-scoped parameters are passed**, not lines of plumbing.
 - **A.8.10** Does not assert "one true module per primitive" — for primitives that exist across multiple contexts (e.g., Valkey across aws-guest + oci-guest + on-prem + colo + oyatie-as-cloud-provider), each context has its own module body because the underlying provider differs (AWS provider, OCI provider, kubernetes provider, oya-cell provider). The "shared" axis is **across µservices within a context**, not across contexts within a primitive.
@@ -257,17 +259,17 @@ Every hyperscaler-grade and CNCF precedent operates a shared module library with
 
 ### B.1 Decision statement
 
-The canonical home for Oyatie reusable OpenTofu IaC primitives is `microservices/cloud-iac/modules/<context>/<primitive>/` where `<context>` is one of `{aws-guest, oci-guest, oci-guest/always-free, on-prem, colo, oyatie-as-cloud-provider}` and `<primitive>` is the canonical primitive name per §D-4 below. Every Oyatie µservice that declares an `iac/` directory ships **thin invocation wrappers** at `microservices/<name>/iac/<context>/main.tf` that consume the canonical primitives from the shared library, supplying tenant-scoped parameters per the µservice's `manifest.json#tenant_class_iac_variants` declaration and per ADR-0331 §D-8 cap-shape contract.
+The canonical home for Oyatie reusable OpenTofu IaC primitives is `cloud/cloud-iac/modules/<context>/<primitive>/` where `<context>` is one of `{aws-guest, oci-guest, oci-guest/always-free, on-prem, colo, oyatie-as-cloud-provider}` and `<primitive>` is the canonical primitive name per §D-4 below. Every Oyatie µservice that declares an `iac/` directory ships **thin invocation wrappers** at `microservices/<name>/iac/<context>/main.tf` that consume the canonical primitives from the shared library, supplying tenant-scoped parameters per the µservice's `manifest.json#tenant_class_iac_variants` declaration and per ADR-0331 §D-8 cap-shape contract.
 
 Per-µservice from-scratch HCL bodies are non-canonical going forward. Existing from-scratch bodies remain compilable until each µservice's migration bucket lands under ADR-0328 canonical-build phase order; new authoring after this ADR is Accepted MUST use the shared-library shape.
 
-The shared library lives in-tree at `microservices/cloud-iac/modules/` and is governed by the cloud-iac µservice owner (axis-cloud-iac). Module releases are versioned with semantic-version tags scoped to the module path (e.g., `aws-guest/eks-cluster/v1.2.3`) and signed with cosign per ADR-0181. Module consumers pin a specific version per release-train cadence.
+The shared library lives in-tree at `cloud/cloud-iac/modules/` and is governed by the cloud-iac µservice owner (axis-cloud-iac). Module releases are versioned with semantic-version tags scoped to the module path (e.g., `aws-guest/eks-cluster/v1.2.3`) and signed with cosign per ADR-0181. Module consumers pin a specific version per release-train cadence.
 
 The library starts with ~50 canonical primitives enumerated in §D-4 below; primitive additions follow the discoverability + catalog contract in §D-8 below.
 
 ### B.2 Numbered decision clauses
 
-B2.001. `microservices/cloud-iac/modules/<context>/<primitive>/` is the canonical path for Oyatie reusable OpenTofu IaC module primitives.
+B2.001. `cloud/cloud-iac/modules/<context>/<primitive>/` is the canonical path for Oyatie reusable OpenTofu IaC module primitives.
 
 B2.002. Per-µservice `microservices/<name>/iac/<context>/main.tf` is the canonical thin-wrapper invocation site.
 
@@ -307,7 +309,7 @@ B2.019. The Wave 15Q-IaC-modules sub-wave authors the ~50 module bodies + the ca
 
 B2.020. The OCI Always Free sub-context `oci-guest/always-free/` is a first-class category in the module library. It is the canonical home for demo_trial-tenant-only primitives that fit within the OCI Always Free perpetual ceiling (per `feedback_oci_always_free_maximization_2026_05_20`). The `always-free` modules MUST validate `tenant_class == "demo_trial"` per ADR-0331 §D-8.4.
 
-B2.021. The paid sub-variant of `oci-guest` lives at `microservices/cloud-iac/modules/oci-guest/<primitive>/` (no sub-context segment). The paid modules MUST validate `tenant_class == "paid"`.
+B2.021. The paid sub-variant of `oci-guest` lives at `cloud/cloud-iac/modules/oci-guest/<primitive>/` (no sub-context segment). The paid modules MUST validate `tenant_class == "paid"`.
 
 B2.022. The `colo` context is an alias of `on-prem` for the purposes of the module library. `colo` primitives are symlinks-via-source-pin (`source = "../../on-prem/<primitive>"`) or full-path-copies — the choice is per-primitive based on whether colo-specific divergence exists (e.g., specific network-topology assumptions for a colocated rack).
 
@@ -316,7 +318,7 @@ B2.023. The `oyatie-as-cloud-provider` context modules materialize the cellular 
 B2.024. Module consumption follows the OpenTofu module source URL grammar. Acceptable source pins:
 
   - In-tree: `source = "../../../cloud-iac/modules/<context>/<primitive>"` (relative path within the monorepo).
-  - Git-tag-pinned for cross-repo or release-train consumption: `source = "git::https://github.com/oyatie/oyatie.git//microservices/cloud-iac/modules/<context>/<primitive>?ref=<context>/<primitive>/v<MAJOR>.<MINOR>.<PATCH>"`.
+  - Git-tag-pinned for cross-repo or release-train consumption: `source = "git::https://github.com/oyatie/oyatie.git//cloud/cloud-iac/modules/<context>/<primitive>?ref=<context>/<primitive>/v<MAJOR>.<MINOR>.<PATCH>"`.
 
 B2.025. The per-µservice wrapper MUST also reference the cosign attestation pin in a per-module `provider_meta` block or equivalent (the exact mechanism per the cosign + OpenTofu wiring tracked in ADR-0181).
 
@@ -326,7 +328,7 @@ B2.027. Modules MUST emit observability labels per ADR-0263. Every resource crea
 
 B2.028. Modules MUST integrate with the audit-chain per ADR-0263. State-change events (resource created, resource modified, resource destroyed) emit `cloud-iac.module.<op>` audit events with the module path + version + tenant scope.
 
-B2.029. The library catalog is published as a discoverable index at `docs/standards/iac-module-catalog.md` plus a machine-readable mirror at `microservices/cloud-iac/modules/catalog.json`. The catalog enumerates every primitive, its semantic version, its cosign attestation digest, its input variable contract, and its output contract.
+B2.029. The library catalog is published as a discoverable index at `docs/standards/iac-module-catalog.md` plus a machine-readable mirror at `cloud/cloud-iac/modules/catalog.json`. The catalog enumerates every primitive, its semantic version, its cosign attestation digest, its input variable contract, and its output contract.
 
 B2.030. The library catalog page is the canonical discovery surface for module consumers. A new µservice owner reads the catalog to select primitives; they do not search the corpus for examples.
 
@@ -373,7 +375,7 @@ B2.040. The ADR's enforcement and sunset run in coordination with ADR-0336 Wave 
 - **Coupling between µservices and cloud-iac.** Every µservice now declares a dependency on cloud-iac module versions in its `manifest.json#iac_module_invocations`. A library version pin failure (e.g., a cosign attestation rotation) cascades across every µservice that pins the old digest.
 - **Quarterly upgrade window discipline.** Every µservice must consume new module versions on the quarterly cadence; lag risks security-patch backlog accumulation.
 - **Library governance overhead.** axis-cloud-iac becomes the gatekeeper for every primitive addition / modification. The throughput of the cloud-iac owner becomes a corpus-wide bottleneck unless the owner's bandwidth is sized for the load.
-- **In-tree registry compromise.** The library lives in the monorepo at `microservices/cloud-iac/modules/`; consumers reference modules via relative paths or Git-tag-pinned URLs. There is no SaaS-registry intermediary, which simplifies provenance but means cross-repo consumers (e.g., a future external-tenant repo) must pin to specific Git tags rather than registry-cached versions.
+- **In-tree registry compromise.** The library lives in the monorepo at `cloud/cloud-iac/modules/`; consumers reference modules via relative paths or Git-tag-pinned URLs. There is no SaaS-registry intermediary, which simplifies provenance but means cross-repo consumers (e.g., a future external-tenant repo) must pin to specific Git tags rather than registry-cached versions.
 
 ### C.3 Neutral consequences
 
@@ -393,7 +395,7 @@ B2.040. The ADR's enforcement and sunset run in coordination with ADR-0336 Wave 
 | Hyperscaler alignment | AWS Solutions Constructs / GCFT / AVM precedent matched | shared library + version pins + signed releases |
 | Performance | OpenTofu module cache hit on shared module sources; faster `init` per µservice | per-µservice `tofu init` p95 drops |
 | Resilience | drift containment from N copies to 1 canonical body | quarterly security patch lands in 1 module + cascades to N consumers in one cycle |
-| Compliance | per-pack compliance posture lives in one module; per-µservice wrapper attests pack via parameter | per-module compliance-pack attestation files at `microservices/cloud-iac/modules/<context>/<primitive>/compliance/` |
+| Compliance | per-pack compliance posture lives in one module; per-µservice wrapper attests pack via parameter | per-module compliance-pack attestation files at `cloud/cloud-iac/modules/<context>/<primitive>/compliance/` |
 
 ### C.5 Hyperscaler-grade rigor application
 
@@ -425,9 +427,9 @@ B2.040. The ADR's enforcement and sunset run in coordination with ADR-0336 Wave 
 
 The shared-library shape touches ten adoption surfaces in cloud-iac itself and in every consumer µservice. Subsections D-1 through D-10 enumerate each surface. Numbering is normative.
 
-### D-1: `microservices/cloud-iac/modules/<context>/<primitive>/` canonical path
+### D-1: `cloud/cloud-iac/modules/<context>/<primitive>/` canonical path
 
-D-1.1. The canonical path for every reusable OpenTofu IaC module primitive is `microservices/cloud-iac/modules/<context>/<primitive>/`.
+D-1.1. The canonical path for every reusable OpenTofu IaC module primitive is `cloud/cloud-iac/modules/<context>/<primitive>/`.
 
 D-1.2. The five canonical `<context>` values are `aws-guest`, `oci-guest`, `on-prem`, `colo`, and `oyatie-as-cloud-provider`. The sub-context `oci-guest/always-free` is reserved for demo_trial-only primitives.
 
@@ -512,7 +514,7 @@ D-3.7. Library-side sunset of a primitive follows ADR-0108 sunset discipline: th
 
 ### D-4: Canonical primitive enumeration per context (~50 total)
 
-The library starts with the following ~50 canonical primitives. Each primitive is a self-contained module under `microservices/cloud-iac/modules/<context>/<primitive>/`. The enumeration is the binding minimum-set; additional primitives are added per the catalog discoverability contract in §D-8.
+The library starts with the following ~50 canonical primitives. Each primitive is a self-contained module under `cloud/cloud-iac/modules/<context>/<primitive>/`. The enumeration is the binding minimum-set; additional primitives are added per the catalog discoverability contract in §D-8.
 
 #### D-4.1 `aws-guest` context (10 primitives)
 
@@ -592,7 +594,7 @@ Aggregate count: 10 + 8 + 6 + 7 + 10 = 41 primitives in the binding minimum-set.
 
 D-5.1. Every module release carries a cosign attestation signed by the canonical Oyatie root key per ADR-0181.
 
-D-5.2. The attestation is stored alongside the module body at `microservices/cloud-iac/modules/<context>/<primitive>/.cosign/<tag>/attestation.json`.
+D-5.2. The attestation is stored alongside the module body at `cloud/cloud-iac/modules/<context>/<primitive>/.cosign/<tag>/attestation.json`.
 
 D-5.3. The attestation digest is published in the catalog (§D-8).
 
@@ -669,7 +671,7 @@ D-8.1. The canonical catalog page is `docs/standards/iac-module-catalog.md`. The
 - Deprecation status (active | deprecated | sunset)
 - Migration notes (if any)
 
-D-8.2. The machine-readable mirror is `microservices/cloud-iac/modules/catalog.json` for automation consumers.
+D-8.2. The machine-readable mirror is `cloud/cloud-iac/modules/catalog.json` for automation consumers.
 
 D-8.3. Module additions to the library require a corresponding catalog entry in the same change set. The `oya-check-iac-module-catalog-discoverability` lane refuses additions without catalog entries.
 
@@ -687,7 +689,7 @@ D-9.1. The new lane `oya-check-iac-shared-module-usage` scans every per-µservic
 - File contains only `module` blocks, `variable` blocks, `output` blocks, `terraform` blocks, and `provider` blocks. No `resource` blocks.
 - File is ≤ 80 LOC excluding comments and blank lines.
 - Every `module` source pins a specific version (no `?ref=main`, no bare `?ref=`).
-- Every `module` source resolves to a path under `microservices/cloud-iac/modules/<context>/<primitive>/` (or a Git-tag-pinned URL to the same path).
+- Every `module` source resolves to a path under `cloud/cloud-iac/modules/<context>/<primitive>/` (or a Git-tag-pinned URL to the same path).
 - Every consumed module has a cosign attestation per ADR-0181.
 - Every consumed module is enumerated in the µservice's `manifest.json#iac_module_invocations` field.
 
@@ -717,7 +719,7 @@ D-10.8. The Always-Free catalog page at `docs/standards/iac-module-catalog.md#al
 
 E.1 `oya-check-iac-shared-module-usage` (new) — verifies per-µservice `iac/<context>/main.tf` uses shared library primitives. REPORT-ONLY at ADR Acceptance; BLOCKER per-µservice as each migration bucket lands.
 
-E.2 `oya-check-iac-module-path-canonical` (new) — refuses inline `resource` declarations in per-µservice wrappers; refuses module paths outside `microservices/cloud-iac/modules/<context>/<primitive>/`. REPORT-ONLY at Acceptance; BLOCKER 30 days post-Acceptance for new authoring; BLOCKER per-µservice as each migration bucket lands.
+E.2 `oya-check-iac-module-path-canonical` (new) — refuses inline `resource` declarations in per-µservice wrappers; refuses module paths outside `cloud/cloud-iac/modules/<context>/<primitive>/`. REPORT-ONLY at Acceptance; BLOCKER 30 days post-Acceptance for new authoring; BLOCKER per-µservice as each migration bucket lands.
 
 E.3 `oya-check-iac-module-signature-cosign` (new) — verifies every consumed module has a corresponding ADR-0181 cosign attestation. REPORT-ONLY at Acceptance; BLOCKER 30 days post-Acceptance.
 
@@ -737,7 +739,7 @@ F.1 **Per-µservice from-scratch IaC modules (status-quo target).** Every µserv
 
 F.2 **Single mega-module library spanning all contexts.** One library per primitive, with the body containing branches for each context (`if context == "aws-guest" { aws_eks_cluster } else if context == "oci-guest" { oci_containerengine_cluster } ...`). Rejected because: OpenTofu provider configuration is per-context (AWS provider vs OCI provider vs kubernetes provider); a single body trying to satisfy all five contexts cannot use distinct provider blocks; the body becomes unreadable; testing is impossible without all five providers configured; the failure-mode of "OCI provider changes break the AWS path" is unacceptable; the substance-bar lane cannot distinguish per-context substance.
 
-F.3 **Registry-based dependency on a SaaS registry like HashiCorp Terraform Registry.** Consume shared modules from registry.terraform.io or a private HashiCorp Cloud Terraform registry. Rejected because: ADR-0218 forbids HashiCorp Terraform; the modules would still be OpenTofu modules but the registry would be HashiCorp Inc. infrastructure, creating supply-chain dependency on a forbidden vendor; OpenTofu does not have a SaaS-registry analog in production; the in-tree path under `microservices/cloud-iac/modules/` provides better provenance (cosign + Git-tag pinning) than any SaaS-registry alternative; cross-repo consumers can still consume via Git-tag-pinned URLs.
+F.3 **Registry-based dependency on a SaaS registry like HashiCorp Terraform Registry.** Consume shared modules from registry.terraform.io or a private HashiCorp Cloud Terraform registry. Rejected because: ADR-0218 forbids HashiCorp Terraform; the modules would still be OpenTofu modules but the registry would be HashiCorp Inc. infrastructure, creating supply-chain dependency on a forbidden vendor; OpenTofu does not have a SaaS-registry analog in production; the in-tree path under `cloud/cloud-iac/modules/` provides better provenance (cosign + Git-tag pinning) than any SaaS-registry alternative; cross-repo consumers can still consume via Git-tag-pinned URLs.
 
 F.4 **Move all per-µservice IaC into cloud-iac µservice tree (collapse all iac/ into cloud-iac).** Eliminate per-µservice `iac/` directories entirely; cloud-iac owns every µservice's deployment IaC. Rejected because: per-µservice ownership of "which primitives" remains with the µservice owner (cardinality + cap shape + tenant-class variants are µservice-specific decisions); the thin-wrapper model preserves per-µservice ownership of the **substance** while consolidating the **plumbing**; collapsing entirely would make cloud-iac the single point of failure for all 77 µservices' deployment authoring.
 
@@ -836,9 +838,9 @@ I.4 Companion-doc anchors:
 
 - `docs/standards/dependency-policy.md` — OpenTofu provider pins applied at the library level rather than per-µservice.
 - `docs/standards/iac-module-catalog.md` (new) — canonical catalog page per §D-8.
-- `microservices/cloud-iac/ARCHITECTURE.md` — gains the module-library scope expansion description at landing.
-- `microservices/cloud-iac/manifest.json` — gains the `module_library_scope` field per E.8.
-- `tools/hooks/_canonical-primitives.md` — gains a IaC Module Library entry naming `microservices/cloud-iac/modules/<context>/<primitive>/` as canonical.
+- `cloud/cloud-iac/ARCHITECTURE.md` — gains the module-library scope expansion description at landing.
+- `cloud/cloud-iac/manifest.json` — gains the `module_library_scope` field per E.8.
+- `tools/hooks/_canonical-primitives.md` — gains a IaC Module Library entry naming `cloud/cloud-iac/modules/<context>/<primitive>/` as canonical.
 
 ## J. Completion Report
 
@@ -849,7 +851,7 @@ date: 2026-05-21
 session: 2026-05-21 /idea-refine triplet (Decision 3 of 3)
 sibling_adrs: ADR-0337 (Iceberg canonical OLAP), ADR-0338 (Pod runtime tier 0..3)
 authority_source: feedback_idea_refine_decisions_2026_05_21
-canonical_path: microservices/cloud-iac/modules/<context>/<primitive>/
+canonical_path: cloud/cloud-iac/modules/<context>/<primitive>/
 canonical_wrapper: microservices/<name>/iac/<context>/main.tf (≤80 LOC, thin invocation)
 canonical_contexts: aws-guest, oci-guest, on-prem, colo, oyatie-as-cloud-provider (+ oci-guest/always-free sub-context)
 primitive_count_minimum_set: ~50 (10 aws-guest + 8 oci-guest + 6 always-free + 7 on-prem + colo alias + 10 oyatie-as-cloud-provider)
@@ -857,7 +859,7 @@ blast_radius_collapse: 385 from-scratch module dirs → ~50 shared primitives + 
 new_lanes: 7 (oya-check-iac-shared-module-usage, -module-path-canonical, -module-signature-cosign, -module-pin, -thin-wrapper-line-floor, -module-catalog-discoverability) + 1 existing preserved (oya-check-iac-opentofu-only)
 sunset_window: 30 days post-Acceptance for new authoring; per-µservice migration follows ADR-0328 canonical-build phase order
 wave_queue: Wave 15Q-IaC-modules added to /specs/master-plan-sequencing.json#realignment_wave_sequence.wave_15.subwaves
-manifest_expansion: microservices/cloud-iac/manifest.json gains module_library_scope expansion note
+manifest_expansion: cloud/cloud-iac/manifest.json gains module_library_scope expansion note
 out_of_scope: authoring the ~50 module bodies (sequenced as Wave 15Q-IaC-modules); migrating per-µservice iac/ (sequenced per-µservice under ADR-0328)
 hyperscaler_precedents: AWS Solutions Constructs; Google Cloud Foundation Toolkit; Azure Verified Modules; HashiCorp Terraform Registry pattern
 commits: none required at this ADR's landing

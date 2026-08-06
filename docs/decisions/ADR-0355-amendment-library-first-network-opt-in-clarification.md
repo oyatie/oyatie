@@ -64,6 +64,8 @@ enforced_by:
   - oya gate validate library-audit-emission-coherence
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Duplicate library-first network-opt-in amendment
+
 # ADR-0355: Amendment — Library-First / Network-Opt-In Clarification
 
 ## Status

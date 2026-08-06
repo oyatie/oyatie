@@ -1,7 +1,7 @@
 ---
 id: ADR-0360
 title: CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-25
 owner_team:
@@ -17,6 +17,8 @@ amends:
   - ADR-0346-oya-verify-must-run-full-ci-mirror.md
 supersedes: []
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: CI/CD optimization program
 # ADR-0360: CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching
 
 ## Status

@@ -1,7 +1,7 @@
 ---
 id: ADR-0344
 title: Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongside every audit row; finops-portal dimensional rollup per tenant/product/capability/provider/cell/compliance-pack)
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -152,6 +152,8 @@ purpose: >
   discipline. This ADR authors the contract; downstream waves
   instrument the µservices.
 ---
+
+> **Disposition light-edit (2026-08-06):** Sustainability + FinOps dimensions
 
 # ADR-0344: Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongside every audit row; finops-portal dimensional rollup per tenant/product/capability/provider/cell/compliance-pack)
 

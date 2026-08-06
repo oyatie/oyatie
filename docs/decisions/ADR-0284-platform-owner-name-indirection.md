@@ -82,6 +82,8 @@ purpose: >
   underlying tenant slug stays fixed.
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Platform-owner-name indirection — thin; fold into tenant doctrine if needed
+
 # ADR-0284: Platform-Owner-Name Indirection
 
 ## Status

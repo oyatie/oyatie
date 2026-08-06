@@ -1,7 +1,7 @@
 ---
 id: ADR-0341
 title: Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -133,6 +133,8 @@ purpose: >
   implementation, which is sequenced as a follow-on sub-wave under
   ADR-0148 + ADR-0328 batch discipline.
 ---
+
+> **Disposition light-edit (2026-08-06):** Cellular promotion gates
 
 # ADR-0341: Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator
 

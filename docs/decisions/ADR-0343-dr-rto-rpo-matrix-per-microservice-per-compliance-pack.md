@@ -1,7 +1,7 @@
 ---
 id: ADR-0343
 title: DR + RTO/RPO matrix per-µservice + per-compliance-pack (effective tenant RTO/RPO = max(µservice declared, all-applicable-pack floors))
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -132,6 +132,8 @@ purpose: >
   Per-pack auditor dashboard surface (which µservices serving that pack
   meet floor) lands as a downstream observability lane under ADR-0263.
 ---
+
+> **Disposition light-edit (2026-08-06):** DR RTO/RPO matrix
 
 # ADR-0343: DR + RTO/RPO matrix per-µservice + per-compliance-pack (effective tenant RTO/RPO = max(µservice declared, all-applicable-pack floors))
 

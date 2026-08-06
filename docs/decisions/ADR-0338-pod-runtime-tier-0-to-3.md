@@ -1,7 +1,7 @@
 ---
 id: ADR-0338
 title: Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc for first-party + edge)
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -137,6 +137,8 @@ purpose: >
   + 200-500 ms cold-start) while preserving VM-isolation where tenant-customer
   code actually executes.
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Pod runtime tier Kata/CH — isolation ladder
 
 # ADR-0338: Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc for first-party + edge)
 

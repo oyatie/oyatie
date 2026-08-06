@@ -1,7 +1,7 @@
 ---
 id: ADR-0623
 title: "Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral"
-status: Rejected
+status: Accepted
 date: 2026-07-24
 owner_team: council-architecture
 co_owners: [council-architecture]
@@ -32,6 +32,8 @@ amends: []
 related_specs: []
 milestone: W0
 ---
+
+> **Disposition light-edit (2026-08-06):** Stage-1 evidence epoch mechanism-neutral — planning contract hygiene
 
 # ADR-0623: Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral
 

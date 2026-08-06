@@ -1,7 +1,7 @@
 ---
 id: ADR-0610
 title: "Policy-IR benchmark stage-0: pre-registered frozen rubric + fixture suite as governed data"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-03
@@ -18,6 +18,8 @@ related_specs:
   - /specs/policy-ir-benchmark-fixture-suite.json
 milestone: W0
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Policy-IR benchmark stage-0
 
 # ADR-0610: Policy-IR benchmark stage-0 — pre-registered frozen rubric + fixture suite as governed data
 

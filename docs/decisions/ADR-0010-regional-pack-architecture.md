@@ -1,8 +1,10 @@
 ---
 id: ADR-0010
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Regional pack architecture — multi-market plug-ins
 
 # ADR-0010: Regional pack architecture — canonical seams + per-locale plug-ins for regulatory, compliance, i18n, currency, calendar, tax, identity, payment, address, ecosystem partners, content safety, ad policy, industry data models, and vendor partners
 

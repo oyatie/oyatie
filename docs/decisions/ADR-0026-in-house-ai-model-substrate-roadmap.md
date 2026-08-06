@@ -1,8 +1,10 @@
 ---
 id: ADR-0026
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** In-house model substrate roadmap; align naming with intelligence
 
 # ADR-0026: In-house AI model substrate — long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval set favors in-house
 

@@ -1,6 +1,6 @@
 ---
 id: ADR-0250
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -92,6 +92,8 @@ enforced_by:
   - oya gate validate certification-evidence-retention
   - oya gate validate anti-bypass-built-only-tenant
 ---
+
+> **Disposition light-edit (2026-08-06):** Build-ahead-of-certification remains hyperscaler posture
 
 # ADR-0250: Build-Ahead-of-Certification Doctrine
 

@@ -1,6 +1,6 @@
 ---
 id: ADR-0314
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owner: council-product + council-architecture
 doc_class: Architecture-Decision-Record
@@ -20,6 +20,8 @@ enforced_by:
   - oya-governance-marketplace-deal-settlement-coverage
   - oya-governance-erp-parity-module-map
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Marketplace deal-settlement substrate
 
 # ADR-0314: Marketplace as Universal Deal-Settlement Substrate
 

@@ -1,6 +1,6 @@
 ---
 id: ADR-0272
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-privacy
@@ -95,6 +95,8 @@ enforced_by:
   - cloud-ci/Rust gate packet tenant-policy-override-surface
   - cloud-ci/Rust gate packet dark-pattern-lint
 ---
+
+> **Disposition light-edit (2026-08-06):** Cookie consent / purpose analytics — privacy substrate
 
 # ADR-0272: Cookie Consent + Per-Purpose Analytics Opt-In
 

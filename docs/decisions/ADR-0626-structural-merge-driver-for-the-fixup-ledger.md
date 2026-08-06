@@ -1,7 +1,7 @@
 ---
 id: ADR-0626
 title: "Resolve fixup-ledger merges structurally instead of by hand"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-27
@@ -16,6 +16,8 @@ related: [ADR-0544, ADR-0622]
 related_specs: [/registry/fixuptasks.jsonl]
 milestone: W0
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Fixup-ledger structural merges
 
 # ADR-0626: Resolve fixup-ledger merges structurally instead of by hand
 

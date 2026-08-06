@@ -4,6 +4,8 @@ status: Rejected
 doc_status: published
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Robotics/vision/speech — out of current operational horizon; reopen when product prioritizes
+
 # ADR-0027: Robotics, vision, and speech sub-substrates — vision/speech model crates, robotics control plane, deterministic latency, safety-critical anti-scope
 
 > **Status:** Proposed

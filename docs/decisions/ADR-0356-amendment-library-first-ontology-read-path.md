@@ -83,6 +83,8 @@ enforced_by:
   - oya gate validate ontology-read-credential-sidecar-coherence
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Library-first ontology read-path amendment — fold into ontology Accepted ADRs
+
 # ADR-0356: Amendment — Library-First Ontology Read-Path Clarification
 
 ## Status

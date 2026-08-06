@@ -1,6 +1,6 @@
 ---
 id: ADR-0354
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture
@@ -57,6 +57,8 @@ enforced_by:
   - oya gate validate ech-endpoint-coverage
   - oya gate validate pqc-hybrid-kem-declared
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: HTTP/3 TLS ECH PQC amendment
 
 # ADR-0354: Amendment — HTTP/3 Fallback Chain, Strict TLS, ECH, PQC Hybrid
 

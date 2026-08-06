@@ -1,6 +1,6 @@
 ---
 id: ADR-0273
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - axis-mail
@@ -85,6 +85,8 @@ doc_class: Architecture-Decision-Record
 tier: tier-1-lockdown
 ship_blocker_for: [mail]
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Per-tenant DKIM/SPF/DMARC — email deliverability ops
 
 # ADR-0273 — Per-tenant DKIM/SPF/DMARC email deliverability
 

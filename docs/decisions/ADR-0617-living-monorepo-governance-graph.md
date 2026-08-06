@@ -1,7 +1,7 @@
 ---
 id: ADR-0617
 title: "The Living Monorepo Governance Graph — monorepo management + project lifecycle as one governed, federated, content-addressed graph (amends the ADR-0516 fabric apex)"
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-07-10
@@ -17,6 +17,8 @@ related_specs:
   - /specs/substrate-dependency-dag.json
 milestone: W0
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Living monorepo governance graph
 
 # ADR-0617: The Living Monorepo Governance Graph
 

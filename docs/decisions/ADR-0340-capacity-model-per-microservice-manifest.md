@@ -1,7 +1,7 @@
 ---
 id: ADR-0340
 title: Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant + scaling_dimension + cell_placement_class)
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -23,7 +23,7 @@ amends:
   - ADR-0248-amazon-shape-cellular-architecture.md (cell_placement_class ∈ {Tier-0..Tier-4} co-varies with the ADR-0248 cellular criticality numbering; capacity_model.cell_placement_class is the per-µservice declaration anchoring the cell sizing model + shuffle-sharding tiering decision)
   - ADR-0331-cross-microservice-tenant-class-adoption-template.md (capacity_model is the canonical declaration surface that the tenant_class cap-shape contract sizes against; demo_trial and paid cap-shape ceilings reference per-µservice capacity_model rows)
   - ADR-0338-pod-runtime-tier-0-to-3.md (pod_runtime_tier and cell_placement_class are co-declared per µservice; pod_runtime_tier governs admission/isolation, cell_placement_class governs cellular placement; the two axes are distinct but both bind cell capacity planning)
-  - ADR-0339-shared-iac-module-library.md (capacity_model values feed shared-library nodepool sizing primitives at `microservices/cloud-iac/modules/<context>/{kata-pool, runc-pool, runc-edge-pool}/`; module inputs accept per-µservice baseline_cpu_per_tenant + baseline_ram_per_tenant as sizing parameters)
+  - ADR-0339-shared-iac-module-library.md (capacity_model values feed shared-library nodepool sizing primitives at `cloud/cloud-iac/modules/<context>/{kata-pool, runc-pool, runc-edge-pool}/`; module inputs accept per-µservice baseline_cpu_per_tenant + baseline_ram_per_tenant as sizing parameters)
 related_adrs:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0044-inter-cell-mesh-tunnel.md
@@ -131,6 +131,8 @@ purpose: >
   ADR-0328 batch discipline. Do NOT author the per-µservice manifest
   updates in this ADR; that authoring is a follow-on sub-wave.
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Capacity model per µservice manifest
 
 # ADR-0340: Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant + scaling_dimension + cell_placement_class)
 
@@ -328,7 +330,7 @@ B2.020. `capacity_model.notes` is an OPTIONAL free-text string field documenting
 
 B2.021. `capacity_model.compliance_pack_overrides` is an OPTIONAL sub-object indexed by compliance pack ID (`hipaa`, `pci-dss`, `gdpr-strict`, `soc2`, `csap`, `eu-ai-act-annex-iii`) per ADR-0251, providing per-pack overrides for the capacity model when the pack imposes a stricter floor.
 
-B2.022. The OpenTofu shared module library at `microservices/cloud-iac/modules/<context>/<primitive>/` (per ADR-0339) MUST accept `baseline_cpu_per_tenant` + `baseline_ram_per_tenant` + `tenant_count_expected` as input variables for nodepool sizing primitives.
+B2.022. The OpenTofu shared module library at `cloud/cloud-iac/modules/<context>/<primitive>/` (per ADR-0339) MUST accept `baseline_cpu_per_tenant` + `baseline_ram_per_tenant` + `tenant_count_expected` as input variables for nodepool sizing primitives.
 
 B2.023. Autoscaler configuration (Karpenter NodePool / HorizontalPodAutoscaler per ADR-0198) MUST derive `target_cpu` and `target_memory` from `capacity_model.baseline_cpu_per_tenant` × `tenant_count_observed` + a 1.5x headroom factor.
 

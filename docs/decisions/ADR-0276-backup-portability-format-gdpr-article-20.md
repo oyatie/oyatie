@@ -1,6 +1,6 @@
 ---
 id: ADR-0276
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture
@@ -102,6 +102,8 @@ enforced_by:
   - oya gate validate import-roundtrip-fidelity
   - oya gate validate schema-evolution-backward-compat
 ---
+
+> **Disposition light-edit (2026-08-06):** GDPR Art.20 portability format
 
 # ADR-0276: Backup + Portability Format (GDPR Article 20)
 

@@ -1,7 +1,7 @@
 ---
 id: ADR-0542
 title: "Cloud-Intelligence XPROXY External-Proxy Parity Lane: commissioning and governance path"
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-10
@@ -16,6 +16,8 @@ related_specs:
   - /specs/root-hub-pointers.json
 milestone: W2
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: XPROXY parity lane for intelligence
 
 # ADR-0542: Cloud-Intelligence XPROXY External-Proxy Parity Lane — commissioning and governance path
 

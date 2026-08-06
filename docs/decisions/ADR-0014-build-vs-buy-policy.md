@@ -1,8 +1,10 @@
 ---
 id: ADR-0014
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Build-vs-buy matrix — stack ownership
 
 # ADR-0014: Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-governance-build-vs-buy CI lane
 

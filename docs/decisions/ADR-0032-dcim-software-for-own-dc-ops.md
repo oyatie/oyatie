@@ -4,6 +4,8 @@ status: Rejected
 doc_status: published
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: DCIM own-DC ops — optional; not on critical path for cloud-native first
+
 # ADR-0032: DCIM software for Oyatie-owned DC operations — `crates/oya-cloud-dcops-*` with anti-scope on custom silicon
 
 > **Status:** Proposed

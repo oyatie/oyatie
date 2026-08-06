@@ -1,10 +1,12 @@
 ---
 id: ADR-0025
-status: Rejected
+status: Accepted
 doc_status: published
 ---
 
-# ADR-0025: Foundry as the engineering platform — repoctl, catalog, gates, fitness functions, supply chain, customer-facing builder surfaces all under one axis
+> **Disposition light-edit (2026-08-06):** Engineering platform absorbed into intelligence (ADR-0335); keep gate/catalog intent
+
+# ADR-0025: Intelligence as the engineering platform (Foundry retired as µservice per ADR-0335) — repoctl, catalog, gates, fitness functions, supply chain, customer-facing builder surfaces all under one axis
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -17,7 +19,7 @@ doc_status: published
 
 ## Context
 
-The 2026-05-09 reframing folded the standalone "Foundry engineering platform" axis into Foundry. The thesis: every engineering surface that gates how we build (repoctl, catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain attestation, plugin substrate trust gates, plugin marketplace authoring, customer-facing builder surfaces) is the same substrate that gates how the agent runtime executes capabilities — and the same agent runtime that authors workflows is the agent runtime that authors PRs against the same fitness functions. Splitting these into separate axes fractures the cohesion: it produces two policy stores, two scorecard surfaces, two reviewer pools, two on-call rotations.
+The 2026-05-09 reframing folded the standalone engineering platform (absorbed into intelligence per ADR-0335) axis into Foundry. The thesis: every engineering surface that gates how we build (repoctl, catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain attestation, plugin substrate trust gates, plugin marketplace authoring, customer-facing builder surfaces) is the same substrate that gates how the agent runtime executes capabilities — and the same agent runtime that authors workflows is the agent runtime that authors PRs against the same fitness functions. Splitting these into separate axes fractures the cohesion: it produces two policy stores, two scorecard surfaces, two reviewer pools, two on-call rotations.
 
 The forces are: (a) recursion — the same agent runtime that authors customer workflows must author engineering PRs under the same gates; (b) authority unification — one fitness-function suite gates both an agent step and a human PR; (c) customer-facing parity — the workflow studio, plugin authoring, and regional-pack authoring surfaces are exactly the customer-side projection of the internal builder surfaces; (d) per-capability metering — engineering work is just another capability invocation that happens to author code rather than execute a workflow.
 

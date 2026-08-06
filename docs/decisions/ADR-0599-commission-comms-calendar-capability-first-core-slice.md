@@ -1,7 +1,7 @@
 ---
 id: ADR-0599
 title: "Commission the comms calendar capability-first move + cloud-agnostic core slice (comms-calendar-domain/api/usecase)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-22
@@ -17,6 +17,8 @@ related_specs:
   - /specs/reachability-registry.json
 milestone: W2
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Comms calendar capability slice
 
 # ADR-0599: Commission the comms calendar capability-first slice
 

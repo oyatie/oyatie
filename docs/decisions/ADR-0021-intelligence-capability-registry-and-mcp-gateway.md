@@ -1,8 +1,10 @@
 ---
 id: ADR-0021
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Foundry→intelligence naming; capability registry + MCP gateway remains live
 
 # ADR-0021: Foundry capability registry and MCP gateway — `Capability` schema, MCP-compatible discovery, per-tenant endpoint
 
@@ -17,7 +19,7 @@ doc_status: published
 
 ## Context
 
-Capabilities are the unit of work in the Foundry runtime: each capability is a typed contract (input schema, output schema, autonomy requirement, data classes touched, audit-chain emission topic, regulatory packs consumed, cost profile, sunset policy) that an agent can invoke. Without a single registry, capability authors would scatter contracts across crates and consumers would have no agent-discoverable entry point; every cross-microservice surface would need a bespoke client. Without an industry-standard discovery surface, we cannot integrate with the agent ecosystem (Claude Desktop, Cursor, Continue, Cline, OpenAI Apps SDK) without per-client adapters. Without a per-tenant endpoint, we cannot enforce per-tenant routing, autonomy ceilings, or evidence emission boundaries at the protocol layer.
+Capabilities are the unit of work in the intelligence runtime: each capability is a typed contract (input schema, output schema, autonomy requirement, data classes touched, audit-chain emission topic, regulatory packs consumed, cost profile, sunset policy) that an agent can invoke. Without a single registry, capability authors would scatter contracts across crates and consumers would have no agent-discoverable entry point; every cross-microservice surface would need a bespoke client. Without an industry-standard discovery surface, we cannot integrate with the agent ecosystem (Claude Desktop, Cursor, Continue, Cline, OpenAI Apps SDK) without per-client adapters. Without a per-tenant endpoint, we cannot enforce per-tenant routing, autonomy ceilings, or evidence emission boundaries at the protocol layer.
 
 We need a capability schema rich enough to gate autonomy, route providers, attribute cost, and emit audit-chain evidence — and a discovery surface that any MCP (Model Context Protocol) client can consume so agents outside our runtime can invoke our capabilities under the same trust envelope.
 

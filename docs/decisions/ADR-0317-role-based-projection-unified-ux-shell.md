@@ -1,6 +1,6 @@
 ---
 id: ADR-0317
-status: Rejected
+status: Accepted
 date: 2026-05-20
 doc_class: Architecture-Decision-Record
 owners:
@@ -55,6 +55,8 @@ enforced_by:
   - oya-governance-role-shell-same-training
   - oya-governance-per-microservice-role-adapter
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Role-based projection + unified UX shell
 
 # ADR-0317: Role-Based Projection + Unified UX Shell Doctrine
 

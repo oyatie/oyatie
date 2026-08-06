@@ -1,7 +1,7 @@
 ---
 id: ADR-0318
 title: "Adopt collar-color and workspace universality doctrine"
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owner_team: council-architecture
 co_owners:
@@ -75,6 +75,8 @@ naming_justifications:
     justification: >
       Audit event emitted when the requested device profile falls back safely.
 ---
+
+> **Disposition light-edit (2026-08-06):** Collar-color / workspace universality
 
 # ADR-0318: Collar-Color and Workspace Universality Doctrine
 

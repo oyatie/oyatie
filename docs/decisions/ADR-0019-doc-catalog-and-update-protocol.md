@@ -1,8 +1,10 @@
 ---
 id: ADR-0019
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Doc catalog update protocol
 
 # ADR-0019: Doc catalog and update protocol — every consolidated doc has owner / trigger / cadence / dependent-docs / validation; pre-flight + authoring + validation + review + publish stages; agent-authoring policy (agents propose; humans approve; catalog-validated additions auto-approved by the catalog gate); machine-readable mirror at machine-readable/catalog.json
 

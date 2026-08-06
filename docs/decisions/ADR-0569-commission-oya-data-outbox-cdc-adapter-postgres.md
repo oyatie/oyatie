@@ -1,7 +1,7 @@
 ---
 id: ADR-0569
 title: "Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres) behind the ChangeStreamSource port"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-22
@@ -16,6 +16,8 @@ related_specs:
   - /specs/capability-registry.json
 milestone: W2
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: oya-data outbox CDC adapter
 
 # ADR-0569: Commission the oya-data outbox CDC change-stream Postgres adapter
 

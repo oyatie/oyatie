@@ -1,8 +1,10 @@
 ---
 id: ADR-0004
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Control/data/analytics plane separation — core architecture
 
 # ADR-0004: Plane separation across control / data / analytics with catalog-declared plane class
 

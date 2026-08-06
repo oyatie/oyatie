@@ -1,8 +1,10 @@
 ---
 id: ADR-0048
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Korean morphology / multilingual tokenization
 
 # ADR-0048: Korean morphology + multilingual tokenization — `Tokenizer` trait per language family, mecab-ko + khaiii FFI day-1, in-house Rust port long-horizon
 

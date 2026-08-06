@@ -1,8 +1,10 @@
 ---
 id: ADR-0047
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Search backend strategy
 
 # ADR-0047: Search backend strategy — pgroonga day-1 (LGPL legal isolation), Tantivy in-Rust at scale, OpenSearch as Apache-2 adapter, in-house long-horizon
 

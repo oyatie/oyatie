@@ -1,6 +1,6 @@
 ---
 id: ADR-0313
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture
@@ -100,6 +100,8 @@ enforced_by:
   - oya-governance-conglomerate-information-barrier-coverage
   - oya-governance-conglomerate-grant-transitivity-deny
 ---
+
+> **Disposition light-edit (2026-08-06):** Conglomerate tenant hierarchy
 
 # ADR-0313: Conglomerate-Tenant Hierarchy — Sovereign-Child + Policy-Engine-Mediated Controlling-Entity Grant
 

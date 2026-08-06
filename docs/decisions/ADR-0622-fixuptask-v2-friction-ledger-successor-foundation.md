@@ -1,7 +1,7 @@
 ---
 id: ADR-0622
 title: "Define a nonbinding FixupTask v2 successor foundation"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: []
 date: 2026-07-24
@@ -17,6 +17,8 @@ related_specs:
   - /registry/fixuptasks.jsonl
 milestone: W0
 ---
+
+> **Disposition light-edit (2026-08-06):** FixupTask v2 foundation — nonbinding successor design Accepted as design intent
 
 # ADR-0622: Define a nonbinding FixupTask v2 successor foundation
 

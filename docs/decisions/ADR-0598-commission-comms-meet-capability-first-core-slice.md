@@ -1,7 +1,7 @@
 ---
 id: ADR-0598
 title: "Commission the comms meet capability-first core slice (comms-meet-api port + comms-meet-usecase)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-22
@@ -17,6 +17,8 @@ related_specs:
   - /specs/reachability-registry.json
 milestone: W2
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Comms meet capability slice
 
 # ADR-0598: Commission the comms meet capability-first core slice
 

@@ -1,8 +1,10 @@
 ---
 id: ADR-0035
-status: Rejected
+status: Accepted
 doc_status: published
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Workflow engine hybrid SM+DAG — product spine
 
 # ADR-0035: Workflow engine — hybrid state-machine + DAG (not pure BPMN), per-tenant versioning, jurisdiction overlay, agent-authored steps
 

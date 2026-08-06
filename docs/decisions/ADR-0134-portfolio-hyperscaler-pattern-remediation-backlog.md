@@ -1,6 +1,6 @@
 ---
 id: ADR-0134
-status: Rejected
+status: Accepted
 deciders: council-architecture, ops-sre-reliability, workflow-studio-product-council
 date: 2026-05-17
 owner: ops-sre-reliability
@@ -18,6 +18,8 @@ related_specs:
 version: 1.1.0
 purpose: Record the portfolio hyperscaler remediation backlog as proposed acceptance criteria without claiming that the named validators or branch-protected CI lanes already exist.
 ---
+
+> **Disposition light-edit (2026-08-06):** Context re-triage Accept: Hyperscaler pattern remediation backlog (living backlog ADR)
 
 # ADR-0134: Portfolio Hyperscaler Pattern Remediation Backlog
 

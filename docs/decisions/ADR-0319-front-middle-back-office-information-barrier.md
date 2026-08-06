@@ -24,6 +24,8 @@ depends_on:
 supersedes: []
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: FO/MO/BO information barrier — keep as Rejected until regulated-finance pack prioritizes
+
 # ADR-0319: Front Office / Middle Office / Back Office Information-Barrier Doctrine
 
 ## Status

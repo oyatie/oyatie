@@ -1,6 +1,6 @@
 ---
 id: ADR-0257
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture
@@ -91,6 +91,8 @@ enforced_by:
   - cloud-ci/Rust gate packet schema-revision-cedar-gate
   - cloud-ci/Rust gate packet dual-write-window-respected
 ---
+
+> **Disposition light-edit (2026-08-06):** Ontology object-type versioning remains
 
 # ADR-0257: Ontology Object-Type Versioning + Deprecation Handshake
 

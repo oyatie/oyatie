@@ -91,6 +91,8 @@ enforced_by:
   - oya gate validate self-modification-witness-present
 ---
 
+> **Disposition light-edit (2026-08-06):** Keep Rejected: Foundry meta-trust-root self-mod — Foundry-framed; needs rewrite under intelligence before Accept
+
 # ADR-0293: Foundry Meta-Trust-Root for Self-Modification Witness
 
 ## Status
