@@ -1,5 +1,5 @@
 [package]
-name = "oya-ci-tide-kernel"
+name = "ci-tide-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 # ForgeClient trait seam.
 
 [lib]
-name = "oya_ci_tide_kernel"
+name = "ci_tide_kernel"
 path = "src/lib.rs"
 doctest = false
 

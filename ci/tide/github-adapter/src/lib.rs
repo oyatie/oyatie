@@ -31,7 +31,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_ci_tide_kernel::{
+use ci_tide_kernel::{
     CommitStatusState, ForgeClient, MergeMethod, MergeState, PullRequest, Result, Review,
     ReviewState, TideError,
 };
@@ -69,7 +69,7 @@ impl GitHubHttpClient {
     }
 
     /// Construct from a [`TideConfig`] + resolved token.
-    pub fn from_config(config: &oya_ci_tide_kernel::TideConfig, token: &str) -> Self {
+    pub fn from_config(config: &ci_tide_kernel::TideConfig, token: &str) -> Self {
         Self::new(
             &config.forge_base_url,
             &config.repo_owner,
