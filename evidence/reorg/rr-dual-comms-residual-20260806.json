@@ -1,0 +1,101 @@
+{
+  "id": "REORG-DUAL-COMMS-RESIDUAL-20260806",
+  "class": "reshape",
+  "date": "2026-08-06T17:38:12Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-COMMS-BURNDOWN",
+  "summary": "Rehome residual zero-crate oya/comms-email|mail|messenger|meet|contact-center|emergency surfaces into registered comms/ durable home under per-leaf subdirs to avoid clobbering live core/ports/adapters/facade and existing comms/messenger resilience/chaos; retarget consumers; delete dual-home debt under oya/.",
+  "northstar": "one durable home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/ for comms residual",
+  "durable_home": "comms/",
+  "debt": [
+    "oya/comms-email/",
+    "oya/mail/",
+    "oya/messenger/",
+    "oya/meet/",
+    "oya/contact-center/",
+    "oya/emergency/"
+  ],
+  "moves": [
+    {
+      "from": "oya/comms-email/",
+      "to": "comms/comms-email/"
+    },
+    {
+      "from": "oya/mail/",
+      "to": "comms/mail/"
+    },
+    {
+      "from": "oya/messenger/",
+      "to": "comms/messenger/",
+      "reshape_note": "merged into existing comms/messenger/ (resilience+chaos retained); no basename collision"
+    },
+    {
+      "from": "oya/meet/",
+      "to": "comms/meet/"
+    },
+    {
+      "from": "oya/contact-center/",
+      "to": "comms/contact-center/"
+    },
+    {
+      "from": "oya/emergency/",
+      "to": "comms/emergency/",
+      "reshape_note": "registry boundary_note previously flagged clinical ED as app/healthcare; this PR clears absorb debt into durable home subdir only \u2014 clinical reclass remains separate if still required"
+    }
+  ],
+  "consumers_retargeted": [
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/contract-slice-conformance/contract-slice-policy.json",
+    "ci/facade/contract-slice-conformance/slices/resilience-001-messenger-manifest-trace-sampling.json",
+    "ci/facade/contract-slice-conformance/slices/resilience-001-messenger-runtime-control-loop.json",
+    "comms/messenger/resilience/runtime-control-loop-contract.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/fixtures/dr-rto-rpo-matrix/dr-001-dashboard-manifest.fixture.json",
+    "comms/comms-email/manifest.json",
+    "comms/mail/manifest.json",
+    "comms/messenger/manifest.json",
+    "comms/meet/manifest.json"
+  ],
+  "net_path_debt": "negative under oya/{comms-email,mail,messenger,meet,contact-center,emergency} (deleted); comms/<leaf>/ gains residual product artifacts at durable home",
+  "crate_count_debt_paths": 0,
+  "non_goals": [
+    "no crate renames (crates already at comms/{core,ports,adapters,facade})",
+    "no move-plan (not path bijection of crates)",
+    "no event schema_id / asyncapi address renames",
+    "no OpenBao logical secret path renames",
+    "historical docs/adr-archive / followuptasks named_in left intact",
+    "no clinical emergency reclass to app/healthcare in this PR"
+  ],
+  "consumer_proof": {
+    "oya_debt_path_prefix_live_refs": "zero outside historical docs/evidence/followuptasks after retarget",
+    "cedar_paths": [
+      "comms/comms-email/iac/k8s/helm/templates/cedar.yaml",
+      "comms/mail/iac/k8s/helm/templates/cedar.yaml",
+      "comms/messenger/iac/k8s/helm/templates/cedar.yaml",
+      "comms/meet/iac/k8s/helm/templates/cedar.yaml",
+      "comms/contact-center/iac/k8s/helm/templates/cedar.yaml",
+      "comms/emergency/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "absorbs_current_dirs": [
+      "comms"
+    ],
+    "tier_manifests": [
+      "comms/comms-email/manifest.json",
+      "comms/mail/manifest.json",
+      "comms/messenger/manifest.json",
+      "comms/meet/manifest.json",
+      "comms/contact-center/manifest.json",
+      "comms/emergency/manifest.json"
+    ]
+  },
+  "path_disjoint_from": [
+    "marketplace/",
+    "observability/",
+    "gateway/",
+    "secrets/",
+    "audit/",
+    "console/"
+  ]
+}
