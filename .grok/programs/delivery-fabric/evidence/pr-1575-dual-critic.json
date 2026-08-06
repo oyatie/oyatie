@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "6f765a8147ef13841763225eb8253adcb6e2002f",
+  "head": "1bfcedaa3d3245e212e2c218630231a77d8822d8",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; only xAI/grok available in this W3 babysit session \u2014 same_family recorded honestly (policy admit_independence includes same_family)",
   "critics": [
