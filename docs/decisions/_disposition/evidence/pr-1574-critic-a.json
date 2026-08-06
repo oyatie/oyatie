@@ -24,13 +24,13 @@
     {
       "severity": "high",
       "title": "Agent false-green / dual-authority: archive ADR-0515 body still claims Accepted current-truth",
-      "evidence": "docs/adr-archive/ADR-0515-… frontmatter status: Superseded, superseded_by: [ADR-700], but body Status section still reads '**Accepted — 2026-06-07**' and 'This is the single current-truth CI/CD enforcement ADR'. Live apexes depend_on: [ADR-515, ADR-363, ADR-562] (archived numbers). live-accepted-index.json still count:256 with old docs/decisions file names. END-STATE-POLICY Progress table still says E4 BLOCKED / E5 QUEUED while completion table claims E3–E5 done — contradictory completion signal.",
+      "evidence": "docs/adr-archive/ADR-0515-… frontmatter status: Superseded, superseded_by: [ADR-0700], but body Status section still reads '**Accepted — 2026-06-07**' and 'This is the single current-truth CI/CD enforcement ADR'. Live apexes depend_on: [ADR-515, ADR-363, ADR-562] (archived numbers). live-accepted-index.json still count:256 with old docs/decisions file names. END-STATE-POLICY Progress table still says E4 BLOCKED / E5 QUEUED while completion table claims E3–E5 done — contradictory completion signal.",
       "fix": "Stamp archived bodies with a non-authority banner (historical; live = ADR-0700…). Point depends_on at live apex ids. Refresh or retire live-accepted-index.json. Align END-STATE-POLICY progress with actual state. Prefer single completion receipt, not dual contradictory ledgers."
     },
     {
       "severity": "high",
       "title": "adr-redirect.v1.json fails its own schema; disposition enum underused",
-      "evidence": "adr-redirect.schema.json requires properties schema+tip+entries; live map has schema+generated_at+entries (missing tip). Schema disposition enum includes live|superseded|rejected|consolidated; observed entries are only disposition=consolidated (no rejected/historical-only). E3 run records 8 fold errors 'no successor' (101,97,102,138,57,387,384,381) yet redirect later maps them consolidated→ADR-709 without fold receipt of normative gist into 709.",
+      "evidence": "adr-redirect.schema.json requires properties schema+tip+entries; live map has schema+generated_at+entries (missing tip). Schema disposition enum includes live|superseded|rejected|consolidated; observed entries are only disposition=consolidated (no rejected/historical-only). E3 run records 8 fold errors 'no successor' (101,97,102,138,57,387,384,381) yet redirect later maps them consolidated→ADR-0709 without fold receipt of normative gist into 709.",
       "fix": "Regenerate map to satisfy schema (tip SHA, optional archive_path in schema). Use rejected/superseded dispositions where appropriate. Close E3 no-successor set with explicit fold receipts or rejected disposition before claiming E3 complete."
     },
     {
@@ -54,7 +54,7 @@
     {
       "severity": "low",
       "title": "Mechanical structure goals partially achieved",
-      "evidence": "Live docs/decisions/ contains only 10 ADR-0700..0709 apex files + README + _disposition/ (+ BUCK/OWNERS/INDEX/templates/specs). e3-e5-run.json reports e4_archived:448 and e5_apex member counts summing to 386 consolidated members. Redirect maps 515→ADR-700 and 363→ADR-701. Activation boilerplate fail-closed line is present on all apex headers.",
+      "evidence": "Live docs/decisions/ contains only 10 ADR-0700..0709 apex files + README + _disposition/ (+ BUCK/OWNERS/INDEX/templates/specs). e3-e5-run.json reports e4_archived:448 and e5_apex member counts summing to 386 consolidated members. Redirect maps 515→ADR-0700 and 363→ADR-0701. Activation boilerplate fail-closed line is present on all apex headers.",
       "fix": "Keep archive+redirect skeleton; fix content authority before merge. Do not treat mechanical file moves as disposition complete."
     }
   ],

@@ -514,7 +514,7 @@
       "id": "ADR-0349",
       "title": "GitHub Actions oya-ci Argocd Self Hostable Ci Cd Substrate",
       "scope": "repo",
-      "file": "docs/adr-archive/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

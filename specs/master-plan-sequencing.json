@@ -93,15 +93,6 @@
           "note": "Immutable ADR-census epoch-transition lifecycle propagation only. This marker adds no plan work, approves no roadmap, dispatches no implementation, and preserves P2 active plus P3 dormant under HOLD(Planning)."
         },
         {
-          "id": "ADR-0635",
-          "lifecycle_state": "Accepted",
-          "planning_impact": true,
-          "sequencing_effect": "none",
-          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
-          "hold_state": "HOLD(Planning)",
-          "note": "Accepted W0-C face-aware substrate graph-v2 propagation. It binds the existing W0-C consolidation into P-REORG planning authority without minting a new work item, dispatching a wave, or creating a baseline carveout."
-        },
-        {
           "id": "ADR-0630",
           "lifecycle_state": "Accepted",
           "planning_impact": false,
@@ -109,6 +100,15 @@
           "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
           "hold_state": "HOLD(Planning)",
           "note": "Accepted ARC interim owned-runner substrate (dual-worker general capacity amend). Binds existing infra/arc declarations into planning authority without minting product work-items; live apply remains human Day-2."
+        },
+        {
+          "id": "ADR-0635",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Accepted W0-C face-aware substrate graph-v2 propagation. It binds the existing W0-C consolidation into P-REORG planning authority without minting a new work item, dispatching a wave, or creating a baseline carveout."
         },
         {
           "id": "ADR-0637",
@@ -136,6 +136,96 @@
           "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
           "hold_state": "HOLD(Planning)",
           "note": "Accepted path/event-optional fan-in legs under singleton oya-ci-required. Binds CI FinOps classification without minting product work-items or authorizing docs-skip of A-always admission gates."
+        },
+        {
+          "id": "ADR-0700",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0700 (ci_admission) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0701",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0701 (monorepo_capability) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0702",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0702 (identity_authz) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0703",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0703 (cas_cache) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0704",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0704 (k8s_port) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0705",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0705 (product_protocol) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0706",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0706 (observability) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0707",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0707 (trust_safety) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0708",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0708 (platform_foundations) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
+        },
+        {
+          "id": "ADR-0709",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0709 (general) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
         }
       ],
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
