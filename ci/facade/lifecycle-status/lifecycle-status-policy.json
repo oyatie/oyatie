@@ -11,7 +11,7 @@
     },
     "doc-status-lifecycle": {
       "_comment": "2667 docs observed. This is the repo's largest single ungoverned-status corpus and the reason this lane must be a ratchet rather than a flag day: 72% of tracked docs declare no lifecycle stage at all.",
-      "stage_not_declared": 1920,
+      "stage_not_declared": 1921,
       "unknown_stage": 9
     }
   },

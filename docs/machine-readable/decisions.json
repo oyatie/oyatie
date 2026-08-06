@@ -7,7 +7,7 @@
   "_metadata": {
     "source": "docs/decisions",
     "total_adrs": 10,
-    "numbering": "ADR-0700..ADR-0709",
+    "numbering": "contiguous ADR-0700..ADR-0709 (gap-free)",
     "gaps": [],
     "next_adr": "ADR-0710",
     "status_counts": {

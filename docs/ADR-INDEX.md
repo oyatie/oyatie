@@ -12,9 +12,9 @@ doc_status: published
 ## At-a-glance
 
 - **Total ADRs:** 10
-- **Numbering:** ADR-0700 .. ADR-0709
+- **Numbering:** contiguous ADR-0700..ADR-0709 (gap-free)
 - **Next ADR number:** 0710
-- **Status counts:** Accepted=10
+- **Status counts:** Accepted 10
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)

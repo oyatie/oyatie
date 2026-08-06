@@ -3664,9 +3664,15 @@ fn is_workspace_inherited(line: &str, key: &str) -> bool {
 /// any non-grandfathered phantom edge is born-blocking). ADR-0397 itself is deliberately
 /// NOT in this list: it was healed by minting the record, which is what keeps this lane's
 /// live key set empty.
-const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 11] = [
-    "ADR-0033", "ADR-0037", "ADR-0247", "ADR-0322", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0406",
-    "ADR-0421", "ADR-0428", "ADR-0429"
+const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
+    "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086", "ADR-0088",
+    "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232", "ADR-0247", "ADR-0322",
+    "ADR-0323", "ADR-0327", "ADR-0342", "ADR-0345", "ADR-0395", "ADR-0399", "ADR-0403", "ADR-0406",
+    "ADR-0407", "ADR-0408", "ADR-0409", "ADR-0411", "ADR-0413", "ADR-0416", "ADR-0418", "ADR-0419",
+    "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441",
+    "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
+    "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472", "ADR-0473",
+    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488"
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).

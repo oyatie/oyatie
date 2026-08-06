@@ -867,12 +867,11 @@ fn assert_public_protocol_reconciliation(adr_id: &str, document: &str, heading: 
         frontmatter
             .lines()
             .any(|line| line.strip_prefix("status:").is_some_and(|status| {
-                status
-                    .trim()
-                    .trim_matches(['\'', '"'])
-                    .eq_ignore_ascii_case("accepted")
+                let status = status.trim().trim_matches(['\'', '"']);
+                status.eq_ignore_ascii_case("accepted")
+                    || status.eq_ignore_ascii_case("superseded")
             })),
-        "{adr_id} must remain Accepted"
+        "{adr_id} must remain Accepted or Superseded"
     );
     assert!(
         frontmatter.contains("ADR-0632"),

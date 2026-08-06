@@ -1,9 +1,9 @@
 {
-  "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act \u2014 the ADR-0551 trust class (same as ratchet-policy.json) \u2014 never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
+  "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
   "registered": [
     {
       "prefix": "kernel/",
-      "anchor": "ADR-0512 + ADR-0562 (issue #1211, PR #1210): kernel/ is the sanctioned nested-workspace meta-dir (ADR-0512 carve-out; capability-registry meta-dir). Homes the rung-0 kuberos kernel and its dev-only QEMU real-boot harness \u2014 kernel/core/asterinas-boundary (black-box upstream pin + closed boot-ready marker set) and kernel/harness/asterinas-real-boot (fetch-verify + single-boot orchestration + receipts). Wave-1 shard-1 of the Asterinas canonical-kernel pivot."
+      "anchor": "ADR-0512 + ADR-0562 (issue #1211, PR #1210): kernel/ is the sanctioned nested-workspace meta-dir (ADR-0512 carve-out; capability-registry meta-dir). Homes the rung-0 kuberos kernel and its dev-only QEMU real-boot harness — kernel/core/asterinas-boundary (black-box upstream pin + closed boot-ready marker set) and kernel/harness/asterinas-real-boot (fetch-verify + single-boot orchestration + receipts). Wave-1 shard-1 of the Asterinas canonical-kernel pivot."
     },
     {
       "prefix": ".claude/BUCK",
@@ -27,7 +27,7 @@
     },
     {
       "prefix": "oya-deps.toml",
-      "anchor": "ADR-0535 \u00a75: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate."
+      "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate."
     },
     {
       "prefix": "cloud/cloud-iam/contracts/",
@@ -39,15 +39,15 @@
     },
     {
       "prefix": "comms/messenger/resilience/",
-      "anchor": "ADR-0176 (brown-out + graceful-degradation signal API), with ADR-0165/0168/0180/0186/0210/0241: the messenger runtime-control-loop contract-slice tree (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs), homed under the comms capability per ADR-0562 \u00a710.16 messenger move and enforced by the contract-slice-conformance gate; the contract is justified in docs/decisions/ADR-0705-product-protocol-live-apex.md"
+      "anchor": "ADR-0176 (brown-out + graceful-degradation signal API), with ADR-0165/0168/0180/0186/0210/0241: the messenger runtime-control-loop contract-slice tree (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs), homed under the comms capability per ADR-0562 §10.16 messenger move and enforced by the contract-slice-conformance gate; the contract is justified in docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "prefix": "comms/messenger/chaos/",
-      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 \u00a710.16; justified in docs/decisions/ADR-0705-product-protocol-live-apex.md"
+      "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "prefix": "comms/observability/slos/messenger/",
-      "anchor": "ADR-0180 (SLO composition inheritance arithmetic) + ADR-0139 (SLO-home convention): the messenger per-service SLO home, including composition.openslo.yaml joining the per-service OpenSLO objectives referenced by the runtime-control-loop contract slo_gate_refs, homed under comms per ADR-0562 \u00a710.16; justified in docs/decisions/ADR-0705-product-protocol-live-apex.md"
+      "anchor": "ADR-0180 (SLO composition inheritance arithmetic) + ADR-0139 (SLO-home convention): the messenger per-service SLO home, including composition.openslo.yaml joining the per-service OpenSLO objectives referenced by the runtime-control-loop contract slo_gate_refs, homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "prefix": "data/observability/slos/data-substrate/",
@@ -63,11 +63,11 @@
     },
     {
       "prefix": "iam/observability/slos/identity-workload-svid-kernel/",
-      "anchor": "ADR-0562 \u00a710.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/oya-identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention \u2014 all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old\u2192new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir"
+      "anchor": "ADR-0562 §10.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/oya-identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention — all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old→new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir"
     },
     {
       "prefix": "iam/observability/slos/identity-workload-svid-operator-kernel/",
-      "anchor": "ADR-0561 slice-1b-iii-c + ADR-0139 SLO-home: the in-cluster SVID-delivery operator's promotion-gating SLO subtree (the operator that PRODUCES the oya-cloud-iam-pdp-svid Secret the PDP mTLS PEP boots from \u2014 the single producer that closes the cert-delivery dimension of FRIC-1781490000 and unblocks G004). Per the ADR-0139 SLO-home convention this SLO is non-crate-resident (homed at <cap>/observability/slos/), so it is NOT reachable via cargo-members and needs an explicit reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact observability path verbatim. breadth: just this svid-operator SLO subdir"
+      "anchor": "ADR-0561 slice-1b-iii-c + ADR-0139 SLO-home: the in-cluster SVID-delivery operator's promotion-gating SLO subtree (the operator that PRODUCES the oya-cloud-iam-pdp-svid Secret the PDP mTLS PEP boots from — the single producer that closes the cert-delivery dimension of FRIC-1781490000 and unblocks G004). Per the ADR-0139 SLO-home convention this SLO is non-crate-resident (homed at <cap>/observability/slos/), so it is NOT reachable via cargo-members and needs an explicit reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact observability path verbatim. breadth: just this svid-operator SLO subdir"
     },
     {
       "prefix": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml",
@@ -95,11 +95,11 @@
     },
     {
       "prefix": "contracts/openapi/foundry/BUCK",
-      "anchor": "ADR-0562 \u00a710.26 / issue #1338 / PR #1335: exact Buck package marker for the existing live OpenAPI contract path consumed by the moved intelligence OpenAPI domain; this registers only the canonical package marker named by the adjacent prefix, not a broad contract subtree exemption."
+      "anchor": "ADR-0562 §10.26 / issue #1338 / PR #1335: exact Buck package marker for the existing live OpenAPI contract path consumed by the moved intelligence OpenAPI domain; this registers only the canonical package marker named by the adjacent prefix, not a broad contract subtree exemption."
     },
     {
       "prefix": "docs/decisions/",
-      "anchor": "ADR-0555 D3: the governance decision corpus \u2014 every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file"
+      "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file"
     },
     {
       "anchor": "ADR-0700..ADR-0709 disposition E4: historical ADR archive under docs/adr-archive/ (Rejected + Superseded members; not live law). Owned by docs/adr-archive/OWNERS (council-architecture). Reachability is corpus-level for provenance; live resolution is apex files under docs/decisions/ADR-070x.",
@@ -119,11 +119,11 @@
     },
     {
       "prefix": "evidence/",
-      "anchor": "ADR-0555 D3: gate/agent evidence corpus \u2014 TTL-accounted decay (staleness-reaper budgets); evidence is reached by the gate runs that produced it"
+      "anchor": "ADR-0555 D3: gate/agent evidence corpus — TTL-accounted decay (staleness-reaper budgets); evidence is reached by the gate runs that produced it"
     },
     {
       "prefix": "registry/catalog/",
-      "anchor": "ADR-0555 D3: the canonical service/artifact catalog corpus \u2014 every registry/catalog/*.yaml is a GOVERNED record reached AS the catalog corpus: per-record liveness is enforced by the catalog-liveness gate (PR-C3 live-or-explicitly-marked) and committed==regenerated by the registry-drift gate, so the catalog governance IS the per-record accounting, not a hand-mentioned per file. This is the prefix the ADR-0562 \u00a710.x capability-move ownership-seed anchors already reference for their re-keyed registry/catalog/<cap>-*.yaml records; making it an explicit corpus seed also makes every NEW crate's catalog record born-reachable (closes the unreachable-regression-on-new-catalog-record friction class)."
+      "anchor": "ADR-0555 D3: the canonical service/artifact catalog corpus — every registry/catalog/*.yaml is a GOVERNED record reached AS the catalog corpus: per-record liveness is enforced by the catalog-liveness gate (PR-C3 live-or-explicitly-marked) and committed==regenerated by the registry-drift gate, so the catalog governance IS the per-record accounting, not a hand-mentioned per file. This is the prefix the ADR-0562 §10.x capability-move ownership-seed anchors already reference for their re-keyed registry/catalog/<cap>-*.yaml records; making it an explicit corpus seed also makes every NEW crate's catalog record born-reachable (closes the unreachable-regression-on-new-catalog-record friction class)."
     },
     {
       "prefix": "specs/cloud-ci-run-observability-packet.schema.json",
@@ -135,11 +135,11 @@
     },
     {
       "prefix": "specs/cache-warmth-policy.json",
-      "anchor": "ADR-0556 D1: the cache-warmth classification policy-as-data \u2014 reached by its named consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) and by ADR-0556 related_specs"
+      "anchor": "ADR-0556 D1: the cache-warmth classification policy-as-data — reached by its named consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) and by ADR-0556 related_specs"
     },
     {
       "prefix": "specs/capability-registry.json",
-      "anchor": "ADR-0562 \u00a72: the CLOSED capability registry policy-as-data \u2014 the single source of truth for the capability-first repo organization, reached by the ADR-0562 deterministic placement rule + the \u00a76 membership lint (its named consumer) + ADR-0562 related_specs; held at specs/ until the governance/ top-level dir exists"
+      "anchor": "ADR-0562 §2: the CLOSED capability registry policy-as-data — the single source of truth for the capability-first repo organization, reached by the ADR-0562 deterministic placement rule + the §6 membership lint (its named consumer) + ADR-0562 related_specs; held at specs/ until the governance/ top-level dir exists"
     },
     {
       "prefix": "specs/substrate-dependency-dag.json",
@@ -147,11 +147,11 @@
     },
     {
       "prefix": "specs/microservice-tier-classification.json",
-      "anchor": "Phase-0 capability-first reorg (ADR-0562/0536/0245): the per-service tier classification PROJECTION \u2014 the read-only roll-up of the per-manifest tier/tier_subtype/dr_tier facets, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref; its named consumer is the oya-cloud-ci-tier-field-coverage-app born-blocking gate + platform-architecture.json related ref"
+      "anchor": "Phase-0 capability-first reorg (ADR-0562/0536/0245): the per-service tier classification PROJECTION — the read-only roll-up of the per-manifest tier/tier_subtype/dr_tier facets, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref; its named consumer is the oya-cloud-ci-tier-field-coverage-app born-blocking gate + platform-architecture.json related ref"
     },
     {
       "prefix": "specs/fixtures/",
-      "anchor": "ADR-0555 D3: the gates' data-under-test corpus \u2014 fixture dirs are loaded wholesale by each gate's fixture-driven test (read_dir over tc-*.json), so the consuming test IS the live pointer"
+      "anchor": "ADR-0555 D3: the gates' data-under-test corpus — fixture dirs are loaded wholesale by each gate's fixture-driven test (read_dir over tc-*.json), so the consuming test IS the live pointer"
     },
     {
       "prefix": "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
@@ -163,7 +163,7 @@
     },
     {
       "prefix": "specs/reachability-registry.json",
-      "anchor": "ADR-0555: this registry registers itself \u2014 a reviewed root registration surface pointed at by oya-ci.toml [reachability].registry"
+      "anchor": "ADR-0555: this registry registers itself — a reviewed root registration surface pointed at by oya-ci.toml [reachability].registry"
     },
     {
       "prefix": "docs/ideas/",
@@ -183,11 +183,11 @@
     },
     {
       "prefix": "third-party/",
-      "anchor": "ADR-0555 D3: reindeer-vendored third-party tree \u2014 a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions"
+      "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions"
     },
     {
       "prefix": "infra/ci/runner-image/",
-      "anchor": "ADR-0630 D4 (Artifact accounting): the baked owned-runner image recipe consumed by the oya-arm64 ARC scale set \u2014 buck2 + the pinned Rust toolchain + clang/lld + pwsh (the required lane's gate matrix runs `shell: pwsh`, which the upstream actions-runner image does not ship); base-image digest pinned and arch-agnostic via uname -m; ownership seed infra/ci/runner-image/OWNERS (cloud-ci-platform)"
+      "anchor": "ADR-0630 D4 (Artifact accounting): the baked owned-runner image recipe consumed by the oya-arm64 ARC scale set — buck2 + the pinned Rust toolchain + clang/lld + pwsh (the required lane's gate matrix runs `shell: pwsh`, which the upstream actions-runner image does not ship); base-image digest pinned and arch-agnostic via uname -m; ownership seed infra/ci/runner-image/OWNERS (cloud-ci-platform)"
     },
     {
       "prefix": "infra/kms/BUCK",
@@ -215,7 +215,7 @@
     },
     {
       "prefix": "infra/ci/buckconfig/",
-      "anchor": "ADR-0560 D3: opt-in buck2 cache overlays \u2014 selected ONLY by the oya-cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)"
+      "anchor": "ADR-0560 D3: opt-in buck2 cache overlays — selected ONLY by the oya-cloud-ci-cache-wiring-app resolver under the specs/cache-warm-license.json kill-switch; conformance-gated (overlay posture + dark-wiring guarantee); ownership seed infra/ci/buckconfig/OWNERS (cloud-ci-platform)"
     },
     {
       "prefix": "toolchains/cache/",
@@ -227,7 +227,7 @@
     },
     {
       "prefix": ".github/workflows/cache-integrity-canary.yml",
-      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow \u2014 from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate"
+      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate"
     },
     {
       "prefix": ".github/workflows/cache-integrity-canary-schedule.yml",
@@ -443,7 +443,7 @@
     },
     {
       "prefix": "infra/gitops/BUCK",
-      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Buck package marker that exposes reviewed GitOps declarative inputs (including local-path storage for the isolated CAS proof cell) to the repository corpus graph; indexing only \u2014 no live apply authority."
+      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Buck package marker that exposes reviewed GitOps declarative inputs (including local-path storage for the isolated CAS proof cell) to the repository corpus graph; indexing only — no live apply authority."
     },
     {
       "prefix": "infra/gitops/local-path-storage.yaml",
@@ -455,11 +455,11 @@
     },
     {
       "prefix": "infra/talos/qemu-cilium.patch.yaml",
-      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Talos QEMU Cilium machine-config patch required by the isolated CAS proof-cell network boundary; declarative repository evidence only \u2014 no live cluster mutation authority."
+      "anchor": "CAS proof-cell bootstrap / PR #1558: exact Talos QEMU Cilium machine-config patch required by the isolated CAS proof-cell network boundary; declarative repository evidence only — no live cluster mutation authority."
     },
     {
       "prefix": "docs/programs/k8s-port/",
-      "anchor": "ADR-0637 + ADR-0638 \u00a7Records: the lane-first Kubernetes port program records (operations, reusable prescriptions, and doctrine) are the R-DOC-governed procedural memory for mechanical upstream absorption; chronology is secondary and binding doctrine graduates to ADRs."
+      "anchor": "ADR-0637 + ADR-0638 §Records: the lane-first Kubernetes port program records (operations, reusable prescriptions, and doctrine) are the R-DOC-governed procedural memory for mechanical upstream absorption; chronology is secondary and binding doctrine graduates to ADRs."
     },
     {
       "prefix": "docs/programs/hyperscaler-delivery-lanes/",
