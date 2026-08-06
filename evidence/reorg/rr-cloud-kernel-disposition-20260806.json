@@ -1,0 +1,974 @@
+{
+  "schema": "oyatie/evidence/rr-cloud-kernel-disposition/v1",
+  "card_id": "RR-CLOUD-KERNEL-DISPOSITION",
+  "title": "cloud/cloud-kernel multi-home disposition inventory (21 Cargo.toml) \u2014 plan-first, no moves",
+  "date": "2026-08-06",
+  "branch": "agent/reorg-cloud-kernel-disposition-20260806",
+  "origin_dev_sha": "1ff54ddc56fe820b55924a3b81e69f84bd1a8ba8",
+  "worktree": "/Users/jasonlee/.grok/worktrees/developer-oyatie/reorg-cloud-kernel-disposition-20260806",
+  "class": "mixed inventory (not bulk move)",
+  "capability_span": "single",
+  "capability": "kernel",
+  "net_debt_policy": "reduce_only",
+  "wave": "W2",
+  "constraints_honored": [
+    "no crate path moves this PR",
+    "no multi-cap mega-move",
+    "no new active *-move-plan.json (ADR-0614 singleton; plan surface free after #1578 but this PR is inventory-only)",
+    "no proven-empty delete (cloud/cloud-kernel holds 20 package crates + nested workspace)",
+    "no CAS/RE/runners/k8s port coupling",
+    "ADR re-query recorded before disposition recommendation",
+    "zero-crate residual only would allow residual delete; residual is NOT zero today"
+  ],
+  "authority_requery": {
+    "performed_at": "2026-08-06T12:00:00Z",
+    "doctrine": ".grok/programs/REORG-DOCTRINE.md",
+    "adrs_and_plans": [
+      {
+        "id": "ADR-0562",
+        "note": "Capability topology / Fork 2 kernel home; must be read with 0615/0635 amendments; registry absorbs cloud/cloud-kernel + kernel under meta_dir kernel/"
+      },
+      {
+        "id": "ADR-0611",
+        "note": "Landed asterinas crates into kernel/ as parallel nested workspace; describes cloud/cloud-kernel as the nested-workspace PRECEDENT it mirrors \u2014 dual-home is intentional interim, not accidental"
+      },
+      {
+        "id": "ADR-0512",
+        "note": "Nested-workspace carve-out for bare-metal no_std cloud-kernel / kernel"
+      },
+      {
+        "id": "ADR-0614",
+        "note": "Move-plan singleton for move-class bijections; this inventory does not open or execute a move-plan"
+      },
+      {
+        "id": "specs/reorg/kernel-move-plan.BLOCKED.json",
+        "status": "BLOCKED",
+        "pr_park": 1521,
+        "note": "Settled design for face assignment + de-brand map; fail-closed on dry-run until B1/B2/B3 clear"
+      }
+    ],
+    "capability_registry": {
+      "path": "specs/capability-registry.json",
+      "kernel_current_dirs": [
+        "cloud/cloud-kernel",
+        "kernel"
+      ],
+      "kernel_meta_dir": "kernel/",
+      "os_current_dirs": [
+        "cloud/cloud-os",
+        "os"
+      ],
+      "note": "Registry already records dual-home for kernel capability; disposition does not invent a third home under os/ or compute/"
+    },
+    "backlog_crosswalk": {
+      "RR-CLOUD-KERNEL-DEL": "Backlog card frames unowned deletion after #1523; this inventory SUPERSEDES deletion as the default disposition \u2014 durable home is kernel/ face layout (or an explicit nested sub-workspace under kernel/), not delete-while-crates-live. Deletion only for proven-empty residual after successful rehome.",
+      "kernel-move-plan.BLOCKED": "Authoritative face map for the 7 members; nested 13 ride along"
+    }
+  },
+  "scope_summary": {
+    "root": "cloud/cloud-kernel",
+    "cargo_toml_count": 21,
+    "package_crate_count": 20,
+    "workspace_root_manifests": 1,
+    "workspace_members": 7,
+    "workspace_excluded_listed": 8,
+    "nested_freestanding_not_in_exclude_list": 5,
+    "tree_file_count": 170,
+    "file_ext_histogram_top": {
+      ".rs": 87,
+      ".toml": 46,
+      ".ld": 13,
+      "<none>": 11,
+      ".elf": 7,
+      ".lock": 2,
+      ".json": 2,
+      ".c": 1,
+      ".trace": 1
+    },
+    "owners": "axis-cloud-platform",
+    "manifest_microservice": "cloud-kernel",
+    "manifest_tier": "substrate",
+    "nested_workspace": true,
+    "root_workspace_member": false
+  },
+  "dual_home": {
+    "is_dual_home": true,
+    "kind": "parallel_nested_workspaces_same_capability",
+    "homes": [
+      {
+        "path": "cloud/cloud-kernel",
+        "role": "kuberos framekernel nested workspace (nightly build-std, bare-metal targets)",
+        "package_crate_count": 20,
+        "cargo_toml_count": 21,
+        "file_count": 170
+      },
+      {
+        "path": "kernel",
+        "role": "ADR-0611 asterinas boundary + real-boot harness nested workspace (edition 2024 / rust 1.97.1 / std host harness)",
+        "package_crate_count": 2,
+        "crate_paths": [
+          "kernel/core/asterinas-boundary",
+          "kernel/harness/asterinas-real-boot"
+        ],
+        "file_count": 15
+      }
+    ],
+    "os_contrast": {
+      "path": "os/",
+      "role": "Talos-class node OS (already absorbed cloud-os crates \u2014 PR #1416 pattern)",
+      "sample_crates": [
+        "os/core/archiver-domain",
+        "os/core/cluster-mgmt-domain",
+        "os/core/config-docs-domain",
+        "os/core/hardware-domain",
+        "os/core/install-domain",
+        "os/core/resources-domain",
+        "os/core/secrets-domain",
+        "os/harness/difftest-app"
+      ]
+    },
+    "compute_contrast": {
+      "path": "compute/",
+      "role": "Multi-tenant compute product faces + provider adapters",
+      "sample_crates": [
+        "compute/adapters/aws",
+        "compute/adapters/oci",
+        "compute/core/dcops",
+        "compute/core/domain",
+        "compute/core/resource",
+        "compute/facade/functions",
+        "compute/facade/k8s",
+        "compute/facade/vm"
+      ]
+    }
+  },
+  "blockers_still_open": {
+    "source": "specs/reorg/kernel-move-plan.BLOCKED.json#_blockers",
+    "B1_destination_occupied_by_an_incompatible_workspace": {
+      "status": "open",
+      "summary": "kernel/ already a nested workspace (asterinas) incompatible with kuberos on edition, .cargo/config.toml bare-metal target, and rust-toolchain.toml nightly vs stable. Cargo walks up; one tree cannot carry two values for (b)/(c)."
+    },
+    "B2_codemod_does_not_rewrite_workspace_dependencies": {
+      "status": "open",
+      "summary": "5 path edges live in [workspace.dependencies]; codemod only rewrites [dependencies]/[dev-dependencies]/[build-dependencies] (+ target.<cfg>). Silent green false success."
+    },
+    "B3_path_literals_encode_the_old_layout": {
+      "status": "open",
+      "summary": "include!/include_bytes! path-ups break when flat crates/<name> becomes <face>/<name>; tests-host names oya-cloud-kernel-user-layout-kernel directory literally.",
+      "evidence_counts": {
+        "include_macros_with_relative_or_out_literal": 21,
+        "include_macros_naming_oya_cloud_kernel_crate_dir": 0,
+        "named_crate_dir_samples": []
+      }
+    }
+  },
+  "disposition_ruling": {
+    "default_class_now": "park",
+    "dominant_future_class": "mixed",
+    "durable_home_for_all_20_packages": "kernel/",
+    "os_home": "rejected for all crates",
+    "compute_home": "rejected for all crates",
+    "safe_delete_now": false,
+    "safe_delete_reason": "20 live package crates + nested workspace + out/ ELFs + gate/registry dual-home absorb; not proven-empty",
+    "zero_crate_residual_delete_gate": "Only after all package crates and required artifacts leave cloud/cloud-kernel and consumers (capability-registry current_dirs, BUCK, accounting) are updated may residual empty tree be deleted.",
+    "rationale": "All 20 package crates are rung-0 kuberos framekernel (HAL/Frame/ksync/user-layout/app + arch adapters + nested EL0 probes). Registry meta_dir is kernel/. Prior BLOCKED plan face map remains the settled durable shape. os/ and compute/ are different rungs/capabilities. Mega-move blocked by B1\u2013B3; inventory parks execution."
+  },
+  "inventory": [
+    {
+      "path": "cloud/cloud-kernel",
+      "package_name": null,
+      "description": "Nested cargo workspace root (bare-metal nightly build-std; intentionally not root-workspace member)",
+      "membership": "workspace_root",
+      "workspace_role": "workspace_root_and_artifacts",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": null,
+      "suggested_new_path_note": "Workspace root/artifacts cannot blindly overwrite kernel/{Cargo.toml,.cargo,rust-toolchain.toml} \u2014 B1 destination occupied by asterinas nested workspace with incompatible edition/toolchain/target.",
+      "move_kind": "workspace_artifact_merge_blocked",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "B1: kernel/ already hosts asterinas nested workspace with incompatible single-valued per-tree files.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "artifact_map_from_blocked_plan": [
+        {
+          "old_path": "cloud/cloud-kernel/Cargo.toml",
+          "new_path": "kernel/Cargo.toml"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/Cargo.lock",
+          "new_path": "kernel/Cargo.lock"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/OWNERS",
+          "new_path": "kernel/OWNERS"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/.cargo",
+          "new_path": "kernel/.cargo"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/rust-toolchain.toml",
+          "new_path": "kernel/rust-toolchain.toml"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/BUCK",
+          "new_path": "kernel/BUCK"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/manifest.json",
+          "new_path": "kernel/manifest.json"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/out",
+          "new_path": "kernel/out"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/specs",
+          "new_path": "kernel/specs"
+        },
+        {
+          "old_path": "cloud/cloud-kernel/tests",
+          "new_path": "kernel/tests"
+        }
+      ]
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-app",
+      "package_name": "oya-cloud-kernel-app",
+      "description": "kernel: the safe kernel binary. Links exactly one arch Frame backend.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 3,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "core",
+      "suggested_new_path": "kernel/core/app",
+      "suggested_cargo_name": "kernel-app",
+      "role": "composition binary producing bare-metal image (not multi-tenant facade)",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter",
+      "package_name": "oya-cloud-kernel-arch-aarch64-adapter",
+      "description": "aarch64 Frame backend: boot, MMU, traps, console. The only place unsafe lives for ARM.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 35,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-aarch64",
+      "suggested_cargo_name": "kernel-arch-aarch64-adapter",
+      "role": "aarch64 Frame backend; sole unsafe for ARM; implements HAL ports",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host",
+      "package_name": "arch-aarch64-layout-tests",
+      "description": null,
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 4,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-aarch64/tests-host",
+      "suggested_cargo_name": "arch-aarch64-layout-tests",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/user-procinfo-src",
+      "package_name": "user-procinfo",
+      "description": "EL0 WAVE1 conformance probe: uname/umask/getrusage/times/clock_getres/prctl via raw aarch64 syscalls.",
+      "membership": "nested_freestanding_under_adapter",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-aarch64/user-procinfo-src",
+      "suggested_cargo_name": "user-procinfo",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": false,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/user-smpdemo-src",
+      "package_name": "user-smpdemo",
+      "description": "EL0 cross-CPU scheduling demo: fork N>cpu_count workers, wait4 all, via raw aarch64 syscalls.",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-aarch64/user-smpdemo-src",
+      "suggested_cargo_name": "user-smpdemo",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "package_name": "oya-cloud-kernel-arch-x86-64-adapter",
+      "description": "x86_64 Frame backend: PVH boot, long-mode trampoline, GDT/IDT, 16550 UART, PIC/PIT timer. The only place unsafe lives for x86.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 68,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64",
+      "suggested_cargo_name": "kernel-arch-x86-64-adapter",
+      "role": "x86_64 Frame backend; sole unsafe for x86; implements HAL ports",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/fsbase-worker-src",
+      "package_name": "fsbase-worker-x86_64",
+      "description": "std/musl TLS worker: stores its pid in thread-local storage and re-checks it across preemptions, proving per-process %fs base restore.",
+      "membership": "nested_freestanding_under_adapter",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 2,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/fsbase-worker-src",
+      "suggested_cargo_name": "fsbase-worker-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": false,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-clock-src",
+      "package_name": "user-clock-x86_64",
+      "description": "Ring-3 timekeeping demo: clock_gettime/nanosleep prove time advances via raw x86_64 syscalls.",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-clock-src",
+      "suggested_cargo_name": "user-clock-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-exec-src",
+      "package_name": "user-exec-x86_64",
+      "description": "Ring-3 execve target: prints pid/ppid then exit(7) via raw x86_64 syscalls.",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-exec-src",
+      "suggested_cargo_name": "user-exec-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-fsbase-src",
+      "package_name": "user-fsbase-x86_64",
+      "description": "Ring-3 PID1 fsbase supervisor: clones TWO musl TLS workers, reaps both, via raw x86_64 syscalls.",
+      "membership": "nested_freestanding_under_adapter",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-fsbase-src",
+      "suggested_cargo_name": "user-fsbase-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": false,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-init-src",
+      "package_name": "user-init-x86_64",
+      "description": "Ring-3 PID1 init supervisor: rt_sigaction(SIGCHLD/SIGTERM)/clone/execve/clock_nanosleep/wait4 via raw x86_64 syscalls.",
+      "membership": "nested_freestanding_under_adapter",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-init-src",
+      "suggested_cargo_name": "user-init-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": false,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-procinfo-src",
+      "package_name": "user-procinfo-x86_64",
+      "description": "Ring-3 WAVE1 conformance probe: uname/umask/getrusage/times/clock_getres/prctl via raw x86_64 syscalls.",
+      "membership": "nested_freestanding_under_adapter",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-procinfo-src",
+      "suggested_cargo_name": "user-procinfo-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": false,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-signal-src",
+      "package_name": "user-signal-x86_64",
+      "description": "Ring-3 signal-delivery demo: rt_sigaction/tgkill/handler/rt_sigreturn + VFS fds via raw x86_64 syscalls.",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-signal-src",
+      "suggested_cargo_name": "user-signal-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-smpdemo-src",
+      "package_name": "user-smpdemo-x86_64",
+      "description": "Ring-3 cross-CPU scheduling demo: fork N>cpu_count workers, wait4 all, via raw x86_64 syscalls.",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-smpdemo-src",
+      "suggested_cargo_name": "user-smpdemo-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-spawn-src",
+      "package_name": "user-spawn-x86_64",
+      "description": "Ring-3 process-model demo: clone()/wait4()/execve()/exit via raw x86_64 syscalls.",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-spawn-src",
+      "suggested_cargo_name": "user-spawn-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-src",
+      "package_name": "user-hello-x86_64",
+      "description": "Freestanding ring-3 user-space hello: raw Linux x86_64 syscalls (syscall).",
+      "membership": "workspace_excluded",
+      "workspace_role": "ride_along_nested_under_adapter",
+      "file_count_under_package_dir": 5,
+      "parent_adapter_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "adapters",
+      "suggested_new_path": "kernel/adapters/arch-x86-64/user-src",
+      "suggested_cargo_name": "user-hello-x86_64",
+      "role": "Freestanding EL0/ring-3 user program or host harness nested under arch adapter; include_bytes!/include! coupled to parent layout.",
+      "move_kind": "ride_along_nested",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Physically nested under adapter; rides with parent codemod step. Promoting to independent move breaks relative include!/include_bytes! couplings.",
+      "in_workspace_exclude_list": true,
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      }
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-frame-kernel",
+      "package_name": "oya-cloud-kernel-frame-kernel",
+      "description": "The Frame: safe abstractions (heap/memory/traps) built over the arch HAL.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 3,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "core",
+      "suggested_new_path": "kernel/core/frame",
+      "suggested_cargo_name": "kernel-frame-kernel",
+      "role": "safe Frame engine over HAL",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel",
+      "package_name": "oya-cloud-kernel-hal-kernel",
+      "description": "Architecture HAL: pure, safe trait definitions implemented by each arch backend.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 12,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "ports",
+      "suggested_new_path": "kernel/ports/hal",
+      "suggested_cargo_name": "kernel-hal-kernel",
+      "role": "HAL trait seam (pure safe traits; cross-crate implementors in arch adapters)",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-ksync-kernel",
+      "package_name": "oya-cloud-kernel-ksync-kernel",
+      "description": "The kernel's concurrency substrate: the 14 loom/Miri-verified Phase-2 no_std primitives, vendored as one crate.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 19,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "core",
+      "suggested_new_path": "kernel/core/ksync",
+      "suggested_cargo_name": "kernel-ksync-kernel",
+      "role": "no_std concurrency primitives (loom/Miri-verified); no trait seam",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    },
+    {
+      "path": "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel",
+      "package_name": "oya-cloud-kernel-user-layout-kernel",
+      "description": "Arch-neutral, pure, host-testable EL0 user-layout math (initial-stack/auxv builder, VMSAv8 descriptor builders, range checks, frame-pool bookkeeping, TLS variant-I layout, timer-sleep math). Single source of truth shared by every arch Frame backend.",
+      "membership": "workspace_member",
+      "workspace_role": "explicit_member_move",
+      "file_count_under_package_dir": 11,
+      "suggested_durable_home": "kernel/",
+      "suggested_face": "core",
+      "suggested_new_path": "kernel/core/user-layout",
+      "suggested_cargo_name": "kernel-user-layout-kernel",
+      "role": "arch-neutral pure EL0 layout math; host-testable; zero internal deps",
+      "move_kind": "explicit_move",
+      "independent_move_leaf_now": false,
+      "independent_move_leaf_reason": "Nested-workspace member; path move requires codemod B2/B3 + destination B1 resolution. Not a zero-coupling leaf.",
+      "rejected_homes": {
+        "os/": {
+          "verdict": "rejected",
+          "rationale": "os/ is Talos-class node OS (apid/block/archiver/etc. userland + node agents, rung 1). Kuberos framekernel is rung-0 bare-metal no_std; registry places os/ current_dirs at cloud/cloud-os + os/, not cloud-kernel."
+        },
+        "compute/": {
+          "verdict": "rejected",
+          "rationale": "compute/ is multi-tenant compute product faces (vm/k8s/functions) and cloud provider adapters. Not ISA Frame backends or HAL traits."
+        }
+      },
+      "blocked_plan_ref": "specs/reorg/kernel-move-plan.BLOCKED.json"
+    }
+  ],
+  "face_rollup": {
+    "ports": [
+      "oya-cloud-kernel-hal-kernel"
+    ],
+    "core": [
+      "oya-cloud-kernel-frame-kernel",
+      "oya-cloud-kernel-ksync-kernel",
+      "oya-cloud-kernel-user-layout-kernel",
+      "oya-cloud-kernel-app"
+    ],
+    "adapters": [
+      "oya-cloud-kernel-arch-aarch64-adapter",
+      "oya-cloud-kernel-arch-x86-64-adapter",
+      "+ 13 nested ride-along packages under the two adapters"
+    ]
+  },
+  "staged_move_leaves": {
+    "policy": "No independent crate move leaf is executable today. Recommend staged unblocks, then an atomic nested-workspace rehome (or explicit sub-workspace under kernel/), then zero-crate residual delete only.",
+    "stages": [
+      {
+        "stage": "S0",
+        "class": "mixed inventory",
+        "this_pr": true,
+        "title": "Disposition inventory (docs only)",
+        "actions": [
+          "Land this evidence under evidence/reorg/",
+          "Do not open a new active move-plan",
+          "Do not move or delete crates"
+        ],
+        "exit_criteria": "PR merged; inventory is the reference for later execute cards"
+      },
+      {
+        "stage": "S1",
+        "class": "refactor (tooling)",
+        "title": "Unblock codemod workspace.dependencies rewrite (B2)",
+        "owned_paths_hint": [
+          "tools/ or libs path for oya-reorg-codemod cargo rewrite"
+        ],
+        "actions": [
+          "Extend rewrite_dep_tables_recursive (or sibling) to rewrite [workspace.dependencies] path deps",
+          "Add dry-run oracle that fails if vacated path deps remain",
+          "Prove on a fixture workspace before any kernel apply"
+        ],
+        "exit_criteria": "Codemod dry-run on a synthetic nested workspace rewrites all 5 path edges; no silent green"
+      },
+      {
+        "stage": "S2",
+        "class": "refactor",
+        "title": "Unblock path-literal / include! couplings (B3)",
+        "options": [
+          "Codemod gains include!/include_bytes!/include_str! relative-path rewrite for known old\u2192new layout",
+          "OR refactor tests-host to depend on a host-testable package without cross-dir include! of sibling crate sources",
+          "Recount path-ups after face layout (adapters under kernel/adapters/* change ../ depth to out/)"
+        ],
+        "exit_criteria": "All include macros that leave their package dir are either rewritten by tool or eliminated by refactor; CI host-tests still pass"
+      },
+      {
+        "stage": "S3",
+        "class": "mixed (architecture decision + possible small move)",
+        "title": "Resolve B1 destination coexistence",
+        "options": [
+          {
+            "id": "S3-A",
+            "name": "nested_subworkspace_under_kernel",
+            "description": "Home kuberos as kernel/kuberos/ (or kernel/frame/) with its own Cargo.toml/.cargo/rust-toolchain \u2014 parallel nested workspace beside asterinas members, avoiding single-valued file collision. Face layout can still be applied inside the subworkspace.",
+            "pros": [
+              "Does not force edition/toolchain merge",
+              "Preserves ADR-0611 asterinas as-is",
+              "Matches registry meta_dir kernel/"
+            ],
+            "cons": [
+              "Deviates from pure ports/core/adapters at kernel/ root faces",
+              "Requires plan amend from kernel-move-plan.BLOCKED face paths"
+            ]
+          },
+          {
+            "id": "S3-B",
+            "name": "merge_into_kernel_faces_after_deinherit",
+            "description": "Land into kernel/ports|core|adapters as BLOCKED plan states; de-inherit edition/rust-version on all manifests; split .cargo/rust-toolchain via per-crate or build-script strategy (hard \u2014 Cargo walk-up).",
+            "pros": [
+              "Matches original face map"
+            ],
+            "cons": [
+              ".cargo/config.toml + rust-toolchain.toml single-valued problem remains structural",
+              "High risk to asterinas std harness"
+            ]
+          },
+          {
+            "id": "S3-C",
+            "name": "relocate_asterinas_first",
+            "description": "Move asterinas crates to a dedicated nested home (e.g. kernel/harness-asterinas workspace root elsewhere) so kernel/ root becomes free for kuberos face layout.",
+            "pros": [
+              "Clears B1 for original plan"
+            ],
+            "cons": [
+              "Extra move-plan / dual-home churn; asterinas already landed per ADR-0611"
+            ]
+          }
+        ],
+        "recommendation": "S3-A preferred under Essentialism + Chesterton: preserve both workspaces working, keep registry home kernel/, avoid fighting Cargo single-valued files. Amend blocked plan paths accordingly before execute.",
+        "exit_criteria": "Written ADR or plan amend choosing S3-A/B/C; both workspaces build in chosen shape on a dry-run branch"
+      },
+      {
+        "stage": "S4",
+        "class": "move",
+        "title": "Atomic kuberos rehome (single move-class PR after singleton free)",
+        "move_plan": "Amend specs/reorg/kernel-move-plan.BLOCKED.json \u2192 executable kernel-move-plan.json (or successor name) only when S1\u2013S3 exit; do not run concurrent second move-plan",
+        "leaves": [
+          {
+            "leaf_id": "L-ports-hal",
+            "crates": [
+              "oya-cloud-kernel-hal-kernel"
+            ],
+            "coupling": "Must land with or before adapters (implementors); not alone if consumers break"
+          },
+          {
+            "leaf_id": "L-core-pure",
+            "crates": [
+              "oya-cloud-kernel-user-layout-kernel",
+              "oya-cloud-kernel-ksync-kernel"
+            ],
+            "coupling": "Lowest internal coupling; still workspace-membership coupled until workspace root moves"
+          },
+          {
+            "leaf_id": "L-core-frame-app",
+            "crates": [
+              "oya-cloud-kernel-frame-kernel",
+              "oya-cloud-kernel-app"
+            ],
+            "coupling": "Depends on hal + arch feature selection"
+          },
+          {
+            "leaf_id": "L-adapters-plus-nested",
+            "crates": [
+              "oya-cloud-kernel-arch-aarch64-adapter",
+              "oya-cloud-kernel-arch-x86-64-adapter",
+              "13 nested freestanding packages ride along (not separate leaves)"
+            ],
+            "coupling": "Atomic with parent dirs; never split nested user-* sources into independent move rows"
+          }
+        ],
+        "execute_shape": "Prefer ONE atomic move PR for the whole nested workspace once unblocked (blast-radius contained by pre-proven dry-run). Sub-leaves above are ordering guidance inside the plan, not permission for sequential half-moved dual-homes.",
+        "exit_criteria": "All 20 packages live under kernel/; cloud/cloud-kernel package_crate_count == 0; de-brand names applied; dry-run oracle green"
+      },
+      {
+        "stage": "S5",
+        "class": "delete",
+        "title": "Zero-crate residual only \u2014 delete empty cloud/cloud-kernel absorb",
+        "condition": "package_crate_count == 0 AND no required artifacts remain AND capability-registry current_dirs updated AND BUCK/accounting consumers updated",
+        "actions": [
+          "Delete empty residual tree",
+          "Drop cloud/cloud-kernel from registry current_dirs",
+          "Close RR-CLOUD-KERNEL-DEL only if residual delete is the approved end-state (not live-crate delete)"
+        ],
+        "exit_criteria": "Single home kernel/ for capability; dual-home debt 0 for this pair"
+      }
+    ],
+    "explicit_non_leaves": [
+      "Do not move a single nested user-* package alone",
+      "Do not move to os/ or compute/",
+      "Do not delete cloud/cloud-kernel while package crates remain (RR-CLOUD-KERNEL-DEL as live-crate delete is rejected by this inventory)",
+      "Do not execute kernel-move-plan.BLOCKED until B1\u2013B3 clear"
+    ]
+  },
+  "verification_this_pr": {
+    "crate_moves": 0,
+    "path_deletes": 0,
+    "new_move_plan": false,
+    "evidence_only": true,
+    "cargo_toml_count_pre": 21,
+    "cargo_toml_count_post_expected": 21
+  },
+  "related_evidence": [
+    "specs/reorg/kernel-move-plan.BLOCKED.json",
+    "evidence/reorg/r-dual-0615-topology-dual-home-inventory-20260806.json",
+    ".grok/programs/REORG-DOCTRINE.md",
+    ".grok/programs/REORG-REBRAND-BACKLOG.md"
+  ]
+}
