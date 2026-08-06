@@ -1,0 +1,21 @@
+{
+  "pr": 1570,
+  "head": "9d46c46cb7fe6ac22bac881ce75652c8d94115d1",
+  "title": "ci(oya-ci-required): ADR-0639 D6 cancel-in-progress docs + Tide/merge_group safety",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE"
+    }
+  ],
+  "summary": "Dual-critic APPROVE: Wave4 concurrency cancel-in-progress.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "reviewed_at": "2026-08-05T16:10Z"
+}

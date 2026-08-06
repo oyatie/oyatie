@@ -1,0 +1,149 @@
+{
+  "version": "1.1.0",
+  "name": "mm-drive",
+  "description": "Autonomous outer drive: dual-critic APPROVE + oya-ci-required green => merge. Human supervises only. Soft reds/blocks MUST enter task board via mm-queue-ingest \u2014 never silent.",
+  "forbidden_clis": [
+    "gjc",
+    "omc",
+    "omx",
+    "hermes"
+  ],
+  "process_fix_definition": "Edit harness/workflows/tools so agents cannot repeat the mistake class. Not one-off rebases, chat memory, or symptom-only patches. Canonical: programs/hyperscaler-delivery-lanes/BUN-PARALLEL-DISCIPLINE.md",
+  "stop_hook": {
+    "max_blocks_per_turn": 3,
+    "wait_ci_blocks_stop": false,
+    "block_on_resolvable": true,
+    "waiting_ci_requires_armed_repoll": true,
+    "allow_stop_if_only": [
+      "human_blocked",
+      "waiting_ci",
+      "idle_complete",
+      "sequenced_blocked",
+      "unknown"
+    ],
+    "note": "waiting_ci may allow Stop only when a re-poll monitor/scheduler is armed or next re-tick is explicit. Never treat waiting_ci as idle_complete. If resolvable or merge_ready exists, always block Stop."
+  },
+  "re_query": {
+    "gh_pr_checks": true,
+    "timeout_s": 30,
+    "fail_soft_offline": true
+  },
+  "human_gate_classes": [
+    "independent_github_review",
+    "security_credential_rotation",
+    "founder_ratification"
+  ],
+  "push_budget": {
+    "max_pushes_while_tip_ci_in_progress": 1,
+    "hold_doc_only_while_ci_in_progress": true,
+    "note": "F-CI-PUSH-THRASH: prefer armed re-poll over cancelling oya-ci-required; batch dual-critic evidence with the next CI-fix push when possible"
+  },
+  "kit_presence": {
+    "require_kit_bins_for_multi_model_claim": true,
+    "kit_bins": [
+      ".grok/bin/mm-role",
+      ".grok/bin/mm-drive",
+      ".grok/bin/mm-evaluate"
+    ],
+    "bootstrap": ".grok/bin/mm-bootstrap",
+    "note": "F-WORKTREE-MISSING-KIT / F-KIT-NOT-ON-DEV: no multi-model claim without kit on tree; land kit on origin/dev"
+  },
+  "merge_policy": {
+    "enabled": true,
+    "require_oya_ci_required_success": true,
+    "require_independent_approve": false,
+    "require_agent_dual_critic": true,
+    "require_cross_model_critics": true,
+    "agent_review_paths": [
+      "programs/**/evidence/*review*.json",
+      "programs/**/evidence/*CRITIC*.json",
+      "programs/**/evidence/pr-*-dual-critic.json",
+      "programs/**/evidence/pr-*-dual-critic-*.json",
+      "docs/decisions/_disposition/evidence/pr-*-dual-critic*.json"
+    ],
+    "agent_review_require_fields": [
+      "verdict",
+      "critics",
+      "independence"
+    ],
+    "agent_review_admit_verdicts": [
+      "APPROVE",
+      "CLEAR",
+      "admit"
+    ],
+    "agent_review_admit_independence": [
+      "cross_model"
+    ],
+    "agent_review_reject_independence": [
+      "same_family",
+      "unknown"
+    ],
+    "forbid_self_approve": true,
+    "require_not_draft": true,
+    "require_mergeable": true,
+    "require_merge_state_clean_or_unstable_ok": false,
+    "forbid_changes_requested": true,
+    "forbid_unresolved_conversations": true,
+    "require_ci_infra_preflight_receipt": true,
+    "ci_infra_path_prefixes": [
+      ".github/workflows/",
+      "infra/ci/",
+      "infra/arc/",
+      "ci/facade/",
+      "cloud/cloud-ci/"
+    ],
+    "ci_infra_preflight_tool": ".grok/bin/preflight-ci-infra",
+    "ci_infra_preflight_receipt_globs": [
+      "programs/hyperscaler-delivery-lanes/evidence/preflight-ci-infra-pr-{pr}.json",
+      "programs/hyperscaler-delivery-lanes/evidence/preflight-ci-infra-latest.json"
+    ],
+    "merge_method": "squash",
+    "delete_branch": false,
+    "auto_undraft": true,
+    "post_merge": "fill_packet_template_R3_then_recheck_trunk_then_tip_sync_open_prs",
+    "note": "FULL AUTONOMY under human supervision: dual-critic APPROVE + oya-ci-required SUCCESS => mm-drive merge. No human GH APPROVE required. Non-APPROVE => fix until APPROVE. Soft reds MUST be on task board (mm-queue-ingest); do not treat soft failure as ignore. Self-approve GH never counts. CI-infra needs preflight receipt. After merge: tip-sync + R3 packet.",
+    "auto_merge_when_ok": true,
+    "human_supervise_only": true
+  },
+  "aggregate_complete": {
+    "require_quality_gate": true,
+    "forbid_from_draft_only": true,
+    "forbid_from_local_green_only": true
+  },
+  "classes": {
+    "resolvable": "CI red, soft red on board, dual-critic non-APPROVE, merge blocks, open ready lanes \u2014 block Stop and continue",
+    "waiting_ci": "Checks pending after push \u2014 allow Stop ONLY if a re-poll monitor/scheduler is armed or an explicit re-tick time is recorded; never treat as idle_complete; on next turn re-query gh and tip-sync if base advanced",
+    "human_blocked": "Secrets/founder ratify only \u2014 NOT dual-critic wait. Missing dual-critic APPROVE is resolvable (fix until APPROVE), not human_blocked.",
+    "merge_ready": "Agent dual-critic APPROVE (admit verdicts) + oya-ci-required SUCCESS + merge-check ok \u2014 autonomous squash-merge; human GH APPROVE not required",
+    "idle_complete": "Terminal evidence recorded for that story \u2014 allow Stop (not the same as waiting_ci)",
+    "sequenced_blocked": "Gated on another story (e.g. W0-B after G001) \u2014 allow Stop",
+    "unknown": "Could not re-query \u2014 allow Stop fail-soft"
+  },
+  "ledger": "mm-runs/_ledger/drive-tick.jsonl",
+  "workstream_source": "harness/pipeline.json#workstreams.active",
+  "program_status_source": "programs/*/PROGRAM.json",
+  "supervision": {
+    "mode": "human_supervise_only",
+    "human_required_for_merge": false,
+    "agent_dual_critic_approve_suffices": true,
+    "on_non_approve": "fix_until_approve",
+    "on_approve_and_ci_green": "mm-drive merge --pr N",
+    "human_intervenes_only_if_awry": true
+  },
+  "soft_red_policy": {
+    "never_silent": true,
+    "ingest_tool": ".grok/bin/mm-queue-ingest",
+    "board": ".grok/programs/delivery-fabric/task-board.v1.json",
+    "soft_name_substrings": [
+      "soft",
+      "non-binding",
+      "nonbinding"
+    ],
+    "on_soft_failure": "upsert_ready_lane",
+    "on_binding_failure": "upsert_ready_lane_priority_P1",
+    "on_merge_block": "upsert_ready_lane_source_block",
+    "clear_when": "check no longer FAILURE/ERROR on tip OR explicit waiver lane status=waived with reason",
+    "babysit_must_claim_or_fix_soft_reds": true,
+    "note": "Soft legs continue-on-error in GHA but process still queues them; implement/babysit must drain."
+  }
+}

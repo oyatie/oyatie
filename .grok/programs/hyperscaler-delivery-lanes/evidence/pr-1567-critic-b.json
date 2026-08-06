@@ -1,0 +1,28 @@
+{
+  "pr": 1567,
+  "head": "4228b7a087b75d4fb2d344693baeb7ccc63cda98",
+  "critic_id": "B",
+  "verdict": "APPROVE",
+  "lenses": ["contrarian", "systems_thinking"],
+  "summary": "Contrarian: G030-H argued landed≠deletable; REORG-DOCTRINE now authorizes delete with consumer proof. Deleting only non-load-bearing spent rows is the minimal cleanup that preserves codemod self-heal + gate_registration. Systems: residual active glob on trunk becomes {ci-move-plan only, landed/inert}; PARKED/BLOCKED remain out-of-glob. Blast radius = plan files + inventory evidence only.",
+  "findings": [
+    {
+      "severity": "info",
+      "claim": "Codemod empty-manifest path remains valid with zero active plans (ci-move-plan classified landed)",
+      "evidence": "main.rs cmd_manifest: zero active → canonical empty manifest"
+    },
+    {
+      "severity": "info",
+      "claim": "ci-graph-additions companion kept with ci-move-plan — ADR-0563 lockfile contract not broken",
+      "evidence": "specs/reorg/ci-graph-additions.json _comment + G030-H"
+    },
+    {
+      "severity": "low",
+      "claim": "Historical ADR prose still cites deleted plan paths as applied history — acceptable; docs are not live readers",
+      "evidence": "ADR-0562 path citations; no CI reader of those paths"
+    }
+  ],
+  "blockers": [],
+  "severity_max": "low",
+  "reviewed_at": "2026-08-05T12:00Z"
+}

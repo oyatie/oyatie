@@ -1,0 +1,72 @@
+{
+  "critic_id": "A",
+  "lenses": ["cartesian_doubt", "red_team"],
+  "verdict": "APPROVE",
+  "severity_max": "low",
+  "head_ref_oid": "86edf0773224a57d68ccbcf4c0f9c2b1eab81fe1",
+  "base_ref_oid": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+  "ci": {
+    "required_context": "oya-ci-required",
+    "head": "86edf0773224a57d68ccbcf4c0f9c2b1eab81fe1",
+    "conclusion": "success",
+    "run_id": 30997099920,
+    "notes": "All required jobs SUCCESS on exact head; cache-writer identity SKIPPED (expected for non-trusted-dev-push path)."
+  },
+  "findings": [
+    {
+      "id": "A-01-packaging-adr0555",
+      "severity": "none",
+      "issue": "ADR-0555 unowned/unreachable/unjustified debt on the two new YAML surfaces is resolved for admission: directory OWNERS (cloud-ci-platform), Buck corpus packages, and exact reachability-registry prefixes land together.",
+      "evidence": "G039 diagnosis on pre-fix head 54b22d0c failed firewall with unjustified/unowned/unreachable on infra/gitops/local-path-storage.yaml and infra/talos/qemu-cilium.patch.yaml. Head 86edf077 adds infra/{gitops,talos}/{OWNERS,BUCK}, registers those two YAML paths plus package BUCKs in specs/reachability-registry.json, and cloud-ci-firewall is SUCCESS."
+    },
+    {
+      "id": "A-02-corpus-ceiling-shrink",
+      "severity": "none",
+      "issue": "Unpackaged YAML ceiling moves 448→433 (shrink-only). Packaging the gitops+talos trees pulls ~15 YAML files into the graph; does not raise the freeze.",
+      "evidence": "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json: baseline_unpackaged_yaml_files 433; measured yaml_files_unpackaged 433; packages_total 32→34 / indexed 14→16; comment documents re-anchor 448→433. Commit subject framing 450→433 describes the unfixed-PR measured peak, not a ceiling raise."
+    },
+    {
+      "id": "A-03-buck-pattern-and-nested-package",
+      "severity": "none",
+      "issue": "Buck packaging matches established corpus extraction pattern; nested infra/talos/local/patches package remains separately owned.",
+      "evidence": "infra/{gitops,talos}/BUCK use corpus_yaml_facts_shards(glob **/*.{yaml,yml}, shard_size=256) identical to infra/arc/BUCK and infra/talos/local/patches/BUCK. Comment on talos BUCK acknowledges nested local/patches ownership; Buck subpackage boundary excludes nested package files from parent globs. oya-ci-required buck2 job green."
+    },
+    {
+      "id": "A-04-no-warm-cas-activation",
+      "severity": "none",
+      "issue": "Change set does not activate warm CAS, RE, ARC credentials, or un-suspend the CAS network-proof Job.",
+      "evidence": "Diff files: local-path-storage.yaml, qemu-cilium.patch.yaml, OWNERS/BUCK, reachability-registry, corpus policy, capacity test only. cas-network-proof.k8s.yaml not modified (remains DARK/suspended per existing anchor). No secret/credential material in staged paths. PR body + registry anchors state repository-side evidence / no live CAS authority."
+    },
+    {
+      "id": "A-05-no-secrets",
+      "severity": "none",
+      "issue": "No secrets, tokens, or private keys introduced.",
+      "evidence": "Full PR diff scanned: images digest-pinned; RBAC/serviceAccount only; no password/token/BEGIN PRIVATE KEY/API key material. Matches prior staged secret-scan claim in PR body."
+    },
+    {
+      "id": "A-06-local-cell-gitops-reconcile",
+      "severity": "low",
+      "issue": "Merging the new local-path-storage.yaml to dev can auto-reconcile on any local cell that already has bootstrap-sync's Argo Application (automated, targetRevision:dev). This is intentional local-dev GitOps fill-in for a pre-wired include, not production CAS warm-path activation — but it is a live cluster mutation surface if such cells exist.",
+      "evidence": "infra/gitops/bootstrap-sync.yaml (unchanged by PR) Application local-path-storage: oya.io/cell: local, automated prune+selfHeal, include local-path-storage.yaml, destination in-cluster. Comments restrict to local/dev cells; production uses region CSI. Cartesian check: PR safety language 'does not mutate the live cluster' is slightly absolute vs local Argo auto-sync; material risk remains cell-scoped storage bootstrap, not CAS/RE."
+    },
+    {
+      "id": "A-07-privileged-local-path-surface",
+      "severity": "low",
+      "issue": "local-path-provisioner requires privileged PSA namespace, ClusterRole PV CRUD, and setup mkdir -m 0777 — expected for hostPath provisioner on Talos (/var/mnt/local-path) but is a high-privilege local-cell surface.",
+      "evidence": "infra/gitops/local-path-storage.yaml: pod-security enforce/audit/warn privileged; ClusterRole on persistentvolumes create/delete; setup script 0777; mitigations include digest-pinned images, runAsNonRoot 65532, drop ALL, readOnlyRootFilesystem, RuntimeDefault seccomp, WaitForFirstConsumer. Test locks image digests, probes, path, and forbids /opt/local-path-provisioner."
+    },
+    {
+      "id": "A-08-qemu-patch-apply-boundary",
+      "severity": "none",
+      "issue": "qemu-cilium.patch.yaml only disables bundled CNI/kube-proxy via explicit talosctl --config-patch; not GitOps-synced.",
+      "evidence": "File is an 8-line cluster.network.cni=none + proxy.disabled=true patch; comment requires talosctl cluster create --config-patch. Not referenced by bootstrap-sync Applications. Reachability anchor: declarative only, no live cluster mutation authority."
+    },
+    {
+      "id": "A-09-not-g039-complete",
+      "severity": "none",
+      "issue": "Admission packaging is sound; this is not a claim that G039 / ultragoal product-complete is done.",
+      "evidence": "PR advances #1534 prerequisites only; closes no issue. Evidence packet 1558-draft-ci-green hard_stops include did_not_claim_g039_or_ultragoal_complete. Critic scope limited to packaging/safety of #1558 for autonomous merge admission."
+    }
+  ],
+  "summary": "Critic A (cartesian_doubt + red_team): APPROVE for autonomous merge admission. Exact-head oya-ci-required is green on 86edf077. The G039 registration failures (unowned/unreachable/unjustified YAML + unpackaged ceiling) are fixed by OWNERS+BUCK corpus packages, reachability-registry exact prefixes, and a shrink-only ceiling re-anchor 448→433. No secrets; no warm CAS/RE/credential activation. Residual low risks are (1) local-cell Argo auto-reconcile of the pre-wired local-path Application once on dev, and (2) inherent privileged local-path provisioner surface — both acceptable for isolated proof-cell prerequisites, not blockers. Not a G039-complete claim."
+}

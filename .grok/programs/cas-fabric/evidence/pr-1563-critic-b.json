@@ -1,0 +1,14 @@
+{
+  "pr": 1563,
+  "head": "e8495b28fdfdbaf96a1b9d53909f68d985a60005",
+  "critic_id": "B",
+  "verdict": "APPROVE",
+  "lenses": [
+    "contrarian",
+    "systems_thinking"
+  ],
+  "summary": "Ordered CAS reorg 3A only; does not consume unpromoted head for 3B. Cargo exclude for non-crate leaf correct. Singleton oya-ci-required unchanged. Draft until CI green.",
+  "blockers": [],
+  "severity_max": "low",
+  "reviewed_at": "2026-08-05T11:31Z"
+}

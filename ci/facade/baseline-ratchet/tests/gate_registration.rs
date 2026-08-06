@@ -1702,6 +1702,37 @@ fn windows_buck2_toolchain_uses_prelude_msvc_defaults() {
     );
 }
 
+/// Soft windows-amd64 platform smoke (PR#1575 red): Git Bash HOME is `/c/Users/...`.
+/// If that POSIX form is exported via GITHUB_ENV, native Buck2/msvc rustup resolves
+/// `D:/c/Users/...` and fails with missing clippy/rust-std manifests. install-buck2
+/// must convert RUSTUP_HOME via `cygpath -m` on MINGW/MSYS before GITHUB_ENV write.
+#[test]
+fn install_buck2_exports_native_windows_rustup_home() {
+    let root = repo_root();
+    let installer = fs::read_to_string(root.join("infra/ci/install-buck2.sh"))
+        .expect("read infra/ci/install-buck2.sh");
+
+    assert!(
+        installer.contains("cygpath -m -- \"${RUSTUP_HOME}\""),
+        "install-buck2.sh must convert RUSTUP_HOME with cygpath -m for native Windows consumers"
+    );
+    assert!(
+        installer.contains("MINGW*") && installer.contains("MSYS*"),
+        "native RUSTUP_HOME conversion must be gated to Windows Git Bash (MINGW/MSYS)"
+    );
+    // Ordering contract: convert before GITHUB_ENV write of RUSTUP_HOME.
+    let cygpath_idx = installer
+        .find("cygpath -m -- \"${RUSTUP_HOME}\"")
+        .expect("cygpath -m RUSTUP_HOME conversion present");
+    let github_env_idx = installer
+        .find("echo \"RUSTUP_HOME=${RUSTUP_HOME}\" >> \"${GITHUB_ENV}\"")
+        .expect("GITHUB_ENV RUSTUP_HOME export present");
+    assert!(
+        cygpath_idx < github_env_idx,
+        "cygpath -m conversion must run before writing RUSTUP_HOME to GITHUB_ENV"
+    );
+}
+
 #[test]
 fn affected_set_long_step_telemetry_wraps_long_running_phases() {
     let root = repo_root();

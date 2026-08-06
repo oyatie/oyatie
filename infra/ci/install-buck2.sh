@@ -40,6 +40,20 @@ fi
 if [ -z "${RUSTUP_HOME:-}" ]; then
   export RUSTUP_HOME="${HOME}/.rustup"
 fi
+# Windows Git Bash HOME is /c/Users/... . If that POSIX form is exported via GITHUB_ENV,
+# later native steps (pwsh + Buck2 hermetic env + msvc rustup) treat it as a relative path
+# and resolve it as D:/c/Users/... — missing manifests, soft platform-smoke red.
+# Convert to mixed Windows form (C:/Users/...) so pre-provision and Buck2 share one tree.
+case "$(uname -s)" in
+  MINGW* | MSYS*)
+    if command -v cygpath >/dev/null 2>&1; then
+      if rustup_home_native="$(cygpath -m -- "${RUSTUP_HOME}" 2>/dev/null)" \
+        && [ -n "${rustup_home_native}" ]; then
+        export RUSTUP_HOME="${rustup_home_native}"
+      fi
+    fi
+    ;;
+esac
 if [ -n "${GITHUB_ENV:-}" ]; then
   echo "RUSTUP_HOME=${RUSTUP_HOME}" >> "${GITHUB_ENV}"
 fi

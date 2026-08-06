@@ -1,0 +1,14 @@
+{
+  "pr": 1566,
+  "head": "bb3a0914a1acb9c9501cd89ab2496e34e0434295",
+  "critic_id": "B",
+  "verdict": "APPROVE",
+  "lenses": [
+    "contrarian",
+    "systems_thinking"
+  ],
+  "summary": "Re-head APPROVE: lifecycle baseline regression fixed without expanding frozen counts; tombstone uses archived stage.",
+  "blockers": [],
+  "severity_max": "low",
+  "reviewed_at": "2026-08-05T12:29Z"
+}

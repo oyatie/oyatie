@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "work_graph.v1",
+  "title": "Mechanical decomposition of hardened prompt into dispatchable slices",
+  "type": "object",
+  "required": ["schema", "slices", "hardened_prompt_ref"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "work_graph.v1" },
+    "hardened_prompt_ref": { "type": "string" },
+    "slices": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "paths", "depends_on", "role", "dod"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "paths": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Path prefixes this slice may touch (disjoint for parallel dispatch)"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "role": {
+            "type": "string",
+            "enum": ["EXECUTOR", "ARCHITECT", "PLANNER", "CRITIC", "SECURITY", "VERIFIER", "PROMPT_HARDENER"]
+          },
+          "parallel_ok": { "type": "boolean" },
+          "risk": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "dod": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "verify": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "path_overlap_violations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Must be empty before parallel DISPATCH"
+    },
+    "dispatch_order": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Topological slice ids"
+    }
+  }
+}

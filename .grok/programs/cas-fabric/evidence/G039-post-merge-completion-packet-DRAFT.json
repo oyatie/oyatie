@@ -1,0 +1,37 @@
+{
+  "packet_type": "post_merge_product_completion",
+  "status": "DRAFT",
+  "pr": 1558,
+  "title": "infra: add isolated CAS proof-cell prerequisites",
+  "program_id": "cas-fabric-g039",
+  "story": "G039",
+  "promoted_commit": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+  "promoted_at": "2026-08-05T11:02:25Z",
+  "merge_method": "squash",
+  "pr_state": "MERGED",
+  "branch": "dev",
+  "oya_ci_required": {
+    "status": "pending",
+    "run_url": "https://github.com/jason931225/oyatie/actions/runs/30999838837",
+    "head_sha": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "note": "post-merge trunk run queued/in-progress at draft time; do not close packet until SUCCESS"
+  },
+  "rollout_verification": "TBD after post-merge green \u2014 confirm origin/dev tip equals promoted squash; OWNERS/BUCK/reachability/corpus shrink present on tip",
+  "rollback_note": "Revert a1bd1f14a on dev if CAS proof-cell packaging is wrong; no warm CAS activation; no credential material in tree",
+  "observability_check": "N/A for packaging/admission slice; no new runtime SLOs",
+  "browser_user_story_evidence": "N/A",
+  "release_governance_release_note_impact": "No product Release Please release expected; infra/governance packaging only",
+  "agent_observation_harvest": {
+    "cards_created_or_linked": "none",
+    "rationale": "G039 pilot packaging only; warm CAS still blocked on #1541 and post-merge green + not claiming ultragoal"
+  },
+  "completion_packet_closed": false,
+  "not_claiming": [
+    "warm_CAS",
+    "RE",
+    "ultragoal_complete",
+    "G039_complete_until_post_merge_green"
+  ],
+  "recorded_at": "2026-08-05T11:14Z",
+  "template_ref": "programs/hyperscaler-delivery-lanes/R3-postmerge-packet-template.md"
+}

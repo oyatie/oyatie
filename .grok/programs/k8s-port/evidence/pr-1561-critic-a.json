@@ -1,0 +1,211 @@
+{
+  "id": "A",
+  "role": "CRITIC_A",
+  "lenses": [
+    "cartesian_doubt",
+    "red_team"
+  ],
+  "pr": 1561,
+  "head": "c744a2f458400016dcf35f18d246d03ef2b0046f",
+  "prior_reviewed_head": "1e33500d6584e164df59cd9f1f58234bbf945504",
+  "title": "feat(k8s): admit deterministic Go-to-Rust port W0-A",
+  "is_draft": false,
+  "rebase_context": {
+    "onto": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "onto_note": "origin/dev after #1558 CAS proof-cell bootstrap squash",
+    "tip_commit_subject": "fix(k8s): restore k8s-program-docs reachability after rebase onto dev",
+    "tip_commit_body": "Union-merge reachability-registry with #1558 CAS prefixes and keep W0-A R-DOC package registered.",
+    "branch_ref": "refs/heads/agent/k8s-port-w0a-20260805",
+    "origin_branch_ref": "refs/remotes/origin/agent/k8s-port-w0a-20260805",
+    "origin_branch_matches_head": true
+  },
+  "scope_reviewed": [
+    "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+    "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+    "specs/k8s-port/upstream-pin.json",
+    "specs/k8s-port/scope.json",
+    "specs/k8s-port/divergence-ledger.json",
+    "specs/k8s-port/licensing.json",
+    "ci/facade/k8s-program-docs/**",
+    "docs/programs/k8s-port/**",
+    "evidence/goals/k8s-port-w0-sequencing-founder-ratification-20260805.json",
+    "ci/facade/affected-target-set/** (k8s wiring)",
+    "specs/master-plan-sequencing.json (MPV2-0045..0052 notes)",
+    "registry/catalog/ci-k8s-program-docs.yaml",
+    "specs/reachability-registry.json (rebase conflict resolution / union-merge)"
+  ],
+  "delta_vs_prior_review": {
+    "material_code_change": false,
+    "material_governance_change": false,
+    "material_delta": "specs/reachability-registry.json union-merge only (plus rebase rewrites of prior commits onto post-#1558 dev)",
+    "reachability_union_verified": {
+      "w0a_prefixes_present": [
+        "ci/facade/k8s-program-docs/",
+        "docs/programs/k8s-port/",
+        "specs/k8s-port/"
+      ],
+      "cas_1558_prefixes_present": [
+        "infra/nativelink/",
+        "infra/talos/BUCK"
+      ],
+      "anchors_intact": true,
+      "comparison_basis": "worktree HEAD registry vs cas-proof-bootstrap lane registry (post-#1558 prefixes only; no W0-A rows there)"
+    },
+    "absent_surfaces": {
+      "build/port-engine": true,
+      "specs/port-rules": true,
+      "specs/k8s-port/rules": true,
+      "regenerable_k8s_port_corpus": true
+    }
+  },
+  "evidence": {
+    "git_head_worktree": "c744a2f458400016dcf35f18d246d03ef2b0046f",
+    "git_origin_dev": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "prior_ci_on_old_head": {
+      "head": "1e33500d6584e164df59cd9f1f58234bbf945504",
+      "oya_ci_required": "SUCCESS",
+      "ci_run": "https://github.com/jason931225/oyatie/actions/runs/30993375926"
+    },
+    "post_rebase_ci": {
+      "source": ".grok/mm-runs/_ledger/drive-tick.jsonl merge_check events",
+      "latest_observed": "2026-08-05T11:15:32Z",
+      "mergeStateStatus": "BLOCKED",
+      "oya_ci_required": "missing",
+      "interpretation": "Expected after force-push/rebase tip; not a content defect. Merge remains gated on exact-head SUCCESS."
+    },
+    "upstream_pin_verified": {
+      "tag": "v1.36.1",
+      "annotated_tag_object": "5b824a493a7ca248b726b6ea09d53842b9b992c2",
+      "peeled_commit": "756939600b9a7180fc2df6550a4585b638875e67",
+      "method": "prior dual-critic remote ls-remote match retained; pin file unchanged by rebase tip commit",
+      "matches_spec": true
+    },
+    "generated_hand_edits": [],
+    "port_engine_present": false,
+    "port_rules_present": false,
+    "w0b_surface_absent": true,
+    "gh_live_query_note": "Private GH API not reachable from this critic tool surface; CI/merge state taken from harness drive-tick + local/remote git refs. Operator should re-confirm `gh pr checks 1561` on exact head before squash."
+  },
+  "cartesian_findings": [
+    {
+      "claim": "Rebase onto #1558 dropped W0-A R-DOC reachability and left the gate unreachable",
+      "status": "falsified_by_registry",
+      "evidence": "specs/reachability-registry.json retains prefix ci/facade/k8s-program-docs/ with ADR-0637+0638 anchor; docs/programs/k8s-port/ and specs/k8s-port/ also present. Tip commit message documents intentional restore."
+    },
+    {
+      "claim": "Union-merge dropped #1558 CAS prefixes and will re-break firewall on merged trunk",
+      "status": "falsified_by_registry",
+      "evidence": "infra/nativelink/ and infra/talos/BUCK present with CAS proof-cell / ADR-0560 anchors matching post-#1558 registry shape."
+    },
+    {
+      "claim": "ADR-0637/0638 Accepted implies engine/rules/receipts exist",
+      "status": "falsified_by_text",
+      "evidence": "Both ADRs: acceptance binds architecture/procedure only; engine/rules/front-end/receipt schema explicitly 'not in force' / W0-B pending."
+    },
+    {
+      "claim": "W0-A ships W0-B engine or generated k8s port corpus",
+      "status": "falsified_by_tree",
+      "evidence": "No build/port-engine; no specs/port-rules; no specs/k8s-port/rules; k8s/ tree is pre-existing managed-k8s capability stubs, not regenerable Go-to-Rust port output."
+    },
+    {
+      "claim": "R-DOC can fail open via missing wave registry / prose escape",
+      "status": "falsified_by_code_and_test",
+      "evidence": "load_wave_registry returns R-DOC-WAVE-REGISTRY-MISSING when absent; unit test missing_wave_registry_is_unconditionally_rejected; wave-registry.rdoc required on disk; all waves completed=false."
+    },
+    {
+      "claim": "G001 / ultragoal complete on this PR alone",
+      "status": "not_claimed_in_artifacts",
+      "evidence": "PROGRAM.json g001_complete=false; post-merge packet DRAFT; dual-critic not_claiming list requires packet after merge."
+    },
+    {
+      "claim": "Reachability registry edit is a silent exemption / fail-open",
+      "status": "falsified_by_policy",
+      "evidence": "Registry _comment: ADR-0555 reviewed design act; hand-edit is the intended registration surface (not a *.generated.json face). Anchors name WHY for each W0-A and #1558 row."
+    }
+  ],
+  "red_team_findings": [
+    {
+      "attack": "Conflict resolution quietly drops either W0-A or #1558 prefixes to get a green local parse",
+      "mitigation": "Both families present with intact anchors; comparison against post-#1558-only registry shows W0-A rows are additive, not replacement.",
+      "severity": "contained"
+    },
+    {
+      "attack": "Hand-edit regenerable port output / generated faces during rebase",
+      "mitigation": "Tip delta is reachability-registry union only; no regenerable k8s port output in PR; no *.generated.json hand-edit in program scope.",
+      "severity": "contained"
+    },
+    {
+      "attack": "Symlink / path-escape journal entries to fake completed-wave evidence",
+      "mitigation": "operations_entries refuse absolute paths, ParentDir, symlinks, non-files, empty files; completed=false so journal evaluation path not activated for completion claims.",
+      "severity": "contained_for_w0a"
+    },
+    {
+      "attack": "Vacuous green R-DOC with zero real documents",
+      "mitigation": "EmptyProgramCorpus RED; live_tree requires scanned_population>=6 and finding_count=0; ADRs always loaded.",
+      "severity": "contained"
+    },
+    {
+      "attack": "License-toxic dependency or unattributed upstream absorption",
+      "mitigation": "licensing.json forbids AGPL/GPL/SSPL/BUSL/RSAL product code; bootstrap extractor not_admitted; NOTICE required_not_emitted honesty.",
+      "severity": "policy_live_enforcement_pending_admission_gates"
+    },
+    {
+      "attack": "Class-G auto-approval via ADR-0634",
+      "mitigation": "ADR-0638 D6: ADR-0634 not Accepted; ordinary oya-ci-required path only.",
+      "severity": "contained"
+    },
+    {
+      "attack": "Game baseline header with token substrings without real pins",
+      "mitigation": "Header check is substring presence of six-axis tokens + baseline labels only; does not bind to upstream-pin.json digests.",
+      "severity": "residual_shallow_header_check",
+      "severity_class": "suggestion_not_blocker_for_w0a"
+    },
+    {
+      "attack": "Merge while oya-ci-required is missing/pending on rebased tip",
+      "mitigation": "Harness merge_check BLOCKED when oya_ci_required missing; dual-critic merge_recommendation is squash_merge_when_ci_green only — not unconditional merge.",
+      "severity": "process_gate_not_content_blocker"
+    }
+  ],
+  "critical_issues": [],
+  "important_issues": [],
+  "suggestions": [
+    {
+      "id": "A-S1",
+      "surface": "ci/facade/k8s-program-docs/src/lib.rs#has_baseline_header",
+      "note": "Baseline header validation is token/substring based. Later wave: bind repository baseline SHA and pin peeled commit to specs/k8s-port/upstream-pin.json (or six-axis receipt)."
+    },
+    {
+      "id": "A-S2",
+      "surface": "docs/programs/k8s-port/operations/W0-A-20260805-gjc-handoff.md",
+      "note": "Handoff process facts lag live CI/rebase state; PR head remains authoritative. Append-only status after formal dual-critic/merge."
+    },
+    {
+      "id": "A-S3",
+      "surface": "post-rebase CI",
+      "note": "Re-confirm oya-ci-required SUCCESS on exact head c744a2f458400016dcf35f18d246d03ef2b0046f before squash; prior SUCCESS on 1e33500 does not transfer."
+    }
+  ],
+  "whats_done_well": [
+    "Honest non-claims throughout ADRs, README, licensing evidence_state, catalog non_claims, wave-registry completed=false.",
+    "Fail-closed R-DOC retained across rebase: missing registry, symlink refusal, zero-scan RED, unit tests for former fail-open.",
+    "Reachability union correctly preserves both W0-A R-DOC package and #1558 CAS prefixes with review-visible anchors.",
+    "No *.generated.json hand-edits; W0-B engine surface correctly absent."
+  ],
+  "verification": {
+    "tests_reviewed": true,
+    "tests_notes": "Unit tests in lib.rs cover axis tokens, completed-wave journal, malformed metadata, missing wave registry, rule journal ref, overdue doctrine, prescription starvation, empty corpus; live_tree requires nonempty green corpus (scanned_population>=6).",
+    "build_verified": "prior SUCCESS on 1e33500 via run 30993375926; post-rebase head requires re-green (oya_ci_required missing at last harness poll)",
+    "security_checked": true,
+    "security_notes": "Path/symlink hardening present; no secrets; licensing fail-closed policy; security_review:unreviewed on catalog appropriate for non-runtime docs gate; reachability edit is ADR-0555 reviewed surface not generated face."
+  },
+  "verdict": "APPROVE",
+  "blockers": [],
+  "not_claiming": [
+    "G001 ultragoal complete until post-merge packet",
+    "W0-B",
+    "oya-ci-required SUCCESS already proven on rebased tip c744a2f45",
+    "engine/rules/receipts in force"
+  ],
+  "reviewed_at": "2026-08-05T11:25:00Z",
+  "reviewer": "dual-critic-A-cartesian-redteam-rehead"
+}

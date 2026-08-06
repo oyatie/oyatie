@@ -337,6 +337,18 @@ pub mod census {
         })
     }
 
+    /// Compare parser source identity after stripping CR.
+    ///
+    /// Hosted Windows runners often check out text files as CRLF (`core.autocrlf`), so
+    /// `include_bytes!("lib.rs")` can embed CR while `git cat-file` returns the LF blob.
+    /// Line-ending-only divergence is not a semantic parser change; content must still match.
+    fn line_ending_normalized(bytes: &[u8]) -> std::borrow::Cow<'_, [u8]> {
+        if !bytes.contains(&b'\r') {
+            return std::borrow::Cow::Borrowed(bytes);
+        }
+        std::borrow::Cow::Owned(bytes.iter().copied().filter(|&b| b != b'\r').collect())
+    }
+
     fn validate_parser_sources(
         sources: &[CensusSource],
     ) -> Result<Vec<CensusSource>, CensusViolation> {
@@ -349,7 +361,7 @@ pub mod census {
             if source.kind != CensusSourceKind::Parser
                 || source.path != path
                 || !is_lower_hex_oid(&source.blob_oid)
-                || source.bytes.as_slice() != bytes
+                || line_ending_normalized(source.bytes.as_slice()) != line_ending_normalized(bytes)
             {
                 return Err(CensusViolation::ParserSource);
             }

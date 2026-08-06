@@ -745,13 +745,34 @@ pub fn write_canonical_ignored_generated_file(
     CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
 }
 
+/// Non-Unix placeholder that preserves the public API while failing closed.
+///
+/// Integration targets import this type on all platforms; Unix-only tests that
+/// exercise dirfd semantics stay behind `#[cfg(unix)]`. Without this stub,
+/// Windows soft-smoke fails at compile time with `unresolved import`.
+#[cfg(not(unix))]
+pub struct CanonicalIgnoredGeneratedWriter;
+
+#[cfg(not(unix))]
+impl CanonicalIgnoredGeneratedWriter {
+    /// The descriptor-relative writer is unavailable on this platform.
+    pub fn open(_repo_root: &Path, _relative_path: &Path) -> Result<Self, String> {
+        Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    }
+
+    /// The descriptor-relative writer is unavailable on this platform.
+    pub fn write(&self, _bytes: &[u8]) -> Result<(), String> {
+        Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    }
+}
+
 #[cfg(not(unix))]
 pub fn write_canonical_ignored_generated_file(
-    _repo_root: &Path,
-    _relative_path: &Path,
-    _bytes: &[u8],
+    repo_root: &Path,
+    relative_path: &Path,
+    bytes: &[u8],
 ) -> Result<(), String> {
-    Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
 }
 
 #[cfg(unix)]

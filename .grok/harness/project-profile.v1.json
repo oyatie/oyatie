@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "description": "Per-repo profile for portability. Copy .grok/ then edit this file. No absolute machine paths required.",
+  "project_id": "oyatie",
+  "display_name": "Oyatie",
+  "vcs": {
+    "base_ref": "origin/dev",
+    "pr_target": "dev",
+    "required_status_context": "oya-ci-required",
+    "isolation": "git_worktree"
+  },
+  "authority": {
+    "merge": "reviewer APPROVE + single required context oya-ci-required (ADR-0515)",
+    "not_merge_authority": ["this harness", "CLI tools", "agent narration"]
+  },
+  "surfaces": {
+    "ci_workflow": ".github/workflows/oya-ci-required.yml",
+    "gates_glob": "cloud/cloud-ci/gates/*",
+    "branch_protection": [".github/branch-protection.yaml", "infra/branch-protection/dev.json"],
+    "decisions_glob": "docs/decisions/ADR-*.md"
+  },
+  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "lifecycle": {
+    "intake": "mm-goals create",
+    "plan": "workflow lens-delivery-plan",
+    "execute": "mm-role EXECUTOR after dual admit + preflight",
+    "verify": "mm-role VERIFIER + local tests",
+    "learn": "mm-score | mm-grade | mm-learn"
+  },
+  "portability_notes": [
+    "For ~/Developer/console: set base_ref/pr_target/required_status_context to that repo's norms",
+    "Replace surfaces.* with console CI paths",
+    "Keep lens packs and scoring rubrics unless product risk model differs"
+  ],
+  "examples": {
+    "console": {
+      "project_id": "console",
+      "base_ref": "origin/main",
+      "pr_target": "main",
+      "required_status_context": "ci",
+      "note": "Example only — edit after inspecting console branch protection"
+    }
+  }
+}

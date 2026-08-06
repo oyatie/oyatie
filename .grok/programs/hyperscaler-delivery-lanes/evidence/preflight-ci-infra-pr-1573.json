@@ -1,0 +1,70 @@
+{
+  "schema": "preflight-ci-infra.v1",
+  "ok": true,
+  "head": "9b96b482a1779f19ae04e06c31a96991c09ac37d",
+  "base": "origin/dev",
+  "pr": 1573,
+  "ci_infra_paths": [
+    ".github/workflows/cache-integrity-canary.yml",
+    ".github/workflows/docs-graph-drift.yml",
+    ".github/workflows/oya-ci-required.yml",
+    "ci/facade/baseline-ratchet/tests/gate_registration.rs",
+    "infra/arc/runner-scale-set-arm64-values.yaml",
+    "infra/arc/tests/ci_workspace_capacity.rs",
+    "infra/ci/install-buck2.sh"
+  ],
+  "checks": [
+    {
+      "id": "no_hand_edit_generated",
+      "ok": true,
+      "detail": "no *.generated.json in CI-infra path set"
+    },
+    {
+      "id": "rustup_home_hosted",
+      "ok": true,
+      "detail": "workflow/install-buck2 reference RUSTUP_HOME (hosted-safe form expected)"
+    },
+    {
+      "id": "arc_optional_mounts",
+      "ok": true,
+      "detail": "optional:true count=3 (capacity test must match)"
+    },
+    {
+      "id": "soft_multiarch",
+      "ok": true,
+      "detail": "matrix.soft continue-on-error present"
+    },
+    {
+      "id": "matrix_fail_fast_false",
+      "ok": true,
+      "detail": "platform matrix fail-fast: false (surface-all)"
+    },
+    {
+      "id": "buck_capacity",
+      "ok": true,
+      "skipped": true,
+      "detail": " --skip-buck"
+    },
+    {
+      "id": "buck_gate_registration",
+      "ok": true,
+      "skipped": true,
+      "detail": " --skip-buck"
+    },
+    {
+      "id": "buck_freshness",
+      "ok": true,
+      "skipped": true,
+      "detail": "freshness/materialize paths not in path set"
+    }
+  ],
+  "written_at": "2026-08-05T17:37:55Z",
+  "tool": ".grok/bin/preflight-ci-infra",
+  "not_claiming": [
+    "merge_authority",
+    "oya_ci_required",
+    "ultragoal_complete",
+    "CAS_warm",
+    "RE"
+  ]
+}

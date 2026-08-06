@@ -1,0 +1,26 @@
+{
+  "pr": 1564,
+  "head": "2593cb4e48bf50e34a85eee2fcb9d4e88541f91e",
+  "critic": "A",
+  "lenses": ["cartesian_doubt", "red_team", "blast_radius"],
+  "verdict": "APPROVE",
+  "findings": [
+    {
+      "severity": "note",
+      "title": "Distributed stack math is sound",
+      "detail": "maxRunners=4 with 2×120Gi volumes and DoNotSchedule maxSkew=1 implies ≤2×44Gi+reserve per node; capacity contract tests cover full-stack, multi-node, and distributed-stack paths."
+    },
+    {
+      "severity": "note",
+      "title": "Live apply is residual",
+      "detail": "Git does not mutate the QEMU cell. Live volumes may still be 48Gi; applying maxRunners=4 before 120Gi grow would overcommit disk (local-path does not enforce size). Helm must stay at maxRunners≤2 until volumes read back 120Gi, or use one-per-node packing only."
+    },
+    {
+      "severity": "note",
+      "title": "CPU/RAM profile is document-only until recreate",
+      "detail": "CAPACITY-PROFILE-CI-HEAVY correctly states QEMU cannot hot-resize vCPU/RAM. Target 8/48 workers is host-aware (128Gi/18CPU). No agent auto-destroy of oya-talos."
+    }
+  ],
+  "blockers": [],
+  "reviewed_at": "2026-08-05T12:50Z"
+}

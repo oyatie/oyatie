@@ -1,0 +1,346 @@
+#!/usr/bin/env python3
+"""Durable multi-goal tasklist for the multi-model harness (GJC ultragoal ideas, no gjc CLI).
+
+Canonical state:
+  .grok/mm-runs/<run_id>/goals.json
+  .grok/mm-runs/<run_id>/ledger.jsonl
+
+Ops: create | status | activate | checkpoint | list
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def load_json(path: Path) -> Any:
+    return json.loads(path.read_text())
+
+
+def write_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/pipeline.json").is_file():
+            return p
+    return cur
+
+
+def append_ledger(run_dir: Path, event: dict) -> None:
+    path = run_dir / "ledger.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    event = {**event, "ts": now()}
+    with path.open("a") as f:
+        f.write(json.dumps(event) + "\n")
+
+
+def parse_brief(brief: str) -> List[dict]:
+    """Parse @goal: Title / body blocks. Preamble is not a goal."""
+    lines = brief.splitlines()
+    goals: List[dict] = []
+    cur_title = None
+    cur_body: List[str] = []
+    preamble: List[str] = []
+    saw_goal = False
+
+    def flush() -> None:
+        nonlocal cur_title, cur_body
+        if cur_title is None and not cur_body:
+            return
+        title = (cur_title or "").strip()
+        body = "\n".join(cur_body).strip()
+        if not title and not body:
+            raise SystemExit("empty @goal block rejected")
+        if not title:
+            title = body.splitlines()[0][:80]
+        if not body:
+            body = title
+        goals.append({"title": title, "objective": body})
+        cur_title, cur_body = None, []
+
+    for ln in lines:
+        # delimiter: column-0 @goal followed by : whitespace or EOL
+        m = re.match(r"^@goal(?:\s*:|\s+|$)(.*)$", ln)
+        if m:
+            saw_goal = True
+            flush()
+            rest = (m.group(1) or "").strip()
+            if rest.startswith(":"):
+                rest = rest[1:].strip()
+            cur_title = rest or None
+            cur_body = []
+            continue
+        if not saw_goal:
+            preamble.append(ln)
+        else:
+            cur_body.append(ln)
+    flush()
+
+    if not goals:
+        text = brief.strip()
+        if not text:
+            raise SystemExit("empty brief")
+        goals.append({"title": "G001", "objective": text})
+    return goals
+
+
+def cmd_create(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    if args.brief_file:
+        brief = Path(args.brief_file).read_text()
+    elif args.brief:
+        brief = args.brief
+    else:
+        brief = ""
+        import sys
+
+        if not sys.stdin.isatty():
+            brief = sys.stdin.read()
+        if not brief.strip():
+            raise SystemExit("provide --brief, --brief-file, or stdin")
+
+    stories = parse_brief(brief)
+    run_id = args.run_id or (
+        datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
+    )
+    run_dir = repo / ".grok" / "mm-runs" / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    goals = []
+    for i, s in enumerate(stories, start=1):
+        gid = f"G{i:03d}"
+        goals.append(
+            {
+                "id": gid,
+                "title": s["title"] if s["title"] != "G001" else gid,
+                "objective": s["objective"],
+                "status": "pending",
+                "lens_pack": [],
+                "role": "",
+                "evidence": [],
+            }
+        )
+
+    # optional: attach stage lens packs from config for first story roles
+    packs_path = repo / ".grok/harness/stage-lens-packs.v1.json"
+    if packs_path.is_file():
+        packs = load_json(packs_path)
+        # default PLAN pack on all goals unless overridden later
+        plan_pack = (packs.get("stages") or {}).get("PLAN", {}).get("pack") or []
+        for g in goals:
+            g["lens_pack"] = list(plan_pack)
+
+    doc = {
+        "run_id": run_id,
+        "created_at": now(),
+        "objective": args.aggregate or stories[0]["objective"][:200],
+        "risk": args.risk,
+        "status": "active",
+        "goals": goals,
+        "brief_path": str(run_dir / "brief.md"),
+    }
+    (run_dir / "brief.md").write_text(brief if brief.endswith("\n") else brief + "\n")
+    write_json(run_dir / "goals.json", doc)
+    append_ledger(
+        run_dir,
+        {"event": "goals_created", "run_id": run_id, "count": len(goals), "goal_ids": [g["id"] for g in goals]},
+    )
+    # ensure run.json exists lightly
+    run_path = run_dir / "run.json"
+    if not run_path.is_file():
+        write_json(
+            run_path,
+            {
+                "run_id": run_id,
+                "created_at": now(),
+                "objective": doc["objective"],
+                "risk": args.risk,
+                "status": "goals_active",
+                "preflight_ok": None,
+            },
+        )
+    print(json.dumps({"run_id": run_id, "run_dir": str(run_dir), "goals": len(goals)}, indent=2))
+    return 0
+
+
+def load_goals(repo: Path, run_id: str) -> tuple[Path, dict]:
+    run_dir = repo / ".grok" / "mm-runs" / run_id
+    path = run_dir / "goals.json"
+    if not path.is_file():
+        raise SystemExit(f"no goals.json for run_id={run_id}")
+    return run_dir, load_json(path)
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    run_dir, doc = load_goals(repo, args.run_id)
+    pending = sum(1 for g in doc["goals"] if g["status"] in ("pending", "active", "failed", "blocked"))
+    complete = sum(1 for g in doc["goals"] if g["status"] == "complete")
+    out = {
+        "run_id": args.run_id,
+        "status": doc.get("status"),
+        "pending": pending,
+        "complete": complete,
+        "goals": doc["goals"],
+        "ledger": str(run_dir / "ledger.jsonl"),
+    }
+    print(json.dumps(out, indent=2))
+    return 0
+
+
+def cmd_activate(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    run_dir, doc = load_goals(repo, args.run_id)
+    found = False
+    for g in doc["goals"]:
+        if g["id"] == args.goal_id:
+            g["status"] = "active"
+            if args.lens_pack:
+                g["lens_pack"] = [x.strip() for x in args.lens_pack.split(",") if x.strip()]
+            if args.role:
+                g["role"] = args.role
+            found = True
+        elif g["status"] == "active":
+            g["status"] = "pending"
+    if not found:
+        raise SystemExit(f"unknown goal {args.goal_id}")
+    write_json(run_dir / "goals.json", doc)
+    append_ledger(
+        run_dir,
+        {"event": "goal_activated", "goal_id": args.goal_id, "role": args.role, "lens_pack": args.lens_pack},
+    )
+    print(json.dumps({"activated": args.goal_id}, indent=2))
+    return 0
+
+
+def cmd_checkpoint(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    run_dir, doc = load_goals(repo, args.run_id)
+    status = args.status
+    if status == "complete" and not args.evidence:
+        raise SystemExit("complete checkpoint requires --evidence")
+    found = False
+    for g in doc["goals"]:
+        if g["id"] == args.goal_id:
+            g["status"] = status
+            if args.evidence:
+                g.setdefault("evidence", []).append(args.evidence)
+            found = True
+            break
+    if not found:
+        raise SystemExit(f"unknown goal {args.goal_id}")
+
+    # quality gate file optional but recommended for complete
+    qg = None
+    if args.quality_gate_json:
+        qpath = Path(args.quality_gate_json)
+        qg = load_json(qpath) if qpath.is_file() else json.loads(args.quality_gate_json)
+        if status == "complete" and qg.get("pass") is not True:
+            raise SystemExit("quality-gate-json pass!=true; refuse complete")
+
+    all_done = all(g["status"] == "complete" for g in doc["goals"])
+    if all_done:
+        doc["status"] = "complete"
+    elif any(g["status"] in ("failed", "blocked") for g in doc["goals"]):
+        doc["status"] = "blocked" if any(g["status"] == "blocked" for g in doc["goals"]) else doc["status"]
+
+    write_json(run_dir / "goals.json", doc)
+    append_ledger(
+        run_dir,
+        {
+            "event": "checkpoint",
+            "goal_id": args.goal_id,
+            "status": status,
+            "evidence": args.evidence,
+            "quality_gate": qg,
+        },
+    )
+    next_id = None
+    for g in doc["goals"]:
+        if g["status"] == "pending":
+            next_id = g["id"]
+            break
+    print(
+        json.dumps(
+            {
+                "goal_id": args.goal_id,
+                "status": status,
+                "all_complete": all_done,
+                "next_goal": next_id,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def cmd_next(args: argparse.Namespace) -> int:
+    repo = find_repo(Path(args.cwd))
+    _, doc = load_goals(repo, args.run_id)
+    for g in doc["goals"]:
+        if g["status"] in ("pending", "active", "failed"):
+            print(json.dumps(g, indent=2))
+            return 0
+    print(json.dumps({"done": True}, indent=2))
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="mm-goals durable tasklist")
+    ap.add_argument("--cwd", default=".")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--cwd", default=".")
+
+    sp = sub.add_parser("create", parents=[common])
+    sp.add_argument("--brief", default="")
+    sp.add_argument("--brief-file", default="")
+    sp.add_argument("--run-id", default="")
+    sp.add_argument("--risk", default="medium")
+    sp.add_argument("--aggregate", default="")
+    sp.set_defaults(func=cmd_create)
+
+    sp = sub.add_parser("status", parents=[common])
+    sp.add_argument("--run-id", required=True)
+    sp.set_defaults(func=cmd_status)
+
+    sp = sub.add_parser("activate", parents=[common])
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--goal-id", required=True)
+    sp.add_argument("--role", default="")
+    sp.add_argument("--lens-pack", default="")
+    sp.set_defaults(func=cmd_activate)
+
+    sp = sub.add_parser("checkpoint", parents=[common])
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--goal-id", required=True)
+    sp.add_argument("--status", required=True, choices=["complete", "failed", "blocked", "active"])
+    sp.add_argument("--evidence", default="")
+    sp.add_argument("--quality-gate-json", default="")
+    sp.set_defaults(func=cmd_checkpoint)
+
+    sp = sub.add_parser("next", parents=[common])
+    sp.add_argument("--run-id", required=True)
+    sp.set_defaults(func=cmd_next)
+
+    args = ap.parse_args()
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
