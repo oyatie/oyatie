@@ -751,6 +751,7 @@ pub fn write_canonical_ignored_generated_file(
 /// exercise dirfd semantics stay behind `#[cfg(unix)]`. Without this stub,
 /// Windows soft-smoke fails at compile time with `unresolved import`.
 #[cfg(not(unix))]
+#[derive(Debug)]
 pub struct CanonicalIgnoredGeneratedWriter;
 
 #[cfg(not(unix))]
