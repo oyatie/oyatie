@@ -21,7 +21,7 @@ owners:
   - axis-observability
   - ops-compliance
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amends:
   - ADR-0174-finops-cost-attribution-chargeback.md (cost-attribution tag block widened: every audit row carries cost_usd_minor_units + co2_grams + watt_hours + provider + region in addition to the existing tenant_id + cell_id + microservice + plane + environment + cost_center + sustainability_class tags; chargeback formula gains the carbon-cost and energy-cost factor; anomaly thresholds gain carbon-spike + watt-hours-creep)
   - ADR-0263-observability-emission-contract.md (mandatory event envelope extended: every audit-chain row emits cost_usd_minor_units + co2_grams + watt_hours + provider + region computed at HLC-timestamped emission time; D-11 per-tenant cost attribution emission section is extended with the dimensional rollup contract in §D below)

@@ -5,7 +5,7 @@ deciders: council-architecture, axis-data-tier, ops-sre-reliability
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0009, ADR-0028, ADR-0045, ADR-0121, ADR-0131, ADR-0148, ADR-0158]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

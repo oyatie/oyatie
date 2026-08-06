@@ -8,7 +8,7 @@ date: 2026-06-21
 door: one-way
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amends: [ADR-0056, ADR-0105, ADR-0253, ADR-0258]
 amended_by: [ADR-0632]
 # NOTE: the Phase-00 product spec under docs/products/<de-brand-target>/ also named GraphQL in its

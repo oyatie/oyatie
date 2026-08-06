@@ -5,7 +5,7 @@ deciders: council-architecture, axis-cloud-iac, ops-sre-reliability, axis-observ
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0520]
 related: [ADR-0064, ADR-0131, ADR-0161, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership, ADR-0184, ADR-0186, ADR-0197, ADR-0199, ADR-0520]
 related_specs:

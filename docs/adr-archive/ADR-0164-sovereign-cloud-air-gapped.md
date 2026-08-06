@@ -5,7 +5,7 @@ deciders: council-architecture, axis-cloud-secrets, axis-cloud-k8s, axis-tenancy
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0009, ADR-0043, ADR-0049, ADR-0121, ADR-0143, ADR-0145, ADR-0158, ADR-0161, ADR-0162]
 related_specs:
   - /specs/sovereign-cloud-air-gapped-canonical.json

@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, axis-ontology, axis-cloud-k
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0145, ADR-0161, ADR-0172, ADR-0179-postgres-connection-pooling-pgcat, ADR-0182, ADR-0183, ADR-0185, ADR-0186]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

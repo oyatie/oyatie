@@ -27,7 +27,7 @@ amends:
   - ADR-0245-substrate-vs-product-layering.md (hardens §D-4 dependency-direction text into a machine-readable DAG spec + acyclicity lane)
   - ADR-0246-policy-engine-substrate-promotion.md (locks policy-engine's position in the DAG between tenancy and cloud-secrets per §D-2)
   - ADR-0145-inter-microservice-communication-reform.md (constrains the "direct gRPC permitted" liberty with a per-call substrate-dependency check)
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0028-cloud-microservice-architecture.md

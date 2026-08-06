@@ -22,7 +22,7 @@ owners:
   - axis-pharma
 supersedes: []
 amends: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md

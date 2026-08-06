@@ -6,7 +6,7 @@ deciders: council-architecture, ops-platform
 date: 2026-05-27
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-703]
+superseded_by: [ADR-0703]
 related: [ADR-0363, ADR-0366, ADR-0367, ADR-0369, ADR-0374]
 related_specs: [/specs/masterplan.json]
 milestone: M-AGENTIC-PIPELINE

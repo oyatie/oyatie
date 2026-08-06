@@ -15,7 +15,7 @@ owners:
   - axis-dev-cli
   - ops-sre-reliability
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amends:
   - ADR-0212-buildability-doctrine.md (the buildability doctrine asserted that every µservice + every workspace crate MUST compile + pass tests + pass clippy + pass fmt before landing; this ADR makes the LOCAL pre-push entry point — `oya verify --ci-required` — the canonical mirror of those CI lanes so a developer or agent can prove buildability locally without trusting CI to discover it after push. The doctrine's "must build" assertion is preserved verbatim; the new clause is that the local verifier MUST exercise every gate CI exercises and MUST block on exit-0 of EACH step, not delegate exclusively to a subset) Historical/local verifier text only; provenance only, never merge authority; current protected-branch authority is `oya-ci-required` plus cloud-ci/Rust gate packets.
   - ADR-0221-agentic-development-pipeline-hardening.md (the agentic-development-pipeline-hardening ADR established that "hooks are guidance, CI gates enforce" — the human / agent developer surface uses hooks for ergonomics but the corpus is gated by CI; this ADR maintains that posture while removing the silent-regression failure mode where the local verifier diverged from the CI gate matrix and let agents push PRs that failed CI 7 different ways in a single cycle. The hook-vs-gate doctrine is unchanged; `oya verify --ci-required` is the local rehearsal of the CI gates, not a replacement) Historical/local verifier text only; provenance only, never merge authority; current protected-branch authority is `oya-ci-required` plus cloud-ci/Rust gate packets.

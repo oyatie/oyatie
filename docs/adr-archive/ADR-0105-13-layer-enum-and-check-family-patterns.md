@@ -2,7 +2,7 @@
 id: ADR-0105
 title: 13-value canonical layer enum + check-family + backend-suffix patterns (amends ADR-0056)
 status: Superseded
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 planning_impact: true
 doc_status: published
 owner: council-architecture

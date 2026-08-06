@@ -8,7 +8,7 @@ date: 2026-06-23
 door: two-way
 owner: axis-billing-accounting
 supersedes: []
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 amends: []
 depends_on: [ADR-0083, ADR-0131]
 related: [ADR-0510, ADR-0515, ADR-0581]

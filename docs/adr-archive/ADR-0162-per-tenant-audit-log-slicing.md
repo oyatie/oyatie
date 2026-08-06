@@ -5,7 +5,7 @@ deciders: council-architecture, axis-audit-chain, axis-tenancy, axis-governance,
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0003, ADR-0008, ADR-0009, ADR-0028, ADR-0038, ADR-0049, ADR-0128, ADR-0143, ADR-0158, ADR-0164]
 related_specs:
   - /specs/per-tenant-audit-log-slicing-canonical.json

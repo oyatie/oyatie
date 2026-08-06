@@ -2,7 +2,7 @@
 id: ADR-0331
 title: Cross-µservice tenant_class Adoption Template
 status: Superseded
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 date: 2026-05-21
 owner_team: council-architecture
 decision_owner: council-architecture

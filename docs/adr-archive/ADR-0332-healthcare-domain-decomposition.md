@@ -11,7 +11,7 @@ amends:
   - microservices/healthcare-integration/PRD.md (de-scoped to FHIR/HL7v2/DICOM broker concern)
   - microservices/diagnostics/PRD.md (de-scoped to lab + pathology only)
   - microservices/imaging/PRD.md (promoted as imaging authority)
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0131-per-microservice-flat-layout.md

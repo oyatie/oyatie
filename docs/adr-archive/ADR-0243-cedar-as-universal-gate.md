@@ -16,7 +16,7 @@ supersedes: []
 amends:
   - ADR-0150-cedar-policy-engine.md (extends scope from authorization to all gates)
   - ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md (clarifies Cedar's scope)
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0028-cloud-microservice-architecture.md
   - ADR-0099-data-class-registry.md

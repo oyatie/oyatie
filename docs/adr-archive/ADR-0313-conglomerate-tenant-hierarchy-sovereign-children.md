@@ -18,7 +18,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0244-tenant-as-universal-scoping-primitive.md (§D-3 schema extension — adds `controls_tenants` / `controlled_by_tenants` denormalized index columns; cross-references new `conglomerate_grants` source-of-truth table)
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md

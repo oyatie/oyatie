@@ -23,7 +23,7 @@ amends:
   - ADR-0251-compliance-pack-primitive.md (residency attestations become a compliance pack obligation)
   - ADR-0263-audit-event-registry-doctrine.md (adds residency-attestation event classes)
   - ADR-0304-cross-jurisdiction-conflict-resolution.md (codifies residency as a first-class conflict primitive)
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 related:
   - ADR-0144
   - ADR-0145

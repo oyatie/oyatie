@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, workflow-studio-product-cou
 date: 2026-05-17
 owner: ops-sre-reliability
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 related:
   - ADR-0114
   - ADR-0123

@@ -9,7 +9,7 @@ owner: council-architecture
 planning_impact: true
 door: two-way
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amends: [ADR-0363]
 amended_by: [ADR-0518, ADR-0526]
 related: [ADR-0363, ADR-0367, ADR-0369, ADR-0111, ADR-0173, ADR-0247, ADR-0248, ADR-0362, ADR-0511]

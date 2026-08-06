@@ -19,7 +19,7 @@ owners:
   - axis-consent
 supersedes: []
 amends: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0044-service-mesh-and-mtls.md

@@ -7,7 +7,7 @@ deciders: founder, council-architecture
 date: 2026-05-29
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 amends: [ADR-0482]
 related: [ADR-0001, ADR-0011, ADR-0067, ADR-0090, ADR-0130, ADR-0131, ADR-0132, ADR-0203, ADR-0209, ADR-0213, ADR-0372, ADR-0393, ADR-0482, ADR-0509, ADR-0515, ADR-0615]
 related_specs:

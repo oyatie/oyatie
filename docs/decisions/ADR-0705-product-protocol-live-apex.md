@@ -1,5 +1,5 @@
 ---
-id: ADR-705
+id: ADR-0705
 title: "Live product protocols, APIs, and communications plane"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-1, ADR-13, ADR-19, ADR-90, ADR-132, ADR-166, ADR-176, ADR-249, ADR-258, ADR-314, ADR-354, ADR-516, ADR-548]
+supersedes: [ADR-0001, ADR-0013, ADR-0019, ADR-0090, ADR-0132, ADR-0166, ADR-0176, ADR-0249, ADR-0258, ADR-0314, ADR-0354, ADR-0516, ADR-0548]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0705-product-protocol-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-705: Live product protocols, APIs, and communications plane
+# ADR-0705: Live product protocols, APIs, and communications plane
 
 ## Status
 
@@ -90,7 +90,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-258 residual
 
-**ADR-0258-api-versioning-model** — We adopt twelve interlocking decisions (D-1 through D-12) that together constitute the canonical oyatie API versioning model. Each decision is independently enforceable; the bundle composes into a coherent system. ### D-1 — External (public) APIs use Stripe-style request-time pinning via `X-Oyatie-API-Version` header Every public API surface (Workspace, Cloud, Foundry, Verticals, Connect, Search,
+**ADR-0258-api-versioning-model** — We adopt twelve interlocking decisions (D-1 through D-12) that together constitute the canonical oyatie API versioning model. Each decision is independently enforceable; the bundle composes into a coherent system. ### D-1 — External (public) APIs use Stripe-style request-time pinning via `X-Oyatie-API-Version` header Every public API surface (Workspace, Cloud, Intelligence, Verticals, Connect, Search,
 
 ### ADR-166 residual
 

@@ -15,7 +15,7 @@ purpose: |
   rules; this ADR provides the decision-log entry for traceability).
 canonical_authority: docs/CONSTITUTION.md
 supersedes: ~
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 sunset_topic: adr-0083-infallible-audit-signature
 sunset_milestone: adr-0083-merge-historical-2026-05-15
 related_adrs:

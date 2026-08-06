@@ -6,7 +6,7 @@ deciders: founder, ops-platform, council-architecture
 date: 2026-05-28
 owner: ops-platform
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0374, ADR-0378, ADR-0379, ADR-0363, ADR-0349, ADR-0359, ADR-0361, ADR-0148, ADR-0360, ADR-0111]
 related_specs: [/specs/deployment-ops-contract.json]
 milestone: M-LOCAL-CI-SUBSTRATE

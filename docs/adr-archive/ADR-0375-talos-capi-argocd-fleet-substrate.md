@@ -6,7 +6,7 @@ deciders: founder, council-architecture, ops-platform
 date: 2026-05-27
 owner: council-architecture
 supersedes: [ADR-0120, ADR-0121]
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related: [ADR-0009, ADR-0147, ADR-0148, ADR-0306, ADR-0338, ADR-0339, ADR-0363, ADR-0370, ADR-0371, ADR-0158, ADR-0171, ADR-0198]
 related_specs: [/specs/deployment-ops-contract.json, /specs/hyperscaler-architecture-invariants.json, /specs/talos-001-substrate-slice.json]
 milestone: M-FLEET-SUBSTRATE

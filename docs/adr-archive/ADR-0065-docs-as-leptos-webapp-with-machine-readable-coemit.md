@@ -70,7 +70,7 @@ status: Proposed | Accepted | Rejected | Superseded | Retired
 date: 2026-05-13
 owner: <team-id>
 supersedes: [ADR-####, ...]
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-####, ...]
 
 # PRD

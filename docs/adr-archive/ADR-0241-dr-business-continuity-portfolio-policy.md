@@ -8,7 +8,7 @@ owners:
   - ops-sre-reliability
   - ops-compliance
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 amended_by: [ADR-0343]
 related:
   - ADR-0049-cross-region-replication-and-residency.md

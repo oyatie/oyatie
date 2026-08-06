@@ -5,7 +5,7 @@ deciders: council-architecture, axis-frontend, axis-product, axis-regional-pack
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related: [ADR-0064, ADR-0185, ADR-0204, ADR-0205, ADR-0207]
 related_specs:
   - /specs/products/workflow-studio.json

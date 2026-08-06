@@ -1,7 +1,7 @@
 ---
 id: ADR-0314
 status: Superseded
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 date: 2026-05-20
 owner: council-product + council-architecture
 doc_class: Architecture-Decision-Record

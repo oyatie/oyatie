@@ -20,7 +20,7 @@ owners:
   - axis-policy-engine
 supersedes: []
 amends: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 related:
   - ADR-0002-tenant-and-identity-kernel.md
   - ADR-0003-audit-chain-and-evidence-emission.md

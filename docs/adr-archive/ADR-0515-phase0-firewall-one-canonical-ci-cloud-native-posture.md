@@ -7,7 +7,7 @@ deciders: founder, council-architecture
 date: 2026-06-07
 door: one-way
 supersedes: [ADR-0124, ADR-0349, ADR-0359, ADR-0361, ADR-0511, ADR-0513, ADR-0514]
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 depends_on: [ADR-0392]
 amends: [ADR-0092, ADR-0363]
 amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624, ADR-0639]

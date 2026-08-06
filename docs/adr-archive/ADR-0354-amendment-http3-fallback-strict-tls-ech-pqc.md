@@ -14,7 +14,7 @@ owners:
   - ops-compliance
 amends: ADR-0253
 supersedes: []
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 related:
   - ADR-0044-service-mesh-and-mtls.md
   - ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md

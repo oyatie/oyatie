@@ -1,5 +1,5 @@
 ---
-id: ADR-708
+id: ADR-0708
 title: "Live platform foundations: cells, residency, workflow, plugins, search"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-49, ADR-158, ADR-240, ADR-251, ADR-253]
+supersedes: [ADR-0049, ADR-0158, ADR-0240, ADR-0251, ADR-0253]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0708-platform-foundations-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-708: Live platform foundations: cells, residency, workflow, plugins, search
+# ADR-0708: Live platform foundations: cells, residency, workflow, plugins, search
 
 ## Status
 

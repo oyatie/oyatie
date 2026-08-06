@@ -6,7 +6,7 @@ deciders: council-architecture, council-engineering, axis-foundry, axis-workspac
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 amended_by: [ADR-0245, ADR-0249, ADR-0316, ADR-0324, ADR-0334, ADR-0347, ADR-0362]
 related: [ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0119, ADR-0122, ADR-0127, ADR-0139, ADR-0131, ADR-0135]
 related_specs: [/specs/per-microservice-flat-layout.json]

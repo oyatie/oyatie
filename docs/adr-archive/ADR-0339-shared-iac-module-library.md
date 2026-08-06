@@ -15,7 +15,7 @@ owners:
   - ops-sre-reliability
   - council-security
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amends:
   - ADR-0211-in-house-tech-stack-preference.md (substrate-class allow-list: OpenTofu shared-module library is the canonical IaC reuse vehicle; per-µservice from-scratch IaC modules are non-canonical going forward)
   - ADR-0212-buildability-doctrine.md (per-µservice manifest `iac_module_invocations` field becomes the canonical declaration of the µservice's IaC primitive dependencies after the library lands; from-scratch module bodies become artifacts only inside cloud-iac, not per-µservice)

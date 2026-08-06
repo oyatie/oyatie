@@ -19,7 +19,7 @@ owners:
   - axis-survivor-safety
 supersedes: []
 amends: []
-superseded_by: [ADR-707]
+superseded_by: [ADR-0707]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0044-service-mesh-and-mtls.md

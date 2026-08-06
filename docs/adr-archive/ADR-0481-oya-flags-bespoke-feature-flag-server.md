@@ -8,7 +8,7 @@ amends: [ADR-0428]
 milestone: M-FEATURE-FLAGS-V2
 planning_impact: true
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0632]
 related: [ADR-0428, ADR-0083, ADR-0407, ADR-0411, ADR-0397, ADR-0476, ADR-0408, ADR-0509]
 deliverables:

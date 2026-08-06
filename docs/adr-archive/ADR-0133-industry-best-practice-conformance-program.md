@@ -5,7 +5,7 @@ deciders: council-architecture, council-engineering, axis-foundry, axis-observab
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0135]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 session_context:

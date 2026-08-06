@@ -2,7 +2,7 @@
 id: ADR-0096
 title: "Supervisor language: Rust, not Node (build-vs-adopt Siigari/claude-heartbeat)"
 status: Superseded
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 doc_status: published
 owner: council-architecture
 date: 2026-05-15

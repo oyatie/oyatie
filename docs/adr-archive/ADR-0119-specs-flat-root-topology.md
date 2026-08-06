@@ -5,7 +5,7 @@ deciders: council-architecture, council-foundry-vcs
 date: 2026-05-16
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by:
   - ADR-0131-per-microservice-flat-layout.md (partial product-owned-spec colocation only; the flat cross-cutting specs root remains binding)
 related:

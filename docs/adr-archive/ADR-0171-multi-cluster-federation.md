@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, axis-cloud-iac, axis-cloud-
 date: 2026-05-18
 owner: axis-cloud-iac
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0009, ADR-0010, ADR-0049, ADR-0117, ADR-0121, ADR-0131, ADR-0148]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

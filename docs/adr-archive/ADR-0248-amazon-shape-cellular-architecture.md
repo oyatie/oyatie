@@ -24,7 +24,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0333]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md

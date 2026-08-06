@@ -7,7 +7,7 @@ owners:
   - ops-finops
   - axis-cloud
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0344]
 related:
   - ADR-0028-cloud-microservice-architecture.md

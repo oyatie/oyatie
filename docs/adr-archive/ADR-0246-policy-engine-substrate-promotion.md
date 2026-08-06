@@ -18,7 +18,7 @@ amends:
   - ADR-0150-cedar-policy-engine.md
   - ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md
   - microservices/ontology/PRD.md (drops cedar-fragment-coverage BC; rewrites §"universal mediator" framing; renames agent-gateway BC to tool-call-ingress)
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0280]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md

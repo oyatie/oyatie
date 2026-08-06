@@ -19,7 +19,7 @@ amends:
   - ADR-0132-product-platform-and-bundle-dissolution.md (companion ban on lambda-wrap suite-style enumeration)
   - ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md (extends substance bar with named anti-pattern catalog)
   - ADR-0323-multi-wave-sequencing-doctrine.md (companion ban on wave-scale fan-out scripting)
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0063
   - ADR-0091

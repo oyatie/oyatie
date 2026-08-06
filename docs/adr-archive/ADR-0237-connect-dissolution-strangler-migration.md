@@ -5,7 +5,7 @@ deciders: council-architecture, council-product, council-privacy, axis-mail, axi
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0238]
 related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer (retired per ADR-0145), feedback_bominal_inheritance_precedence]
 related_specs:

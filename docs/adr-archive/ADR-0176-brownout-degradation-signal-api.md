@@ -7,7 +7,7 @@ owners:
   - ops-sre-reliability
   - axis-cloud
 supersedes: []
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 amended_by: [ADR-0632]
 related:
   - ADR-0128-hyperscaler-architecture-invariants.md

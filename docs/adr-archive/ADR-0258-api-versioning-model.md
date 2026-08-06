@@ -6,7 +6,7 @@ date: 2026-05-20
 deciders: council-architecture, axis-foundry, axis-cloud, axis-all-microservices, ops-sre-reliability
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 amends: []
 amended_by: [ADR-0565, ADR-0632]
 related: [ADR-0011, ADR-0037, ADR-0064, ADR-0131, ADR-0145, ADR-0150, ADR-0157, ADR-0167, ADR-0176, ADR-0182, ADR-0203, ADR-0244, ADR-0250, ADR-0565, ADR-0632]

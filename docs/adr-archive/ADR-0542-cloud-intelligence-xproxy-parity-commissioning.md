@@ -8,7 +8,7 @@ date: 2026-06-10
 door: two-way
 owner: axis-cloud-platform
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 depends_on: [ADR-0363, ADR-0510, ADR-0515, ADR-0516]
 amends: []
 related: [ADR-0131, ADR-0132, ADR-0384, ADR-0540, ADR-0541]

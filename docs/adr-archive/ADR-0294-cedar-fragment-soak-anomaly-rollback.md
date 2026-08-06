@@ -16,7 +16,7 @@ amends: []
 requires_amendment_to:
   - ADR-0243-cedar-as-universal-gate.md (§D-2 fragment lifecycle gains a `soaking` stage between `Published` and `Activated`; §D-10 hot-reload <5s window now applies to soak-phase shadow evaluation, not enforcement; §D-11 fallback semantics gain anomaly-rollback as a third causal path)
   - ADR-0246-policy-engine-substrate-promotion.md (fragment-publisher admission gate enforces `sunset_at - activate_at >= 60s` invariant)
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 related:
   - ADR-0105-thirteen-layer-canonical-enum.md
   - ADR-0128-hyperscaler-architecture-invariants.md

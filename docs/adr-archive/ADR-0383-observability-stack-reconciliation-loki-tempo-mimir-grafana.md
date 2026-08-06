@@ -6,7 +6,7 @@ deciders: founder, council-architecture, ops-platform
 date: 2026-05-28
 owner: ops-platform
 supersedes: [ADR-0042]
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0186, ADR-0173, ADR-0211, ADR-0349]
 related_specs: []
 door: two-way

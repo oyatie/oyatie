@@ -5,7 +5,7 @@ deciders: council-architecture, council-api-sdk, axis-developer-experience, axis
 date: 2026-05-18
 owner: council-api-sdk
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0632]
 related: [ADR-0002, ADR-0011, ADR-0021, ADR-0037, ADR-0121, ADR-0145, ADR-0146, ADR-0203, ADR-0258, ADR-0632]
 last_reconciled: 2026-08-01

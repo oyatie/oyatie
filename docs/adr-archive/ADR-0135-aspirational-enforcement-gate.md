@@ -5,7 +5,7 @@ deciders: council-architecture, ops-quality
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0129
   - ADR-0133

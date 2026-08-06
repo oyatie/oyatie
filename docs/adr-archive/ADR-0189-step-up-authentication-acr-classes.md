@@ -5,7 +5,7 @@ deciders: council-architecture, axis-identity, ops-security, council-compliance
 date: 2026-05-18
 owner: axis-identity
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0145, ADR-0183, ADR-0187, ADR-0188, ADR-0162-per-tenant-audit-log-slicing]
 related_specs:
   - /specs/microservices/manifest-schema.json

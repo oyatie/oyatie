@@ -19,7 +19,7 @@ supersedes: []
 amends:
   - ADR-0213-ecosystem-as-a-service-architecture.md (marketplace name reservation activated; plugin-app-store refactor onto shared marketplace substrates)
   - ADR-0132-no-grouping-forward-policy.md (declares that "Marketplace" is a brand-layer concept per ADR-0132 §Rejected alternative 2, NOT an architectural µservice; the 8 substrate µservices are flat single-concern µservices; new categories land as new flat µservices or tag values, never as a marketplace-<category>/ bundle folder)
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 amended_by: [ADR-0329]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md

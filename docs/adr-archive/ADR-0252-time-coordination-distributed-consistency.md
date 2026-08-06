@@ -18,7 +18,7 @@ amends:
   - ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md (clarifies HLC + saga timing primitive)
   - ADR-0145-inter-microservice-communication-reform.md (clarifies deadline propagation)
   - ADR-0128-hyperscaler-architecture-invariants.md (formalises INV-IDEMPOTENCY as caller-supplied key)
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0350]
 related:
   - ADR-0005-eventing-backbone-outbox-pattern.md

@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, ops-security, axis-cloud-k8
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0341]
 related: [ADR-0009, ADR-0121, ADR-0131, ADR-0145, ADR-0146, ADR-0147, ADR-0149, ADR-0150, ADR-0153, ADR-0182, ADR-0183, ADR-0184, ADR-0185, ADR-0186]
 related_specs:

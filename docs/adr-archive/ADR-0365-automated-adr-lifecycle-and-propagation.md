@@ -5,7 +5,7 @@ deciders: council-architecture, founder
 date: 2026-05-26
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0364, ADR-0363, ADR-0247]
 planning_impact: true
 milestone: M-PLANNING-SSOT

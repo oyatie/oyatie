@@ -5,7 +5,7 @@ deciders: council-architecture, axis-workflow-studio, axis-mobile, axis-desktop
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0632]
 related: [ADR-0064, ADR-0131, ADR-0145, ADR-0148, ADR-0182, ADR-0183, ADR-0184, ADR-0186]
 related_specs:

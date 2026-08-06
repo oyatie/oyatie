@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, axis-eventing, council-api-
 date: 2026-05-18
 owner: axis-eventing
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0632]
 related: [ADR-0005, ADR-0011, ADR-0037, ADR-0040, ADR-0145, ADR-0167, ADR-0168]
 related_specs:

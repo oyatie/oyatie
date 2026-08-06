@@ -21,7 +21,7 @@ amends:
   - ADR-0249-multi-category-marketplace-doctrine.md (adds per-category public price anchors)
   - ADR-0314-marketplace-as-universal-deal-settlement.md (binds settlement pricing to public tier anchors)
   - ADR-0316-capability-tier-over-product-fragmentation.md (publishes the per-tier price bands declared but not anchored in ADR-0316)
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0132
   - ADR-0242

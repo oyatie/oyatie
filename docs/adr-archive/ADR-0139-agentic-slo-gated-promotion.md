@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, ops-security, axis-foundry,
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0041, ADR-0056, ADR-0105, ADR-0110, ADR-0111, ADR-0112, ADR-0113, ADR-0114, ADR-0116, ADR-0123, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/hyperscaler-gates.json, /specs/masterplan.json, /specs/master-plan-sequencing.json]
 bominal_source: |

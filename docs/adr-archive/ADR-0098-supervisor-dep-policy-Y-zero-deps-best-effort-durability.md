@@ -2,7 +2,7 @@
 id: ADR-0098
 title: "Supervisor dependency policy Branch Y — zero net-new external Cargo deps + best-effort durability"
 status: Superseded
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 doc_status: published
 owner: council-architecture
 date: 2026-05-15

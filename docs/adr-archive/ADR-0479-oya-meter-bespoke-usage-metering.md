@@ -7,7 +7,7 @@ authority: founder
 owner: axis-cloud
 planning_impact: true
 supersedes: [ADR-0429]
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0632]
 milestone: M-METERING-V2
 related: [ADR-0429, ADR-0478, ADR-0193, ADR-0397, ADR-0083, ADR-0411, ADR-0403, ADR-0420, ADR-0449, ADR-0131, ADR-0132, ADR-0509]

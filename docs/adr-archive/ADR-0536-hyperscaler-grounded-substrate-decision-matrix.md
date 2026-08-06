@@ -8,7 +8,7 @@ date: 2026-06-09
 door: one-way
 owner: founder
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by:
   - ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md (its sixteen domains seed the closed capability registry; its enforcement gains face-direction + membership checks)
 depends_on: [ADR-0328, ADR-0510, ADR-0516]

@@ -37,7 +37,7 @@ authority_chain:
   - amends: ADR-0292 (Minor-user doctrine)
   - amends: ADR-0252 (Time, coordination, and distributed consistency)
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amends:
   - ADR-0003-audit-chain-and-evidence-emission.md
   - ADR-0005-eventing-backbone-outbox-pattern.md

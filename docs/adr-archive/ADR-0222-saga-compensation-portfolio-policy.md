@@ -7,7 +7,7 @@ owners:
   - ops-sre-reliability
   - axis-workspace
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 related:
   - ADR-0005-eventing-backbone-outbox-pattern.md
   - ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md

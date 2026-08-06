@@ -17,7 +17,7 @@ owners:
   - axis-data-residency
 supersedes: []
 amends: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0099-data-class-registry.md

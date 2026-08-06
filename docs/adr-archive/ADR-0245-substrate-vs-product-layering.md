@@ -21,7 +21,7 @@ amends:
   - ADR-0131-per-microservice-flat-layout.md (extends layout-only authority with a tier-classification field; additionally: reserved-tier µservices are EXEMPT from the ADR-0131 requirement for `src/` and `iac/` directories — reserved µservices ship PRD.md + threat-model.md + dpia.md + manifest.json skeletons only; `planned_contracts/` is the canonical directory for planned-but-not-yet-live OpenAPI/AsyncAPI contracts on reserved-tier µservices)
   - ADR-0132-product-platform-and-bundle-dissolution.md (adds tier classification to the flat-microservice forward-policy)
   - ADR-0145-inter-microservice-communication-reform.md (tightens the three invariants with cross-tier direction rules)
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0280, ADR-0635]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md

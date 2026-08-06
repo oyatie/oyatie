@@ -17,7 +17,7 @@ supersedes: []
 amends:
   - ADR-0106-ontology-architecture.md (extends with schema-revision lifecycle)
   - ADR-0145-inter-microservice-communication-reform.md (clarifies versioned read contract)
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0005-eventing-backbone-outbox-pattern.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md

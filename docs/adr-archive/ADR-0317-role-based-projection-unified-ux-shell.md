@@ -22,7 +22,7 @@ amends:
   - ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md
   - ADR-0299-account-recovery-resilience.md
   - ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0244-tenant-as-universal-scoping-primitive.md
   - ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md

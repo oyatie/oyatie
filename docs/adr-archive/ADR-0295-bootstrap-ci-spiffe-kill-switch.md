@@ -18,7 +18,7 @@ amends: []
 requires_amendment_to:
   - ADR-0247-self-hosting-self-modification-doctrine.md (§D-5 Stage 1 gains SPIFFE-pinned runner identity, sigstore cosign-attested artifact requirement, ≤8h bootstrap budget, T+8h Cedar kill-switch fragment; §D-5 Stage 1.10 → Stage 2.0 transition gains out-of-band council-security manual hash verification; §D-2 sub-scope `oyatie.foundry.bootstrap-runner` added)
   - ADR-0243-cedar-as-universal-gate.md (§D-5 chain of trust gains bootstrap-runner intermediate identity; baseline scope gains `bootstrap-trust-roots-kill-switch.cedar` fragment)
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0049-cross-region-replication-and-residency.md

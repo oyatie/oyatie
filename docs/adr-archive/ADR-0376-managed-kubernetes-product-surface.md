@@ -6,7 +6,7 @@ deciders: founder, council-architecture, ops-platform
 date: 2026-05-27
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related: [ADR-0375, ADR-0148, ADR-0147, ADR-0338, ADR-0131, ADR-0132, ADR-0009, ADR-0306]
 related_specs: [/specs/deployment-ops-contract.json, /specs/hyperscaler-architecture-invariants.json]
 milestone: M-MANAGED-K8S-PRODUCT

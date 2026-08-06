@@ -7,7 +7,7 @@ owners:
   - ops-sre-reliability
   - ops-security
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0252]
 related:
   - ADR-0114-canary-observability-rollback.md

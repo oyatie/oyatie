@@ -5,7 +5,7 @@ deciders: council-architecture, axis-workflow-studio, axis-docs, axis-sheets, ax
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 related: [ADR-0056, ADR-0064, ADR-0131, ADR-0133, ADR-0135]
 related_memory: [feedback_no_silent_regression, feedback_clean_architecture_requirements, feedback_workflow_studio_scope]
 related_specs:

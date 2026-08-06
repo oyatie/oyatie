@@ -22,7 +22,7 @@ owners:
   - axis-feature-store
 supersedes: []
 amends: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0063-doc-coverage-enforced.md

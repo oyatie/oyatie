@@ -22,7 +22,7 @@ amends:
   - ADR-0099-data-class-registry.md (adds MINOR_PII data class + per-jurisdiction subtypes)
   - ADR-0218-tenant-granular-control-surface.md (introduces tenant-level minor-user policy override surface)
   - ADR-0251-compliance-pack-cell-certification-levels.md (registers MINOR-USER-2024 as the umbrella minor-user pack)
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0350]
 related:
   - ADR-0002-tenant-and-identity-kernel.md

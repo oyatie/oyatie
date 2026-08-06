@@ -1,5 +1,5 @@
 ---
-id: ADR-700
+id: ADR-0700
 title: "Live CI admission, build hermeticity, and runner substrate"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-9, ADR-10, ADR-21, ADR-28, ADR-29, ADR-30, ADR-31, ADR-35, ADR-40, ADR-44, ADR-47, ADR-56, ADR-83, ADR-91, ADR-94, ADR-99, ADR-104, ADR-117, ADR-118, ADR-123, ADR-128, ADR-129, ADR-135, ADR-139, ADR-148, ADR-157, ADR-162, ADR-167, ADR-175, ADR-182, ADR-185, ADR-190, ADR-194, ADR-204, ADR-213, ADR-215, ADR-234, ADR-243, ADR-248, ADR-273, ADR-295, ADR-297, ADR-303, ADR-305, ADR-309, ADR-312, ADR-313, ADR-325, ADR-328, ADR-334, ADR-340, ADR-341, ADR-346, ADR-348, ADR-360, ADR-366, ADR-367, ADR-369, ADR-373, ADR-374, ADR-380, ADR-383, ADR-392, ADR-515, ADR-517, ADR-519, ADR-521, ADR-522, ADR-523, ADR-524, ADR-525, ADR-526, ADR-527, ADR-528, ADR-529, ADR-530, ADR-531, ADR-533, ADR-534, ADR-535, ADR-536, ADR-537, ADR-538, ADR-539, ADR-540, ADR-544, ADR-545, ADR-546, ADR-547, ADR-549, ADR-551, ADR-554, ADR-559, ADR-560, ADR-563, ADR-565, ADR-566, ADR-567, ADR-570, ADR-581, ADR-582, ADR-586, ADR-587, ADR-588, ADR-590, ADR-595, ADR-597, ADR-600, ADR-605, ADR-606, ADR-608, ADR-609, ADR-612, ADR-613, ADR-616, ADR-618, ADR-624, ADR-627, ADR-628, ADR-629, ADR-630, ADR-631, ADR-633, ADR-634, ADR-636, ADR-639]
+supersedes: [ADR-0009, ADR-0010, ADR-0021, ADR-0028, ADR-0029, ADR-0030, ADR-0031, ADR-0035, ADR-0040, ADR-0044, ADR-0047, ADR-0056, ADR-0083, ADR-0091, ADR-0094, ADR-0099, ADR-0104, ADR-0117, ADR-0118, ADR-0123, ADR-0128, ADR-0129, ADR-0135, ADR-0139, ADR-0148, ADR-0157, ADR-0162, ADR-0167, ADR-0175, ADR-0182, ADR-0185, ADR-0190, ADR-0194, ADR-0204, ADR-0213, ADR-0215, ADR-0234, ADR-0243, ADR-0248, ADR-0273, ADR-0295, ADR-0297, ADR-0303, ADR-0305, ADR-0309, ADR-0312, ADR-0313, ADR-0325, ADR-0328, ADR-0334, ADR-0340, ADR-0341, ADR-0346, ADR-0348, ADR-0360, ADR-0366, ADR-0367, ADR-0369, ADR-0373, ADR-0374, ADR-0380, ADR-0383, ADR-0392, ADR-0515, ADR-0517, ADR-0519, ADR-0521, ADR-0522, ADR-0523, ADR-0524, ADR-0525, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0531, ADR-0533, ADR-0534, ADR-0535, ADR-0536, ADR-0537, ADR-0538, ADR-0539, ADR-0540, ADR-0544, ADR-0545, ADR-0546, ADR-0547, ADR-0549, ADR-0551, ADR-0554, ADR-0559, ADR-0560, ADR-0563, ADR-0565, ADR-0566, ADR-0567, ADR-0570, ADR-0581, ADR-0582, ADR-0586, ADR-0587, ADR-0588, ADR-0590, ADR-0595, ADR-0597, ADR-0600, ADR-0605, ADR-0606, ADR-0608, ADR-0609, ADR-0612, ADR-0613, ADR-0616, ADR-0618, ADR-0624, ADR-0627, ADR-0628, ADR-0629, ADR-0630, ADR-0631, ADR-0633, ADR-0634, ADR-0636, ADR-0639]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0700-ci-admission-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-700: Live CI admission, build hermeticity, and runner substrate
+# ADR-0700: Live CI admission, build hermeticity, and runner substrate
 
 ## Status
 
@@ -40,9 +40,11 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 1. **Single required admission context:** `oya-ci-required` is the sole protected merge context (no dual CI authority).
 2. **Cloud-native gates:** binding verification is Rust/Buck2 gate apps; legacy shell/CLI is bridge feedback only.
-3. **No dual-authority CI:** GitHub Actions is transitional adapter; no re-introduction of Prow/Jenkins as merge authority.
+3. **No dual-authority CI:** GitHub Actions is transitional adapter; no re-introduction of dual merge authorities (legacy farm substrates retired).
 4. **Warm CAS / RE activation:** fail-closed until explicit go-gate (credentials #1541, cache-only proof, Accepted activation ADR). Apex gists that mention `remote_enabled=true` are **historical design**, not activation authority.
 5. **Generated faces:** never hand-edit `*.generated.json`; materialize via sanctioned producers.
+6. **ADR census epoch gate (ADR-0624 lineage):** `ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs` keeps P2 remains active with its immutable historical receipt while P3 remains dormant as a deterministic, non-materializing policy check. It runs beneath the sole protected `oya-ci-required` context and does not authorize planning dispatch.
+7. **Census epoch ownership marker:** `registry/adr-census-epoch/OWNERS` remains the narrow ownership seed for the census epoch control plane (implementation surface from ADR-0624).
 
 1. **This ADR is the live reading entry** for topic `ci_admission` under the end-state ADR policy.
 2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.
@@ -57,7 +59,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-21** (ADR-0021-intelligence-capability-registry-and-mcp-gateway): We define the canonical `Capability` record in `oya-intelligence-capability-kernel` and serve it via an MCP-compatible gateway that exposes a per-tenant endpoint. The catalog YAML in `registry/catalog/` is the source of truth; the kernel projects it into typed records at runtime. ### Capability primitive (`oya-intelligence-capability-kernel`) ```ru
 - **ADR-28** (ADR-0028-cloud-microservice-architecture): We adopt a **three-phase compute trajectory** with a **phase-invariant product surface**. Customers consume the same APIs, the same SKUs, the same IAM model, and the same audit shape regardless of whether the underlying capacity is rented, leased in a colo, or owned in a mega-DC. **Naming justification (BNF v4.1, ADR-0056):** - Cloud µservice crate
 - **ADR-29** (ADR-0029-connect-dual-context-architecture): We adopt as a **suite of twelve canonical apps** plus three adjunct surfaces, each its own bounded context under `oya-connect-<app>-*`, sharing the six substrates from ADR-0001 plus a Connect-internal **document-format kernel** and **collab-runtime kernel**. **Naming justification (BNF v4.1, ADR-0056):** - `oya-mail-kernel`: slot2 = `connector` (re
-- **ADR-30** (ADR-0030-search-microservice-architecture): We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Foundry/Ads bridges). Each stage is its own bounded context under `oya-search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by 
+- **ADR-30** (ADR-0030-search-microservice-architecture): We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Intelligence/Ads bridges). Each stage is its own bounded context under `oya-search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by 
 - **ADR-31** (ADR-0031-ads-and-analytics-microservice-architecture): We adopt a **singleton tenant-ads-gate sourcing rule** plus a **five-pillar Ads architecture** (Serving / Pricing / Attribution / Advertiser console / Publisher inventory) plus a **DP-budgeted Analytics architecture**. **Naming justification (BNF v4.1, ADR-0056):** - `oya-ads-gate-kernel`: slot2 = `ads` (registered µservice); slot3 = `gate` (BC); s
 - **ADR-35** (ADR-0035-workflow-engine-state-machine-and-dag-hybrid): We build `crates/oya-workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime
 - **ADR-40** (ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback): We adopt **Argo Rollouts** as the canonical progressive-delivery controller; **canary 5% → 25% → 50% → 100%** as the default stage progression; **metric-gated rollback** at SLO 1h burn-rate ≥ 14.4× (Sev-1-class trigger); **blue-green** for stateful surfaces; **per-region phased rollout** as the geographic progression; **per-cell rollback** as the u
@@ -67,7 +69,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-83** (ADR-0083-rust-error-handling-tier-decision): We adopt a **three-tier** error-handling policy applied uniformly across every `oya-*` Rust crate. Per-tier rules below are normative (RFC-2119 keywords as defined in docs/standards/error-handling.md§1). ### Tier 1 — Library crates (kernel / domain / app / adapter / api / worker / infrastructure / service / rest / cli / bindings) - Public errors **
 - **ADR-91** (ADR-0091-governance-write-gate-foundations): The write-gate kernel owns the canonical write-gate state machine: ``` Proposed → Reviewed { reviewer } → Approved { approver } → Executed \ / +----------> Rejected { reason } <--------------+ ``` Linear forward path: `Proposed → Reviewed → Approved → Executed`. Any non-terminal state may transition to `Rejected`. `Executed` and `Rejected` are term
 - **ADR-94** (ADR-0094-handler-trait-with-associated-error): Add a typed `Handler` trait in `oya-http-middleware-kernel`: ```rust pub trait Handler: Send + Sync { type Error: Into<HttpResponse>; fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error>; } pub fn call_into_response<H: Handler>(handler: &H, req: HttpRequest) -> HttpResponse { match handler.call(req) { Ok(r) => r, Err(e) => e.into()
-- **ADR-99** (Cedar policy extension — foundry supervisor capabilities in docs/policies/foundr): Add `docs/policies/foundry-supervisor.cedar` containing tier-gated policies for the five supervisor capabilities. The file is created by Wave 4b (Task #12); this ADR records the design. ### Policy design Autonomy tiers (from ADR-0007): | Tier | Label | Principal class | |---|---|---| | T1 | `read-only-observer` | Monitoring/observability systems, r
+- **ADR-99** (Cedar policy extension — intelligence supervisor capabilities in docs/policies/foundr): Add `docs/policies/intelligence-supervisor.cedar` containing tier-gated policies for the five supervisor capabilities. The file is created by Wave 4b (Task #12); this ADR records the design. ### Policy design Autonomy tiers (from ADR-0007): | Tier | Label | Principal class | |---|---|---| | T1 | `read-only-observer` | Monitoring/observability systems, r
 - **ADR-104** (Ecosystem-expansion principle for check-lane + adapter crate reintroduction): **Ecosystem-expansion rule.** A crate is shipped iff: 1. The kernel/domain layer it implements is itself shipped, AND 2. At least one consumer in the workspace imports it, AND 3. The crate has a real implementation (not a doc-stub). If any condition fails, the crate is not shipped. Documentation of the trigger that would unblock the crate lives in 
 - **ADR-117** (ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation): 1. Add `.audit/` to `.gitignore` and untrack `.audit/agent-read.jsonl` via `git rm --cached`. Session-scoped audit logs stay local-only. Keep `.config/nextest.toml` tracked because it is CI configuration, not per-developer config. 2. `git mv deploy/gitops/oya-vcs-admission infra/kyverno/oya-vcs-admission` (history-preserving), removing the now-empt
 - **ADR-118** (ADR-0118-retire-archive-orphan-fitness-lane): Retire `archive-orphan` as an executable fitness lane. The retirement removes: - `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` - `crates/oya-governance-archive-orphan-kernel` - `tools/oya-governance-archive-orphan-app` - workspace members for both retired crates - catalog entries for the retired kernel/app capability The retiremen
@@ -108,7 +110,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-348** (Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support): ### B.1 Decision statement Cellular topology MUST support three control-plane-driven automation modes underneath the cell-level promotion gates already doctrined in ADR-0341: 1. **Autosharding** — tenant→cell/shard placement is computed automatically by the control plane; no human operator picks placement; inputs are capacity_model (ADR-0340) + com
 - **ADR-360** (CI/CD pipeline optimization program — affected-target precision, gate-only overl): Adopt a seven-part CI/CD optimization program. Each part has a hard correctness rule so optimization never weakens the governance gates. - **O1 — Affected-target precision.** Add an additive `oya verify --affected [--base <ref>]` presubmit mode. Classify the changed-file set vs the base into: **Full** (any of `Cargo.lock`, root/`[workspace]` `Cargo
 - **ADR-366** (ADR-0366-agentic-high-throughput-self-enforcing-pipeline): ### 1. Parallelism with conflict PREVENTION (not just resolution) A **single-threaded owner-agent per service/lane** (AWS STO) owns **disjoint paths** — the flat / no-grouping doctrine (ADR-0362) makes service paths naturally disjoint. One **isolated worktree per lane**. A **concurrent-safe-paths** admission gate rejects two in-flight lanes touchin
-- **ADR-367** (ADR-0367-trustless-pre-merge-verification-gateway): ### 1. The producer never certifies its own work The author-agent's self-reported evidence (claimed test/gate results) is **never trusted** for the merge decision. It is at most a hint. ### 2. Trusted-runner-signed evidence The **trusted runner** (the farm / Jenkins, ADR-0349/0361) re-executes every gate **hermetically from a clean checkout** and *
+- **ADR-367** (ADR-0367-trustless-pre-merge-verification-gateway): ### 1. The producer never certifies its own work The author-agent's self-reported evidence (claimed test/gate results) is **never trusted** for the merge decision. It is at most a hint. ### 2. Trusted-runner-signed evidence The **trusted runner** (the farm / legacy-CI-farm, ADR-0349/0361) re-executes every gate **hermetically from a clean checkout** and *
 - **ADR-369** (ADR-0369-gated-stacked-trunk-change-flow): **Gated stacked-trunk with a speculative train**, on plain git (ADR-0363) + GitHub PRs as the cheap mechanism + audit record (ADR-0367 §4): 1. **Conflict prevention — ownership-sharding (now, D1).** One owner-agent per service on disjoint flat paths (ADR-0362); `concurrent-safe-paths` admission + CODEOWNERS. Disjoint paths → most concurrent work ne
 - **ADR-373** (ADR-0373-llm-gateway-production-design): Adopt the design recorded in the gateway design dossier, summarized as four decisions: 1. **Provider abstraction + canonical OpenAI-compatible surface** (ADR-0373-D1): one canonical OpenAI-shaped request/response with per-provider adapter traits; OpenAPI 3.2.0 contract; byte-passthrough SSE; OpenAI error envelope; 429 + `Retry-After`; two security 
 - **ADR-374** (ADR-0374-ci-webhook-gateway-github-actions): Build a **flat single-concern Rust microservice**, `ci-webhook-gateway` (`microservices/ci-webhook-gateway/`, `src/` root per ADR-0131; package `oya-ci-webhook-gateway-app`), that is the FIRST hop of the gated pipeline: 1. **Receive** GitHub webhook deliveries at `POST /webhook/github` (axum/Tokio/ Tower/Hyper — blessed runtime deps). 2. **Verify**
@@ -138,7 +140,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-367 residual
 
-**ADR-0367-trustless-pre-merge-verification-gateway** — ### 1. The producer never certifies its own work The author-agent's self-reported evidence (claimed test/gate results) is **never trusted** for the merge decision. It is at most a hint. ### 2. Trusted-runner-signed evidence The **trusted runner** (the farm / Jenkins, ADR-0349/0361) re-executes every gate **hermetically from a clean checkout** and **signs** the results (SLSA provenance + cosign). T
+**ADR-0367-trustless-pre-merge-verification-gateway** — ### 1. The producer never certifies its own work The author-agent's self-reported evidence (claimed test/gate results) is **never trusted** for the merge decision. It is at most a hint. ### 2. Trusted-runner-signed evidence The **trusted runner** (the farm / legacy-CI-farm, ADR-0349/0361) re-executes every gate **hermetically from a clean checkout** and **signs** the results (SLSA provenance + cosign). T
 
 ### ADR-303 residual
 
@@ -186,7 +188,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-99 residual
 
-**Cedar policy extension — foundry supervisor capabilities in docs/policies/foundry-supervisor.cedar** — Add `docs/policies/foundry-supervisor.cedar` containing tier-gated policies for the five supervisor capabilities. The file is created by Wave 4b (Task #12); this ADR records the design. ### Policy design Autonomy tiers (from ADR-0007): | Tier | Label | Principal class | |---|---|---| | T1 | `read-only-observer` | Monitoring/observability systems, read-only operators | | T2 | `suggest-only` | Workf
+**Cedar policy extension — intelligence supervisor capabilities in docs/policies/intelligence-supervisor.cedar** — Add `docs/policies/intelligence-supervisor.cedar` containing tier-gated policies for the five supervisor capabilities. The file is created by Wave 4b (Task #12); this ADR records the design. ### Policy design Autonomy tiers (from ADR-0007): | Tier | Label | Principal class | |---|---|---| | T1 | `read-only-observer` | Monitoring/observability systems, read-only operators | | T2 | `suggest-only` | Workf
 
 ### ADR-94 residual
 
@@ -378,7 +380,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-30 residual
 
-**ADR-0030-search-microservice-architecture** — We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Foundry/Ads bridges). Each stage is its own bounded context under `oya-search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by default and gated by the Data Use Boundary policy
+**ADR-0030-search-microservice-architecture** — We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer → Ranker → SERP — plus three cross-cutting subsystems (Query Understanding, Safety, Search↔Intelligence/Ads bridges). Each stage is its own bounded context under `oya-search-<stage>-*`. Per-tier index segregation is enforced at the Indexer layer; cross-tier query is forbidden by default and gated by the Data Use Boundary policy
 
 ### ADR-305 residual
 
@@ -470,7 +472,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-380 residual
 
-**ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment** — Sequence the re-establishment into five deliverables (D1–D5): 1. **D1**: Install the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) via `helm upgrade` of the bring-up-managed Jenkins with `installPlugins` extensions in `values-local.yaml`. Reboot once; CasC error-on-conflict means the existing oya-ci-farm cloud config must not be re-declared in any new configScrip
+**ADR-0380-ci-loop-closure-on-talos-legacy-ci-farm-farm-re-establishment** — Sequence the re-establishment into five deliverables (D1–D5): 1. **D1**: Install the gating plugins (generic-webhook-trigger + build-token-root + http_request + git) via `helm upgrade` of the bring-up-managed legacy-CI-farm with `installPlugins` extensions in `values-local.yaml`. Reboot once; CasC error-on-conflict means the existing oya-ci-farm cloud config must not be re-declared in any new configScrip
 
 ### ADR-530 residual
 

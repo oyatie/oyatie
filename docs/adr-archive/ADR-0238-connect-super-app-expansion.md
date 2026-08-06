@@ -5,7 +5,7 @@ deciders: council-architecture, council-product, council-privacy, axis-mail, axi
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0334]
 related: [ADR-0056, ADR-0060, ADR-0105, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0237]
 related_specs:

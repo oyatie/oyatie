@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, axis-observability, axis-te
 date: 2026-05-18
 owner: ops-sre-reliability
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0042, ADR-0121, ADR-0139, ADR-0148, ADR-0167]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

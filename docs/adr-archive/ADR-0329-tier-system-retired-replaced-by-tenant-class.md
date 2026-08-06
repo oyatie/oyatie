@@ -28,7 +28,7 @@ owners:
   - ops-sre-reliability
 supersedes:
   - ADR-0316
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 amends:
   - ADR-0316-capability-tier-over-product-fragmentation.md (retires every capability-tier clause; converts capability-tier-grant doctrine into tenant-class plus billing-component doctrine)
   - ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md (§D-19 OCI Always Free reworded from "OCI Bronze = Always Free" into tenant-class-conditioned "demo_trial defaults to OCI Always Free profile")

@@ -23,7 +23,7 @@ owners:
   - axis-observability
   - axis-policy-engine
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amends:
   - microservices/data-warehouse/IP-031-delta-lake-write-substrate.md (rewritten as a migration adapter only; the canonical write path is Iceberg per this ADR)
   - microservices/data-warehouse/IP-032-apache-iceberg-write-substrate.md (promoted from "primary lakehouse format" to canonical OLAP table-format write path)

@@ -17,7 +17,7 @@ owners:
   - axis-observability
   - axis-cloud-iac
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0351]
 amends:
   - ADR-0248-amazon-shape-cellular-architecture.md (the cellular topology baseline from ADR-0248 declared Tier 0..4 + shuffle sharding as the cell-shape primitive; this ADR fills the within-cell + across-cell TENANT-LEVEL automation contract that ADR-0248 deferred to a follow-on doctrine — specifically: tenant→cell/shard placement is now CONTROL-PLANE-DRIVEN by default rather than operator-driven; hot-cell rebalancing is now automatic by default rather than manual; shard count within a cell is now dynamic by default rather than static)

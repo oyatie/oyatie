@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, axis-observability, axis-fi
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-706]
+superseded_by: [ADR-0706]
 related: [ADR-0139, ADR-0145, ADR-0153, ADR-0174, ADR-0186]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

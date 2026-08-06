@@ -18,7 +18,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0244-tenant-as-universal-scoping-primitive.md (extends audience_type enum with 4 new values)
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0105-thirteen-layer-canonical-enum.md

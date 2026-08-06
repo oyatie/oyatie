@@ -5,7 +5,7 @@ deciders: council-architecture, axis-product, axis-frontend
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0145, ADR-0185, ADR-0205, ADR-0206, ADR-0207, ADR-0208]
 related_specs:
   - /specs/products/workflow-studio.json

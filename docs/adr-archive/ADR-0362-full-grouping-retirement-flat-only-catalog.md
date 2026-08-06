@@ -6,7 +6,7 @@ deciders: council-architecture, founder
 date: 2026-05-25
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amends: [ADR-0132]
 related: [ADR-0131, ADR-0132, ADR-0135, ADR-0237, ADR-0238, ADR-0139]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/tenant-rbac-packaging.json, /specs/microservices/tenant-rbac.json]

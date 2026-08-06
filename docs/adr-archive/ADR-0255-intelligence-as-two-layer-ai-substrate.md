@@ -19,7 +19,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0220-consumer-intelligence-substrate.md
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0329, ADR-0335]
 related:
   - ADR-0028-cloud-microservice-architecture.md

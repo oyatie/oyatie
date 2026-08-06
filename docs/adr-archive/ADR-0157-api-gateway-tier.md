@@ -5,7 +5,7 @@ deciders: council-architecture, axis-network, axis-tenancy, axis-cloud-k8s, ops-
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0632]
 related: [ADR-0009, ADR-0049, ADR-0114, ADR-0121, ADR-0128, ADR-0145, ADR-0148, ADR-0182, ADR-0203, ADR-0258, ADR-0632]
 architectural_authority: ADR-0182 (gateway-vs-mesh separation principle; this ADR picks the implementation)

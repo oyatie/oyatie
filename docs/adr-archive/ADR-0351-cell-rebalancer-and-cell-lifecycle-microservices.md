@@ -1,7 +1,7 @@
 ---
 id: ADR-0351
 status: Superseded
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 planning_impact: true
 date: 2026-05-21
 owner_team: council-architecture

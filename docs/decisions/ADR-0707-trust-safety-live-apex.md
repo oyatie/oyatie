@@ -1,5 +1,5 @@
 ---
-id: ADR-707
+id: ADR-0707
 title: "Live trust, safety, and resilience substrate doctrines"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-300, ADR-301, ADR-302, ADR-306]
+supersedes: [ADR-0300, ADR-0301, ADR-0302, ADR-0306]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0707-trust-safety-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-707: Live trust, safety, and resilience substrate doctrines
+# ADR-0707: Live trust, safety, and resilience substrate doctrines
 
 ## Status
 

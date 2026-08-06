@@ -5,7 +5,7 @@ deciders: council-architecture, council-developer-experience
 date: 2026-05-16
 owner: council-developer-experience
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0039, ADR-0041, ADR-0052, ADR-0115]
 purpose: Document the small hygiene PR that gitignores accidentally tracked session-scoped audit artifacts (.audit/) and consolidates the single-file deploy/gitops/oya-vcs-admission policy under the established infra/kyverno/ admission-policy root. The tracked .config/nextest.toml stays because CI requires [profile.ci].
 ---

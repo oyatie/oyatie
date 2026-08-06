@@ -5,7 +5,7 @@ deciders: communications-service-council, council-architecture, council-design-s
 date: 2026-05-17
 owner: communications-service-council
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0001
   - ADR-0029

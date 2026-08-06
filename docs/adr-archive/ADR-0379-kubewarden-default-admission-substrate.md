@@ -6,7 +6,7 @@ deciders: founder, council-architecture, ops-security, axis-cloud-k8s
 date: 2026-05-27
 owner: council-architecture
 supersedes: [ADR-0183]
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related: [ADR-0183, ADR-0148, ADR-0181, ADR-0023, ADR-0039, ADR-0378]
 related_specs: [/specs/platform-architecture.json, /specs/cloud-production-quality-kits-target.json]
 door: two-way

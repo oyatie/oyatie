@@ -5,7 +5,7 @@ deciders: council-architecture, axis-cloud-k8s, ops-sre-reliability, ops-finops
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 related: [ADR-0064, ADR-0131, ADR-0152, ADR-0161, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership, ADR-0240-sovereign-cloud-per-regional-pack, ADR-0184, ADR-0186, ADR-0199]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

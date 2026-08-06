@@ -5,7 +5,7 @@ deciders: council-architecture, axis-cloud-k8s, axis-observability, ops-sre-reli
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related: [ADR-0114, ADR-0121, ADR-0128, ADR-0139, ADR-0145, ADR-0148, ADR-0157, ADR-0158, ADR-0160]
 related_specs:
   - /specs/chaos-engineering-substrate-canonical.json

@@ -27,7 +27,7 @@ owners:
   - axis-policy-engine
   - axis-observability
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amends:
   - ADR-0254-deployment-model-spectrum.md (the K8s + Cloud Hypervisor + Kata invariant is preserved; this ADR carves out an explicit four-tier runtime classification + admission policy + nodepool topology so Kata is not used everywhere)
 related_adrs:

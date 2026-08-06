@@ -7,7 +7,7 @@ owners:
   - platform-api-sdk
   - ops-security
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related:
   - ADR-0037-public-api-stability-tiers-and-deprecation.md
   - ADR-0157-api-gateway-tier.md

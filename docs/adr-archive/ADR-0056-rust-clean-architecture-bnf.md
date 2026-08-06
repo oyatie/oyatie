@@ -19,7 +19,7 @@ purpose: |
   and session decisions 2026-05-13.
 canonical_authority: docs/CONSTITUTION.md
 supersedes: ~
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0105, ADR-0106, ADR-0107, ADR-0565, ADR-0632]
 related_adrs:
   - ADR-0015

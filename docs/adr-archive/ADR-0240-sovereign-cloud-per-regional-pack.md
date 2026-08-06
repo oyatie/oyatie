@@ -8,7 +8,7 @@ owners:
   - axis-cloud
   - ops-compliance
 supersedes: []
-superseded_by: [ADR-708]
+superseded_by: [ADR-0708]
 related:
   - ADR-0010-regional-pack-architecture.md
   - ADR-0049-cross-region-replication-and-residency.md

@@ -5,7 +5,7 @@ deciders: council-architecture, axis-identity, ops-security, axis-api-gateway
 date: 2026-05-18
 owner: axis-identity + axis-api-gateway
 supersedes: []
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 related: [ADR-0145, ADR-0148, ADR-0157, ADR-0178, ADR-0182, ADR-0183, ADR-0187]
 related_specs:
   - /specs/microservices/manifest-schema.json

@@ -6,7 +6,7 @@ deciders: founder, council-architecture
 date: 2026-05-28
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0482, ADR-0507, ADR-0506, ADR-0483, ADR-0484]
 door: two-way
 ---

@@ -21,7 +21,7 @@ owners:
   - axis-emergency-services
 supersedes: []
 amends: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0044-service-mesh-and-mtls.md

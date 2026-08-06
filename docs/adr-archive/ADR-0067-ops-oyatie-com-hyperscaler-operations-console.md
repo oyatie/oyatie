@@ -1,7 +1,7 @@
 ---
 id: ADR-0067
 status: Superseded
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 doc_status: published
 sunset_topic: adr-0067-ops-console-protected-contracts
 sunset_milestone: doctrine-not-time-bounded

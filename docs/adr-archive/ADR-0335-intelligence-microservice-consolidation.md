@@ -1,7 +1,7 @@
 ---
 id: ADR-0335
 status: Superseded
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-619]
 planning_impact: true
 date: 2026-05-21

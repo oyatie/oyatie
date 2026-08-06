@@ -8,7 +8,7 @@ date: 2026-06-08
 door: one-way
 owner: founder
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 depends_on: [ADR-0516]
 amends: []
 related: [ADR-0516, ADR-0518, ADR-0520, ADR-0521, ADR-0530]

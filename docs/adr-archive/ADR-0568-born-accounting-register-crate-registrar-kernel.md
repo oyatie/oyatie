@@ -8,7 +8,7 @@ date: 2026-06-21
 door: two-way
 owner: cloud-ci-platform
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amends: []
 depends_on: [ADR-0515, ADR-0548, ADR-0555, ADR-0562]
 related: [ADR-0542, ADR-0017, ADR-0064, ADR-0131, ADR-0245, ADR-0538, ADR-0540, ADR-0552]

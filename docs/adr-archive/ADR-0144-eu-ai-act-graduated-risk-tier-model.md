@@ -5,7 +5,7 @@ deciders: council-architecture, council-privacy, ops-security, axis-tasks, axis-
 date: 2026-05-18
 owner: council-privacy
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0251]
 related: [ADR-0064, ADR-0133, ADR-0140 (retired per ADR-0145)]
 related_memory: [feedback_canonical_base_localization, feedback_quality_performance_scalability_bar, feedback_repeat_mistake_prevention]

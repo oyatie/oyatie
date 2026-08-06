@@ -8,7 +8,7 @@ owner: council-billing
 milestone: M-BILLING-ENGINE-V2
 planning_impact: true
 supersedes: [ADR-0457]
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 amended_by: [ADR-0632]
 related: [ADR-0457, ADR-0429, ADR-0443, ADR-0083, ADR-0411, ADR-0451, ADR-0509]
 ---

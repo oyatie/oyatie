@@ -5,7 +5,7 @@ deciders: communications-service-council, council-architecture, council-privacy
 date: 2026-05-17
 owner: communications-service-council
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0001
   - ADR-0003

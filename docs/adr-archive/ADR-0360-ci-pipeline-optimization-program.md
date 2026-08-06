@@ -2,7 +2,7 @@
 id: ADR-0360
 title: CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cache, test sharding, pinned+signed agent image, speculative merge queue, content-addressed gate caching
 status: Superseded
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 planning_impact: true
 date: 2026-05-25
 owner_team:

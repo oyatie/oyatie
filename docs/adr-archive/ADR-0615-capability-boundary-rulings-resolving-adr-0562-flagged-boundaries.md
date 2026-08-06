@@ -8,7 +8,7 @@ date: 2026-07-10
 door: one-way
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0635]
 amends: [ADR-0562]
 depends_on: [ADR-0562, ADR-0280]

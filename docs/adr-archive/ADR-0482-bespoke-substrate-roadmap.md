@@ -8,7 +8,7 @@ authority: founder
 doctrine_meta: true
 owner: founder
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related: [ADR-0388, ADR-0392, ADR-0394, ADR-0409, ADR-0434, ADR-0451, ADR-0474, ADR-0475, ADR-0476, ADR-0477, ADR-0478, ADR-0479, ADR-0480, ADR-0481, ADR-0483, ADR-0484, ADR-0506, ADR-0507, ADR-0508, ADR-0516, ADR-0520, ADR-0521]
 amended_by: [kubers-anchor-2026-05-28, ADR-0394, ADR-0520, ADR-0521]
 door: one-way

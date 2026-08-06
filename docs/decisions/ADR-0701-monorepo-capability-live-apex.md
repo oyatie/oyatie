@@ -1,5 +1,5 @@
 ---
-id: ADR-701
+id: ADR-0701
 title: "Live monorepo capability layout, faces, and reorg doctrine"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-11, ADR-17, ADR-26, ADR-34, ADR-36, ADR-58, ADR-131, ADR-145, ADR-159, ADR-165, ADR-177, ADR-188, ADR-197, ADR-199, ADR-201, ADR-206, ADR-218, ADR-220, ADR-245, ADR-246, ADR-255, ADR-280, ADR-307, ADR-331, ADR-332, ADR-333, ADR-335, ADR-336, ADR-338, ADR-343, ADR-344, ADR-351, ADR-363, ADR-370, ADR-375, ADR-376, ADR-378, ADR-379, ADR-476, ADR-479, ADR-480, ADR-482, ADR-510, ADR-512, ADR-520, ADR-532, ADR-552, ADR-561, ADR-562, ADR-564, ADR-571, ADR-580, ADR-591, ADR-598, ADR-599, ADR-604, ADR-614, ADR-615, ADR-617, ADR-620, ADR-621, ADR-635]
+supersedes: [ADR-0011, ADR-0017, ADR-0026, ADR-0034, ADR-0036, ADR-0058, ADR-0131, ADR-0145, ADR-0159, ADR-0165, ADR-0177, ADR-0188, ADR-0197, ADR-0199, ADR-0201, ADR-0206, ADR-0218, ADR-0220, ADR-0245, ADR-0246, ADR-0255, ADR-0280, ADR-0307, ADR-0331, ADR-0332, ADR-0333, ADR-0335, ADR-0336, ADR-0338, ADR-0343, ADR-0344, ADR-0351, ADR-0363, ADR-0370, ADR-0375, ADR-0376, ADR-0378, ADR-0379, ADR-0476, ADR-0479, ADR-0480, ADR-0482, ADR-0510, ADR-0512, ADR-0520, ADR-0532, ADR-0552, ADR-0561, ADR-0562, ADR-0564, ADR-0571, ADR-0580, ADR-0591, ADR-0598, ADR-0599, ADR-0604, ADR-0614, ADR-0615, ADR-0617, ADR-0620, ADR-0621, ADR-0635]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0701-monorepo-capability-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-701: Live monorepo capability layout, faces, and reorg doctrine
+# ADR-0701: Live monorepo capability layout, faces, and reorg doctrine
 
 ## Status
 
@@ -61,7 +61,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-201** (ADR-0201-email-transactional-comms-adapter-substrate): Introduce a substrate-level email-comms adapter pattern owned by the new `microservices/comms-email/` µservice and exposed via the `crates/oya-shared-email-comms-kernel` trait + real adapter set. ### Adapter set (no Noop fallback) - **`SesEmailComms`** — AWS SES (default for cloud-hosted clusters). - **`PostalEmailComms`** — Postal self-hosted (AGP
 - **ADR-206** (ADR-0206-i18n-substrate-fluent-icu): ### Authoring source-of-truth: Fluent (Mozilla) Translatable strings author at `clients/i18n/source.ftl` (Fluent grammar). Why Fluent over PO/MO: - **Rust-native** — `fluent-rs` is the canonical Rust impl (maintained by Mozilla + community). - **Expressive** — variants (gender, plural, select) + nested message references + terms (reusable noun phra
 - **ADR-218** (ADR-0218-tenant-granular-control-surface): Ship a Tenant Admin Console inside the Application B2B shell. The console is the canonical tenant-facing control plane for: - employees and roles, including SCIM-provisioned users and tenant-extension roles; - products enabled a-la-carte per tenant; - access policies through visual Cedar-fragment builders; - tenant-scoped data classifications and l
-- **ADR-220** (ADR-0220-consumer-intelligence-substrate): Create `microservices/intelligence/` as the consumer-facing AI substrate for B2B tenants and B2C personal users. The user-visible brand label is **oyatie intelligence**. Foundry remains internal only: - retired external agent harness agentic development toolchain; - CI/CD orchestration; - internal eval substrate; - internal evidence collection. Int
+- **ADR-220** (ADR-0220-consumer-intelligence-substrate): Create `microservices/intelligence/` as the consumer-facing AI substrate for B2B tenants and B2C personal users. The user-visible brand label is **oyatie intelligence**. Intelligence remains internal only: - retired external agent harness agentic development toolchain; - CI/CD orchestration; - internal eval substrate; - internal evidence collection. Int
 - **ADR-245** (ADR-0245-substrate-vs-product-layering): ### D-1. Two-rule doctrine The doctrine is two rules that compose: **Rule 1 — Substrates are audience-neutral and capability-focused.** A substrate µservice provides a capability (storage, policy evaluation, identity issuance, cell management, observability rollup, compute scheduling, network routing, secrets management, audit emission, ontology pr
 - **ADR-246** (ADR-0246-policy-engine-substrate-promotion): ### D-1. Promote `cedar-fragment-coverage` BC to peer µservice `microservices/policy-engine/` The `cedar-fragment-coverage` bounded context resident in `microservices/ontology/` is promoted to its own peer µservice `microservices/policy-engine/`. The new µservice is a *substrate* (per ADR-0245 substrate-vs-product layering); it is consumed by every
 - **ADR-255** (ADR-0255-intelligence-as-two-layer-ai-substrate): ### D-1. Two-layer model — AI Substrate + Consumer Brand Surface `microservices/intelligence/` is restructured as a single µservice containing two clearly-separated layers expressed as bounded contexts: **Layer A — AI Substrate.** Audience-neutral. Serves every tenant. Eight BCs (per D-2). Deployed per Tier 3 data-plane cell. Provides the universal
@@ -70,7 +70,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-331** (Cross-µservice tenant_class Adoption Template): ### B.1 Decision statement Every active µservice in the Oyatie corpus (77 µservices at this ADR's authoring; future µservices on creation) MUST implement the twelve adoption surfaces specified in §D below. Each µservice MUST file a per-µservice IP at `microservices/<name>/IPs/IP-tenant-class-adoption.md` following the skeleton in §D-13. The `ci-ten
 - **ADR-332** (Healthcare Domain Decomposition — Eight New Domain Microservices + Integration-S): Enforcement status is `advisory-until-eight-microservices-scaffold-lands`. The doctrine is authoritative for future authoring waves the moment this ADR lands; the BLOCKER promotion happens once the eight new microservice folders exist under `microservices/` with the minimum-viable anchor set (PRD, ARCHITECTURE, manifest, compliance, contracts skele
 - **ADR-333** (ADR-0333-cell-microservice-retired-pattern-not-service): D-1. `microservices/cell/` is retired as a standalone µservice. D-2. `microservices/cell/` keeps only a `RETIRED.md` redirect marker. D-3. Historical cell service content is not the live authority after this ADR. D-4. ADR-0248 remains the canonical cellular architecture doctrine. D-5. ADR-0248 is amended only where it names a central cell µservice 
-- **ADR-335** (ADR-0335-intelligence-microservice-consolidation): ### D-1..D-12. Service boundary D-1. `microservices/foundry/` is retired as a standalone µservice. D-2. `microservices/foundry/` keeps only a `RETIRED.md` redirect marker plus historical-evidence subdirectories explicitly preserved. D-3. Historical foundry service content is not the live authority after this ADR. D-4. `microservices/intelligence/` 
+- **ADR-335** (ADR-0335-intelligence-microservice-consolidation): ### D-1..D-12. Service boundary D-1. `microservices/intelligence/` is retired as a standalone µservice. D-2. `microservices/intelligence/` keeps only a `RETIRED.md` redirect marker plus historical-evidence subdirectories explicitly preserved. D-3. Historical intelligence service content is not the live authority after this ADR. D-4. `microservices/intelligence/` 
 - **ADR-336** (Valkey is the canonical in-memory KV / cache / pubsub substrate (Redis retired f): ### B.1 Decision statement Valkey (Linux Foundation BSD-3-Clause fork of Redis 7.2.4, current mainline 8.x) is the canonical Oyatie in-memory key-value, cache, pubsub, and streams substrate. Redis 7.4+ (Redis Inc. SSPLv1 / RSALv2 dual-license) is retired from the Oyatie substrate allow-list. Pre-7.4 Redis (BSD-3-Clause) remains license-clean but is
 - **ADR-338** (Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-dat): ### B.1 Decision statement Every µservice's `microservices/<name>/manifest.json` MUST declare a top-level `pod_runtime_tier` field whose value is an integer in `{0, 1, 2, 3}`. The integer maps to a RuntimeClass (D-4), a nodepool placement contract (D-3), and a Kyverno admission policy (D-5). The CI lane `oya-check-pod-runtime-tier` (D-6) validates 
 - **ADR-343** (DR + RTO/RPO matrix per-µservice + per-compliance-pack (effective tenant RTO/RPO): ### B.1 Decision statement Every Oyatie µservice that produces a workload declares a top-level `dr` block in its `microservices/<name>/manifest.json` carrying five required fields: `rto_p99_seconds` (integer ≥ 0), `rpo_p99_seconds` (integer ≥ 0), `multi_region_active_active` (boolean), `backup_substrate` (array of allowlisted substrate identifiers 
@@ -119,7 +119,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-220 residual
 
-**ADR-0220-consumer-intelligence-substrate** — Create `microservices/intelligence/` as the consumer-facing AI substrate for B2B tenants and B2C personal users. The user-visible brand label is **oyatie intelligence**. Foundry remains internal only: - retired external agent harness agentic development toolchain; - CI/CD orchestration; - internal eval substrate; - internal evidence collection. Intelligence owns consumer AI: - per-tenant AI contex
+**ADR-0220-consumer-intelligence-substrate** — Create `microservices/intelligence/` as the consumer-facing AI substrate for B2B tenants and B2C personal users. The user-visible brand label is **oyatie intelligence**. Intelligence remains internal only: - retired external agent harness agentic development toolchain; - CI/CD orchestration; - internal eval substrate; - internal evidence collection. Intelligence owns consumer AI: - per-tenant AI contex
 
 ### ADR-363 residual
 
@@ -215,7 +215,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-335 residual
 
-**ADR-0335-intelligence-microservice-consolidation** — ### D-1..D-12. Service boundary D-1. `microservices/foundry/` is retired as a standalone µservice. D-2. `microservices/foundry/` keeps only a `RETIRED.md` redirect marker plus historical-evidence subdirectories explicitly preserved. D-3. Historical foundry service content is not the live authority after this ADR. D-4. `microservices/intelligence/` is the canonical AI substrate µservice. D-5. `micr
+**ADR-0335-intelligence-microservice-consolidation** — ### D-1..D-12. Service boundary D-1. `microservices/intelligence/` is retired as a standalone µservice. D-2. `microservices/intelligence/` keeps only a `RETIRED.md` redirect marker plus historical-evidence subdirectories explicitly preserved. D-3. Historical intelligence service content is not the live authority after this ADR. D-4. `microservices/intelligence/` is the canonical AI substrate µservice. D-5. `micr
 
 ### ADR-620 residual
 
@@ -351,7 +351,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-58 residual
 
-**ADR-0058-flat-microservice-catalog** — We adopt the **flat microservice catalog** as the canonical architecture. No vertical, arm, product group, or platform grouping exists in code, directories, or architecture. Every feature and product is an independent microservice registered in `[workspace.metadata.oya.microservices]` (per ADR-0056 BNF v4.1). ### Canonical flat catalog (complete as of 2026-05-13) ``` Foundry (internal-only, not te
+**ADR-0058-flat-microservice-catalog** — We adopt the **flat microservice catalog** as the canonical architecture. No vertical, arm, product group, or platform grouping exists in code, directories, or architecture. Every feature and product is an independent microservice registered in `[workspace.metadata.oya.microservices]` (per ADR-0056 BNF v4.1). ### Canonical flat catalog (complete as of 2026-05-13) ``` Intelligence (internal-only, not te
 
 ### ADR-621 residual
 

@@ -19,7 +19,7 @@ owners:
   - ops-compliance
   - axis-observability
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amends:
   - ADR-0028-cloud-microservice-architecture.md (per-µservice DR declaration becomes a first-class manifest block, supplementing the existing operational-readiness expectations)
   - ADR-0158-multi-region-active-active.md (per-µservice `multi_region_active_active` declaration becomes a manifest-level commitment with floor enforcement)

@@ -1,5 +1,5 @@
 ---
-id: ADR-709
+id: ADR-0709
 title: "Live general architecture and remaining accepted doctrine"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-3, ADR-4, ADR-6, ADR-8, ADR-14, ADR-16, ADR-18, ADR-20, ADR-22, ADR-23, ADR-24, ADR-25, ADR-39, ADR-45, ADR-48, ADR-51, ADR-55, ADR-60, ADR-61, ADR-62, ADR-63, ADR-64, ADR-65, ADR-67, ADR-69, ADR-92, ADR-96, ADR-98, ADR-100, ADR-105, ADR-108, ADR-109, ADR-115, ADR-116, ADR-119, ADR-122, ADR-133, ADR-144, ADR-146, ADR-147, ADR-149, ADR-150, ADR-151, ADR-152, ADR-153, ADR-154, ADR-156, ADR-161, ADR-164, ADR-168, ADR-169, ADR-171, ADR-173, ADR-174, ADR-178, ADR-179, ADR-181, ADR-184, ADR-189, ADR-192, ADR-193, ADR-195, ADR-196, ADR-200, ADR-202, ADR-203, ADR-205, ADR-207, ADR-209, ADR-211, ADR-212, ADR-216, ADR-217, ADR-219, ADR-221, ADR-235, ADR-237, ADR-238, ADR-239, ADR-250, ADR-252, ADR-254, ADR-257, ADR-272, ADR-292, ADR-296, ADR-298, ADR-299, ADR-304, ADR-308, ADR-317, ADR-318, ADR-324, ADR-337, ADR-339, ADR-350, ADR-362, ADR-364, ADR-365, ADR-368, ADR-371, ADR-382, ADR-388, ADR-389, ADR-390, ADR-391, ADR-393, ADR-397, ADR-478, ADR-481, ADR-506, ADR-507, ADR-508, ADR-518, ADR-541, ADR-542, ADR-555, ADR-557, ADR-558, ADR-568, ADR-610, ADR-619, ADR-622, ADR-623, ADR-625, ADR-626]
+supersedes: [ADR-0003, ADR-0004, ADR-0006, ADR-0008, ADR-0014, ADR-0016, ADR-0018, ADR-0020, ADR-0022, ADR-0023, ADR-0024, ADR-0025, ADR-0039, ADR-0045, ADR-0048, ADR-0051, ADR-0055, ADR-0060, ADR-0061, ADR-0062, ADR-0063, ADR-0064, ADR-0065, ADR-0067, ADR-0069, ADR-0092, ADR-0096, ADR-0098, ADR-0100, ADR-0105, ADR-0108, ADR-0109, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0133, ADR-0144, ADR-0146, ADR-0147, ADR-0149, ADR-0150, ADR-0151, ADR-0152, ADR-0153, ADR-0154, ADR-0156, ADR-0161, ADR-0164, ADR-0168, ADR-0169, ADR-0171, ADR-0173, ADR-0174, ADR-0178, ADR-0179, ADR-0181, ADR-0184, ADR-0189, ADR-0192, ADR-0193, ADR-0195, ADR-0196, ADR-0200, ADR-0202, ADR-0203, ADR-0205, ADR-0207, ADR-0209, ADR-0211, ADR-0212, ADR-0216, ADR-0217, ADR-0219, ADR-0221, ADR-0235, ADR-0237, ADR-0238, ADR-0239, ADR-0250, ADR-0252, ADR-0254, ADR-0257, ADR-0272, ADR-0292, ADR-0296, ADR-0298, ADR-0299, ADR-0304, ADR-0308, ADR-0317, ADR-0318, ADR-0324, ADR-0337, ADR-0339, ADR-0350, ADR-0362, ADR-0364, ADR-0365, ADR-0368, ADR-0371, ADR-0382, ADR-0388, ADR-0389, ADR-0390, ADR-0391, ADR-0393, ADR-0397, ADR-0478, ADR-0481, ADR-0506, ADR-0507, ADR-0508, ADR-0518, ADR-0541, ADR-0542, ADR-0555, ADR-0557, ADR-0558, ADR-0568, ADR-0610, ADR-0619, ADR-0622, ADR-0623, ADR-0625, ADR-0626]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0709-general-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-709: Live general architecture and remaining accepted doctrine
+# ADR-0709: Live general architecture and remaining accepted doctrine
 
 ## Status
 
@@ -55,7 +55,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-22** (ADR-0022-autonomy-ceiling-runtime-enforcement): We enforce the autonomy ceiling at `oya-intelligence-policy-app` on **every** capability invocation. The effective ceiling is the minimum of four sources; agents inherit (and cannot exceed) tenant permissions; healthcare and fintech tenant classes force T1/T2 maxima for regulated capabilities; agentic ad-buying defaults to recommend-only. ### Effec
 - **ADR-23** (ADR-0023-intelligence-sandbox-wasmtime-firecracker): We adopt a two-tier sandbox: **Wasmtime + WASI Preview 2** for short-lived deterministic tools and **Firecracker microVMs** for tools that require a full kernel surface. The capability declares its sandbox class in the registry; the runtime selects the substrate; both substrates share a uniform per-spawn audit emission and a uniform resource-cap co
 - **ADR-24** (ADR-0024-intelligence-eval-harness-and-replay): Every capability publishes with a golden eval set; the eval harness gates publish, runs nightly, runs A/B against routing decisions, and replays against past production traces for regression detection. Adversarial and regional linguistic cohorts are mandatory. ### Eval kernel (`oya-intelligence-eval-kernel`) ```rust // crates/oya-intelligence-eval-
-- **ADR-25** (ADR-0025-intelligence-as-engineering-platform): We consolidate the engineering platform surfaces into the foundry. The axis owns: `repoctl`, the catalog, the claim-ceiling validator, the foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain (Trivy / Cosign / SBOM), plugin substrate trust gates, plugin
+- **ADR-25** (ADR-0025-intelligence-as-engineering-platform): We consolidate the engineering platform surfaces into the intelligence. The axis owns: `repoctl`, the catalog, the claim-ceiling validator, the foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain (Trivy / Cosign / SBOM), plugin substrate trust gates, plugin
 - **ADR-39** (ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits): We adopt **Trivy 4-layer scanning** (filesystem + container + IaC + dep) on every PR + nightly; **Cosign keyless signing** for every release artifact; **Rekor transparency log** for signature inclusion; **SBOM in SPDX 2.3 + CycloneDX 1.5** per artifact; **signed commits and tags** repo-wide; **merge-governance ruleset** at the GitHub level; **Kyver
 - **ADR-45** (ADR-0045-database-tier-strategy): We adopt **PostgreSQL + Citus** (Apache-2) as the canonical OLTP engine; **per-tenant per-cell shard topology**; **ClickHouse Apache-2 fork** as the canonical OLAP engine (with explicit fork-license verification per License Policy); **Iceberg + DataFusion** (Apache-2) as the canonical lakehouse format + query engine; backup orchestration per ADR-00
 - **ADR-48** (ADR-0048-korean-morphology-and-multilingual-tokenization): We adopt a **`Tokenizer` trait per language family** under `crates/oya-search-tokenizer-*`; **mecab-ko + khaiii via FFI day-1** (with mecab-ko legal-isolation analysis per License Policy + Apache-2 khaiii as the cleaner option for tenants who can use it); **in-house Rust port** of the KR morphology engine long-horizon; **per-pack tokenizer impl** f
@@ -72,12 +72,12 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-92** (ADR-0092-workspace-dependency-seam-policy): ### D1 — Canonical 12-layer enum The dependency-seam policy uses ADR-0056 v4.1's **canonical 12-value enum**: `{kernel, domain, application, adapter, infrastructure, cli, rest, grpc, graphql, worker, app, sdk}`. IP-002's 5-value enum is REJECTED as inconsistent with the canon. Layer is derived from the crate-name suffix per the BNF; no parallel `[p
 - **ADR-96** (Supervisor language: Rust, not Node (build-vs-adopt Siigari/claude-heartbeat)): **Build in Rust.** The upstream Node implementation is rejected as a runtime dependency.
 - **ADR-98** (Supervisor dependency policy Branch Y — zero net-new external Cargo deps + best-): **Branch Y — zero net-new external Cargo deps, sync I/O on tokio blocking pool, best-effort durability.** Concrete shape: ```rust // SessionDriver trait — synchronous; no async_trait dependency pub trait SessionDriver: Send + Sync { fn start_session(&self, ticket: &SessionTicket) -> Result<SessionHandle, SessionError>; fn stop_session(&self, handle
-- **ADR-100** (Foundry Supervisor Public Contract (Lean-a10)): The Foundry Supervisor will expose zero new public APIs on existing kernels. Instead: 1. All supervisor-specific types (`SessionTicket`, `MessageId`, etc.) live in the new `oya-intelligence-supervisor-kernel`. 2. Existing kernel primitives are composed as pure ports. 3. The `AccountSnapshotProvider` port lives inside `oya-intelligence-supervisor-ke
+- **ADR-100** (Intelligence Supervisor Public Contract (Lean-a10)): The Intelligence Supervisor will expose zero new public APIs on existing kernels. Instead: 1. All supervisor-specific types (`SessionTicket`, `MessageId`, etc.) live in the new `oya-intelligence-supervisor-kernel`. 2. Existing kernel primitives are composed as pure ports. 3. The `AccountSnapshotProvider` port lives inside `oya-intelligence-supervisor-ke
 - **ADR-105** (13-value canonical layer enum + check-family + backend-suffix patterns (amends A): ### Amendment 1 — Extend the canonical enum from 12 to 13 values: add `api`. The 13-value canonical layer enum: | Group | Values | |---|---| | Inner / pure (4) | `kernel`, `domain`, `application`, `app` | | Outer / external (2) | `adapter`, `infrastructure` | | Presentation / entry-point (7) | `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`, **`a
 - **ADR-108** (Sunset → deprecation → removal lifecycle automation schema (machine-readable)): ### Machine-readable sunset schema Every sunset clause MUST be representable as a `SunsetClause` record with the following fields. The schema is identical across all three surfaces (ADR frontmatter YAML, spec JSON `_sunset` object, `[package.metadata.oya.sunset]` Cargo manifest section): | Field | Type | Required | Default | Description | |---|---|
 - **ADR-109** (Lifecycle-automation framework (generic kernel + per-lifecycle configs)): 1. **One generic kernel.** `oya-governance-lifecycle-kernel` exposes the canonical `LifecycleConfig`, `LifecycledArtifact`, `Stage`, `Transition`, `Violation`, and `evaluate()` function. Every lifecycle lane is data — a JSON config under `specs/lifecycle-configs/`. Adding a new lifecycle is a config-file + thin dev-CLI commit, not a new kernel. 2. 
 - **ADR-115** (ADR-0115-registry-consolidation-flat-singular): `registry/` (flat, singular) is the canonical machine-readable registry root. Every direct child of `registry/` is a semantic class (`catalog/`, `quality/`, `glossary/`, `vcs/`, `adr/`, `accounts/`, `capabilities/`, `cells/`, `audit-chain/`, `placeholder-debt/`, `graph/`, `claim-matrix/`, plus the flat-file cross-cutting registries that landed at t
-- **ADR-116** (ADR-0116-retire-external-agent-coordination-tooling): The following external agent-coordination tools are **retired** from the prescribed agent surface in this repo, effective 2026-05-16: - `grit` (claim/work/done, scaffold-locks) - `icm` (coordination-lock topics, scaffold-locks-oyatie fallback) - `rtk` (cargo shim and command rewrites) - `vox` (inventoried but unused) The **Foundry pipeline (M01-P18
+- **ADR-116** (ADR-0116-retire-external-agent-coordination-tooling): The following external agent-coordination tools are **retired** from the prescribed agent surface in this repo, effective 2026-05-16: - `grit` (claim/work/done, scaffold-locks) - `icm` (coordination-lock topics, scaffold-locks-oyatie fallback) - `rtk` (cargo shim and command rewrites) - `vox` (inventoried but unused) The **Intelligence pipeline (M01-P18
 - **ADR-119** (ADR-0119-specs-flat-root-topology): `specs/` is the canonical flat root for machine-readable specifications. The former nested spec scope directory is retired. All prior children of that retired directory are hoisted to `specs/`, while the typed lifecycle-config family remains grouped at `specs/lifecycle-configs/`. All live references to the retired nested path are rewritten to `spec
 - **ADR-122** (ADR-0122-ontology-crate-rename-from-object-graph): Rename: | Current crate name | New crate name | Reason | |---|---|---| | `oya-platform-object-graph-kernel` | `oya-ontology-kernel` | Match Bominal-ADR-0106 Ontology naming + `feedback_glossary_ontology_not_object_graph` | | (already correct: `oya-ontology-api`, `oya-ontology-domain`) | n/a | sanity-check — these already use `ontology` | Plus the p
 - **ADR-133** (ADR-0133-industry-best-practice-conformance-program): Adopt the 6-axis continuous industry-best-practice + hyperscaler-grade conformance program. Each axis carries: - **Industry baseline** (named primary sources) - **Audit cadence** (quarterly minimum; on-change for new µservices) - **Findings schema** (per `/specs/industry-best-practice-conformance.json`) - **Enforcement lane** (`oya-governance-indus
@@ -103,7 +103,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-181** (ADR-0181-container-image-promotion-pipeline): Oyatie declares a **three-tier container image promotion ladder**: `dev` → `staging` → `production`. Each tier has a distinct Cosign signing identity (Sigstore Fulcio OIDC-bound). Each cluster's pull policy restricts pulls to images carrying the appropriate-tier signature. ### Promotion ladder ``` dev signer staging signer prod signer (OIDC: dev) (
 - **ADR-184** (ADR-0184-storage-tier-layering): Oyatie adopts a **four-tier storage layering** in which each tier owns exactly one access pattern: ### Tier 1 — OLTP write (PostgreSQL 18.4 primary) - Per-µservice Postgres 18.4 primary instance (one per bounded context; multi-tenant via row-level security). - Citus 14.0 for logical sharding by tenant where multi-tenant scale demands it (configured
 - **ADR-189** (ADR-0189-step-up-authentication-acr-classes): **Four ACR classes, named `routine`, `elevated`, `sensitive`, `critical`. Each declares min-factor count, accepted factor mix, max session age. Cedar policies attach an `acr_required` to every action; ext_authz returns `step_up_required` when the principal's ACR is below the floor. The OIDC ID-token carries `acr` as a string-enum claim per RFC 9068
-- **ADR-192** (ADR-0192-vector-database-canonical-milvus): Oyatie adopts **Milvus 2.6.x** (latest stable: 2.6.15 as of 2026-05-18; Apache-2.0; CNCF Graduated) as the canonical vector-database substrate fleet-wide. Milvus runs as a disaggregated cluster owned by the `foundry` µservice (since embedding retrieval is a Foundry AI-workload primitive) and is consumed by all µservices through the `oya-shared-vect
+- **ADR-192** (ADR-0192-vector-database-canonical-milvus): Oyatie adopts **Milvus 2.6.x** (latest stable: 2.6.15 as of 2026-05-18; Apache-2.0; CNCF Graduated) as the canonical vector-database substrate fleet-wide. Milvus runs as a disaggregated cluster owned by the `intelligence` µservice (since embedding retrieval is a Intelligence AI-workload primitive) and is consumed by all µservices through the `oya-shared-vect
 - _…plus 66 additional members listed in supersedes frontmatter; full text in git history / archive._
 
 ## Consequences
@@ -246,7 +246,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-100 residual
 
-**Foundry Supervisor Public Contract (Lean-a10)** — The Foundry Supervisor will expose zero new public APIs on existing kernels. Instead: 1. All supervisor-specific types (`SessionTicket`, `MessageId`, etc.) live in the new `oya-intelligence-supervisor-kernel`. 2. Existing kernel primitives are composed as pure ports. 3. The `AccountSnapshotProvider` port lives inside `oya-intelligence-supervisor-kernel` to keep the supervisor I/O-free without chan
+**Intelligence Supervisor Public Contract (Lean-a10)** — The Intelligence Supervisor will expose zero new public APIs on existing kernels. Instead: 1. All supervisor-specific types (`SessionTicket`, `MessageId`, etc.) live in the new `oya-intelligence-supervisor-kernel`. 2. Existing kernel primitives are composed as pure ports. 3. The `AccountSnapshotProvider` port lives inside `oya-intelligence-supervisor-kernel` to keep the supervisor I/O-free without chan
 
 ### ADR-216 residual
 
@@ -266,7 +266,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-116 residual
 
-**ADR-0116-retire-external-agent-coordination-tooling** — The following external agent-coordination tools are **retired** from the prescribed agent surface in this repo, effective 2026-05-16: - `grit` (claim/work/done, scaffold-locks) - `icm` (coordination-lock topics, scaffold-locks-oyatie fallback) - `rtk` (cargo shim and command rewrites) - `vox` (inventoried but unused) The **Foundry pipeline (M01-P18)** is the sole canonical workflow for concurrent
+**ADR-0116-retire-external-agent-coordination-tooling** — The following external agent-coordination tools are **retired** from the prescribed agent surface in this repo, effective 2026-05-16: - `grit` (claim/work/done, scaffold-locks) - `icm` (coordination-lock topics, scaffold-locks-oyatie fallback) - `rtk` (cargo shim and command rewrites) - `vox` (inventoried but unused) The **Intelligence pipeline (M01-P18)** is the sole canonical workflow for concurrent
 
 ### ADR-146 residual
 
@@ -290,7 +290,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-25 residual
 
-**ADR-0025-intelligence-as-engineering-platform** — We consolidate the engineering platform surfaces into the foundry. The axis owns: `repoctl`, the catalog, the claim-ceiling validator, the foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain (Trivy / Cosign / SBOM), plugin substrate trust gates, plugin marketplace authoring, and the customer-facing bu
+**ADR-0025-intelligence-as-engineering-platform** — We consolidate the engineering platform surfaces into the intelligence. The axis owns: `repoctl`, the catalog, the claim-ceiling validator, the foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain (Trivy / Cosign / SBOM), plugin substrate trust gates, plugin marketplace authoring, and the customer-facing bu
 
 ### ADR-16 residual
 
@@ -414,7 +414,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-192 residual
 
-**ADR-0192-vector-database-canonical-milvus** — Oyatie adopts **Milvus 2.6.x** (latest stable: 2.6.15 as of 2026-05-18; Apache-2.0; CNCF Graduated) as the canonical vector-database substrate fleet-wide. Milvus runs as a disaggregated cluster owned by the `foundry` µservice (since embedding retrieval is a Foundry AI-workload primitive) and is consumed by all µservices through the `oya-shared-vector-store-kernel` port. ### Cluster shape — disaggr
+**ADR-0192-vector-database-canonical-milvus** — Oyatie adopts **Milvus 2.6.x** (latest stable: 2.6.15 as of 2026-05-18; Apache-2.0; CNCF Graduated) as the canonical vector-database substrate fleet-wide. Milvus runs as a disaggregated cluster owned by the `intelligence` µservice (since embedding retrieval is a Intelligence AI-workload primitive) and is consumed by all µservices through the `oya-shared-vector-store-kernel` port. ### Cluster shape — disaggr
 
 ### ADR-506 residual
 
@@ -590,7 +590,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-239 residual
 
-**ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18** — - **Status:** Accepted (amendment) - **Date:** 2026-05-18 - **Owner:** council-architecture - **Amends:** ADR-0136 (Foundry consolidation 6→1) - **Related:** ADR-0220 (Consumer Intelligence Substrate — `microservices/intelligence/`) - **PR:** #143 close-out
+**ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18** — - **Status:** Accepted (amendment) - **Date:** 2026-05-18 - **Owner:** council-architecture - **Amends:** ADR-0136 (Intelligence consolidation 6→1) - **Related:** ADR-0220 (Consumer Intelligence Substrate — `microservices/intelligence/`) - **PR:** #143 close-out
 
 ### ADR-555 residual
 

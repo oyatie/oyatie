@@ -6,7 +6,7 @@ deciders: council-architecture, ops-platform
 date: 2026-05-26
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0363, ADR-0366, ADR-0367, ADR-0349, ADR-0361, ADR-0124, ADR-0039, ADR-0043, ADR-0131]
 related_specs: [/infra/branch-protection/dev.json, /infra/ci/jenkins/reported-status-contexts.json]
 milestone: M-AGENTIC-PIPELINE

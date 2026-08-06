@@ -6,7 +6,7 @@ date: 2026-07-24
 owner_team: council-architecture
 co_owners: [council-architecture]
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0363, ADR-0516, ADR-0565, ADR-0613, ADR-0614, ADR-0616, ADR-0617]
 tags: [architecture, governance, planning, evidence, stage-1]
 purpose: |

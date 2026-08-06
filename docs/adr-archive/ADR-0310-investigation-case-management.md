@@ -23,7 +23,7 @@ owners:
   - axis-ops-dashboard
 supersedes: []
 amends: []
-superseded_by: [ADR-703]
+superseded_by: [ADR-0703]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0099-data-class-registry.md

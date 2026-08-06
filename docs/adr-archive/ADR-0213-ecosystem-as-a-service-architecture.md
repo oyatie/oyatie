@@ -8,7 +8,7 @@ deciders: [founder, council-architecture, council-security, council-privacy, cou
 template_id: TPL-ADR
 doc_status: published
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amended_by: [ADR-0249]
 related_adrs:
   - ADR-0001  # cohesion thesis (one product, seven axes); plugin-app-store is an axis

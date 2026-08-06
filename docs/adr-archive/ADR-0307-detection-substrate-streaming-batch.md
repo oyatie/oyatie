@@ -23,7 +23,7 @@ owners:
   - axis-investigation
 supersedes: []
 amends: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 related:
   - ADR-0028-audit-chain-merkle-sealed.md
   - ADR-0099-data-class-registry.md

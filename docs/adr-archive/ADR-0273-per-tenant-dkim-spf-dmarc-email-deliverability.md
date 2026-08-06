@@ -19,7 +19,7 @@ owners:
 supersedes: []
 amends:
   - ADR-0201-email-transactional-comms-adapter-substrate.md
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0008-secret-management-and-rotation.md
   - ADR-0028-cloud-microservice-architecture.md

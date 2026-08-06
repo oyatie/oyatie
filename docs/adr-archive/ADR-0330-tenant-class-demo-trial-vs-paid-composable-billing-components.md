@@ -23,7 +23,7 @@ related:
 supersedes: []
 amends:
   - ADR-0316-capability-tier-over-product-fragmentation.md
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 related_specs:
   - /specs/tenant-model.json
   - /specs/master-plan-sequencing.json

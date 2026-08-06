@@ -8,7 +8,7 @@ owners:
   - axis-cloud
   - platform-api-sdk
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0021-intelligence-capability-registry-and-mcp-gateway.md
   - ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md

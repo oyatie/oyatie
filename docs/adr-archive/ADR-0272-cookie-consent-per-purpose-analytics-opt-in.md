@@ -21,7 +21,7 @@ supersedes: []
 amends:
   - ADR-0099-data-class-registry.md (extends data-class taxonomy with consent-purpose classes)
   - ADR-0251-compliance-pack-cell-certification-levels.md (registers `cookie-consent` as required evidence in EU-GDPR, EU-ePrivacy, KR-PIPA, KSA-PDPL, US-CCPA-CPRA, and BR-LGPD packs)
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0010-regional-pack-architecture.md
   - ADR-0049-cross-region-replication-and-residency.md

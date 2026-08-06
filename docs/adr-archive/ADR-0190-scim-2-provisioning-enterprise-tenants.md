@@ -5,7 +5,7 @@ deciders: council-architecture, axis-identity, axis-tenancy
 date: 2026-05-18
 owner: axis-identity
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0145, ADR-0187, ADR-0175-tenant-lifecycle-workflow]
 related_specs:
   - /specs/microservices/manifest-schema.json

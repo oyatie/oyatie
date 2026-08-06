@@ -15,7 +15,7 @@ owners:
   - ops-compliance
 supersedes: []
 amends: []
-superseded_by: [ADR-708]
+superseded_by: [ADR-0708]
 amended_by:
   - ADR-0565
 related:

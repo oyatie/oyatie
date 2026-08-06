@@ -15,7 +15,7 @@ owners:
   - ops-finops
   - axis-cloud-data
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amends:
   - ADR-0212-buildability-doctrine.md (per-µservice manifest gains the canonical `capacity_model` block; buildability evidence packs reference declared capacity_model values for autoscale + finops projections)
   - ADR-0244-tenant-as-universal-scoping-primitive.md (the baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant axes anchor the tenant-scoping primitive in concrete capacity numbers per µservice)

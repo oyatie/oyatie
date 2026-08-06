@@ -5,7 +5,7 @@ deciders: council-architecture, axis-governance, axis-eventing, axis-ontology, a
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-705]
+superseded_by: [ADR-0705]
 related: [ADR-0005, ADR-0011, ADR-0029, ADR-0100, ADR-0105, ADR-0128, ADR-0131, ADR-0145, ADR-0148, ADR-0157]
 related_specs:
   - /specs/schema-registry-canonical.json

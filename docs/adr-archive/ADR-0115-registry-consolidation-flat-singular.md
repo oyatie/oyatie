@@ -4,7 +4,7 @@ deciders: council-architecture, council-foundry-vcs
 date: 2026-05-16
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0054-grit-scaffold-claim-pattern.md
   - ADR-0069-active-machine-readable-artifact-contract.md

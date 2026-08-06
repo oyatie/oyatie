@@ -5,7 +5,7 @@ deciders: council-architecture, axis-foundry
 owner: axis-foundry
 date: 2026-05-16
 supersedes: [ADR-0052]
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0116, ADR-0110, ADR-0111, ADR-0112, ADR-0113]
 purpose: Retire the one-time archive-orphan fitness lane and pre-grit archive payload after ADR-0116 establishes the Foundry pipeline (M01-P18) as the canonical VCS substrate.
 ---

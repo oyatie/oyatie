@@ -1,5 +1,5 @@
 ---
-id: ADR-703
+id: ADR-0703
 title: "Live CAS/cache policy (activation-gated RE remains fail-closed)"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-38, ADR-106, ADR-172, ADR-310, ADR-377, ADR-556]
+supersedes: [ADR-0038, ADR-0106, ADR-0172, ADR-0310, ADR-0377, ADR-0556]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0703-cas-cache-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-703: Live CAS/cache policy (activation-gated RE remains fail-closed)
+# ADR-0703: Live CAS/cache policy (activation-gated RE remains fail-closed)
 
 ## Status
 

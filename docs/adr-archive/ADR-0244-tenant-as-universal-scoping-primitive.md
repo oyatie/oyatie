@@ -19,7 +19,7 @@ amends:
   - ADR-0220-consumer-intelligence-substrate.md (Audience-as-µservice framing replaced by tenant.audience_type)
   - ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md (Internal/Consumer µservice split replaced by tenant scoping)
   - ADR-0221-agentic-development-pipeline-hardening.md (§M-04 manifest `audience` field removed; replaced by tenant.audience_type)
-superseded_by: [ADR-702]
+superseded_by: [ADR-0702]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md

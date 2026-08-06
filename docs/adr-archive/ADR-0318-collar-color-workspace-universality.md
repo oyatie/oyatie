@@ -16,7 +16,7 @@ co_owners:
   - axis-mobile
   - axis-edge
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related:
   - ADR-0215
   - ADR-0242

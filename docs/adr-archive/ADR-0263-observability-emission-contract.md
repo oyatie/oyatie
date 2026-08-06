@@ -1,7 +1,7 @@
 ---
 id: ADR-0263
 status: Superseded
-superseded_by: [ADR-706]
+superseded_by: [ADR-0706]
 date: 2026-05-20
 owners:
   - council-architecture

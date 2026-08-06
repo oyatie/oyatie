@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, axis-observability, axis-an
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0031, ADR-0042, ADR-0043-secrets-management-openbao-and-hsm-per-cell, ADR-0131-per-microservice-flat-layout, ADR-0145, ADR-0152, ADR-0155, ADR-0184, ADR-0186, ADR-0192, ADR-0194, ADR-0195]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

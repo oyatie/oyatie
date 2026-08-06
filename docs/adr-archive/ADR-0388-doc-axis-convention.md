@@ -8,7 +8,7 @@ authority: founder
 owner: founder
 planning_impact: true
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0364, ADR-0377]
 ---
 

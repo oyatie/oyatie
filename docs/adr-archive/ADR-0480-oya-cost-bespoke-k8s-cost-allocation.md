@@ -7,7 +7,7 @@ authority: founder
 owner: council-cost
 planning_impact: true
 supersedes: [ADR-0443]
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0632]
 milestone: M-COST-ALLOCATION-V2
 related: [ADR-0443, ADR-0479, ADR-0193, ADR-0407, ADR-0083, ADR-0411, ADR-0423, ADR-0509]

@@ -5,7 +5,7 @@ deciders: council-architecture, axis-tenancy, axis-governance, ops-sre-reliabili
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amended_by: [ADR-0632]
 related: [ADR-0007, ADR-0009, ADR-0049, ADR-0110, ADR-0114, ADR-0128, ADR-0139, ADR-0145, ADR-0157, ADR-0158]
 related_specs:

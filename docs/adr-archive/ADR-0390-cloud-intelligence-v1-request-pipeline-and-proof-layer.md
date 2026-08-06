@@ -7,7 +7,7 @@ authority: founder
 owner: council-architecture
 planning_impact: true
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0384, ADR-0388]
 ---
 

@@ -5,7 +5,7 @@ deciders: council-architecture, axis-frontend, axis-product, axis-data
 date: 2026-05-18
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-704]
+superseded_by: [ADR-0704]
 related: [ADR-0145, ADR-0153, ADR-0182, ADR-0185, ADR-0204]
 related_specs:
   - /specs/hyperscaler-architecture-invariants.json

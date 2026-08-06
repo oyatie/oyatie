@@ -1,5 +1,5 @@
 ---
-id: ADR-706
+id: ADR-0706
 title: "Live observability, SLO, and progressive-delivery telemetry"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-114, ADR-180, ADR-186, ADR-210, ADR-263]
+supersedes: [ADR-0114, ADR-0180, ADR-0186, ADR-0210, ADR-0263]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0706-observability-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-706: Live observability, SLO, and progressive-delivery telemetry
+# ADR-0706: Live observability, SLO, and progressive-delivery telemetry
 
 ## Status
 
@@ -45,7 +45,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 ## Preserved member gists
 
 - **ADR-114** (ADR-0114-canary-observability-rollback): A canary gate runs between every promotion event. The gate emits one of four verdicts: `PROMOTE`, `ROLLBACK`, `EXTEND_OBSERVATION`, `ESCALATE`. The verdict conditions whether the downstream promotion workflow advances. ### 1. Cohort selection (per-cell) Oyatie's cell architecture (per ADR-0033 + cell-domain crates) gives a natural canary mechanism:
-- **ADR-180** (ADR-0180-slo-composition-inheritance-arithmetic): Oyatie declares **SLO composition arithmetic** as a first-class manifest concern. Every parent product (Workflow Studio, Foundry, Super-App, etc.) declares its composition rule; every blocking child µservice's SLO is verified to satisfy the parent's budget. ### Composition rules 1. **Serial composition (call chain).** Parent SLO availability ≤ `pro
+- **ADR-180** (ADR-0180-slo-composition-inheritance-arithmetic): Oyatie declares **SLO composition arithmetic** as a first-class manifest concern. Every parent product (Workflow Studio, Intelligence, Super-App, etc.) declares its composition rule; every blocking child µservice's SLO is verified to satisfy the parent's budget. ### Composition rules 1. **Serial composition (call chain).** Parent SLO availability ≤ `pro
 - **ADR-186** (ADR-0186-observability-backplane-layering): Oyatie adopts a **five-stage observability backplane** in which each stage owns one concern: ### Stage 1 — Collection: OpenTelemetry Collector (single binary) - **OpenTelemetry Collector** is the canonical collector across the fleet. Single binary; receivers + processors + exporters configured via OTLP. Deployed in two roles: - **Agent mode** as a 
 - **ADR-210** (ADR-0210-otel-tail-sampling): ### Two-stage sampling **Stage A — Head sampling (per agent collector, DaemonSet):** - Default: **1% always-on baseline** at the per-µservice agent collector (per ADR-0186 Stage 1). - Configurable per µservice via `manifest.json` `observability.trace_sampling_recipe.head_bps` (basis points; default 100 = 1%). - Random sampling decision at the entry
 - **ADR-263** (ADR-0263-observability-emission-contract): The fifteen decisions below collectively form the emission contract. Every µservice MUST honour every decision; the CI lanes listed in §Verification enforce. ### D-1. Three Pillars: metrics + logs + traces Every oyatie µservice emits **three signal streams**, each governed by the contract sections below: 1. **Metrics** — Prometheus exposition forma
@@ -62,7 +62,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-180 residual
 
-**ADR-0180-slo-composition-inheritance-arithmetic** — Oyatie declares **SLO composition arithmetic** as a first-class manifest concern. Every parent product (Workflow Studio, Foundry, Super-App, etc.) declares its composition rule; every blocking child µservice's SLO is verified to satisfy the parent's budget. ### Composition rules 1. **Serial composition (call chain).** Parent SLO availability ≤ `product(children_in_chain.availability)`. 2. **Parall
+**ADR-0180-slo-composition-inheritance-arithmetic** — Oyatie declares **SLO composition arithmetic** as a first-class manifest concern. Every parent product (Workflow Studio, Intelligence, Super-App, etc.) declares its composition rule; every blocking child µservice's SLO is verified to satisfy the parent's budget. ### Composition rules 1. **Serial composition (call chain).** Parent SLO availability ≤ `product(children_in_chain.availability)`. 2. **Parall
 
 ### ADR-210 residual
 

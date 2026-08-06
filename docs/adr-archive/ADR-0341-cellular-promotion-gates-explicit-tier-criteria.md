@@ -17,7 +17,7 @@ owners:
   - axis-tenancy
   - council-security
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 amends:
   - ADR-0248-amazon-shape-cellular-architecture.md (carves out explicit machine-checkable promotion-gate criteria + warm-soak floors + auto-promotion mechanism between cellular Tier 0 → 1 → 2 → 3 → 4; bidirectional demotion criteria added; preserves the Tier 0 = highest blast-radius convention)
   - ADR-0244-tenant-as-universal-scoping-primitive.md (cell-orchestrator µservice within tenancy emits per-tenant_class promotion eligibility; demo_trial + paid coverage is a gate input)

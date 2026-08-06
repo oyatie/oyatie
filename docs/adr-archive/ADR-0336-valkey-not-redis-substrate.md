@@ -25,7 +25,7 @@ owners:
   - axis-observability
   - axis-policy-engine
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 amends:
   - ADR-0013-license-substitutions.md
   - ADR-0045-secret-and-cache-substitutions.md

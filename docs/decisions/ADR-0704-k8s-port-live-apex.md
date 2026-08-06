@@ -1,5 +1,5 @@
 ---
-id: ADR-704
+id: ADR-0704
 title: "Live Kubernetes Go→Rust port engine and owned-kernel interfaces"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-66, ADR-93, ADR-134, ADR-142, ADR-198, ADR-208, ADR-222, ADR-241, ADR-276, ADR-394, ADR-569, ADR-611, ADR-632, ADR-637, ADR-638]
+supersedes: [ADR-0066, ADR-0093, ADR-0134, ADR-0142, ADR-0198, ADR-0208, ADR-0222, ADR-0241, ADR-0276, ADR-0394, ADR-0569, ADR-0611, ADR-0632, ADR-0637, ADR-0638]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0704-k8s-port-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-704: Live Kubernetes Go→Rust port engine and owned-kernel interfaces
+# ADR-0704: Live Kubernetes Go→Rust port engine and owned-kernel interfaces
 
 ## Status
 
@@ -51,7 +51,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-198** (ADR-0198-k8s-node-autoscaling-karpenter): ### D-1. Karpenter 1.11 is the canonical node autoscaler - **License:** Apache 2.0. - **Source:** kubernetes-sigs/karpenter (CNCF; vendor-neutral core) + cloud-provider plugins. - **Cluster Autoscaler is removed** from the substrate. There is no fallback; if Karpenter fails, the manually-fixed nodepool (per NodePool CRD) survives and absorbs steady
 - **ADR-208** (ADR-0208-realtime-transport-tier): ### Three-tier transport model | Tier | Use | When | |---|---|---| | **SSE (Server-Sent Events)** | One-way server → client streams | Log tail, metric tail, AI streaming responses, status feed, deploy progress | | **WebSocket** | Bidirectional client-facing product surfaces | Workflow Studio canvas collab (Loro CRDT sync), shared cursors, chat | | 
 - **ADR-222** (ADR-0222-saga-compensation-portfolio-policy): ### D-1. Saga shape Every cross-µservice write is a saga consisting of an ordered list of steps. Each step declares: ```rust pub struct SagaStep { pub step_id: StepId, // unique within the saga pub target_microservice: MicroserviceId, pub forward_action: ActionRef, // capability + input pub compensation_action: CompensationRef, // Cancel | Refund |
-- **ADR-241** (ADR-0241-dr-business-continuity-portfolio-policy): ### D-1. Four DR tiers | Tier | RTO | RPO | Replication shape | Drill cadence | Typical µservices | | --- | --- | --- | --- | --- | --- | | **T1** | < 5 min | 0 (zero data loss) | Active-active multi-AZ + cross-region warm standby | Quarterly + ad-hoc on every release | Foundry runtime (capability invocation), audit chain, observability, identity k
+- **ADR-241** (ADR-0241-dr-business-continuity-portfolio-policy): ### D-1. Four DR tiers | Tier | RTO | RPO | Replication shape | Drill cadence | Typical µservices | | --- | --- | --- | --- | --- | --- | | **T1** | < 5 min | 0 (zero data loss) | Active-active multi-AZ + cross-region warm standby | Quarterly + ad-hoc on every release | Intelligence runtime (capability invocation), audit chain, observability, identity k
 - **ADR-276** (ADR-0276-backup-portability-format-gdpr-article-20): ### D-1: Format — JSON-LD 1.1 with per-µservice schemas referenced by URI The canonical wire format is **JSON-LD 1.1** per the W3C Recommendation of 2020-07-16. Every exported document is a JSON-LD node with a mandatory `@context` field referencing the per-µservice schema URI: ```json { "@context": "https://contracts.oyatie.dev/portability/v1/mail/
 - **ADR-394** (First-party Rust internal developer platform (Leptos portal + ops BFF)): ### 1. One first-party portal Oyatie builds and operates a **first-party Rust internal developer platform** consisting of: 1. a Leptos SSR + hydration portal shell; 2. an owned Rust operations BFF that composes capability APIs without becoming a domain owner; 3. catalog, documentation, scorecard, SLO, runbook, release, incident, cost, and provision
 - **ADR-569** (Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outb): Commission **`libs/oya-data-outbox-adapter-postgres`** — the ADR-0510 transitional Postgres (via sqlx) realization of `oya-data-outbox-kernel::ChangeStreamSource`. It absorbs ALL engine impedance behind the unchanged port; only this adapter is replaced by the engine-native changefeed at W5. ### D1 — `SqlxChangeStreamSource { pool: PgPool }`, async-
@@ -80,7 +80,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-241 residual
 
-**ADR-0241-dr-business-continuity-portfolio-policy** — ### D-1. Four DR tiers | Tier | RTO | RPO | Replication shape | Drill cadence | Typical µservices | | --- | --- | --- | --- | --- | --- | | **T1** | < 5 min | 0 (zero data loss) | Active-active multi-AZ + cross-region warm standby | Quarterly + ad-hoc on every release | Foundry runtime (capability invocation), audit chain, observability, identity kernel, payment, ops-portal | | **T2** | < 1 h | <
+**ADR-0241-dr-business-continuity-portfolio-policy** — ### D-1. Four DR tiers | Tier | RTO | RPO | Replication shape | Drill cadence | Typical µservices | | --- | --- | --- | --- | --- | --- | | **T1** | < 5 min | 0 (zero data loss) | Active-active multi-AZ + cross-region warm standby | Quarterly + ad-hoc on every release | Intelligence runtime (capability invocation), audit chain, observability, identity kernel, payment, ops-portal | | **T2** | < 1 h | <
 
 ### ADR-93 residual
 

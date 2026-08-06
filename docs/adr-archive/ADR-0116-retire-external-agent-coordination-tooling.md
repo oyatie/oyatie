@@ -1,7 +1,7 @@
 ---
 id: ADR-0116
 status: Superseded
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 supersedes: [ADR-0054]
 amended_by: [ADR-0363]
 planning_impact: true

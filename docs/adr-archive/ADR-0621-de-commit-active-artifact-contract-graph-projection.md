@@ -8,7 +8,7 @@ date: 2026-07-24
 door: two-way
 owner: council-architecture + cloud-ci-platform
 supersedes: []
-superseded_by: [ADR-701]
+superseded_by: [ADR-0701]
 depends_on: [ADR-0515]
 amends: []
 related: [ADR-0539, ADR-0595, ADR-0597, ADR-0613]

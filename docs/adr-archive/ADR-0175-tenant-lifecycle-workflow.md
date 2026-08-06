@@ -7,7 +7,7 @@ owners:
   - council-privacy
   - axis-workspace
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related:
   - ADR-0002-tenant-and-identity-kernel.md
   - ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md

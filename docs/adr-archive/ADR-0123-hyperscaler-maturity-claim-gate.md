@@ -5,7 +5,7 @@ deciders: council-architecture, ops-sre-reliability, ops-security, council-desig
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0116]
 related_specs: [/specs/hyperscaler-gates.json, /specs/products/workflow-studio.json, /specs/products/workflow.json, /specs/masterplan.json, /specs/master-plan-sequencing.json]
 version: 1.0.0

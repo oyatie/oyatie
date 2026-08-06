@@ -4,7 +4,7 @@ deciders: council-foundry-vcs, council-observability, council-architecture
 date: 2026-05-16
 owner: council-foundry-vcs
 supersedes: []
-superseded_by: [ADR-706]
+superseded_by: [ADR-0706]
 related:
   - ADR-0110-changeset-state-machine.md
   - ADR-0111-merge-queue-projected-state-fix-at-any-stage.md

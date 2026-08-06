@@ -5,7 +5,7 @@ deciders: council-architecture, founder
 date: 2026-05-26
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-700]
+superseded_by: [ADR-0700]
 related: [ADR-0366, ADR-0363, ADR-0111, ADR-0349]
 planning_impact: true
 milestone: M-AGENTIC-PIPELINE

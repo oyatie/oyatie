@@ -1,5 +1,5 @@
 ---
-id: ADR-702
+id: ADR-0702
 title: "Live identity, tenancy, authz, secrets, and control-plane fail-closed posture"
 status: Accepted
 planning_impact: true
@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-08-06
 door: two-way
 owner: council-architecture
-supersedes: [ADR-2, ADR-7, ADR-43, ADR-95, ADR-155, ADR-163, ADR-191, ADR-214, ADR-242, ADR-244, ADR-294, ADR-311, ADR-326, ADR-329, ADR-330, ADR-543, ADR-553, ADR-572, ADR-573, ADR-589, ADR-592, ADR-593, ADR-603, ADR-607]
+supersedes: [ADR-0002, ADR-0007, ADR-0043, ADR-0095, ADR-0155, ADR-0163, ADR-0191, ADR-0214, ADR-0242, ADR-0244, ADR-0294, ADR-0311, ADR-0326, ADR-0329, ADR-0330, ADR-0543, ADR-0553, ADR-0572, ADR-0573, ADR-0589, ADR-0592, ADR-0593, ADR-0603, ADR-0607]
 superseded_by: []
 amends: []
 amended_by: []
@@ -20,7 +20,7 @@ deliverables:
     exit_criteria: "docs/decisions/ADR-0702-identity-authz-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
     verified_by: "oya-ci-required"
 ---
-# ADR-702: Live identity, tenancy, authz, secrets, and control-plane fail-closed posture
+# ADR-0702: Live identity, tenancy, authz, secrets, and control-plane fail-closed posture
 
 ## Status
 
@@ -46,7 +46,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 - **ADR-2** (ADR-0002-tenant-and-identity-kernel): We establish two co-located kernel crates that together form the *tenant + identity substrate*: - `crates/oya-tenancy-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types. - `crates/oya-identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-bac
 - **ADR-7** (ADR-0007-cedar-authorization-policy-and-persona-tier): We adopt **Cedar** as the sole authorization policy engine for RBAC/ABAC across all axes, **persona tiers T1–T4** as the autonomy-ceiling scale, and **per-capability runtime enforcement** that consults both Cedar and the autonomy ceiling on every invocation. ### Cedar surface - Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/oya-poli
-- **ADR-43** (ADR-0043-secrets-management-openbao-and-hsm-per-cell): We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCminimum-shippable-tier for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Foundry subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill
+- **ADR-43** (ADR-0043-secrets-management-openbao-and-hsm-per-cell): We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCminimum-shippable-tier for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Intelligence subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill
 - **ADR-95** (ADR-0095-tenant-slug-in-tenancy-kernel): Add a SECOND newtype to `oya-tenancy-kernel`: ```rust pub const TENANT_SLUG_MAX_LEN: usize = 128; pub struct TenantSlug(String); impl TenantSlug { pub fn try_new(value: impl Into<String>) -> Result<Self, TenantKernelError> { /* … */ } pub fn as_str(&self) -> &str { /* … */ } pub fn into_inner(self) -> String { /* … */ } } impl TryFrom<&str> for Ten
 - **ADR-155** (ADR-0155-per-tenant-resource-quotas): Adopt per-tenant quotas on five canonical axes (rate, concurrent, memory, storage, connections) as MANDATORY across every µservice. 1. The canonical spec is `docs/standards/per-tenant-resource-quotas-canonical.md`. 2. The trait surface lives in `crates/oya-shared-tenant-quota-kernel/`. 3. The tenancy µservice OWNS canonical quota definitions; runti
 - **ADR-163** (ADR-0163-tenant-environment-tiers): Every oyatie tenant has three environment tiers. Each tier is a logically isolated dataset within the tenant's cell: ### Tier definitions - **`test`** — sandbox environment. Tenant integrations land here first. Data is ephemeral (90-day TTL default; per-pack overlay). Outbound side effects (email send, SMS send, webhook dispatch, billing event) are
@@ -85,7 +85,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-43 residual
 
-**ADR-0043-secrets-management-openbao-and-hsm-per-cell** — We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCminimum-shippable-tier for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Foundry subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill** per cell; an **emergency rotation runbook** for
+**ADR-0043-secrets-management-openbao-and-hsm-per-cell** — We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-cell HSM partition** with **KCminimum-shippable-tier for KR cells + FIPS 140-3 globally**; a **rotating session-token vault** for Intelligence subscription-mode adapters; a **per-capability `SecretProvider` trait** so axes never read raw secrets; **quarterly key-rotation drill** per cell; an **emergency rotation runbook** for
 
 ### ADR-607 residual
 

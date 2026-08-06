@@ -5,7 +5,7 @@ deciders: founder, council-architecture
 date: 2026-05-26
 owner: council-architecture
 supersedes: []
-superseded_by: [ADR-709]
+superseded_by: [ADR-0709]
 related: [ADR-0370, ADR-0363, ADR-0043, ADR-0147]
 planning_impact: true
 milestone: M-PRODUCTION-FIDELITY-SUBSTRATE
