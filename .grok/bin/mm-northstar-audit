@@ -1,0 +1,455 @@
+#!/usr/bin/env python3
+"""North-star portfolio audit — status, backlog, board, and work gaps.
+
+Separate from W4 productivity (heartbeat health). This tool scores repo/board
+against NORTH-STAR-SHAPE + reorg taxonomy and emits findings + optional board
+gap lanes. Not merge authority.
+
+Exit: 0 = no critical gaps; 1 = warnings only; 2 = critical gaps (debt/silence).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+
+REORG_TARGETS = (
+    "cloud/",
+    "oya/",
+    "infra/",
+    "libs/",
+    "tools/",
+    "microservices/",
+)
+
+# Dual-home capability pairs (inventory-driven; extend via evidence packets)
+DUAL_HOME_CAPS = {
+    "marketplace": ("oya/marketplace", "marketplace"),
+    "compliance": ("oya/compliance", "compliance"),
+    "observability": ("oya/observability", "observability"),
+    "tasks": ("oya/tasks", "tasks"),
+    "intelligence": ("oya/intelligence", "intelligence"),
+    "governance": ("oya/governance", "governance"),
+}
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/pipeline.json").is_file():
+            return p
+        if (p / ".git").exists() and (p / ".grok").exists():
+            return p
+    return cur
+
+
+def sh(repo: Path, args: List[str], timeout: int = 60) -> Tuple[int, str]:
+    try:
+        r = subprocess.run(
+            args,
+            cwd=str(repo),
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        out = (r.stdout or "") + (r.stderr or "")
+        return r.returncode, out
+    except Exception as e:
+        return 99, str(e)
+
+
+def git_ls(repo: Path, prefix: str) -> List[str]:
+    code, out = sh(repo, ["git", "ls-tree", "-r", "--name-only", "HEAD", prefix])
+    if code != 0:
+        return []
+    return [ln for ln in out.splitlines() if ln.strip()]
+
+
+def count_crates(paths: List[str]) -> int:
+    return sum(1 for p in paths if p.endswith("Cargo.toml"))
+
+
+def load_json(p: Path) -> Any:
+    return json.loads(p.read_text()) if p.is_file() else None
+
+
+def live_move_plans(repo: Path) -> List[str]:
+    root = repo / "specs" / "reorg"
+    if not root.is_dir():
+        return []
+    live = []
+    for p in sorted(root.glob("*-move-plan.json")):
+        n = p.name
+        if "PARKED" in n or "BLOCKED" in n:
+            continue
+        live.append(str(p.relative_to(repo)))
+    return live
+
+
+def tracked_generated(repo: Path) -> List[str]:
+    code, out = sh(repo, ["git", "ls-files", "*.generated.json"])
+    if code != 0:
+        return []
+    return [ln for ln in out.splitlines() if ln.strip()]
+
+
+def board_index(board: dict) -> Dict[str, Any]:
+    lanes = board.get("lanes") or []
+    by_status: Dict[str, List[dict]] = {}
+    for L in lanes:
+        st = (L or {}).get("status") or "unknown"
+        by_status.setdefault(st, []).append(L)
+    return {
+        "total": len(lanes),
+        "by_status": {k: len(v) for k, v in by_status.items()},
+        "ready": by_status.get("ready") or [],
+        "claimed": by_status.get("claimed") or [],
+        "blocked": by_status.get("blocked") or [],
+        "ready_for_babysit": by_status.get("ready_for_babysit") or [],
+        "reorg_ready": [
+            L
+            for L in (by_status.get("ready") or [])
+            if (L or {}).get("source") == "reorg"
+            or str((L or {}).get("id") or "").startswith("REORG-")
+        ],
+        "stale_soft_ci": [
+            L
+            for L in lanes
+            if (L or {}).get("status") == "ready"
+            and (L or {}).get("source") in ("soft_red", "ci_red")
+            and "PR #" in str((L or {}).get("title") or "")
+        ],
+    }
+
+
+def dual_home_report(repo: Path) -> List[dict]:
+    rows = []
+    for cap, (a, b) in DUAL_HOME_CAPS.items():
+        pa, pb = git_ls(repo, a), git_ls(repo, b)
+        rows.append(
+            {
+                "capability": cap,
+                "homes": [
+                    {"path": a, "files": len(pa), "crates": count_crates(pa)},
+                    {"path": b, "files": len(pb), "crates": count_crates(pb)},
+                ],
+                "dual_active": len(pa) > 0 and len(pb) > 0,
+                "zero_crate_scaffold": (count_crates(pa) == 0 and len(pa) > 0)
+                or (count_crates(pb) == 0 and len(pb) > 0),
+            }
+        )
+    return rows
+
+
+def backlog_coverage(repo: Path, board: dict) -> dict:
+    """Compare mm-reorg-enqueue seed IDs (if importable by reading file) to board."""
+    seed_ids: Set[str] = set()
+    enq = repo / ".grok/bin/mm-reorg-enqueue"
+    if enq.is_file():
+        text = enq.read_text()
+        # crude parse "id": "RR-..."
+        import re
+
+        for m in re.finditer(r'"id":\s*"(RR-[A-Z0-9-]+)"', text):
+            seed_ids.add(m.group(1))
+    board_ids = set()
+    for L in board.get("lanes") or []:
+        lid = str((L or {}).get("id") or "")
+        if lid.startswith("REORG-"):
+            board_ids.add(lid.replace("REORG-", "", 1) if lid.startswith("REORG-RR-") else lid)
+            # normalize REORG-RR-X -> RR-X
+            if lid.startswith("REORG-"):
+                board_ids.add(lid[len("REORG-") :])
+    missing_on_board = sorted(seed_ids - board_ids)
+    # also REORG-RR form
+    missing2 = []
+    for s in seed_ids:
+        forms = {s, f"REORG-{s}", f"REORG-RR-{s.replace('RR-', '', 1)}" if s.startswith("RR-") else s}
+        if not (forms & board_ids) and s not in board_ids:
+            # check any lane id containing seed
+            if not any(s in str((L or {}).get("id") or "") for L in board.get("lanes") or []):
+                missing2.append(s)
+    return {
+        "seed_count": len(seed_ids),
+        "seeds": sorted(seed_ids),
+        "missing_from_board": missing2 or missing_on_board,
+    }
+
+
+def open_prs(repo: Path) -> List[dict]:
+    code, out = sh(
+        repo,
+        [
+            "gh",
+            "pr",
+            "list",
+            "--base",
+            "dev",
+            "--state",
+            "open",
+            "--limit",
+            "30",
+            "--json",
+            "number,title,headRefName",
+        ],
+    )
+    if code != 0:
+        return []
+    try:
+        return json.loads(out)
+    except Exception:
+        return []
+
+
+def findings_from(
+    dual: List[dict],
+    live_plans: List[str],
+    generated: List[str],
+    bidx: dict,
+    coverage: dict,
+    prs: List[dict],
+) -> List[dict]:
+    findings: List[dict] = []
+
+    if len(live_plans) > 1:
+        findings.append(
+            {
+                "severity": "critical",
+                "kind": "move_plan_singleton",
+                "msg": f"multiple live move-plans: {live_plans}",
+                "northstar": "ADR-0614 singleton; NORTH-STAR anti second concurrent move-plan",
+            }
+        )
+    elif len(live_plans) == 0:
+        findings.append(
+            {
+                "severity": "info",
+                "kind": "move_plan_slot_free",
+                "msg": "no live *-move-plan.json — slot free for next move-class rehome",
+                "northstar": "singleton free; prefer path-disjoint delete/rewrite while planning move",
+            }
+        )
+
+    if generated:
+        findings.append(
+            {
+                "severity": "critical",
+                "kind": "generated_faces_tracked",
+                "msg": f"tracked *.generated.json count={len(generated)} sample={generated[:5]}",
+                "northstar": "never hand-edit/re-track derived faces (0613-0616)",
+            }
+        )
+
+    for row in dual:
+        if not row["dual_active"]:
+            continue
+        cap = row["capability"]
+        findings.append(
+            {
+                "severity": "high" if row["zero_crate_scaffold"] else "medium",
+                "kind": "dual_home",
+                "capability": cap,
+                "msg": f"dual-home active for {cap}: {row['homes']}",
+                "northstar": "dual-home is debt to remove, not extend",
+                "suggested_lane": f"REORG-RR-DUAL-TOPO-{cap.upper()}",
+            }
+        )
+
+    if bidx["stale_soft_ci"]:
+        findings.append(
+            {
+                "severity": "medium",
+                "kind": "stale_soft_ci_board",
+                "msg": f"{len(bidx['stale_soft_ci'])} soft/ci red lanes still ready (may be merged PR debt)",
+                "northstar": "board hygiene; clear done PR queue lanes",
+            }
+        )
+
+    if coverage.get("missing_from_board"):
+        findings.append(
+            {
+                "severity": "medium",
+                "kind": "backlog_not_on_board",
+                "msg": f"enqueue seeds missing on board: {coverage['missing_from_board'][:12]}",
+                "northstar": "portfolio must surface reorg backlog for W2 claim",
+            }
+        )
+
+    if not bidx["reorg_ready"] and not bidx["claimed"]:
+        # still have dual homes?
+        if any(r["dual_active"] for r in dual):
+            findings.append(
+                {
+                    "severity": "high",
+                    "kind": "work_exists_but_board_empty",
+                    "msg": "dual-homes present but no reorg ready/claimed lanes",
+                    "northstar": "empty-board is false when dual-home debt remains",
+                }
+            )
+
+    # orphan open PRs not on board
+    board_prs = set()
+    for L in (bidx.get("ready") or []) + (bidx.get("claimed") or []) + (bidx.get("ready_for_babysit") or []):
+        if (L or {}).get("pr"):
+            board_prs.add(int(L["pr"]))
+    for pr in prs:
+        n = pr.get("number")
+        if n and n not in board_prs:
+            findings.append(
+                {
+                    "severity": "low",
+                    "kind": "open_pr_not_on_board",
+                    "msg": f"open PR #{n} not referenced on board lanes",
+                    "northstar": "babysit/implement handoff visibility",
+                    "pr": n,
+                }
+            )
+
+    if bidx["by_status"].get("ready", 0) == 0 and not any(
+        f["severity"] in ("critical", "high") for f in findings
+    ):
+        findings.append(
+            {
+                "severity": "info",
+                "kind": "queue_quiet",
+                "msg": "no ready lanes; verify dual-home/backlog findings above before idling",
+                "northstar": "productivity ≠ empty board when debt remains",
+            }
+        )
+
+    return findings
+
+
+def maybe_upsert_gap_lanes(board: dict, findings: List[dict], dry_run: bool) -> List[str]:
+    """Ensure high dual_home findings have a ready REORG lane id on board."""
+    added = []
+    lanes = board.setdefault("lanes", [])
+    ids = {str(L.get("id") or "") for L in lanes}
+    for f in findings:
+        if f.get("kind") != "dual_home":
+            continue
+        sug = f.get("suggested_lane")
+        if not sug or sug in ids:
+            continue
+        if dry_run:
+            added.append(f"(dry-run) {sug}")
+            continue
+        lanes.append(
+            {
+                "id": sug,
+                "status": "ready",
+                "source": "reorg",
+                "class": "delete",
+                "wave": "W0",
+                "priority": "P2",
+                "title": f"[audit] dual-home {f.get('capability')} — reduce residual scaffold",
+                "notes": f"upserted by mm-northstar-audit: {f.get('msg')}",
+                "paths": [],
+            }
+        )
+        ids.add(sug)
+        added.append(sug)
+    return added
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--json", action="store_true", help="print full report JSON")
+    ap.add_argument(
+        "--write-board-gaps",
+        action="store_true",
+        help="upsert missing dual-home reorg lanes onto task board",
+    )
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    northstar = repo / ".grok/programs/delivery-fabric/NORTH-STAR-SHAPE.md"
+    board_path = repo / ".grok/programs/delivery-fabric/task-board.v1.json"
+    board = load_json(board_path) or {"lanes": []}
+
+    dual = dual_home_report(repo)
+    live_plans = live_move_plans(repo)
+    generated = tracked_generated(repo)
+    bidx = board_index(board)
+    coverage = backlog_coverage(repo, board)
+    prs = open_prs(repo)
+    findings = findings_from(dual, live_plans, generated, bidx, coverage, prs)
+
+    upserted = []
+    if args.write_board_gaps:
+        upserted = maybe_upsert_gap_lanes(board, findings, args.dry_run)
+        if upserted and not args.dry_run:
+            board["updated_at"] = now()
+            board["updated_by"] = "mm-northstar-audit"
+            board_path.parent.mkdir(parents=True, exist_ok=True)
+            board_path.write_text(json.dumps(board, indent=2) + "\n")
+
+    sev_rank = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    findings.sort(key=lambda f: sev_rank.get(f.get("severity", "info"), 9))
+
+    report = {
+        "ok": not any(f.get("severity") == "critical" for f in findings),
+        "has_high": any(f.get("severity") == "high" for f in findings),
+        "audited_at": now(),
+        "repo": str(repo),
+        "northstar_path": str(northstar),
+        "northstar_present": northstar.is_file(),
+        "origin_hint": board.get("origin_dev"),
+        "live_move_plans": live_plans,
+        "tracked_generated_json": len(generated),
+        "dual_homes": dual,
+        "board": {
+            "path": str(board_path),
+            "by_status": bidx["by_status"],
+            "reorg_ready_ids": [L.get("id") for L in bidx["reorg_ready"]],
+            "claimed_ids": [L.get("id") for L in bidx["claimed"]],
+            "blocked_ids": [L.get("id") for L in bidx["blocked"]],
+        },
+        "backlog_coverage": coverage,
+        "open_prs": prs,
+        "findings": findings,
+        "board_gaps_upserted": upserted,
+        "recommendation": (
+            "claim path-disjoint reorg_ready / dual-home delete leaves; keep W3 sole babysit"
+            if any(f.get("severity") in ("critical", "high", "medium") for f in findings)
+            else "northstar audit quiet; keep four fabric classes armed + re-query origin/dev"
+        ),
+    }
+
+    out_dir = repo / ".grok/mm-runs/_fabric"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    latest = out_dir / "northstar-audit.latest.json"
+    latest.write_text(json.dumps(report, indent=2) + "\n")
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+    else:
+        print(f"northstar-audit ok={report['ok']} high={report['has_high']} findings={len(findings)}")
+        print(f"  live_move_plans={live_plans or '[]'}")
+        print(f"  tracked_generated={len(generated)}")
+        print(f"  dual_active={[r['capability'] for r in dual if r['dual_active']]}")
+        print(f"  reorg_ready={report['board']['reorg_ready_ids']}")
+        for f in findings[:12]:
+            print(f"  [{f.get('severity')}] {f.get('kind')}: {f.get('msg')[:100]}")
+        print(f"  wrote {latest}")
+        print(f"  recommendation: {report['recommendation']}")
+
+    if any(f.get("severity") == "critical" for f in findings):
+        return 2
+    if any(f.get("severity") == "high" for f in findings):
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

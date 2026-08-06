@@ -14,8 +14,10 @@ How might we keep multi-agent delivery **continuously productive** so that work 
 | **W2 Implement** | `implement-claimed-lane` | every 10–15m | Claim `ready` slice → mm-pipeline path → PR |
 | **W3 Babysit** | `pr-babysit-lanes` | every 5–10m | **Sole** open-PR babysit owner (single-flight) → CI fix / merge |
 | **W4 Productivity** | `workflow-productivity-watch` | every 5–10m | Assert W1–W3 productive; re-arm; process_edits |
+| **W5 North-star audit** | `northstar-portfolio-audit` | every 15–30m | **Separate** from W4: audit status/backlog/board vs `NORTH-STAR-SHAPE.md`; enqueue gaps |
 
-**Invariant:** productivity-watch **fails closed** if fewer than 4 fabric classes have a live/recent run or armed scheduler. Idle chat is not productivity.
+**Invariant:** productivity-watch **fails closed** if fewer than **4 core** fabric classes (W1–W4) have a live/recent run or armed scheduler. Idle chat is not productivity.  
+**W5** is always-on discovery against north-star debt; it does not replace W4 and does not babysit or implement.
 
 ## Key assumptions
 
