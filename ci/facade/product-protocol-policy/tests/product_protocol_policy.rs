@@ -1079,6 +1079,21 @@ fn live_adr_authority_reconciliation_is_green() {
     }
 
     for (id, document) in &accepted_documents {
+        // Public-RPC purity is a live Accepted hard norm. Archive Superseded
+        // members are scanned for declared-authority reconciliation only;
+        // their historical wording must not fail this lane after disposition.
+        let is_accepted = frontmatter(document).lines().any(|line| {
+            line.strip_prefix("status:")
+                .is_some_and(|status| {
+                    status
+                        .trim()
+                        .trim_matches(['\'', '"'])
+                        .eq_ignore_ascii_case("accepted")
+                })
+        });
+        if !is_accepted {
+            continue;
+        }
         let findings = public_rpc_findings(id, "accepted", document);
         assert!(
             findings.is_empty(),

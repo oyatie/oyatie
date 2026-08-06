@@ -232,8 +232,10 @@ fn read_adr_decision_record(path: &Path) -> Result<AdrDecisionRecord, String> {
         owner,
         date,
         path: format!("decisions/{file_name}"),
-        supersedes: optional_single_adr_metadata(&metadata, "Supersedes"),
-        superseded_by: optional_single_adr_metadata(&metadata, "Superseded-by"),
+        // Multi-id YAML lists (apex supersedes: [ADR-…, …]) must split into
+        // one record element per ADR id — same path as Related.
+        supersedes: optional_list_adr_metadata(&metadata, "Supersedes"),
+        superseded_by: optional_list_adr_metadata(&metadata, "Superseded-by"),
         related: optional_list_adr_metadata(&metadata, "Related"),
     })
 }
