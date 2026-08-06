@@ -1,0 +1,89 @@
+{
+  "id": "REORG-DUAL-STORAGE-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:41:16Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-STORAGE-BURNDOWN",
+  "summary": "Rehome residual zero-crate cloud/cloud-storage + oya/drive + oya/imaging + oya/recordings product surfaces into registered storage/ home (drive/imaging/recordings residual under storage/{drive,imaging,recordings}/ to avoid collision with live storage/facade/* crates); retarget consumers; delete dual-home debt under cloud/ and oya/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/ and oya/ for storage residual",
+  "durable_home": "storage/",
+  "debt": [
+    "cloud/cloud-storage/",
+    "oya/drive/",
+    "oya/imaging/",
+    "oya/recordings/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/cloud-storage/{ARCH,PRD,README,manifest,contracts,iac,cedar,runbooks,capabilities,...}",
+      "to": "storage/<same>"
+    },
+    {
+      "from": "oya/drive/{contracts,iac,catalog,cedar,capabilities,manifest,...}",
+      "to": "storage/drive/<same>"
+    },
+    {
+      "from": "oya/imaging/{contracts,iac,cedar,policies,manifest,...}",
+      "to": "storage/imaging/<same>"
+    },
+    {
+      "from": "oya/recordings/{contracts,iac,catalog,cedar,capabilities,manifest,...}",
+      "to": "storage/recordings/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/cloud-observability-slo-evidence-contract.json",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "registry/fixuptasks.jsonl",
+    "storage/manifest.json",
+    "storage/drive/manifest.json",
+    "storage/imaging/manifest.json",
+    "storage/recordings/manifest.json"
+  ],
+  "net_path_debt": "negative under cloud/cloud-storage and oya/{drive,imaging,recordings} (deleted); storage/ gains residual product artifacts at capability home; storage/{drive,imaging,recordings} hold product residual to avoid basename collision with live storage/facade/* domain crates",
+  "crate_count_debt_paths": 0,
+  "non_goals": [
+    "no crate renames (crates already at storage/{core,ports,adapters,facade})",
+    "no CAS/NativeLink ordered moves (infra/nativelink already rehomed; storage/adapters/nativelink untouched this PR)",
+    "no move-plan (not path bijection of crates)",
+    "no mega cloud/* or oya/* PR",
+    "no historical docs/adr-archive / design-spec-maturity rewrites",
+    "no retarget of root contracts/openapi/cloud/cloud-storage-*.yaml registry bindings (root contract home, not debt path)",
+    "imaging residual remains under storage/imaging pending Batch-5 app/healthcare rehome (ADR-0615 Q4)"
+  ],
+  "consumer_proof": {
+    "cloud_cloud_storage_path_prefix_live_refs": "zero outside historical docs/evidence/openapi-root after retarget",
+    "oya_drive_imaging_recordings_path_prefix_live_refs": "zero outside historical docs/evidence after retarget",
+    "cedar_gh987_paths": [
+      "storage/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "cedar_policy_paths": [
+      "storage/drive/iac/k8s/helm/templates/cedar.yaml",
+      "storage/imaging/iac/k8s/helm/templates/cedar.yaml",
+      "storage/recordings/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "absorbs_current_dirs": [
+      "storage"
+    ],
+    "tier_manifests": [
+      "storage/manifest.json",
+      "storage/drive/manifest.json",
+      "storage/imaging/manifest.json",
+      "storage/recordings/manifest.json"
+    ],
+    "slo_artifact_patterns": [
+      "storage/observability/slos/*.openslo.yaml"
+    ]
+  },
+  "path_disjoint_from": [
+    "storage/adapters/nativelink",
+    "specs/reorg/nativelink-storage-move-plan.PARKED.json",
+    "agent/reorg-dual-network-20260806",
+    "agent/reorg-dual-secrets-20260806",
+    "agent/reorg-dual-marketplace-residual-20260806"
+  ]
+}

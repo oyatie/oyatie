@@ -291,20 +291,6 @@
         ]
       }
     },
-    "cloud/cloud-storage/manifest.json": {
-      "service": "cloud/cloud-storage",
-      "manifest": "cloud/cloud-storage/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
     "cloud/managed-k8s-cluster-lifecycle/manifest.json": {
       "service": "cloud/managed-k8s-cluster-lifecycle",
       "manifest": "cloud/managed-k8s-cluster-lifecycle/manifest.json",
@@ -730,20 +716,6 @@
       "tier_subtype": "product-consumer-docs",
       "dr_tier": "T1"
     },
-    "oya/drive/manifest.json": {
-      "service": "oya/drive",
-      "manifest": "oya/drive/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
     "oya/emergency/manifest.json": {
       "service": "oya/emergency",
       "manifest": "oya/emergency/manifest.json",
@@ -860,20 +832,6 @@
           "tenancy",
           "workflow-engine"
         ]
-      }
-    },
-    "oya/imaging/manifest.json": {
-      "service": "oya/imaging",
-      "manifest": "oya/imaging/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/incident-management/manifest.json": {
@@ -1178,20 +1136,6 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
     },
-    "oya/recordings/manifest.json": {
-      "service": "oya/recordings",
-      "manifest": "oya/recordings/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
     "oya/sheets/manifest.json": {
       "service": "oya/sheets",
       "manifest": "oya/sheets/manifest.json",
@@ -1332,6 +1276,62 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
+    },
+    "storage/manifest.json": {
+      "service": "storage",
+      "manifest": "storage/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "storage/drive/manifest.json": {
+      "service": "storage/drive",
+      "manifest": "storage/drive/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "storage/imaging/manifest.json": {
+      "service": "storage/imaging",
+      "manifest": "storage/imaging/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "storage/recordings/manifest.json": {
+      "service": "storage/recordings",
+      "manifest": "storage/recordings/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/microservice-manifest.schema.json",
-  "microservice": "imaging",
+  "microservice": "storage/imaging",
   "tier": "substrate",
   "tier_subtype": "substrate-data",
   "dr_tier": "T1",

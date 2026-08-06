@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "drive",
+  "microservice": "storage/drive",
   "tier": "substrate",
   "tier_subtype": "substrate-data",
   "dr_tier": "T1",
@@ -84,7 +84,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/drive/contracts/proto/drive.proto"
+        "storage/drive/contracts/proto/drive.proto"
       ]
     }
   },

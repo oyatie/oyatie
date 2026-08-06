@@ -234,14 +234,10 @@
         "storage/CAS"
       ],
       "absorbs_current_dirs": [
-        "storage",
-        "cloud/cloud-storage",
-        "oya/drive",
-        "oya/imaging",
-        "oya/recordings"
+        "storage"
       ],
       "dag_node": "storage",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 §10.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) is app/healthcare (PACS) — its oya/imaging scaffold relocates to app_products in the storage Batch-5 move-plan (retained in this absorb until that atomic move to avoid orphaning). storage/facade also = the S3-analog CAS sold as infra (Amazon S3 the product, NOT ADR-0280 stratum S3 — the two spellings collide in this note). STRATUM (ADR-0631 floor test): the permitted range is S2..S5 — floor S2 from storage/core/domain -> cell/core/region (cell S2) and storage/facade/recordings -> comms/core/meet-domain (comms S2); nothing ranked consumes storage, so there is no ceiling. S2 is the FLOOR and is what is declared. The `tier_subtype: substrate-data` shared with cloud-data(S3)/ontology(S3) is NOT evidence for a mid-range S3: that subtype spans nine manifests which split 5x S3 (all data-capability services) and 4x forward-declared (cloud-storage, drive, recordings, imaging — precisely storage's own absorbs), so the subtype tracks the DATA capability's rank, not storage's. Declaring the floor also preserves headroom: every future ranked consumer of storage is legal at S2 and up."
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 §10.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) is app/healthcare (PACS) — its residual imaging scaffold (now storage/imaging) relocates to app_products in the storage Batch-5 move-plan (retained in this absorb until that atomic move to avoid orphaning). storage/facade also = the S3-analog CAS sold as infra (Amazon S3 the product, NOT ADR-0280 stratum S3 — the two spellings collide in this note). STRATUM (ADR-0631 floor test): the permitted range is S2..S5 — floor S2 from storage/core/domain -> cell/core/region (cell S2) and storage/facade/recordings -> comms/core/meet-domain (comms S2); nothing ranked consumes storage, so there is no ceiling. S2 is the FLOOR and is what is declared. The `tier_subtype: substrate-data` shared with cloud-data(S3)/ontology(S3) is NOT evidence for a mid-range S3: that subtype spans nine manifests which split 5x S3 (all data-capability services) and 4x residual product faces under storage/ (manifest, storage/drive, storage/recordings, storage/imaging), so the subtype tracks the DATA capability's rank, not storage's. Declaring the floor also preserves headroom: every future ranked consumer of storage is legal at S2 and up."
     },
     {
       "name": "compute",
@@ -506,8 +502,8 @@
   "flagged_boundaries_for_leader": [],
   "pending_relocations": [
     {
-      "_comment": "ADR-0615-ruled absorbs->app_products relocations that await their capability's Batch-5 move-plan. The path is RETAINED in its current substrate absorb (to avoid orphaning against the membership lint) until the atomic move re-homes it. 0-crate scaffolds today.",
-      "from": "storage.absorbs_current_dirs[oya/imaging]",
+      "_comment": "ADR-0615-ruled residual→app_products relocation. Residual product docs/contracts now live at storage/imaging after dual-home burndown; Batch-5 still rehomes to app/healthcare.",
+      "from": "storage/imaging (residual scaffold; formerly oya/imaging absorb)",
       "to": "app/healthcare (imaging/PACS context)",
       "executes_in": "specs/reorg/storage-move-plan.json (Batch-5)",
       "ruled_by": "ADR-0615 §2 Q4",

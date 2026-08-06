@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "recordings",
+  "microservice": "storage/recordings",
   "tier": "substrate",
   "tier_subtype": "substrate-data",
   "dr_tier": "T0",
@@ -35,7 +35,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/recordings/contracts/proto/recordings.proto"
+        "storage/recordings/contracts/proto/recordings.proto"
       ]
     }
   },
