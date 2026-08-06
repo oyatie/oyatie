@@ -408,9 +408,9 @@
         ]
       }
     },
-    "oya/api-gateway/manifest.json": {
-      "service": "oya/api-gateway",
-      "manifest": "oya/api-gateway/manifest.json",
+    "gateway/manifest.json": {
+      "service": "gateway",
+      "manifest": "gateway/manifest.json",
       "capability": "gateway",
       "tier": "substrate",
       "tier_subtype": "substrate-api-gateway",
@@ -512,9 +512,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/connector/manifest.json": {
-      "service": "oya/connector",
-      "manifest": "oya/connector/manifest.json",
+    "gateway/connector/manifest.json": {
+      "service": "gateway/connector",
+      "manifest": "gateway/connector/manifest.json",
       "capability": "gateway",
       "tier": "substrate",
       "tier_subtype": "substrate-api-gateway",

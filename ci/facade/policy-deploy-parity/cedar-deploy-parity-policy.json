@@ -15,14 +15,14 @@
       "cedar-authz-fnv1a64:bb36847225f2f7ff"
     ],
     "paths": [
-      "oya/api-gateway/iac/k8s/helm/templates/cedar.yaml",
+      "gateway/iac/k8s/helm/templates/cedar.yaml",
       "oya/application/iac/k8s/helm/templates/cedar.yaml",
       "oya/audit-chain/iac/k8s/helm/templates/cedar.yaml",
       "oya/calendar/iac/k8s/helm/templates/cedar.yaml",
       "oya/comms-email/iac/k8s/helm/templates/cedar.yaml",
       "oya/community/iac/k8s/helm/templates/cedar.yaml",
       "oya/compliance/iac/k8s/helm/templates/cedar.yaml",
-      "oya/connector/iac/k8s/helm/templates/cedar.yaml",
+      "gateway/connector/iac/k8s/helm/templates/cedar.yaml",
       "oya/consent-graph/iac/k8s/helm/templates/cedar.yaml",
       "oya/contact-center/iac/k8s/helm/templates/cedar.yaml",
       "oya/contract-lifecycle-management/iac/k8s/helm/templates/cedar.yaml",
