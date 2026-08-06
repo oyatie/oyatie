@@ -46,3 +46,7 @@ Dual-home: `RR-DUAL-TOPO-{MARKETPLACE,COMPLIANCE,OBSERVABILITY,TASKS}`, `RR-INTE
 Areas: `RR-INFRA-LEAF-DELETE`, `RR-TOOLS-LEAF-DISPOSITION`, `RR-CLOUD-SCAFFOLD-SWEEP`, `RR-LIBS-FLAT-DISPOSITION`  
 Rewrite: `RR-K8S-PORT-REWRITE-W0B`  
 Ordered: `RR-CAS-3A` (blocked on G039)
+
+## Reorg is not move-only
+
+Many leaves are **rewrite** (process → `.grok/`), **refactor** (structure under one home), or **delete** (residual scaffold) — not path bijections. Use a live `*-move-plan.json` only for true rehome bijections (ADR-0614). Tools disposition: `tools/DISPOSITION.md`.
