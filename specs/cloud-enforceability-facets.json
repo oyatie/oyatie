@@ -3717,7 +3717,7 @@
       "source_artifacts": [
         "specs/tenant-model.json",
         "specs/tenant-lifecycle.json",
-        "cloud/tenancy/contracts/proto/tenancy.proto"
+        "tenancy/contracts/proto/tenancy.proto"
       ],
       "runtime_status": "integration_point_only"
     },
