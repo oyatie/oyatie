@@ -707,16 +707,16 @@ fn compliance_catalog_import_urls_resolve_to_canonical_paths() {
     let prefix = "https://github.com/oyadev/oyatie/blob/main/";
     for (catalog_path, canonical_path) in [
         (
-            "oya/compliance/catalog/api-asyncapi.yaml",
-            "oya/compliance/contracts/asyncapi.yaml",
+            "compliance/catalog/api-asyncapi.yaml",
+            "compliance/contracts/asyncapi.yaml",
         ),
         (
-            "oya/compliance/catalog/api-rest.yaml",
-            "oya/compliance/contracts/openapi.yaml",
+            "compliance/catalog/api-rest.yaml",
+            "compliance/contracts/openapi.yaml",
         ),
         (
-            "oya/compliance/catalog/component-info.yaml",
-            "oya/compliance/manifest.json",
+            "compliance/catalog/component-info.yaml",
+            "compliance/manifest.json",
         ),
     ] {
         let catalog = fs::read_to_string(root.join(catalog_path))

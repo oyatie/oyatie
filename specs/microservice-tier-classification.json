@@ -498,9 +498,9 @@
       "tier_subtype": "product-consumer-community",
       "dr_tier": "T1"
     },
-    "oya/compliance/manifest.json": {
-      "service": "oya/compliance",
-      "manifest": "oya/compliance/manifest.json",
+    "compliance/manifest.json": {
+      "service": "compliance",
+      "manifest": "compliance/manifest.json",
       "capability": "compliance",
       "tier": "substrate",
       "tier_subtype": "substrate-compliance",

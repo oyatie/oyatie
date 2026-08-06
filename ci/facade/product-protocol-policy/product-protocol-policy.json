@@ -90,7 +90,7 @@
       "oya/analytics/manifest.json",
       "oya/ci-webhook-gateway/manifest.json",
       "oya/comms-email/manifest.json",
-      "oya/compliance/manifest.json",
+      "compliance/manifest.json",
       "oya/contact-center/manifest.json",
       "oya/contract-lifecycle-management/manifest.json",
       "oya/crm/manifest.json",
