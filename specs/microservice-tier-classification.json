@@ -802,9 +802,9 @@
         "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "oya/forms/manifest.json": {
-      "service": "oya/forms",
-      "manifest": "oya/forms/manifest.json",
+    "workflow/forms/manifest.json": {
+      "service": "workflow/forms",
+      "manifest": "workflow/forms/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
@@ -1264,9 +1264,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
     },
-    "oya/tasks/manifest.json": {
-      "service": "oya/tasks",
-      "manifest": "oya/tasks/manifest.json",
+    "workflow/tasks/manifest.json": {
+      "service": "workflow/tasks",
+      "manifest": "workflow/tasks/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
@@ -1319,9 +1319,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/workflow-engine/manifest.json": {
-      "service": "oya/workflow-engine",
-      "manifest": "oya/workflow-engine/manifest.json",
+    "workflow/workflow-engine/manifest.json": {
+      "service": "workflow/workflow-engine",
+      "manifest": "workflow/workflow-engine/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
@@ -1342,9 +1342,9 @@
         "consumed_by_substrates": []
       }
     },
-    "oya/workflow-studio/manifest.json": {
-      "service": "oya/workflow-studio",
-      "manifest": "oya/workflow-studio/manifest.json",
+    "workflow/workflow-studio/manifest.json": {
+      "service": "workflow/workflow-studio",
+      "manifest": "workflow/workflow-studio/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",

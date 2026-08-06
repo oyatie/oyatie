@@ -355,11 +355,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "workflow",
-        "oya/workflow-engine",
-        "oya/workflow-studio",
-        "oya/tasks",
-        "oya/forms"
+        "workflow"
       ],
       "dag_node": "workflow-engine"
     },

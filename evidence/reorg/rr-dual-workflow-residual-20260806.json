@@ -1,0 +1,48 @@
+{
+  "id": "REORG-DUAL-WORKFLOW-BURNDOWN",
+  "class": "delete",
+  "date": "2026-08-06T17:39:15Z",
+  "origin_dev": "1ff54ddc56fe",
+  "summary": "Rehome residual zero-crate oya/{workflow-engine,workflow-studio,tasks,forms} into durable workflow/ capability home as subdirs (collision-safe with existing workflow crates). Top-level tasks/ is a separate agent-plan corpus, not the product residual \u2014 oya/tasks rehomes to workflow/tasks/ only.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/; preserve existing workflow/{adapters,core,facade,observability,ports} crates",
+  "durable_home": "workflow/",
+  "moves": [
+    {
+      "from": "oya/workflow-engine/",
+      "to": "workflow/workflow-engine/"
+    },
+    {
+      "from": "oya/workflow-studio/",
+      "to": "workflow/workflow-studio/"
+    },
+    {
+      "from": "oya/tasks/",
+      "to": "workflow/tasks/"
+    },
+    {
+      "from": "oya/forms/",
+      "to": "workflow/forms/"
+    }
+  ],
+  "collision_notes": [
+    "workflow/ already hosts capability crates under adapters/core/facade/observability/ports \u2014 residual product surfaces land in named subdirs rather than flat merge",
+    "top-level tasks/ is agent plan/docs corpus (zero product crates); not dual-home product residual; left untouched"
+  ],
+  "consumers_retargeted": [
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "marketplace/facade/dev-cli/tests/capacity_model_gate_cli.rs",
+    "workflow/workflow-engine/manifest.json",
+    "workflow/workflow-studio/manifest.json",
+    "workflow/tasks/manifest.json",
+    "workflow/forms/manifest.json"
+  ],
+  "net_path_debt": "negative under oya/{workflow-engine,workflow-studio,tasks,forms} (deleted); workflow/ gains residual product artifacts under subdirs",
+  "non_goals": [
+    "no crate renames or moves of existing workflow/* crates",
+    "no move-plan (not path bijection of crates)",
+    "no rehome of top-level tasks/ agent plans",
+    "no behavior change"
+  ]
+}

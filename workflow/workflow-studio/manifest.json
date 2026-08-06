@@ -51,7 +51,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/workflow-studio/contracts/proto/workflow-studio.proto"
+        "workflow/workflow-studio/contracts/proto/workflow-studio.proto"
       ]
     }
   },
