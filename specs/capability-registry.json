@@ -1,118 +1,28 @@
 {
   "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; its eventual home is governance/capability-registry.json after the reorg, held at specs/ until the governance/ top-level dir is created. DATA, not code: canonical-json governed, reachability-registered, council-architecture owned. CAPABILITY TIER FACETS (`tier` + `substrate_dag_position.stratum`, spelled exactly as in a service manifest.json per ADR-0245 tier-as-facet): a capability that carries them DECLARES its dependency tier here, beside its definition. cloud-ci-tier-dependency-acyclicity reads this and derives NOTHING — the tier was previously PROJECTED from each capability's absorbs_current_dirs, which resolved only while those service dirs still existed (a completed move orphaned the tier) and whose unanimity was computed over whichever services had not moved yet (migration ORDER decided the answer). An UNDECLARED capability is RED and non-baselineable in that gate the moment it enters capability_roots; there is deliberately no fallback, because a fallback covering for a missing declaration is how a silent exemption returns. NINE capabilities are deliberately undeclared, each needing a founder/architecture ruling rather than an invented value: marketplace SPANS tiers (product + substrate — the ADR-0562 \"a single engine spans tiers via its faces\" case, so it may need splitting rather than a tier); iam spans S1+S3 with three untiered absorbed services; storage, ci, billing and flags have only `forward-declared` evidence, which carries no ADR-0280 rank and so enforces nothing; policy, compute and messaging have no tier'd absorbed service at all. The fifteen declared values transcribe what every one of their absorbed services already unanimously declares.",
-  "schema_version": "1.1.0",
-  "doctrine_adr": "ADR-0562",
   "amendment_adrs": [
     "ADR-0615"
   ],
-  "closed": true,
-  "registry_kind": "capability",
-  "placement_authority": "ADR-0562",
-  "seed_authority": [
-    "ADR-0536",
-    "ADR-0280",
-    "current-tree:cloud/",
-    "current-tree:oya/"
-  ],
-  "meta_directories": [
-    {
-      "dir": "kernel/",
-      "rung": 0,
-      "off_runtime_ladder": false,
-      "charter": "kuberos no_std kernel + sysroot; the recursion floor. Its own excluded/nested workspace per the ADR-0512 kernel carve-out.",
-      "owns_crates": true
-    },
-    {
-      "dir": "os/",
-      "rung": 1,
-      "off_runtime_ladder": false,
-      "charter": "cloud-os node operating system (Talos-class). The node substrate the capability ladder runs on.",
-      "owns_crates": true
-    },
-    {
-      "dir": "base/",
-      "rung": "below-all-capabilities",
-      "off_runtime_ladder": false,
-      "admission_gated": true,
-      "charter": "Irreducible cross-capability primitives (Google //base). Admission rule: a crate enters base/ ONLY if depended-on by >=3 capabilities AND strictly below all of them in the ADR-0280 DAG. NOT a util/ junk-drawer.",
-      "owns_crates": true
-    },
-    {
-      "dir": "governance/",
-      "off_runtime_ladder": true,
-      "charter": "Meta, off the runtime ladder: ADRs, specs, policy-as-data, this capability registry, the dep-lint authority, the masterplan.",
-      "owns_crates": false
-    },
-    {
-      "dir": "build/",
-      "off_runtime_ladder": true,
-      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
-      "owns_crates": false
-    },
-    {
-      "dir": "third-party/",
-      "off_runtime_ladder": true,
-      "charter": "Meta, off the runtime ladder: reindeer-vendored third-party crate sources (the live buck2 cell root third-party//). TOP-LEVEL per the ADR-0615 amendment (founder 2026-07-10), split out of the build/ charter text. Owns zero first-party (capability) crates.",
-      "owns_crates": false
-    },
-    {
-      "dir": "app/",
-      "off_runtime_ladder": false,
-      "charter": "Composition ring: deployable surfaces wiring 2+ capabilities for a tenant (SaaS verticals + the web shell). app/<product>/ composes; it never defines a capability engine.",
-      "owns_crates": true
-    }
-  ],
-  "faces": [
-    {
-      "face": "core",
-      "subfold": "core/",
-      "charter": "The engine we RUN (substrate face)."
-    },
-    {
-      "face": "ports",
-      "subfold": "ports/",
-      "charter": "Capability traits; the stable seam. The lowest ADR-0280 DAG node the crate's public port belongs to is the tie-breaker for placement."
-    },
-    {
-      "face": "adapters",
-      "subfold": "adapters/",
-      "charter": "Transient-infra impls (adapter-aws/-oci/-capi); vanish at owned-stack cutover."
-    },
-    {
-      "face": "facade",
-      "subfold": "facade/",
-      "charter": "The multi-tenant surface we SELL (product face); depends on core/ ONLY through ports."
-    },
-    {
-      "face": "harness",
-      "subfold": "harness/",
-      "charter": "Integration-test-only crates carrying no production code. Admitted ONLY for the META directories whose runtime engines have no sold surface (kernel/, os/); landed precedent kernel/harness/asterinas-real-boot (ADR-0611) and os/harness/difftest-app (ADR-0562 §10.29). NOT a capability face: a capability keeps its tests beside the crate they exercise. Recorded here because the registry is closed and had been describing the tree inaccurately since ADR-0611 landed the first harness leaf."
-    }
-  ],
+  "app_products_note": "Deployable SaaS verticals (crm, hr, ONE app/healthcare product [contexts: emr, pharmacy, patient-monitoring, healthcare-integration, emergency, imaging — ADR-0615 §6], the SEPARATE app/health-diagnostics product [clinical lab, ADR-0615 §2 Q8, NOT an app/healthcare context], itsm, incident-management, payroll, treasury, payments, supply-chain-planning, production-planning, plant-maintenance, warehouse, real-estate, global-trade, learning-management, performance-management, quality-management, contract-lifecycle-management, financial-planning, marketing-automation, social [a SEPARATE app product, not a healthcare context], community, connect, office/docs/sheets/slides/notes/sites/whiteboard/calendar/forms/design-collaboration, translate, etc.) are app/<product>/ composition members under the placement rule, NOT capabilities. They wire 2+ capabilities for a tenant. The exact app/ roster is enumerated by the migration lanes, not closed here; this registry closes the CAPABILITY axis only.",
   "capabilities": [
     {
-      "name": "cell",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S2"
-      },
-      "charter": "Cellular topology substrate: cluster-per-cell, hard caps, thin static-stable cell router, autosharding/rebalancing. The leaf substrate (ADR-0280 bootstrap floor).",
-      "seed_domains": [
-        "cells"
-      ],
       "absorbs_current_dirs": [
         "cell",
         "cloud/cell-lifecycle",
         "cloud/cell-rebalancer"
       ],
-      "dag_node": "cell"
+      "charter": "Cellular topology substrate: cluster-per-cell, hard caps, thin static-stable cell router, autosharding/rebalancing. The leaf substrate (ADR-0280 bootstrap floor).",
+      "dag_node": "cell",
+      "name": "cell",
+      "seed_domains": [
+        "cells"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "iam",
-      "charter": "Identity: IdP (principals/credentials/passkeys), product-shared identity, consent(-graph), tenant-RBAC (role store/assignments), and workload-identity consumption. Produces the verified principal that the policy capability's PDP evaluates; the PBAC+ReBAC decision plane is the separate policy capability (ADR-0615). RBAC+ABAC identity facet.",
-      "seed_domains": [
-        "identity"
-      ],
       "absorbs_current_dirs": [
         "iam",
         "cloud/cloud-iam",
@@ -122,98 +32,93 @@
         "oya/tenant-rbac",
         "oya/oya-authn-device-firmware"
       ],
+      "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 §7 split — OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 §D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption.",
+      "charter": "Identity: IdP (principals/credentials/passkeys), product-shared identity, consent(-graph), tenant-RBAC (role store/assignments), and workload-identity consumption. Produces the verified principal that the policy capability's PDP evaluates; the PBAC+ReBAC decision plane is the separate policy capability (ADR-0615). RBAC+ABAC identity facet.",
       "dag_node": "identity",
-      "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 §7 split — OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 §D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption."
+      "name": "iam",
+      "seed_domains": [
+        "identity"
+      ]
     },
     {
-      "name": "policy",
+      "absorbs_current_dirs": [],
+      "boundary_note": "EXTRACTED from iam (ADR-0615, founder 2026-07-10) as the 24th capability, reversing ADR-0562 §2's iam-absorbs-policy coarse collapse. ADR-0562 §7 split: OWNERS boundary (axis-policy-engine vs axis-identity) + clean port seam (the PDP consumes the iam principal; ~all consume the PDP) + this ADR amendment. Maps 1:1 to the pre-existing policy-engine DAG node (ADR-0280 §D-13; no DAG edit needed — the node and its identity/tenancy/cell + five consumer edges already exist). Only oya/policy moves; the Cedar PDP crates physically under iam/** stay iam-mapped (double-map avoidance). Precedent: AWS IAM vs Verified Permissions (Cedar, store-per-tenant); Google IAM vs Zanzibar (logically-global, physically-distributed-with-local-replicas). Not a singleton global PDP.",
       "charter": "The Cedar-backed PBAC+ReBAC authorization decision plane (standalone, cell-distributed per ADR-0280 §D-13.D). G face: policy + ReBAC-tuple authoring/signing/distribution. C0 face: per-cell runtime PDP + last-known-good versioned tenant-policy/ReBAC snapshot store. Consumes iam identity (the verified principal); consumed by ~all capabilities' PEPs (gateway edge + every protected service). A stale snapshot denies or routes to the authoritative shard, never silently authorizes (static-stability invariant).",
+      "dag_node": "policy-engine",
+      "name": "policy",
       "seed_domains": [
         "authorization"
-      ],
-      "absorbs_current_dirs": [],
-      "dag_node": "policy-engine",
-      "boundary_note": "EXTRACTED from iam (ADR-0615, founder 2026-07-10) as the 24th capability, reversing ADR-0562 §2's iam-absorbs-policy coarse collapse. ADR-0562 §7 split: OWNERS boundary (axis-policy-engine vs axis-identity) + clean port seam (the PDP consumes the iam principal; ~all consume the PDP) + this ADR amendment. Maps 1:1 to the pre-existing policy-engine DAG node (ADR-0280 §D-13; no DAG edit needed — the node and its identity/tenancy/cell + five consumer edges already exist). Only oya/policy moves; the Cedar PDP crates physically under iam/** stay iam-mapped (double-map avoidance). Precedent: AWS IAM vs Verified Permissions (Cedar, store-per-tenant); Google IAM vs Zanzibar (logically-global, physically-distributed-with-local-replicas). Not a singleton global PDP."
+      ]
     },
     {
-      "name": "tenancy",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S2"
-      },
-      "charter": "Tenant lifecycle + home-cell resolution + tenant-as-universal-scoping-primitive. The structural multi-tenancy substrate.",
-      "seed_domains": [
-        "control plane"
-      ],
       "absorbs_current_dirs": [
         "tenancy",
         "cloud/tenancy"
       ],
-      "dag_node": "tenancy"
+      "charter": "Tenant lifecycle + home-cell resolution + tenant-as-universal-scoping-primitive. The structural multi-tenancy substrate.",
+      "dag_node": "tenancy",
+      "name": "tenancy",
+      "seed_domains": [
+        "control plane"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "secrets",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S0"
-      },
-      "charter": "KMS + secrets + workload identity (SPIFFE/SVID issuance). The crypto root (recursion break #1).",
-      "seed_domains": [
-        "KMS"
-      ],
       "absorbs_current_dirs": [
         "secrets",
         "cloud/cloud-kms",
         "cloud/cloud-secrets"
       ],
+      "boundary_note": "KMS (key material) and secrets (secret material) share an OWNERS boundary and the crypto-root recursion break; kept coarse. Workload-identity SVID issuance (ADR-0553/0561) lives here as the issuance engine; consuming PEPs live in iam/.",
+      "charter": "KMS + secrets + workload identity (SPIFFE/SVID issuance). The crypto root (recursion break #1).",
       "dag_nodes": [
         "cloud-secrets"
       ],
-      "boundary_note": "KMS (key material) and secrets (secret material) share an OWNERS boundary and the crypto-root recursion break; kept coarse. Workload-identity SVID issuance (ADR-0553/0561) lives here as the issuance engine; consuming PEPs live in iam/."
-    },
-    {
-      "name": "audit",
-      "tier": "substrate",
+      "name": "secrets",
+      "seed_domains": [
+        "KMS"
+      ],
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "Tamper-evident Merkle audit log; always-on, no kill switch. Seals the emitting principal + tenant scope.",
-      "seed_domains": [
-        "audit"
-      ],
+      "tier": "substrate"
+    },
+    {
       "absorbs_current_dirs": [
         "audit",
         "oya/audit-chain"
       ],
-      "dag_node": "audit-chain"
-    },
-    {
-      "name": "observability",
-      "tier": "substrate",
+      "charter": "Tamper-evident Merkle audit log; always-on, no kill switch. Seals the emitting principal + tenant scope.",
+      "dag_node": "audit-chain",
+      "name": "audit",
+      "seed_domains": [
+        "audit"
+      ],
       "substrate_dag_position": {
         "stratum": "S0"
       },
+      "tier": "substrate"
+    },
+    {
+      "absorbs_current_dirs": [
+        "observability",
+        "oya/diagnostics"
+      ],
       "charter": "Metrics/logs/traces/SLO substrate (ADR-0139 SLO-gated promotion). The agentic observability plane.",
+      "dag_node": "observability",
+      "name": "observability",
       "seed_domains": [
         "observability"
       ],
-      "absorbs_current_dirs": [
-        "observability",
-
-        "oya/diagnostics"
-      ],
-      "dag_node": "observability"
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "data",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S3"
-      },
-      "charter": "Data substrate: ontology graph, OLTP/OLAP storage engines, pipelines/warehouse, replication/residency. The owned data plane.",
-      "seed_domains": [
-        "data"
-      ],
       "absorbs_current_dirs": [
         "data",
         "cloud/cloud-data",
@@ -222,18 +127,18 @@
         "oya/data-warehouse",
         "oya/analytics"
       ],
-      "dag_node": "ontology"
+      "charter": "Data substrate: ontology graph, OLTP/OLAP storage engines, pipelines/warehouse, replication/residency. The owned data plane.",
+      "dag_node": "ontology",
+      "name": "data",
+      "seed_domains": [
+        "data"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S3"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "storage",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S2"
-      },
-      "charter": "Object/blob storage + content-addressed store (CAS / NativeLink). Crypto-shred-aware blob substrate.",
-      "seed_domains": [
-        "storage/CAS"
-      ],
       "absorbs_current_dirs": [
         "storage",
         "cloud/cloud-storage",
@@ -241,31 +146,31 @@
         "oya/imaging",
         "oya/recordings"
       ],
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 §10.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) is app/healthcare (PACS) — its oya/imaging scaffold relocates to app_products in the storage Batch-5 move-plan (retained in this absorb until that atomic move to avoid orphaning). storage/facade also = the S3-analog CAS sold as infra (Amazon S3 the product, NOT ADR-0280 stratum S3 — the two spellings collide in this note). STRATUM (ADR-0631 floor test): the permitted range is S2..S5 — floor S2 from storage/core/domain -> cell/core/region (cell S2) and storage/facade/recordings -> comms/core/meet-domain (comms S2); nothing ranked consumes storage, so there is no ceiling. S2 is the FLOOR and is what is declared. The `tier_subtype: substrate-data` shared with cloud-data(S3)/ontology(S3) is NOT evidence for a mid-range S3: that subtype spans nine manifests which split 5x S3 (all data-capability services) and 4x forward-declared (cloud-storage, drive, recordings, imaging — precisely storage's own absorbs), so the subtype tracks the DATA capability's rank, not storage's. Declaring the floor also preserves headroom: every future ranked consumer of storage is legal at S2 and up.",
+      "charter": "Object/blob storage + content-addressed store (CAS / NativeLink). Crypto-shred-aware blob substrate.",
       "dag_node": "storage",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 §10.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) is app/healthcare (PACS) — its oya/imaging scaffold relocates to app_products in the storage Batch-5 move-plan (retained in this absorb until that atomic move to avoid orphaning). storage/facade also = the S3-analog CAS sold as infra (Amazon S3 the product, NOT ADR-0280 stratum S3 — the two spellings collide in this note). STRATUM (ADR-0631 floor test): the permitted range is S2..S5 — floor S2 from storage/core/domain -> cell/core/region (cell S2) and storage/facade/recordings -> comms/core/meet-domain (comms S2); nothing ranked consumes storage, so there is no ceiling. S2 is the FLOOR and is what is declared. The `tier_subtype: substrate-data` shared with cloud-data(S3)/ontology(S3) is NOT evidence for a mid-range S3: that subtype spans nine manifests which split 5x S3 (all data-capability services) and 4x forward-declared (cloud-storage, drive, recordings, imaging — precisely storage's own absorbs), so the subtype tracks the DATA capability's rank, not storage's. Declaring the floor also preserves headroom: every future ranked consumer of storage is legal at S2 and up."
+      "name": "storage",
+      "seed_domains": [
+        "storage/CAS"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "compute",
-      "charter": "ONE compute engine: VM + k8s-on-compute + functions/serverless, with facade sub-surfaces. The owned compute plane.",
-      "seed_domains": [
-        "compute"
-      ],
       "absorbs_current_dirs": [
         "compute"
       ],
+      "boundary_note": "Coarse per founder ruling: compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces, NOT three capabilities.",
+      "charter": "ONE compute engine: VM + k8s-on-compute + functions/serverless, with facade sub-surfaces. The owned compute plane.",
       "dag_node": "compute",
-      "boundary_note": "Coarse per founder ruling: compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces, NOT three capabilities."
+      "name": "compute",
+      "seed_domains": [
+        "compute"
+      ]
     },
     {
-      "name": "k8s",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S1"
-      },
-      "charter": "Owned Kubernetes control plane (core) + managed-k8s product (facade). kuberos->cloud-k8s ladder rung above os/.",
-      "seed_domains": [
-        "control plane"
-      ],
       "absorbs_current_dirs": [
         "k8s",
         "cloud/cloud-k8s",
@@ -274,86 +179,86 @@
         "cloud/managed-k8s-sla-observability",
         "cloud/managed-k8s-tenant-quota"
       ],
+      "boundary_note": "Coarse collapse per founder ruling: owned control-plane (core) + managed-k8s (facade). The four managed-k8s-* dirs become facade sub-modules.",
+      "charter": "Owned Kubernetes control plane (core) + managed-k8s product (facade). kuberos->cloud-k8s ladder rung above os/.",
       "dag_node": "control-plane",
-      "boundary_note": "Coarse collapse per founder ruling: owned control-plane (core) + managed-k8s (facade). The four managed-k8s-* dirs become facade sub-modules."
-    },
-    {
-      "name": "network",
-      "tier": "substrate",
+      "name": "k8s",
+      "seed_domains": [
+        "control plane"
+      ],
       "substrate_dag_position": {
         "stratum": "S1"
       },
-      "charter": "Network + DNS substrate: service mesh, static-stable signed DNS snapshots, cell routing data plane.",
-      "seed_domains": [
-        "network/DNS"
-      ],
+      "tier": "substrate"
+    },
+    {
       "absorbs_current_dirs": [
         "network",
         "cloud/cloud-network",
         "cloud/cloud-network-dns"
       ],
-      "dag_node": "network"
+      "charter": "Network + DNS substrate: service mesh, static-stable signed DNS snapshots, cell routing data plane.",
+      "dag_node": "network",
+      "name": "network",
+      "seed_domains": [
+        "network/DNS"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S1"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "gateway",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S0"
-      },
-      "charter": "API gateway / SSOT edge: Check/Report enforcement point, public API contract surface, rate/quota enforcement.",
-      "seed_domains": [
-        "gateway/SSOT"
-      ],
       "absorbs_current_dirs": [
         "gateway",
         "oya/api-gateway",
         "oya/connector"
       ],
-      "dag_node": "api-gateway"
-    },
-    {
-      "name": "messaging",
-      "tier": "substrate",
+      "charter": "API gateway / SSOT edge: Check/Report enforcement point, public API contract surface, rate/quota enforcement.",
+      "dag_node": "api-gateway",
+      "name": "gateway",
+      "seed_domains": [
+        "gateway/SSOT"
+      ],
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "Event bus / messaging substrate (Pulsar/Oxia transient -> owned Rust destination): idempotency, outbox, backpressure, per-key ordering.",
-      "seed_domains": [
-        "messaging"
-      ],
+      "tier": "substrate"
+    },
+    {
       "absorbs_current_dirs": [
         "messaging"
       ],
-      "dag_node": "messaging"
+      "charter": "Event bus / messaging substrate (Pulsar/Oxia transient -> owned Rust destination): idempotency, outbox, backpressure, per-key ordering.",
+      "dag_node": "messaging",
+      "name": "messaging",
+      "seed_domains": [
+        "messaging"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "intelligence",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S4"
-      },
-      "charter": "AI/intelligence substrate: SDK adapters, request pipeline + proof layer, agentic capabilities. cloud-intelligence destination.",
-      "seed_domains": [
-        "control plane"
-      ],
       "absorbs_current_dirs": [
         "intelligence",
         "cloud/cloud-intelligence",
         "oya/intelligence",
         "oya/detection"
       ],
-      "dag_node": "intelligence"
-    },
-    {
-      "name": "workflow",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S4"
-      },
-      "charter": "Orchestration substrate: workflow engine + studio. Cross-capability composition via events.",
+      "charter": "AI/intelligence substrate: SDK adapters, request pipeline + proof layer, agentic capabilities. cloud-intelligence destination.",
+      "dag_node": "intelligence",
+      "name": "intelligence",
       "seed_domains": [
         "control plane"
       ],
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
+      "tier": "substrate"
+    },
+    {
       "absorbs_current_dirs": [
         "workflow",
         "oya/workflow-engine",
@@ -361,49 +266,53 @@
         "oya/tasks",
         "oya/forms"
       ],
-      "dag_node": "workflow-engine"
+      "charter": "Orchestration substrate: workflow engine + studio. Cross-capability composition via events.",
+      "dag_node": "workflow-engine",
+      "name": "workflow",
+      "seed_domains": [
+        "control plane"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "ci",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S5"
-      },
-      "charter": "The delivery fabric: cloud-ci gates, controller, Tide merge queue, webhook gateway, the pipeline-as-product paved road. ADR-0515/0548.",
-      "seed_domains": [
-        "delivery fabric"
-      ],
       "absorbs_current_dirs": [
         "ci",
         "oya/ci-controller",
         "oya/ci-tide",
         "oya/ci-webhook-gateway"
       ],
+      "boundary_note": "Coarse collapse per founder ruling: ci absorbs cloud-ci + ci-controller + ci-tide + ci-webhook-gateway as sub-modules. STRATUM (ADR-0631 floor test): range S4..S5 — floor S4 from ci/facade/crate-name-prefix -> intelligence/core/cargo-prefix-domain (intelligence S4), no ranked consumer so no ceiling. S5 is picked over the S4 floor on independent corroboration: this capability's dag_node `delivery-fabric` is ALREADY forward-declared under substrate_dag_canonical_ordering.tier2_and_meta_forward_declared.S5_meta in specs/platform-architecture.json, authored without reference to this edge. Two sources that never saw each other agree.",
+      "charter": "The delivery fabric: cloud-ci gates, controller, Tide merge queue, webhook gateway, the pipeline-as-product paved road. ADR-0515/0548.",
       "dag_node": "delivery-fabric",
-      "boundary_note": "Coarse collapse per founder ruling: ci absorbs cloud-ci + ci-controller + ci-tide + ci-webhook-gateway as sub-modules. STRATUM (ADR-0631 floor test): range S4..S5 — floor S4 from ci/facade/crate-name-prefix -> intelligence/core/cargo-prefix-domain (intelligence S4), no ranked consumer so no ceiling. S5 is picked over the S4 floor on independent corroboration: this capability's dag_node `delivery-fabric` is ALREADY forward-declared under substrate_dag_canonical_ordering.tier2_and_meta_forward_declared.S5_meta in specs/platform-architecture.json, authored without reference to this edge. Two sources that never saw each other agree."
+      "name": "ci",
+      "seed_domains": [
+        "delivery fabric"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S5"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "iac",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S0"
-      },
-      "charter": "Infrastructure-as-code substrate + GitOps reconciliation surfaces. Declarative state for the owned stack.",
-      "seed_domains": [
-        "control plane"
-      ],
       "absorbs_current_dirs": [
         "cloud/cloud-iac",
         "iac"
       ],
-      "dag_node": "iac"
+      "charter": "Infrastructure-as-code substrate + GitOps reconciliation surfaces. Declarative state for the owned stack.",
+      "dag_node": "iac",
+      "name": "iac",
+      "seed_domains": [
+        "control plane"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S0"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "billing",
-      "charter": "Metering + billing + pricing: three-clock accrual/rating/invoicing, tax, FinOps cost attribution. First-class sold-ness capability (NOT a product/ junk-drawer).",
-      "seed_domains": [
-        "metering/billing"
-      ],
       "absorbs_current_dirs": [
         "billing",
         "cloud/cloud-billing",
@@ -414,69 +323,65 @@
         "oya/accounting",
         "oya/finops-portal"
       ],
+      "boundary_note": "Coarse collapse: metering + billing + tax + finops/cost as sub-modules. First-class cross-cutting sold-ness capability per founder ruling.",
+      "charter": "Metering + billing + pricing: three-clock accrual/rating/invoicing, tax, FinOps cost attribution. First-class sold-ness capability (NOT a product/ junk-drawer).",
       "dag_node": "billing",
-      "boundary_note": "Coarse collapse: metering + billing + tax + finops/cost as sub-modules. First-class cross-cutting sold-ness capability per founder ruling."
-    },
-    {
-      "name": "marketplace",
-      "charter": "Marketplace + plugin/app store + SKU catalog data. First-class cross-cutting sold-ness capability.",
+      "name": "billing",
       "seed_domains": [
         "metering/billing"
-      ],
+      ]
+    },
+    {
       "absorbs_current_dirs": [
         "marketplace",
         "oya/marketplace",
         "oya/plugin-app-store",
         "oya/developer-sdk"
       ],
+      "boundary_note": "First-class sold-ness capability per founder ruling. The generated SKU/pricing sell-catalog VIEW is materialized as build/ output over face:facade crates; marketplace owns the marketplace ENGINE, not the catalog view.",
+      "charter": "Marketplace + plugin/app store + SKU catalog data. First-class cross-cutting sold-ness capability.",
       "dag_node": "marketplace",
-      "boundary_note": "First-class sold-ness capability per founder ruling. The generated SKU/pricing sell-catalog VIEW is materialized as build/ output over face:facade crates; marketplace owns the marketplace ENGINE, not the catalog view."
+      "name": "marketplace",
+      "seed_domains": [
+        "metering/billing"
+      ]
     },
     {
-      "name": "console",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S4"
-      },
-      "charter": "Operator/tenant console shell: one platform-owned Leptos shell composed at build time; sole token broker; replaces all operator CLIs.",
-      "seed_domains": [
-        "console shell"
-      ],
       "absorbs_current_dirs": [
         "console",
         "oya/ops-dashboard-control-center"
       ],
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): the console SHELL is the substrate capability (core/ports/facade: shell, token broker, design system, nav). Ops-dashboard leaves composing 2+ capabilities (incident-command, cluster-health, finops-portal, on-call-handoff, ...) are app/ops-console/<vertical> composition members; single-capability views stay a capability facade. The shell/surface line is the ADR-0562 §3#5 2+-capability test.",
+      "charter": "Operator/tenant console shell: one platform-owned Leptos shell composed at build time; sole token broker; replaces all operator CLIs.",
       "dag_node": "console",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): the console SHELL is the substrate capability (core/ports/facade: shell, token broker, design system, nav). Ops-dashboard leaves composing 2+ capabilities (incident-command, cluster-health, finops-portal, on-call-handoff, ...) are app/ops-console/<vertical> composition members; single-capability views stay a capability facade. The shell/surface line is the ADR-0562 §3#5 2+-capability test."
-    },
-    {
-      "name": "compliance",
-      "tier": "substrate",
+      "name": "console",
+      "seed_domains": [
+        "console shell"
+      ],
       "substrate_dag_position": {
         "stratum": "S4"
       },
-      "charter": "Compliance + regulatory-evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation. Governance-ENGINE surfaces are NOT here (see boundary_note + ADR-0615 §2 Q13).",
-      "seed_domains": [
-        "audit"
-      ],
+      "tier": "substrate"
+    },
+    {
       "absorbs_current_dirs": [
         "compliance",
         "oya/compliance",
         "oya/governance"
       ],
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): compliance (regulatory-evidence engine) and audit (always-on tamper-evident log substrate) stay SEPARATE across their clean port seam; compliance consumes audit. A collapse would need its own ADR amendment (ADR-0562 §7). NOTE (ADR-0615 §2 Q13): oya/governance does NOT belong in this absorb — it is 0-crate enforcement/policy residue that decomposes to governance/ (authority) + ci/gateway/cell (SLOs) + iac/ in the compliance/governance Batch-5 move-plan; this absorb entry is retained until that atomic move to avoid orphaning.",
+      "charter": "Compliance + regulatory-evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation. Governance-ENGINE surfaces are NOT here (see boundary_note + ADR-0615 §2 Q13).",
       "dag_node": "compliance",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): compliance (regulatory-evidence engine) and audit (always-on tamper-evident log substrate) stay SEPARATE across their clean port seam; compliance consumes audit. A collapse would need its own ADR amendment (ADR-0562 §7). NOTE (ADR-0615 §2 Q13): oya/governance does NOT belong in this absorb — it is 0-crate enforcement/policy residue that decomposes to governance/ (authority) + ci/gateway/cell (SLOs) + iac/ in the compliance/governance Batch-5 move-plan; this absorb entry is retained until that atomic move to avoid orphaning."
+      "name": "compliance",
+      "seed_domains": [
+        "audit"
+      ],
+      "substrate_dag_position": {
+        "stratum": "S4"
+      },
+      "tier": "substrate"
     },
     {
-      "name": "comms",
-      "tier": "substrate",
-      "substrate_dag_position": {
-        "stratum": "S2"
-      },
-      "charter": "Communications substrate: email/mail, messenger, meet, notifications, contact-center. Multi-channel comms plane.",
-      "seed_domains": [
-        "control plane"
-      ],
       "absorbs_current_dirs": [
         "comms",
         "oya/comms-email",
@@ -486,62 +391,115 @@
         "oya/contact-center",
         "oya/emergency"
       ],
+      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): comms is the multi-channel comms SUBSTRATE (messenger-stream, mail-mailbox, meet-media, notifications, contact-center engines + their sold API facades) — confirmed as-landed. A future end-user collaboration product wiring comms+iam+storage+billing is app/; none exists today. oya/emergency (ED clinical) is app/healthcare, not comms; it relocates from this absorb in the comms Batch-5 move-plan (0 crates, retained until the atomic move).",
+      "charter": "Communications substrate: email/mail, messenger, meet, notifications, contact-center. Multi-channel comms plane.",
       "dag_node": "comms",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): comms is the multi-channel comms SUBSTRATE (messenger-stream, mail-mailbox, meet-media, notifications, contact-center engines + their sold API facades) — confirmed as-landed. A future end-user collaboration product wiring comms+iam+storage+billing is app/; none exists today. oya/emergency (ED clinical) is app/healthcare, not comms; it relocates from this absorb in the comms Batch-5 move-plan (0 crates, retained until the atomic move)."
-    },
-    {
-      "name": "flags",
-      "charter": "Feature-flag / configuration substrate: dynamic config, progressive delivery, kill switches.",
+      "name": "comms",
       "seed_domains": [
         "control plane"
       ],
+      "substrate_dag_position": {
+        "stratum": "S2"
+      },
+      "tier": "substrate"
+    },
+    {
       "absorbs_current_dirs": [
         "flags",
         "oya/feature-flags",
         "oya/oya-flags"
       ],
-      "dag_node": "flags"
+      "charter": "Feature-flag / configuration substrate: dynamic config, progressive delivery, kill switches.",
+      "dag_node": "flags",
+      "name": "flags",
+      "seed_domains": [
+        "control plane"
+      ]
     }
   ],
-  "app_products_note": "Deployable SaaS verticals (crm, hr, ONE app/healthcare product [contexts: emr, pharmacy, patient-monitoring, healthcare-integration, emergency, imaging — ADR-0615 §6], the SEPARATE app/health-diagnostics product [clinical lab, ADR-0615 §2 Q8, NOT an app/healthcare context], itsm, incident-management, payroll, treasury, payments, supply-chain-planning, production-planning, plant-maintenance, warehouse, real-estate, global-trade, learning-management, performance-management, quality-management, contract-lifecycle-management, financial-planning, marketing-automation, social [a SEPARATE app product, not a healthcare context], community, connect, office/docs/sheets/slides/notes/sites/whiteboard/calendar/forms/design-collaboration, translate, etc.) are app/<product>/ composition members under the placement rule, NOT capabilities. They wire 2+ capabilities for a tenant. The exact app/ roster is enumerated by the migration lanes, not closed here; this registry closes the CAPABILITY axis only.",
-  "flagged_boundaries_resolved_by": "ADR-0615 (founder 2026-07-10, Accepted) — the substrate/product split (ADR-0562 §3#5/§6: 2+ capabilities -> app/; single-capability sold surface -> facade). The product-boundary rulings are resolved: (1) storage-vs-data facades — drive/recordings CONFIRMED storage/facade, imaging -> app/healthcare; (2) console shell vs app surfaces — console is the web-shell substrate, ops-dashboard leaves -> app/ops-console/<vertical>; (3) compliance vs audit — kept SEPARATE across the clean port seam; (4) comms substrate vs product — comms is the multi-channel SUBSTRATE, oya/emergency -> app/healthcare. The prior Phase-0 claim that intelligence/workflow/iac/tenancy dag_node reconciliation was fully populated is STALE: these dag_node values are target mappings, not proof of current graph membership. ADR-0635 graph v2 is a bounded slice spanning 11 of 24 capabilities; iac and 12 other capabilities remain omitted. Their exact face tuples and edges are DEFERRED to W0-C-TOPOLOGY-COVERAGE tracked by GitHub #1537 under the no-new-frozen-baseline rule. The per-capability boundary_note fields carry the durable rulings; structural absorbs->app_products relocations execute in each capability's Batch-5 move-plan (see pending_relocations).",
+  "closed": true,
+  "doctrine_adr": "ADR-0562",
+  "faces": [
+    {
+      "charter": "The engine we RUN (substrate face).",
+      "face": "core",
+      "subfold": "core/"
+    },
+    {
+      "charter": "Capability traits; the stable seam. The lowest ADR-0280 DAG node the crate's public port belongs to is the tie-breaker for placement.",
+      "face": "ports",
+      "subfold": "ports/"
+    },
+    {
+      "charter": "Transient-infra impls (adapter-aws/-oci/-capi); vanish at owned-stack cutover.",
+      "face": "adapters",
+      "subfold": "adapters/"
+    },
+    {
+      "charter": "The multi-tenant surface we SELL (product face); depends on core/ ONLY through ports.",
+      "face": "facade",
+      "subfold": "facade/"
+    },
+    {
+      "charter": "Integration-test-only crates carrying no production code. Admitted ONLY for the META directories whose runtime engines have no sold surface (kernel/, os/); landed precedent kernel/harness/asterinas-real-boot (ADR-0611) and os/harness/difftest-app (ADR-0562 §10.29). NOT a capability face: a capability keeps its tests beside the crate they exercise. Recorded here because the registry is closed and had been describing the tree inaccurately since ADR-0611 landed the first harness leaf.",
+      "face": "harness",
+      "subfold": "harness/"
+    }
+  ],
   "flagged_boundaries_for_leader": [],
-  "pending_relocations": [
-    {
-      "_comment": "ADR-0615-ruled absorbs->app_products relocations that await their capability's Batch-5 move-plan. The path is RETAINED in its current substrate absorb (to avoid orphaning against the membership lint) until the atomic move re-homes it. 0-crate scaffolds today.",
-      "from": "storage.absorbs_current_dirs[oya/imaging]",
-      "to": "app/healthcare (imaging/PACS context)",
-      "executes_in": "specs/reorg/storage-move-plan.json (Batch-5)",
-      "ruled_by": "ADR-0615 §2 Q4",
-      "pending_relocation": true
-    },
-    {
-      "from": "observability.absorbs_current_dirs[oya/diagnostics]",
-      "to": "app/health-diagnostics (clinical lab)",
-      "executes_in": "specs/reorg/observability-move-plan.json (Batch-5)",
-      "ruled_by": "ADR-0615 §2 Q8",
-      "pending_relocation": true
-    },
-    {
-      "from": "compliance.absorbs_current_dirs[oya/governance]",
-      "to": "governance/ (authority) + ci/gateway/cell (SLOs) + iac/ decomposition",
-      "executes_in": "specs/reorg/compliance-move-plan.json (Batch-5)",
-      "ruled_by": "ADR-0615 §2 Q13",
-      "pending_relocation": true
-    },
-    {
-      "from": "comms.absorbs_current_dirs[oya/emergency]",
-      "to": "app/healthcare (emergency/ED clinical context)",
-      "executes_in": "specs/reorg/comms-move-plan.json (Batch-5)",
-      "ruled_by": "ADR-0615 §2 Q2",
-      "pending_relocation": true
-    }
-  ],
+  "flagged_boundaries_resolved_by": "ADR-0615 (founder 2026-07-10, Accepted) — the substrate/product split (ADR-0562 §3#5/§6: 2+ capabilities -> app/; single-capability sold surface -> facade). The product-boundary rulings are resolved: (1) storage-vs-data facades — drive/recordings CONFIRMED storage/facade, imaging -> app/healthcare; (2) console shell vs app surfaces — console is the web-shell substrate, ops-dashboard leaves -> app/ops-console/<vertical>; (3) compliance vs audit — kept SEPARATE across the clean port seam; (4) comms substrate vs product — comms is the multi-channel SUBSTRATE, oya/emergency -> app/healthcare. The prior Phase-0 claim that intelligence/workflow/iac/tenancy dag_node reconciliation was fully populated is STALE: these dag_node values are target mappings, not proof of current graph membership. ADR-0635 graph v2 is a bounded slice spanning 11 of 24 capabilities; iac and 12 other capabilities remain omitted. Their exact face tuples and edges are DEFERRED to W0-C-TOPOLOGY-COVERAGE tracked by GitHub #1537 under the no-new-frozen-baseline rule. The per-capability boundary_note fields carry the durable rulings; structural absorbs->app_products relocations execute in each capability's Batch-5 move-plan (see pending_relocations).",
   "membership_lint_coverage": {
     "_comment": "ADR-0562 §6 membership-lint COVERAGE extension (Phase-0). The capabilities[].absorbs_current_dirs close the cloud/+oya/ SERVICE-dir axis; this block extends the closed registry to map EVERY remaining current crate (the cloud/oya app surfaces with no capability service-dir, plus the libs/ and tools/ crates that dissolve into capability homes + meta dirs per ADR-0562 §1, 'libs/ dissolves into capability homes + base/'). Each entry maps a PRE-MOVE current path → a registered capability slug OR a meta directory (kernel/os/base/governance/build/third-party/app). The membership lint reads these PRE-MOVE; POST-move the path itself is the namespace. Genuinely-ambiguous crates that the strangler must home per-crate are NOT force-mapped here — they live in frozen_unmapped_baseline and the gate enforces no-regression against that frozen set. DATA, not code.",
+    "absorbs_current_crate_globs": [
+      {
+        "_comment": "The dep-lint / check authority + the governance kernels + the corpus substrate. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority; ADR-0580's governance/corpus/* crates (corpus-core, corpus-extract) are the Phase -1 live-AST corpus substrate physically homed under governance/ — also governance-engine code, not a capability crate. The membership-lint glob is a stem starts_with match, so governance/corpus/* covers both leaves.",
+        "globs": [
+          "libs/oya-check-*",
+          "libs/oya-governance-*",
+          "tools/oya-governance-*",
+          "governance/corpus/*",
+          "governance/check/*"
+        ],
+        "meta_dir": "governance/"
+      },
+      {
+        "_comment": "Off-runtime-ladder build/CI engines + buck2/workspace/manifest-generation tooling. ADR-0562 §1 build/ charter: 'buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines'. The remaining tools/*-app crates are build/CI tooling, not capability engines.",
+        "globs": [
+          "libs/oya-advisory-mirror-kernel",
+          "libs/oya-buck-syntax-kernel",
+          "libs/oya-cargo-lock-transform-kernel",
+          "libs/oya-ci-gate-contract",
+          "libs/oya-ci-config",
+          "libs/oya-ci-materializer-kernel",
+          "libs/oya-crate-registrar-app",
+          "libs/oya-crate-registrar-kernel",
+          "libs/oya-workspace-members-kernel",
+          "tools/fixup-ledger-merge-driver-app",
+          "tools/oya-adapter-substitution-test-app",
+          "tools/oya-architecture-graph-generator-app",
+          "tools/oya-bot-autofix-app",
+          "tools/oya-buck-test-wiring-app",
+          "tools/oya-cargo-lock-merge-driver-app",
+          "tools/oya-checkout-guard-app",
+          "tools/oya-fabric-loop-state-app",
+          "tools/oya-friction-ledger-merge-driver-app",
+          "tools/oya-lane-supervisor-app",
+          "tools/oya-reorg-codemod-app",
+          "tools/oya-tooling-agent-read",
+          "tools/oya-xtask-metadata-augment-app"
+        ],
+        "meta_dir": "build/"
+      },
+      {
+        "_comment": "The owned data plane primitives (ADR-0562 'data→data'): the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home.",
+        "capability": "data",
+        "globs": [
+          "libs/oya-data-*"
+        ]
+      }
+    ],
     "app_products": {
       "_comment": "The cloud/+oya/ deployable SaaS verticals + the web/application shell that are app/<product>/ composition members (app_products_note made machine-readable). They wire 2+ capabilities for a tenant and define no capability engine. PRE-MOVE these live at oya/<product>/; POST-move at app/<product>/. workplace-integration is the 'etc.' catch-all surface in app_products_note. application is the developer application/web shell (product-developer-application-shell) that compiles INTO the console capability per the console boundary_note → app/.",
-      "meta_dir": "app/",
       "current_dirs": [
         "oya/application",
         "oya/calendar",
@@ -576,74 +534,9 @@
         "oya/warehouse",
         "oya/whiteboard",
         "oya/workplace-integration"
-      ]
+      ],
+      "meta_dir": "app/"
     },
-    "meta_directory_absorbs": [
-      {
-        "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
-        "meta_dir": "kernel/",
-        "current_dirs": [
-          "cloud/cloud-kernel",
-          "kernel"
-        ]
-      },
-      {
-        "_comment": "cloud-os node OS (Talos-class), rung 1.",
-        "meta_dir": "os/",
-        "current_dirs": [
-          "cloud/cloud-os",
-          "os"
-        ]
-      }
-    ],
-    "absorbs_current_crate_globs": [
-      {
-        "_comment": "The dep-lint / check authority + the governance kernels + the corpus substrate. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority; ADR-0580's governance/corpus/* crates (corpus-core, corpus-extract) are the Phase -1 live-AST corpus substrate physically homed under governance/ — also governance-engine code, not a capability crate. The membership-lint glob is a stem starts_with match, so governance/corpus/* covers both leaves.",
-        "meta_dir": "governance/",
-        "globs": [
-          "libs/oya-check-*",
-          "libs/oya-governance-*",
-          "tools/oya-governance-*",
-          "governance/corpus/*",
-          "governance/check/*"
-        ]
-      },
-      {
-        "_comment": "Off-runtime-ladder build/CI engines + buck2/workspace/manifest-generation tooling. ADR-0562 §1 build/ charter: 'buck2 prelude, toolchains, reindeer, third_party vendoring, CI engines'. The remaining tools/*-app crates are build/CI tooling, not capability engines.",
-        "meta_dir": "build/",
-        "globs": [
-          "libs/oya-advisory-mirror-kernel",
-          "libs/oya-buck-syntax-kernel",
-          "libs/oya-cargo-lock-transform-kernel",
-          "libs/oya-ci-gate-contract",
-          "libs/oya-ci-config",
-          "libs/oya-ci-materializer-kernel",
-          "libs/oya-crate-registrar-app",
-          "libs/oya-crate-registrar-kernel",
-          "libs/oya-workspace-members-kernel",
-          "tools/fixup-ledger-merge-driver-app",
-          "tools/oya-adapter-substitution-test-app",
-          "tools/oya-architecture-graph-generator-app",
-          "tools/oya-bot-autofix-app",
-          "tools/oya-buck-test-wiring-app",
-          "tools/oya-cargo-lock-merge-driver-app",
-          "tools/oya-checkout-guard-app",
-          "tools/oya-fabric-loop-state-app",
-          "tools/oya-friction-ledger-merge-driver-app",
-          "tools/oya-lane-supervisor-app",
-          "tools/oya-reorg-codemod-app",
-          "tools/oya-tooling-agent-read",
-          "tools/oya-xtask-metadata-augment-app"
-        ]
-      },
-      {
-        "_comment": "The owned data plane primitives (ADR-0562 'data→data'): the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home.",
-        "capability": "data",
-        "globs": [
-          "libs/oya-data-*"
-        ]
-      }
-    ],
     "frozen_unmapped_baseline": {
       "_comment": "BORN-ADVISORY FROZEN BASELINE (ADR-0562 §6 strangler burn-down). These current crates are genuinely ambiguous PRE-MOVE — they are the libs/oya-shared-* cross-capability junk-drawer the reorg explicitly dissolves PER-CRATE (idempotency/outbox/pagination/pdp/scim/webauthn/etc. each home to a different capability or to base/ pending the >=3-consumer admission check), the libs/oya-http-* middleware (base/ candidates pending the ADR-0280 DAG admission verification), and the irreducible primitives (json) that are base/ candidates. They are NOT force-mapped to a wrong capability. The membership lint is ADVISORY for these but enforces NO REGRESSION: no NEW crate may join this list, no NEW top-level dir may appear, and the list burns DOWN as the strangler moves home each crate. FLIP-TO-BLOCKING TRIGGER: when this list reaches size 0 (post-strangler), the lint promotes from born-advisory to blocking. Each entry is a current crate dir (repo-relative).",
       "burn_down_target": 0,
@@ -709,6 +602,112 @@
         "libs/oya-shared-webauthn-server-kernel",
         "libs/oya-shared-webhook-delivery-kernel"
       ]
+    },
+    "meta_directory_absorbs": [
+      {
+        "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
+        "current_dirs": [
+          "cloud/cloud-kernel",
+          "kernel"
+        ],
+        "meta_dir": "kernel/"
+      },
+      {
+        "_comment": "cloud-os node OS (Talos-class), rung 1.",
+        "current_dirs": [
+          "cloud/cloud-os",
+          "os"
+        ],
+        "meta_dir": "os/"
+      }
+    ]
+  },
+  "meta_directories": [
+    {
+      "charter": "kuberos no_std kernel + sysroot; the recursion floor. Its own excluded/nested workspace per the ADR-0512 kernel carve-out.",
+      "dir": "kernel/",
+      "off_runtime_ladder": false,
+      "owns_crates": true,
+      "rung": 0
+    },
+    {
+      "charter": "cloud-os node operating system (Talos-class). The node substrate the capability ladder runs on.",
+      "dir": "os/",
+      "off_runtime_ladder": false,
+      "owns_crates": true,
+      "rung": 1
+    },
+    {
+      "admission_gated": true,
+      "charter": "Irreducible cross-capability primitives (Google //base). Admission rule: a crate enters base/ ONLY if depended-on by >=3 capabilities AND strictly below all of them in the ADR-0280 DAG. NOT a util/ junk-drawer.",
+      "dir": "base/",
+      "off_runtime_ladder": false,
+      "owns_crates": true,
+      "rung": "below-all-capabilities"
+    },
+    {
+      "charter": "Meta, off the runtime ladder: ADRs, specs, policy-as-data, this capability registry, the dep-lint authority, the masterplan.",
+      "dir": "governance/",
+      "off_runtime_ladder": true,
+      "owns_crates": false
+    },
+    {
+      "charter": "Meta, off the runtime ladder: buck2 prelude, toolchains, reindeer, CI engines, and the generated sell-catalog (SKU/pricing) VIEW. Owns zero capability crates.",
+      "dir": "build/",
+      "off_runtime_ladder": true,
+      "owns_crates": false
+    },
+    {
+      "charter": "Meta, off the runtime ladder: reindeer-vendored third-party crate sources (the live buck2 cell root third-party//). TOP-LEVEL per the ADR-0615 amendment (founder 2026-07-10), split out of the build/ charter text. Owns zero first-party (capability) crates.",
+      "dir": "third-party/",
+      "off_runtime_ladder": true,
+      "owns_crates": false
+    },
+    {
+      "charter": "Composition ring: deployable surfaces wiring 2+ capabilities for a tenant (SaaS verticals + the web shell). app/<product>/ composes; it never defines a capability engine.",
+      "dir": "app/",
+      "off_runtime_ladder": false,
+      "owns_crates": true
     }
-  }
+  ],
+  "pending_relocations": [
+    {
+      "_comment": "ADR-0615-ruled absorbs->app_products relocations that await their capability's Batch-5 move-plan. The path is RETAINED in its current substrate absorb (to avoid orphaning against the membership lint) until the atomic move re-homes it. 0-crate scaffolds today.",
+      "executes_in": "specs/reorg/storage-move-plan.json (Batch-5)",
+      "from": "storage.absorbs_current_dirs[oya/imaging]",
+      "pending_relocation": true,
+      "ruled_by": "ADR-0615 §2 Q4",
+      "to": "app/healthcare (imaging/PACS context)"
+    },
+    {
+      "executes_in": "specs/reorg/observability-move-plan.json (Batch-5)",
+      "from": "observability.absorbs_current_dirs[oya/diagnostics]",
+      "pending_relocation": true,
+      "ruled_by": "ADR-0615 §2 Q8",
+      "to": "app/health-diagnostics (clinical lab)"
+    },
+    {
+      "executes_in": "specs/reorg/compliance-move-plan.json (Batch-5)",
+      "from": "compliance.absorbs_current_dirs[oya/governance]",
+      "pending_relocation": true,
+      "ruled_by": "ADR-0615 §2 Q13",
+      "to": "governance/ (authority) + ci/gateway/cell (SLOs) + iac/ decomposition"
+    },
+    {
+      "executes_in": "specs/reorg/comms-move-plan.json (Batch-5)",
+      "from": "comms.absorbs_current_dirs[oya/emergency]",
+      "pending_relocation": true,
+      "ruled_by": "ADR-0615 §2 Q2",
+      "to": "app/healthcare (emergency/ED clinical context)"
+    }
+  ],
+  "placement_authority": "ADR-0562",
+  "registry_kind": "capability",
+  "schema_version": "1.1.0",
+  "seed_authority": [
+    "ADR-0536",
+    "ADR-0280",
+    "current-tree:cloud/",
+    "current-tree:oya/"
+  ]
 }
