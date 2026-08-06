@@ -1,7 +1,7 @@
 ---
 id: ADR-0561
 title: "Commission the workload-identity X.509-SVID issuance + PDP caller-tenant-binding substrate (G002 slice 1; live mTLS = slice-1b)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder, agent-lane g02-workload-svid
 date: 2026-06-13

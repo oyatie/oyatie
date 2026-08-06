@@ -1,6 +1,6 @@
 ---
 id: ADR-0326
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owner: council-compliance
 owners:

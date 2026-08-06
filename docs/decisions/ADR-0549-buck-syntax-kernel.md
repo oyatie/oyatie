@@ -1,7 +1,7 @@
 ---
 id: ADR-0549
 title: "oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-11

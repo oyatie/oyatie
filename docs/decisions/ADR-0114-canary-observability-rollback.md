@@ -1,5 +1,5 @@
 ---
-status: Rejected
+status: Accepted
 deciders: council-foundry-vcs, council-observability, council-architecture
 date: 2026-05-16
 owner: council-foundry-vcs

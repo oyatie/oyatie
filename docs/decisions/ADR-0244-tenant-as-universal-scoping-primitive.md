@@ -1,6 +1,6 @@
 ---
 id: ADR-0244
-status: Rejected
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:

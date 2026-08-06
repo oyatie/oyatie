@@ -1,7 +1,7 @@
 ---
 id: ADR-0581
 title: "Fail-closed verified-caller + PDP authorization for the workload-principal lifecycle control plane (:suspend/:retire)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

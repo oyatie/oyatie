@@ -1,7 +1,7 @@
 ---
 id: ADR-0612
 title: "buck2 Remote-Execution phase: deploy nativelink-scheduler + nativelink-worker, flip remote_enabled=true behind per-identity RE authz + a canary that covers RE'd outputs"
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-07-08
@@ -21,6 +21,8 @@ related_specs:
   - /specs/substrate-dependency-dag.json
 milestone: W3
 ---
+
+> **Activation posture (2026-08-06 disposition):** This ADR is **Accepted as policy design**. It does **not** authorize setting `remote_enabled=true` or deploying RE workers until #1541 / cache-only proof / Accepted CAS go-gate criteria are met. Fail closed.
 
 # ADR-0612: buck2 Remote-Execution phase — deploy the NativeLink scheduler + worker tiers, flip `remote_enabled=true`
 

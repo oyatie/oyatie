@@ -1,6 +1,6 @@
 ---
 id: ADR-0049
-status: Rejected
+status: Accepted
 doc_status: published
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: ADR-0022
-status: Rejected
+status: Accepted
 doc_status: published
 ---
 

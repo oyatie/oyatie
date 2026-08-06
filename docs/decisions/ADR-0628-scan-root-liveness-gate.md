@@ -1,7 +1,7 @@
 ---
 id: ADR-0628
 title: "Scan-root liveness: a declared coverage root that no longer resolves is a gate blind spot, not clean coverage"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: council-architecture
 date: 2026-07-28

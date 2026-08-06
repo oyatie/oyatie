@@ -1,7 +1,7 @@
 ---
 id: ADR-0582
 title: "DTO-authz-trust gate (caller-supplied authorization decision backstop)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

@@ -1,7 +1,7 @@
 ---
 id: ADR-0629
 title: "Crate-catalog coverage: every live crate carries a catalog row, closing the crate→row direction"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: council-architecture
 date: 2026-07-28

@@ -1,6 +1,6 @@
 ---
 id: ADR-0382
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: founder, ops-platform, council-architecture
 date: 2026-05-28

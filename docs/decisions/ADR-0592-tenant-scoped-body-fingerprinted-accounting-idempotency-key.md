@@ -1,7 +1,7 @@
 ---
 id: ADR-0592
 title: "Tenant-scoped, body-fingerprinted accounting idempotency keys (cross-tenant collision fix)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

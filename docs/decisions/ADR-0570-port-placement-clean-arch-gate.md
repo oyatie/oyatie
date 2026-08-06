@@ -1,7 +1,7 @@
 ---
 id: ADR-0570
 title: "Clean-arch port-placement gate (ports defined in core, not adapters)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-22

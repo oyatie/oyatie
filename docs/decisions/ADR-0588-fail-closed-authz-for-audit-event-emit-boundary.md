@@ -1,7 +1,7 @@
 ---
 id: ADR-0588
 title: "Fail-closed verified-principal + PDP authorization for the audit.event.emit boundary (C15 tamper-evidence remediation)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

@@ -1,7 +1,7 @@
 ---
 id: ADR-0611
 title: "Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 shard-1)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-04

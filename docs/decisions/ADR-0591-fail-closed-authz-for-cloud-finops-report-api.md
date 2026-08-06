@@ -1,7 +1,7 @@
 ---
 id: ADR-0591
 title: "Fail-closed authz for the Cloud FinOps report API (AUTH-005 capability-billing remediation)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

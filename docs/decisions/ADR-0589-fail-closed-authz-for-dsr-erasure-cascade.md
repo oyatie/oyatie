@@ -1,7 +1,7 @@
 ---
 id: ADR-0589
 title: "Fail-closed authz for the DSR erasure cascade (AUTH-005 / Wave-2b remediation)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

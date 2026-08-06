@@ -1,6 +1,6 @@
 ---
 id: ADR-0308
-status: Rejected
+status: Accepted
 date: 2026-05-20
 owners:
   - council-architecture

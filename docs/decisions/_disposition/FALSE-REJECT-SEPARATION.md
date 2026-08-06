@@ -1,0 +1,312 @@
+# Falsely rejected vs keep rejected (v2 — context re-triage)
+
+Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.
+
+**Flipped to Accepted this run:** 71 ADRs
+
+| Class | Count |
+|-------|------:|
+| Falsely rejected → **Accepted** | 71 |
+| Light edit then Accept (still Rejected until edit) | 20 |
+| Keep Rejected | 3 |
+| Needs review | 50 |
+
+## 1. Falsely rejected (Accepted now)
+
+- **ADR-2** — ADR-0002-tenant-and-identity-kernel
+  - Identity/Cedar/cells/secrets foundations — operational stack + zero-trust
+- **ADR-7** — ADR-0007-cedar-authorization-policy-and-persona-tier
+  - Identity/Cedar/cells/secrets foundations — operational stack + zero-trust
+- **ADR-9** — ADR-0009-cell-architecture-per-tenant-per-region
+  - Identity/Cedar/cells/secrets foundations — operational stack + zero-trust
+- **ADR-22** — ADR-0022-autonomy-ceiling-runtime-enforcement
+  - Identity/Cedar/cells/secrets foundations — operational stack + zero-trust
+- **ADR-38** — ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure
+  - Identity/Cedar/cells/secrets foundations — operational stack + zero-trust
+- **ADR-39** — ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits
+  - Supply-chain, progressive delivery, mesh, observability — hyperscaler defaults
+- **ADR-40** — ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback
+  - Supply-chain, progressive delivery, mesh, observability — hyperscaler defaults
+- **ADR-43** — ADR-0043-secrets-management-openbao-and-hsm-per-cell
+  - Identity/Cedar/cells/secrets foundations — operational stack + zero-trust
+- **ADR-44** — ADR-0044-service-mesh-istio-ambient-and-envoy-gateway
+  - Supply-chain, progressive delivery, mesh, observability — hyperscaler defaults
+- **ADR-45** — ADR-0045-database-tier-strategy
+  - Supply-chain, progressive delivery, mesh, observability — hyperscaler defaults
+- **ADR-49** — ADR-0049-cross-region-replication-and-residency
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-114** — ADR-0114-canary-observability-rollback
+  - Supply-chain, progressive delivery, mesh, observability — hyperscaler defaults
+- **ADR-242** — ADR-0242-oyatie-is-a-tenant-doctrine
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-244** — ADR-0244-tenant-as-universal-scoping-primitive
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-263** — ADR-0263-observability-emission-contract
+  - Supply-chain, progressive delivery, mesh, observability — hyperscaler defaults
+- **ADR-292** — ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-294** — ADR-0294-cedar-fragment-soak-anomaly-rollback
+  - Keyword-aligned with security/trust/ops; treat as false reject
+- **ADR-295** — ADR-0295-bootstrap-ci-spiffe-kill-switch
+  - Keyword-aligned with security/trust/ops; treat as false reject
+- **ADR-296** — ADR-0296-library-first-credential-sidecar
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-297** — ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-298** — ADR-0298-emergency-services-bypass-life-safety
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-299** — ADR-0299-account-recovery-resilience
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-300** — ADR-0300-whistleblower-press-freedom-anonymity
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-301** — ADR-0301-survivor-safety-domestic-abuse-mode
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-302** — ADR-0302-deceased-user-inheritance-doctrine
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-303** — ADR-0303-cognitive-impairment-decision-resilience
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-304** — ADR-0304-cross-jurisdiction-conflict-resolution
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-305** — ADR-0305-delegated-agent-authority-chain
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-306** — ADR-0306-disaster-mode-cell-resilience
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-307** — Detection Substrate — Streaming + Batch (DRMP "D" Layer)
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-308** — ADR-0308-ml-model-lifecycle-ai-act-compliance
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-309** — ADR-0309-detection-fairness-audit-civil-rights
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-310** — ADR-0310-investigation-case-management
+  - Trust/safety/resilience substrate — hyperscaler platforms own this as Accepted policy, not optional Proposed
+- **ADR-311** — ADR-0311-dual-tenant-identity-personal-vs-work-boundary
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-312** — ADR-0312-court-warrant-scoped-piercing
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-326** — ADR-0326-per-tenant-data-residency-attestation
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-336** — Valkey is the canonical in-memory KV / cache / pubsub substrate (Redis retired for license drift)
+  - Operational substrate (Valkey, Talos/Sidero, dogfood Rust stack)
+- **ADR-346** — oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo cli
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-382** — ADR-0382-bare-metal-talos-zero-day-sidero
+  - Operational substrate (Valkey, Talos/Sidero, dogfood Rust stack)
+- **ADR-537** — Dogfood bootstrap order + Rust-owned stack doctrine — the circular-dependency-free ten-step bring-up
+  - Operational substrate (Valkey, Talos/Sidero, dogfood Rust stack)
+- **ADR-540** — Cargo workspace to Buck2 target parity gate
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-543** — Commission the cloud-kms K8s operator (G002 slice 2)
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-545** — Embedded-asset hermeticity gate
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-546** — Canonical-JSON determinism gate
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-549** — oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-553** — Commission the oya-identity runnable workload-identity service (G005 slice 1)
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-559** — Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-561** — Commission the workload-identity X.509-SVID issuance + PDP caller-tenant-binding substrate (G002 sli
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-568** — born-accounting register_crate: the pure registrar kernel (RegisterCrateRequest → RegistrationPlan)
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-570** — Clean-arch port-placement gate (ports defined in core, not adapters)
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-573** — Fail-closed authz for the Cloud KMS crypto control plane (AUTH-005 / C5 remediation)
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-581** — Fail-closed verified-caller + PDP authorization for the workload-principal lifecycle control plane (
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-582** — DTO-authz-trust gate (caller-supplied authorization decision backstop)
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-586** — Fail-closed verified-principal + server-side PDP authorization for tenant.create and the tenant-life
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-587** — Fail-closed verified-principal + PDP authorization for the Cloud Network LB/VPC/DNS create control p
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-588** — Fail-closed verified-principal + PDP authorization for the audit.event.emit boundary (C15 tamper-evi
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-589** — Fail-closed authz for the DSR erasure cascade (AUTH-005 / Wave-2b remediation)
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-590** — Fail-closed verified-principal + server-side PDP authz for the Cloud Observability audit-read surfac
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-591** — Fail-closed authz for the Cloud FinOps report API (AUTH-005 capability-billing remediation)
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-592** — Tenant-scoped, body-fingerprinted accounting idempotency keys (cross-tenant collision fix)
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-593** — Fail-closed authz for the Accounting + Payroll money-mutation control planes (AUTH-005 / Wave-2b mon
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-600** — Root-workspace-hygiene allowlist gate — make committed repo-root scratch structurally impossible
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-603** — Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation)
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-607** — Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecycle / control-plane-
+  - Fail-closed control-plane authz (AUTH-005 class) — defense-in-depth; should be Accepted
+- **ADR-611** — Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 shard-1)
+  - Asterinas/kuberos real-boot — owned-stack north star
+- **ADR-612** — Buck2 RE phase (policy Accepted; activation fail-closed)
+  - RE design kept as Accepted policy with explicit non-activation until go-gate
+- **ADR-618** — Contract-slice conformance gate scope boundary: single-document internal-shape validation, cross-ref
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-621** — De-commit the active-artifact-contract graph projection
+  - False freeze Reject; aligns with live stack / hyperscaler design
+- **ADR-628** — Scan-root liveness: a declared coverage root that no longer resolves is a gate blind spot, not clean
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-629** — Crate-catalog coverage: every live crate carries a catalog row, closing the crate→row direction
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+- **ADR-631** — A capability that spans strata has a wrong boundary, not a tier problem: split iam into iam (S1 PDP)
+  - Admission/build hygiene gates aligned with 0515/capability-first monorepo
+
+## 2. Light edit then Accept (still Rejected — edit queue)
+
+- **ADR-20** — ADR-0020-intelligence-multi-provider-adapter-model
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-21** — ADR-0021-intelligence-capability-registry-and-mcp-gateway
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-23** — ADR-0023-intelligence-sandbox-wasmtime-firecracker
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-24** — ADR-0024-intelligence-eval-harness-and-replay
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-25** — ADR-0025-intelligence-as-engineering-platform
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-26** — ADR-0026-in-house-ai-model-substrate-roadmap
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-250** — ADR-0250-build-ahead-of-certification-doctrine
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-254** — ADR-0254-deployment-model-spectrum
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-257** — ADR-0257-ontology-object-type-versioning-deprecation-handshake
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-272** — ADR-0272-cookie-consent-per-purpose-analytics-opt-in
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-276** — ADR-0276-backup-portability-format-gdpr-article-20
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-313** — ADR-0313-conglomerate-tenant-hierarchy-sovereign-children
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-318** — Adopt collar-color and workspace universality doctrine
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-339** — Shared IaC module library (`microservices/cloud-iac/modules/<context>/<primitive>/` is canonical; pe
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-341** — Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via ce
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-343** — DR + RTO/RPO matrix per-µservice + per-compliance-pack (effective tenant RTO/RPO = max(µservice decl
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-344** — Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongs
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-622** — Define a nonbinding FixupTask v2 successor foundation
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-623** — Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+- **ADR-625** — Commit OpenTofu provider dependency locks for every deployable root
+  - Still relevant; needs small wording/path update (Foundry→intelligence, microservices/ paths, or RE activation fail-closed)
+
+## 3. Keep Rejected (stale / wrong / superseded-in-substance)
+
+- **ADR-54** — ADR-0054-grit-scaffold-claim-pattern
+  - Grit/icm coordination pattern retired with external agent tooling (0363/0619 lineage)
+- **ADR-111** — ADR-0111-merge-queue-projected-state-fix-at-any-stage
+  - Merge-queue projected-state model superseded by live 0515 cloud-ci/Tide admission
+- **ADR-347** — Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + cr
+  - Stale tooling path, superseded admission model, or conflicts live law
+
+## 4. Needs review (no auto-flip)
+
+- **ADR-4** — ADR-0004-plane-separation-control-data-analytics
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-10** — ADR-0010-regional-pack-architecture
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-14** — Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-16** — ADR-0016-wave-and-plane-integration-framework
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-19** — Doc catalog and update protocol — every consolidated doc has owner / trigger / cadence / dependent-d
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-27** — ADR-0027-robotics-vision-speech-sub-substrates
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-32** — ADR-0032-dcim-software-for-own-dc-ops
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-35** — ADR-0035-workflow-engine-state-machine-and-dag-hybrid
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-36** — ADR-0036-plugin-substrate-wasm-and-trust
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-47** — ADR-0047-search-backend-strategy
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-48** — ADR-0048-korean-morphology-and-multilingual-tokenization
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-134** — ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-236** — ADR-0236-op11-corpus-remediation-planning-contract
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-273** — ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-284** — ADR-0284-platform-owner-name-indirection
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-293** — ADR-0293-governance-meta-trust-root
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-314** — ADR-0314-marketplace-as-universal-deal-settlement
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-315** — ADR-0315-erp-coverage-doctrine-sap-parity
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-317** — ADR-0317-role-based-projection-unified-ux-shell
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-319** — Front Office / Middle Office / Back Office Information-Barrier Doctrine
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-320** — Apprentice, Intern, Resident, and Fellow Transient Identity Doctrine
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-321** — ADR-0321-b2b-saas-industry-leader-coverage
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-324** — ADR-0324-anti-script-anti-template-doctrine
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-325** — ADR-0325-capability-tier-pricing-anchors-public
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-337** — Apache Iceberg is the canonical OLAP table-format write path (Delta + Hudi demoted to migration adap
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-338** — Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc fo
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-340** — Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storag
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-348** — Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-352** — Oyatie from-scratch architecture handoff
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-353** — ADR-0353-amendment-library-first-network-opt-in-clarification
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-354** — ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-355** — ADR-0355-amendment-library-first-network-opt-in-clarification
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-356** — ADR-0356-amendment-library-first-ontology-read-path
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-360** — CI/CD pipeline optimization program — affected-target precision, gate-only overlay, warm shared cach
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-377** — ADR-0377-github-board-git-ref-cas-fallback
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-541** — Corpus Liveness Graph: one content-addressed corpus graph with per-class decay invariants
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-542** — Cloud-Intelligence XPROXY External-Proxy Parity Lane: commissioning and governance path
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-544** — Friction-ledger closed-loop accounting meta-gate
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-558** — Friction-ledger structural merge driver: id-aware union + second-author conversion
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-564** — Commission the tenancy tenant-lifecycle registration service (G006 slice 1): a runnable tenant regis
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-567** — Commission auth durable stores with Postgres + RLS (tenant-lifecycle-store-postgres and identity-sci
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-569** — Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres)
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-571** — Home the connect address-book domain into the comms capability and commission the contact-management
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-580** — corpus substrate Phase -1: the conservative-v1 syn-over-source AST extractor spike
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-598** — Commission the comms meet capability-first core slice (comms-meet-api port + comms-meet-usecase)
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-599** — Commission the comms calendar capability-first move + cloud-agnostic core slice (comms-calendar-doma
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-610** — Policy-IR benchmark stage-0: pre-registered frozen rubric + fixture suite as governed data
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-617** — The Living Monorepo Governance Graph — monorepo management + project lifecycle as one governed, fede
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-620** — Pre-admission inventory provenance for history-only retirement observation surfaces
+  - No automatic disposition; needs human skim of body vs live Accepted set
+- **ADR-626** — Resolve fixup-ledger merges structurally instead of by hand
+  - No automatic disposition; needs human skim of body vs live Accepted set

@@ -1,7 +1,7 @@
 ---
 id: ADR-0618
 title: "Contract-slice conformance gate scope boundary: single-document internal-shape validation, cross-reference/registry integrity is a separate owned gate"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-07-10

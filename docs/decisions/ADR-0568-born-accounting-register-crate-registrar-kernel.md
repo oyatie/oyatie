@@ -1,7 +1,7 @@
 ---
 id: ADR-0568
 title: "born-accounting register_crate: the pure registrar kernel (RegisterCrateRequest → RegistrationPlan)"
-status: Rejected
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-21

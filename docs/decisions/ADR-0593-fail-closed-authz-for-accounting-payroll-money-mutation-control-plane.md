@@ -1,7 +1,7 @@
 ---
 id: ADR-0593
 title: "Fail-closed authz for the Accounting + Payroll money-mutation control planes (AUTH-005 / Wave-2b money-CRIT remediation)"
-status: Rejected
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23
