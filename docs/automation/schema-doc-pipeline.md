@@ -65,7 +65,7 @@ Allowed classes: `PUBLIC | INTERNAL_ONLY | CUSTOMER_CONFIDENTIAL | PII_CUSTOMER 
 |---|---|
 | Per-PR touching any `pub` field in `crates/**` | Regenerate catalogue; diff posted to PR; PR fails if catalogue not regenerated. |
 | Nightly | Full sweep; cross-link verification (every class referenced exists in ADR-0008 taxonomy). |
-| On `docs/decisions/ADR-0008-*` change | Re-validate every annotation against the new taxonomy. |
+| On `docs/adr-archive/ADR-0008-data-use-boundary.md change | Re-validate every annotation against the new taxonomy. |
 
 ## 6. Validation gates (extending `oya-governance-data-class`)
 

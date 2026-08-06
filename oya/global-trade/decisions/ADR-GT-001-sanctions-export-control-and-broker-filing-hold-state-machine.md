@@ -11,7 +11,7 @@ related_oyatie_adrs:
   - docs/decisions/ADR-0702-identity-authz-live-apex.md
   - docs/decisions/ADR-0700-ci-admission-live-apex.md
   - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-  - docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - docs/decisions/ADR-0709-general-live-apex.md
 decision_owner: global-trade-platform-architecture
 ---

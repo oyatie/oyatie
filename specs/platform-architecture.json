@@ -2673,7 +2673,7 @@
     "tenant_as_universal_scoping_primitive": "/docs/decisions/ADR-0702-identity-authz-live-apex.md",
     "substrate_vs_product_layering": "/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
     "policy_engine_substrate_promotion": "/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
-    "self_hosting_self_modification": "/docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md",
+    "self_hosting_self_modification": "/docs/decisions/ADR-0709-general-live-apex.md",
     "amazon_shape_cellular_architecture": "/docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "multi_category_marketplace": "/docs/decisions/ADR-0705-product-protocol-live-apex.md",
     "build_ahead_of_certification": "/docs/decisions/ADR-0709-general-live-apex.md",

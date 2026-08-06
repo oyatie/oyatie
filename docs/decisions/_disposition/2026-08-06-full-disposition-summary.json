@@ -4077,7 +4077,7 @@
     {
       "num": 536,
       "id": "ADR-0536",
-      "file": "docs/decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
+      "file": "docs/adr-archive/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Hyperscaler-grounded substrate decision matrix (FD-001 + cloud substrate) \u2014 sixteen normative domain decisions, each with cited hyperscaler ",

@@ -184,7 +184,7 @@
       "id": "ADR-0342",
       "title": "Api Versioning Hybrid Date Public Semver Sdk",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0343",
@@ -202,7 +202,7 @@
       "id": "ADR-0345",
       "title": "Oss Stewardship Class Policy And Cve Response Sla",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0345-oss-stewardship-class-policy-and-cve-response-sla.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0346",

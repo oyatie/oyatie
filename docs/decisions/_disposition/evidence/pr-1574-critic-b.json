@@ -59,8 +59,8 @@
       "id": "B-005",
       "title": "Registry and debt surfaces retain original ADR paths",
       "evidence": [
-        "registry/microservices.json: docs/decisions/ADR-0088-*, ADR-0086-*",
-        "registry/milestone-audit/index.json: docs/decisions/ADR-0139-*",
+        "registry/microservices.json: docs/decisions/ADR-0709-general-live-apex.md ADR-0086-*",
+        "registry/milestone-audit/index.json: docs/adr-archive/ADR-0139-agentic-slo-gated-promotion.md",
         "registry/placeholder-debt/adr-follow-ups.yaml: multiple ADR-01xx/03xx under docs/decisions/"
       ],
       "second_order_effect": "Second-order consumer breakage and false 'live law' citations after archive move.",

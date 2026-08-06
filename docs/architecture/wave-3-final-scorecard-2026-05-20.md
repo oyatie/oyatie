@@ -252,7 +252,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: proposed
 - depth: B-complete; lines=249; substance_markers=6
 - cross-ref-density: 53 refs / 249 lines = 21.29 per 100 lines
-- artifact: `docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md
 - named gaps: verification evidence absent
 ### ADR-0038 — ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md
 - status: proposed
@@ -276,7 +276,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: proposed
 - depth: B-complete; lines=232; substance_markers=5
 - cross-ref-density: 47 refs / 232 lines = 20.26 per 100 lines
-- artifact: `docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md
 - named gaps: verification evidence absent
 ### ADR-0042 — ADR-0042-observability-stack-otel-and-in-house-ui.md
 - status: proposed
@@ -330,7 +330,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: proposed
 - depth: A-rigorous; lines=259; substance_markers=10
 - cross-ref-density: 54 refs / 259 lines = 20.85 per 100 lines
-- artifact: `docs/decisions/ADR-0050-automation-first-pipeline.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md
 - named gaps: none named; retain in regression audit
 ### ADR-0051 — ADR-0051-mobile-and-native-client-strategy.md
 - status: accepted
@@ -1050,7 +1050,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: A-rigorous; lines=236; substance_markers=7
 - cross-ref-density: 65 refs / 236 lines = 27.54 per 100 lines
-- artifact: `docs/decisions/ADR-0170-developer-portal.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md
 - named gaps: none named; retain in regression audit
 ### ADR-0171 — ADR-0171-multi-cluster-federation.md
 - status: Accepted
@@ -1512,7 +1512,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Proposed
 - depth: A-rigorous; lines=2023; substance_markers=15
 - cross-ref-density: 776 refs / 2023 lines = 38.36 per 100 lines
-- artifact: `docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md`
+- artifact: `docs/decisions/ADR-0709-general-live-apex.md
 - named gaps: none named; retain in regression audit
 ### ADR-0248 — ADR-0248-amazon-shape-cellular-architecture.md
 - status: Proposed

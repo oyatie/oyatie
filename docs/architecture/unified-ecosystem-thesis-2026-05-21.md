@@ -2451,7 +2451,7 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-- docs/decisions/ADR-0247-self-modification-doctrine.md
+- docs/decisions/ADR-0709-general-live-apex.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md
 - docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md

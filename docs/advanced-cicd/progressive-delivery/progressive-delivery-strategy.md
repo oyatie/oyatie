@@ -64,7 +64,7 @@ Per-cell. A bad release reverts in one cell without disturbing healthy cells. Pe
 
 ## 7. Anti-scope
 
-This strategy does not own: SLO catalog (per [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md)), gitops branch model ([ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md)), supply-chain signing ([ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)).
+This strategy does not own: SLO catalog (per [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md)), gitops branch model ([ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md)), supply-chain signing ([ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 8. Compliance gates
 

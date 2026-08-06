@@ -77,7 +77,7 @@
     {
       "id": "ADR-0247",
       "title": "Self-modification doctrine",
-      "file": "docs/decisions/ADR-0247-self-modification-doctrine.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0248",

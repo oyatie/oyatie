@@ -1714,7 +1714,7 @@ the walkthrough:
 9. `docs/decisions/ADR-0704-k8s-port-live-apex.md`
    (DR tiers; drill cadence)
 10. `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
-11. `docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md`
+11. `docs/decisions/ADR-0709-general-live-apex.md
 12. `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 13. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 14. `docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md`

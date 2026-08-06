@@ -1319,9 +1319,9 @@ ten are `Proposed`, one (ADR-0319 front-middle-back-office-information-
 barrier) is `Accepted`. ADR-0320 status is lowercase `proposed`.
 
 **Evidence:**
-- `docs/decisions/ADR-0319-front-middle-back-office-information-
+- `docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md
   barrier.md:?` — status: Accepted (verified by grep).
-- `docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-
+- `docs/adr-archive/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
   identity.md:?` — status: proposed (lowercase; verified by grep).
 - All other cluster ADRs: status: Proposed (verified by grep).
 

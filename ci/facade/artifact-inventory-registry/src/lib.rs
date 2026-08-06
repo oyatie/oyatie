@@ -2114,7 +2114,7 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/decisions/ADR-0001-x.md"]);
+        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
         let message = fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture")
             .expect("fix applies");
         assert!(message.contains("1 tracked path(s)"), "{message}");
@@ -2186,7 +2186,7 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/decisions/ADR-0001-x.md"]);
+        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
         // A principal the resolver would reject must be refused BEFORE writing.
         for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
@@ -2210,10 +2210,10 @@ mod tests {
         )
         .expect("bound parses");
         let bulk = tracked(&[
-            "docs/decisions/ADR-0001-a.md",
-            "docs/decisions/ADR-0002-b.md",
-            "docs/decisions/ADR-0003-c.md",
-            "docs/decisions/ADR-0004-d.md",
+            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+            "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
+            "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
+            "docs/adr-archive/ADR-0004-plane-separation-control-data-analytics.md",
         ]);
         let err = fix_owners(
             &root,

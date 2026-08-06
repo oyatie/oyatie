@@ -49,7 +49,7 @@
       "pair_id": "pair-3-api-design",
       "markdown": "docs/standards/api-design.md",
       "markdown_size_bytes": 6600,
-      "partner": "docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md",
+      "partner": "docs/decisions/ADR-0709-general-live-apex.md",
       "partner_size_bytes": 10500,
       "verdict": "COMPLEMENTARY-NO-ACTION",
       "overlap_description": "api-design.md is TECHNICAL (wire formats, URL conventions, HTTP methods, headers). ADR-0037 is LIFECYCLE (preview/stable/GA tiers, semver-diff gate, deprecation timeline, SDK gen). Different scopes. api-design.md\u00a71 mentions schemas in `contracts/` per ADR-0011 \u2014 light cross-reference, not restatement.",

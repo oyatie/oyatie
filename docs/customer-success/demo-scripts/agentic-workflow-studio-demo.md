@@ -647,13 +647,13 @@ Best,
 - Internal: `registry/sample-tenants/tenant-acme-mid-market-saas.md`.
 - Internal: `registry/sample-tenants/tenant-helios-fortune-500-manufacturer.md`.
 - Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
-- Internal: `docs/decisions/ADR-0220-*`.
-- Internal: `docs/decisions/ADR-0243-*`.
-- Internal: `docs/decisions/ADR-0244-*`.
-- Internal: `docs/decisions/ADR-0251-*`.
-- Internal: `docs/decisions/ADR-0263-*`.
+- Internal: `docs/adr-archive/ADR-0220-consumer-intelligence-substrate.md
+- Internal: `docs/adr-archive/ADR-0243-cedar-as-universal-gate.md
+- Internal: `docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md
+- Internal: `docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- Internal: `docs/adr-archive/ADR-0263-observability-emission-contract.md
 - Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
-- Internal: `docs/decisions/ADR-0317-*`.
+- Internal: `docs/adr-archive/ADR-0317-role-based-projection-unified-ux-shell.md
 - Internal: `specs/capability-tier-schema.json`.
 - Internal: `specs/pack-overlay-schema.json`.
 - External: Cedar policy language, https://www.cedarpolicy.com/.

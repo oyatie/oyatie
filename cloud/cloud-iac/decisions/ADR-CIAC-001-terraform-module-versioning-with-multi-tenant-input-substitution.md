@@ -6,7 +6,7 @@ date: 2026-05-20
 microservice: cloud-iac
 related_oyatie_adrs:
   - docs/decisions/ADR-0709-general-live-apex.md
-  - docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - docs/decisions/ADR-0702-identity-authz-live-apex.md
   - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
   - docs/decisions/ADR-0709-general-live-apex.md

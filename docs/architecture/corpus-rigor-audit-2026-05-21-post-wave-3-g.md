@@ -3114,7 +3114,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | Object Graph retired term | 327 | docs/PRD.md:65; docs/DOC-CATALOG.md:134; docs/ADR-CONSOLIDATION-PLAN.md:59; docs/CHANGELOG.md:85; docs/GLOSSARY.md:230 |
 | foundry-fitness stale lane | 856 | docs/MISTAKES-LEDGER.md:45; docs/ADR-CONSOLIDATION-PLAN.md:34; docs/CHANGELOG.md:44; docs/VENDOR-PARTNER-LEDGER.md:97; docs/ADR-LEGACY-REGRESSION-MAPPING.md:143 |
 | OpenAPI below 3.2.0 prose/config | 22 | docs/architecture/ip-corpus-line-audit-2026-05-21.md:220; docs/architecture/adr-corpus-line-audit-2026-05-21.md:323; docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117; docs/automation/openapi-pipeline.md:58; microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md:22 |
-| AsyncAPI below 3.1.0 prose/config | 49 | docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102; docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md:75; docs/user-stories/b2c-consumer-surfaces.md:2240; docs/architecture/ip-corpus-line-audit-2026-05-21.md:111; docs/architecture/adr-corpus-line-audit-2026-05-21.md:334 |
+| AsyncAPI below 3.1.0 prose/config | 49 | docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102; docs/decisions/ADR-0709-general-live-apex.md docs/user-stories/b2c-consumer-surfaces.md:2240; docs/architecture/ip-corpus-line-audit-2026-05-21.md:111; docs/architecture/adr-corpus-line-audit-2026-05-21.md:334 |
 | 12-layer drift | 120 | docs/DOC-CATALOG.md:81; docs/ADR-INDEX.md:77; docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22; docs/machine-readable/decisions.json:665; docs/decisions/ADR-0700-ci-admission-live-apex.md:3089 |
 | React client-stack drift | 131 | docs/decisions/ADR-0709-general-live-apex.md:39; docs/decisions/ADR-0700-ci-admission-live-apex.md:1987; docs/decisions/ADR-0709-general-live-apex.md:104; docs/decisions/ADR-0700-ci-admission-live-apex.md:43; docs/decisions/ADR-0709-general-live-apex.md:35 |
 
@@ -3180,7 +3180,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 
 ### §11.7 AsyncAPI below 3.1.0 prose/config
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102` — `2. Validates every spec path exists and is syntactically valid (OpenAPI 3 / Protobuf / AsyncAPI 2.6 / Cedar / JSON Schema).`
-- `docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md:75` — `asyncapi/               # Event APIs (AsyncAPI 3.0)`
+- `docs/decisions/ADR-0709-general-live-apex.md — `asyncapi/               # Event APIs (AsyncAPI 3.0)`
 - `docs/user-stories/b2c-consumer-surfaces.md:2240` — `- **AsyncAPI 3.0 (event contracts).**`
 - `docs/architecture/ip-corpus-line-audit-2026-05-21.md:111` — `1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer,`
 - `docs/architecture/adr-corpus-line-audit-2026-05-21.md:334` — `#### AsyncAPI 2.x / 3.0.0 (canonical: 3.1.0)`

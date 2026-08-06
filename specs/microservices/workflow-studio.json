@@ -30,7 +30,7 @@
     ],
     "oyatie_specs": [
       "$ref:specs/agent-durable-goal.json",
-      "$ref:docs/decisions/ADR-0065 (Leptos for browser UI)"
+      "$ref:docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md (Leptos for browser UI)"
     ],
     "memory_pointers": [
       "feedback_workflow_studio_scope"
@@ -275,7 +275,7 @@
         "crate": "leptos",
         "tier": "mature",
         "license": "MIT",
-        "rationale": "$ref:docs/decisions/ADR-0065 Rust-WASM SSR"
+        "rationale": "$ref:docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md Rust-WASM SSR"
       },
       {
         "crate": "yrs (yjs port) OR loro",

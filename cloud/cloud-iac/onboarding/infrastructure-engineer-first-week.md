@@ -8,7 +8,7 @@ Goal: by Friday EOD you can trace a cloud-iac change from declarative source thr
 
 - `docs/products/cloud/PRD.md` — Cloud Provider substrate, managed Kubernetes, GitOps, audit-chain, IAM/KMS, and control-plane/data-plane expectations.
 - `docs/adr-archive/ADR-0218-tenant-granular-control-surface.md` — binding definition for declarative infrastructure.
-- `docs/decisions/ADR-0247-self-modification.md` — cloud-scm/self-modification substrate; cloud-iac is a control-plane mutator and must preserve auditability.
+- `docs/decisions/ADR-0709-general-live-apex.md — cloud-scm/self-modification substrate; cloud-iac is a control-plane mutator and must preserve auditability.
 - `docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md` — modules must be compliance-shaped from first authoring.
 - `docs/decisions/ADR-0700-ci-admission-live-apex.md` — `oya-ci-required` is the single current blocking CI authority; `oya-ci-required`/controller evidence is shift-left evidence only.
 - `cloud/cloud-iac/PRD.md`, `cloud/cloud-iac/ARCHITECTURE.md`, and `cloud/cloud-iac/threat-model.md` — service-local product, architecture, trust boundaries, and failure-mode anchors.

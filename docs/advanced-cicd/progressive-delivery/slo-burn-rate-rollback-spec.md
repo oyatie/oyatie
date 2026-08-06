@@ -79,7 +79,7 @@ Flagger/Argo Rollouts pull burn-rate via `slo-burn-rate-fast` and `slo-burn-rate
 
 ## 6. Per-service SLO catalog
 
-Per-service SLOs are owned by [`docs/SLO-CATALOG.md`](../../../docs/SLO-CATALOG.md). Default targets by API-stability tier ([ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md)):
+Per-service SLOs are owned by [`docs/SLO-CATALOG.md`](../../../docs/SLO-CATALOG.md). Default targets by API-stability tier ([ADR-0037](../../../docs/decisions/ADR-0709-general-live-apex.md)):
 
 | Tier | SLO target | Window | Steady burn |
 |---|---|---|---|

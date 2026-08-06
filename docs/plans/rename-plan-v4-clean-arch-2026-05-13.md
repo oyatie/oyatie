@@ -1563,7 +1563,7 @@ Shard 1 squash commit. Additionally:
 
 | Gate | Command | Expected exit |
 |---|---|:---:|
-| Zero hits global sweep | `rg -F -f /tmp/old-crate-names.txt . -g '!docs/CHANGELOG.md' -g '!docs/plans/rename-plan-*.md' -g '!docs/decisions/ADR-0054*' -g '!docs/decisions/ADR-0056*' -g '!docs/decisions/ADR-0057*'` | exit 1 (no match = pass) |
+| Zero hits global sweep | `rg -F -f /tmp/old-crate-names.txt . -g '!docs/CHANGELOG.md' -g '!docs/plans/rename-plan-*.md' -g '!docs/adr-archive/ADR-0054-grit-scaffold-claim-pattern.md' -g '!docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md' -g '!docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md'` | exit 1 (no match = pass) |
 | ADR-0056 status | `rg "^status: Accepted" docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md` | 0 |
 | ADR-0057 status | `rg "^status: Accepted" docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md` | 0 |
 | Bounded-context registry consistency | `cargo run -p xtask-metadata-augment -- --bounded-context-registry-check` | 0 (every bounded-context field in all 140 crates appears in `docs/standards/bounded-contexts.md`) |

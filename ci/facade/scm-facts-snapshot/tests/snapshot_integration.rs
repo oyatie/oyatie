@@ -1825,7 +1825,7 @@ fn dormant_p3_identity_rejects_a_unicode_direct_adr_path_after_raw_tree_parsing(
     let root = p3_identity_fixture("unicode-direct-adr");
     let source = root
         .join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
-    let unicode_path = "docs/decisions/ADR-0002-résumé.md";
+    let unicode_path = "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md";
     write_fixture_file(
         &root,
         unicode_path,

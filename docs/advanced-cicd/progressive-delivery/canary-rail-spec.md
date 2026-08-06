@@ -94,7 +94,7 @@ On threshold breach: Flagger fires `traffic-shift: 0%` to canary; Argo Rollouts 
 ## 8. Pre-rollout gates (inherits from ADR-0040)
 
 - supply-chain PASS ([ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)).
-- api-semver PASS ([ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md)).
+- api-semver PASS ([ADR-0037](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 - SLO catalog freshness within 1 h.
 - canary-required lane PASS.
 

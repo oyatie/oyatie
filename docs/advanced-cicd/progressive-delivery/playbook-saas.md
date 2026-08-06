@@ -29,7 +29,7 @@ SaaS-axis surfaces (CRM, ITSM, project management, knowledge base) — the cohes
 
 ## 3. Per-vertical regulatory awareness
 
-SaaS surfaces are tenant-vertical-aware ([ADR-0033](../../../docs/decisions/ADR-0033-vertical-industry-cloud-pack-architecture.md), [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)). A SaaS change MUST:
+SaaS surfaces are tenant-vertical-aware ([ADR-0033](../../../docs/decisions/ADR-0709-general-live-apex.md), [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)). A SaaS change MUST:
 
 1. Declare which verticals it affects (healthcare / fintech / legal / public-sector / general).
 2. Trigger DPIA refresh on regulated verticals (per [`playbook-vertical-pack.md`](playbook-vertical-pack.md)).
@@ -39,7 +39,7 @@ A change that affects only `general` skips DPIA; one touching `healthcare` trigg
 
 ## 4. Per-tier semver discipline
 
-Per [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md):
+Per [ADR-0037](../../../docs/decisions/ADR-0709-general-live-apex.md):
 
 | API tier | SLO target | Canary requirement | Dark-launch requirement |
 |---|---|---|---|

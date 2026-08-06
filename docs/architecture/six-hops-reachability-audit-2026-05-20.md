@@ -7447,7 +7447,7 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 19 | `docs/AGENTS.md` | 16 | 35 | 1 | reachable |
 | 20 | `docs/decisions/ADR-0709-general-live-apex.md` | 14 | 0 | 2 | reachable |
 | 21 | `docs/SECURITY-PROGRAM.md` | 13 | 4 | 1 | reachable |
-| 22 | `docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md` | 12 | 0 | 2 | reachable |
+| 22 | `docs/decisions/ADR-0709-general-live-apex.md | 12 | 0 | 2 | reachable |
 | 23 | `docs/release/progressive-delivery/canary-rail-spec.md` | 11 | 7 | n/a | unreachable |
 | 24 | `docs/RELEASE-MANAGEMENT.md` | 11 | 3 | 1 | reachable |
 | 25 | `docs/decisions/ADR-0703-cas-cache-live-apex.md` | 11 | 0 | 2 | reachable |
@@ -7493,8 +7493,8 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 65 | `docs/INTERNATIONALIZATION.md` | 6 | 4 | 1 | reachable |
 | 66 | `docs/standards/error-handling.md` | 6 | 3 | 2 | reachable |
 | 67 | `docs/templates/incident-postmortem-template.md` | 6 | 3 | 2 | reachable |
-| 68 | `docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md` | 6 | 0 | 2 | reachable |
-| 69 | `docs/decisions/ADR-0050-automation-first-pipeline.md` | 6 | 0 | 2 | reachable |
+| 68 | `docs/decisions/ADR-0709-general-live-apex.md | 6 | 0 | 2 | reachable |
+| 69 | `docs/decisions/ADR-0709-general-live-apex.md | 6 | 0 | 2 | reachable |
 | 70 | `docs/decisions/ADR-0705-product-protocol-live-apex.md` | 6 | 0 | 2 | reachable |
 | 71 | `docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/README.md` | 5 | 19 | n/a | unreachable |
 | 72 | `docs/user-journeys/j129-court-warrant-pierces-personal-tenant-with-judicial-oversight/README.md` | 5 | 17 | n/a | unreachable |

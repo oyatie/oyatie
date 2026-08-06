@@ -2625,7 +2625,7 @@ This product consumes the Wave 15-ZF doctrine for AI substrate, cellular automat
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
-- docs/decisions/ADR-0050-automation-first-pipeline.md
+- docs/decisions/ADR-0709-general-live-apex.md
 - docs/decisions/ADR-0708-platform-foundations-live-apex.md
 - docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
 - docs/adr-archive/ADR-0263-observability-emission-contract.md

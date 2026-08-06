@@ -2471,7 +2471,7 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 
 - docs/standards/documentation-rigor.md
 - docs/personas/MASTER-ROSTER-2026-05-21.md
-- docs/decisions/ADR-0242
+- docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0701-monorepo-capability-live-apex.md

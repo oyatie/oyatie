@@ -118,7 +118,7 @@ test fails at runtime:
   gate id (`cloud-ci-*`), which is out of scope. **Confirm with founder that Layer B stays.**
 
 ### 2.7 Doc/comment + soft references (LABEL-only; update for honesty, not correctness)
-- `docs/decisions/ADR-0515-…md` — the §"crates carried" list (lines 36–42) names the crates by their
+- `docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md — the §"crates carried" list (lines 36–42) names the crates by their
   build-identity in prose; update the 7 list items to the new package names. (The `cloud-ci-*` GATE references
   elsewhere in 0515 are Layer B — leave.)
 - `ADR-INVENTORY.tsv:290` (the ADR-0515 row's crate list) — same label refresh.

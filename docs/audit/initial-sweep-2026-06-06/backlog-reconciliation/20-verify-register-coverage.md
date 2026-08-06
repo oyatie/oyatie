@@ -126,7 +126,7 @@ All 23 register-named **existing** ADR numbers were confirmed present in `source
 
 **Critical fact:** linux A5 operates on the **SAME source/oyatie ADR namespace** (0513, 0511, 0124, 0366, 0389/0390 are
 all `source/docs/decisions/` ADRs — confirmed live). It is NOT scoped to the 26-ADR linux distributed-DB set
-(`linux/docs/decisions/ADR-0001..0026`, which contains none of these numbers). Therefore A5 and the source DECISION
+(`linux/docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md which contains none of these numbers). Therefore A5 and the source DECISION
 REGISTER write into one shared canon and **DO collide**. The overlap set:
 
 | Overlap | linux A5 atom | source register item | Nature of collision |

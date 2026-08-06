@@ -8,7 +8,7 @@ status: Accepted
 date: 2026-05-20
 canonical_authority:
   - docs/decisions/ADR-0700-ci-admission-live-apex.md
-  - docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - docs/decisions/ADR-0708-platform-foundations-live-apex.md
   - docs/decisions/ADR-0709-general-live-apex.md
   - ADR-NNNN-foundry-meta-trust-root

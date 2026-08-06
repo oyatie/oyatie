@@ -34,12 +34,12 @@ doc_status: published
 
 ## 2. Lift target
 
-All files lift to `oyatie/docs/release/branch-pipeline/` on approval. ADR draft lifts to `oyatie/docs/decisions/registry/placeholder-debt/adr-follow-ups.yaml#four-layer-branch-pipeline (drafting)` and supersedes `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md`.
+All files lift to `oyatie/docs/release/branch-pipeline/` on approval. ADR draft lifts to `oyatie/docs/decisions/registry/placeholder-debt/adr-follow-ups.yaml#four-layer-branch-pipeline (drafting)` and supersedes `oyatie/docs/decisions/ADR-0709-general-live-apex.md
 
 ## 3. Cross-references
 
-- **Supersedes:** [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md) (trunk-based posture).
-- **Inherits from:** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) (canary + SLO mechanics applied at staging + prod), [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) (Cosign + SLSA), [ADR-0050](../../../docs/decisions/ADR-0050-automation-first-pipeline.md) (automation-first stance).
+- **Supersedes:** [ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md) (trunk-based posture).
+- **Inherits from:** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) (canary + SLO mechanics applied at staging + prod), [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) (Cosign + SLSA), [ADR-0050](../../../docs/decisions/ADR-0709-general-live-apex.md) (automation-first stance).
 - **Sister composer:** [`../progressive-delivery/`](../progressive-delivery/) — feature-flag-architecture, canary-rail-spec, blue-green-spec, progressive-delivery-strategy.
 - **Source directives:** [MASTERPLAN.md](../../plans/MASTERPLAN.md) Directives 1-12; principal Directives applied: 3 (final shape), 4 (provider-agnostic adapters), 5 (distroless), 6 (hyperscaler bar with documented deviation), 12 (pragmatic git/gh with logged rationale).
 

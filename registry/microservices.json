@@ -65,7 +65,7 @@
       "consumer_facing_surface": "internal-only via `oya check <name>` CLI",
       "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=foundry)",
       "plan_refs": [
-        "docs/decisions/ADR-0088-microservice-foundry.md"
+        "docs/decisions/ADR-0709-general-live-apex.md"
       ]
     },
     {
@@ -127,7 +127,7 @@
       "consumer_facing_surface": "tenant-private workspace shell",
       "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=application)",
       "plan_refs": [
-        "docs/decisions/ADR-0086-microservice-application-scaffold.md"
+        "docs/decisions/ADR-0709-general-live-apex.md"
       ]
     },
     {

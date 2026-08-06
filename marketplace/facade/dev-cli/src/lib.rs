@@ -629,8 +629,8 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
             | "docs/decisions/ADR-0709-general-live-apex.md"
             | "docs/teams/README.md"
             | "docs/teams/tactical-first-vertical-pilot/CHARTER.md"
-    ) || path.starts_with("docs/decisions/ADR-0016-")
-        || path.starts_with("docs/decisions/ADR-0018-")
+    ) || path.starts_with("docs/adr-archive/ADR-0016-wave-and-plane-integration-framework.md")
+        || path.starts_with("docs/adr-archive/ADR-0018-glossary-and-terminology-canon.md")
         || path.starts_with("docs/decisions/ADR-")
         || path.starts_with("docs/plans/M01-foundation-cc-01-cutover/")
         || path == "docs/plans/cutover-cross-cutting-amendments-2026-05-12.md"

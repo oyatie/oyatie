@@ -19,7 +19,7 @@ doc_status: published
 
 # ADR-DRAFT: Four-Layer Branch Pipeline with Reviewer-Agent-Gated Auto-Promotion (Supersedes ADR-0041)
 
-> **Status:** Draft (pending approval). **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Supersedes:** [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md).
+> **Status:** Draft (pending approval). **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Supersedes:** [ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md).
 
 ---
 
@@ -146,7 +146,7 @@ Each gate sits where its input data is available; no gate is invoked before its 
 ## Follow-ups
 
 1. Lift this draft to `oyatie/docs/decisions/registry/placeholder-debt/adr-follow-ups.yaml#four-layer-branch-pipeline (drafting)` (number assigned at lift time).
-2. Update `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md` status to `Superseded-by: ADR-####`.
+2. Update `oyatie/docs/decisions/ADR-0709-general-live-apex.md status to `Superseded-by: ADR-####`.
 3. Implement the three promoter agents + the fixer per [`agent-roles-spec.md`](agent-roles-spec.md). Distroless images per [Directive 5](../../plans/MASTERPLAN.md).
 4. Implement the six new fitness lanes per [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md).
 5. Apply branch-protection rules per [`branch-protection-rules.md`](branch-protection-rules.md) — nightly drift-check enforces.
@@ -160,7 +160,7 @@ Each gate sits where its input data is available; no gate is invoked before its 
 
 - `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy (the trunk-based default we deviate from)
 - [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) (canary + SLO mechanics inherited)
-- [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md) (superseded)
+- [ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md) (superseded)
 - [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) (Cosign + SLSA inherited)
 - `docs/AGENTS.md` (reviewer-agent roster)
 - `.omc/advanced-cicd/progressive-delivery/` (sister composer; runtime mechanics)

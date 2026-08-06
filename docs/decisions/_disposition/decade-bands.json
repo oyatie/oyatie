@@ -2519,7 +2519,7 @@
       },
       {
         "num": 531,
-        "file": "docs/decisions/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
+        "file": "docs/adr-archive/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
         "status": "Accepted",
         "title": "ADR-0531-auto-remediation-delivery-oya-bot-autofix.md"
       },
@@ -2549,7 +2549,7 @@
       },
       {
         "num": 536,
-        "file": "docs/decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
+        "file": "docs/adr-archive/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
         "status": "Proposed",
         "title": "ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md"
       },

@@ -18,7 +18,7 @@
     {
       "severity": "high",
       "title": "Broken path citations remain to missing docs/decisions/ADR-0xxx live paths",
-      "evidence": "After claimed ~716 rewrites, live normative surfaces still cite missing live paths, e.g. specs/platform-architecture.json refs docs/decisions/ADR-0132/0148/0176/0211/0215/…; docs/standards/naming-convention-bnf-v4.md cites docs/decisions/ADR-0056/0105/0131; docs/standards/code-style-rust.md cites ADR-0015; docs/automation/audit-chain-map-spec.md treats docs/decisions/ADR-0003-* as constitutional authority. Those files are under docs/adr-archive/, not docs/decisions/.",
+      "evidence": "After claimed ~716 rewrites, live normative surfaces still cite missing live paths, e.g. specs/platform-architecture.json refs docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md docs/standards/naming-convention-bnf-v4.md cites docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md docs/standards/code-style-rust.md cites ADR-0015; docs/automation/audit-chain-map-spec.md treats docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md as constitutional authority. Those files are under docs/adr-archive/, not docs/decisions/.",
       "fix": "Re-run citation rewrite against redirect map for docs/ and specs/ (and other binding surfaces); either rewrite to docs/adr-archive/… or to live apex path + redirect key. Add a gate that fails on docs/decisions/ADR-0[0-6]*.md path literals not present as direct children."
     },
     {

@@ -140,7 +140,7 @@
         {
           "item": "door:two-way ADR auto-merge on green CI (the autonomy boundary is the door: front-matter data value)",
           "automatable": "now",
-          "seam": "docs/decisions/ADR-0365 decision-door; gate oya gate validate decision-door (re-home off CLI)"
+          "seam": "docs/adr-archive/ADR-0365-automated-adr-lifecycle-and-propagation.md decision-door; gate oya gate validate decision-door (re-home off CLI)"
         },
         {
           "item": "Quarantine the broken Jenkins oyaCiLane.groovy poster (404s on api.github.com/api/v1) and run brand-residue eradication AFTER oya-ci is proven",
@@ -205,7 +205,7 @@
         {
           "item": "Resolve every Proposed ADR (ratify/drop) + door:one-way ADR merges — founder decision per ADR-0365",
           "automatable": "inherently-manual",
-          "seam": "docs/decisions/ADR-0365:36-38 (door:one-way cannot auto-merge)"
+          "seam": "docs/adr-archive/ADR-0365-automated-adr-lifecycle-and-propagation.md (door:one-way cannot auto-merge)"
         },
         {
           "item": "staleness-reaper git-mv-to-_archive — detection auto (REPORTS), the actual move is second-verifier-gated, NEVER rm",
@@ -617,7 +617,7 @@
           },
           {
             "claim": "Release/tagging is UNGROUNDED for Phase-0: no ADR-0518 oya-release exists on this branch and no release/tagging seam is wired into the firewall. Release-versioning specs live only under .omc/advanced-cicd/ (off-axis). Release automation is automatable-WITH-INFRA but presently a gap.",
-            "evidence": "`ls docs/decisions/ADR-0518*` => 'no matches found' (verified); release-versioning material at .omc/advanced-cicd/release-versioning/ (release-branch-cut-spec.md, release-cherry-pick-agent-spec.md, version-eol-policy.md, release-versioning-strategy.md, crate-versioning-spec.md, etc. — verified by ls); branch adr-0518-oya-release exists in `git branch` but ADR file not on phase0/producer.",
+            "evidence": "`ls docs/adr-archive/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md => 'no matches found' (verified); release-versioning material at .omc/advanced-cicd/release-versioning/ (release-branch-cut-spec.md, release-cherry-pick-agent-spec.md, version-eol-policy.md, release-versioning-strategy.md, crate-versioning-spec.md, etc. — verified by ls); branch adr-0518-oya-release exists in `git branch` but ADR file not on phase0/producer.",
             "severity": "major",
             "category": "gap:release-tagging-automation"
           },
@@ -691,7 +691,7 @@
           },
           {
             "action": "Author the missing ADR-0518 oya-release and wire a release/tagging generator+drift-gate seam. Until then, flag release/tagging as an unaccounted lifecycle gap. The release-versioning material currently lives only under .omc/advanced-cicd/release-versioning/ (off the doc-axis).",
-            "rationale": "VERIFIED: ls docs/decisions/ADR-0518* returns no matches; release-versioning specs exist only under .omc/advanced-cicd/release-versioning/ (10 files verified). The automation-ratchet gate has the advisory_claiming_enforced code path (automation-ratchet/src/lib.rs:228, test at :312-318) to police a release surface that claims enforcement without a wired buck2 target once the matrix row is added.",
+            "rationale": "VERIFIED: ls docs/adr-archive/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md returns no matches; release-versioning specs exist only under .omc/advanced-cicd/release-versioning/ (10 files verified). The automation-ratchet gate has the advisory_claiming_enforced code path (automation-ratchet/src/lib.rs:228, test at :312-318) to police a release surface that claims enforcement without a wired buck2 target once the matrix row is added.",
             "automatable": "with-infra",
             "surfaces_all_not_fail_fast": false,
             "throughput_impact": "Closes a silent gap before it becomes drift."

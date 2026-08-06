@@ -524,7 +524,7 @@ Anchor 2: `/Users/jasonlee/oyatie/microservices/<service>/ARCHITECTURE.md` or se
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 and §2 ADR row`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md Decision Summary S-1 through S-8`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md Decision Summary S-1 through S-8`.
 
 Anchor 5: the root ADR that owns the decision family, such as ADR-0244 for tenant scope, ADR-0243 for Cedar, ADR-0263 for audit emission, ADR-0316 for capability tiers, or ADR-0328 for sequencing.
 
@@ -1610,7 +1610,7 @@ CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/microservices/observability/PRD.md
 2. /Users/jasonlee/oyatie/microservices/observability/ARCHITECTURE.md
 3. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 and §2 ADR row
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md S-1 through S-8
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md S-1 through S-8
 5. /Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md
 
 DELIVERABLE:
@@ -1870,7 +1870,7 @@ Primary realignment backbone:
 Substance and anti-pattern authority:
 
 - `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1`
-- `/Users/jasonlee/oyatie/docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md`
+- `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
 - `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md`
 - `/Users/jasonlee/oyatie/docs/standards/anti-patterns.md`
 

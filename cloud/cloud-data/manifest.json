@@ -151,7 +151,7 @@
       "id": "ADR-0342",
       "title": "Api Versioning Hybrid Date Public Semver Sdk",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0343",

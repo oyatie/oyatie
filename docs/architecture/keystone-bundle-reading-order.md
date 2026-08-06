@@ -446,7 +446,7 @@ and the Intelligence substrate.
 
 ### 5.1 ADR-0247 — Self-Hosting / Self-Modification (60-90 minutes)
 
-File: `/docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md`
+File: `/docs/decisions/ADR-0709-general-live-apex.md
 
 **Read the frontmatter and Status.** This is keystone 6-of-14.
 

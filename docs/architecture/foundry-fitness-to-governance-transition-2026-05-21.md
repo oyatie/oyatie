@@ -153,12 +153,12 @@ docs/decisions/ADR-0705-product-protocol-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0700-ci-admission-live-apex.md
-docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
+docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0700-ci-admission-live-apex.md
-docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md
+docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0700-ci-admission-live-apex.md
-docs/decisions/ADR-0050-automation-first-pipeline.md
+docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0700-ci-admission-live-apex.md

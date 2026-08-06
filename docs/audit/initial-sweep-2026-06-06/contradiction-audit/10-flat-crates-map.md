@@ -126,11 +126,11 @@ Seed refs (confirmed) — the four-corners "Flat-crates binding" GATE/topology w
 
 | path:line | verbatim snippet | type |
 |---|---|---|
-| `docs/decisions/ADR-0001-...:106` | `Applies to: every crate under \`crates/oya-*\`, every catalog record...` | (a) LOCATION |
-| `docs/decisions/ADR-0008-...:126` | `Architecture fitness gate — \`oya-governance-flat-crates\` rejects any new flat crate...` | GATE name binds superseded lane |
-| `docs/decisions/ADR-0013-...:109` | `Applies to: every crate under \`crates/oya-*\`, every npm package...` | (a) LOCATION |
-| `docs/decisions/ADR-0020-...:175` | `Flat-crates binding: the sealed provider-adapter contract lives in \`crates/oya-foundry-adapter-kernel\`; ... land under \`crates/oya-foundry-*\`` | (a) LOCATION |
-| `docs/decisions/ADR-0022-...:175` | `Flat-crates binding: autonomy-ceiling enforcement lives in \`crates/oya-foundry-policy-kernel\` and ... through flat \`oya-foundry-*\` crates` | (a) LOCATION |
+| `docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md | `Applies to: every crate under \`crates/oya-*\`, every catalog record...` | (a) LOCATION |
+| `docs/adr-archive/ADR-0008-data-use-boundary.md | `Architecture fitness gate — \`oya-governance-flat-crates\` rejects any new flat crate...` | GATE name binds superseded lane |
+| `docs/adr-archive/ADR-0013-product-license-policy.md | `Applies to: every crate under \`crates/oya-*\`, every npm package...` | (a) LOCATION |
+| `docs/adr-archive/ADR-0020-intelligence-multi-provider-adapter-model.md | `Flat-crates binding: the sealed provider-adapter contract lives in \`crates/oya-foundry-adapter-kernel\`; ... land under \`crates/oya-foundry-*\`` | (a) LOCATION |
+| `docs/adr-archive/ADR-0022-autonomy-ceiling-runtime-enforcement.md | `Flat-crates binding: autonomy-ceiling enforcement lives in \`crates/oya-foundry-policy-kernel\` and ... through flat \`oya-foundry-*\` crates` | (a) LOCATION |
 
 ADR-0015 self-assertions (the authoritative source of the superseded topology — survives as accepted for
 BC/layer rules but its top-level-`crates/` location clauses are superseded by ADR-0131/0512):
@@ -214,9 +214,9 @@ crate NAME, not that top-level `crates/` is the canonical root; under ADR-0512 t
 
 ## 6. Back-pointer / index integrity gaps (supersession not fully recorded)
 
-- `docs/decisions/ADR-0509-...:10` — `superseded_by: []` (EMPTY) and `:4` `status: Accepted`, despite
+- `docs/adr-archive/ADR-0509-hyperscaler-service-decomposition-pattern.md — `superseded_by: []` (EMPTY) and `:4` `status: Accepted`, despite
   ADR-0512:9-11,22 declaring it superseded. No back-pointer; status not flipped to Superseded.
-- `docs/decisions/ADR-0357-...` — has **no** `superseded_by` field at all (`grep -c superseded_by` → 0);
+- `docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md — has **no** `superseded_by` field at all (`grep -c superseded_by` → 0);
   still `status: Proposed`. ADR-0512:22 supersedes it but the file is unmarked.
 - `docs/ADR-INDEX.md` — has **no row** for ADR-0509 or ADR-0512 (`grep -c 'ADR-0509|ADR-0512'` → 0).
   The canonical, founder-locked governing ADR (0512) is absent from the index; 0357 is still listed
