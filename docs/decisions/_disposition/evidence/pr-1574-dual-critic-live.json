@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "5772f25b21f1455e0ab5c40991ffdd799139995e",
+  "head": "37b8c794557bbc865b5b9cd94674c5cfb2de5303",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; same_family recorded honestly for W2 implement-claimed-lane session (no second model CLI)",
   "critics": [
@@ -42,8 +42,10 @@
       ]
     }
   ],
-  "summary": "APPROVE #1574 tip 5772f25b21f1: residual chronology DuplicateSourcePath + hermetic ADR-0354; await oya-ci-required/affected-set green for merge",
+  "summary": "APPROVE #1574 tip f6ce421d20a1: residual chronology DuplicateSourcePath + hermetic ADR-0354; await oya-ci-required green",
   "reviewed_at": "2026-08-06T12:13Z",
   "reviewer": "implement-claimed-lane-w2",
-  "pr": 1574
+  "pr": 1574,
+  "code_tip": "37b8c794557bbc865b5b9cd94674c5cfb2de5303",
+  "evidence_note": "head pins code fix; evidence commits may tip beyond"
 }
