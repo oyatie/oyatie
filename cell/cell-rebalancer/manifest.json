@@ -66,7 +66,7 @@
   "slos": [],
   "slo_exemption": {
     "status": "live_exempted_no_runtime_sli",
-    "owner": "axis-cellular",
+    "owner": "axis-platform-reliability",
     "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
     "cutover_on": "2026-12-31",
     "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
@@ -200,10 +200,10 @@
     "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
     "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
     "no runtime autoscaling autosharding migration workflow or tenant move execution",
-    "no cell promotion drain decommission lifecycle engine",
-    "no tenant migration or cell rebalance execution"
+    "no cell-rebalancer crate or tenant migration workflow exists",
+    "no cross-cell tenant move execution or data-plane drain automation"
   ],
-  "microservice": "cell-lifecycle",
+  "microservice": "cell-rebalancer",
   "tier": "substrate",
   "tier_subtype": "substrate-infra",
   "dr_tier": "T1",
@@ -222,53 +222,55 @@
       "workflow-engine"
     ]
   },
-  "owner": "axis-cellular",
+  "owner": "axis-platform-reliability",
   "bounded_contexts": [
     {
-      "name": "cell-binding-and-lifecycle-local-foundation",
-      "description": "Code-backed local foundation for tenant/cell binding, residency, AZ-region, HSM partition, and API boundary invariants. No logical lifecycle workflow runtime, promotion/drain/decommission executor, tenant migration, REST/gRPC server, SDK, worker, database, measured SLO, active-active DR, or audit-chain persistence is claimed.",
+      "name": "capacity-rebalance-plan-local-foundation",
+      "description": "Compatibility service manifest now points to the code-backed cloud capacity domain `RebalancePlan` and CloudOpsFoundationGuardrail. No cell-rebalancer crate, durable workflow, tenant migration executor, REST/gRPC API, worker, queue, database, policy engine adapter, or audit-chain emitter exists in this checkout.",
       "crates": [
-        "oya-cell-domain",
-        "oya-cloud-cell-app"
+        "oya-cloud-capacity-domain",
+        "oya-cloud-capacity-kernel"
       ]
     }
   ],
   "layers": [
     "domain",
-    "app"
+    "kernel"
   ],
   "contracts": {
     "openapi": [
-      "microservices/cell-lifecycle/contracts/openapi.yaml"
+      "microservices/cell-rebalancer/contracts/openapi.yaml"
     ],
-    "asyncapi": [],
+    "asyncapi": [
+      "microservices/cell-rebalancer/contracts/asyncapi.yaml"
+    ],
     "internal_grpc": {
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cell-lifecycle/contracts/proto/cell-lifecycle-design.proto"
+        "cell/cell-rebalancer/contracts/proto/cell-rebalancer-design.proto"
       ]
     },
-    "contract_status": "service-local OpenAPI remains planning/scaffold metadata; code-backed tests cover Rust domain/app boundaries only"
+    "contract_status": "service-local contracts are retained as planning scaffolds; no transport implementation or broker runtime is code-backed"
   },
   "capabilities": [
     {
       "tier": "T1",
-      "name": "tenant-cell-binding-residency-invariants",
-      "file": "crates/oya-cell-domain/src/lib.rs",
+      "name": "capacity-rebalance-plan-move-limit",
+      "file": "crates/oya-cloud-capacity-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
-      "name": "cell-bind-api-boundary",
-      "file": "crates/oya-cloud-cell-app/tests/cloud_cell_bind_api.rs",
-      "risk_class": "high"
-    },
-    {
-      "tier": "T1",
-      "name": "cloud-ops-evidence-scope-guardrail",
+      "name": "stable-headroom-and-cell-scoped-ops-guardrail",
       "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
       "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "capacity-kernel-command-shaping",
+      "file": "crates/oya-cloud-capacity-kernel/src/lib.rs",
+      "risk_class": "medium"
     }
   ],
   "ips": [

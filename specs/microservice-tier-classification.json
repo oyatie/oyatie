@@ -20,9 +20,9 @@
   },
   "service_count": 101,
   "services": {
-    "cloud/cell-lifecycle/manifest.json": {
-      "service": "cloud/cell-lifecycle",
-      "manifest": "cloud/cell-lifecycle/manifest.json",
+    "cell/cell-lifecycle/manifest.json": {
+      "service": "cell/cell-lifecycle",
+      "manifest": "cell/cell-lifecycle/manifest.json",
       "capability": "cell",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -43,9 +43,9 @@
         ]
       }
     },
-    "cloud/cell-rebalancer/manifest.json": {
-      "service": "cloud/cell-rebalancer",
-      "manifest": "cloud/cell-rebalancer/manifest.json",
+    "cell/cell-rebalancer/manifest.json": {
+      "service": "cell/cell-rebalancer",
+      "manifest": "cell/cell-rebalancer/manifest.json",
       "capability": "cell",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",

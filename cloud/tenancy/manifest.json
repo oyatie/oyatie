@@ -448,8 +448,8 @@
     "claim_ceiling": "contract/gate/traceability/nonclaim only",
     "runtime_mode": "local-manifest-json-gate",
     "source_of_truth": [
-      "cloud/cell-lifecycle/manifest.json#cloud_ops_foundation",
-      "cloud/cell-rebalancer/manifest.json#cloud_ops_foundation",
+      "cell/cell-lifecycle/manifest.json#cloud_ops_foundation",
+      "cell/cell-rebalancer/manifest.json#cloud_ops_foundation",
       "cloud/tenancy/manifest.json#dr"
     ],
     "nonclaim_guard": [
@@ -460,7 +460,7 @@
     "verification": {
       "json_validation_required": true,
       "targeted_buck_targets_present": false,
-      "owned_buck_target_discovery": "buck2 targets //cloud/cell-lifecycle/... //cloud/cell-rebalancer/... //cloud/tenancy/..."
+      "owned_buck_target_discovery": "buck2 targets //cell/cell-lifecycle/... //cell/cell-rebalancer/... //cloud/tenancy/..."
     }
   },
   "pod_runtime_tier": 1,
