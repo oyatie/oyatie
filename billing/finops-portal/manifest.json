@@ -241,7 +241,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/finops-portal/contracts/cost-allocation-policy-internal.proto"
+        "billing/finops-portal/contracts/cost-allocation-policy-internal.proto"
       ]
     },
     "contract_status": "service-local FinOps invoice, FOCUS export, and cost-allocation contract files exist in this package; Rust tests cover local report boundaries only and no portal, export, invoice-render, or OpenCost runtime is claimed"
@@ -289,9 +289,9 @@
     "schema_version": 1,
     "seam_kind": "contract_traceability_nonclaim",
     "upstream_billing_contract_refs": [
-      "../../cloud/cloud-billing/contracts/openapi.yaml#/paths/~1meter-aggregate",
-      "../../cloud/cloud-billing/contracts/openapi.yaml#/paths/~1focus-export",
-      "../../cloud/cloud-billing/contracts/asyncapi.yaml#/channels/cloud_billing.focus_export.completed"
+      "../contracts/openapi.yaml#/paths/~1meter-aggregate",
+      "../contracts/openapi.yaml#/paths/~1focus-export",
+      "../contracts/asyncapi.yaml#/channels/cloud_billing.focus_export.completed"
     ],
     "local_contract_refs": [
       "contracts/focus-export-internal.asyncapi.yaml",

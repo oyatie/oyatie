@@ -86,7 +86,7 @@
       "anchor": "ADR-0606 / GH #980: the SVID-delivery operator's join-token ExternalSecret template (ESO ClusterSecretStore openbao-oya -> the operator-internal join-token Secret), amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so this new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0606, whose '## Governed surfaces' block names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)"
     },
     {
-      "prefix": "cloud/cloud-billing/iac/aws-guest/",
+      "prefix": "billing/iac/aws-guest/",
       "anchor": "ADR-0339 IAC-001: the cloud-billing aws-guest thin-wrapper fixture invokes the shared OpenTofu sg-baseline module by in-repo relative path for the first module-library slice; ownership marker sits beside the wrapper and no cloud provisioning runtime is claimed."
     },
     {

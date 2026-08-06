@@ -66,9 +66,9 @@
         ]
       }
     },
-    "cloud/cloud-billing-tax/manifest.json": {
-      "service": "cloud/cloud-billing-tax",
-      "manifest": "cloud/cloud-billing-tax/manifest.json",
+    "billing/tax/manifest.json": {
+      "service": "billing/tax",
+      "manifest": "billing/tax/manifest.json",
       "capability": "billing",
       "tier": "substrate",
       "tier_subtype": "substrate-marketplace-data",
@@ -80,9 +80,9 @@
         "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "cloud/cloud-billing/manifest.json": {
-      "service": "cloud/cloud-billing",
-      "manifest": "cloud/cloud-billing/manifest.json",
+    "billing/manifest.json": {
+      "service": "billing",
+      "manifest": "billing/manifest.json",
       "capability": "billing",
       "tier": "substrate",
       "tier_subtype": "substrate-marketplace-data",
@@ -788,9 +788,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/finops-portal/manifest.json": {
-      "service": "oya/finops-portal",
-      "manifest": "oya/finops-portal/manifest.json",
+    "billing/finops-portal/manifest.json": {
+      "service": "billing/finops-portal",
+      "manifest": "billing/finops-portal/manifest.json",
       "capability": "billing",
       "tier": "substrate",
       "tier_subtype": "substrate-marketplace-data",

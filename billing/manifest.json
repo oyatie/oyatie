@@ -38,7 +38,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-billing/contracts/proto/cloud-billing.proto",
+        "billing/contracts/proto/cloud-billing.proto",
         "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
         "contracts/proto/platform/metering/v1/metering-event-v1.proto"
       ]
@@ -331,7 +331,7 @@
       "primitive": "sg-baseline",
       "version_pin": "v0.1.0",
       "source": "../../../../iac/modules/aws-guest/sg-baseline",
-      "wrapper": "cloud/cloud-billing/iac/aws-guest/main.tofu",
+      "wrapper": "billing/iac/aws-guest/main.tofu",
       "tenant_class_scope": "both"
     }
   ],
@@ -364,10 +364,10 @@
       "contracts/asyncapi.yaml#/channels/cloud_billing.settlement.payout_initiated"
     ],
     "downstream_traceability_refs": [
-      "../../oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
-      "../../oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
-      "../../oya/marketplace/contracts/openapi-v1.yaml",
-      "../../oya/marketplace/contracts/asyncapi-v1.yaml"
+      "finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+      "finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+      "../../marketplace/contracts/openapi-v1.yaml",
+      "../../marketplace/contracts/asyncapi-v1.yaml"
     ],
     "non_claim": "Traceability only: this records billing, FinOps, and marketplace contract handoff surfaces. It does not implement live metering ingest, FOCUS export generation, invoice rendering, settlement payout, escrow, entitlement, external marketplace API integration, broker delivery, storage, audit-chain persistence, or production billing readiness."
   }

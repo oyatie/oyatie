@@ -101,7 +101,7 @@
         "status": "implemented-fixture-iac-001",
         "version": "v0.1.0",
         "source_path": "iac/modules/aws-guest/sg-baseline",
-        "wrapper_fixture": "cloud/cloud-billing/iac/aws-guest/main.tofu",
+        "wrapper_fixture": "billing/iac/aws-guest/main.tofu",
         "catalog_doc_path": "docs/standards/iac-module-catalog.md#aws-guestsg-baseline"
       }
     ],
