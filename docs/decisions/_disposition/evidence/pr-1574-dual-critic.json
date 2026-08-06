@@ -48,7 +48,7 @@
   "reviewed_at": "2026-08-06T12:46:28Z",
   "reviewer": "w3-pr-babysit-lanes",
   "pr": 1574,
-  "code_tip": "6504a88d49bacd74dc96483891bb3dd23888653d",
+  "code_tip": "2d6d13446f02bceb905c2f9886e3ee0f3619fa26",
   "blockers": [],
   "ci_binding_fix": {
     "check": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
@@ -66,5 +66,6 @@
     "at": "2026-08-06T12:46:28Z",
     "action": "fix_and_push",
     "note": "hermetic D-7 fixture for Buck sandbox"
-  }
+  },
+  "tip_note": "dual-critic head=code fix tip; evidence commits may advance tip"
 }
