@@ -16,14 +16,14 @@ use sha2::{Digest, Sha256};
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
-const DEFAULT_PROVENANCE: &str = "microservices/cloud-iac/tofu/modules/provenance.json";
-const DEFAULT_RELEASE_INDEX: &str = "microservices/cloud-iac/tofu/modules/release-index.json";
-const DEFAULT_ARCHIVE_MANIFEST: &str = "microservices/cloud-iac/tofu/modules/archive-manifest.json";
-const DEFAULT_PROVIDER_LOCK_ROOT: &str = "microservices/cloud-iac/tofu/provider-locks/foundation";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
+const DEFAULT_PROVENANCE: &str = "iac/tofu/modules/provenance.json";
+const DEFAULT_RELEASE_INDEX: &str = "iac/tofu/modules/release-index.json";
+const DEFAULT_ARCHIVE_MANIFEST: &str = "iac/tofu/modules/archive-manifest.json";
+const DEFAULT_PROVIDER_LOCK_ROOT: &str = "iac/tofu/provider-locks/foundation";
 const DEFAULT_PROVIDER_SIGNATURE_REVIEW: &str =
-    "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json";
+    "iac/tofu/provider-locks/foundation/provider-signature-review.json";
 const GATE_NAME: &str = "cloud-iac-module-release-index";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_module_release_index_gate.rs";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001";
@@ -177,13 +177,13 @@ pub(crate) fn parse_cloud_iac_module_release_index_args(
                     "cloud-iac-module-release-index: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-module-release-index \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] \
-                     [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>] \
-                     [--release-index <microservices/cloud-iac/tofu/modules/release-index.json>] \
-                     [--archive-manifest <microservices/cloud-iac/tofu/modules/archive-manifest.json>] \
-                     [--provider-lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>] \
-                     [--provider-signature-review <microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>] \
+                     [--provenance <iac/tofu/modules/provenance.json>] \
+                     [--release-index <iac/tofu/modules/release-index.json>] \
+                     [--archive-manifest <iac/tofu/modules/archive-manifest.json>] \
+                     [--provider-lock-root <iac/tofu/provider-locks/foundation>] \
+                     [--provider-signature-review <iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
                 ));
             }
         }
@@ -1631,18 +1631,18 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacModuleReleaseIndexArgs {
         CloudIacModuleReleaseIndexArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            catalog: PathBuf::from("microservices/cloud-iac/tofu/modules/catalog.json"),
-            provenance: PathBuf::from("microservices/cloud-iac/tofu/modules/provenance.json"),
-            release_index: PathBuf::from("microservices/cloud-iac/tofu/modules/release-index.json"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            catalog: PathBuf::from("iac/tofu/modules/catalog.json"),
+            provenance: PathBuf::from("iac/tofu/modules/provenance.json"),
+            release_index: PathBuf::from("iac/tofu/modules/release-index.json"),
             archive_manifest: PathBuf::from(
-                "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+                "iac/tofu/modules/archive-manifest.json",
             ),
             provider_lock_root: PathBuf::from(
-                "microservices/cloud-iac/tofu/provider-locks/foundation",
+                "iac/tofu/provider-locks/foundation",
             ),
             provider_signature_review: PathBuf::from(
-                "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+                "iac/tofu/provider-locks/foundation/provider-signature-review.json",
             ),
         }
     }
@@ -1661,38 +1661,38 @@ mod tests {
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
         for module in ["cloud-account", "dns"] {
-            let module_root = root.join(format!("microservices/cloud-iac/tofu/modules/{module}"));
+            let module_root = root.join(format!("iac/tofu/modules/{module}"));
             fs::create_dir_all(&module_root).expect("module dir");
             fs::write(module_root.join("main.tofu"), format!("# {module}\n")).expect("main");
             fs::write(module_root.join("README.md"), format!("# {module}\n")).expect("readme");
         }
-        let lock_root = root.join("microservices/cloud-iac/tofu/provider-locks/foundation");
+        let lock_root = root.join("iac/tofu/provider-locks/foundation");
         fs::create_dir_all(&lock_root).expect("lock root");
         fs::write(lock_root.join("provider-signature-review.json"), "{}\n").expect("sig review");
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules")).expect("modules");
+        fs::create_dir_all(root.join("iac/tofu/modules")).expect("modules");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/catalog.json"),
+            root.join("iac/tofu/modules/catalog.json"),
             fixture_catalog(),
         )
         .expect("catalog");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/provenance.json"),
+            root.join("iac/tofu/modules/provenance.json"),
             fixture_provenance(root),
         )
         .expect("provenance");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/release-index.json"),
+            root.join("iac/tofu/modules/release-index.json"),
             fixture_release_index(root, drift),
         )
         .expect("release index");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/archive-manifest.json"),
+            root.join("iac/tofu/modules/archive-manifest.json"),
             fixture_archive_manifest(root, drift),
         )
         .expect("archive manifest");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(),
         )
         .expect("manifest");
@@ -1721,18 +1721,18 @@ mod tests {
             modules.pop();
         }
         let sig_hash = sha256_for_test(&root.join(
-            "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+            "iac/tofu/provider-locks/foundation/provider-signature-review.json",
         ));
         serde_json::to_string_pretty(&serde_json::json!({
             "schema_version": "1.0",
             "release_index_id": "cloud-iac-opentofu-modules-local-release-index",
             "generated_by_changeset": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001",
             "authority": {
-                "source_catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-                "source_provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
-                "source_archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-                "source_provider_lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
-                "source_provider_signature_review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+                "source_catalog": "iac/tofu/modules/catalog.json",
+                "source_provenance": "iac/tofu/modules/provenance.json",
+                "source_archive_manifest": "iac/tofu/modules/archive-manifest.json",
+                "source_provider_lock_root": "iac/tofu/provider-locks/foundation",
+                "source_provider_signature_review": "iac/tofu/provider-locks/foundation/provider-signature-review.json",
                 "runtime_mode": "local-opentofu-module-release-index-gate",
                 "official_sources_consulted": super::REQUIRED_OFFICIAL_SOURCES,
                 "non_claims": required_nonclaims()
@@ -1750,8 +1750,8 @@ mod tests {
                 "provider_resource_complete_modules": false
             },
             "provider_evidence": {
-                "lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
-                "signature_review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+                "lock_root": "iac/tofu/provider-locks/foundation",
+                "signature_review": "iac/tofu/provider-locks/foundation/provider-signature-review.json",
                 "signature_review_sha256": sig_hash
             },
             "modules": modules
@@ -1785,12 +1785,12 @@ mod tests {
             }],
             "foundation_non_claims": ["CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001 adds a local release index only; no private registry API, signing, SLSA, plan/apply, or cloud runtime is claimed."],
             "module_release_index_scope": {
-                "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-                "provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
-                "release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
-                "archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-                "provider_lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
-                "provider_signature_review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+                "catalog": "iac/tofu/modules/catalog.json",
+                "provenance": "iac/tofu/modules/provenance.json",
+                "release_index": "iac/tofu/modules/release-index.json",
+                "archive_manifest": "iac/tofu/modules/archive-manifest.json",
+                "provider_lock_root": "iac/tofu/provider-locks/foundation",
+                "provider_signature_review": "iac/tofu/provider-locks/foundation/provider-signature-review.json",
                 "status": "local-release-index-no-private-registry-api",
                 "runtime_mode": "local-opentofu-module-release-index-gate",
                 "module_count": 2,
@@ -1814,8 +1814,8 @@ mod tests {
             "name": name,
             "system": "opentofu",
             "version": "0.1.0",
-            "source_path": format!("microservices/cloud-iac/tofu/modules/{name}"),
-            "main_file": format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu"),
+            "source_path": format!("iac/tofu/modules/{name}"),
+            "main_file": format!("iac/tofu/modules/{name}/main.tofu"),
             "release_status": "local-foundation-skeleton",
             "evidence_ref": format!("evidence://cloud-iac/modules/{name}/0.1.0/local-foundation")
         })
@@ -1824,8 +1824,8 @@ mod tests {
     fn provenance_row(root: &Path, name: &str) -> serde_json::Value {
         let mut row = module_row(name);
         row["files"] = serde_json::json!([
-            {"path": format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu"), "sha256": sha256_for_test(&root.join(format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu")))},
-            {"path": format!("microservices/cloud-iac/tofu/modules/{name}/README.md"), "sha256": sha256_for_test(&root.join(format!("microservices/cloud-iac/tofu/modules/{name}/README.md")))}
+            {"path": format!("iac/tofu/modules/{name}/main.tofu"), "sha256": sha256_for_test(&root.join(format!("iac/tofu/modules/{name}/main.tofu")))},
+            {"path": format!("iac/tofu/modules/{name}/README.md"), "sha256": sha256_for_test(&root.join(format!("iac/tofu/modules/{name}/README.md")))}
         ]);
         row
     }
@@ -1842,7 +1842,7 @@ mod tests {
         row["module_source_kind"] = serde_json::json!("local-path");
         row["module_package_built"] = serde_json::json!(true);
         row["archive_manifest_ref"] =
-            serde_json::json!("microservices/cloud-iac/tofu/modules/archive-manifest.json");
+            serde_json::json!("iac/tofu/modules/archive-manifest.json");
         row["archive_file"] = serde_json::json!(archive_file(name));
         row["archive_sha256"] = serde_json::json!(archive_sha(root, name));
         row["archive_format"] = serde_json::json!("zip");
@@ -1858,7 +1858,7 @@ mod tests {
         row["slsa_provenance_status"] = serde_json::json!("not-generated");
         row["provider_lock_scope"] = serde_json::json!("foundation");
         row["provider_signature_review_ref"] = serde_json::json!(
-            "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json"
+            "iac/tofu/provider-locks/foundation/provider-signature-review.json"
         );
         if drift == FixtureDrift::DigestDrift && name == "dns" {
             row["files"][0]["sha256"] = serde_json::json!("0".repeat(64));
@@ -1919,7 +1919,7 @@ mod tests {
 
     fn archive_sha(root: &Path, name: &str) -> String {
         sha256_for_test(&root.join(format!(
-            "microservices/cloud-iac/tofu/modules/{name}/main.tofu"
+            "iac/tofu/modules/{name}/main.tofu"
         )))
     }
 

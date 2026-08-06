@@ -14,8 +14,8 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
 const GATE_NAME: &str = "cloud-iac-module-catalog";
 const LOCAL_SKELETON_STATUS: &str = "local-foundation-skeleton";
 const OPENTOFU_SYSTEM: &str = "opentofu";
@@ -76,8 +76,8 @@ pub(crate) fn parse_cloud_iac_module_catalog_validate_args(
                     "cloud-iac-module-catalog: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-module-catalog \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>]"
                 ));
             }
         }
@@ -763,7 +763,7 @@ mod tests {
         );
         fs::remove_file(
             temp.path()
-                .join("microservices/cloud-iac/tofu/modules/vpc/main.tofu"),
+                .join("iac/tofu/modules/vpc/main.tofu"),
         )
         .expect("main file removed");
 
@@ -793,7 +793,7 @@ mod tests {
             ],
             "module_library_scope": {
                 "catalog": DEFAULT_CATALOG,
-                "actual_path_root": "microservices/cloud-iac/tofu/modules",
+                "actual_path_root": "iac/tofu/modules",
                 "catalog_status": "local-foundation-skeleton-index",
                 "module_count": names.len(),
                 "module_names": names,
@@ -820,7 +820,7 @@ mod tests {
             "schema_version": "1.0",
             "catalog_id": "cloud-iac-opentofu-modules-local-foundation",
             "authority": {
-                "source_path_root": "microservices/cloud-iac/tofu/modules",
+                "source_path_root": "iac/tofu/modules",
                 "non_claims": ["not a live OpenTofu private registry API"]
             },
             "modules": [
@@ -836,8 +836,8 @@ mod tests {
             "name": name,
             "system": "opentofu",
             "version": "0.1.0",
-            "source_path": format!("microservices/cloud-iac/tofu/modules/{name}"),
-            "main_file": format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu"),
+            "source_path": format!("iac/tofu/modules/{name}"),
+            "main_file": format!("iac/tofu/modules/{name}/main.tofu"),
             "release_status": LOCAL_SKELETON_STATUS,
             "provider_resources_implemented": overclaim,
             "outputs_materialized": false,
@@ -847,22 +847,22 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, manifest: Value, catalog: Value) {
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules/dns")).expect("dns dir");
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules/vpc")).expect("vpc dir");
+        fs::create_dir_all(root.join("iac/tofu/modules/dns")).expect("dns dir");
+        fs::create_dir_all(root.join("iac/tofu/modules/vpc")).expect("vpc dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             serde_json::to_string_pretty(&manifest).expect("manifest serializes"),
         )
         .expect("manifest written");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/catalog.json"),
+            root.join("iac/tofu/modules/catalog.json"),
             serde_json::to_string_pretty(&catalog).expect("catalog serializes"),
         )
         .expect("catalog written");
         for name in ["dns", "vpc"] {
             fs::write(
                 root.join(format!(
-                    "microservices/cloud-iac/tofu/modules/{name}/main.tofu"
+                    "iac/tofu/modules/{name}/main.tofu"
                 )),
                 "# local foundation skeleton\n",
             )

@@ -34,13 +34,12 @@ rust_binary(
 
 rust_test(
     name = "iac-app-cloud-iac-app",
-    srcs = [],
+    srcs = ["tests/cloud_iac_app.rs"],
     crate = "iac_app_cloud_iac_app",
-    crate_root = "cloud/cloud-iac/crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
+    crate_root = "tests/cloud_iac_app.rs",
     visibility = ["PUBLIC"],
     mapped_srcs = {
-        "tests/cloud_iac_app.rs": "cloud/cloud-iac/crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
-        "//cloud/cloud-iac/tofu/modules:release-index.json": "cloud/cloud-iac/tofu/modules/release-index.json",
+        "//iac/tofu/modules:release-index.json": "../../../tofu/modules/release-index.json",
     },
     deps = [
         ":iac-app",

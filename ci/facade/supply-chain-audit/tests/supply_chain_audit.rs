@@ -734,8 +734,8 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     }
 
     for rel in [
-        "cloud/cloud-iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml",
-        "cloud/cloud-iac/iac/k8s/kubewarden/verification-config.yaml",
+        "iac/iac/k8s/kubewarden/verify-image-signatures-policy.yaml",
+        "iac/iac/k8s/kubewarden/verification-config.yaml",
     ] {
         let policy = std::fs::read_to_string(root.join(rel)).expect("read kubewarden policy");
         assert!(
@@ -749,10 +749,10 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     let cli_usage = std::fs::read_to_string(root.join("marketplace/facade/dev-cli/src/lib.rs"))
         .expect("read dev-cli usage");
     assert!(
-        cli_usage.contains("--manifest <cloud/cloud-iac/manifest.json>")
-            && cli_usage.contains("--chart-root <cloud/cloud-iac/iac/k8s/helm>")
-            && cli_usage.contains("--kubewarden-root <cloud/cloud-iac/iac/k8s/kubewarden>"),
-        "dev-cli help must advertise live cloud/cloud-iac supply-chain admission paths"
+        cli_usage.contains("--manifest <iac/manifest.json>")
+            && cli_usage.contains("--chart-root <iac/iac/k8s/helm>")
+            && cli_usage.contains("--kubewarden-root <iac/iac/k8s/kubewarden>"),
+        "dev-cli help must advertise live iac supply-chain admission paths"
     );
 
     let checklist =

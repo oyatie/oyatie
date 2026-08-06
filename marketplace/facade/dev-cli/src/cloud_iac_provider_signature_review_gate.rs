@@ -17,10 +17,10 @@ use sha2::{Digest, Sha256};
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_LOCK_ROOT: &str = "microservices/cloud-iac/tofu/provider-locks/foundation";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_LOCK_ROOT: &str = "iac/tofu/provider-locks/foundation";
 const DEFAULT_REVIEW: &str =
-    "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json";
+    "iac/tofu/provider-locks/foundation/provider-signature-review.json";
 const GATE_NAME: &str = "cloud-iac-provider-signature-review";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_provider_signature_review_gate.rs";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-PROVIDER-SIGNATURE-REVIEW-GATE-001";
@@ -29,7 +29,7 @@ const REVIEW_STATUS: &str = "signed-provider-lock-reviewed-no-vsa";
 const PROVIDERS_FILE: &str = "providers.tofu";
 const LOCKFILE_NAME: &str = ".terraform.lock.hcl";
 const REVIEW_FILE: &str = "provider-signature-review.json";
-const MODULES_ROOT: &str = "microservices/cloud-iac/tofu/modules";
+const MODULES_ROOT: &str = "iac/tofu/modules";
 const REQUIRED_OFFICIAL_SOURCES: &[&str] = &[
     "https://opentofu.org/docs/cli/commands/providers/lock/",
     "https://opentofu.org/docs/language/files/dependency-lock/",
@@ -101,9 +101,9 @@ pub(crate) fn parse_cloud_iac_provider_signature_review_args(
                     "cloud-iac-provider-signature-review: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-provider-signature-review \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>] \
-                     [--review <microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--lock-root <iac/tofu/provider-locks/foundation>] \
+                     [--review <iac/tofu/provider-locks/foundation/provider-signature-review.json>]"
                 ));
             }
         }
@@ -1187,12 +1187,12 @@ mod tests {
         let temp = TempRepo::new("cloud-iac-provider-signature-review-module-root");
         let module_lock_root = temp
             .path()
-            .join("microservices/cloud-iac/tofu/modules/foundation-lock");
+            .join("iac/tofu/modules/foundation-lock");
         fs::create_dir_all(&module_lock_root).expect("module lock root");
         let mut diagnostics = Vec::new();
 
         super::validate_lock_root(
-            "microservices/cloud-iac/tofu/modules/foundation-lock",
+            "iac/tofu/modules/foundation-lock",
             &module_lock_root,
             &mut diagnostics,
         );
@@ -1207,10 +1207,10 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacProviderSignatureReviewArgs {
         CloudIacProviderSignatureReviewArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            lock_root: PathBuf::from("microservices/cloud-iac/tofu/provider-locks/foundation"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            lock_root: PathBuf::from("iac/tofu/provider-locks/foundation"),
             review: PathBuf::from(
-                "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+                "iac/tofu/provider-locks/foundation/provider-signature-review.json",
             ),
         }
     }
@@ -1224,7 +1224,7 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
-        let lock_root = root.join("microservices/cloud-iac/tofu/provider-locks/foundation");
+        let lock_root = root.join("iac/tofu/provider-locks/foundation");
         fs::create_dir_all(&lock_root).expect("lock root");
         fs::write(lock_root.join("providers.tofu"), fixture_providers()).expect("providers");
         fs::write(lock_root.join(".terraform.lock.hcl"), fixture_lockfile()).expect("lockfile");
@@ -1233,9 +1233,9 @@ mod tests {
             fixture_review(&lock_root, drift),
         )
         .expect("review");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(&lock_root),
         )
         .expect("manifest");
@@ -1302,9 +1302,9 @@ provider "registry.opentofu.org/cloudflare/cloudflare" {
   "review_id":"cloud-iac-provider-signature-review-local-inventory",
   "generated_by_changeset":"CS-CLOUD-IAC-PROVIDER-SIGNATURE-REVIEW-GATE-001",
   "authority":{{
-    "lock_root":"microservices/cloud-iac/tofu/provider-locks/foundation",
-    "providers_file":"microservices/cloud-iac/tofu/provider-locks/foundation/providers.tofu",
-    "lockfile":"microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
+    "lock_root":"iac/tofu/provider-locks/foundation",
+    "providers_file":"iac/tofu/provider-locks/foundation/providers.tofu",
+    "lockfile":"iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
     "runtime_mode":"local-opentofu-provider-signature-review-gate",
     "official_sources_consulted":[
       "https://opentofu.org/docs/cli/commands/providers/lock/",
@@ -1353,10 +1353,10 @@ provider "registry.opentofu.org/cloudflare/cloudflare" {
                 "risk_class": "high"
             }],
             "provider_signature_review_scope": {
-                "lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
-                "providers_file": "microservices/cloud-iac/tofu/provider-locks/foundation/providers.tofu",
-                "lockfile": "microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
-                "review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+                "lock_root": "iac/tofu/provider-locks/foundation",
+                "providers_file": "iac/tofu/provider-locks/foundation/providers.tofu",
+                "lockfile": "iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
+                "review": "iac/tofu/provider-locks/foundation/provider-signature-review.json",
                 "status": "signed-provider-lock-reviewed-no-vsa",
                 "runtime_mode": "local-opentofu-provider-signature-review-gate",
                 "platforms": ["darwin_arm64", "linux_amd64", "linux_arm64"],

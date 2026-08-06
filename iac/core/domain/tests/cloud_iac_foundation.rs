@@ -15,7 +15,7 @@ fn tenant_namespace_release() -> OpenTofuModuleRelease {
         "tenant-namespace",
         "opentofu",
         "1.0.0",
-        "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0",
+        "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0",
         "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "evidence://cloud-iac/modules/tenant-namespace/1.0.0",
     )
@@ -29,7 +29,7 @@ fn module_release(name: &str, version: &str, digest_hex: char) -> OpenTofuModule
         "opentofu",
         version,
         format!(
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/{name}?ref=v{version}"
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/{name}?ref=v{version}"
         ),
         format!("sha256:{}", digest_hex.to_string().repeat(64)),
         format!("evidence://cloud-iac/modules/{name}/{version}/local-foundation"),
@@ -57,8 +57,8 @@ fn local_catalog_entry(name: &str) -> LocalOpenTofuModuleCatalogEntry {
         name,
         "opentofu",
         "0.1.0",
-        format!("microservices/cloud-iac/tofu/modules/{name}"),
-        format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu"),
+        format!("iac/tofu/modules/{name}"),
+        format!("iac/tofu/modules/{name}/main.tofu"),
         LocalModuleReleaseStatus::LocalFoundationSkeleton,
         false,
         false,
@@ -96,7 +96,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "v1",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v1",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v1",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "evidence://cloud-iac/modules/tenant-namespace/v1",
         )
@@ -110,7 +110,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "1.0.0",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "evidence://cloud-iac/modules/tenant-namespace/1.0.0",
         )
@@ -124,7 +124,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "1.0.0",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0-malicious",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0-malicious",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "evidence://cloud-iac/modules/tenant-namespace/1.0.0",
         )
@@ -138,7 +138,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "1.0.0",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0&ref=v1.0.0",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0&ref=v1.0.0",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "evidence://cloud-iac/modules/tenant-namespace/1.0.0",
         )
@@ -152,7 +152,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "01.0.0",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v01.0.0",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v01.0.0",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "evidence://cloud-iac/modules/tenant-namespace/01.0.0",
         )
@@ -166,7 +166,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "1.0.0",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0",
             "sha256:not-a-real-digest",
             "evidence://cloud-iac/modules/tenant-namespace/1.0.0",
         )
@@ -180,7 +180,7 @@ fn cloud_iac_module_registry_is_metadata_only_and_exactly_pinned() {
             "tenant-namespace",
             "opentofu",
             "1.0.0",
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0",
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/k8s-namespace-bootstrap?ref=v1.0.0",
             "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             "token=secret-in-evidence-ref",
         )
@@ -510,7 +510,7 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
 
     let catalog = LocalOpenTofuModuleCatalog::new(
         "cloud-iac-opentofu-modules-local-foundation",
-        "microservices/cloud-iac/tofu/modules",
+        "iac/tofu/modules",
         entries,
     )
     .expect("current local catalog is coherent");
@@ -521,7 +521,7 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
     );
     assert_eq!(
         catalog.source_path_root(),
-        "microservices/cloud-iac/tofu/modules"
+        "iac/tofu/modules"
     );
     assert_eq!(catalog.module_count(), 6);
     assert_eq!(catalog.entries()[0].name(), "cloud-account");
@@ -536,7 +536,7 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
     assert_eq!(
         LocalOpenTofuModuleCatalog::new(
             "cloud-iac-opentofu-modules-local-foundation",
-            "microservices/cloud-iac/tofu/modules",
+            "iac/tofu/modules",
             vec![local_catalog_entry("vpc"), local_catalog_entry("vpc")],
         )
         .unwrap_err(),
@@ -546,7 +546,7 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
     assert_eq!(
         LocalOpenTofuModuleCatalog::new(
             "cloud-iac-opentofu-modules-local-foundation",
-            "microservices/cloud-iac/tofu/modules",
+            "iac/tofu/modules",
             vec![
                 LocalOpenTofuModuleCatalogEntry::new(
                     "oyatie",
@@ -574,8 +574,8 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
             "vpc",
             "opentofu",
             "0.1.0",
-            "microservices/cloud-iac/tofu/modules/vpc",
-            "microservices/cloud-iac/tofu/modules/vpc/not-main.tofu",
+            "iac/tofu/modules/vpc",
+            "iac/tofu/modules/vpc/not-main.tofu",
             LocalModuleReleaseStatus::LocalFoundationSkeleton,
             false,
             false,
@@ -592,8 +592,8 @@ fn cloud_iac_local_module_catalog_prevents_skeleton_false_greens() {
             "vpc",
             "opentofu",
             "0.1.0",
-            "microservices/cloud-iac/tofu/modules/vpc",
-            "microservices/cloud-iac/tofu/modules/vpc/main.tofu",
+            "iac/tofu/modules/vpc",
+            "iac/tofu/modules/vpc/main.tofu",
             LocalModuleReleaseStatus::LocalFoundationSkeleton,
             true,
             false,

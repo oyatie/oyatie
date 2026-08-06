@@ -77,7 +77,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cloud/cloud-billing/manifest.json": {
@@ -91,7 +91,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cloud/cloud-data/manifest.json": {
@@ -116,20 +116,6 @@
           "intelligence",
           "workflow-engine"
         ]
-      }
-    },
-    "cloud/cloud-iac/manifest.json": {
-      "service": "cloud/cloud-iac",
-      "manifest": "cloud/cloud-iac/manifest.json",
-      "capability": "iac",
-      "tier": "substrate",
-      "tier_subtype": "substrate-iac",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
     "cloud/cloud-iam/manifest.json": {
@@ -204,7 +190,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cloud/cloud-kms/manifest.json": {
@@ -267,7 +253,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cloud/cloud-secrets/manifest.json": {
@@ -302,7 +288,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cloud/managed-k8s-cluster-lifecycle/manifest.json": {
@@ -473,7 +459,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/comms-email/manifest.json": {
@@ -741,7 +727,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/emergency/manifest.json": {
@@ -777,7 +763,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/financial-planning/manifest.json": {
@@ -799,7 +785,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/forms/manifest.json": {
@@ -889,7 +875,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/incident-management/manifest.json": {
@@ -997,7 +983,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/meet/manifest.json": {
@@ -1221,7 +1207,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/sheets/manifest.json": {
@@ -1372,6 +1358,20 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
+    },
+    "iac/manifest.json": {
+      "service": "iac",
+      "manifest": "iac/manifest.json",
+      "capability": "iac",
+      "tier": "substrate",
+      "tier_subtype": "substrate-iac",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
     }
   }
 }

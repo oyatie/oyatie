@@ -1,0 +1,95 @@
+{
+  "pack": "cloud-iac",
+  "scope_tier": "mature",
+  "scanned_files": 124,
+  "excluded_files": 2,
+  "violations": {
+    "terraform_active_cmd": {
+      "severity": "soft",
+      "file_hits": [
+        {
+          "file": "iac/capacity-model.md",
+          "hits": [
+            {
+              "line": 160,
+              "excerpt": "| Apply (k8s reconcile or tofu apply) | \u226460s | \u22644min | \u226414min |"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "iac/threat-model.md",
+          "hits": [
+            {
+              "line": 536,
+              "excerpt": "- Mass-destroy patterns (e.g., tofu destroy across many resources) trigger anomaly alert and require ExecSponsor approval."
+            },
+            {
+              "line": 575,
+              "excerpt": "| Soft-deletion (30d grace) on tofu destroy | Recovery | axis-cloud-iac | terraform-destroy anomaly alert |"
+            }
+          ],
+          "hits_total": 2
+        }
+      ],
+      "match_count": 3
+    },
+    "valkey_engine": {
+      "severity": "hard",
+      "file_hits": [
+        {
+          "file": "iac/IP-001-layer-a-argocd-flux-iac.md",
+          "hits": [
+            {
+              "line": 31,
+              "excerpt": "| `iac/iac/helm/argocd/values.yaml` | create | HA replicas + Valkey Sentinel + admission webhook |"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "iac/runbooks/gitops-reconciler-restart.md",
+          "hits": [
+            {
+              "line": 34,
+              "excerpt": "3. Check Valkey Sentinel cluster (counterpart-fact: Argo CD labels the backing component `app=argocd-redis`): `kubectl -n argocd get pods -l app=argocd-redis`."
+            },
+            {
+              "line": 43,
+              "excerpt": "| 2 | Common causes: Valkey Sentinel split-brain; OOM; etcd contention |"
+            },
+            {
+              "line": 44,
+              "excerpt": "| 3 | If Valkey split-brain: `kubectl -n argocd delete pod -l app=argocd-redis` (counterpart-fact: Argo CD label retained; sentinels re-elect) |"
+            }
+          ],
+          "hits_total": 4
+        }
+      ],
+      "match_count": 5
+    }
+  },
+  "ip_files_thin": [
+    {
+      "file": "iac/IP-010-rest-surfaces.md",
+      "lines": 98
+    },
+    {
+      "file": "iac/IP-012-app-composition-roots.md",
+      "lines": 95
+    },
+    {
+      "file": "iac/implementation-plans/IP-velero-pgbackrest-restic-bootstrap.md",
+      "lines": 55
+    },
+    {
+      "file": "iac/implementation-plans/IP-seaweedfs-cluster-bootstrap.md",
+      "lines": 68
+    },
+    {
+      "file": "iac/implementation-plans/IP-seaweedfs-signed-url-substrate.md",
+      "lines": 51
+    }
+  ],
+  "verdict": "HARD_VIOLATIONS"
+}

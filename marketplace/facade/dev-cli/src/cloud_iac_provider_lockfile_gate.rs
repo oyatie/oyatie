@@ -16,9 +16,9 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_READINESS: &str = "microservices/cloud-iac/tofu/modules/provider-readiness.json";
-const DEFAULT_LOCK_ROOT: &str = "microservices/cloud-iac/tofu/provider-locks/foundation";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_READINESS: &str = "iac/tofu/modules/provider-readiness.json";
+const DEFAULT_LOCK_ROOT: &str = "iac/tofu/provider-locks/foundation";
 const GATE_NAME: &str = "cloud-iac-provider-lockfile";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_provider_lockfile_gate.rs";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-PROVIDER-LOCKFILE-GATE-001";
@@ -26,7 +26,7 @@ const RUNTIME_MODE: &str = "local-opentofu-provider-lockfile-gate";
 const LOCKFILE_STATUS: &str = "locked-multi-platform-no-provider-install";
 const PROVIDERS_FILE: &str = "providers.tofu";
 const LOCKFILE_NAME: &str = ".terraform.lock.hcl";
-const MODULES_ROOT: &str = "microservices/cloud-iac/tofu/modules";
+const MODULES_ROOT: &str = "iac/tofu/modules";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CloudIacProviderLockfileArgs {
@@ -89,9 +89,9 @@ pub(crate) fn parse_cloud_iac_provider_lockfile_args(
                     "cloud-iac-provider-lockfile: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-provider-lockfile \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>] \
-                     [--lock-root <microservices/cloud-iac/tofu/provider-locks/foundation>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--readiness <iac/tofu/modules/provider-readiness.json>] \
+                     [--lock-root <iac/tofu/provider-locks/foundation>]"
                 ));
             }
         }
@@ -1102,11 +1102,11 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacProviderLockfileArgs {
         CloudIacProviderLockfileArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
+            manifest: PathBuf::from("iac/manifest.json"),
             readiness: PathBuf::from(
-                "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+                "iac/tofu/modules/provider-readiness.json",
             ),
-            lock_root: PathBuf::from("microservices/cloud-iac/tofu/provider-locks/foundation"),
+            lock_root: PathBuf::from("iac/tofu/provider-locks/foundation"),
         }
     }
 
@@ -1120,7 +1120,7 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
-        let lock_root = root.join("microservices/cloud-iac/tofu/provider-locks/foundation");
+        let lock_root = root.join("iac/tofu/provider-locks/foundation");
         fs::create_dir_all(&lock_root).expect("lock root");
         if drift == FixtureDrift::ProviderInstallCache {
             fs::create_dir_all(lock_root.join(".terraform/providers")).expect("provider cache");
@@ -1131,15 +1131,15 @@ mod tests {
             fixture_lockfile(drift),
         )
         .expect("lockfile");
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules")).expect("modules");
+        fs::create_dir_all(root.join("iac/tofu/modules")).expect("modules");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/provider-readiness.json"),
+            root.join("iac/tofu/modules/provider-readiness.json"),
             fixture_readiness(),
         )
         .expect("readiness");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(),
         )
         .expect("manifest");
@@ -1238,10 +1238,10 @@ provider "registry.opentofu.org/cloudflare/cloudflare" {{
     }
   ],
   "provider_lockfile_scope": {
-    "readiness": "microservices/cloud-iac/tofu/modules/provider-readiness.json",
-    "lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
-    "providers_file": "microservices/cloud-iac/tofu/provider-locks/foundation/providers.tofu",
-    "lockfile": "microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
+    "readiness": "iac/tofu/modules/provider-readiness.json",
+    "lock_root": "iac/tofu/provider-locks/foundation",
+    "providers_file": "iac/tofu/provider-locks/foundation/providers.tofu",
+    "lockfile": "iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
     "status": "locked-multi-platform-no-provider-install",
     "runtime_mode": "local-opentofu-provider-lockfile-gate",
     "platforms": ["darwin_arm64", "linux_amd64", "linux_arm64"],

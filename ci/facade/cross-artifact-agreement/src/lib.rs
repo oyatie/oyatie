@@ -5918,7 +5918,7 @@ mod tests {
                 {
                     "microservice": "cloud-iac",
                     "program_id": "P-OWNED-STACK-CLOUD",
-                    "source_manifest": "microservices/cloud-iac/manifest.json",
+                    "source_manifest": "iac/manifest.json",
                     "coverage_status": "covered"
                 }
             ]
@@ -6102,7 +6102,7 @@ mod tests {
                 },
                 {
                     "name": "cloud-iac",
-                    "manifest": "microservices/cloud-iac/manifest.json"
+                    "manifest": "iac/manifest.json"
                 }
             ]
         })

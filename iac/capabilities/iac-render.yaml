@@ -1,0 +1,96 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:cloud-iac:iac-render:v1
+name: iac-render
+namespace: cloud-iac
+display_name: Render IaC Manifests
+description: |
+  Deterministically render a µservice's IaC sources (Helm charts + Kustomize overlays +
+  Terraform/OpenTofu plans) into a content-addressable manifest set. The render output
+  is purely a function of the input sources; re-running on the same input yields an
+  identical content digest. Used by the iac-validator at plan-preview time and by the
+  iac-applier at apply time.
+
+owner_team: axis-cloud-iac
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
+related_specs: [/specs/per-microservice-flat-layout.json]
+related_artifacts:
+  - iac/PRD.md
+  - iac/contracts/openapi/cloud-iac.yaml
+  - iac/policy/tenant-scope.cedar
+
+autonomy_tier: T1
+# T1 = pure read + transform; no state mutation; no tenant data touched at this layer.
+
+inputs:
+  - name: microservice
+    type: string
+    pattern: '^[a-z][a-z0-9-]*$'
+    required: true
+  - name: sha
+    type: string
+    pattern: '^[a-f0-9]{40}$'
+    required: true
+  - name: pack
+    type: enum
+    values: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+    required: true
+  - name: environment
+    type: enum
+    values: [dev, staging, production]
+    required: true
+
+outputs:
+  - name: content_digest
+    type: string
+    pattern: '^sha256:[a-f0-9]{64}$'
+  - name: rendered_bytes_count
+    type: integer
+  - name: renderer_version
+    type: string
+  - name: rendered_at
+    type: timestamp
+
+data_classes_touched:
+  - INTERNAL_ONLY
+  # IaC manifest text is INTERNAL_ONLY; no tenant data touched at render layer.
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.cloud-iac.render.completed
+# RenderCompleted events sealed by audit-chain per Bominal ADR-0028.
+
+cost_profile:
+  type: per-render
+  estimated_cost_usd_per_call: 0.0005
+  cost_drivers:
+    - Helm template + dep resolution
+    - Kustomize overlay merging
+    - OpenTofu plan computation
+
+cedar_policy_fragments:
+  - iac/policy/tenant-scope.cedar
+  - iac/policy/ci-scope.cedar
+
+eval_set:
+  golden_inputs_path: iac/capabilities/eval/iac-render-golden.jsonl
+  pass_threshold: 1.0
+  eval_metric: render-determinism (identical input → identical content_digest 100% of runs)
+  cadence: per-release
+  reference: PRD-cloud-iac AC-02; content-digest determinism contract
+
+sunset:
+  status: none
+  notes: ""

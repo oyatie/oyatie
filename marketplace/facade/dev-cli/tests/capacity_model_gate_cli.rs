@@ -149,7 +149,7 @@ fn capacity_model_gate_ignores_non_runtime_placeholders_during_root_scan() {
     let temp = temp_dir("capacity-model-skip-placeholder");
     let runtime_manifest = temp.join("oya/workflow-engine/manifest.json");
     write_manifest(&runtime_manifest, valid_capacity_manifest());
-    let placeholder_manifest = temp.join("cloud/cloud-iac/manifest.json");
+    let placeholder_manifest = temp.join("iac/manifest.json");
     write_manifest(
         &placeholder_manifest,
         r#"{

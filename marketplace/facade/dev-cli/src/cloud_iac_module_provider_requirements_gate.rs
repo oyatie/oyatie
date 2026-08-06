@@ -16,9 +16,9 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
-const DEFAULT_READINESS: &str = "microservices/cloud-iac/tofu/modules/provider-readiness.json";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
+const DEFAULT_READINESS: &str = "iac/tofu/modules/provider-readiness.json";
 const GATE_NAME: &str = "cloud-iac-module-provider-requirements";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_module_provider_requirements_gate.rs";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001";
@@ -124,9 +124,9 @@ pub(crate) fn parse_cloud_iac_module_provider_requirements_args(
                     "cloud-iac-module-provider-requirements: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-module-provider-requirements \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] \
-                     [--readiness <microservices/cloud-iac/tofu/modules/provider-readiness.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>] \
+                     [--readiness <iac/tofu/modules/provider-readiness.json>]"
                 ));
             }
         }
@@ -162,7 +162,7 @@ pub(crate) fn validate_cloud_iac_module_provider_requirements_gate(
 
     let modules_root =
         required_repo_relative_string(&readiness, "/authority/source_path_root", &mut diagnostics)
-            .unwrap_or_else(|| "microservices/cloud-iac/tofu/modules".to_string());
+            .unwrap_or_else(|| "iac/tofu/modules".to_string());
     let catalog_modules = parse_catalog_modules(&catalog, &modules_root, &mut diagnostics);
     let readiness_modules = parse_readiness_modules(&readiness, &modules_root, &mut diagnostics);
 
@@ -1210,16 +1210,16 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacModuleProviderRequirementsArgs {
         CloudIacModuleProviderRequirementsArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            catalog: PathBuf::from("microservices/cloud-iac/tofu/modules/catalog.json"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            catalog: PathBuf::from("iac/tofu/modules/catalog.json"),
             readiness: PathBuf::from(
-                "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+                "iac/tofu/modules/provider-readiness.json",
             ),
         }
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
-        let modules_root = root.join("microservices/cloud-iac/tofu/modules");
+        let modules_root = root.join("iac/tofu/modules");
         for module in ["cloud-account", "dns"] {
             let module_dir = modules_root.join(module);
             fs::create_dir_all(&module_dir).expect("module dir");
@@ -1236,9 +1236,9 @@ mod tests {
             fixture_readiness(),
         )
         .expect("readiness");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(),
         )
         .expect("manifest");
@@ -1267,12 +1267,12 @@ mod tests {
 
     fn fixture_catalog() -> String {
         r#"{
-  "authority": { "source_path_root": "microservices/cloud-iac/tofu/modules" },
+  "authority": { "source_path_root": "iac/tofu/modules" },
   "modules": [
     {
       "namespace": "oyatie", "name": "cloud-account", "system": "opentofu", "version": "0.1.0",
-      "source_path": "microservices/cloud-iac/tofu/modules/cloud-account",
-      "main_file": "microservices/cloud-iac/tofu/modules/cloud-account/main.tofu",
+      "source_path": "iac/tofu/modules/cloud-account",
+      "main_file": "iac/tofu/modules/cloud-account/main.tofu",
       "release_status": "local-foundation-skeleton",
       "provider_resources_implemented": false,
       "outputs_materialized": false,
@@ -1281,8 +1281,8 @@ mod tests {
     },
     {
       "namespace": "oyatie", "name": "dns", "system": "opentofu", "version": "0.1.0",
-      "source_path": "microservices/cloud-iac/tofu/modules/dns",
-      "main_file": "microservices/cloud-iac/tofu/modules/dns/main.tofu",
+      "source_path": "iac/tofu/modules/dns",
+      "main_file": "iac/tofu/modules/dns/main.tofu",
       "release_status": "local-foundation-skeleton",
       "provider_resources_implemented": false,
       "outputs_materialized": false,
@@ -1300,11 +1300,11 @@ mod tests {
   "schema_version":"1.0",
   "readiness_id":"fixture",
   "generated_by_changeset":"CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001",
-  "authority":{"source_catalog":"microservices/cloud-iac/tofu/modules/catalog.json","source_path_root":"microservices/cloud-iac/tofu/modules","runtime_mode":"local-provider-readiness-inventory-gate"},
+  "authority":{"source_catalog":"iac/tofu/modules/catalog.json","source_path_root":"iac/tofu/modules","runtime_mode":"local-provider-readiness-inventory-gate"},
   "policy":{"status":"required-providers-hcl-materialized-no-provider-lockfile","hcl_required_providers_materialized":true,"provider_lockfiles_materialized":false,"provider_installation_executed":false,"provider_provenance_verified":false,"module_signing_executed":false,"minimum_future_lock_platforms":["darwin_arm64","linux_amd64","linux_arm64"]},
   "modules":[
-    {"namespace":"oyatie","name":"cloud-account","system":"opentofu","version":"0.1.0","source_path":"microservices/cloud-iac/tofu/modules/cloud-account","main_file":"microservices/cloud-iac/tofu/modules/cloud-account/main.tofu","release_status":"local-foundation-skeleton","evidence_ref":"evidence://cloud-iac/modules/cloud-account/0.1.0/local-foundation","provider_requirements_hcl_materialized":true,"provider_lockfile_materialized":false,"provider_resources_implemented":false,"provider_families":[{"family":"aws","source":"registry.opentofu.org/hashicorp/aws","preferred_local_name":"aws","minimum_version_constraint":">= 5.0.0","future_lock_required":true,"future_signature_review_required":true,"future_provider_provenance_required":true}]},
-    {"namespace":"oyatie","name":"dns","system":"opentofu","version":"0.1.0","source_path":"microservices/cloud-iac/tofu/modules/dns","main_file":"microservices/cloud-iac/tofu/modules/dns/main.tofu","release_status":"local-foundation-skeleton","evidence_ref":"evidence://cloud-iac/modules/dns/0.1.0/local-foundation","provider_requirements_hcl_materialized":true,"provider_lockfile_materialized":false,"provider_resources_implemented":false,"provider_families":[{"family":"aws","source":"registry.opentofu.org/hashicorp/aws","preferred_local_name":"aws","minimum_version_constraint":">= 5.0.0","future_lock_required":true,"future_signature_review_required":true,"future_provider_provenance_required":true}]}
+    {"namespace":"oyatie","name":"cloud-account","system":"opentofu","version":"0.1.0","source_path":"iac/tofu/modules/cloud-account","main_file":"iac/tofu/modules/cloud-account/main.tofu","release_status":"local-foundation-skeleton","evidence_ref":"evidence://cloud-iac/modules/cloud-account/0.1.0/local-foundation","provider_requirements_hcl_materialized":true,"provider_lockfile_materialized":false,"provider_resources_implemented":false,"provider_families":[{"family":"aws","source":"registry.opentofu.org/hashicorp/aws","preferred_local_name":"aws","minimum_version_constraint":">= 5.0.0","future_lock_required":true,"future_signature_review_required":true,"future_provider_provenance_required":true}]},
+    {"namespace":"oyatie","name":"dns","system":"opentofu","version":"0.1.0","source_path":"iac/tofu/modules/dns","main_file":"iac/tofu/modules/dns/main.tofu","release_status":"local-foundation-skeleton","evidence_ref":"evidence://cloud-iac/modules/dns/0.1.0/local-foundation","provider_requirements_hcl_materialized":true,"provider_lockfile_materialized":false,"provider_resources_implemented":false,"provider_families":[{"family":"aws","source":"registry.opentofu.org/hashicorp/aws","preferred_local_name":"aws","minimum_version_constraint":">= 5.0.0","future_lock_required":true,"future_signature_review_required":true,"future_provider_provenance_required":true}]}
   ]
 }
 "#
@@ -1321,8 +1321,8 @@ mod tests {
     }
   ],
   "module_provider_requirements_scope": {
-    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-    "readiness": "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+    "catalog": "iac/tofu/modules/catalog.json",
+    "readiness": "iac/tofu/modules/provider-readiness.json",
     "status": "required-providers-hcl-materialized-no-provider-lockfile",
     "runtime_mode": "local-opentofu-required-providers-materialization-gate",
     "module_count": 2,

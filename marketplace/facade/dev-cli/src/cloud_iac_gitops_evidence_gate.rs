@@ -13,8 +13,8 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_TEMPLATES_ROOT: &str = "microservices/cloud-iac/iac";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_TEMPLATES_ROOT: &str = "iac/iac";
 const GATE_NAME: &str = "cloud-iac-gitops-evidence";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_gitops_evidence_gate.rs";
 const RUNTIME_MODE: &str = "local-filesystem-yaml-template-gate";
@@ -60,8 +60,8 @@ pub(crate) fn parse_cloud_iac_gitops_evidence_validate_args(
                     "cloud-iac-gitops-evidence: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-gitops-evidence \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--templates-root <microservices/cloud-iac/iac>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--templates-root <iac/iac>]"
                 ));
             }
         }
@@ -732,12 +732,12 @@ mod tests {
         write_fixture(temp.path(), &["aws-guest"], TemplateDrift::None);
         fs::create_dir_all(
             temp.path()
-                .join("microservices/cloud-iac/iac/oci-guest/argocd/apps"),
+                .join("iac/iac/oci-guest/argocd/apps"),
         )
         .expect("extra context dir");
         fs::write(
             temp.path()
-                .join("microservices/cloud-iac/iac/oci-guest/argocd/apps/template.yaml"),
+                .join("iac/iac/oci-guest/argocd/apps/template.yaml"),
             fixture_template("oci-guest", TemplateDrift::None),
         )
         .expect("extra template written");
@@ -912,14 +912,14 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, contexts: &[&str], drift: TemplateDrift) {
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
             root.join(DEFAULT_MANIFEST),
             serde_json::to_string_pretty(&fixture_manifest(contexts)).expect("manifest serializes"),
         )
         .expect("manifest written");
         for context in contexts {
-            let dir = root.join(format!("microservices/cloud-iac/iac/{context}/argocd/apps"));
+            let dir = root.join(format!("iac/iac/{context}/argocd/apps"));
             fs::create_dir_all(&dir).expect("template dir");
             fs::write(dir.join("template.yaml"), fixture_template(context, drift))
                 .expect("template written");

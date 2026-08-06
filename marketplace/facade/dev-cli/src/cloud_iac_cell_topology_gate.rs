@@ -15,9 +15,9 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "cloud/cloud-iac/manifest.json";
-const DEFAULT_TOPOLOGY: &str = "cloud/cloud-iac/cell-topology/foundation.json";
-const DEFAULT_CATALOG: &str = "cloud/cloud-iac/tofu/modules/catalog.json";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_TOPOLOGY: &str = "iac/cell-topology/foundation.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
 const GATE_NAME: &str = "cloud-iac-cell-topology";
 const GATE_FILE: &str = "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs";
 const RUNTIME_MODE: &str = "local-filesystem-json-cell-topology-gate";
@@ -113,9 +113,9 @@ pub(crate) fn parse_cloud_iac_cell_topology_validate_args(
                     "cloud-iac-cell-topology: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-cell-topology \
                      [--repo-root <.>] \
-                     [--manifest <cloud/cloud-iac/manifest.json>] \
-                     [--topology <cloud/cloud-iac/cell-topology/foundation.json>] \
-                     [--catalog <cloud/cloud-iac/tofu/modules/catalog.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--topology <iac/cell-topology/foundation.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>]"
                 ));
             }
         }
@@ -176,7 +176,7 @@ pub(crate) fn validate_cloud_iac_cell_topology_gate(
         "/cell_topology_scope/gitops_templates_root",
         &mut diagnostics,
     )
-    .unwrap_or_else(|| "cloud/cloud-iac/iac".to_string());
+    .unwrap_or_else(|| "iac/iac".to_string());
 
     let manifest_contexts =
         required_string_array(&manifest, "/cell_topology_scope/contexts", &mut diagnostics)
@@ -1499,9 +1499,9 @@ mod tests {
             vec!["aws-guest", "oci-guest"]
         };
         let regions = vec!["us-ashburn-1", "us-east-1"];
-        fs::create_dir_all(root.join("cloud/cloud-iac/cell-topology")).expect("topology dir");
-        fs::create_dir_all(root.join("cloud/cloud-iac/tofu/modules/dns")).expect("dns dir");
-        fs::create_dir_all(root.join("cloud/cloud-iac/tofu/modules/vpc")).expect("vpc dir");
+        fs::create_dir_all(root.join("iac/cell-topology")).expect("topology dir");
+        fs::create_dir_all(root.join("iac/tofu/modules/dns")).expect("dns dir");
+        fs::create_dir_all(root.join("iac/tofu/modules/vpc")).expect("vpc dir");
         if drift != FixtureDrift::MissingGateFile {
             let gate_path = root.join(GATE_FILE);
             fs::create_dir_all(gate_path.parent().expect("gate file parent")).expect("gate dir");
@@ -1511,11 +1511,11 @@ mod tests {
             ("aws-guest", "us-east-1", "aws-guest-us-east-1-a-001"),
             ("oci-guest", "us-ashburn-1", "oci-guest-us-ashburn-1-a-001"),
         ] {
-            fs::create_dir_all(root.join(format!("cloud/cloud-iac/iac/{context}/argocd/apps")))
+            fs::create_dir_all(root.join(format!("iac/iac/{context}/argocd/apps")))
                 .expect("argocd app dir");
             fs::write(
                 root.join(format!(
-                    "cloud/cloud-iac/iac/{context}/argocd/apps/template.yaml"
+                    "iac/iac/{context}/argocd/apps/template.yaml"
                 )),
                 fixture_template(context, region, cell_id, drift),
             )
@@ -1523,7 +1523,7 @@ mod tests {
         }
         for name in ["dns", "vpc"] {
             fs::write(
-                root.join(format!("cloud/cloud-iac/tofu/modules/{name}/main.tofu")),
+                root.join(format!("iac/tofu/modules/{name}/main.tofu")),
                 "# local foundation skeleton\n",
             )
             .expect("module file written");
@@ -1564,7 +1564,7 @@ mod tests {
             "cell_topology_scope": {
                 "topology": DEFAULT_TOPOLOGY,
                 "module_catalog": DEFAULT_CATALOG,
-                "gitops_templates_root": "cloud/cloud-iac/iac",
+                "gitops_templates_root": "iac/iac",
                 "runtime_mode": RUNTIME_MODE,
                 "context_count": contexts.len(),
                 "cell_count": 2,
@@ -1629,7 +1629,7 @@ mod tests {
             "name": name,
             "system": "opentofu",
             "version": "0.1.0",
-            "source_path": format!("cloud/cloud-iac/tofu/modules/{name}")
+            "source_path": format!("iac/tofu/modules/{name}")
         })
     }
 
@@ -1644,7 +1644,7 @@ mod tests {
             "authority": {
                 "manifest": DEFAULT_MANIFEST,
                 "module_catalog": DEFAULT_CATALOG,
-                "gitops_templates_root": "cloud/cloud-iac/iac",
+                "gitops_templates_root": "iac/iac",
                 "non_claims": [
                     "no autosharding runtime",
                     "no ArgoCD API integration",
@@ -1711,7 +1711,7 @@ mod tests {
             "tenant_id": format!("ten_cloud_iac_{}", context.replace('-', "_")),
             "isolation_tier": "foundation",
             "default_cross_cell_traffic_allowed": cross_cell_traffic,
-            "gitops_template": format!("cloud/cloud-iac/iac/{context}/argocd/apps/template.yaml"),
+            "gitops_template": format!("iac/iac/{context}/argocd/apps/template.yaml"),
             "evidence_ref": evidence_ref,
             "module_refs": [
                 fixture_module_ref("dns"),
