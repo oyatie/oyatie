@@ -1,0 +1,54 @@
+{
+  "id": "REORG-DUAL-NETWORK-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:14:42Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-NETWORK-BURNDOWN",
+  "summary": "Rehome residual zero-crate cloud/cloud-network + cloud/cloud-network-dns surfaces into registered network/ home (dns residual under network/dns/); retarget consumers; delete dual-home debt under cloud/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/ for network residual",
+  "durable_home": "network/",
+  "debt": [
+    "cloud/cloud-network/",
+    "cloud/cloud-network-dns/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/cloud-network/{ARCH,PRD,README,manifest,contracts,iac,cedar,runbooks,...}",
+      "to": "network/<same>"
+    },
+    {
+      "from": "cloud/cloud-network-dns/{...}",
+      "to": "network/dns/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/cloud-observability-slo-evidence-contract.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "network/manifest.json",
+    "network/dns/manifest.json",
+    "registry/fixuptasks.jsonl"
+  ],
+  "net_path_debt": "negative under cloud/cloud-network and cloud/cloud-network-dns (deleted); network/ gains residual product artifacts at capability home; network/dns holds DNS residual to avoid basename collision",
+  "non_goals": [
+    "no crate renames (crates already at network/{core,ports,adapters})",
+    "no move-plan (not path bijection of crates)",
+    "no mega cloud/* PR",
+    "no historical docs/adr-archive / design-spec-maturity rewrites"
+  ],
+  "consumer_proof": {
+    "cloud_cloud_network_path_prefix_live_refs": "zero outside historical docs/evidence after retarget",
+    "cedar_gh987_paths": [
+      "network/iac/k8s/helm/templates/cedar.yaml",
+      "network/dns/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "absorbs_current_dirs": [
+      "network"
+    ],
+    "tier_manifests": [
+      "network/manifest.json",
+      "network/dns/manifest.json"
+    ]
+  }
+}

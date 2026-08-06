@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "cloud-network",
+  "microservice": "network",
   "tier": "substrate",
   "tier_subtype": "substrate-network",
   "dr_tier": "T1",
@@ -40,7 +40,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-network/contracts/proto/cloud-network-design.proto"
+        "network/contracts/proto/cloud-network-design.proto"
       ]
     }
   },
