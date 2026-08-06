@@ -105,6 +105,26 @@ fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch()
 }
 
 #[test]
+fn adr_census_builder_accepts_crlf_only_divergence_on_parser_source_bytes() {
+    // Hosted windows-latest checks out *.rs as CRLF while git blobs stay LF. Soft platform
+    // smoke failed with ParserSource when include_bytes captured CRLF and git cat-file LF.
+    let mut input = census_input(vec![census_source(
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
+    )]);
+    let lf = input.parser_sources[0].bytes.clone();
+    let mut crlf = Vec::with_capacity(lf.len().saturating_mul(2));
+    for &b in &lf {
+        if b == b'\n' {
+            crlf.push(b'\r');
+        }
+        crlf.push(b);
+    }
+    input.parser_sources[0].bytes = crlf;
+    build_receipt(&input).expect("CRLF-only parser source divergence must not fail closed");
+}
+
+#[test]
 fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles() {
     let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
     let mut invalid_object_id = census_input(vec![source.clone()]);
