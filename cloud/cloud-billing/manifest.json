@@ -366,8 +366,8 @@
     "downstream_traceability_refs": [
       "../../oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
       "../../oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
-      "../../oya/marketplace/contracts/openapi-v1.yaml",
-      "../../oya/marketplace/contracts/asyncapi-v1.yaml"
+      "../../marketplace/contracts/openapi-v1.yaml",
+      "../../marketplace/contracts/asyncapi-v1.yaml"
     ],
     "non_claim": "Traceability only: this records billing, FinOps, and marketplace contract handoff surfaces. It does not implement live metering ingest, FOCUS export generation, invoice rendering, settlement payout, escrow, entitlement, external marketplace API integration, broker delivery, storage, audit-chain persistence, or production billing readiness."
   }

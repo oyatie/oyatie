@@ -425,7 +425,7 @@
       ],
       "absorbs_current_dirs": [
         "marketplace",
-        "oya/marketplace",
+
         "oya/plugin-app-store",
         "oya/developer-sdk"
       ],
