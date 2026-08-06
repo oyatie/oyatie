@@ -1,6 +1,7 @@
 ---
 id: ADR-0335
 status: Accepted
+amended_by: [ADR-619]
 planning_impact: true
 date: 2026-05-21
 owner_team:

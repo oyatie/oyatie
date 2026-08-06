@@ -1,6 +1,7 @@
 ---
 id: ADR-0064
 status: Accepted
+amended_by: [ADR-329]
 doc_status: published
 ---
 

@@ -1,13 +1,12 @@
 ---
 id: ADR-0358
-status: Proposed
+status: Superseded
 planning_impact: true
 date: 2026-05-25
 owners:
   - council-architecture
 supersedes: []
-superseded_by:
-  - ADR-0392
+superseded_by: [ADR-392, ADR-408]
   - ADR-0408
 amends: []
 amendment_note: "2026-05-29 (founder decision): §2 toolchain build-graph + CI engine reversed from Bazel rules_rust to Buck2. Superseded-by ADR-0392 (Buck2 canonical build graph) + ADR-0408 (Buck2-driven CI/CD). ONLY §2's build-graph/CI engine is reversed; §1 strangler-fig, §3 define-production-100-first, and §4 masterplan planning authority remain in force."

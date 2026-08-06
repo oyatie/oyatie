@@ -1,6 +1,7 @@
 ---
 id: ADR-0364
 status: Accepted
+amended_by: [ADR-613]
 deciders: council-architecture, founder
 date: 2026-05-26
 owner: council-architecture
