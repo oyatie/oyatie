@@ -380,12 +380,12 @@ fn the_frozen_ceilings_equal_todays_counts() {
 }
 
 #[test]
-fn oya_census_4102_blocks() {
-    assert!(validate_oya_census(4_102, 4_103).is_err());
+fn oya_census_off_by_one_blocks() {
+    assert!(validate_oya_census(3_852, 3_853).is_err());
 }
 
 #[test]
-fn live_oya_union_is_exactly_4103() {
+fn live_oya_union_matches_expected_census() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (_, policy) = load_policy(&root);
