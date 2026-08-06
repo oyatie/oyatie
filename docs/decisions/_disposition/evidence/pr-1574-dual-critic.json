@@ -3,9 +3,9 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "c19d2cb7c6d62823b26b7e93e94a659c27757c07",
+  "head": "62416da20e59701d7cf07546b502e44f8b57bca1",
   "prefer_cross_model": true,
-  "independence_note": "cross_model preferred; only xAI/grok in this babysit session \u2014 same_family recorded honestly (policy admit_independence includes same_family)",
+  "independence_note": "cross_model preferred; same_family recorded honestly for this W2 session",
   "critics": [
     {
       "id": "A",
@@ -17,14 +17,14 @@
         "red_team",
         "blast_radius"
       ],
-      "focus": "Windows soft_red root cause + install-buck2 RUSTUP_HOME fix",
+      "focus": "Windows soft_red: RUSTUP_HOME + CRLF ParserSource + contract path",
       "findings": [
-        "Authoritative soft fail logs: RUSTUP_HOME=/c/Users/runneradmin/.rustup then msvc rustup D:/c/Users/... missing rust-std \u2014 not disposition content defect",
-        "cygpath -m conversion matches existing Windows GITHUB_PATH pattern in install-buck2.sh",
-        "Pre-provision + Buck2 share one native tree; Linux/mac paths unchanged (MINGW*/MSYS* only)"
+        "Authoritative soft fail after RUSTUP fix: P3 census ParserSource (include_bytes CRLF vs git LF)",
+        "line_ending_normalized equality + *.rs eol=lf gitattributes address root cause",
+        "Contract tests now use docs/decisions selector so CRLF green is real TDD"
       ],
       "residual": [
-        "Re-verify gate \u00b7 platform smoke (windows-amd64 soft) SUCCESS on this head"
+        "Await windows soft SUCCESS on this head"
       ]
     },
     {
@@ -35,30 +35,26 @@
       "lenses": [
         "chesterton_fence",
         "systems_thinking",
-        "operability",
-        "opportunity_cost"
+        "operability"
       ],
-      "focus": "ADR disposition SoT + merge readiness second-order",
+      "focus": "Selector contract + soft red board drain",
       "findings": [
-        "Live docs/decisions apex 0700-0709 + archive remediates prior dual-critic REQUEST_CHANGES",
-        "Soft red still counts per mm-queue-ingest; windows fix is load-bearing for board drain",
-        "No *.generated.json hand-edit; this change is install-buck2 + dual-critic evidence only"
+        "docs-decisions-direct-adr-v1 is intentional; archive paths must not launder as census decisions",
+        "Soft red remains first-class until tip check clears",
+        "No product debt under cloud/oya; change is doc-parser contract + prior install-buck2/CRLF"
       ],
       "residual": [
-        "oya-ci-required must be SUCCESS on exact head before merge",
-        "ci_infra preflight receipt required after push (infra/ci path)"
+        "oya-ci-required SUCCESS required for babysit merge"
       ]
     }
   ],
-  "summary": "APPROVE: disposition end-state + Windows RUSTUP_HOME path fix for soft platform-smoke. independence same_family honest. Merge only after oya-ci-required green + preflight receipt.",
+  "summary": "APPROVE soft_red fix chain: RUSTUP_HOME cygpath -m, CRLF-tolerant parser identity, census contract path alignment. same_family honest.",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:23Z",
-  "reviewer": "w3-babysit-pr-1574",
+  "reviewed_at": "2026-08-06T11:34Z",
+  "reviewer": "implement-claimed-lane-w2",
   "soft_red_addressed": {
     "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
-    "fix": "CRLF-tolerant parser source identity + eol=lf gitattributes",
+    "fix": "CRLF-tolerant parser source identity + eol=lf + contract selector path",
     "prior_rustup": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
-  },
-  "head_note": "exact tip SHA of this dual-critic commit tree (may drift by amend; re-read branch tip)",
-  "tip_note": "Includes 6070cdcbc Windows RUSTUP_HOME + ce1cd00ee ADR index/public-RPC Accepted-only"
+  }
 }
