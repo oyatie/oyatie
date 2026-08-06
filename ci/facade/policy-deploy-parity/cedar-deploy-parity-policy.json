@@ -58,7 +58,7 @@
       "oya/notes/iac/k8s/helm/templates/cedar.yaml",
       "oya/observability/iac/k8s/helm/templates/cedar.yaml",
       "oya/ontology/iac/k8s/helm/templates/cedar.yaml",
-      "oya/ops-dashboard-control-center/iac/k8s/helm/templates/cedar.yaml",
+      "console/iac/k8s/helm/templates/cedar.yaml",
       "oya/patient-monitoring/iac/k8s/helm/templates/cedar.yaml",
       "oya/payments/iac/k8s/helm/templates/cedar.yaml",
       "oya/performance-management/iac/k8s/helm/templates/cedar.yaml",

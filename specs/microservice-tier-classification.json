@@ -1084,9 +1084,9 @@
         ]
       }
     },
-    "oya/ops-dashboard-control-center/manifest.json": {
-      "service": "oya/ops-dashboard-control-center",
-      "manifest": "oya/ops-dashboard-control-center/manifest.json",
+    "console/manifest.json": {
+      "service": "console",
+      "manifest": "console/manifest.json",
       "capability": "console",
       "tier": "substrate",
       "tier_subtype": "substrate-governance",
