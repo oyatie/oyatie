@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "cloud-k8s",
+  "microservice": "k8s",
   "tier": "substrate",
   "tier_subtype": "substrate-infra",
   "dr_tier": "T1",
@@ -42,7 +42,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-k8s/contracts/proto/cloud-k8s.proto"
+        "k8s/contracts/proto/cloud-k8s.proto"
       ]
     },
     "service_local_contract_scaffolds": [

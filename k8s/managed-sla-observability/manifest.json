@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "managed-k8s-cluster-lifecycle",
+  "microservice": "k8s/managed-sla-observability",
   "tier": "substrate",
   "tier_subtype": "substrate-infra",
   "dr_tier": "T1",
@@ -14,49 +14,57 @@
   "owner": "axis-cloud-k8s",
   "bounded_contexts": [
     {
-      "name": "managed-k8s-cluster-lifecycle",
-      "description": "Tenant-facing managed-Kubernetes cluster lifecycle admission. Consumes QuotaDecisionPort (managed-k8s-tenant-quota) before ControlPlaneProvisioning (managed-k8s-control-plane-host); quota denial/not-found/failure fails closed and does not invoke provisioning.",
+      "name": "managed-k8s-sla-observability",
+      "description": "Tenant-scoped managed-Kubernetes SLA observability. Consumes the ControlPlaneProvisioning/status seam from managed-k8s-control-plane-host, computes deterministic availability/provisioning-latency/error-budget summaries, and defers live Prometheus/Kubernetes integration behind the port.",
       "crates": [
-        "oya-managed-k8s-cluster-lifecycle-kernel",
-        "oya-managed-k8s-cluster-lifecycle-api",
-        "oya-managed-k8s-cluster-lifecycle-app"
+        "oya-managed-k8s-sla-observability-kernel",
+        "oya-managed-k8s-sla-observability-api",
+        "oya-managed-k8s-sla-observability-adapter-inmemory",
+        "oya-managed-k8s-sla-observability-app"
       ]
     }
   ],
   "layers": [
+    "adapter",
     "api",
     "app",
     "kernel"
   ],
   "contracts": {
     "openapi": [
-      "microservices/managed-k8s-cluster-lifecycle/contracts/openapi.yaml"
+      "microservices/managed-k8s-sla-observability/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
-      "microservices/managed-k8s-cluster-lifecycle/contracts/asyncapi-v1.yaml"
+      "microservices/managed-k8s-sla-observability/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/managed-k8s-cluster-lifecycle/contracts/managed-k8s-cluster-lifecycle.proto"
+        "k8s/managed-sla-observability/contracts/managed-k8s-sla-observability.proto"
       ]
     }
   },
   "capabilities": [
     {
-      "tier": "T3",
-      "name": "cluster-lifecycle-create",
-      "file": "microservices/managed-k8s-cluster-lifecycle/capabilities/cluster-create.yaml",
-      "risk_class": "high"
+      "tier": "T1",
+      "name": "sla-summary-read",
+      "file": "microservices/managed-k8s-sla-observability/capabilities/sla-summary-read.yaml",
+      "risk_class": "minimal"
     }
   ],
   "slos": [
     {
-      "name": "cluster-lifecycle-create-admission-latency",
-      "target": "0.95",
-      "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05",
-      "file": "k8s/observability/slos/cluster-lifecycle/create-admission-latency.openslo.yaml"
+      "name": "managed-cluster-availability",
+      "target": "0.999",
+      "sli": "healthy_status_samples / total_status_samples from managed-k8s SLA observation snapshots",
+      "file": "k8s/observability/slos/sla-observability/managed-cluster-availability.openslo.yaml"
+    },
+    {
+      "name": "managed-cluster-provisioning-latency",
+      "target": "<= 600000ms",
+      "sli": "provisioning_latency_millis from managed-k8s SLA observation snapshots",
+      "file": "k8s/observability/slos/sla-observability/provisioning-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -67,10 +75,10 @@
       "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
-      "id": "IP-001-cluster-lifecycle-foundation",
-      "title": "IP-001: cluster-lifecycle kernel + quota/provisioning orchestration + app composition root",
+      "id": "IP-001-sla-observability-kernel-api-adapter-app",
+      "title": "IP-001: SLA observability kernel + port + in-memory adapter + composition service",
       "acceptance_status": "ga",
-      "file": "microservices/managed-k8s-cluster-lifecycle/IPs/IP-001-cluster-lifecycle-foundation.md"
+      "file": "microservices/managed-k8s-sla-observability/IPs/IP-001-sla-observability-foundation.md"
     }
   ],
   "regulatory_packs": [
@@ -164,9 +172,9 @@
     "cell_placement_class": "Tier-3"
   },
   "pod_runtime_tier": 3,
-  "pod_runtime_tier_justification": "Narrow composition over QuotaDecisionPort + ControlPlaneProvisioning ports; no new storage or external dependency. ADR-0083 Tier-3.",
+  "pod_runtime_tier_justification": "Deterministic SLA summarization kernel + in-memory adapter; live Prometheus/Kubernetes integration honest-deferred behind the port. ADR-0083 Tier-3.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/src/lib.rs"
+    "microservices/managed-k8s-sla-observability/crates/oya-managed-k8s-sla-observability-kernel/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -189,12 +197,11 @@
     "TENANT_SCOPED"
   ],
   "threat_model": {
-    "quota_bypass_on_create": "mitigated: cluster-lifecycle admission consults QuotaDecisionPort before ControlPlaneProvisioning; denial/not-found/failure fails closed (no provision call).",
-    "provisioning_without_quota_check": "mitigated: admission code path has no branch that calls ControlPlaneProvisioning without first receiving a QuotaDecision::allowed=true."
+    "stale_availability_summary": "mitigated by deterministic DTO summaries over snapshots; production Prometheus ingestion remains deferred behind the same port."
   },
   "explicit_non_claims": [
-    "No provider-live integration, provider actuation, management-cluster write, tenant-cluster API call, or production readiness is implemented by this manifest.",
-    "Cluster lifecycle remains an admission/orchestration seam over QuotaDecisionPort and ControlPlaneProvisioning; it does not directly create, mutate, or delete Kubernetes control planes.",
-    "SLO and capability declarations are contract targets only and are not hyperscaler readiness or live managed-Kubernetes GA evidence."
+    "No provider-live integration, live Prometheus/Kubernetes scrape, provider actuation, or production readiness is implemented by this manifest.",
+    "SLA observability remains deterministic snapshot summarization behind a port; it does not prove live managed-cluster SLOs or error-budget burn in production.",
+    "Declared SLOs are contract targets for future live integration and are not hyperscaler readiness evidence."
   ]
 }

@@ -267,12 +267,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "k8s",
-        "cloud/cloud-k8s",
-        "cloud/managed-k8s-cluster-lifecycle",
-        "cloud/managed-k8s-control-plane-host",
-        "cloud/managed-k8s-sla-observability",
-        "cloud/managed-k8s-tenant-quota"
+        "k8s"
       ],
       "dag_node": "control-plane",
       "boundary_note": "Coarse collapse per founder ruling: owned control-plane (core) + managed-k8s (facade). The four managed-k8s-* dirs become facade sub-modules."

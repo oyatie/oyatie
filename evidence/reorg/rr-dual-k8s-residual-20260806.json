@@ -1,0 +1,105 @@
+{
+  "id": "REORG-DUAL-K8S-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:45:00Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-K8S-BURNDOWN",
+  "summary": "Rehome residual zero-crate cloud/cloud-k8s + four managed-k8s-* product surfaces into registered k8s/ home (managed residual under k8s/managed-{cluster-lifecycle,control-plane-host,sla-observability,tenant-quota}/ to avoid collision with live crate layout under k8s/{core,adapters,facade,ports}); retarget consumers; delete dual-home debt under cloud/. Not k8s-port Go→Rust rewrite and not G002 engine.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/ for k8s residual",
+  "durable_home": "k8s/",
+  "debt": [
+    "cloud/cloud-k8s/",
+    "cloud/managed-k8s-cluster-lifecycle/",
+    "cloud/managed-k8s-control-plane-host/",
+    "cloud/managed-k8s-sla-observability/",
+    "cloud/managed-k8s-tenant-quota/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/cloud-k8s/{ARCH,PRD,README,manifest,contracts,iac,cedar,runbooks,slos,capabilities,...}",
+      "to": "k8s/<same>"
+    },
+    {
+      "from": "cloud/managed-k8s-cluster-lifecycle/{...}",
+      "to": "k8s/managed-cluster-lifecycle/<same>"
+    },
+    {
+      "from": "cloud/managed-k8s-control-plane-host/{...}",
+      "to": "k8s/managed-control-plane-host/<same>"
+    },
+    {
+      "from": "cloud/managed-k8s-sla-observability/{...}",
+      "to": "k8s/managed-sla-observability/<same>"
+    },
+    {
+      "from": "cloud/managed-k8s-tenant-quota/{...}",
+      "to": "k8s/managed-tenant-quota/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/cloud-hyperscaler-parity-taxonomy.json",
+    "specs/talos-001-substrate-slice.json",
+    "ci/facade/contract-slice-conformance/contract-slice-policy.json",
+    "ci/facade/contract-slice-conformance/slices/talos-001-substrate-slice.json",
+    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/slo-coverage/tests/slo_coverage.rs",
+    "registry/fixuptasks.jsonl",
+    "infra/external-secrets/RUNBOOK.md",
+    "k8s/manifest.json",
+    "k8s/managed-cluster-lifecycle/manifest.json",
+    "k8s/managed-control-plane-host/manifest.json",
+    "k8s/managed-sla-observability/manifest.json",
+    "k8s/managed-tenant-quota/manifest.json"
+  ],
+  "net_path_debt": "negative under cloud/cloud-k8s and cloud/managed-k8s-* (deleted); k8s/ gains residual product artifacts at capability home; k8s/managed-* hold managed residual to avoid basename collision with live crate layout",
+  "crate_count_debt_paths": 0,
+  "preserved_k8s_crate_layout": [
+    "k8s/core/*",
+    "k8s/adapters/*",
+    "k8s/facade/*",
+    "k8s/ports/*",
+    "k8s/observability/*"
+  ],
+  "non_goals": [
+    "no crate renames (crates already at k8s/{core,ports,adapters,facade})",
+    "no move-plan (not path bijection of crates)",
+    "no k8s Go→Rust port (ADR-0637/0638 W0+)",
+    "no G002 engine work",
+    "no mega cloud/* PR",
+    "no historical docs/adr-archive / design-spec-maturity rewrites",
+    "no retarget of cloud/cloud-kernel|cloud-os historical boundary non-claim prose"
+  ],
+  "consumer_proof": {
+    "cloud_cloud_k8s_path_prefix_live_refs": "zero outside historical docs/evidence and cloud-kernel/cloud-os boundary prose after retarget",
+    "cloud_managed_k8s_path_prefix_live_refs": "zero outside historical docs/evidence after retarget",
+    "cedar_gh987_paths": [
+      "k8s/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "absorbs_current_dirs": [
+      "k8s"
+    ],
+    "tier_manifests": [
+      "k8s/manifest.json",
+      "k8s/managed-cluster-lifecycle/manifest.json",
+      "k8s/managed-control-plane-host/manifest.json",
+      "k8s/managed-sla-observability/manifest.json",
+      "k8s/managed-tenant-quota/manifest.json"
+    ],
+    "slo_manifest_paths": [
+      "k8s/managed-cluster-lifecycle/manifest.json",
+      "k8s/managed-control-plane-host/manifest.json",
+      "k8s/managed-sla-observability/manifest.json",
+      "k8s/managed-tenant-quota/manifest.json"
+    ]
+  },
+  "path_disjoint_from": [
+    "agent/reorg-dual-network-20260806",
+    "agent/reorg-dual-secrets-20260806",
+    "agent/reorg-dual-iam-20260806",
+    "agent/reorg-dual-gateway-20260806"
+  ]
+}
