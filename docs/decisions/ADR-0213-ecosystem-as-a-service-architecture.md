@@ -1,7 +1,7 @@
 ---
 adr_id: ADR-0213
 title: Ecosystem-as-a-Service architecture — Plugin/App Store substrate (third-party developer plugins/apps) + Developer SDK
-status: Rejected
+status: Accepted
 date: 2026-05-18
 owner_team: council-architecture + axis-ecosystem
 deciders: [founder, council-architecture, council-security, council-privacy, council-design-system]
@@ -9,6 +9,7 @@ template_id: TPL-ADR
 doc_status: published
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0249]
 related_adrs:
   - ADR-0001  # cohesion thesis (one product, seven axes); plugin-app-store is an axis
   - ADR-0002  # tenant + identity kernel; plugins install against tenant
