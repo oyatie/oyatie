@@ -1,0 +1,257 @@
+{
+  "schema": "oyatie/evidence/r-dual-0615-topology-dual-home-inventory/v1",
+  "card_id": "REORG-RR-DUAL-0615-FOLLOW",
+  "title": "Topology dual-home inventory (oya/* \u2229 registered homes) \u2014 plan-first",
+  "date": "2026-08-06",
+  "branch": "agent/reorg-dual-topo-inventory-20260806",
+  "origin_dev_sha": "c7f60a9dbfe28f5d2f17b094ba25ae8c8602e6cb",
+  "class": "mixed inventory (not bulk move)",
+  "net_debt_policy": "reduce_only",
+  "constraints_honored": [
+    "no path moves",
+    "no deletes of non-empty scaffolds",
+    "no second *-move-plan.json (ADR-0614)",
+    "no new surfaces under cloud/ oya/ infra/ libs/ tools/ microservices/",
+    "plan-only evidence under evidence/reorg/",
+    "FACE-DECOMMIT re-verify: tracked *.generated.json count == 0 on origin/dev"
+  ],
+  "related_prior_inventory": {
+    "path": "evidence/reorg/r-dual-0615-oya-disposition-inventory-20260805.json",
+    "scope": "drive/recordings/emergency/imaging/diagnostics scaffolds (landing via ADR disposition PR #1574)",
+    "relationship": "complementary \u2014 this packet covers capability topology duals not in that five-tree set"
+  },
+  "face_decommit_reverify": {
+    "tracked_generated_json_count": 0,
+    "status": "clean",
+    "prior_pr": 1565
+  },
+  "authority": [
+    "ADR-0562",
+    "ADR-0615",
+    "ADR-0635",
+    "ADR-0614",
+    "REORG-DOCTRINE",
+    "NORTH-STAR-SHAPE"
+  ],
+  "inventory": [
+    {
+      "capability": "compliance",
+      "homes": [
+        {
+          "path": "oya/compliance",
+          "file_count": 83,
+          "crate_count": 0,
+          "sample_crates": []
+        },
+        {
+          "path": "compliance",
+          "file_count": 37,
+          "crate_count": 7,
+          "sample_crates": [
+            "compliance/core/dlp/Cargo.toml",
+            "compliance/core/dsr/Cargo.toml",
+            "compliance/core/ediscovery/Cargo.toml",
+            "compliance/core/retention-dsr/Cargo.toml",
+            "compliance/core/retention/Cargo.toml",
+            "compliance/core/trust-portal/Cargo.toml",
+            "compliance/ports/dsr-usecase/Cargo.toml"
+          ]
+        }
+      ],
+      "disposition": "park",
+      "class_when_executed": "mixed",
+      "notes": "Topology dual-home (oya/* + registered top-level and/or cloud/*). Inventory only; no moves/deletes."
+    },
+    {
+      "capability": "governance",
+      "homes": [
+        {
+          "path": "oya/governance",
+          "file_count": 152,
+          "crate_count": 0,
+          "sample_crates": []
+        },
+        {
+          "path": "governance",
+          "file_count": 214,
+          "crate_count": 62,
+          "sample_crates": [
+            "governance/check/a11y-discipline/Cargo.toml",
+            "governance/check/active-artifact-contract/Cargo.toml",
+            "governance/check/adr-citation/Cargo.toml",
+            "governance/check/aspirational-enforcement/Cargo.toml",
+            "governance/check/audit-chain-seal-coverage/Cargo.toml",
+            "governance/check/authority-cohesion/Cargo.toml",
+            "governance/check/authz-tier-discipline/Cargo.toml",
+            "governance/check/benchmark/Cargo.toml"
+          ]
+        }
+      ],
+      "disposition": "park",
+      "class_when_executed": "mixed",
+      "notes": "Topology dual-home (oya/* + registered top-level and/or cloud/*). Inventory only; no moves/deletes."
+    },
+    {
+      "capability": "intelligence",
+      "homes": [
+        {
+          "path": "oya/intelligence",
+          "file_count": 742,
+          "crate_count": 78,
+          "sample_crates": [
+            "oya/intelligence/crates/oya-codeview-cli/Cargo.toml",
+            "oya/intelligence/crates/oya-collab-crdt-portability-kernel/Cargo.toml",
+            "oya/intelligence/crates/oya-collab-runtime-domain/Cargo.toml",
+            "oya/intelligence/crates/oya-document-format-domain/Cargo.toml",
+            "oya/intelligence/crates/oya-intelligence-adapter-anthropic-compat-api/Cargo.toml",
+            "oya/intelligence/crates/oya-intelligence-adapter-anthropic-subscription-adapter/Cargo.toml",
+            "oya/intelligence/crates/oya-intelligence-adapter-openai-compat-api/Cargo.toml",
+            "oya/intelligence/crates/oya-intelligence-adapter-openai-subscription-adapter/Cargo.toml"
+          ]
+        },
+        {
+          "path": "intelligence",
+          "file_count": 277,
+          "crate_count": 51,
+          "sample_crates": [
+            "intelligence/adapters/account-adapter-inmemory/Cargo.toml",
+            "intelligence/adapters/authz-cedar-adapter/Cargo.toml",
+            "intelligence/adapters/claude-agent-sdk/Cargo.toml",
+            "intelligence/adapters/cli-session-driver/Cargo.toml",
+            "intelligence/adapters/codex-adapter/Cargo.toml",
+            "intelligence/adapters/codex-sdk/Cargo.toml",
+            "intelligence/adapters/eventsink-clickhouse-adapter/Cargo.toml",
+            "intelligence/adapters/eventsink-valkey-adapter/Cargo.toml"
+          ]
+        },
+        {
+          "path": "cloud/cloud-intelligence",
+          "file_count": 38,
+          "crate_count": 0,
+          "sample_crates": []
+        }
+      ],
+      "disposition": "park",
+      "class_when_executed": "mixed",
+      "notes": "Topology dual-home (oya/* + registered top-level and/or cloud/*). Inventory only; no moves/deletes."
+    },
+    {
+      "capability": "marketplace",
+      "homes": [
+        {
+          "path": "oya/marketplace",
+          "file_count": 101,
+          "crate_count": 0,
+          "sample_crates": []
+        },
+        {
+          "path": "marketplace",
+          "file_count": 200,
+          "crate_count": 5,
+          "sample_crates": [
+            "marketplace/core/cloud-domain/Cargo.toml",
+            "marketplace/core/cloud-kernel/Cargo.toml",
+            "marketplace/core/doc-set-scaffold/Cargo.toml",
+            "marketplace/core/plugin-kernel/Cargo.toml",
+            "marketplace/facade/dev-cli/Cargo.toml"
+          ]
+        }
+      ],
+      "disposition": "park",
+      "class_when_executed": "mixed",
+      "notes": "Topology dual-home (oya/* + registered top-level and/or cloud/*). Inventory only; no moves/deletes."
+    },
+    {
+      "capability": "observability",
+      "homes": [
+        {
+          "path": "oya/observability",
+          "file_count": 118,
+          "crate_count": 0,
+          "sample_crates": []
+        },
+        {
+          "path": "observability",
+          "file_count": 41,
+          "crate_count": 5,
+          "sample_crates": [
+            "observability/adapters/tracing/Cargo.toml",
+            "observability/core/aggregate/Cargo.toml",
+            "observability/core/api/Cargo.toml",
+            "observability/core/domain/Cargo.toml",
+            "observability/core/kernel/Cargo.toml"
+          ]
+        }
+      ],
+      "disposition": "park",
+      "class_when_executed": "mixed",
+      "notes": "Topology dual-home (oya/* + registered top-level and/or cloud/*). Inventory only; no moves/deletes."
+    },
+    {
+      "capability": "tasks",
+      "homes": [
+        {
+          "path": "oya/tasks",
+          "file_count": 74,
+          "crate_count": 0,
+          "sample_crates": []
+        },
+        {
+          "path": "tasks",
+          "file_count": 120,
+          "crate_count": 0,
+          "sample_crates": []
+        }
+      ],
+      "disposition": "park",
+      "class_when_executed": "mixed",
+      "notes": "Topology dual-home (oya/* + registered top-level and/or cloud/*). Inventory only; no moves/deletes."
+    }
+  ],
+  "recommended_follow_on_cards": [
+    {
+      "id": "R-DUAL-TOPO-INTEL",
+      "capability": "intelligence",
+      "class": "mixed",
+      "wave": "W2+",
+      "note": "Largest dual (78 oya crates + 51 intelligence/ + cloud-intelligence); plan remainder move after MOVEPLAN singleton lands"
+    },
+    {
+      "id": "R-DUAL-TOPO-GOVERNANCE",
+      "capability": "governance",
+      "class": "mixed",
+      "wave": "W2",
+      "note": "oya/governance vs governance/ \u2014 dispose one home"
+    },
+    {
+      "id": "R-DUAL-TOPO-MARKETPLACE",
+      "capability": "marketplace",
+      "class": "mixed",
+      "wave": "W2"
+    },
+    {
+      "id": "R-DUAL-TOPO-COMPLIANCE",
+      "capability": "compliance",
+      "class": "mixed",
+      "wave": "W2"
+    },
+    {
+      "id": "R-DUAL-TOPO-OBSERVABILITY",
+      "capability": "observability",
+      "class": "mixed",
+      "wave": "W2",
+      "note": "Name collision risk with oya/diagnostics clinical path"
+    },
+    {
+      "id": "R-DUAL-TOPO-TASKS",
+      "capability": "tasks",
+      "class": "mixed",
+      "wave": "W2"
+    }
+  ],
+  "explicit_non_actions": [
+    "no bulk rehome",
+    "no CAS/NativeLink (blocked G039 + parked plan)",
+    "no hand-edit *.generated.json"
+  ]
+}
