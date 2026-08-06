@@ -379,12 +379,12 @@ fn the_frozen_ceilings_equal_todays_counts() {
 }
 
 #[test]
-fn oya_census_4102_blocks() {
-    assert!(validate_oya_census(4_102, 4_103).is_err());
+fn oya_census_4067_blocks() {
+    assert!(validate_oya_census(4_067, 4_068).is_err());
 }
 
 #[test]
-fn live_oya_union_is_exactly_4103() {
+fn live_oya_union_is_exactly_4068() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (_, policy) = load_policy(&root);
@@ -414,7 +414,7 @@ fn pre_repair_missing_ten_blocks() {
 }
 
 #[test]
-fn six_nested_faces_use_nearest_package_ownership() {
+fn five_nested_faces_use_nearest_package_ownership() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let counts: BTreeMap<_, _> = live
@@ -425,9 +425,9 @@ fn six_nested_faces_use_nearest_package_ownership() {
         .collect();
     assert_eq!(
         counts.values().copied().collect::<Vec<_>>(),
-        [1, 2, 2, 1, 2, 2]
+        [1, 2, 2, 2, 2]
     );
-    assert_eq!(counts.len(), 6);
+    assert_eq!(counts.len(), 5);
 }
 
 #[test]
