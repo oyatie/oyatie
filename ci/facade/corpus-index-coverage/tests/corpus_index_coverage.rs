@@ -380,8 +380,8 @@ fn the_frozen_ceilings_equal_todays_counts() {
 }
 
 #[test]
-fn oya_census_4102_blocks() {
-    assert!(validate_oya_census(4_102, 4_103).is_err());
+fn oya_census_off_by_one_blocks() {
+    assert!(validate_oya_census(4_041, 4_042).is_err());
 }
 
 #[test]
