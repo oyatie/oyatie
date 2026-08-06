@@ -1235,7 +1235,7 @@ fn brand_residue_gate_excludes_superseded_adr_history() {
     );
     write_brand_residue_file(
         &temp,
-        "docs/adr-archive/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+        "docs/decisions/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
         "---\nid: ADR-0511\nstatus: Superseded\nsuperseded_by: [ADR-0515]\n---\n\n# ADR-0511\n\nForgejo Commit Status remained the gate-result sink before the cutover.\n",
     );
 
@@ -4380,11 +4380,11 @@ fn write_adr_citation_fixture(root: &Path, active_body: &str, forensic_body: &st
     )
     .expect("forensic mapping written");
     fs::write(
-        root.join("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"),
+        root.join("docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"),
         "# Cohesion\n",
     )
     .expect("ADR-0001 written");
-    fs::write(root.join("docs/adr-archive/ADR-0051-mobile-and-native-client-strategy.md"), "# Mobile\n")
+    fs::write(root.join("docs/decisions/ADR-0051-mobile-and-native-client-strategy.md"), "# Mobile\n")
         .expect("ADR-0051 written");
 }
 

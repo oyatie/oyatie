@@ -48,7 +48,7 @@ fn rule1_clean_adr_passes_non_strict() {
     let root = dir.path();
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Accepted\n---\n# body\n",
     );
     let result = validate(root, false);
@@ -63,7 +63,7 @@ fn rule1_bad_casing_is_warning_in_non_strict_mode() {
     let root = dir.path();
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: accepted\n---\n# body\n",
     );
     // Non-strict: bad casing is a warning, not a blocking error.
@@ -83,7 +83,7 @@ fn rule1_bad_casing_blocks_in_strict_mode() {
     let root = dir.path();
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: accepted\n---\n# body\n",
     );
     let result = validate(root, true);
@@ -101,7 +101,7 @@ fn rule1_amended_with_canonical_frontmatter_date_passes_strict_mode() {
     let root = dir.path();
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\n---\n# body\n",
     );
 
@@ -118,7 +118,7 @@ fn rule1_amended_without_initial_frontmatter_date_blocks_in_strict_mode() {
     let root = dir.path();
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Amended\n---\n# body\n\namended_date: 2026-07-22\n",
     );
 
@@ -136,7 +136,7 @@ fn rule1_amended_with_noncanonical_date_blocks_in_strict_mode() {
     let root = dir.path();
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-7-22\n---\n# body\n",
     );
 
@@ -153,7 +153,7 @@ fn rule1_duplicate_amended_dates_block_in_strict_mode() {
     let tmp = tempfile::tempdir().expect("tempdir");
     write_file(
         tmp.path(),
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Amended\namended_date: 2026-07-22\namended_date: 2026-02-30\n---\n# body\n",
     );
 
@@ -171,7 +171,7 @@ fn rule1_conflicting_duplicate_status_keys_block_in_strict_mode() {
     let tmp = tempfile::tempdir().expect("tempdir");
     write_file(
         tmp.path(),
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Amended\nstatus: Accepted\namended_date: 2026-07-22\n---\n# body\n",
     );
 
@@ -246,7 +246,7 @@ fn rule2_stale_idea_with_valid_superseded_by_blocks_until_removed() {
     // The idea-pager cites ADR-0389, which actually exists.
     write_file(
         root,
-        "docs/adr-archive/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md",
+        "docs/decisions/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md",
         "---\nid: ADR-0389\nstatus: Accepted\n---\n# body\n",
     );
     write_file(
@@ -491,7 +491,7 @@ fn rule3_canonical_subdirs_pass() {
     // Place files in each canonical subdir — all should pass rule 3.
     write_file(
         root,
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "---\nid: ADR-0001\nstatus: Accepted\n---\n",
     );
     write_file(root, "docs/conventions/naming.md", "# naming\n");

@@ -3,61 +3,25 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "b72d344c2861875d284779811ab741ad39736edf",
+  "head": "2177518f04ff603238577c8a57f8a62c6950da74",
   "prefer_cross_model": true,
-  "independence_note": "cross_model preferred; same_family recorded honestly for this W2 session",
   "critics": [
     {
       "id": "A",
       "provider": "xai",
       "model": "grok-code",
       "verdict": "APPROVE",
-      "lenses": [
-        "cartesian_doubt",
-        "red_team",
-        "blast_radius"
-      ],
-      "focus": "Windows soft_red: RUSTUP_HOME + CRLF ParserSource + contract path",
-      "findings": [
-        "Authoritative soft fail after RUSTUP fix: P3 census ParserSource (include_bytes CRLF vs git LF)",
-        "line_ending_normalized equality + *.rs eol=lf gitattributes address root cause",
-        "CENSUS_DECISION_PATH defined; contract tests green under docs/decisions selector"
-      ],
-      "residual": [
-        "Await windows soft SUCCESS on this head"
-      ]
+      "focus": "windows soft RUSTUP+CRLF + fixture retarget"
     },
     {
       "id": "B",
       "provider": "xai",
       "model": "grok-code",
       "verdict": "APPROVE",
-      "lenses": [
-        "chesterton_fence",
-        "systems_thinking",
-        "operability"
-      ],
-      "focus": "Selector contract + soft red board drain",
-      "findings": [
-        "docs-decisions-direct-adr-v1 is intentional; archive paths must not launder as census decisions",
-        "Soft red remains first-class until tip check clears",
-        "No product debt under cloud/oya"
-      ],
-      "residual": [
-        "oya-ci-required SUCCESS required for babysit merge"
-      ]
+      "focus": "affected-set 6 regressions from archive move"
     }
   ],
-  "summary": "APPROVE soft_red fix chain: RUSTUP_HOME cygpath -m, CRLF-tolerant parser identity, census contract path alignment. same_family honest.",
-  "blockers": [],
-  "reviewed_at": "2026-08-06T11:37Z",
-  "reviewer": "implement-claimed-lane-w2",
-  "soft_red_addressed": {
-    "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
-    "fix": "CRLF-tolerant parser source identity + eol=lf + CENSUS_DECISION_PATH contract",
-    "prior_rustup": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
-  },
-  "tip_note": "exact tip after pin commit",
-  "code_tip": "b72d344c2861875d284779811ab741ad39736edf",
-  "evidence_note": "head is code tip with CENSUS_DECISION_PATH; evidence commits trail"
+  "summary": "APPROVE after windows soft green + fixture path retarget for disposition archive. same_family honest.",
+  "reviewed_at": "2026-08-06T12:08Z",
+  "reviewer": "w3-babysit-pr-1574"
 }

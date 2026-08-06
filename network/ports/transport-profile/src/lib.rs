@@ -1126,11 +1126,14 @@ mod tests {
     }
 
     fn adr_0354() -> String {
+        // Historical §D-7 JSON example markers remain on the archived 0354 body;
+        // live apex 0705 consolidates doctrine without those HTML comment anchors.
         fs::read_to_string(
-            repo_root()
-                .join("docs/decisions/ADR-0705-product-protocol-live-apex.md"),
+            repo_root().join(
+                "docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+            ),
         )
-        .expect("ADR-0354 readable")
+        .expect("archived ADR-0354 example readable")
     }
 
     fn repo_root() -> PathBuf {

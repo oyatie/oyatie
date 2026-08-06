@@ -634,7 +634,7 @@
         "GA": 30
       },
       "verification_ref": "oya gate validate canary-observability-rollback --window 7d",
-      "lane_ref": "canary-observability-rollback ($ref:docs/adr-archive/ADR-0114-canary-observability-rollback.md)"
+      "lane_ref": "canary-observability-rollback"
     }
   ],
   "risks": [

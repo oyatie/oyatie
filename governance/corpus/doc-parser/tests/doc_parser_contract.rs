@@ -386,7 +386,7 @@ fn malformed_frontmatter_fails_closed() {
     );
 }
 
-const ADR_PATH: &str = "docs/adr-archive/ADR-0517-one-owned-ast-substrate-content-addressed.md";
+const ADR_PATH: &str = "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md";
 const LEGACY_MISSING_REQUIRED: &str = r"---
 id: ADR-0517
 status: Accepted
@@ -702,28 +702,28 @@ fn nonbinding_forward_edges_precede_self_and_missing_target_failures() {
 #[test]
 fn controlling_adr_chronology_keeps_full_population_provenance_and_detects_cycles() {
     let accepted = parse_chronology_adr_at_path(
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "ADR-0001",
         "Accepted",
         "2026-01-01",
         "amends: [ADR-0002]\n",
     );
     let proposed_duplicate = parse_chronology_adr_at_path(
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "ADR-0001",
         "Proposed",
         "2026-01-01",
         "",
     );
     let proposed_one = parse_chronology_adr_at_path(
-        "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
+        "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
         "ADR-0003",
         "Proposed",
         "2026-01-01",
         "",
     );
     let proposed_two = parse_chronology_adr_at_path(
-        "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
+        "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
         "ADR-0003",
         "Proposed",
         "2026-01-01",
@@ -776,7 +776,7 @@ fn controlling_adr_chronology_keeps_full_population_provenance_and_detects_cycle
 fn controlling_adr_chronology_preserves_hold_and_only_cycles_forward_amends_and_supersedes() {
     let accepted = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "");
     let nonbinding = parse_chronology_adr_at_path(
-        "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
+        "docs/decisions/ADR-0002-tenant-and-identity-kernel.md",
         "ADR-0002",
         "Proposed",
         "2026-01-01",
@@ -1236,7 +1236,7 @@ fn adr_ir_uses_the_exact_first_h1_title_and_requires_repo_relative_paths() {
 
     assert!(matches!(
         parse_adr_decision(&AdrParseInput::new(
-            "/repo/docs/adr-archive/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+            "/repo/docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
             source,
         )),
         Err(AdrParseError::InvalidSourcePath { .. })
