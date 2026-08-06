@@ -1,0 +1,60 @@
+{
+  "id": "REORG-DUAL-DETECTION-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T20:00:00Z",
+  "origin_dev": "1ff54ddc5",
+  "branch": "agent/reorg-intel-detection-residual-20260806",
+  "summary": "Rehome residual zero-crate oya/detection surface into registered intelligence/ home as intelligence/detection/ (collision-safe with live intelligence/{core,adapters,facade,testing} crates and with #1602 cloud-intelligence residual flat-merge); retarget live consumers; delete dual-home debt under oya/ for this residual.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/detection",
+  "durable_home": "intelligence/",
+  "debt": [
+    "oya/detection/"
+  ],
+  "moves": [
+    {
+      "from": "oya/detection/{ARCHITECTURE,PRD,README,manifest,contracts,iac,cedar,policy,capabilities,catalog,slos,runbooks,...}",
+      "to": "intelligence/detection/<same>"
+    }
+  ],
+  "collision_policy": "reshape into intelligence/detection/ subdir so residual tops (manifest.json, README, PRD, capabilities/, contracts/, iac/, …) do not collide with live intelligence crate layout or with cloud-intelligence residual files rehomed flat into intelligence/ by #1602",
+  "consumers_retargeted": [
+    "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+    "intelligence/BUCK",
+    "intelligence/detection/manifest.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json"
+  ],
+  "net_path_debt": "negative under oya/detection (deleted); intelligence/detection gains residual zero-crate product artifacts at capability home; absorbs_current_dirs reduces by oya/detection",
+  "path_disjoint_from": {
+    "live_move_plan": "intelligence-remainder-move-plan (oya/intelligence/crates/* only; PR #1581 unpark) — this residual touches no oya/intelligence crates and does not open a second move-plan",
+    "sibling_residual": "cloud/cloud-intelligence residual (#1602) — path-disjoint flat-merge into intelligence/; this leaf only rehomes oya/detection"
+  },
+  "non_goals": [
+    "no crate renames or crate path moves",
+    "no second live *-move-plan.json",
+    "no oya/intelligence crate remainder execution",
+    "no cloud/cloud-intelligence residual (sibling #1602)",
+    "historical docs/audit, docs/adr-archive, and disposition path strings left as historical inventory"
+  ],
+  "file_count_rehomed": 135,
+  "zero_crate": true,
+  "absorbs_current_dirs_after": [
+    "intelligence",
+    "cloud/cloud-intelligence",
+    "oya/intelligence"
+  ],
+  "corpus_packaging": "intelligence/BUCK adds live-service-manifest-corpus + proto-contract-corpus + corpus_yaml_facts_shards so detection residual YAML stays in the Buck2 graph (ADR-0541 / #1583 corpus packaging pattern)",
+  "corpus_reanchor": {
+    "oya_yaml_census": "4103→4055",
+    "unpackaged_yaml": "433→428",
+    "reason": "detection residual left oya/ (48 YAML); intelligence/BUCK corpus packaging indexed detection residual + 5 pre-existing intelligence/observability/slos OpenSLO YAML"
+  },
+  "protocol_reanchor": {
+    "manifest_inventory.expected_total": "101→100",
+    "live_v1_service_manifest_count": "60→59"
+  }
+}
