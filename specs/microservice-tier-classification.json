@@ -626,9 +626,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/detection/manifest.json": {
-      "service": "oya/detection",
-      "manifest": "oya/detection/manifest.json",
+    "intelligence/detection/manifest.json": {
+      "service": "intelligence/detection",
+      "manifest": "intelligence/detection/manifest.json",
       "capability": "intelligence",
       "tier": "substrate",
       "tier_subtype": "substrate-ai",

@@ -30,7 +30,7 @@
       "oya/data-pipeline/iac/k8s/helm/templates/cedar.yaml",
       "oya/data-warehouse/iac/k8s/helm/templates/cedar.yaml",
       "oya/design-collaboration/iac/k8s/helm/templates/cedar.yaml",
-      "oya/detection/iac/k8s/helm/templates/cedar.yaml",
+      "intelligence/detection/iac/k8s/helm/templates/cedar.yaml",
       "oya/developer-sdk/iac/k8s/helm/templates/cedar.yaml",
       "oya/diagnostics/iac/k8s/helm/templates/cedar.yaml",
       "oya/docs/iac/k8s/helm/templates/cedar.yaml",
