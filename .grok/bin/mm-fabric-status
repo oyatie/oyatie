@@ -118,6 +118,12 @@ def main() -> int:
             if (L or {}).get("source") == "block" and (L or {}).get("status") == "ready"
         ),
         "queue_stats": board.get("queue_stats") or {},
+        "reorg_ready": sum(
+            1
+            for L in (board.get("lanes") or [])
+            if (L or {}).get("source") == "reorg" and (L or {}).get("status") == "ready"
+        ),
+        "origin_dev": board.get("origin_dev"),
         "recommendation": (
             "all four fabric classes heartbeating"
             if ok

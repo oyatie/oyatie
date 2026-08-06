@@ -284,33 +284,46 @@ def find_ci_infra_preflight_receipt(
 
 
 def find_agent_dual_critic(pr: int, policy: dict) -> Tuple[bool, Optional[str]]:
-    """Locate dual-critic review packet for PR under .grok/programs/**/evidence/."""
+    """Locate dual-critic review packet under .grok/programs and docs disposition evidence."""
     admit = {
         str(v).upper()
         for v in (policy.get("agent_review_admit_verdicts") or ["APPROVE", "CLEAR", "ADMIT"])
     }
-    # Search common grok roots
+    require_xm = bool(policy.get("require_cross_model_critics", False))
+    admit_indep = {
+        str(v).lower()
+        for v in (policy.get("agent_review_admit_independence") or ["cross_model"])
+    }
+    # Search common grok roots + disposition evidence + worktrees
     roots: List[Path] = []
     for start in [Path.cwd(), Path("/Users/jasonlee/Developer/oyatie")]:
-        g = start / ".grok" / "programs"
-        if g.is_dir():
-            roots.append(g)
-        # parents
+        for rel in (
+            ".grok/programs",
+            "docs/decisions/_disposition/evidence",
+            ".grok/programs/delivery-fabric/evidence",
+        ):
+            g = start / rel
+            if g.is_dir() and g not in roots:
+                roots.append(g)
         for p in start.parents:
             g2 = p / ".grok" / "programs"
             if g2.is_dir() and g2 not in roots:
                 roots.append(g2)
             if p == Path("/Users/jasonlee"):
                 break
-    # Also kit
-    kit = Path("/Users/jasonlee/Developer/oyatie-mm-harness-20260805/.grok/programs")
-    if kit.is_dir():
-        roots.append(kit)
+    for extra in (
+        Path("/Users/jasonlee/Developer/oyatie-adr-disposition-20260806/docs/decisions/_disposition/evidence"),
+        Path("/Users/jasonlee/Developer/oyatie-kit-land-dev/.grok/programs"),
+        Path("/Users/jasonlee/Developer/oyatie-mm-harness-20260805/.grok/programs"),
+    ):
+        if extra.is_dir() and extra not in roots:
+            roots.append(extra)
 
     candidates: List[Path] = []
     for root in roots:
         for pat in (
             f"**/pr-{pr}-dual-critic.json",
+            f"**/pr-{pr}-dual-critic-*.json",
             f"**/*{pr}*dual-critic*.json",
             f"**/*{pr}*review*.json",
         ):
@@ -332,12 +345,21 @@ def find_agent_dual_critic(pr: int, policy: dict) -> Tuple[bool, Optional[str]]:
             continue
         # each critic should admit
         ok_n = 0
+        providers = []
         for c in critics:
             if not isinstance(c, dict):
                 continue
             v = str(c.get("verdict") or c.get("admit") or c.get("admit_recommendation") or "").upper()
             if v in admit or v in ("APPROVE", "CLEAR", "ADMIT", "SHIP"):
                 ok_n += 1
+            if c.get("provider"):
+                providers.append(str(c.get("provider")))
+        indep = str(data.get("independence") or "unknown").lower()
+        if require_xm:
+            if indep not in admit_indep:
+                continue
+            if indep == "cross_model" and len(set(providers)) < 2:
+                continue
         if ok_n >= 2 and (verdict in admit or verdict in ("APPROVE", "CLEAR", "ADMIT", "SHIP") or ok_n >= 2):
             # overall verdict optional if both critics admit
             if not verdict or verdict in admit or verdict in ("APPROVE", "CLEAR", "ADMIT", "SHIP", "PASS"):
@@ -923,35 +945,54 @@ def cmd_tick(args: argparse.Namespace) -> int:
     repo_root = grok.parent if grok.name == ".grok" else grok
     # Soft reds / blocks → task board (never silent). Best-effort; never block tick.
     queue_ingest = {"ok": False, "note": "skipped"}
+    dev_status = {"ok": False, "note": "skipped"}
+    reorg_enqueue = {"ok": False, "note": "skipped"}
     try:
-        qi = grok / "bin" / "mm-queue-ingest"
-        if qi.is_file() and not args.offline:
-            p = subprocess.run(
-                [sys.executable, str(qi), "--cwd", str(repo_root), "--base", "dev"],
-                text=True,
-                capture_output=True,
-                timeout=120,
-                check=False,
-            )
-            try:
-                queue_ingest = (
-                    json.loads(p.stdout)
-                    if (p.stdout or "").strip()
-                    else {"ok": False, "stderr": (p.stderr or "")[:300]}
+        if not args.offline:
+            for tool_name, key_holder, extra in (
+                ("mm-dev-status", "dev_status", ["--fetch"]),
+                ("mm-queue-ingest", "queue_ingest", ["--base", "dev"]),
+                ("mm-reorg-enqueue", "reorg_enqueue", ["--waves", "W0,W1,W2"]),
+            ):
+                tool = grok / "bin" / tool_name
+                if not tool.is_file():
+                    continue
+                p = subprocess.run(
+                    [sys.executable, str(tool), "--cwd", str(repo_root), *extra],
+                    text=True,
+                    capture_output=True,
+                    timeout=180,
+                    check=False,
                 )
-            except json.JSONDecodeError:
-                queue_ingest = {"ok": False, "stderr": (p.stderr or p.stdout or "")[:400]}
+                try:
+                    parsed = (
+                        json.loads(p.stdout)
+                        if (p.stdout or "").strip()
+                        else {"ok": False, "stderr": (p.stderr or "")[:300]}
+                    )
+                except json.JSONDecodeError:
+                    parsed = {"ok": False, "stderr": (p.stderr or p.stdout or "")[:400]}
+                if tool_name == "mm-dev-status":
+                    dev_status = parsed
+                elif tool_name == "mm-queue-ingest":
+                    queue_ingest = parsed
+                else:
+                    reorg_enqueue = parsed
     except Exception as e:  # noqa: BLE001 — tick must continue
         queue_ingest = {"ok": False, "error": str(e)[:200]}
 
     board = build_board(grok, do_gh=not args.offline)
     board["briefs"] = briefs_from_board(board)
     board["queue_ingest"] = queue_ingest
+    board["dev_status"] = dev_status
+    board["reorg_enqueue"] = reorg_enqueue
     try:
         tb_path = repo_root / ".grok/programs/delivery-fabric/task-board.v1.json"
         if tb_path.is_file():
             tb = load_json(tb_path)
             board["task_board_queue_stats"] = tb.get("queue_stats")
+            board["origin_dev"] = tb.get("origin_dev") or (dev_status.get("origin_dev") if isinstance(dev_status, dict) else None)
+            board["reorg_queue"] = tb.get("reorg_queue")
             board["soft_red_ready"] = sum(
                 1
                 for L in (tb.get("lanes") or [])
@@ -973,6 +1014,13 @@ def cmd_tick(args: argparse.Namespace) -> int:
                 and L.get("source") == "block"
                 and L.get("status") == "ready"
             )
+            board["reorg_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "reorg"
+                and L.get("status") == "ready"
+            )
     except Exception:
         pass
     append_ledger(
@@ -982,6 +1030,10 @@ def cmd_tick(args: argparse.Namespace) -> int:
             "counts": board.get("counts"),
             "resolvable": board.get("resolvable_ids"),
             "soft_red_ready": board.get("soft_red_ready"),
+            "reorg_ready": board.get("reorg_ready"),
+            "origin_dev": (board.get("origin_dev") or {}).get("sha12")
+            if isinstance(board.get("origin_dev"), dict)
+            else None,
             "queue_ingest_ok": bool(queue_ingest.get("ok")),
         },
     )

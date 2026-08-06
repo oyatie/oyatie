@@ -1,0 +1,288 @@
+#!/usr/bin/env python3
+"""Enqueue overdue reorg/rewrite/debrand/refactor/remove cards onto task board.
+
+Reads REORG-REBRAND-BACKLOG.md for card IDs + waves; upserts ready lanes with
+source=reorg. Never silent on long-overdue debt. Not merge authority.
+
+Respects doctrine: reorg != only move; re-query origin/dev before execute.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+
+# Seed cards from REORG-REBRAND-BACKLOG (must stay path-conscious; W0/W1 preferred for parallel)
+SEED_CARDS: List[Dict[str, Any]] = [
+    {
+        "id": "RR-FACE-DECOMMIT",
+        "title": "Audit/remove re-committed derived faces violating de-commit ADRs (0613–0616)",
+        "class": "refactor",
+        "wave": "W1",
+        "priority": "P1",
+        "paths": ["ci/facade/", "specs/", "infra/ci/materialize-cloud-ci-generated-faces.sh"],
+        "authority": "ADR-0613..0616 live apex via ADR-0700/0701",
+        "dod": [
+            "Inventory tracked *.generated.json drift vs controller materialize",
+            "No hand-edit generated faces; materialize only",
+            "PR one concern; dual-critic + oya-ci-required",
+        ],
+    },
+    {
+        "id": "RR-MOVEPLAN-SINGLETON",
+        "title": "Enforce single active specs/reorg/*-move-plan.json (process/gate)",
+        "class": "refactor",
+        "wave": "W0",
+        "priority": "P1",
+        "paths": ["specs/reorg/", ".grok/programs/REORG-DOCTRINE.md"],
+        "authority": "ADR-0614 + REORG-DOCTRINE",
+        "dod": [
+            "Document singleton rule in gate or checklist",
+            "Fail closed or advisory on multiple active plans",
+        ],
+    },
+    {
+        "id": "RR-BRAND-0619",
+        "title": "Rebrand residue: strip forbidden harness brand as live authority (ADR-0619)",
+        "class": "rebrand",
+        "wave": "W0",
+        "priority": "P2",
+        "paths": ["docs/", ".grok/", "README.md"],
+        "authority": "ADR-0619 / live apex",
+        "dod": [
+            "Scan for gjc/omc/omx/hermes as live authority claims",
+            "Docs-only PR; no product behavior change",
+        ],
+    },
+    {
+        "id": "RR-DUAL-0615-FOLLOW",
+        "title": "Follow dual-home oya/* disposition after #1568 inventory",
+        "class": "mixed",
+        "wave": "W1",
+        "priority": "P2",
+        "paths": ["oya/", "specs/reorg/", ".grok/programs/reorg/"],
+        "authority": "ADR-0562+0615+0635; docs/reorg dual-home inventory",
+        "dod": [
+            "Re-query origin/dev ADRs before PR",
+            "One concern PR: dispose one dual-home cluster or plan-only",
+        ],
+    },
+    {
+        "id": "RR-LIBS-DISPOSITION",
+        "title": "Disposition flat libs/* → capability homes (plan-first)",
+        "class": "mixed",
+        "wave": "W3",
+        "priority": "P2",
+        "paths": ["libs/", "specs/reorg/"],
+        "authority": "REORG-DOCTRINE multi-cap; ADR-0615",
+        "dod": [
+            "Author specs/reorg/libs-*-move-plan.json groups (plan-only story OK)",
+            "No mega-PR; one group per PR when executing",
+        ],
+    },
+    {
+        "id": "RR-TOOLS-OYA-TAIL",
+        "title": "tools/** + oya/** product/CI tail disposition (rewrite/delete/move mix)",
+        "class": "mixed",
+        "wave": "W3",
+        "priority": "P2",
+        "paths": ["tools/", "oya/"],
+        "authority": "REORG-REBRAND-BACKLOG RR-TOOLS-OYA-TAIL",
+        "dod": [
+            "Inventory keep/reorg/delete",
+            "Path-disjoint leaf PRs only",
+        ],
+    },
+    {
+        "id": "RR-INTEL-REMAINDER",
+        "title": "Intelligence remainder reorg (plan-first G024)",
+        "class": "move",
+        "wave": "W3",
+        "priority": "P2",
+        "paths": ["intelligence/", "oya/intelligence/", "specs/reorg/"],
+        "authority": "UG G024; no concurrent second move-plan",
+        "dod": [
+            "Author intelligence-remainder-move-plan.json when move-class",
+            "Re-query tip ADRs",
+        ],
+    },
+    {
+        "id": "RR-CAS-3A",
+        "title": "CAS 3A NativeLink storage rehome (ordered; after G039)",
+        "class": "move",
+        "wave": "W2",
+        "priority": "P1",
+        "paths": ["infra/nativelink/", "storage/adapters/", "specs/reorg/"],
+        "authority": "CAS plan + ADR-0614; prerequisite G039 packet",
+        "dod": [
+            "Worktree from current origin/dev only",
+            "Sole active move-plan for lane",
+            "No warm CAS flip",
+        ],
+        "blockers": ["prerequisite:G039-terminal-packet"],
+    },
+    {
+        "id": "RR-CORPUS-CLASSIFY",
+        "title": "Corpus classify ~md/yaml: keep/reorg/refactor/rewrite/delete",
+        "class": "delete",
+        "wave": "W4",
+        "priority": "P3",
+        "paths": ["docs/"],
+        "authority": "REORG-REBRAND-BACKLOG classify",
+        "dod": ["Sample batch disposition PR; no silent mass delete without consumers check"],
+    },
+]
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/programs/delivery-fabric/task-board.v1.json").is_file() or (
+            p / ".git"
+        ).exists():
+            return p
+    return cur
+
+
+def upsert(lanes: List[dict], lane: dict) -> None:
+    for i, e in enumerate(lanes):
+        if e.get("id") == lane["id"]:
+            if e.get("status") in ("claimed", "in_progress", "implementing", "cleared", "waived"):
+                # preserve terminal/claim
+                if e.get("status") in ("claimed", "in_progress", "implementing"):
+                    lane["status"] = e["status"]
+                    lane["claimed_by"] = e.get("claimed_by")
+                    lane["claimed_at"] = e.get("claimed_at")
+                else:
+                    return  # don't reopen cleared/waived automatically
+            lane["first_seen_at"] = e.get("first_seen_at") or now()
+            lane["updated_at"] = now()
+            lanes[i] = {**e, **lane}
+            return
+    lane["first_seen_at"] = now()
+    lane["updated_at"] = now()
+    lanes.append(lane)
+
+
+def origin_dev_sha(repo: Path) -> str:
+    try:
+        p = subprocess.run(
+            ["git", "rev-parse", "origin/dev"],
+            cwd=str(repo),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        return (p.stdout or "").strip()
+    except OSError:
+        return ""
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--waves", default="W0,W1,W2", help="comma waves to enqueue")
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    board_path = repo / ".grok/programs/delivery-fabric/task-board.v1.json"
+    if board_path.is_file():
+        board = json.loads(board_path.read_text())
+    else:
+        board = {"schema": "task-board.v1", "lanes": [], "notes": []}
+
+    waves = {w.strip() for w in args.waves.split(",") if w.strip()}
+    lanes = list(board.get("lanes") or [])
+    dev = origin_dev_sha(repo)
+    added = []
+    for card in SEED_CARDS:
+        if card["wave"] not in waves:
+            continue
+        lid = f"REORG-{card['id']}"
+        lane = {
+            "id": lid,
+            "title": f"[{card['class']}/{card['wave']}] {card['title']}",
+            "status": "ready",
+            "priority": card["priority"],
+            "paths": card["paths"],
+            "depends_on": [],
+            "source": "reorg",
+            "source_ref": f"REORG-REBRAND-BACKLOG.md#{card['id']}",
+            "reorg_class": card["class"],
+            "reorg_wave": card["wave"],
+            "authority": card["authority"],
+            "bead_id": None,
+            "pr": None,
+            "branch": None,
+            "dod": card["dod"]
+            + [
+                "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE §1)",
+                f"Worktree from origin/dev@{dev[:12] if dev else 'unknown'}",
+                "One concern per PR; dual-critic APPROVE + oya-ci-required for merge",
+            ],
+            "blockers": list(card.get("blockers") or []),
+            "claimed_by": None,
+            "claimed_at": None,
+        }
+        if lane["blockers"]:
+            lane["status"] = "blocked"
+            lane["priority"] = "P2"
+        upsert(lanes, lane)
+        added.append(lid)
+
+    board["lanes"] = lanes
+    board["updated_at"] = now()
+    board["updated_by"] = "mm-reorg-enqueue"
+    board["origin_dev"] = {"sha": dev, "sha12": dev[:12] if dev else None, "at": now()}
+    board.setdefault("notes", [])
+    board["notes"] = [
+        f"mm-reorg-enqueue {now()}: waves={sorted(waves)} added/upserted {len(added)} reorg lanes; origin/dev={dev[:12] if dev else '?'}"
+    ] + [n for n in board["notes"] if not str(n).startswith("mm-reorg-enqueue ")][:15]
+    board["reorg_queue"] = {
+        "waves": sorted(waves),
+        "lane_ids": added,
+        "doctrine": ".grok/programs/REORG-DOCTRINE.md",
+        "backlog": ".grok/programs/REORG-REBRAND-BACKLOG.md",
+    }
+
+    if not args.dry_run:
+        board_path.parent.mkdir(parents=True, exist_ok=True)
+        board_path.write_text(json.dumps(board, indent=2) + "\n")
+
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "origin_dev": dev[:12] if dev else None,
+                "waves": sorted(waves),
+                "upserted": added,
+                "reorg_ready": sum(
+                    1
+                    for L in lanes
+                    if L.get("source") == "reorg" and L.get("status") == "ready"
+                ),
+                "reorg_blocked": sum(
+                    1
+                    for L in lanes
+                    if L.get("source") == "reorg" and L.get("status") == "blocked"
+                ),
+                "board": str(board_path),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

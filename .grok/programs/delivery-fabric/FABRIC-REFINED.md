@@ -38,6 +38,33 @@ How might we keep multi-agent delivery **continuously productive** so that work 
 - Auto-promote learn packs without human gate  
 - Secrets / #1541 thrash  
 
+## origin/dev awareness (always)
+
+Every portfolio tick and reorg claim MUST know remote trunk:
+
+| Tool | Output |
+|------|--------|
+| `mm-dev-status --fetch` | `origin/dev` sha, subject, oya-ci on tip, open PRs behind dev, local behind count |
+
+**Defects:** stale execute (implement without re-query tip); PR lag ignored; reorg from dirty primary 628 commits behind.
+
+Board field: `origin_dev: { sha, sha12, at }`.
+
+## Reorg / rewrite / debrand / remove (long-overdue, first-class)
+
+Not optional cleanup. Enqueued by **`mm-reorg-enqueue`** from `REORG-REBRAND-BACKLOG.md` + doctrine.
+
+| Class | Examples on board |
+|-------|-------------------|
+| refactor | RR-FACE-DECOMMIT, RR-MOVEPLAN-SINGLETON |
+| rebrand | RR-BRAND-0619 |
+| mixed | RR-DUAL-0615-FOLLOW, RR-LIBS-DISPOSITION |
+| move | RR-CAS-3A (blocked until G039 prereq) |
+| delete/rewrite | later waves W3–W4 |
+
+W2 implement prefer order: **ci_red → soft_red → reorg W0/W1 ready → beads → console**.  
+Every reorg PR: worktree from **current** `origin/dev`, ADR re-query, one concern.
+
 ## Soft reds & blocks (never silent)
 
 GHA may mark soft platform legs `continue-on-error`, but **process still queues them**.
@@ -71,3 +98,13 @@ Silent ignore of soft reds is a **process defect**.
 - Open PRs not abandoned (babysit re-poll armed)  
 - Merge when agent APPROVE + CI green without waiting on human  
 - Process_edits when systematic failures  
+
+
+## Workflow files
+
+- `.grok/workflows/portfolio-work-manager.rhai`
+- `.grok/workflows/implement-claimed-lane.rhai`
+- `.grok/workflows/pr-babysit-lanes.rhai`
+- `.grok/workflows/workflow-productivity-watch.rhai`
+
+Run: `/workflow portfolio-work-manager` (etc). Schedulers re-arm every 5–15m.
