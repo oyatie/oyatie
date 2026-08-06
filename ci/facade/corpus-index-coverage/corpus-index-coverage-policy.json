@@ -19,8 +19,8 @@
     "yaml_files_total": 5868,
     "yaml_files_indexed": 5435,
     "yaml_files_unpackaged": 425,
-    "package_coverage_bps": 4705,
-    "file_coverage_bps": 9171
+    "package_coverage_bps": 4857,
+    "file_coverage_bps": 9262
   },
   "product_contract": {
     "born_advisory": "Born ADVISORY over today's debt and BLOCKING on regression. 18 YAML-owning packages declare no extraction target and 425 YAML files sit outside every buck2 package; both are reported as advisory findings and frozen as ceilings. A NEW uncovered package, or NEW YAML outside the build graph, exceeds its ceiling and fails closed.",

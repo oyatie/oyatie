@@ -385,7 +385,7 @@ fn oya_census_off_by_one_blocks() {
 }
 
 #[test]
-fn live_oya_union_is_exactly_4103() {
+fn live_oya_union_matches_expected_census() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (_, policy) = load_policy(&root);
