@@ -2,6 +2,7 @@
 id: ADR-0203
 status: Superseded
 superseded_by: [ADR-0709]
+related: [ADR-0157, ADR-0167, ADR-0176, ADR-0182, ADR-0258]
 ---
 
 > **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.

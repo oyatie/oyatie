@@ -56,36 +56,21 @@
     "cloud-ci-brand-residue": {
       "forbidden_forgejo": [
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         "registry/stores/instructions-store.json"
       ],
       "forbidden_foundry": [
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         "registry/stores/canon-id-crosswalk.json",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
       ],
       "forbidden_jenkins": [
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
       ],
       "forbidden_oya-vcs": [
-        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-      ]
-    },
-    "cloud-ci-cross-artifact-agreement": {
-      "unpropagated_decision": [
-        "ADR-0280",
-        "ADR-0392",
-        "ADR-0510",
-        "ADR-0572"
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json"
       ]
     }
   },
@@ -304,6 +289,59 @@
         "iam/adapters/pdp-cedar/cedar/platform.cedarschema",
         "iam/adapters/pdp-cedar/src/lib.rs",
         "iam/adapters/pdp-cedar/tests/cedar_pdp_conformance.rs"
+      ]
+    },
+    {
+      "date": "2026-08-06",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_forgejo",
+      "keys": [
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+      ]
+    },
+    {
+      "date": "2026-08-06",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_foundry",
+      "keys": [
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+      ]
+    },
+    {
+      "date": "2026-08-06",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_jenkins",
+      "keys": [
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+      ]
+    },
+    {
+      "date": "2026-08-06",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-brand-residue",
+      "code": "forbidden_oya-vcs",
+      "keys": [
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+      ]
+    },
+    {
+      "date": "2026-08-06",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-cross-artifact-agreement",
+      "code": "unpropagated_decision",
+      "keys": [
+        "ADR-0280",
+        "ADR-0392",
+        "ADR-0510",
+        "ADR-0572"
       ]
     }
   ]

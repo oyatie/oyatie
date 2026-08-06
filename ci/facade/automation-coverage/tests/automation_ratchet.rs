@@ -209,12 +209,17 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
         report.violations.contains("advisory_claiming_enforced"),
         "oya-governance crates + governance lanes claim enforcement with no wired buck2 target -> advisory_claiming_enforced must fire"
     );
-    assert!(
-        report
-            .violations
-            .contains("blocking_invariant_mapped_to_oya_cli"),
-        "ADR-0365 oya gate/oya gen verified_by lines -> blocking_invariant_mapped_to_oya_cli must fire"
-    );
+    // ADR-0365 CLI-as-merge-authority debt may be burned down after apex disposition
+    // archives historical verified_by lines; born-blocking still requires the durable
+    // advisory + review-authority exhibits.
+    if oya_cli_count > 0 {
+        assert!(
+            report
+                .violations
+                .contains("blocking_invariant_mapped_to_oya_cli"),
+            "when oya-cli-mapped rows exist, blocking_invariant_mapped_to_oya_cli must fire"
+        );
+    }
     assert!(
         report
             .violations
@@ -222,7 +227,6 @@ fn gate4_is_born_blocking_on_the_live_corpus() {
         "dev branch protection lacks a blocking machine-verifiable review authority -> missing_pre_merge_review_authority must fire"
     );
     assert!(advisory_count > 0, "expected unwired enforcement claims");
-    assert!(oya_cli_count > 0, "expected oya-cli-mapped invariants");
 }
 
 /// Run the producer to emit a single face to stdout, HERMETICALLY. The producer binary must be

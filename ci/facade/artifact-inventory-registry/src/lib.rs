@@ -2112,20 +2112,20 @@ mod tests {
     #[test]
     fn fix_owners_applies_the_decided_edit_and_self_validates() {
         let root = unique_temp_repo();
-        std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
+        std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
         let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
-        let message = fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture")
+        let message = fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture")
             .expect("fix applies");
         assert!(message.contains("1 tracked path(s)"), "{message}");
         assert_eq!(
-            std::fs::read_to_string(root.join("docs/decisions/OWNERS")).expect("read"),
+            std::fs::read_to_string(root.join("docs/adr-archive/OWNERS")).expect("read"),
             "council-architecture\n"
         );
         // re-application refuses: an existing registration is extended by hand (reviewed).
-        assert!(fix_owners(&root, &cfg, &scm, "docs/decisions=council-architecture").is_err());
+        assert!(fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture").is_err());
         // the owner is a required DESIGN DECISION — a bare dir is refused.
-        assert!(fix_owners(&root, &cfg, &scm, "docs/decisions=").is_err());
+        assert!(fix_owners(&root, &cfg, &scm, "docs/adr-archive=").is_err());
         // path traversal / absolute dirs are refused (the bridge cannot escape the repo).
         assert!(fix_owners(&root, &cfg, &scm, "/etc=evil").is_err());
         assert!(fix_owners(&root, &cfg, &scm, "../outside=evil").is_err());
@@ -2184,20 +2184,20 @@ mod tests {
     #[test]
     fn fix_owners_refuses_schema_invalid_and_over_broad_registrations() {
         let root = unique_temp_repo();
-        std::fs::create_dir_all(root.join("docs/decisions")).expect("create dir");
+        std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
         let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
         // A principal the resolver would reject must be refused BEFORE writing.
         for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
-            let err = fix_owners(&root, &cfg, &scm, &format!("docs/decisions={hostile}"))
+            let err = fix_owners(&root, &cfg, &scm, &format!("docs/adr-archive={hostile}"))
                 .expect_err("schema-invalid principal must be refused");
             assert!(
                 format!("{err:?}").contains("not a valid owner principal"),
                 "refusal must name the schema defect, got {err:?}"
             );
             assert!(
-                !root.join("docs/decisions/OWNERS").exists(),
+                !root.join("docs/adr-archive/OWNERS").exists(),
                 "a refused registration must leave no OWNERS residue"
             );
         }
@@ -2219,7 +2219,7 @@ mod tests {
             &root,
             &small_bound_cfg,
             &bulk,
-            "docs/decisions=council-architecture",
+            "docs/adr-archive=council-architecture",
         )
         .expect_err("an over-broad registration must be refused");
         let message = format!("{err:?}");
@@ -2228,7 +2228,7 @@ mod tests {
             "refusal must name the bound and the split fix, got {message}"
         );
         assert!(
-            !root.join("docs/decisions/OWNERS").exists(),
+            !root.join("docs/adr-archive/OWNERS").exists(),
             "the over-broad OWNERS must be reverted (no residue)"
         );
 
@@ -2238,7 +2238,7 @@ mod tests {
             &root,
             &small_bound_cfg,
             &scm,
-            "docs/decisions=council-architecture",
+            "docs/adr-archive=council-architecture",
         )
         .expect("a within-bound registration applies");
         assert!(ok.contains("1 tracked path(s)"), "{ok}");

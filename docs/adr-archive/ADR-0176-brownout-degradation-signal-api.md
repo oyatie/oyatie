@@ -9,15 +9,7 @@ owners:
 supersedes: []
 superseded_by: [ADR-0705]
 amended_by: [ADR-0632]
-related:
-  - ADR-0128-hyperscaler-architecture-invariants.md
-  - ADR-0009-cell-architecture-per-tenant-per-region.md
-  - ADR-0042-observability-stack-otel-and-in-house-ui.md
-  - ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
-  - ADR-0148-service-mesh-cilium.md
-  - ADR-0203-documentation-engine-three-tier.md
-  - ADR-0258-api-versioning-model.md
-  - ADR-0632
+related: [ADR-0128, ADR-0009, ADR-0042, ADR-0044, ADR-0148, ADR-0203, ADR-0258, ADR-0632]
 last_reconciled: 2026-08-01
 reconciled_with: [ADR-0203, ADR-0258, ADR-0632]
 doc_class: Architecture-Decision-Record

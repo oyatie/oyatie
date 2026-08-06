@@ -102,10 +102,8 @@
       "prefix": "docs/decisions/"
     },
     {
-      "anchor": "ADR-0555 D3: the governance decision corpus \u2014 every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
-      "prefix": "docs/adr-archive/",
-      "id": "docs-adr-archive-archive",
-      "note": "Historical ADR archive (non-authority); live ADRs under docs/decisions ADR-0700..0709"
+      "anchor": "ADR-0700..ADR-0709 disposition E4: historical ADR archive under docs/adr-archive/ (Rejected + Superseded members; not live law). Owned by docs/adr-archive/OWNERS (council-architecture). Reachability is corpus-level for provenance; live resolution is apex files under docs/decisions/ADR-070x.",
+      "prefix": "docs/adr-archive/"
     },
     {
       "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md); homed in its own docs/security-program/ subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
@@ -478,12 +476,6 @@
     {
       "anchor": "ADR-0637 + ADR-0638: R-DOC fail-closed gate package for k8s program docs wave-registry and operating surface; reviewed W0-A admission corpus.",
       "prefix": "ci/facade/k8s-program-docs/"
-    },
-    {
-      "prefix": "docs/adr-archive/",
-      "owner": "council-architecture",
-      "purpose": "Historical ADR archive; not live law",
-      "anchor": "docs/decisions/_disposition/adr-redirect.v1.json"
     }
   ]
 }

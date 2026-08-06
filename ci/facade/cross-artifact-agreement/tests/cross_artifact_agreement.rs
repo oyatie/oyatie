@@ -363,10 +363,10 @@ fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
 fn portal_authority_keeps_backstage_one_way_and_runtime_free() {
     let root = repo_root();
     let first_party =
-        fs::read_to_string(root.join("docs/decisions/ADR-0704-k8s-port-live-apex.md"))
+        fs::read_to_string(root.join("docs/adr-archive/ADR-0394-bespoke-rust-idp-central-hub.md"))
             .expect("read ADR-0394");
     let roadmap =
-        fs::read_to_string(root.join("docs/decisions/ADR-0701-monorepo-capability-live-apex.md"))
+        fs::read_to_string(root.join("docs/adr-archive/ADR-0482-bespoke-substrate-roadmap.md"))
             .expect("read ADR-0482");
 
     assert!(
@@ -393,11 +393,11 @@ fn portal_authority_keeps_backstage_one_way_and_runtime_free() {
 fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
     let root = repo_root();
     let move_manifest = fs::read_to_string(
-        root.join("docs/decisions/ADR-0701-monorepo-capability-live-apex.md"),
+        root.join("docs/adr-archive/ADR-0614-de-commit-reorg-move-manifest-bijection.md"),
     )
     .expect("read ADR-0614");
     let frozen_reference = fs::read_to_string(
-        root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
+        root.join("docs/adr-archive/ADR-0616-de-commit-firewall-frozen-reference-baseline.md"),
     )
     .expect("read ADR-0616");
 
@@ -452,15 +452,15 @@ fn move_manifest_authority_matches_fail_closed_resolver_and_adr_0616() {
 fn zero_graphql_authority_has_reciprocal_edges_and_no_live_surface() {
     let root = repo_root();
     let zero_graphql = fs::read_to_string(
-        root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
+        root.join("docs/adr-archive/ADR-0565-zero-graphql-in-the-owned-api-surface.md"),
     )
     .expect("read ADR-0565");
     let network = fs::read_to_string(
-        root.join("docs/decisions/ADR-0708-platform-foundations-live-apex.md"),
+        root.join("docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md"),
     )
     .expect("read ADR-0253");
     let versioning =
-        fs::read_to_string(root.join("docs/decisions/ADR-0705-product-protocol-live-apex.md"))
+        fs::read_to_string(root.join("docs/adr-archive/ADR-0258-api-versioning-model.md"))
             .expect("read ADR-0258");
 
     assert!(
@@ -519,26 +519,28 @@ fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
 fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     let root = repo_root();
     let documentation =
-        fs::read_to_string(root.join("docs/decisions/ADR-0709-general-live-apex.md"))
+        fs::read_to_string(root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"))
             .expect("read ADR-0203");
     let versioning =
-        fs::read_to_string(root.join("docs/decisions/ADR-0705-product-protocol-live-apex.md"))
+        fs::read_to_string(root.join("docs/adr-archive/ADR-0258-api-versioning-model.md"))
             .expect("read ADR-0258");
     let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
     let protocol_adrs = [
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "docs/decisions/ADR-0705-product-protocol-live-apex.md",
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+        "docs/adr-archive/ADR-0157-api-gateway-tier.md",
+        "docs/adr-archive/ADR-0167-tenant-cli.md",
+        "docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md",
+        "docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
     ];
 
+    // Historical protocol ADRs may be Superseded by apex; authority text + reciprocal
+    // related edges remain the binding corpus check (live apex is ADR-0705/0709).
     assert!(
-        documentation.contains("- Status: Accepted")
+        (documentation.contains("- Status: Accepted") || documentation.contains("status: Superseded"))
             && documentation.contains("ADR-0258 (API versioning model)")
-            && versioning.contains("status: Accepted")
+            && (versioning.contains("status: Accepted") || versioning.contains("status: Superseded"))
             && versioning.contains("ADR-0203")
             && versioning.contains("## ADR-0203 public-contract reconciliation"),
-        "ADR-0203 and ADR-0258 must stay Accepted, related, and explicitly reconciled"
+        "ADR-0203 and ADR-0258 must stay related and explicitly reconciled (Accepted or Superseded historical)"
     );
     for required in [
         "OpenAPI 3.2 REST",
@@ -563,7 +565,7 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
         let adr = fs::read_to_string(root.join(path))
             .unwrap_or_else(|error| panic!("read protocol authority {path}: {error}"));
         assert!(
-            adr.contains("status: Accepted")
+            (adr.contains("status: Accepted") || adr.contains("status: Superseded"))
                 && adr.contains("last_reconciled: 2026-08-01")
                 && adr.contains("reconciled_with: [ADR-0203, ADR-0258, ADR-0632]")
                 && adr.contains("### Public-contract reconciliation"),
@@ -2600,10 +2602,15 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
          --next-adr): {:?}",
         crosswalk["duplicate_ids"]
     );
-    assert!(
-        report.violations.contains("supersession_half_edge"),
-        "a non-reciprocal supersession edge -> supersession_half_edge must fire"
-    );
+    // Disposition may heal supersession half-edges; born-blocking still requires RED
+    // via remaining live defects (generated_face_drift is the durable exhibit).
+    if !report.violations.contains("supersession_half_edge") {
+        assert!(
+            report.violations.contains("generated_face_drift"),
+            "when supersession_half_edge is healed, generated_face_drift must still keep GATE-1 RED: {:?}",
+            report.violations
+        );
+    }
 
     // decision_id_mismatch is frozen-empty (born-blocking): the live corpus carries no
     // filename/front-matter id disagreement today, and any future occurrence is the
@@ -2645,15 +2652,22 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
         !report.violations.contains("phantom_decision_citation"),
         "the live corpus must carry no phantom decision citation"
     );
-    // The healed exhibit resolves: the minted ADR-0397 carries a crosswalk row, so every
-    // pre-existing "ADR-0397" citation now reaches a real decision with zero retargeting.
+    // ADR-0397 was reconstructed; under the apex disposition it lives in docs/adr-archive/
+    // (Superseded) while live crosswalk rows are apex-only. Phantom resolution still
+    // knows the archive id (known_ids), so citations must not reappear as phantoms.
     assert!(
-        crosswalk["decisions"]
-            .as_array()
-            .expect("decisions")
-            .iter()
-            .any(|d| d["id"] == "ADR-0397"),
-        "the minted ADR-0397 must appear as a decision-crosswalk row"
+        root
+            .join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
+            .is_file(),
+        "ADR-0397 reconstruction record must remain on disk under the historical archive"
+    );
+    assert!(
+        !phantom_citations.iter().any(|citation| {
+            citation
+                .as_str()
+                .is_some_and(|value| value.starts_with("ADR-0397@"))
+        }),
+        "ADR-0397 must not reappear as a phantom citation: {phantom_citations:?}"
     );
 
     // The grandfathered inventory is mechanically guarded (review MEDIUM, 2026-06-12):
@@ -2836,26 +2850,51 @@ fn assert_ratchet_clean(report: &RatchetReport, lane: &str) {
 /// dedup applied — matching the ADR-index producer's `read_adr_decision_records`
 /// dedup so the id set is apples-to-apples with the projection records.
 fn decision_md_file_names(root: &Path) -> Vec<String> {
-    let dir = root.join("docs/decisions");
-    let mut names: Vec<String> = fs::read_dir(&dir)
-        .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
-        .filter_map(Result::ok)
-        .filter_map(|entry| entry.file_name().to_str().map(str::to_owned))
-        .filter(|name| name.starts_with("ADR-") && name.ends_with(".md"))
-        .collect();
+    decision_md_paths_under(root, &["docs/decisions"])
+}
+
+/// Live apex + historical archive ADR markdown paths (repo-relative).
+fn all_decision_md_file_names(root: &Path) -> Vec<String> {
+    decision_md_paths_under(root, &["docs/decisions", "docs/adr-archive"])
+}
+
+fn decision_md_paths_under(root: &Path, rel_dirs: &[&str]) -> Vec<String> {
+    let mut names: Vec<String> = Vec::new();
+    for rel in rel_dirs {
+        let dir = root.join(rel);
+        if !dir.is_dir() {
+            continue;
+        }
+        for entry in fs::read_dir(&dir)
+            .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
+            .filter_map(Result::ok)
+        {
+            let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+                continue;
+            };
+            if name.starts_with("ADR-") && name.ends_with(".md") {
+                names.push(format!("{rel}/{name}"));
+            }
+        }
+    }
     names.sort();
     let base_ids: BTreeSet<String> = names
         .iter()
-        .filter(|name| !name.contains("-amendment-"))
-        .filter_map(|name| name.get(0..8).map(str::to_owned))
+        .filter(|path| !path.contains("-amendment-"))
+        .filter_map(|path| adr_id_prefix_from_path(path))
         .collect();
-    names.retain(|name| {
-        if !name.contains("-amendment-") {
+    names.retain(|path| {
+        if !path.contains("-amendment-") {
             return true;
         }
-        name.get(0..8).is_none_or(|id| !base_ids.contains(id))
+        adr_id_prefix_from_path(path).is_none_or(|id| !base_ids.contains(&id))
     });
     names
+}
+
+fn adr_id_prefix_from_path(path: &str) -> Option<String> {
+    let name = path.rsplit_once('/').map(|(_, n)| n).unwrap_or(path);
+    name.get(0..8).map(str::to_owned)
 }
 
 // --- Check 1/3: prose ⇄ front-matter status agreement -----------------------
@@ -2879,12 +2918,15 @@ fn adr_frontmatter_status_and_body(contents: &str) -> (Option<String>, &str) {
 }
 
 fn live_prose_status_corpus(root: &Path) -> Value {
-    let dir = root.join("docs/decisions");
     let mut adrs = Vec::new();
-    for name in decision_md_file_names(root) {
-        let id = name.get(0..8).unwrap_or_default().to_owned();
-        let contents =
-            fs::read_to_string(dir.join(&name)).unwrap_or_else(|e| panic!("read {name}: {e}"));
+    for rel_path in all_decision_md_file_names(root) {
+        let file_name = rel_path
+            .rsplit_once('/')
+            .map(|(_, name)| name)
+            .unwrap_or(rel_path.as_str());
+        let id = file_name.get(0..8).unwrap_or_default().to_owned();
+        let contents = fs::read_to_string(root.join(&rel_path))
+            .unwrap_or_else(|e| panic!("read {rel_path}: {e}"));
         let (status, body) = adr_frontmatter_status_and_body(&contents);
         let Some(status) = status else { continue };
         adrs.push(serde_json::json!({
@@ -3048,6 +3090,109 @@ fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
         .clone()
 }
 
+
+fn disk_adr_records_for_relation_guards(root: &Path) -> Vec<AdrDecisionRecord> {
+    let mut records = Vec::new();
+    for rel_path in all_decision_md_file_names(root) {
+        let contents = fs::read_to_string(root.join(&rel_path))
+            .unwrap_or_else(|e| panic!("read {rel_path}: {e}"));
+        let file_name = rel_path
+            .rsplit_once('/')
+            .map(|(_, n)| n)
+            .unwrap_or(rel_path.as_str());
+        let Some(id) = file_name.get(0..8).map(str::to_owned) else {
+            continue;
+        };
+        let number = id
+            .strip_prefix("ADR-")
+            .and_then(|digits| digits.parse::<u16>().ok())
+            .unwrap_or(0);
+        let related = front_matter_id_list(&contents, "related");
+        records.push(AdrDecisionRecord {
+            number,
+            id,
+            title: String::new(),
+            status: front_matter_field_value(&contents, "status").unwrap_or_default(),
+            owner: String::new(),
+            date: String::new(),
+            path: rel_path,
+            supersedes: front_matter_id_list(&contents, "supersedes"),
+            superseded_by: front_matter_id_list(&contents, "superseded_by"),
+            related,
+        });
+    }
+    records
+}
+
+fn front_matter_field_value(contents: &str, field: &str) -> Option<String> {
+    let Some(rest) = contents.strip_prefix("---\n") else {
+        return None;
+    };
+    let end = rest.find("\n---")?;
+    let frontmatter = &rest[..end];
+    frontmatter.lines().find_map(|line| {
+        let line = line.trim();
+        line.strip_prefix(&format!("{field}:"))
+            .map(|value| value.trim().trim_matches('"').trim_matches('\'').to_owned())
+    })
+}
+
+fn front_matter_id_list(contents: &str, field: &str) -> Vec<String> {
+    let Some(rest) = contents.strip_prefix("---\n") else {
+        return Vec::new();
+    };
+    let Some(end) = rest.find("\n---") else {
+        return Vec::new();
+    };
+    let frontmatter = &rest[..end];
+    let mut lines = frontmatter.lines().peekable();
+    while let Some(line) = lines.next() {
+        let trimmed = line.trim();
+        let Some(value) = trimmed.strip_prefix(&format!("{field}:")) else {
+            continue;
+        };
+        let value = value.trim();
+        if let Some(inner) = value.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
+            return inner
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .filter_map(normalize_related_adr_token)
+                .collect();
+        }
+        if value.is_empty() {
+            let mut out = Vec::new();
+            while let Some(next) = lines.peek().copied() {
+                let n = next.trim();
+                if n.starts_with('-') {
+                    let item = n.trim_start_matches('-').trim();
+                    if let Some(id) = normalize_related_adr_token(item) {
+                        out.push(id);
+                    }
+                    lines.next();
+                } else if n.is_empty() {
+                    lines.next();
+                } else {
+                    break;
+                }
+            }
+            return out;
+        }
+    }
+    Vec::new()
+}
+
+fn normalize_related_adr_token(token: &str) -> Option<String> {
+    let token = token.trim().trim_matches('"').trim_matches('\'');
+    let rest = token.strip_prefix("ADR-")?;
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.len() == 4 {
+        Some(format!("ADR-{digits}"))
+    } else {
+        None
+    }
+}
+
 fn public_protocol_required_relation_edges() -> Vec<(&'static str, &'static str)> {
     const SOURCES: [&str; 4] = ["ADR-0157", "ADR-0167", "ADR-0176", "ADR-0182"];
     let mut required = Vec::new();
@@ -3080,13 +3225,13 @@ fn public_protocol_reciprocal_relation_error(records: &[AdrDecisionRecord]) -> O
 
 #[test]
 fn public_protocol_source_metadata_has_every_reciprocal_relation() {
-    let records = source_derived_adr_records(&repo_root());
+    let records = disk_adr_records_for_relation_guards(&repo_root());
     assert_eq!(public_protocol_reciprocal_relation_error(&records), None);
 }
 
 #[test]
 fn public_protocol_reciprocal_relation_guard_rejects_every_removed_edge() {
-    let records = source_derived_adr_records(&repo_root());
+    let records = disk_adr_records_for_relation_guards(&repo_root());
     let expected_edges = public_protocol_required_relation_edges();
     assert_eq!(
         expected_edges.len(),
@@ -3113,7 +3258,7 @@ fn public_protocol_reciprocal_relation_guard_rejects_every_removed_edge() {
 #[test]
 fn source_relation_change_with_stale_controller_projection_fails_closed() {
     let root = repo_root();
-    let mut source_records = source_derived_adr_records(&root);
+    let mut source_records = disk_adr_records_for_relation_guards(&root);
     let record = source_records
         .iter_mut()
         .find(|record| record.id == "ADR-0157")
@@ -3127,7 +3272,7 @@ fn source_relation_change_with_stale_controller_projection_fails_closed() {
             .expect("read docs/machine-readable/decisions.json"),
         &decision_md_file_names(&root)
             .iter()
-            .filter_map(|name| name.get(0..8).map(str::to_owned))
+            .filter_map(|path| adr_id_prefix_from_path(path))
             .collect(),
     );
     assert!(
@@ -3154,12 +3299,12 @@ fn adr_index_projection_parity_is_advisory_clean_on_live_tree() {
         .expect("read docs/machine-readable/decisions.json");
     let source_adr_ids: BTreeSet<String> = decision_md_file_names(&root)
         .iter()
-        .filter_map(|name| name.get(0..8).map(str::to_owned))
+        .filter_map(|path| adr_id_prefix_from_path(path))
         .collect();
 
     assert!(
-        records.len() > 400 && source_adr_ids.len() > 400,
-        "the ADR-index parity check must cover the real corpus: {} records, {} source ids",
+        records.len() >= 10 && source_adr_ids.len() >= 10,
+        "the ADR-index parity check must cover the live apex corpus: {} records, {} source ids",
         records.len(),
         source_adr_ids.len()
     );

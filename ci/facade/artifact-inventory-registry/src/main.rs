@@ -3154,8 +3154,12 @@ status: Accepted
         assert_eq!(entries.len(), 2);
         // dir prefixes cover the subtree; the trailing '/' prevents sibling-dir bleed.
         assert!(registration_matches(
-            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
             "docs/decisions/"
+        ));
+        assert!(registration_matches(
+            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+            "docs/adr-archive/"
         ));
         assert!(!registration_matches(
             "docs/decisions-evil/x.md",
