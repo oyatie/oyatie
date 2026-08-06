@@ -2,7 +2,7 @@
   "schema": "dual-critic.v1",
   "pr": 1579,
   "branch": "agent/fabric-single-flight-reorg-drive-20260806",
-  "head": "13f6194b038948af5bda345ad524a1c80ccd436e",
+  "head": "b22a1d1058a843ce3e76d715486db7f3089a2756",
   "at": "2026-08-06T15:45:00Z",
   "objective": "PR #1579 process-only fabric fix: single-flight W3 babysit law + W5 northstar-portfolio-audit + expand reorg portfolio seeds; no product path moves",
   "independence": "same_family",
@@ -28,10 +28,11 @@
         "BABYSIT-SINGLE-FLIGHT.md makes W3 sole PR owner with claim key (pr,head); mm-drive stop-hook text steers away from multi-arm sleep+gh poll loops.",
         "W5 northstar-portfolio-audit is separate from W4; mm-fabric-status keeps min_required=4 core classes and reports optional audit age \u2014 does not raise fail-closed bar incorrectly.",
         "mm-northstar-audit is mechanical (dual-home, move-plan singleton, generated faces, board gaps); exit 2 only on critical; not merge authority.",
-        "mm-reorg-enqueue expands AREA\u00d7CLASS seeds (dual-topo leaves, intel remainder, infra/tools/cloud sweeps) without executing moves \u2014 plan/board surface only."
+        "mm-reorg-enqueue expands AREA\u00d7CLASS seeds (dual-topo leaves, intel remainder, infra/tools/cloud sweeps) without executing moves \u2014 plan/board surface only.",
+        "Tip re-pin b22a1d1058a8: packaging recipe retained \u2014 process-only .grok; APPROVE retained"
       ],
       "residual": [
-        "await oya-ci-required green on tip 13f6194b0389"
+        "await oya-ci-required green on tip b22a1d1058a8"
       ]
     },
     {
@@ -56,7 +57,7 @@
       "residual": []
     }
   ],
-  "summary": "APPROVE #1579 tip 13f6194b0389: process-only single-flight babysit + W5 northstar audit + reorg portfolio seeds; dual-critic A/B APPROVE; merge when oya-ci-required green",
+  "summary": "APPROVE #1579 tip b22a1d1058a8: process-only fabric + residual packaging recipe; await oya-ci-required green",
   "blockers": [],
   "soft_red_addressed": {
     "checks": [],
@@ -71,8 +72,15 @@
     "targets_1574_1575": "MERGED",
     "ci_diagnosis": "infra_flake_service_unavailable"
   },
-  "reviewed_at": "2026-08-06T15:45:00Z",
-  "code_tip": "13f6194b038948af5bda345ad524a1c80ccd436e",
-  "head_pinned_at": "2026-08-06T15:45:00Z",
-  "tip_note": "W3 pr-babysit-lanes: pin dual-critic to current PR tip; no tip push while CI in progress"
+  "reviewed_at": "2026-08-06T19:11:02Z",
+  "code_tip": "b22a1d1058a843ce3e76d715486db7f3089a2756",
+  "head_pinned_at": "2026-08-06T19:11:02Z",
+  "tip_note": "W3 re-pin 2026-08-06T19:11:02Z: dual-critic APPROVE retained for tip b22a1d1058a8 packaging recipe",
+  "babysit_cycle_latest": {
+    "at": "2026-08-06T19:11:02Z",
+    "action": "re_pin_dual_critic_tip_drift",
+    "head": "b22a1d1058a843ce3e76d715486db7f3089a2756",
+    "note": "W3 2026-08-06T19:11:02Z: re-pin #1579 dual-critic to tip b22a1d1058a8; APPROVE retained; no empty-push thrash",
+    "soft_reds": "0"
+  }
 }
