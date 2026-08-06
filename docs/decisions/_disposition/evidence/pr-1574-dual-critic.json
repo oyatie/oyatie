@@ -4,22 +4,35 @@
   "critics": [
     {
       "id": "A",
-      "verdict": "REQUEST_CHANGES",
-      "note": "pre-fix"
+      "prior": "REQUEST_CHANGES",
+      "post_remediation": "addressed indexes/paths/norms/banners"
     },
     {
       "id": "B",
-      "verdict": "REQUEST_CHANGES",
-      "note": "pre-fix"
+      "prior": "REQUEST_CHANGES",
+      "post_remediation": "addressed ADR-INDEX, reachability, policy/affected-set, path rewrite"
     }
   ],
-  "remediation": [
-    "regenerated ADR-INDEX + decisions.json for 10 apex",
-    "archive non-authority banners",
-    "path rewrites to adr-archive / apex",
-    "policy-deploy-parity + affected-set retarget",
-    "graphql synthetic ADR-0800",
-    "apex 0700 live hard norms + depends_on cleared"
+  "head": "see branch tip",
+  "remediation_commits": [
+    "7a6dd6472",
+    "follow-on residual paths"
   ],
-  "post_fix_note": "Re-run critics if needed; CI babysit after push"
+  "live_corpus": [
+    "ADR-0700",
+    "ADR-0701",
+    "ADR-0702",
+    "ADR-0703",
+    "ADR-0704",
+    "ADR-0705",
+    "ADR-0706",
+    "ADR-0707",
+    "ADR-0708",
+    "ADR-0709"
+  ],
+  "residual_risks": [
+    "oya-ci-required must re-run on new head; census P2 historical OK; P3 would need new receipt if activated",
+    "apex topic membership still automated \u2014 further human polish optional"
+  ],
+  "real": true
 }
