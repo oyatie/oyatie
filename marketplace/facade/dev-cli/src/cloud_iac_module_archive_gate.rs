@@ -18,11 +18,11 @@ use sha2::{Digest, Sha256};
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
-const DEFAULT_PROVENANCE: &str = "microservices/cloud-iac/tofu/modules/provenance.json";
-const DEFAULT_RELEASE_INDEX: &str = "microservices/cloud-iac/tofu/modules/release-index.json";
-const DEFAULT_ARCHIVE_MANIFEST: &str = "microservices/cloud-iac/tofu/modules/archive-manifest.json";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
+const DEFAULT_PROVENANCE: &str = "iac/tofu/modules/provenance.json";
+const DEFAULT_RELEASE_INDEX: &str = "iac/tofu/modules/release-index.json";
+const DEFAULT_ARCHIVE_MANIFEST: &str = "iac/tofu/modules/archive-manifest.json";
 const DEFAULT_OUT_DIR: &str = "target/oya-cloud-iac/module-archives";
 const GATE_NAME: &str = "cloud-iac-module-archive";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_module_archive_gate.rs";
@@ -181,11 +181,11 @@ pub(crate) fn parse_cloud_iac_module_archive_args(
                     "cloud-iac-module-archive: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-module-archive \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] \
-                     [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>] \
-                     [--release-index <microservices/cloud-iac/tofu/modules/release-index.json>] \
-                     [--archive-manifest <microservices/cloud-iac/tofu/modules/archive-manifest.json>] \
+                     [--manifest <iac/manifest.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>] \
+                     [--provenance <iac/tofu/modules/provenance.json>] \
+                     [--release-index <iac/tofu/modules/release-index.json>] \
+                     [--archive-manifest <iac/tofu/modules/archive-manifest.json>] \
                      [--out-dir <target/oya-cloud-iac/module-archives>]"
                 ));
             }
@@ -1591,12 +1591,12 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacModuleArchiveArgs {
         CloudIacModuleArchiveArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            catalog: PathBuf::from("microservices/cloud-iac/tofu/modules/catalog.json"),
-            provenance: PathBuf::from("microservices/cloud-iac/tofu/modules/provenance.json"),
-            release_index: PathBuf::from("microservices/cloud-iac/tofu/modules/release-index.json"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            catalog: PathBuf::from("iac/tofu/modules/catalog.json"),
+            provenance: PathBuf::from("iac/tofu/modules/provenance.json"),
+            release_index: PathBuf::from("iac/tofu/modules/release-index.json"),
             archive_manifest: PathBuf::from(
-                "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+                "iac/tofu/modules/archive-manifest.json",
             ),
             out_dir: PathBuf::from("target/oya-cloud-iac/module-archives"),
         }
@@ -1612,35 +1612,35 @@ mod tests {
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
         for module in ["cloud-account", "dns"] {
-            let module_root = root.join(format!("microservices/cloud-iac/tofu/modules/{module}"));
+            let module_root = root.join(format!("iac/tofu/modules/{module}"));
             fs::create_dir_all(&module_root).expect("module dir");
             fs::write(module_root.join("main.tofu"), format!("# {module}\n")).expect("main");
             fs::write(module_root.join("README.md"), format!("# {module}\n")).expect("readme");
         }
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules")).expect("modules");
+        fs::create_dir_all(root.join("iac/tofu/modules")).expect("modules");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/catalog.json"),
+            root.join("iac/tofu/modules/catalog.json"),
             fixture_catalog(),
         )
         .expect("catalog");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/provenance.json"),
+            root.join("iac/tofu/modules/provenance.json"),
             fixture_provenance(root),
         )
         .expect("provenance");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/release-index.json"),
+            root.join("iac/tofu/modules/release-index.json"),
             fixture_release_index(root, drift),
         )
         .expect("release index");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/archive-manifest.json"),
+            root.join("iac/tofu/modules/archive-manifest.json"),
             fixture_archive_manifest(root, drift),
         )
         .expect("archive manifest");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(),
         )
         .expect("manifest");
@@ -1665,9 +1665,9 @@ mod tests {
             "schema_version": "1.0",
             "generated_by_changeset": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001",
             "authority": {
-                "source_catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-                "source_provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
-                "source_archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+                "source_catalog": "iac/tofu/modules/catalog.json",
+                "source_provenance": "iac/tofu/modules/provenance.json",
+                "source_archive_manifest": "iac/tofu/modules/archive-manifest.json",
                 "non_claims": required_nonclaims()
             },
             "policy": {
@@ -1698,9 +1698,9 @@ mod tests {
             "archive_manifest_id": "cloud-iac-opentofu-modules-deterministic-local-archives",
             "generated_by_changeset": "CS-CLOUD-IAC-MODULE-ARCHIVE-GATE-001",
             "authority": {
-                "source_catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-                "source_provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
-                "source_release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
+                "source_catalog": "iac/tofu/modules/catalog.json",
+                "source_provenance": "iac/tofu/modules/provenance.json",
+                "source_release_index": "iac/tofu/modules/release-index.json",
                 "output_root": "target/oya-cloud-iac/module-archives",
                 "runtime_mode": "local-deterministic-zip-module-archive-gate",
                 "official_sources_consulted": super::REQUIRED_OFFICIAL_SOURCES,
@@ -1736,10 +1736,10 @@ mod tests {
             }],
             "foundation_non_claims": ["CS-CLOUD-IAC-MODULE-ARCHIVE-GATE-001 builds deterministic local module archives only; no private registry service, live download endpoint, signing, SLSA, plan/apply, or cloud runtime is claimed."],
             "module_archive_scope": {
-                "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-                "provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
-                "release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
-                "archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+                "catalog": "iac/tofu/modules/catalog.json",
+                "provenance": "iac/tofu/modules/provenance.json",
+                "release_index": "iac/tofu/modules/release-index.json",
+                "archive_manifest": "iac/tofu/modules/archive-manifest.json",
                 "output_root": "target/oya-cloud-iac/module-archives",
                 "status": "deterministic-local-module-archives-no-private-registry-api",
                 "runtime_mode": "local-deterministic-zip-module-archive-gate",
@@ -1765,8 +1765,8 @@ mod tests {
             "name": name,
             "system": "opentofu",
             "version": "0.1.0",
-            "source_path": format!("microservices/cloud-iac/tofu/modules/{name}"),
-            "main_file": format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu"),
+            "source_path": format!("iac/tofu/modules/{name}"),
+            "main_file": format!("iac/tofu/modules/{name}/main.tofu"),
             "release_status": "local-foundation-skeleton",
             "evidence_ref": format!("evidence://cloud-iac/modules/{name}/0.1.0/local-foundation")
         })
@@ -1775,8 +1775,8 @@ mod tests {
     fn provenance_row(root: &Path, name: &str) -> serde_json::Value {
         let mut row = module_row(name);
         row["files"] = serde_json::json!([
-            {"path": format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu"), "sha256": sha256_for_test(&root.join(format!("microservices/cloud-iac/tofu/modules/{name}/main.tofu")))},
-            {"path": format!("microservices/cloud-iac/tofu/modules/{name}/README.md"), "sha256": sha256_for_test(&root.join(format!("microservices/cloud-iac/tofu/modules/{name}/README.md")))}
+            {"path": format!("iac/tofu/modules/{name}/main.tofu"), "sha256": sha256_for_test(&root.join(format!("iac/tofu/modules/{name}/main.tofu")))},
+            {"path": format!("iac/tofu/modules/{name}/README.md"), "sha256": sha256_for_test(&root.join(format!("iac/tofu/modules/{name}/README.md")))}
         ]);
         row
     }
@@ -1785,7 +1785,7 @@ mod tests {
         let mut row = provenance_row(root, name);
         row["module_package_built"] = serde_json::json!(true);
         row["archive_manifest_ref"] =
-            serde_json::json!("microservices/cloud-iac/tofu/modules/archive-manifest.json");
+            serde_json::json!("iac/tofu/modules/archive-manifest.json");
         row["archive_file"] = serde_json::json!(archive_file(name));
         row["archive_sha256"] = serde_json::json!(archive_sha(root, name, drift));
         row["archive_format"] = serde_json::json!("zip");
@@ -1806,7 +1806,7 @@ mod tests {
         let mut row = provenance_row(root, name);
         row["address"] = serde_json::json!(format!("oyatie/{name}/opentofu"));
         row["release_index_ref"] =
-            serde_json::json!("microservices/cloud-iac/tofu/modules/release-index.json");
+            serde_json::json!("iac/tofu/modules/release-index.json");
         row["archive_file"] = serde_json::json!(archive_file(name));
         row["archive_sha256"] = serde_json::json!(archive_sha(root, name, drift));
         row["archive_format"] = serde_json::json!("zip");
@@ -1836,14 +1836,14 @@ mod tests {
             ZipEntryInput {
                 name: "README.md".to_string(),
                 bytes: fs::read(root.join(format!(
-                    "microservices/cloud-iac/tofu/modules/{name}/README.md"
+                    "iac/tofu/modules/{name}/README.md"
                 )))
                 .expect("readme"),
             },
             ZipEntryInput {
                 name: "main.tofu".to_string(),
                 bytes: fs::read(root.join(format!(
-                    "microservices/cloud-iac/tofu/modules/{name}/main.tofu"
+                    "iac/tofu/modules/{name}/main.tofu"
                 )))
                 .expect("main"),
             },

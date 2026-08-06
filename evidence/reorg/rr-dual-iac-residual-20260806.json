@@ -1,0 +1,61 @@
+{
+  "id": "REORG-DUAL-IAC-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:24:58Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate cloud/cloud-iac surface into registered iac/ capability home (crates already present); retarget live consumers; delete cloud/cloud-iac dual-home.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/; durable_home=iac/ debt=cloud/cloud-iac/",
+  "durable_home": "iac/",
+  "debt_home": "cloud/cloud-iac/",
+  "moves": [
+    {
+      "from": "cloud/cloud-iac/{manifest,contracts,catalog,capabilities,cedar,cell-topology,dashboards,decisions,dpia,faqs,iac,IPs,implementation-plans,migration-playbooks,onboarding,policy,reference-implementations,runbooks,scorecards,threat-models,tofu,tutorials,IP-*,ARCH*,PRD,...}",
+      "to": "iac/<same>"
+    }
+  ],
+  "crates_preserved": [
+    "iac/core/{api,domain}",
+    "iac/adapters/infrastructure",
+    "iac/facade/app",
+    "iac/ports/rest",
+    "iac/modules",
+    "iac/observability/slos"
+  ],
+  "deferred_collision_paths": [
+    {
+      "paths": [
+        "iac/modules/**",
+        "iac/tofu/modules/**"
+      ],
+      "reason": "Pre-existing durable OpenTofu leaf (iac/modules/aws-guest/sg-baseline + catalog) not merged with residual tofu module catalog/bodies; both retained to avoid catalog/body overwrite. Follow-up single-root module home if desired."
+    }
+  ],
+  "notes": [
+    "No top-level basename collision between residual cloud/cloud-iac/* and existing iac/{adapters,core,facade,modules,observability,ports,OWNERS}; all 81 residual entries rehomed.",
+    "Nested residual cloud/cloud-iac/iac/** lands at iac/iac/** (gitops templates) \u2014 intentional service-local iac layout under capability home.",
+    "Residual OpenTofu catalog remains at iac/tofu/modules/** alongside pre-existing durable iac/modules/** (aws-guest/sg-baseline); not merged this PR to avoid catalog/body collisions \u2014 follow-up if single module root desired.",
+    "Historical docs/adr-archive, design-spec-maturity evidence, and oya-reorg-codemod synthetic fixtures retain prior path strings as provenance."
+  ],
+  "consumers_retargeted": [
+    "iac/manifest.json",
+    "iac/cell-topology/foundation.json",
+    "iac/facade/app/BUCK",
+    "iac/tofu/modules/{catalog,release-index,provenance,archive-manifest,provider-readiness}.json",
+    "marketplace/facade/dev-cli/src/cloud_iac_*.rs",
+    "marketplace/facade/dev-cli/src/lib.rs",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/supply-chain-audit/tests/supply_chain_audit.rs",
+    "ci/facade/cross-artifact-agreement/src/lib.rs",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "registry/hyperscaler-scorecards/index.json"
+  ],
+  "net_path_debt": "negative under cloud/cloud-iac (deleted); iac/ gains residual product/docs/gitops/tofu artifacts that belong at capability home; crate tree untouched",
+  "non_goals": [
+    "no crate renames",
+    "no merge of iac/tofu/modules into iac/modules",
+    "no move-plan (not path bijection of crates)",
+    "no historical ADR-archive rewrite",
+    "no codemod fixture rewrite"
+  ]
+}

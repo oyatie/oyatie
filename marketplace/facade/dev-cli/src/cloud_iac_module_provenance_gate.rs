@@ -15,9 +15,9 @@ use sha2::{Digest, Sha256};
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
-const DEFAULT_PROVENANCE: &str = "microservices/cloud-iac/tofu/modules/provenance.json";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
+const DEFAULT_PROVENANCE: &str = "iac/tofu/modules/provenance.json";
 const GATE_NAME: &str = "cloud-iac-module-provenance";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_module_provenance_gate.rs";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001";
@@ -109,9 +109,9 @@ pub(crate) fn parse_cloud_iac_module_provenance_args(
                     "cloud-iac-module-provenance: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-module-provenance \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] \
-                     [--provenance <microservices/cloud-iac/tofu/modules/provenance.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>] \
+                     [--provenance <iac/tofu/modules/provenance.json>]"
                 ));
             }
         }
@@ -144,7 +144,7 @@ pub(crate) fn validate_cloud_iac_module_provenance_gate(
     require_manifest_scope(&manifest, &catalog_rel, &provenance_rel, &mut diagnostics);
     let modules_root =
         required_repo_relative_string(&provenance, "/authority/source_path_root", &mut diagnostics)
-            .unwrap_or_else(|| "microservices/cloud-iac/tofu/modules".to_string());
+            .unwrap_or_else(|| "iac/tofu/modules".to_string());
     let catalog_modules = parse_catalog_modules(&catalog, &modules_root, &mut diagnostics);
     let provenance_modules = parse_provenance_modules(&provenance, &modules_root, &mut diagnostics);
 
@@ -857,9 +857,9 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacModuleProvenanceArgs {
         CloudIacModuleProvenanceArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            catalog: PathBuf::from("microservices/cloud-iac/tofu/modules/catalog.json"),
-            provenance: PathBuf::from("microservices/cloud-iac/tofu/modules/provenance.json"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            catalog: PathBuf::from("iac/tofu/modules/catalog.json"),
+            provenance: PathBuf::from("iac/tofu/modules/provenance.json"),
         }
     }
 
@@ -872,7 +872,7 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
-        let modules_root = root.join("microservices/cloud-iac/tofu/modules");
+        let modules_root = root.join("iac/tofu/modules");
         for module in ["cloud-account", "dns"] {
             let module_dir = modules_root.join(module);
             fs::create_dir_all(&module_dir).expect("module dir");
@@ -889,9 +889,9 @@ mod tests {
             fixture_provenance(root, drift),
         )
         .expect("provenance");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(drift),
         )
         .expect("manifest");
@@ -899,12 +899,12 @@ mod tests {
 
     fn fixture_catalog() -> String {
         r#"{
-  "authority": { "source_path_root": "microservices/cloud-iac/tofu/modules" },
+  "authority": { "source_path_root": "iac/tofu/modules" },
   "modules": [
     {
       "namespace": "oyatie", "name": "cloud-account", "system": "opentofu", "version": "0.1.0",
-      "source_path": "microservices/cloud-iac/tofu/modules/cloud-account",
-      "main_file": "microservices/cloud-iac/tofu/modules/cloud-account/main.tofu",
+      "source_path": "iac/tofu/modules/cloud-account",
+      "main_file": "iac/tofu/modules/cloud-account/main.tofu",
       "release_status": "local-foundation-skeleton",
       "provider_resources_implemented": false,
       "outputs_materialized": false,
@@ -913,8 +913,8 @@ mod tests {
     },
     {
       "namespace": "oyatie", "name": "dns", "system": "opentofu", "version": "0.1.0",
-      "source_path": "microservices/cloud-iac/tofu/modules/dns",
-      "main_file": "microservices/cloud-iac/tofu/modules/dns/main.tofu",
+      "source_path": "iac/tofu/modules/dns",
+      "main_file": "iac/tofu/modules/dns/main.tofu",
       "release_status": "local-foundation-skeleton",
       "provider_resources_implemented": false,
       "outputs_materialized": false,
@@ -929,7 +929,7 @@ mod tests {
 
     fn fixture_provenance(root: &Path, drift: FixtureDrift) -> String {
         let rows = ["cloud-account", "dns"].map(|module| {
-            let source = format!("microservices/cloud-iac/tofu/modules/{module}");
+            let source = format!("iac/tofu/modules/{module}");
             let main = format!("{source}/main.tofu");
             let readme = format!("{source}/README.md");
             let mut files = vec![(main.clone(), digest(root, &main)), (readme.clone(), digest(root, &readme))];
@@ -954,7 +954,7 @@ mod tests {
   "provenance_id":"fixture",
   "generated_by_changeset":"CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001",
   "digest_algorithm":"sha256",
-  "authority":{{"source_catalog":"microservices/cloud-iac/tofu/modules/catalog.json","source_path_root":"microservices/cloud-iac/tofu/modules"}},
+  "authority":{{"source_catalog":"iac/tofu/modules/catalog.json","source_path_root":"iac/tofu/modules"}},
   "modules":[{},{}]
 }}
 "#,
@@ -968,14 +968,14 @@ mod tests {
 
     fn fixture_manifest(drift: FixtureDrift) -> String {
         let provenance = if drift == FixtureDrift::ManifestScopeDrift {
-            "microservices/cloud-iac/tofu/modules/wrong.json"
+            "iac/tofu/modules/wrong.json"
         } else {
-            "microservices/cloud-iac/tofu/modules/provenance.json"
+            "iac/tofu/modules/provenance.json"
         };
         format!(
             r#"{{
   "module_provenance_scope": {{
-    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "catalog": "iac/tofu/modules/catalog.json",
     "provenance": "{provenance}",
     "digest_algorithm": "sha256",
     "module_count": 2,

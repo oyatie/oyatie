@@ -63,7 +63,7 @@
       "google_sre_prr": "green",
       "cis_k8s_benchmark": "green",
       "slsa_l3": "green",
-      "overrides_path": "microservices/cloud-iac/scorecards/overrides.json",
+      "overrides_path": "iac/scorecards/overrides.json",
       "chart_name": "helm-controller"
     },
     "cloud-k8s": {

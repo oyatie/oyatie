@@ -108,7 +108,7 @@ fn release(name: &str, version: &str, digest_hex: char) -> OpenTofuModuleRelease
         "opentofu",
         version,
         format!(
-            "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/{name}?ref=v{version}"
+            "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/{name}?ref=v{version}"
         ),
         format!("sha256:{}", digest_hex.to_string().repeat(64)),
         format!("evidence://cloud-iac/modules/{name}/{version}/local-foundation"),
@@ -208,7 +208,7 @@ fn download_response_returns_pinned_source_location_for_exact_version() {
 
     assert_eq!(
         response.location,
-        "git::https://git.oyatie.internal/oyatie/oyatie.git//microservices/cloud-iac/tofu/modules/vpc?ref=v1.2.0"
+        "git::https://git.oyatie.internal/oyatie/oyatie.git//iac/tofu/modules/vpc?ref=v1.2.0"
     );
 }
 
@@ -408,7 +408,7 @@ fn route_boundary_dispatches_official_get_paths_into_dtos() {
     assert!(matches!(
         download,
         CloudIacModuleRegistryRouteResponse::Download(response)
-            if response.location.ends_with("/microservices/cloud-iac/tofu/modules/vpc?ref=v1.2.0")
+            if response.location.ends_with("/iac/tofu/modules/vpc?ref=v1.2.0")
     ));
 }
 

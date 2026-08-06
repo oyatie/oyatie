@@ -12,8 +12,8 @@ use serde_json::Value;
 
 const GATE_NAME: &str = "cloud-iac-helm-chart-signed-image-wiring";
 const GATE_FILE: &str = "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs";
-const DEFAULT_MANIFEST: &str = "cloud/cloud-iac/manifest.json";
-const DEFAULT_CHART_ROOT: &str = "cloud/cloud-iac/iac/k8s/helm";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CHART_ROOT: &str = "iac/iac/k8s/helm";
 const RUNTIME_MODE: &str = "local-filesystem-helm-chart-wiring-gate-no-helm-render";
 
 const CHART_FILES: &[&str] = &[
@@ -510,7 +510,7 @@ mod tests {
     fn cloud_iac_helm_chart_gate_rejects_missing_digest_wiring() {
         let temp = valid_temp_repo("cloud-iac-helm-chart-digest-drift");
         temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
+            "iac/iac/k8s/helm/templates/deployment.yaml",
             &valid_deployment().replace(
                 "{{- if $imageDigest }}@{{ $imageDigest }}{{- else }}:",
                 "{{- if $imageDigest }}:{{ .Values.image.tag }}{{- else }}:",
@@ -526,7 +526,7 @@ mod tests {
         let temp = valid_temp_repo("cloud-iac-helm-chart-zero-digest");
         let zero_digest = format!("sha256:{}", "0".repeat(64));
         temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/values.yaml",
+            "iac/iac/k8s/helm/values.yaml",
             &valid_values().replace("digest: \"\"", &format!("digest: \"{zero_digest}\"")),
         );
 
@@ -550,19 +550,19 @@ mod tests {
         let temp = TempRepo::new(name);
         temp.write(DEFAULT_MANIFEST, &valid_manifest());
         temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/Chart.yaml",
+            "iac/iac/k8s/helm/Chart.yaml",
             valid_chart(),
         );
         temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/values.yaml",
+            "iac/iac/k8s/helm/values.yaml",
             valid_values(),
         );
         temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
+            "iac/iac/k8s/helm/templates/deployment.yaml",
             &valid_deployment(),
         );
         temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/templates/configmap.yaml",
+            "iac/iac/k8s/helm/templates/configmap.yaml",
             valid_configmap(),
         );
         temp
@@ -579,7 +579,7 @@ mod tests {
     }
   ],
   "helm_chart_signed_image_wiring_scope": {
-    "chart_root": "cloud/cloud-iac/iac/k8s/helm",
+    "chart_root": "iac/iac/k8s/helm",
     "runtime_mode": "local-filesystem-helm-chart-wiring-gate-no-helm-render",
     "chart_files_checked": [
       "Chart.yaml",

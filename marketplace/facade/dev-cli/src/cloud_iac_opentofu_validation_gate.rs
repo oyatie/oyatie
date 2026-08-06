@@ -17,9 +17,9 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_CATALOG: &str = "microservices/cloud-iac/tofu/modules/catalog.json";
-const DEFAULT_MODULES_ROOT: &str = "microservices/cloud-iac/tofu/modules";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_CATALOG: &str = "iac/tofu/modules/catalog.json";
+const DEFAULT_MODULES_ROOT: &str = "iac/tofu/modules";
 const DEFAULT_TOFU_BIN: &str = "tofu";
 const GATE_NAME: &str = "cloud-iac-opentofu-validation";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_opentofu_validation_gate.rs";
@@ -89,9 +89,9 @@ pub(crate) fn parse_cloud_iac_opentofu_validation_args(
                     "cloud-iac-opentofu-validation: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-opentofu-validation \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--catalog <microservices/cloud-iac/tofu/modules/catalog.json>] \
-                     [--modules-root <microservices/cloud-iac/tofu/modules>] \
+                     [--manifest <iac/manifest.json>] \
+                     [--catalog <iac/tofu/modules/catalog.json>] \
+                     [--modules-root <iac/tofu/modules>] \
                      [--tofu-bin <tofu>] [--keep-temp]"
                 ));
             }
@@ -990,9 +990,9 @@ mod tests {
     fn fixture_args(repo_root: &Path, tofu_bin: PathBuf) -> CloudIacOpenTofuValidationArgs {
         CloudIacOpenTofuValidationArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            catalog: PathBuf::from("microservices/cloud-iac/tofu/modules/catalog.json"),
-            modules_root: PathBuf::from("microservices/cloud-iac/tofu/modules"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            catalog: PathBuf::from("iac/tofu/modules/catalog.json"),
+            modules_root: PathBuf::from("iac/tofu/modules"),
             tofu_bin,
             keep_temp: false,
         }
@@ -1007,7 +1007,7 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
-        let modules_root = root.join("microservices/cloud-iac/tofu/modules");
+        let modules_root = root.join("iac/tofu/modules");
         for module in ["cloud-account", "dns"] {
             let module_dir = modules_root.join(module);
             fs::create_dir_all(&module_dir).expect("module dir");
@@ -1045,15 +1045,15 @@ output "name" {{
         fs::write(
             modules_root.join("catalog.json"),
             r#"{
-  "authority": { "source_path_root": "microservices/cloud-iac/tofu/modules" },
+  "authority": { "source_path_root": "iac/tofu/modules" },
   "modules": [
     {
       "namespace": "oyatie",
       "name": "cloud-account",
       "system": "opentofu",
       "version": "0.1.0",
-      "source_path": "microservices/cloud-iac/tofu/modules/cloud-account",
-      "main_file": "microservices/cloud-iac/tofu/modules/cloud-account/main.tofu",
+      "source_path": "iac/tofu/modules/cloud-account",
+      "main_file": "iac/tofu/modules/cloud-account/main.tofu",
       "release_status": "local-foundation-skeleton",
       "provider_resources_implemented": false,
       "outputs_materialized": false,
@@ -1064,8 +1064,8 @@ output "name" {{
       "name": "dns",
       "system": "opentofu",
       "version": "0.1.0",
-      "source_path": "microservices/cloud-iac/tofu/modules/dns",
-      "main_file": "microservices/cloud-iac/tofu/modules/dns/main.tofu",
+      "source_path": "iac/tofu/modules/dns",
+      "main_file": "iac/tofu/modules/dns/main.tofu",
       "release_status": "local-foundation-skeleton",
       "provider_resources_implemented": false,
       "outputs_materialized": false,
@@ -1077,9 +1077,9 @@ output "name" {{
         )
         .expect("catalog");
 
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(drift),
         )
         .expect("manifest");
@@ -1091,8 +1091,8 @@ output "name" {{
         }
         r#"{
   "opentofu_validation_scope": {
-    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
-    "modules_root": "microservices/cloud-iac/tofu/modules",
+    "catalog": "iac/tofu/modules/catalog.json",
+    "modules_root": "iac/tofu/modules",
     "module_count": 2,
     "module_names": ["cloud-account", "dns"],
     "temp_copy_required": true,

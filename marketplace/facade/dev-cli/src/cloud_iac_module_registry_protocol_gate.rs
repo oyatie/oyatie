@@ -17,11 +17,11 @@ use serde_json::Value;
 use crate::slash_path;
 
 const DEFAULT_REPO_ROOT: &str = ".";
-const DEFAULT_MANIFEST: &str = "microservices/cloud-iac/manifest.json";
-const DEFAULT_RELEASE_INDEX: &str = "microservices/cloud-iac/tofu/modules/release-index.json";
-const DEFAULT_ARCHIVE_MANIFEST: &str = "microservices/cloud-iac/tofu/modules/archive-manifest.json";
+const DEFAULT_MANIFEST: &str = "iac/manifest.json";
+const DEFAULT_RELEASE_INDEX: &str = "iac/tofu/modules/release-index.json";
+const DEFAULT_ARCHIVE_MANIFEST: &str = "iac/tofu/modules/archive-manifest.json";
 const DEFAULT_PROTOCOL_FIXTURES: &str =
-    "microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json";
+    "iac/tofu/module-registry/protocol-fixtures.json";
 const GATE_NAME: &str = "cloud-iac-module-registry-protocol";
 const GATE_FILE: &str = "crates/oya-dev-cli/src/cloud_iac_module_registry_protocol_gate.rs";
 const CHANGESET_ID: &str = "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001";
@@ -164,10 +164,10 @@ pub(crate) fn parse_cloud_iac_module_registry_protocol_args(
                     "cloud-iac-module-registry-protocol: unknown flag {other:?}; usage: \
                      oya gate validate cloud-iac-module-registry-protocol \
                      [--repo-root <.>] \
-                     [--manifest <microservices/cloud-iac/manifest.json>] \
-                     [--release-index <microservices/cloud-iac/tofu/modules/release-index.json>] \
-                     [--archive-manifest <microservices/cloud-iac/tofu/modules/archive-manifest.json>] \
-                     [--protocol-fixtures <microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json>]"
+                     [--manifest <iac/manifest.json>] \
+                     [--release-index <iac/tofu/modules/release-index.json>] \
+                     [--archive-manifest <iac/tofu/modules/archive-manifest.json>] \
+                     [--protocol-fixtures <iac/tofu/module-registry/protocol-fixtures.json>]"
                 ));
             }
         }
@@ -1596,13 +1596,13 @@ mod tests {
     fn fixture_args(repo_root: &Path) -> CloudIacModuleRegistryProtocolArgs {
         CloudIacModuleRegistryProtocolArgs {
             repo_root: repo_root.to_path_buf(),
-            manifest: PathBuf::from("microservices/cloud-iac/manifest.json"),
-            release_index: PathBuf::from("microservices/cloud-iac/tofu/modules/release-index.json"),
+            manifest: PathBuf::from("iac/manifest.json"),
+            release_index: PathBuf::from("iac/tofu/modules/release-index.json"),
             archive_manifest: PathBuf::from(
-                "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+                "iac/tofu/modules/archive-manifest.json",
             ),
             protocol_fixtures: PathBuf::from(
-                "microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json",
+                "iac/tofu/module-registry/protocol-fixtures.json",
             ),
         }
     }
@@ -1619,27 +1619,27 @@ mod tests {
     }
 
     fn write_fixture(root: &Path, drift: FixtureDrift) {
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/modules")).expect("modules");
-        fs::create_dir_all(root.join("microservices/cloud-iac/tofu/module-registry"))
+        fs::create_dir_all(root.join("iac/tofu/modules")).expect("modules");
+        fs::create_dir_all(root.join("iac/tofu/module-registry"))
             .expect("registry dir");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/release-index.json"),
+            root.join("iac/tofu/modules/release-index.json"),
             fixture_release_index(drift),
         )
         .expect("release index");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/modules/archive-manifest.json"),
+            root.join("iac/tofu/modules/archive-manifest.json"),
             fixture_archive_manifest(),
         )
         .expect("archive manifest");
         fs::write(
-            root.join("microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json"),
+            root.join("iac/tofu/module-registry/protocol-fixtures.json"),
             fixture_protocol_fixtures(drift),
         )
         .expect("protocol fixtures");
-        fs::create_dir_all(root.join("microservices/cloud-iac")).expect("manifest dir");
+        fs::create_dir_all(root.join("iac")).expect("manifest dir");
         fs::write(
-            root.join("microservices/cloud-iac/manifest.json"),
+            root.join("iac/manifest.json"),
             fixture_manifest(),
         )
         .expect("manifest");
@@ -1671,8 +1671,8 @@ mod tests {
             "schema_version": "1.0",
             "generated_by_changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",
             "authority": {
-                "source_release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
-                "source_archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+                "source_release_index": "iac/tofu/modules/release-index.json",
+                "source_archive_manifest": "iac/tofu/modules/archive-manifest.json",
                 "runtime_mode": "local-opentofu-module-registry-protocol-fixture-gate",
                 "service_discovery_path": "/.well-known/terraform.json",
                 "modules_v1_base_path": "/v1/modules/",
@@ -1718,9 +1718,9 @@ mod tests {
             }],
             "foundation_non_claims": ["CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001 materializes local protocol fixtures only; no private registry API, live service discovery endpoint, live download endpoint, registry publish path, signing, SLSA/VSA, plan/apply, provider runtime, or cloud provisioning is claimed."],
             "module_registry_protocol_scope": {
-                "release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
-                "archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
-                "protocol_fixtures": "microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json",
+                "release_index": "iac/tofu/modules/release-index.json",
+                "archive_manifest": "iac/tofu/modules/archive-manifest.json",
+                "protocol_fixtures": "iac/tofu/module-registry/protocol-fixtures.json",
                 "status": "local-registry-protocol-fixtures-no-service-runtime",
                 "runtime_mode": "local-opentofu-module-registry-protocol-fixture-gate",
                 "service_discovery_path": "/.well-known/terraform.json",
@@ -1748,7 +1748,7 @@ mod tests {
         row["download_endpoint_path"] =
             serde_json::json!(format!("/v1/modules/oyatie/{name}/opentofu/0.1.0/download"));
         row["archive_manifest_ref"] =
-            serde_json::json!("microservices/cloud-iac/tofu/modules/archive-manifest.json");
+            serde_json::json!("iac/tofu/modules/archive-manifest.json");
         row["archive_file"] = serde_json::json!(archive_file(name));
         row["archive_sha256"] = serde_json::json!(archive_sha(name));
         row["archive_media_type"] = serde_json::json!("archive/zip");
