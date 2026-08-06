@@ -2291,3 +2291,40 @@ fn merge_base_test_health_uses_the_same_rustup_executor_contract_as_head() {
         "bare ${{RUSTUP_HOME}} without hosted default must fail the merge-base rustup contract"
     );
 }
+
+/// RR-MOVEPLAN-SINGLETON: at most one executable live move-plan under specs/reorg/.
+/// PARKED/BLOCKED filenames are inventory, not concurrent rehomes.
+#[test]
+fn reorg_at_most_one_executable_move_plan() {
+    let root = repo_root();
+    let reorg = root.join("specs/reorg");
+    assert!(
+        reorg.is_dir(),
+        "specs/reorg must exist as the move-recipe home"
+    );
+    let mut live = Vec::new();
+    let entries = fs::read_dir(&reorg).expect("read specs/reorg");
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.ends_with("-move-plan.json") {
+            continue;
+        }
+        // Executable live plans only: exact suffix -move-plan.json without PARKED/BLOCKED markers
+        if name.contains(".PARKED.") || name.contains(".BLOCKED.") {
+            continue;
+        }
+        // also skip if middle markers: foo.PARKED-move-plan won't match ends_with above
+        if name.contains("PARKED") || name.contains("BLOCKED") {
+            continue;
+        }
+        live.push(name);
+    }
+    live.sort();
+    assert!(
+        live.len() <= 1,
+        "RR-MOVEPLAN-SINGLETON: at most one executable specs/reorg/*-move-plan.json; found {}: {:?}. \
+         Park others as *.PARKED.json or *.BLOCKED.json (see specs/reorg/README.md).",
+        live.len(),
+        live
+    );
+}
