@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""Classify open-PR CI failures: GHA infra flake vs product/code failure.
+
+Process failure mode: agents treat all red as code, thrash tips, re-open PRs.
+This tool makes the class explicit so babysit re-runs flakes and only implements
+on REAL failures.
+
+Exit: 0 = no REAL failures (only flakes/missing/pending ok);
+      1 = REAL failures present (do not merge; fix product);
+      2 = usage/env error.
+Not merge authority.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+
+FLAKE_MARKERS = (
+    "Failed to resolve action download info",
+    "Service Unavailable",
+    "The job was not started because recent account payments",
+    "Runner not found",
+    "waiting for a runner",
+    "no available runners",
+    "The hosted runner",
+    "The operation was canceled",  # often cancel-in-progress / infra
+)
+
+
+def sh(args: List[str], timeout: int = 90) -> Tuple[int, str]:
+    try:
+        r = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+        return r.returncode, (r.stdout or "") + (r.stderr or "")
+    except Exception as e:
+        return 99, str(e)
+
+
+def job_id_from_url(url: str) -> Optional[str]:
+    m = re.search(r"/job/(\d+)", url or "") or re.search(r"/jobs/(\d+)", url or "")
+    return m.group(1) if m else None
+
+
+def classify_log(log: str) -> str:
+    if not log:
+        return "UNKNOWN"
+    for m in FLAKE_MARKERS:
+        if m in log:
+            return "GHA_INFRA_FLAKE"
+    # Real product signals
+    real_markers = (
+        "REGRESSION",
+        "BUILD FAILED",
+        "error: could not compile",
+        "FAILED to build",
+        "test result: FAILED",
+        "assertion failed",
+        "registry-drift",
+        "drift detected",
+        "exit code 1",
+    )
+    # Only if we got past setup
+    if "Prepare all required actions" in log and "Getting action download info" in log:
+        if "Failed to resolve action download info" in log:
+            return "GHA_INFRA_FLAKE"
+    if any(m.lower() in log.lower() for m in real_markers):
+        # but not if only flake
+        if "Failed to resolve action download info" in log:
+            return "GHA_INFRA_FLAKE"
+        return "REAL_PRODUCT"
+    if "##[error]" in log:
+        # late errors without compile markers
+        if "Service Unavailable" in log:
+            return "GHA_INFRA_FLAKE"
+        return "REAL_OR_UNKNOWN"
+    return "UNKNOWN"
+
+
+def triage_pr(pr: int) -> dict:
+    code, out = sh(
+        [
+            "gh",
+            "pr",
+            "view",
+            str(pr),
+            "--json",
+            "number,title,headRefOid,statusCheckRollup,mergeStateStatus",
+        ]
+    )
+    if code != 0:
+        return {"ok": False, "error": out[:500], "pr": pr}
+    p = json.loads(out)
+    checks = p.get("statusCheckRollup") or []
+    fails = [c for c in checks if c.get("conclusion") == "FAILURE"]
+    oya = next((c for c in checks if c.get("name") == "oya-ci-required"), None)
+    rows = []
+    real = 0
+    flake = 0
+    for c in fails:
+        name = c.get("name") or ""
+        url = c.get("detailsUrl") or c.get("htmlUrl") or ""
+        jid = job_id_from_url(url)
+        cls = "UNKNOWN"
+        if jid:
+            code2, log = sh(["gh", "api", f"repos/jason931225/oyatie/actions/jobs/{jid}/logs"], timeout=120)
+            if code2 == 0:
+                cls = classify_log(log)
+            else:
+                cls = "LOG_UNAVAILABLE"
+        if cls == "GHA_INFRA_FLAKE":
+            flake += 1
+        elif cls in ("REAL_PRODUCT", "REAL_OR_UNKNOWN"):
+            real += 1
+        rows.append({"name": name, "class": cls, "job_id": jid, "url": url[:120]})
+
+    oya_state = "missing"
+    if oya:
+        oya_state = f"{oya.get('status')}/{(oya.get('conclusion') or '-')}"
+
+    # Process diagnosis
+    if real == 0 and flake > 0:
+        diagnosis = (
+            "ALL_FAILS_ARE_GHA_INFRA — not a product defect. Re-run jobs when Actions healthy; "
+            "do NOT tip-thrash dual-critic or rewrite reorg for this."
+        )
+        process_ok = True
+    elif real > 0:
+        diagnosis = (
+            "REAL product/gate failures present — must fix in worktree BEFORE re-push; "
+            "local mm-preflight-pr should have caught if check is local-reproducible."
+        )
+        process_ok = False
+    elif not fails and oya is None:
+        diagnosis = (
+            "oya-ci-required MISSING/QUEUED — admission never started (ARC/runner/queue). "
+            "Not product red; do not thrash tip."
+        )
+        process_ok = True
+    else:
+        diagnosis = "no_failures_or_pending"
+
+    return {
+        "schema": "ci-triage.v1",
+        "pr": pr,
+        "title": p.get("title"),
+        "head": p.get("headRefOid"),
+        "mergeStateStatus": p.get("mergeStateStatus"),
+        "oya_ci_required": oya_state,
+        "fail_count": len(fails),
+        "flake_count": flake,
+        "real_count": real,
+        "failures": rows,
+        "diagnosis": diagnosis,
+        "process_ok_for_product": process_ok if fails or oya is None else True,
+        "triaged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--pr", type=int, action="append", dest="prs", help="PR number (repeatable)")
+    ap.add_argument("--all-open", action="store_true", help="triage all open PRs vs dev")
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--write", action="store_true", help="write evidence under .grok/mm-runs/_fabric/")
+    args = ap.parse_args()
+
+    prs: List[int] = list(args.prs or [])
+    if args.all_open:
+        code, out = sh(
+            ["gh", "pr", "list", "--base", "dev", "--state", "open", "--json", "number", "-q", ".[].number"]
+        )
+        # -q may not work that way
+        code, out = sh(["gh", "pr", "list", "--base", "dev", "--state", "open", "--json", "number"])
+        if code == 0:
+            prs = [int(x["number"]) for x in json.loads(out)]
+    if not prs:
+        print("mm-ci-triage: pass --pr N or --all-open", file=sys.stderr)
+        return 2
+
+    reports = [triage_pr(n) for n in prs]
+    any_real = any(r.get("real_count", 0) > 0 for r in reports)
+
+    if args.write:
+        out_dir = Path(".grok/mm-runs/_fabric")
+        # allow running from any cwd
+        try:
+            root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+            out_dir = Path(root) / ".grok/mm-runs/_fabric"
+        except Exception:
+            pass
+        out_dir.mkdir(parents=True, exist_ok=True)
+        path = out_dir / "ci-triage.latest.json"
+        path.write_text(json.dumps({"reports": reports}, indent=2) + "\n")
+
+    if args.json:
+        print(json.dumps({"reports": reports, "any_real_product_fail": any_real}, indent=2))
+    else:
+        for r in reports:
+            print(
+                f"PR #{r.get('pr')} real={r.get('real_count')} flake={r.get('flake_count')} "
+                f"oya={r.get('oya_ci_required')} | {r.get('diagnosis','')[:100]}"
+            )
+            for f in r.get("failures") or []:
+                print(f"  [{f.get('class')}] {f.get('name')}")
+    return 1 if any_real else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

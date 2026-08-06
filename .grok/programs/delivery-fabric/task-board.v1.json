@@ -1,8 +1,8 @@
 {
   "schema": "task-board.v1",
   "version": 1,
-  "updated_at": "2026-08-06T15:37:50Z",
-  "updated_by": "session-fabric-reorg-drive",
+  "updated_at": "2026-08-06T17:01:45Z",
+  "updated_by": "mm-northstar-audit",
   "min_fabric_workflows_active": 4,
   "fabric_classes": [
     "portfolio-work-manager",
@@ -680,6 +680,680 @@
       "claimed_at": null,
       "first_seen_at": "2026-08-06T15:37:35Z",
       "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-DUAL-CI-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "mixed",
+      "primary_action": "move",
+      "wave": "W1",
+      "priority": "P0",
+      "title": "[northstar/move] burn-down dual-home ci \u2192 ci",
+      "notes": "mm-northstar-audit adversarial: ci: 4 paths live, 4 with crates; absorbs=['ci', 'oya/ci-controller', 'oya/ci-tide', 'oya/ci-webhook-gateway']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "ci/",
+        "oya/ci-controller/",
+        "oya/ci-tide/",
+        "oya/ci-webhook-gateway/"
+      ],
+      "debt_paths": [
+        "oya/ci-controller",
+        "oya/ci-tide",
+        "oya/ci-webhook-gateway"
+      ],
+      "durable_home": "ci",
+      "parallel_safe": false,
+      "reshape_note": "split_brain: do not treat dual crate homes as design; execute reduce to one home",
+      "actions": [
+        "Pick durable home: ci",
+        "Rehome or delete crate surface from debt paths (move/rewrite per REORG-DOCTRINE)",
+        "Retarget consumers (Cargo/BUCK/registry/cedar); net_path_debt<=0",
+        "Collapse absorbs_current_dirs to one home after empty"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-INTELLIGENCE-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "mixed",
+      "primary_action": "move",
+      "wave": "W1",
+      "priority": "P0",
+      "title": "[northstar/move] burn-down dual-home intelligence \u2192 intelligence",
+      "notes": "mm-northstar-audit adversarial: intelligence: 4 paths live, 2 with crates; absorbs=['intelligence', 'cloud/cloud-intelligence', 'oya/intelligence', 'oya/detection']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "intelligence/",
+        "cloud/cloud-intelligence/",
+        "oya/intelligence/",
+        "oya/detection/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-intelligence",
+        "oya/intelligence",
+        "oya/detection"
+      ],
+      "durable_home": "intelligence",
+      "parallel_safe": false,
+      "reshape_note": "split_brain: do not treat dual crate homes as design; execute reduce to one home",
+      "actions": [
+        "Pick durable home: intelligence",
+        "Rehome or delete crate surface from debt paths (move/rewrite per REORG-DOCTRINE)",
+        "Retarget consumers (Cargo/BUCK/registry/cedar); net_path_debt<=0",
+        "Collapse absorbs_current_dirs to one home after empty"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-AUDIT-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home audit \u2192 audit",
+      "notes": "mm-northstar-audit adversarial: audit: 2 paths live, 1 with crates; absorbs=['audit', 'oya/audit-chain']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "audit/",
+        "oya/audit-chain/"
+      ],
+      "debt_paths": [
+        "oya/audit-chain"
+      ],
+      "durable_home": "audit",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): audit",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-BILLING-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home billing \u2192 billing",
+      "notes": "mm-northstar-audit adversarial: billing: 8 paths live, 1 with crates; absorbs=['billing', 'cloud/cloud-billing', 'cloud/cloud-billing-tax', 'oya/oya-billing', 'oya/oya-meter', 'oya/oya-cost', 'oya/accounting', 'oya/finops-portal']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "billing/",
+        "cloud/cloud-billing/",
+        "cloud/cloud-billing-tax/",
+        "oya/oya-billing/",
+        "oya/oya-meter/",
+        "oya/oya-cost/",
+        "oya/accounting/",
+        "oya/finops-portal/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-billing",
+        "cloud/cloud-billing-tax",
+        "oya/oya-billing",
+        "oya/oya-meter",
+        "oya/oya-cost",
+        "oya/accounting",
+        "oya/finops-portal"
+      ],
+      "durable_home": "billing",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): billing",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-CELL-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home cell \u2192 cell",
+      "notes": "mm-northstar-audit adversarial: cell: 3 paths live, 1 with crates; absorbs=['cell', 'cloud/cell-lifecycle', 'cloud/cell-rebalancer']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "cell/",
+        "cloud/cell-lifecycle/",
+        "cloud/cell-rebalancer/"
+      ],
+      "debt_paths": [
+        "cloud/cell-lifecycle",
+        "cloud/cell-rebalancer"
+      ],
+      "durable_home": "cell",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): cell",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-COMMS-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home comms \u2192 comms",
+      "notes": "mm-northstar-audit adversarial: comms: 7 paths live, 1 with crates; absorbs=['comms', 'oya/comms-email', 'oya/mail', 'oya/messenger', 'oya/meet', 'oya/contact-center', 'oya/emergency']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "comms/",
+        "oya/comms-email/",
+        "oya/mail/",
+        "oya/messenger/",
+        "oya/meet/",
+        "oya/contact-center/",
+        "oya/emergency/"
+      ],
+      "debt_paths": [
+        "oya/comms-email",
+        "oya/mail",
+        "oya/messenger",
+        "oya/meet",
+        "oya/contact-center",
+        "oya/emergency"
+      ],
+      "durable_home": "comms",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): comms",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-COMPLIANCE-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home compliance \u2192 compliance",
+      "notes": "mm-northstar-audit adversarial: compliance: 3 paths live, 1 with crates; absorbs=['compliance', 'oya/compliance', 'oya/governance']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "compliance/",
+        "oya/compliance/",
+        "oya/governance/"
+      ],
+      "debt_paths": [
+        "oya/compliance",
+        "oya/governance"
+      ],
+      "durable_home": "compliance",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): compliance",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-CONSOLE-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home console \u2192 console",
+      "notes": "mm-northstar-audit adversarial: console: 2 paths live, 1 with crates; absorbs=['console', 'oya/ops-dashboard-control-center']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "console/",
+        "oya/ops-dashboard-control-center/"
+      ],
+      "debt_paths": [
+        "oya/ops-dashboard-control-center"
+      ],
+      "durable_home": "console",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): console",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-DATA-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home data \u2192 data",
+      "notes": "mm-northstar-audit adversarial: data: 6 paths live, 1 with crates; absorbs=['data', 'cloud/cloud-data', 'oya/ontology', 'oya/data-pipeline', 'oya/data-warehouse', 'oya/analytics']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "data/",
+        "cloud/cloud-data/",
+        "oya/ontology/",
+        "oya/data-pipeline/",
+        "oya/data-warehouse/",
+        "oya/analytics/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-data",
+        "oya/ontology",
+        "oya/data-pipeline",
+        "oya/data-warehouse",
+        "oya/analytics"
+      ],
+      "durable_home": "data",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): data",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-FLAGS-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home flags \u2192 flags",
+      "notes": "mm-northstar-audit adversarial: flags: 3 paths live, 1 with crates; absorbs=['flags', 'oya/feature-flags', 'oya/oya-flags']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "flags/",
+        "oya/feature-flags/",
+        "oya/oya-flags/"
+      ],
+      "debt_paths": [
+        "oya/feature-flags",
+        "oya/oya-flags"
+      ],
+      "durable_home": "flags",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): flags",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-GATEWAY-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home gateway \u2192 gateway",
+      "notes": "mm-northstar-audit adversarial: gateway: 3 paths live, 1 with crates; absorbs=['gateway', 'oya/api-gateway', 'oya/connector']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "gateway/",
+        "oya/api-gateway/",
+        "oya/connector/"
+      ],
+      "debt_paths": [
+        "oya/api-gateway",
+        "oya/connector"
+      ],
+      "durable_home": "gateway",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): gateway",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-IAC-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home iac \u2192 iac",
+      "notes": "mm-northstar-audit adversarial: iac: 2 paths live, 1 with crates; absorbs=['cloud/cloud-iac', 'iac']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "iac/",
+        "cloud/cloud-iac/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-iac"
+      ],
+      "durable_home": "iac",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): iac",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-IAM-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home iam \u2192 iam",
+      "notes": "mm-northstar-audit adversarial: iam: 7 paths live, 1 with crates; absorbs=['iam', 'cloud/cloud-iam', 'oya/identity', 'oya/oya-identity', 'oya/consent-graph', 'oya/tenant-rbac', 'oya/oya-authn-device-firmware']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "iam/",
+        "cloud/cloud-iam/",
+        "oya/identity/",
+        "oya/oya-identity/",
+        "oya/consent-graph/",
+        "oya/tenant-rbac/",
+        "oya/oya-authn-device-firmware/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-iam",
+        "oya/identity",
+        "oya/oya-identity",
+        "oya/consent-graph",
+        "oya/tenant-rbac",
+        "oya/oya-authn-device-firmware"
+      ],
+      "durable_home": "iam",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): iam",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-K8S-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home k8s \u2192 k8s",
+      "notes": "mm-northstar-audit adversarial: k8s: 6 paths live, 1 with crates; absorbs=['k8s', 'cloud/cloud-k8s', 'cloud/managed-k8s-cluster-lifecycle', 'cloud/managed-k8s-control-plane-host', 'cloud/managed-k8s-sla-observability', 'cloud/managed-k8s-tenant-quota']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "k8s/",
+        "cloud/cloud-k8s/",
+        "cloud/managed-k8s-cluster-lifecycle/",
+        "cloud/managed-k8s-control-plane-host/",
+        "cloud/managed-k8s-sla-observability/",
+        "cloud/managed-k8s-tenant-quota/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-k8s",
+        "cloud/managed-k8s-cluster-lifecycle",
+        "cloud/managed-k8s-control-plane-host",
+        "cloud/managed-k8s-sla-observability",
+        "cloud/managed-k8s-tenant-quota"
+      ],
+      "durable_home": "k8s",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): k8s",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-MARKETPLACE-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home marketplace \u2192 marketplace",
+      "notes": "mm-northstar-audit adversarial: marketplace: 4 paths live, 1 with crates; absorbs=['marketplace', 'oya/marketplace', 'oya/plugin-app-store', 'oya/developer-sdk']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "marketplace/",
+        "oya/marketplace/",
+        "oya/plugin-app-store/",
+        "oya/developer-sdk/"
+      ],
+      "debt_paths": [
+        "oya/marketplace",
+        "oya/plugin-app-store",
+        "oya/developer-sdk"
+      ],
+      "durable_home": "marketplace",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): marketplace",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-NETWORK-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home network \u2192 network",
+      "notes": "mm-northstar-audit adversarial: network: 3 paths live, 1 with crates; absorbs=['network', 'cloud/cloud-network', 'cloud/cloud-network-dns']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "network/",
+        "cloud/cloud-network/",
+        "cloud/cloud-network-dns/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-network",
+        "cloud/cloud-network-dns"
+      ],
+      "durable_home": "network",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): network",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-OBSERVABILITY-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home observability \u2192 observability",
+      "notes": "mm-northstar-audit adversarial: observability: 3 paths live, 1 with crates; absorbs=['observability', 'oya/observability', 'oya/diagnostics']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "observability/",
+        "oya/observability/",
+        "oya/diagnostics/"
+      ],
+      "debt_paths": [
+        "oya/observability",
+        "oya/diagnostics"
+      ],
+      "durable_home": "observability",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): observability",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-SECRETS-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home secrets \u2192 secrets",
+      "notes": "mm-northstar-audit adversarial: secrets: 3 paths live, 1 with crates; absorbs=['secrets', 'cloud/cloud-kms', 'cloud/cloud-secrets']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "secrets/",
+        "cloud/cloud-kms/",
+        "cloud/cloud-secrets/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-kms",
+        "cloud/cloud-secrets"
+      ],
+      "durable_home": "secrets",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): secrets",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-STORAGE-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home storage \u2192 storage",
+      "notes": "mm-northstar-audit adversarial: storage: 5 paths live, 1 with crates; absorbs=['storage', 'cloud/cloud-storage', 'oya/drive', 'oya/imaging', 'oya/recordings']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "storage/",
+        "cloud/cloud-storage/",
+        "oya/drive/",
+        "oya/imaging/",
+        "oya/recordings/"
+      ],
+      "debt_paths": [
+        "cloud/cloud-storage",
+        "oya/drive",
+        "oya/imaging",
+        "oya/recordings"
+      ],
+      "durable_home": "storage",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): storage",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-TENANCY-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home tenancy \u2192 tenancy",
+      "notes": "mm-northstar-audit adversarial: tenancy: 2 paths live, 1 with crates; absorbs=['tenancy', 'cloud/tenancy']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "tenancy/",
+        "cloud/tenancy/"
+      ],
+      "debt_paths": [
+        "cloud/tenancy"
+      ],
+      "durable_home": "tenancy",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): tenancy",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
+    },
+    {
+      "id": "REORG-DUAL-WORKFLOW-BURNDOWN",
+      "status": "ready",
+      "source": "reorg",
+      "class": "reshape",
+      "primary_action": "reshape",
+      "wave": "W0",
+      "priority": "P1",
+      "title": "[northstar/reshape] burn-down dual-home workflow \u2192 workflow",
+      "notes": "mm-northstar-audit adversarial: workflow: 5 paths live, 1 with crates; absorbs=['workflow', 'oya/workflow-engine', 'oya/workflow-studio', 'oya/tasks', 'oya/forms']",
+      "northstar": "one durable home; absorbs is inventory not design",
+      "paths": [
+        "workflow/",
+        "oya/workflow-engine/",
+        "oya/workflow-studio/",
+        "oya/tasks/",
+        "oya/forms/"
+      ],
+      "debt_paths": [
+        "oya/workflow-engine",
+        "oya/workflow-studio",
+        "oya/tasks",
+        "oya/forms"
+      ],
+      "durable_home": "workflow",
+      "parallel_safe": true,
+      "reshape_note": "residual scaffold burn-down; content-preserving reshape then delete empty residual",
+      "actions": [
+        "Durable home (keep): workflow",
+        "For each debt path: merge unique contracts/docs into durable home OR prove duplicate \u2192 delete",
+        "Retarget facade/cedar/gitops consumers; then remove residual path",
+        "Do not add new crates under debt zones"
+      ]
     }
   ],
   "prs": [],

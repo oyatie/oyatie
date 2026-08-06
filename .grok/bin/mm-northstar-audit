@@ -180,6 +180,86 @@ def dual_homes_from_registry(repo: Path) -> List[dict]:
     return rows
 
 
+
+def rehome_disposition(row: dict) -> dict:
+    """Per-capability rehome audit vs NORTH-STAR-SHAPE (one durable home).
+
+    Class is REORG-DOCTRINE: delete|refactor|rewrite|remove|reshape|move|mixed.
+    shape_clean=False while multi-path debt remains.
+    """
+    homes = row.get("homes") or []
+    live = [h for h in homes if h.get("files", 0) > 0]
+    target_homes = [h for h in live if h.get("zone") == "target_or_other"]
+    debt_homes = [h for h in live if str(h.get("zone") or "").startswith("debt")]
+    transitional = [h for h in live if h.get("zone") == "transitional_infra"]
+    # Prefer registered capability root (non-debt) with most crates, else most files
+    def score(h):
+        return (h.get("crates") or 0, h.get("files") or 0)
+    durable = None
+    if target_homes:
+        durable = max(target_homes, key=score)["path"]
+    elif live:
+        durable = max(live, key=score)["path"]
+    debt_paths = [h["path"] for h in debt_homes]
+    posture = row.get("posture") or ""
+    crate_homes = int(row.get("crate_homes") or 0)
+    if posture == "split_brain_crates" or crate_homes >= 2:
+        # crates in multiple absorbs — not a pure delete
+        cls = "mixed"
+        primary = "move" if any(h.get("crates", 0) > 0 and str(h.get("zone","")).startswith("debt") for h in live) else "rewrite"
+        actions = [
+            f"Pick durable home: {durable}",
+            "Rehome or delete crate surface from debt paths (move/rewrite per REORG-DOCTRINE)",
+            "Retarget consumers (Cargo/BUCK/registry/cedar); net_path_debt<=0",
+            "Collapse absorbs_current_dirs to one home after empty",
+        ]
+        reshape = "split_brain: do not treat dual crate homes as design; execute reduce to one home"
+    elif posture == "residual_scaffold_plus_live":
+        # live target + zero-crate residual debt
+        # Docs/contracts may need reshape into durable home before delete
+        has_meaningful = any(
+            h.get("files", 0) >= 20 for h in debt_homes
+        )
+        cls = "reshape" if has_meaningful else "delete"
+        primary = "reshape" if has_meaningful else "delete"
+        actions = [
+            f"Durable home (keep): {durable}",
+            "For each debt path: merge unique contracts/docs into durable home OR prove duplicate → delete",
+            "Retarget facade/cedar/gitops consumers; then remove residual path",
+            "Do not add new crates under debt zones",
+        ]
+        reshape = "residual scaffold burn-down; content-preserving reshape then delete empty residual"
+    else:
+        cls = "delete"
+        primary = "delete"
+        actions = [
+            f"Durable home: {durable}",
+            "Delete empty/docs-only multi-path residue after consumer proof",
+        ]
+        reshape = "multi_path residual"
+    return {
+        "capability": row.get("capability"),
+        "shape_clean": False,  # dual-active by construction
+        "northstar_violation": "one_home_per_concern",
+        "severity": row.get("severity"),
+        "posture": posture,
+        "class": cls,
+        "primary_action": primary,
+        "durable_home": durable,
+        "debt_paths": debt_paths,
+        "transitional_paths": [h["path"] for h in transitional],
+        "live_homes": [
+            {"path": h["path"], "crates": h.get("crates"), "files": h.get("files"), "zone": h.get("zone")}
+            for h in live
+        ],
+        "actions": actions,
+        "reshape_note": reshape,
+        "lane_id": f"REORG-DUAL-{str(row.get('capability') or 'X').upper().replace('_','-')}-BURNDOWN",
+        "parallel_safe": posture == "residual_scaffold_plus_live",  # path-disjoint residual leaves OK
+        "blocks_move_plan": posture == "split_brain_crates",
+    }
+
+
 def board_index(board: dict) -> dict:
     lanes = board.get("lanes") or []
     by_status: Dict[str, List[dict]] = {}
@@ -365,6 +445,7 @@ def findings_from(
         )
 
     for row in dual:
+        disp = rehome_disposition(row)
         findings.append(
             {
                 "severity": row["severity"],
@@ -376,8 +457,9 @@ def findings_from(
                     f"{row['crate_homes']} with crates; absorbs={row['absorbs_current_dirs']}"
                 ),
                 "northstar": row["northstar"],
-                "suggested_lane": f"REORG-DUAL-{row['capability'].upper().replace('_','-')}",
+                "suggested_lane": disp["lane_id"],
                 "homes": row["homes"],
+                "rehome": disp,
             }
         )
 
@@ -494,17 +576,32 @@ def main() -> int:
             if args.dry_run:
                 upserted.append(f"(dry-run) {sug}")
                 continue
+            disp = f.get("rehome") or {}
+            debt = disp.get("debt_paths") or []
+            durable = disp.get("durable_home") or ""
+            paths = ([durable + "/"] if durable else []) + [d.rstrip("/") + "/" for d in debt]
             lanes.append(
                 {
                     "id": sug,
                     "status": "ready",
                     "source": "reorg",
-                    "class": "delete" if f.get("posture") == "residual_scaffold_plus_live" else "mixed",
+                    "class": disp.get("class")
+                    or ("delete" if f.get("posture") == "residual_scaffold_plus_live" else "mixed"),
+                    "primary_action": disp.get("primary_action"),
                     "wave": "W0" if f.get("severity") == "high" else "W1",
                     "priority": "P0" if f.get("severity") == "critical" else "P1",
-                    "title": f"[northstar] burn-down dual-home {cap} ({f.get('posture')})",
+                    "title": (
+                        f"[northstar/{disp.get('primary_action') or 'rehome'}] "
+                        f"burn-down dual-home {cap} → {durable or '?'}"
+                    ),
                     "notes": f"mm-northstar-audit adversarial: {f.get('msg')}",
                     "northstar": "one durable home; absorbs is inventory not design",
+                    "paths": paths,
+                    "debt_paths": debt,
+                    "durable_home": durable,
+                    "parallel_safe": bool(disp.get("parallel_safe")),
+                    "reshape_note": disp.get("reshape_note"),
+                    "actions": disp.get("actions") or [],
                 }
             )
             ids.add(sug)
@@ -533,6 +630,18 @@ def main() -> int:
         "live_move_plans": live_plans,
         "tracked_generated_json": len(generated),
         "dual_homes": dual,
+        "rehomes": [rehome_disposition(r) for r in dual],
+        "rehomes_not_clean": [rehome_disposition(r) for r in dual],  # all dual-active fail shape
+        "parallel_rehome_claims": [
+            rehome_disposition(r)
+            for r in dual
+            if r.get("posture") == "residual_scaffold_plus_live"
+        ],
+        "serial_split_brain_claims": [
+            rehome_disposition(r)
+            for r in dual
+            if r.get("posture") == "split_brain_crates"
+        ],
         "dual_home_counts": {
             "critical": sum(1 for r in dual if r["severity"] == "critical"),
             "high": sum(1 for r in dual if r["severity"] == "high"),
@@ -568,6 +677,15 @@ def main() -> int:
         print(f"  live_move_plans={live_plans or []}")
         print(f"  tracked_generated={len(generated)}")
         print(f"  reorg_ready={report['board']['reorg_ready_ids'][:12]}")
+        print(f"  rehomes_not_clean={len(report.get('rehomes_not_clean') or [])} "
+              f"parallel_safe={len(report.get('parallel_rehome_claims') or [])} "
+              f"split_brain={len(report.get('serial_split_brain_claims') or [])}")
+        for rh in (report.get("rehomes") or [])[:12]:
+            print(
+                f"  [rehome/{rh.get('severity')}] class={rh.get('class')} "
+                f"action={rh.get('primary_action')} durable={rh.get('durable_home')} "
+                f"debt={rh.get('debt_paths')}"
+            )
         for f in findings[:15]:
             print(f"  [{f.get('severity')}] {f.get('kind')}: {str(f.get('msg'))[:110]}")
         print(f"  recommendation: {report['recommendation']}")

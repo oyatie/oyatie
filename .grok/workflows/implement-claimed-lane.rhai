@@ -42,6 +42,8 @@ let impl = agent(
     + "C) TDD: write failing test (RED proof), implement minimal fix, green same suite. "
     + "For soft_red/ci_red: diagnose gh run failed logs for that check and fix root cause.\n"
     + "D) Never hand-edit *.generated.json; use materialize producers.\n"
+    + "E0) MANDATORY before push/pr-create: python3 .grok/bin/mm-preflight-pr --base origin/dev\n"
+    + "    Exit nonzero → fix local FAILs; do NOT open a red PR. See CI-RED-PROCESS.md.\n"
     + "E) Commit + SSH-signed push to PR branch (or open PR against dev). ONE push after local verify.\n"
     + "F) Dual-critic: write .grok/programs/**/evidence/pr-N-dual-critic.json (local pin preferred until CI green; "
     + "no tip thrash). verdict APPROVE only if earned; independence honest (same_family ok if noted).\n"

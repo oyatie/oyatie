@@ -1,0 +1,78 @@
+{
+  "schema": "dual-critic.v1",
+  "pr": 1579,
+  "branch": "agent/fabric-single-flight-reorg-drive-20260806",
+  "head": "13f6194b038948af5bda345ad524a1c80ccd436e",
+  "at": "2026-08-06T15:45:00Z",
+  "objective": "PR #1579 process-only fabric fix: single-flight W3 babysit law + W5 northstar-portfolio-audit + expand reorg portfolio seeds; no product path moves",
+  "independence": "same_family",
+  "prefer_cross_model": true,
+  "independence_note": "cross_model preferred; same_family honest (W3 pr-babysit-lanes dual-critic A/B on xai; require_cross_model_critics=false)",
+  "verdict": "APPROVE",
+  "reviewer": "w3-pr-babysit-lanes",
+  "real": true,
+  "critics": [
+    {
+      "id": "critic-a-correctness",
+      "role": "correctness/process",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "essentialism",
+        "chesterton_fence"
+      ],
+      "findings": [
+        "All paths under .grok/ only (bin + programs/delivery-fabric + workflows) \u2014 no cloud/oya/infra/libs product surface; net_path_debt=0 for reorg targets.",
+        "BABYSIT-SINGLE-FLIGHT.md makes W3 sole PR owner with claim key (pr,head); mm-drive stop-hook text steers away from multi-arm sleep+gh poll loops.",
+        "W5 northstar-portfolio-audit is separate from W4; mm-fabric-status keeps min_required=4 core classes and reports optional audit age \u2014 does not raise fail-closed bar incorrectly.",
+        "mm-northstar-audit is mechanical (dual-home, move-plan singleton, generated faces, board gaps); exit 2 only on critical; not merge authority.",
+        "mm-reorg-enqueue expands AREA\u00d7CLASS seeds (dual-topo leaves, intel remainder, infra/tools/cloud sweeps) without executing moves \u2014 plan/board surface only."
+      ],
+      "residual": [
+        "await oya-ci-required green on tip 13f6194b0389"
+      ]
+    },
+    {
+      "id": "critic-b-blast-radius",
+      "role": "blast-radius/operability",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": [
+        "blast_radius",
+        "systems_thinking",
+        "operability",
+        "red_team"
+      ],
+      "findings": [
+        "Single-flight claim reduces merge races and tip thrash from concurrent dual-critic pins \u2014 process fix with local babysit-claims.json (not merge authority).",
+        "Workflow edits (pr-babysit-lanes, implement-claimed-lane, productivity-watch, new northstar-portfolio-audit) align with FABRIC-REFINED W1\u2013W5 table; W5 does not babysit/implement.",
+        "task-board.v1.json portfolio expansion is enqueue-only; CAS 3A remains blocked on G039 per PR body \u2014 no silent unpark of second move-plan.",
+        "No *.generated.json hand edits; no force-to-dev; independence=same_family honest.",
+        "py_compile path for new auditor + status/drive touch points is process-safe; CI binding gates remain oya-ci-required sole merge context."
+      ],
+      "residual": []
+    }
+  ],
+  "summary": "APPROVE #1579 tip 13f6194b0389: process-only single-flight babysit + W5 northstar audit + reorg portfolio seeds; dual-critic A/B APPROVE; merge when oya-ci-required green",
+  "blockers": [],
+  "soft_red_addressed": {
+    "checks": [],
+    "status": "none_at_review (soft_red=0 on ingest; re-check before merge)"
+  },
+  "babysit_cycle": {
+    "at": "2026-08-06T15:53:20Z",
+    "action": "await_ci_gh_actions_recovery",
+    "head": "13f6194b038948af5bda345ad524a1c80ccd436e",
+    "note": "W3: #1574+#1575 MERGED; #1579 dual-critic APPROVE tip 27bff55; CodeQL+registry-drift failures are GH Actions 'Service Unavailable' action-download flakes (not product); required context only oya-ci-required; open fleet also #1580",
+    "soft_reds": "0",
+    "targets_1574_1575": "MERGED",
+    "ci_diagnosis": "infra_flake_service_unavailable"
+  },
+  "reviewed_at": "2026-08-06T15:45:00Z",
+  "code_tip": "13f6194b038948af5bda345ad524a1c80ccd436e",
+  "head_pinned_at": "2026-08-06T15:45:00Z",
+  "tip_note": "W3 pr-babysit-lanes: pin dual-critic to current PR tip; no tip push while CI in progress"
+}
