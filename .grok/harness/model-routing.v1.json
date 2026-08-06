@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "description": "Fine-tune role→model priors and complexity overrides. No gjc/omc/omx. Multi-model via mm-role CLIs when used; Grok workflows use session model + lens prompts.",
+  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "priors": {
+    "ORCHESTRATOR": { "provider": "xai", "model": "grok-4.5", "effort": "high" },
+    "ARCHITECT": { "provider": "anthropic", "model": "claude-fable-5", "effort": "high" },
+    "PLANNER": { "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
+    "EXECUTOR": { "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
+    "CRITIC": { "provider": "anthropic", "model": "claude-opus-5", "effort": "high", "min_instances": 2 },
+    "SECURITY": { "provider": "anthropic", "model": "claude-opus-5", "effort": "high" },
+    "VERIFIER": { "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" }
+  },
+  "complexity_axes": ["reasoning", "ambiguity", "blast_radius", "adversarial", "tool_loop"],
+  "rules": [
+    {
+      "when": { "judgment_weight_gte": 4 },
+      "then": { "forbid_effort_below": "high", "require_dual_critic": true }
+    },
+    {
+      "when": { "blast_surface": "oya-ci-required" },
+      "then": { "require_dual_critic": true, "require_security": true, "human_admit": true }
+    },
+    {
+      "when": { "task_class": "mechanical", "judgment_weight_lte": 2 },
+      "then": { "allow_effort": "medium" }
+    },
+    {
+      "when": { "independence_required": true },
+      "then": { "critic_provider_ne_executor_provider": true }
+    }
+  ],
+  "fitness": {
+    "window": 10,
+    "promote_on": "higher admit*verify*(1-hard_fail) at cost_ratio_le 1.5"
+  }
+}

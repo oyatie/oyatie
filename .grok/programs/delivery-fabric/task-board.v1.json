@@ -1,0 +1,466 @@
+{
+  "schema": "task-board.v1",
+  "version": 1,
+  "updated_at": "2026-08-06T11:16:03Z",
+  "updated_by": "mm-reorg-enqueue",
+  "min_fabric_workflows_active": 4,
+  "fabric_classes": [
+    "portfolio-work-manager",
+    "implement-claimed-lane",
+    "pr-babysit-lanes",
+    "workflow-productivity-watch"
+  ],
+  "lanes": [
+    {
+      "id": "Q-PR1575-ci_red-cloud-ci-firewall-baseline-ratchet-gate-registra",
+      "title": "PR #1575: ci_red \u2014 cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "status": "claimed",
+      "priority": "P1",
+      "paths": [
+        ".grok/"
+      ],
+      "depends_on": [],
+      "source": "ci_red",
+      "source_ref": "pr:1575:cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "bead_id": null,
+      "pr": 1575,
+      "branch": "agent/mm-kit-land-20260806",
+      "pr_url": "https://github.com/jason931225/oyatie/pull/1575",
+      "check_name": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "check_conclusion": "FAILURE",
+      "dod": [
+        "Diagnose authoritative log for check `cloud-ci-firewall (baseline ratchet + gate-registration meta-test)` on PR #1575",
+        "Fix or document explicit waiver with founder/human note if truly non-actionable",
+        "Re-queue until check no longer FAILURE (soft reds still count)"
+      ],
+      "blockers": [],
+      "claimed_by": "w4-rearm-nudge",
+      "claimed_at": "2026-08-06T11:14:59Z",
+      "mm_run_id": null,
+      "first_seen_at": "2026-08-06T11:02:57Z",
+      "updated_at": "2026-08-06T11:14:59Z"
+    },
+    {
+      "id": "Q-PR1575-soft_red-gate-platform-smoke-windows-amd64-soft",
+      "title": "PR #1575: soft_red \u2014 gate \u00b7 platform smoke (windows-amd64 soft)",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [],
+      "depends_on": [],
+      "source": "soft_red",
+      "source_ref": "pr:1575:gate \u00b7 platform smoke (windows-amd64 soft)",
+      "bead_id": null,
+      "pr": 1575,
+      "branch": "agent/mm-kit-land-20260806",
+      "pr_url": "https://github.com/jason931225/oyatie/pull/1575",
+      "check_name": "gate \u00b7 platform smoke (windows-amd64 soft)",
+      "check_conclusion": "FAILURE",
+      "dod": [
+        "Diagnose authoritative log for check `gate \u00b7 platform smoke (windows-amd64 soft)` on PR #1575",
+        "Fix or document explicit waiver with founder/human note if truly non-actionable",
+        "Re-queue until check no longer FAILURE (soft reds still count)"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "mm_run_id": null,
+      "first_seen_at": "2026-08-06T11:02:57Z",
+      "updated_at": "2026-08-06T11:11:11Z"
+    },
+    {
+      "id": "Q-PR1574-soft_red-gate-platform-smoke-windows-amd64-soft",
+      "title": "PR #1574: soft_red \u2014 gate \u00b7 platform smoke (windows-amd64 soft)",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [],
+      "depends_on": [],
+      "source": "soft_red",
+      "source_ref": "pr:1574:gate \u00b7 platform smoke (windows-amd64 soft)",
+      "bead_id": null,
+      "pr": 1574,
+      "branch": "agent/adr-disposition-mechanical-20260806",
+      "pr_url": "https://github.com/jason931225/oyatie/pull/1574",
+      "check_name": "gate \u00b7 platform smoke (windows-amd64 soft)",
+      "check_conclusion": "FAILURE",
+      "dod": [
+        "Diagnose authoritative log for check `gate \u00b7 platform smoke (windows-amd64 soft)` on PR #1574",
+        "Fix or document explicit waiver with founder/human note if truly non-actionable",
+        "Re-queue until check no longer FAILURE (soft reds still count)"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "mm_run_id": null,
+      "first_seen_at": "2026-08-06T11:02:57Z",
+      "updated_at": "2026-08-06T11:15:30Z"
+    },
+    {
+      "id": "LANE-20260806-01-w0b-port-engine",
+      "title": "W0-B mechanical port engine G002 (slice-1 crate scaffold)",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "build/port-engine/",
+        "specs/port-rules/",
+        "Cargo.toml"
+      ],
+      "depends_on": [],
+      "source": "beads",
+      "source_ref": "oyatie-oso.10",
+      "bead_id": "oyatie-oso.10",
+      "pr": null,
+      "branch": null,
+      "pr_url": null,
+      "worktree": null,
+      "dod": [
+        "Reconfirm W0-B-ready-gate.json: all blocking prerequisites met; set may_start_engine_code true only with explicit G002 start",
+        "Isolated worktree from origin/dev; Slice 1 only per W0-B-ADMISSION-PLAN.md (six empty oya-port crate skeletons under build/port-engine/{ports,core,adapters,facade}/)",
+        "Single root Cargo.toml members-line admitting build/port-engine/*/* + OWNERS + fail-closed readiness tests + born-accounting",
+        "No W0-C+ gates, no bulk k8s corpus, no Go in verify(); open PR only after local gates green",
+        "Do not close oyatie-oso.10 until merge + packet/evidence per close policy"
+      ],
+      "blockers": [
+        "may_start_engine_code currently false (prerequisites_met_but_explicit_g002_start_required) \u2014 flip gate + PROGRAM.json before product crates"
+      ],
+      "claimed_by": null,
+      "claimed_at": null,
+      "mm_run_id": null,
+      "first_seen_at": "2026-08-06T11:11:11Z",
+      "updated_at": "2026-08-06T11:11:11Z",
+      "notes": "G001 #1561 packet complete; bead deps oyatie-7xf + oyatie-oso.3 closed. Plan: .grok/programs/k8s-port/W0-B-ADMISSION-PLAN.md"
+    },
+    {
+      "id": "LANE-20260806-02-console-w0-ont",
+      "title": "Console W0 D-ONT ontology object-type backend increments",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "/Users/jasonlee/Developer/console/backend/crates/ontology/",
+        "/Users/jasonlee/Developer/console/backend/crates/platform/"
+      ],
+      "depends_on": [],
+      "source": "console",
+      "source_ref": "console-ssf",
+      "bead_id": "console-ssf",
+      "pr": null,
+      "branch": null,
+      "pr_url": null,
+      "worktree": null,
+      "repo": "/Users/jasonlee/Developer/console",
+      "dod": [
+        "Claim console-ssf (or a child increment) under DELIVERY lease; exact candidate + allowed paths",
+        "Backend-only ontology object-type increments; no UI/Leptos (frontend HOLD)",
+        "npm run verify (or scoped gates) green; independent review per DELIVERY risk class",
+        "Merge via console protected path; record candidate SHA + remaining HOLDs"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "mm_run_id": null,
+      "first_seen_at": "2026-08-06T11:11:11Z",
+      "updated_at": "2026-08-06T11:11:11Z",
+      "notes": "ROADMAP item 4 foundations; Product Wave 0 Org/HR/Leptos remains HOLD \u2014 this lane is backend ontology only"
+    },
+    {
+      "id": "LANE-20260806-03-console-w0-apr",
+      "title": "Console W0 D-APR approval/preflight \u2014 babysit/merge PR #592",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "/Users/jasonlee/Developer/console/backend/crates/governance/"
+      ],
+      "depends_on": [],
+      "source": "console",
+      "source_ref": "console-66n|pr:592",
+      "bead_id": "console-66n",
+      "pr": 592,
+      "branch": "feat/w0-apr-domain-hardening",
+      "pr_url": "https://github.com/jason931225/console/pull/592",
+      "worktree": null,
+      "repo": "/Users/jasonlee/Developer/console",
+      "dod": [
+        "Re-query gh pr checks 592; Required/CI + Required/Security green on head",
+        "Independent review appropriate to approval/preflight risk; no self-approve alone if four-eyes required",
+        "Merge via console protected path; read back hosted commit + required checks",
+        "Update console-66n epic residual / child increments after land"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "mm_run_id": null,
+      "first_seen_at": "2026-08-06T11:11:11Z",
+      "updated_at": "2026-08-06T11:11:11Z",
+      "notes": "Open PR green at discovery; dual-track anti-wait \u2014 merge when protection satisfied rather than idle"
+    },
+    {
+      "id": "REORG-RR-FACE-DECOMMIT",
+      "title": "[refactor/W1] Audit/remove re-committed derived faces violating de-commit ADRs (0613\u20130616)",
+      "status": "ready",
+      "priority": "P1",
+      "paths": [
+        "ci/facade/",
+        "specs/",
+        "infra/ci/materialize-cloud-ci-generated-faces.sh"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-FACE-DECOMMIT",
+      "reorg_class": "refactor",
+      "reorg_wave": "W1",
+      "authority": "ADR-0613..0616 live apex via ADR-0700/0701",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Inventory tracked *.generated.json drift vs controller materialize",
+        "No hand-edit generated faces; materialize only",
+        "PR one concern; dual-critic + oya-ci-required",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@c7f60a9dbfe2",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T11:16:03Z",
+      "updated_at": "2026-08-06T11:16:03Z"
+    },
+    {
+      "id": "REORG-RR-MOVEPLAN-SINGLETON",
+      "title": "[refactor/W0] Enforce single active specs/reorg/*-move-plan.json (process/gate)",
+      "status": "ready",
+      "priority": "P1",
+      "paths": [
+        "specs/reorg/",
+        ".grok/programs/REORG-DOCTRINE.md"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-MOVEPLAN-SINGLETON",
+      "reorg_class": "refactor",
+      "reorg_wave": "W0",
+      "authority": "ADR-0614 + REORG-DOCTRINE",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Document singleton rule in gate or checklist",
+        "Fail closed or advisory on multiple active plans",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@c7f60a9dbfe2",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T11:16:03Z",
+      "updated_at": "2026-08-06T11:16:03Z"
+    },
+    {
+      "id": "REORG-RR-BRAND-0619",
+      "title": "[rebrand/W0] Rebrand residue: strip forbidden harness brand as live authority (ADR-0619)",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "docs/",
+        ".grok/",
+        "README.md"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-BRAND-0619",
+      "reorg_class": "rebrand",
+      "reorg_wave": "W0",
+      "authority": "ADR-0619 / live apex",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Scan for gjc/omc/omx/hermes as live authority claims",
+        "Docs-only PR; no product behavior change",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@c7f60a9dbfe2",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T11:16:03Z",
+      "updated_at": "2026-08-06T11:16:03Z"
+    },
+    {
+      "id": "REORG-RR-DUAL-0615-FOLLOW",
+      "title": "[mixed/W1] Follow dual-home oya/* disposition after #1568 inventory",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "oya/",
+        "specs/reorg/",
+        ".grok/programs/reorg/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-DUAL-0615-FOLLOW",
+      "reorg_class": "mixed",
+      "reorg_wave": "W1",
+      "authority": "ADR-0562+0615+0635; docs/reorg dual-home inventory",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Re-query origin/dev ADRs before PR",
+        "One concern PR: dispose one dual-home cluster or plan-only",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@c7f60a9dbfe2",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T11:16:03Z",
+      "updated_at": "2026-08-06T11:16:03Z"
+    },
+    {
+      "id": "REORG-RR-CAS-3A",
+      "title": "[move/W2] CAS 3A NativeLink storage rehome (ordered; after G039)",
+      "status": "blocked",
+      "priority": "P2",
+      "paths": [
+        "infra/nativelink/",
+        "storage/adapters/",
+        "specs/reorg/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-CAS-3A",
+      "reorg_class": "move",
+      "reorg_wave": "W2",
+      "authority": "CAS plan + ADR-0614; prerequisite G039 packet",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Worktree from current origin/dev only",
+        "Sole active move-plan for lane",
+        "No warm CAS flip",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@c7f60a9dbfe2",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [
+        "prerequisite:G039-terminal-packet"
+      ],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T11:16:03Z",
+      "updated_at": "2026-08-06T11:16:03Z"
+    }
+  ],
+  "prs": [
+    {
+      "pr": 1575,
+      "title": "feat(mm-kit): land multi-model delivery kit (.grok)",
+      "branch": "agent/mm-kit-land-20260806",
+      "url": "https://github.com/jason931225/oyatie/pull/1575",
+      "soft_reds": [],
+      "binding_reds": [],
+      "mergeStateStatus": "BLOCKED",
+      "mergeable": "MERGEABLE",
+      "reviewDecision": ""
+    },
+    {
+      "pr": 1574,
+      "title": "docs(adr): status case normalize + full disposition audit (no mass-Accept)",
+      "branch": "agent/adr-disposition-mechanical-20260806",
+      "url": "https://github.com/jason931225/oyatie/pull/1574",
+      "soft_reds": [
+        "gate \u00b7 platform smoke (windows-amd64 soft)"
+      ],
+      "binding_reds": [],
+      "mergeStateStatus": "BLOCKED",
+      "mergeable": "MERGEABLE",
+      "reviewDecision": ""
+    }
+  ],
+  "notes": [
+    "mm-reorg-enqueue 2026-08-06T11:16:03Z: waves=['W0', 'W1', 'W2'] added/upserted 5 reorg lanes; origin/dev=c7f60a9dbfe2",
+    "mm-queue-ingest 2026-08-06T11:15:30Z: soft_red=1 ci_red=0 block=0 open_prs=2 (soft reds MUST stay on board until cleared)",
+    "w4-productivity 2026-08-06T11:14:59Z: fail-closed soft_red_ready pre-claim>0 with zero claimed; claimed=Q-PR1575-ci_red-cloud-ci-firewall-baseline-ratchet-gate-registra; post soft_red_ready=2 ci_red_ready=0 claimed_lanes=1; live_ingest soft_red=0 (stale board reds retained until cleared; 1574 still has windows soft fail; 1575 mostly pending)",
+    "portfolio-work-manager 2026-08-06T11:11:11Z: ready_lanes=6 path-disjoint; kept 3 soft_red/ci_red; upserted W0-B + console D-ONT + console D-APR#592",
+    "hindsight: Console dual-track anti-wait (ci-fleet-tick + product-process-tick); Product Wave 0 Org/HR/Leptos on ROADMAP HOLD \u2014 use bd ready for leased foundation work",
+    "Rejected overlaps: CAS 3B (blocked on oyatie-oso.5 still in_progress despite #1563 MERGED); kit polish under .grok (conflicts PR#1575); W0-B may_start_engine_code still false until explicit G002 flip",
+    "Stale bead hygiene (not queued): many oyatie-oso.* still in_progress after squash (1562/1563/1564/1565/1567/1568/1569) \u2014 closeout unblocks 3B",
+    "SSOT for delivery-fabric workflows. Portfolio manager writes lanes; implement claims; babysit tracks prs; productivity asserts activity."
+  ],
+  "sources": {
+    "beads": "bd ready / bd show",
+    "mm_goals": ".grok/mm-runs/*/goals.json",
+    "roadmap": ".grok/programs/ROADMAP-DURABLE-GOAL.md",
+    "parallel_board": ".grok/programs/PARALLEL-BOARD.md",
+    "console": "/Users/jasonlee/Developer/console (HANDOFF.md, DESIGN.md, backlog)",
+    "hindsight": "recall/reflect tags delivery-fabric",
+    "open_prs": "gh pr list --base dev"
+  },
+  "lane_template": {
+    "id": "LANE-YYYYMMDD-NN",
+    "title": "",
+    "status": "ready",
+    "priority": "P2",
+    "paths": [],
+    "depends_on": [],
+    "source": "beads|roadmap|console|discovery|pr",
+    "source_ref": "",
+    "bead_id": null,
+    "worktree": null,
+    "branch": null,
+    "pr": null,
+    "claimed_by": null,
+    "claimed_at": null,
+    "dod": [],
+    "mm_run_id": null,
+    "blockers": []
+  },
+  "queue_stats": {
+    "soft_red": 1,
+    "ci_red": 0,
+    "block": 0,
+    "ready_lanes": 5,
+    "ingested_at": "2026-08-06T11:15:30Z"
+  },
+  "soft_red_policy": {
+    "never_silent": true,
+    "sources_must_queue": [
+      "soft_red",
+      "ci_red",
+      "block",
+      "ci_cancelled"
+    ],
+    "ingest": ".grok/bin/mm-queue-ingest"
+  },
+  "autonomy": {
+    "merge_on_agent_approve_and_ci_green": true,
+    "human_gh_approve_required": false,
+    "fix_until_dual_critic_approve": true
+  },
+  "origin_dev": {
+    "sha": "c7f60a9dbfe28f5d2f17b094ba25ae8c8602e6cb",
+    "sha12": "c7f60a9dbfe2",
+    "at": "2026-08-06T11:16:03Z"
+  },
+  "reorg_queue": {
+    "waves": [
+      "W0",
+      "W1",
+      "W2"
+    ],
+    "lane_ids": [
+      "REORG-RR-FACE-DECOMMIT",
+      "REORG-RR-MOVEPLAN-SINGLETON",
+      "REORG-RR-BRAND-0619",
+      "REORG-RR-DUAL-0615-FOLLOW",
+      "REORG-RR-CAS-3A"
+    ],
+    "doctrine": ".grok/programs/REORG-DOCTRINE.md",
+    "backlog": ".grok/programs/REORG-REBRAND-BACKLOG.md"
+  }
+}

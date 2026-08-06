@@ -270,6 +270,10 @@
       "prefix": ".github/ISSUE_TEMPLATE/"
     },
     {
+      "anchor": "mm-kit land (PR #1575): tracked multi-model delivery harness under .grok/ (bins, harness schemas, roles, workflows, program doctrine). Process tooling only — not merge authority; admission remains reviewer APPROVE + oya-ci-required (ADR-0515). Runtime journals (.grok/mm-runs/, .grok/memory/) stay gitignored. Ownership seed .grok/OWNERS (cloud-ci-platform).",
+      "prefix": ".grok/"
+    },
+    {
       "anchor": "ADR-0610: pre-registered frozen Policy-IR benchmark stage-0 artifacts (rubric = sole grade authority, fixture suite = graded corpus); evidence-admissibility pre-registration.",
       "prefix": "specs/policy-ir-benchmark-rubric.json"
     },
