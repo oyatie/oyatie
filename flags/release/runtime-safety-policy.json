@@ -113,7 +113,7 @@
   },
   "verification": {
     "mode": "data-only-declaration",
-    "catalog_ref": "oya/feature-flags/catalog/oya-feature-flags-rollout-kernel.yaml",
+    "catalog_ref": "flags/catalog/oya-feature-flags-rollout-kernel.yaml",
     "kanban_task": "t_62cf60fe",
     "rust_first_rationale": "No standalone Python, shell, or Node validator is shipped for this declaration. This surface is owned by the Rust/Buck2 cloud-ci contract-slice-conformance gate's release-001-runtime-safety-policy slice, which pins this file's claim-ceiling, progressive-delivery, brownout, rollback, and cleanup contracts, alongside the cloud-ci rust-first and total-accounting gates.",
     "claim_boundary": "This policy remains a declaration-only RELEASE-001 safety slice and carries no live rollout execution, tenant traffic, measured SLO, runtime observability engine, or Oya CD parity/cutover claim."

@@ -1,0 +1,37 @@
+{
+  "id": "REORG-DUAL-FLAGS-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:14:48Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate oya/feature-flags + oya/oya-flags surface into registered flags/ home; retarget consumers; delete dual-home debt under oya/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/",
+  "moves": [
+    {
+      "from": "oya/feature-flags/{capabilities,catalog,cedar,contracts,dashboards,decisions,dpia,iac,IPs,policy,release,runbooks,scorecards,manifest.json,README.md,...}",
+      "to": "flags/<same>"
+    },
+    {
+      "from": "oya/oya-flags/{BUCK,catalog.yaml,README.md}",
+      "to": "flags/{BUCK,catalog.yaml,README.oya-flags-placeholder.md}"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/reachability-registry.json",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/contract-slice-conformance/contract-slice-policy.json",
+    "ci/facade/contract-slice-conformance/slices/release-001-runtime-safety-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "flags/manifest.json",
+    "flags/release/runtime-safety-policy.json",
+    "flags/catalog/oya-feature-flags-rollout-kernel.yaml"
+  ],
+  "net_path_debt": "negative under oya/feature-flags and oya/oya-flags (deleted); flags/ gains residual zero-crate product artifacts at capability home; absorbs_current_dirs reduced to [flags]",
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates)",
+    "no flags evaluation runtime behavior change",
+    "historical docs/audit and docs/adr-archive path strings left as historical inventory"
+  ]
+}
