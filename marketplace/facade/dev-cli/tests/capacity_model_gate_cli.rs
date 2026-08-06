@@ -10,7 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[test]
 fn capacity_model_gate_accepts_tenant_class_delta_manifest() {
     let temp = temp_dir("capacity-model-valid-deltas");
-    let manifest = temp.join("oya/workflow-engine/manifest.json");
+    let manifest = temp.join("workflow/workflow-engine/manifest.json");
     write_manifest(&manifest, valid_capacity_manifest());
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
@@ -45,7 +45,7 @@ fn capacity_model_gate_accepts_tenant_class_delta_manifest() {
 #[test]
 fn capacity_model_gate_rejects_invalid_units_and_enums() {
     let temp = temp_dir("capacity-model-invalid-units");
-    let manifest = temp.join("oya/workflow-engine/manifest.json");
+    let manifest = temp.join("workflow/workflow-engine/manifest.json");
     write_manifest(
         &manifest,
         r#"{
@@ -96,7 +96,7 @@ fn capacity_model_gate_rejects_invalid_units_and_enums() {
 #[test]
 fn capacity_model_gate_requires_tenant_class_deltas_when_requested() {
     let temp = temp_dir("capacity-model-require-deltas");
-    let manifest = temp.join("oya/workflow-engine/manifest.json");
+    let manifest = temp.join("workflow/workflow-engine/manifest.json");
     write_manifest(
         &manifest,
         r#"{
@@ -147,7 +147,7 @@ fn capacity_model_gate_requires_tenant_class_deltas_when_requested() {
 #[test]
 fn capacity_model_gate_ignores_non_runtime_placeholders_during_root_scan() {
     let temp = temp_dir("capacity-model-skip-placeholder");
-    let runtime_manifest = temp.join("oya/workflow-engine/manifest.json");
+    let runtime_manifest = temp.join("workflow/workflow-engine/manifest.json");
     write_manifest(&runtime_manifest, valid_capacity_manifest());
     let placeholder_manifest = temp.join("cloud/cloud-iac/manifest.json");
     write_manifest(

@@ -40,7 +40,7 @@
       "oya/feature-flags/iac/k8s/helm/templates/cedar.yaml",
       "oya/financial-planning/iac/k8s/helm/templates/cedar.yaml",
       "oya/finops-portal/iac/k8s/helm/templates/cedar.yaml",
-      "oya/forms/iac/k8s/helm/templates/cedar.yaml",
+      "workflow/forms/iac/k8s/helm/templates/cedar.yaml",
       "oya/global-trade/iac/k8s/helm/templates/cedar.yaml",
       "oya/governance/iac/k8s/helm/templates/cedar.yaml",
       "oya/healthcare-integration/iac/k8s/helm/templates/cedar.yaml",
@@ -74,13 +74,13 @@
       "oya/slides/iac/k8s/helm/templates/cedar.yaml",
       "oya/social/iac/k8s/helm/templates/cedar.yaml",
       "oya/supply-chain-planning/iac/k8s/helm/templates/cedar.yaml",
-      "oya/tasks/iac/k8s/helm/templates/cedar.yaml",
+      "workflow/tasks/iac/k8s/helm/templates/cedar.yaml",
       "oya/translate/iac/k8s/helm/templates/cedar.yaml",
       "oya/treasury/iac/k8s/helm/templates/cedar.yaml",
       "oya/warehouse/iac/k8s/helm/templates/cedar.yaml",
       "oya/whiteboard/iac/k8s/helm/templates/cedar.yaml",
-      "oya/workflow-engine/iac/k8s/helm/templates/cedar.yaml",
-      "oya/workflow-studio/iac/k8s/helm/templates/cedar.yaml",
+      "workflow/workflow-engine/iac/k8s/helm/templates/cedar.yaml",
+      "workflow/workflow-studio/iac/k8s/helm/templates/cedar.yaml",
       "oya/workplace-integration/iac/k8s/helm/templates/cedar.yaml"
     ]
   }
