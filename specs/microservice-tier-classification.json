@@ -1036,9 +1036,9 @@
       "tier_subtype": "product-consumer-notes",
       "dr_tier": "T0"
     },
-    "oya/observability/manifest.json": {
-      "service": "oya/observability",
-      "manifest": "oya/observability/manifest.json",
+    "observability/manifest.json": {
+      "service": "observability",
+      "manifest": "observability/manifest.json",
       "capability": "observability",
       "tier": "substrate",
       "tier_subtype": "substrate-observability",

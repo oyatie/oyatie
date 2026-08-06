@@ -199,7 +199,7 @@
       ],
       "absorbs_current_dirs": [
         "observability",
-        "oya/observability",
+
         "oya/diagnostics"
       ],
       "dag_node": "observability"

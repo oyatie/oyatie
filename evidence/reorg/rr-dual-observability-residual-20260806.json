@@ -1,0 +1,12 @@
+{
+  "id": "REORG-DUAL-OBSERVABILITY-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T15:56:39Z",
+  "summary": "Rehome zero-crate oya/observability residual into observability/; drop oya/observability absorb. oya/diagnostics left for separate leaf (clinical vs substrate).",
+  "non_goals": [
+    "no crate moves",
+    "no diagnostics rehome this PR",
+    "not a live move-plan"
+  ],
+  "northstar": "one home for observability residual; class=delete/rehome not move-only"
+}
