@@ -1,7 +1,7 @@
 {
   "$schema": "https://oyatie.com/schemas/microservice-manifest.json",
   "schema_version": "1.0",
-  "microservice": "managed-k8s-control-plane-host",
+  "microservice": "k8s/managed-control-plane-host",
   "tier": "substrate",
   "tier_subtype": "substrate-infra",
   "dr_tier": "T1",
@@ -43,7 +43,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/managed-k8s-control-plane-host/contracts/control_plane_host.proto"
+        "k8s/managed-control-plane-host/contracts/control_plane_host.proto"
       ]
     }
   },

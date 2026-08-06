@@ -1,7 +1,7 @@
 {
   "exceptions": [
     {
-      "path": "cloud/cloud-k8s/tests/test_runtime_substrate_validation.py",
+      "path": "k8s/tests/test_runtime_substrate_validation.py",
       "reason": "Cloud validation helper retained as explicit debt while the cloud-ci gate family absorbs the check in Rust.",
       "replacement": "Replace with Rust Buck2 cloud-ci gate or Kubernetes-native controller/admission validation.",
       "status": "temporary_legacy_bridge"
@@ -154,7 +154,7 @@
     },
     "codes": {
       "rust_first_automation_unbaselined_non_rust_exception": [
-        "cloud/cloud-k8s/tests/test_runtime_substrate_validation.py",
+        "k8s/tests/test_runtime_substrate_validation.py",
         "infra/capi/crs/render.sh",
         "infra/capi/init.sh",
         "infra/ci/install-buck2.sh",

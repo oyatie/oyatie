@@ -13,10 +13,10 @@ use serde_json::Value;
 
 const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
     "cloud/cloud-intelligence/manifest.json",
-    "cloud/managed-k8s-cluster-lifecycle/manifest.json",
-    "cloud/managed-k8s-control-plane-host/manifest.json",
-    "cloud/managed-k8s-sla-observability/manifest.json",
-    "cloud/managed-k8s-tenant-quota/manifest.json",
+    "k8s/managed-cluster-lifecycle/manifest.json",
+    "k8s/managed-control-plane-host/manifest.json",
+    "k8s/managed-sla-observability/manifest.json",
+    "k8s/managed-tenant-quota/manifest.json",
     "cloud/tenancy/manifest.json",
 ];
 

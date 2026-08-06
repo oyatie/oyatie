@@ -467,7 +467,7 @@ This is the source of truth the `github-ci-token` ExternalSecret pulls from.
 ```sh
 bao kv put secret/oya/ci/github-ci-token token="<GITHUB_CI_TOKEN>"
 
-# CSI substrate credentials consumed by cloud/cloud-k8s/iac/kustomize/base/openbao-secret-references.yaml
+# CSI substrate credentials consumed by k8s/iac/kustomize/base/openbao-secret-references.yaml
 bao kv put secret/cloud-k8s/csi/block-volume \
     endpoint="<BLOCK_VOLUME_ENDPOINT>" \
     tenant_id="<BLOCK_VOLUME_TENANT_ID>" \

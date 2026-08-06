@@ -179,9 +179,9 @@
         ]
       }
     },
-    "cloud/cloud-k8s/manifest.json": {
-      "service": "cloud/cloud-k8s",
-      "manifest": "cloud/cloud-k8s/manifest.json",
+    "k8s/manifest.json": {
+      "service": "k8s",
+      "manifest": "k8s/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -305,9 +305,9 @@
         "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "cloud/managed-k8s-cluster-lifecycle/manifest.json": {
-      "service": "cloud/managed-k8s-cluster-lifecycle",
-      "manifest": "cloud/managed-k8s-cluster-lifecycle/manifest.json",
+    "k8s/managed-cluster-lifecycle/manifest.json": {
+      "service": "k8s/managed-cluster-lifecycle",
+      "manifest": "k8s/managed-cluster-lifecycle/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -319,9 +319,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/managed-k8s-control-plane-host/manifest.json": {
-      "service": "cloud/managed-k8s-control-plane-host",
-      "manifest": "cloud/managed-k8s-control-plane-host/manifest.json",
+    "k8s/managed-control-plane-host/manifest.json": {
+      "service": "k8s/managed-control-plane-host",
+      "manifest": "k8s/managed-control-plane-host/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -333,9 +333,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/managed-k8s-sla-observability/manifest.json": {
-      "service": "cloud/managed-k8s-sla-observability",
-      "manifest": "cloud/managed-k8s-sla-observability/manifest.json",
+    "k8s/managed-sla-observability/manifest.json": {
+      "service": "k8s/managed-sla-observability",
+      "manifest": "k8s/managed-sla-observability/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -347,9 +347,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/managed-k8s-tenant-quota/manifest.json": {
-      "service": "cloud/managed-k8s-tenant-quota",
-      "manifest": "cloud/managed-k8s-tenant-quota/manifest.json",
+    "k8s/managed-tenant-quota/manifest.json": {
+      "service": "k8s/managed-tenant-quota",
+      "manifest": "k8s/managed-tenant-quota/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",

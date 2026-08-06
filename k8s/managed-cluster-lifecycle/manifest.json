@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "managed-k8s-tenant-quota",
+  "microservice": "k8s/managed-cluster-lifecycle",
   "tier": "substrate",
   "tier_subtype": "substrate-infra",
   "dr_tier": "T1",
@@ -14,70 +14,49 @@
   "owner": "axis-cloud-k8s",
   "bounded_contexts": [
     {
-      "name": "managed-k8s-tenant-quota",
-      "description": "Per-tenant quota and RBAC enforcement for managed Kubernetes clusters. Provides the QuotaDecision PORT (oya-managed-k8s-tenant-quota-api) that cluster-lifecycle calls before provisioning. ADR-0376.",
+      "name": "managed-k8s-cluster-lifecycle",
+      "description": "Tenant-facing managed-Kubernetes cluster lifecycle admission. Consumes QuotaDecisionPort (managed-k8s-tenant-quota) before ControlPlaneProvisioning (managed-k8s-control-plane-host); quota denial/not-found/failure fails closed and does not invoke provisioning.",
       "crates": [
-        "oya-managed-k8s-tenant-quota-kernel",
-        "oya-managed-k8s-tenant-quota-api",
-        "oya-managed-k8s-tenant-quota-adapter-cedar",
-        "oya-managed-k8s-tenant-quota-adapter-inmemory",
-        "oya-managed-k8s-tenant-quota-app"
+        "oya-managed-k8s-cluster-lifecycle-kernel",
+        "oya-managed-k8s-cluster-lifecycle-api",
+        "oya-managed-k8s-cluster-lifecycle-app"
       ]
     }
   ],
   "layers": [
-    "adapter",
     "api",
     "app",
     "kernel"
   ],
   "contracts": {
     "openapi": [
-      "microservices/managed-k8s-tenant-quota/contracts/openapi-v1.yaml"
+      "microservices/managed-k8s-cluster-lifecycle/contracts/openapi.yaml"
     ],
     "asyncapi": [
-      "microservices/managed-k8s-tenant-quota/contracts/asyncapi-v1.yaml"
+      "microservices/managed-k8s-cluster-lifecycle/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/managed-k8s-tenant-quota/contracts/managed-k8s-tenant-quota.proto"
+        "k8s/managed-cluster-lifecycle/contracts/managed-k8s-cluster-lifecycle.proto"
       ]
     }
   },
   "capabilities": [
     {
       "tier": "T3",
-      "name": "quota-decision-evaluate",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs",
+      "name": "cluster-lifecycle-create",
+      "file": "microservices/managed-k8s-cluster-lifecycle/capabilities/cluster-create.yaml",
       "risk_class": "high"
-    },
-    {
-      "tier": "T3",
-      "name": "quota-decision-port",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-api/src/lib.rs",
-      "risk_class": "high"
-    },
-    {
-      "tier": "T3",
-      "name": "quota-rbac-cedar-authz",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-adapter-cedar/src/lib.rs",
-      "risk_class": "high"
-    },
-    {
-      "tier": "T3",
-      "name": "quota-admin-rest-api",
-      "file": "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-app/src/lib.rs",
-      "risk_class": "medium"
     }
   ],
   "slos": [
     {
-      "name": "quota-decision-latency",
-      "target": "p99 < 1ms",
-      "sli": "QuotaDecision evaluate() on the cluster-lifecycle hot path must complete in under 1ms p99 (O(1) pure Rust, no I/O).",
-      "file": "k8s/observability/slos/tenant-quota/quota-decision-latency.openslo.yaml"
+      "name": "cluster-lifecycle-create-admission-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_managed_k8s_cluster_lifecycle_admission_duration_seconds_bucket[5m])) by (le)) < 0.05",
+      "file": "k8s/observability/slos/cluster-lifecycle/create-admission-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -88,10 +67,10 @@
       "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
-      "id": "IP-001-managed-k8s-tenant-quota",
-      "title": "IP-001: managed-k8s tenant-quota kernel + QuotaDecision port + adapters + app",
+      "id": "IP-001-cluster-lifecycle-foundation",
+      "title": "IP-001: cluster-lifecycle kernel + quota/provisioning orchestration + app composition root",
       "acceptance_status": "ga",
-      "file": "microservices/managed-k8s-tenant-quota/IP-001-managed-k8s-tenant-quota.md"
+      "file": "microservices/managed-k8s-cluster-lifecycle/IPs/IP-001-cluster-lifecycle-foundation.md"
     }
   ],
   "regulatory_packs": [
@@ -129,22 +108,10 @@
       "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
-      "id": "ADR-0007",
-      "title": "Cedar Default Deny",
-      "scope": "repo",
-      "file": "docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
-    },
-    {
       "id": "ADR-0083",
       "title": "Pod Runtime Tier Panic Policy",
       "scope": "repo",
       "file": "docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md"
-    },
-    {
-      "id": "ADR-0183",
-      "title": "Cedar App Authz",
-      "scope": "repo",
-      "file": "docs/adr-archive/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
     }
   ],
   "audit_chain": {
@@ -197,9 +164,9 @@
     "cell_placement_class": "Tier-3"
   },
   "pod_runtime_tier": 3,
-  "pod_runtime_tier_justification": "Pure quota enforcement kernel + in-memory adapters; no database, no external I/O on the hot path. ADR-0083 Tier-3.",
+  "pod_runtime_tier_justification": "Narrow composition over QuotaDecisionPort + ControlPlaneProvisioning ports; no new storage or external dependency. ADR-0083 Tier-3.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/managed-k8s-tenant-quota/crates/oya-managed-k8s-tenant-quota-kernel/src/lib.rs"
+    "microservices/managed-k8s-cluster-lifecycle/crates/oya-managed-k8s-cluster-lifecycle-kernel/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -211,7 +178,6 @@
     "public_surface_files": {}
   },
   "consumes_upstream_oss": [
-    "cedar",
     "axum",
     "tokio"
   ],
@@ -223,13 +189,12 @@
     "TENANT_SCOPED"
   ],
   "threat_model": {
-    "quota_bypass": "mitigated: evaluate() checks all dimensions; deny-by-default when no quota record exists",
-    "rbac_escalation": "mitigated: Cedar default-deny; no principal can grant their own role; PlatformOperator scope required for cross-tenant writes",
-    "cross_tenant_limit_read": "mitigated: Cedar tenant_id condition on all read policies; TenantMismatch deny in evaluate()"
+    "quota_bypass_on_create": "mitigated: cluster-lifecycle admission consults QuotaDecisionPort before ControlPlaneProvisioning; denial/not-found/failure fails closed (no provision call).",
+    "provisioning_without_quota_check": "mitigated: admission code path has no branch that calls ControlPlaneProvisioning without first receiving a QuotaDecision::allowed=true."
   },
   "explicit_non_claims": [
-    "No provider-live integration, provider actuation, tenant-cluster mutation, or production readiness is implemented by this manifest.",
-    "Quota and RBAC logic remain a local fail-closed decision seam; it does not provision clusters, purchase capacity, enforce live admission webhooks, or mutate provider resources.",
-    "Cedar and quota capability declarations are contract/gate evidence only and are not hyperscaler readiness or managed-Kubernetes GA evidence."
+    "No provider-live integration, provider actuation, management-cluster write, tenant-cluster API call, or production readiness is implemented by this manifest.",
+    "Cluster lifecycle remains an admission/orchestration seam over QuotaDecisionPort and ControlPlaneProvisioning; it does not directly create, mutate, or delete Kubernetes control planes.",
+    "SLO and capability declarations are contract targets only and are not hyperscaler readiness or live managed-Kubernetes GA evidence."
   ]
 }
