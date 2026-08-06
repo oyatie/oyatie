@@ -131,7 +131,7 @@
     },
     {
       "id": "LANE-20260806-02-console-w0-ont",
-      "title": "Console W0 D-ONT ontology/foundry backend increments",
+      "title": "Console W0 D-ONT ontology object-type backend increments",
       "status": "ready",
       "priority": "P2",
       "paths": [
@@ -149,7 +149,7 @@
       "repo": "/Users/jasonlee/Developer/console",
       "dod": [
         "Claim console-ssf (or a child increment) under DELIVERY lease; exact candidate + allowed paths",
-        "Backend-only ontology/foundry increments; no UI/Leptos (frontend HOLD)",
+        "Backend-only ontology object-type increments; no UI/Leptos (frontend HOLD)",
         "npm run verify (or scoped gates) green; independent review per DELIVERY risk class",
         "Merge via console protected path; record candidate SHA + remaining HOLDs"
       ],
