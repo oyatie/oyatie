@@ -3731,16 +3731,16 @@
     },
     "metering": {
       "source_artifacts": [
-        "cloud/cloud-billing/crates/oya-meter",
-        "cloud/cloud-billing/crates/oya-metering-domain"
+        "billing/crates/oya-meter",
+        "billing/crates/oya-metering-domain"
       ],
       "runtime_status": "integration_point_only"
     },
     "billing": {
       "source_artifacts": [
-        "cloud/cloud-billing/crates/oya-billing",
-        "cloud/cloud-billing/crates/oya-cloud-billing-domain",
-        "cloud/cloud-billing/contracts/proto/cloud-billing.proto"
+        "billing/crates/oya-billing",
+        "billing/crates/oya-cloud-billing-domain",
+        "billing/contracts/proto/cloud-billing.proto"
       ],
       "runtime_status": "integration_point_only"
     }

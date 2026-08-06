@@ -39,7 +39,7 @@
       "oya/emr/iac/k8s/helm/templates/cedar.yaml",
       "oya/feature-flags/iac/k8s/helm/templates/cedar.yaml",
       "oya/financial-planning/iac/k8s/helm/templates/cedar.yaml",
-      "oya/finops-portal/iac/k8s/helm/templates/cedar.yaml",
+      "billing/finops-portal/iac/k8s/helm/templates/cedar.yaml",
       "oya/forms/iac/k8s/helm/templates/cedar.yaml",
       "oya/global-trade/iac/k8s/helm/templates/cedar.yaml",
       "oya/governance/iac/k8s/helm/templates/cedar.yaml",

@@ -161,9 +161,9 @@
     {
       "field": "properties.focus_opencost_rollup.properties.consumer_contracts.default",
       "members": [
-        "oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
-        "oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
-        "oya/finops-portal/contracts/cost-allocation-policy-internal.proto"
+        "billing/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+        "billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+        "billing/finops-portal/contracts/cost-allocation-policy-internal.proto"
       ]
     },
     {

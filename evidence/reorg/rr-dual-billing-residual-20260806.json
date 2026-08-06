@@ -1,0 +1,133 @@
+{
+  "id": "REORG-DUAL-BILLING-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:38:39Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-BILLING-BURNDOWN",
+  "summary": "Rehome residual zero-crate cloud/cloud-billing + cloud/cloud-billing-tax + oya/{oya-billing,oya-meter,oya-cost,accounting,finops-portal} surfaces into registered billing/ home (tax residual under billing/tax/; product placeholders under billing/oya-{billing,meter,cost}; accounting and finops-portal as billing/{accounting,finops-portal}/); retarget consumers; delete dual-home debt under cloud/ and oya/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under debt zones for billing residual",
+  "durable_home": "billing/",
+  "debt": [
+    "cloud/cloud-billing/",
+    "cloud/cloud-billing-tax/",
+    "oya/oya-billing/",
+    "oya/oya-meter/",
+    "oya/oya-cost/",
+    "oya/accounting/",
+    "oya/finops-portal/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/cloud-billing/{ARCH,PRD,README,manifest,contracts,iac,cedar,runbooks,capabilities,...}",
+      "to": "billing/<same>"
+    },
+    {
+      "from": "cloud/cloud-billing-tax/{...}",
+      "to": "billing/tax/<same>"
+    },
+    {
+      "from": "oya/oya-billing/{BUCK,README,catalog.yaml,slos}",
+      "to": "billing/oya-billing/<same>"
+    },
+    {
+      "from": "oya/oya-meter/{...}",
+      "to": "billing/oya-meter/<same>"
+    },
+    {
+      "from": "oya/oya-cost/{...}",
+      "to": "billing/oya-cost/<same>"
+    },
+    {
+      "from": "oya/accounting/{...}",
+      "to": "billing/accounting/<same>"
+    },
+    {
+      "from": "oya/finops-portal/{...}",
+      "to": "billing/finops-portal/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "billing/BUCK",
+    "billing/finops-portal/manifest.json",
+    "billing/manifest.json",
+    "billing/tax/manifest.json",
+    "ci/facade/contract-slice-conformance/contract-slice-policy.json",
+    "ci/facade/contract-slice-conformance/slices/finops-001-cost-attribution.json",
+    "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "cloud/cloud-iac/manifest.json",
+    "iac/modules/catalog.json",
+    "oya/marketplace/manifest.json",
+    "registry/catalog/iac-infrastructure.yaml",
+    "registry/fixuptasks.jsonl",
+    "specs/capability-registry.json",
+    "specs/cloud-enforceability-facets.json",
+    "specs/cloud-hyperscaler-parity-taxonomy.json",
+    "specs/cloud-observability-slo-evidence-contract.json",
+    "specs/finops-cost-attribution.json",
+    "specs/iac-module-library.json",
+    "specs/microservice-tier-classification.json",
+    "specs/reachability-registry.json"
+  ],
+  "net_path_debt": "negative under all seven debt paths (deleted); billing/ gains residual product artifacts at capability home; billing/tax holds tax residual to avoid basename collision with live billing crate layout; billing/{oya-billing,oya-meter,oya-cost,accounting,finops-portal} hold oya product residual",
+  "crate_count_debt_paths": 0,
+  "non_goals": [
+    "no crate renames (crates already at billing/{core,ports,adapters,facade,observability})",
+    "no move-plan (not path bijection of crates; no new *-move-plan.json)",
+    "no hand-edit of *.generated.json",
+    "no historical docs/adr-archive / design-spec-maturity bulk rewrites",
+    "no retarget of root contracts/openapi/cloud/cloud-billing-* registry bindings (root contract home, not debt path)",
+    "no retarget of marketplace/facade/dev-cli synthetic topology fixtures that exercise cloud/<svc>/crates and oya/<svc>/crates as general allowed location patterns"
+  ],
+  "consumer_proof": {
+    "debt_path_prefix_live_refs": "zero under ci/specs/registry/iac after retarget (excluding root contracts/openapi/cloud/cloud-billing-* contract homes and historical openapi crate-bindings)",
+    "cedar_gh987_paths": [
+      "billing/iac/k8s/helm/templates/cedar.yaml",
+      "billing/tax/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "cedar_policy_paths": [
+      "billing/finops-portal/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "absorbs_current_dirs": [
+      "billing"
+    ],
+    "tier_manifests": [
+      "billing/manifest.json",
+      "billing/tax/manifest.json",
+      "billing/finops-portal/manifest.json"
+    ],
+    "slo_artifact_patterns": [
+      "billing/observability/slos/cloud-billing/*.openslo.yaml"
+    ]
+  },
+  "marketplace_pr_1580_note": "Open marketplace PR #1580 retargets cloud/cloud-billing/manifest.json marketplace traceability refs to ../../marketplace/contracts/*. This PR rehomes cloud/cloud-billing from origin/dev tip into billing/manifest.json and also points marketplace traceability at ../../marketplace/contracts (registered home). Restack order: if #1580 lands first, re-apply its marketplace cross-ref on billing/manifest.json if still pointing at oya/marketplace; if this PR lands first, #1580 should drop the cloud/cloud-billing/manifest edit (path gone) and verify billing/manifest.json already has marketplace/ paths.",
+  "path_disjoint_from": [
+    "agent/reorg-dual-marketplace-residual-20260806",
+    "agent/reorg-intel-unpark-20260806",
+    "agent/reorg-dual-network-20260806",
+    "agent/reorg-dual-secrets-20260806",
+    "agent/reorg-dual-compliance-20260806"
+  ],
+  "shared_consumer_restack_risk": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "cloud/cloud-iac/manifest.json (#1593 iac dual may also touch)"
+  ],
+  "corpus_reanchor": {
+    "billing_buck": "billing/BUCK corpus_yaml_facts_shards owns residual YAML rehomed from oya/ and cloud/ parents",
+    "baseline_unpackaged_yaml_files": {
+      "from": 433,
+      "to": 421
+    },
+    "oya_expected_yaml_files": {
+      "from": 4103,
+      "to": 4049
+    },
+    "rationale": "shrink-only re-anchor after residual left oya/BUCK and cloud/BUCK ownership; billing/BUCK pulls residual + previously unpackaged billing/observability OpenSLO into graph"
+  }
+}

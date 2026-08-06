@@ -405,14 +405,7 @@
         "metering/billing"
       ],
       "absorbs_current_dirs": [
-        "billing",
-        "cloud/cloud-billing",
-        "cloud/cloud-billing-tax",
-        "oya/oya-billing",
-        "oya/oya-meter",
-        "oya/oya-cost",
-        "oya/accounting",
-        "oya/finops-portal"
+        "billing"
       ],
       "dag_node": "billing",
       "boundary_note": "Coarse collapse: metering + billing + tax + finops/cost as sub-modules. First-class cross-cutting sold-ness capability per founder ruling."

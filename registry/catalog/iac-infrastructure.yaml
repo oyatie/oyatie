@@ -13,7 +13,7 @@ iac_module_library_fixture:
   primitive: sg-baseline
   version_pin: v0.1.0
   source_path: iac/modules/aws-guest/sg-baseline
-  wrapper_fixture: cloud/cloud-billing/iac/aws-guest/main.tofu
+  wrapper_fixture: billing/iac/aws-guest/main.tofu
 traceability:
   changeset: CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001
   source_adrs: [ADR-0056, ADR-0092, ADR-0094, ADR-0339, ADR-0349]

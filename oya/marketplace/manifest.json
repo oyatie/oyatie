@@ -284,9 +284,9 @@
       "contracts/marketplace-v1.proto"
     ],
     "upstream_billing_contract_refs": [
-      "../../cloud/cloud-billing/contracts/openapi.yaml#/paths/~1settlement",
-      "../../cloud/cloud-billing/contracts/asyncapi.yaml#/channels/cloud_billing.settlement.computed",
-      "../../cloud/cloud-billing/contracts/asyncapi.yaml#/channels/cloud_billing.billing_components.mutated"
+      "../../billing/contracts/openapi.yaml#/paths/~1settlement",
+      "../../billing/contracts/asyncapi.yaml#/channels/cloud_billing.settlement.computed",
+      "../../billing/contracts/asyncapi.yaml#/channels/cloud_billing.billing_components.mutated"
     ],
     "non_claim": "Traceability only: this records the marketplace revenue-share/subscription settlement seam to cloud-billing contracts. It does not implement entitlement metering, AWS/OCI marketplace APIs, payout rails, escrow release, tax clearance, revenue-share statement generation, broker delivery, persistence, or production marketplace billing readiness."
   }

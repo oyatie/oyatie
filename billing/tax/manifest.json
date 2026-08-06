@@ -35,7 +35,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-billing-tax/contracts/proto/cloud-billing-tax-design.proto"
+        "billing/tax/contracts/proto/cloud-billing-tax-design.proto"
       ]
     },
     "service_local_contract_scaffolds": [],

@@ -19,7 +19,7 @@
       "release_identifier": "iac/modules/aws-guest/sg-baseline/v0.1.0",
       "source_path": "iac/modules/aws-guest/sg-baseline",
       "main_file": "iac/modules/aws-guest/sg-baseline/main.tofu",
-      "wrapper_fixture": "cloud/cloud-billing/iac/aws-guest/main.tofu",
+      "wrapper_fixture": "billing/iac/aws-guest/main.tofu",
       "release_status": "implemented-fixture-iac-001",
       "providers_required": [],
       "input_contract": [
