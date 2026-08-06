@@ -766,9 +766,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/feature-flags/manifest.json": {
-      "service": "oya/feature-flags",
-      "manifest": "oya/feature-flags/manifest.json",
+    "flags/manifest.json": {
+      "service": "flags",
+      "manifest": "flags/manifest.json",
       "capability": "flags",
       "tier": "substrate",
       "tier_subtype": "substrate-governance",

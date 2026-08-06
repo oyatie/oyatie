@@ -4,8 +4,8 @@
 # reach it: when the crate implementations land they ship a hand-written BUCK (the buck2-native
 # per-package mechanism), and //tools/oya-buck-test-wiring-app wires the rust_test.
 #
-# microservices/oya-flags/BUCK
-# Placeholder Buck2 targets for oya-flags (ADR-0481).
+# flags/BUCK
+# Placeholder Buck2 targets for flags capability residual catalog (ADR-0481 / ADR-0562).
 # Full target definitions ship when Buck2 CI integration lands (ADR-0408).
 
 # rust_library(

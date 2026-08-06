@@ -23,7 +23,7 @@ operational_classes_owned: [ROLLOUT_ADVANCE_COUNTER, ROLLOUT_ROLLBACK_COUNTER, S
 autonomy_tier_required: T1
 rollout_stages_percent: [0, 1, 10, 50, 100]
 slo_gate_required: true
-release_runtime_safety_policy: oya/feature-flags/release/runtime-safety-policy.json
+release_runtime_safety_policy: flags/release/runtime-safety-policy.json
 release_runtime_safety_verification_mode: data-only-declaration
 release_runtime_safety_rust_first_rationale: "No standalone non-Rust validator; cloud-ci Rust/Buck2 gates own rust-first and artifact-accounting enforcement for this declaration until a dedicated Rust runtime-safety gate exists."
 accepted_runtime_safety_authority:

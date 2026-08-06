@@ -34,7 +34,7 @@
       "anchor": "ADR-0559 Wave A API-first parity addendum: cloud/cloud-iam/contracts/ houses the Cloud IAM OpenAPI contract and Buck2 parity test for the provider-neutral IAM surface constants; breadth is only the contract/gate subtree, not the whole service."
     },
     {
-      "prefix": "oya/feature-flags/release/runtime-safety-policy.json",
+      "prefix": "flags/release/runtime-safety-policy.json",
       "anchor": "ADR-0159 RELEASE-001 amendment + ADR-0139 SLO-gated promotion + ADR-0176 brownout signal: data-only runtime-safety declaration for feature-flags progressive-delivery, burn-rate rollback, brownout hold, and release-toggle cleanup guardrails; no live rollout, measured SLO, tenant traffic, runtime engine, or Oya CD parity claim."
     },
     {
