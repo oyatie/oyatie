@@ -45,3 +45,7 @@ See delivery-fabric `NORTH-STAR-SHAPE.md` when kit is on trunk. Short form:
 - Reorg targets (`cloud/`, `oya/`, `infra/`, …): **reduce only**
 - Process automation: **`.grok/`** (not new scripts under `infra/`)
 - No hand-edit of `*.generated.json`
+
+## Human pointers
+
+Process notes live here under `specs/reorg/` only — **do not** dual-home a `docs/reorg/` tree (creates unowned total-accounting debt; ADR-0555).
