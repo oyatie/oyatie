@@ -17,9 +17,23 @@ Full-corpus audit of every ADR on `origin/dev` at tip `c7f60a9db` (~448 ADRs), p
 
 1. **Proposed is not implement authority.** Never mass-Accept.
 2. **Superseded is not implement authority.** Follow successor.
-3. **Accepted with `amended_by`** must be read with later peers (e.g. 0562 + 0615 + 0635).
-4. **Plan-lag** (Accepted `depends_on`/`amends` still-Proposed) is a separate defect from “stale execute.”
+3. **`status: Accepted` is not sufficient live law.**  
+   - Resolve supersession chain (`superseded_by` **and** reverse-index of later `supersedes:`).  
+   - Always load `amended_by` live peers; never apply bare Accepted parent alone.  
+   - Prefer later live resolution over older Accepted text when they conflict — or STOP and fix edges.  
+4. **Plan-lag** (Accepted `depends_on`/`amends` still-Proposed) is a separate defect from “stale execute” and from “stale Accepted.”
 5. Mechanical case normalize does **not** change meaning of status.
+
+### Live resolution algorithm
+
+See `2026-08-06-live-resolution-rule.json` and durable brief §B. Summary:
+
+```text
+Accepted? → still check later supersedes: + amended_by
+Superseded? → follow chain
+Proposed? → not authority
+Conflict among live peers? → stop, amend/supersede PR
+```
 
 ## Artifacts
 

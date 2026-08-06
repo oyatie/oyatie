@@ -141,3 +141,25 @@ Total ADRs: **448**
 - **ADR-0116**: `accepted` → normalize
 
 ### 5. Accepted cites Superseded
+
+## Stale Accepted rule (binding)
+
+**Must not treat `status: Accepted` as current whole law.**
+
+1. Follow `superseded_by` when status is Superseded.
+2. Reverse-index: if a later Accepted lists this id under `supersedes:`, treat as superseded even if status field lags.
+3. Always load live `amended_by` peers (e.g. 0515→0624/0639; 0562→0615/0635).
+4. Record resolution path in authority receipts.
+
+See `2026-08-06-live-resolution-rule.json`.
+
+Examples of resolve (tip at audit):
+
+| Cited | Live resolution |
+|-------|-----------------|
+| 0513 | → 0515 + amended_by fabric/0624/0639 |
+| 0110 | → 0363 + amended_by 0510/0515 |
+| 0596 | → 0616 |
+| 0562 | 0562 **with** 0615+0635 (not bare 0562) |
+| 0550 | → 0562 + 0615+0635 |
+
