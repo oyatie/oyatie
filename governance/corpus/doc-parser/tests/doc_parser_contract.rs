@@ -41,10 +41,14 @@ fn census_input(decision_sources: Vec<CensusSource>) -> CensusInput {
     }
 }
 
+// Census selector is docs-decisions-direct-adr-v1: only docs/decisions/ADR-*.md (no nested path).
+const CENSUS_DECISION_PATH: &str =
+    "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md";
+
 #[test]
 fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
     let source = census_source(
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        CENSUS_DECISION_PATH,
         b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
     );
     let first = build_receipt(&census_input(vec![source.clone()]))
