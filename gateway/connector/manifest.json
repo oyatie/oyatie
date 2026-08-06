@@ -38,8 +38,8 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/connector/contracts/connector_retirement.proto",
-        "oya/connector/contracts/proto/connector_integration.proto"
+        "gateway/connector/contracts/connector_retirement.proto",
+        "gateway/connector/contracts/proto/connector_integration.proto"
       ]
     }
   },

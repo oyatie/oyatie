@@ -305,9 +305,7 @@
         "gateway/SSOT"
       ],
       "absorbs_current_dirs": [
-        "gateway",
-        "oya/api-gateway",
-        "oya/connector"
+        "gateway"
       ],
       "dag_node": "api-gateway"
     },

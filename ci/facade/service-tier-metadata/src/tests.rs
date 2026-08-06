@@ -511,7 +511,7 @@ fn structured_named_slo_exemption_covers_planned_entry_without_stale_file() {
     });
     let findings = evaluate_keyed(
         &strict_policy(),
-        &observed(vec![("oya/connector/manifest.json", m)]),
+        &observed(vec![("gateway/connector/manifest.json", m)]),
     );
     assert!(findings.is_empty(), "{findings:?}");
 }

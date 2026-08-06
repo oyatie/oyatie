@@ -182,7 +182,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/api-gateway/contracts/api_gateway.proto"
+        "gateway/contracts/api_gateway.proto"
       ]
     },
     "convention_docs": [

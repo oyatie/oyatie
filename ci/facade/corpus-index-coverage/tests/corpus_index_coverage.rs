@@ -507,8 +507,8 @@ fn symlink_escaping_nearest_package_blocks() {
 fn current_internal_yaml_symlink_inventory_is_seven_and_safe() {
     let root = repo_root();
     let paths = [
-        "oya/connector/contracts/asyncapi-v1.yaml",
-        "oya/connector/contracts/openapi-v1.yaml",
+        "gateway/connector/contracts/asyncapi-v1.yaml",
+        "gateway/connector/contracts/openapi-v1.yaml",
         "oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml",
         "oya/ops-dashboard-control-center/contracts/openapi-v1.yaml",
         "oya/ops-dashboard-control-center/iac/ech-config.yaml",

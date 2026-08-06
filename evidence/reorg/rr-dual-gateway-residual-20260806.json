@@ -1,0 +1,40 @@
+{
+  "id": "REORG-DUAL-GATEWAY-BURNDOWN",
+  "class": "reshape",
+  "date": "2026-08-06T17:25:00Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate oya/api-gateway + oya/connector surfaces into registered gateway/ home; retarget consumers; delete dual-home debt under oya/.",
+  "northstar": "one durable home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/",
+  "durable_home": "gateway/",
+  "debt_paths": [
+    "oya/api-gateway/",
+    "oya/connector/"
+  ],
+  "moves": [
+    {
+      "from": "oya/api-gateway/{contracts,iac,catalog,capabilities,cedar,dashboards,decisions,dpia,IPs,policy,runbooks,scorecards,manifest.json,...}",
+      "to": "gateway/<same>"
+    },
+    {
+      "from": "oya/connector/{contracts,iac,catalog,capabilities,cedar,dashboards,decisions,dpia,IPs,policy,runbooks,scorecards,manifest.json,IP-journey-*,...}",
+      "to": "gateway/connector/<same>",
+      "reshape_note": "connector residual namespaced under gateway/connector/ to avoid basename collisions with edge residual (DIFFER on README,manifest,policy,iac values, etc.)"
+    }
+  ],
+  "consumers_retargeted": [
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "ci/facade/service-tier-metadata/src/tests.rs",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "gateway/manifest.json",
+    "gateway/connector/manifest.json"
+  ],
+  "net_path_debt": "negative under oya/api-gateway and oya/connector (deleted); gateway/ gains residual product artifacts at durable home",
+  "non_goals": [
+    "no crate renames (adapters already at gateway/adapters)",
+    "no move-plan (not path bijection of crates)",
+    "no behavior change to edge or connector contracts",
+    "historical followuptasks named_in paths left intact"
+  ]
+}
