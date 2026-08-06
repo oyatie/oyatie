@@ -32,11 +32,12 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 
 | File | Status |
 |------|--------|
-| `ci-move-plan.json` | **LIVE** — ci keystone rename SSOT (tests bind to this path) |
+| *(none)* | **no live `*-move-plan.json`** — singleton free for next rehome |
+| `ci-keystone-rename-map.json` | **rename SSOT** (not a move-plan) — gate_registration + disposition |
 | `nativelink-storage-move-plan.PARKED.json` | **PARKED** — CAS 3A; unpark after G039 + singleton slot free |
-| `intelligence-remainder-move-plan.PARKED.json` | **PARKED** |
+| `intelligence-remainder-move-plan.PARKED.json` | **PARKED** — dual-home remainder after singleton free |
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers |
-| `ci-graph-additions.json` | Companion graph, not a move-plan |
+| `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
 
 ## North-star / anti-debt
 

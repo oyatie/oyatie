@@ -10,7 +10,7 @@
       "status": "stub-pending-hardening",
       "prod": false,
       "reason": "CELL-001R cell-topology manifest-contract gate is a MARKER crate: ci/facade/topology-manifest-contract/src/lib.rs is a doc-only marker (hollow production library) and the executable validation contract is pinned solely by tests/cell_topology_manifest_contract.rs. It is wired through Buck2 + oya-ci-required, but its production surface is not hardened, so it must not be certified as a production gate until the contract is lifted into the library (build-or-cut per the move plan).",
-      "reference": "specs/reorg/ci-move-plan.json"
+      "reference": "specs/reorg/ci-keystone-rename-map.json"
     }
   },
   "gates": {
