@@ -3,9 +3,9 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "37b8c794557bbc865b5b9cd94674c5cfb2de5303",
+  "head": "6504a88d49bacd74dc96483891bb3dd23888653d",
   "prefer_cross_model": true,
-  "independence_note": "cross_model preferred; same_family recorded honestly for W2 implement-claimed-lane session (no second model CLI)",
+  "independence_note": "cross_model preferred; same_family honest (W2 implement-claimed-lane)",
   "critics": [
     {
       "id": "A",
@@ -19,9 +19,9 @@
       ],
       "focus": "affected-set 6 regressions from ADR archive disposition",
       "findings": [
-        "Root cause: FULL tier after mass rename to docs/adr-archive broke fixtures still using archive paths while parsers bind docs/decisions/",
-        "Fix stack: fixture retarget (40e6790), reorg-codemod docs/decisions ADR_DIR (295361a0), allowlist adr-archive axis (035ce11e), distinct chronology paths + hermetic include_str (this tip)",
-        "Local cargo green for all 6 prior-failed targets"
+        "Mass rename to docs/adr-archive triggered FULL test-health; fixtures/parsers mismatched",
+        "Stack: decisions retarget, reorg-codemod ADR_DIR, adr-archive axis allowlist, distinct chronology paths, hermetic include_str",
+        "Local cargo green for prior-failed targets"
       ]
     },
     {
@@ -34,18 +34,17 @@
         "operability",
         "chesterton"
       ],
-      "focus": "scope discipline + false-green risk",
+      "focus": "scope + false-green",
       "findings": [
-        "Changes confined to PR-owned fixture/gate surfaces; no new product debt under cloud/oya",
-        "DuplicateSourcePath RED proven then GREEN with distinct fixture paths",
-        "include_str avoids Buck sandbox missing-docs flake for transport \u00a7D-7"
+        "PR-owned fixture/gate surfaces only",
+        "RED proven for DuplicateSourcePath then GREEN",
+        "include_str hermetic for Buck sandbox"
       ]
     }
   ],
-  "summary": "APPROVE #1574 tip f6ce421d20a1: residual chronology DuplicateSourcePath + hermetic ADR-0354; await oya-ci-required green",
+  "summary": "APPROVE #1574 code tip 6504a88d49ba (chronology+hermetic); evidence may tip beyond",
   "reviewed_at": "2026-08-06T12:13Z",
   "reviewer": "implement-claimed-lane-w2",
   "pr": 1574,
-  "code_tip": "37b8c794557bbc865b5b9cd94674c5cfb2de5303",
-  "evidence_note": "head pins code fix; evidence commits may tip beyond"
+  "code_tip": "6504a88d49bacd74dc96483891bb3dd23888653d"
 }
