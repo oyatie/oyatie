@@ -109,7 +109,7 @@ fn adr_census_builder_accepts_crlf_only_divergence_on_parser_source_bytes() {
     // Hosted windows-latest checks out *.rs as CRLF while git blobs stay LF. Soft platform
     // smoke failed with ParserSource when include_bytes captured CRLF and git cat-file LF.
     let mut input = census_input(vec![census_source(
-        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+        "docs/decisions/ADR-0001-example.md",
         b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
     )]);
     let lf = input.parser_sources[0].bytes.clone();
