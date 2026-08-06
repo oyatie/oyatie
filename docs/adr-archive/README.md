@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # ADR archive (Rejected + Superseded)
 
 Not live law. Preserved for provenance; full history also in git.

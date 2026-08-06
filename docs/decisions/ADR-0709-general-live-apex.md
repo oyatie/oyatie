@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0709
 title: "Live general architecture and remaining accepted doctrine"
 status: Accepted

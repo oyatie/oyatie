@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # PR #1574 post-merge product-completion packet (DRAFT)
 
 Status: **DRAFT — fill when tip `oya-ci-required` is green and squash-merge completes.**

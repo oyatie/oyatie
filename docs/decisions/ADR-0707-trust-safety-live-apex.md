@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0707
 title: "Live trust, safety, and resilience substrate doctrines"
 status: Accepted

@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0701
 title: "Live monorepo capability layout, faces, and reorg doctrine"
 status: Accepted

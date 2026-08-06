@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # Falsely rejected vs keep rejected (v2 — context re-triage)
 
 Hyperscaler practice + owned stack (0515/0363/0562/063x) + system design.

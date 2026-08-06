@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # Decade disposition workflow — complete
 
 **Workflow:** `adr-decade-disposition`  

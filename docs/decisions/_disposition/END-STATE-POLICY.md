@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # ADR end-state policy — clean live source of truth
 
 **Status:** binding process for disposition program (2026-08-06)  

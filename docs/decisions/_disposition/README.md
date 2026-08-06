@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # ADR disposition workspace (2026-08-06)
 
 ## What this is

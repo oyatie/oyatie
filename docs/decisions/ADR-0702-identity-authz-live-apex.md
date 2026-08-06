@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0702
 title: "Live identity, tenancy, authz, secrets, and control-plane fail-closed posture"
 status: Accepted

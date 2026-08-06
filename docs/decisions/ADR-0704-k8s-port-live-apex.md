@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0704
 title: "Live Kubernetes Go→Rust port engine and owned-kernel interfaces"
 status: Accepted

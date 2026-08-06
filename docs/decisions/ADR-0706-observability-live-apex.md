@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0706
 title: "Live observability, SLO, and progressive-delivery telemetry"
 status: Accepted

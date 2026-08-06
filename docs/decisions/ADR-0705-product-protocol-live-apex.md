@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0705
 title: "Live product protocols, APIs, and communications plane"
 status: Accepted

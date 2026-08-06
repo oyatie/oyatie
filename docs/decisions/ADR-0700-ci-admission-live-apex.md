@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0700
 title: "Live CI admission, build hermeticity, and runner substrate"
 status: Accepted

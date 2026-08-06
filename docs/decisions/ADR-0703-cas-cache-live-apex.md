@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0703
 title: "Live CAS/cache policy (activation-gated RE remains fail-closed)"
 status: Accepted

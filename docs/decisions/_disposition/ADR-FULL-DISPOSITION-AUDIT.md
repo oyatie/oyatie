@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # ADR full disposition audit
 Tip: `c7f60a9dbfe28f5d2f17b094ba25ae8c8602e6cb`  
 Queried: 2026-08-06T07:31:06Z

@@ -1,3 +1,7 @@
+---
+doc_status: archived
+---
+
 # Freshly Rejected ADRs — by context
 
 **Total Rejected:** 144  

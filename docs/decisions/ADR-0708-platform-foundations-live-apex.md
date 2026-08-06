@@ -1,4 +1,5 @@
 ---
+doc_status: published
 id: ADR-0708
 title: "Live platform foundations: cells, residency, workflow, plugins, search"
 status: Accepted
