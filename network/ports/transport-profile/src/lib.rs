@@ -1127,12 +1127,8 @@ mod tests {
     fn adr_0354() -> String {
         // Historical §D-7 JSON example markers remain on the archived 0354 body;
         // live apex 0705 consolidates doctrine without those HTML comment anchors.
-        // include_str keeps the example hermetic under Buck sandboxes that may not
-        // materialize the full docs tree at runtime.
-        include_str!(
-            "../../../../docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"
-        )
-        .to_string()
+        // Package-local fixture (not docs/adr-archive) so Buck hermetic srcs include it.
+        include_str!("../fixtures/adr-0354-d7-external-example.txt").to_string()
     }
 
 }

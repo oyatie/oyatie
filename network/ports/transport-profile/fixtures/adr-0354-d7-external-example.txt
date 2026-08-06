@@ -1,0 +1,36 @@
+# Fixture: ADR-0354 §D-7 external transport-profile example markers
+# Hermetic package-local copy for Buck sandboxes (PR #1574 babysit).
+# Source: docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md
+
+<!-- transport-profile-external-example:start -->
+```json
+{
+  "endpoint_id": "api-gateway-public",
+  "capability_class": "external",
+  "protocol": "http3",
+  "fallback_protocol": "http2",
+  "tls_profile": "strict_tls13",
+  "alt_svc": "h3=\":443\"; ma=86400",
+  "fallback_timeout_ms": 500,
+  "ech": {
+    "enabled": true,
+    "support_required": true,
+    "plaintext_sni_fallback_allowed": true,
+    "key_rotation_hours": 24,
+    "grease_retry_configs": true,
+    "outer_sni": "api.oyatie.dev"
+  },
+  "pqc": {
+    "enabled": true,
+    "hybrid_negotiation_required": true,
+    "kem": "x25519mlkem768",
+    "signature": "ed25519+ml_dsa_65",
+    "supported_groups": [
+      "x25519mlkem768",
+      "x25519"
+    ],
+    "classical_transition_fallback_allowed": true
+  }
+}
+```
+<!-- transport-profile-external-example:end -->
