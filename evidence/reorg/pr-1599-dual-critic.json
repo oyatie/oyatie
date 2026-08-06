@@ -1,0 +1,51 @@
+{
+  "pr": 1599,
+  "head": "7bef38b01a17e2175df504b1f178166937fe2871",
+  "title": "refactor(reorg): burn-down billing dual-home residual into billing/",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "independence": "same_family",
+  "real": true,
+  "critics": [
+    {
+      "id": "A",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": ["cartesian_doubt", "red_team", "essentialism"],
+      "path": "evidence/reorg/pr-1599-critic-a.json"
+    },
+    {
+      "id": "B",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": ["contrarian", "systems_thinking", "blast_radius", "chesterton_fence"],
+      "path": "evidence/reorg/pr-1599-critic-b.json"
+    }
+  ],
+  "summary": "Dual-critic APPROVE after product-protocol re-anchor on billing residual: corpus-index-coverage 19/19 (unpackaged 421); product-protocol 12/12 (expected_total 98, live 57).",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "billing core/facade crate moves",
+    "cross-model critic independence",
+    "oya-ci-required green at review time"
+  ],
+  "evidence": [
+    "evidence/reorg/rr-dual-billing-residual-20260806.json",
+    "billing/BUCK"
+  ],
+  "verify": {
+    "corpus_index_coverage": "19/19",
+    "product_protocol": "12/12",
+    "unpackaged_yaml_files": 421,
+    "oya_yaml_files": 4049,
+    "manifest_expected_total": 98,
+    "live_v1_manifests": 57
+  },
+  "reviewed_at": "2026-08-06T18:54Z",
+  "reviewer": "w2-packaging-dual-critic",
+  "subject_head": "7bef38b01a17e2175df504b1f178166937fe2871",
+  "note": "dual-critic.head is packaging re-anchor subject; PR tip may include this evidence package"
+}
