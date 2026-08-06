@@ -1,0 +1,59 @@
+{
+  "id": "REORG-DUAL-CLOUD-OS-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T20:11:24Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-CLOUD-OS-BURNDOWN",
+  "summary": "Rehome residual zero-crate cloud/cloud-os surface (manifest.json only) into registered os/ meta-directory home; retarget consumers; delete cloud/cloud-os dual-home. Crates already live under os/{core,harness} from MOVE-3 (#1416). cloud/cloud-kernel left untouched (separate disposition).",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/ for cloud-os residual",
+  "durable_home": "os/",
+  "debt": [
+    "cloud/cloud-os/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/cloud-os/manifest.json",
+      "to": "os/manifest.json"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/masterplan.json",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json",
+    "ci/facade/automation-language-policy/tests/rust_first_automation_hygiene.rs",
+    "ci/facade/crate-registration/src/tests.rs",
+    "ci/facade/cross-artifact-agreement/src/lib.rs",
+    "ci/facade/slo-coverage/tests/slo_coverage.rs",
+    "os/manifest.json"
+  ],
+  "net_path_debt": "negative under cloud/cloud-os (deleted); os/ gains residual service manifest at durable meta home",
+  "crate_count_debt_paths": 0,
+  "non_goals": [
+    "no crate renames (41 crates already at os/{core,harness} via #1416)",
+    "no move-plan (not path bijection of crates; no new *-move-plan.json)",
+    "no hand-edit of *.generated.json",
+    "no os/BUCK (residual is JSON manifest only; no YAML packaging surface)",
+    "no touch of cloud/cloud-kernel crates or cloud/cloud-kernel/manifest.json (separate disposition)",
+    "historical docs/adr-archive / evidence paths left as history"
+  ],
+  "consumer_proof": {
+    "debt_path_prefix_live_refs": "zero under ci/specs after retarget (excluding intentional negative-test/comment mentions of retired path and cloud/cloud-kernel boundary prose left untouched)",
+    "meta_directory_absorbs_current_dirs": [
+      "os"
+    ],
+    "tier_manifests": [
+      "os/manifest.json"
+    ],
+    "masterplan_source_anchors": [
+      "os"
+    ],
+    "automation_exclude_prefixes_retired": [
+      "cloud/cloud-os/"
+    ],
+    "slo_cloud_manifest_floor": 20
+  },
+  "path_disjoint_from": [
+    "cloud/cloud-kernel/"
+  ]
+}

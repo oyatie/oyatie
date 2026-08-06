@@ -400,7 +400,7 @@ fn cloud_manifests_have_existing_slo_refs_or_explicit_non_claims() {
     let manifest_paths = cloud_manifest_paths(&root);
     let manifest_count = manifest_paths.len();
     assert!(
-        manifest_count >= 21,
+        manifest_count >= 20,
         "issue #993 coverage expects every current cloud/*/manifest.json; got {manifest_count}"
     );
 

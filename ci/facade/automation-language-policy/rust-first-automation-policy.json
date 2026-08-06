@@ -192,9 +192,7 @@
     "cli_package_authority": {
       "_comment": "Cloud-native infrastructure automation must not be born as a new CLI-first package. This dimension scans infrastructure/cloud/tooling Cargo manifests for package names with retired CLI suffixes. Existing product/local legacy CLIs outside these roots remain governed by their own retirement lanes; new cloud/infra/tooling work should be an app, gate, controller, service, API, or declarative config consumer instead.",
       "enabled": true,
-      "exclude_prefixes": [
-        "cloud/cloud-os/"
-      ],
+      "exclude_prefixes": [],
       "extensions": [
         ".toml"
       ],
@@ -216,11 +214,9 @@
       "third-party/"
     ],
     "interpreter_command_authority": {
-      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. ROOTS NOTE (ADR-0562 reorg): the gate fleet moved cloud/cloud-ci -> ci/, so `cloud/cloud-ci` is now a DEAD path this dimension silently skipped (visit_scan_root treats a missing root as Ok) while its primary target went unscanned; `ci` is the live root and was added to close that blind spot. The dead entry is RETAINED because removing a root fires rust_first_automation_scan_scope_narrowing -- retire it in a change whose subject is the shrink. The scan is intentionally scoped to automation/gate code; cloud/cloud-os is owned by the later kernel/OS story and is excluded from this task-4 lane.",
+      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. ROOTS NOTE (ADR-0562 reorg): the gate fleet moved cloud/cloud-ci -> ci/, so `cloud/cloud-ci` is now a DEAD path this dimension silently skipped (visit_scan_root treats a missing root as Ok) while its primary target went unscanned; `ci` is the live root and was added to close that blind spot. The dead entry is RETAINED because removing a root fires rust_first_automation_scan_scope_narrowing -- retire it in a change whose subject is the shrink. The former cloud/cloud-os/ exclude_prefixes entries were retired with the residual burn-down that deleted that dual-home path (os/ is the durable home and is already covered by scan roots where applicable).",
       "enabled": true,
-      "exclude_prefixes": [
-        "cloud/cloud-os/"
-      ],
+      "exclude_prefixes": [],
       "extensions": [
         ".rs"
       ],

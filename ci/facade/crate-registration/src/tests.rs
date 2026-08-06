@@ -83,7 +83,7 @@ const NEW_DIR: &str = "ci/facade/oya-cloud-ci-example-app";
 ///     capability-mapped by its dir — exactly the producer's situation post-keystone-move;
 ///   - `app_products` (→ `meta:app/`) absorbing `oya/application`;
 ///   - `meta_directory_absorbs` (→ `meta:kernel/`/`meta:os/`) absorbing `cloud/cloud-kernel` +
-///     `cloud/cloud-os`.
+///     `os`.
 ///
 /// The orchestrator REUSES the gate's `parse_mapping`/`homes_for`, so this fixture must be the same
 /// shape the gate enforces (the drift the fix removes).
@@ -106,7 +106,7 @@ fn capability_registry() -> &'static str {
     },
     "meta_directory_absorbs": [
       { "meta_dir": "kernel/", "current_dirs": ["cloud/cloud-kernel"] },
-      { "meta_dir": "os/", "current_dirs": ["cloud/cloud-os"] }
+      { "meta_dir": "os/", "current_dirs": ["os"] }
     ],
     "absorbs_current_crate_globs": [
       {
@@ -471,9 +471,9 @@ fn meta_and_glob_homes_are_detected_as_already_mapped() {
         capability_already_mapped(&repo.root, "cloud/cloud-kernel/sub").unwrap(),
         "a crate under a meta_directory_absorbs kernel/ dir must read as already mapped"
     );
-    // meta_directory_absorbs → meta:os/ : a crate under cloud/cloud-os is already mapped.
+    // meta_directory_absorbs → meta:os/ : a crate under os/ is already mapped.
     assert!(
-        capability_already_mapped(&repo.root, "cloud/cloud-os/sub").unwrap(),
+        capability_already_mapped(&repo.root, "os/sub").unwrap(),
         "a crate under a meta_directory_absorbs os/ dir must read as already mapped"
     );
     // capabilities[].absorbs_current_dirs : a crate under ci/ (the `ci` capability dir).
