@@ -6,7 +6,7 @@
   "service": {
     "name": "messenger",
     "path": "comms/messenger",
-    "manifest": "oya/messenger/manifest.json",
+    "manifest": "comms/messenger/manifest.json",
     "bounded_context": "message-stream"
   },
   "authority": {
@@ -103,7 +103,7 @@
       "rollback_frontier": "messenger parent reliability composition; no Flagger or SLO engine runtime is claimed in this slice."
     },
     "tail_sampling": {
-      "manifest_field_ref": "oya/messenger/manifest.json#/observability_trace_sampling_recipe",
+      "manifest_field_ref": "comms/messenger/manifest.json#/observability_trace_sampling_recipe",
       "head_bps": 100,
       "tail_policies": [
         "status_code=ERROR",
