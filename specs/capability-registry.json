@@ -425,9 +425,7 @@
       ],
       "absorbs_current_dirs": [
         "marketplace",
-        "oya/marketplace",
-        "oya/plugin-app-store",
-        "oya/developer-sdk"
+        "oya/marketplace"
       ],
       "dag_node": "marketplace",
       "boundary_note": "First-class sold-ness capability per founder ruling. The generated SKU/pricing sell-catalog VIEW is materialized as build/ output over face:facade crates; marketplace owns the marketplace ENGINE, not the catalog view."
