@@ -2678,7 +2678,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     //     pattern): laundering a NEW phantom citation by adding its id to the inventory
     //     in the same PR forces a loud edit of this pinned ceiling, which may only ever
     //     go DOWN as ids are healed (mint-or-retarget per their ledger rows).
-    const GRANDFATHERED_PHANTOM_CEILING: usize = 63; // decrease-only; never raise
+    const GRANDFATHERED_PHANTOM_CEILING: usize = 11; // decrease-only; never raise
     let grandfathered: Vec<&str> = crosswalk["grandfathered_phantom_ids"]
         .as_array()
         .expect("grandfathered_phantom_ids")
