@@ -42,26 +42,29 @@ let impl = agent(
     + "C) TDD: write failing test (RED proof), implement minimal fix, green same suite. "
     + "For soft_red/ci_red: diagnose gh run failed logs for that check and fix root cause.\n"
     + "D) Never hand-edit *.generated.json; use materialize producers.\n"
-    + "E) Commit + push to PR branch (or open PR against dev). ONE push after local verify.\n"
-    + "F) Dual-critic: write docs or .grok/programs/**/evidence/pr-N-dual-critic.json with "
-    + "verdict APPROVE|REQUEST_CHANGES, independence (prefer cross_model if mm-role used), critics[2]. "
-    + "If cannot run cross_model CLIs, set independence=same_family and verdict REQUEST_CHANGES or "
-    + "fix until you can APPROVE honestly — do not launder. Prefer real fix so APPROVE is earned.\n"
-    + "G) Update board lane: status=in_progress or ready_for_babysit, pr=N, branch=..., mm_run_id if any.\n"
-    + "H) Heartbeat implement-claimed-lane with note fixed|blocked.\n"
-    + "Autonomy: human does not need to approve GH reviews; babysit will merge on dual-critic APPROVE + CI green.\n"
-    + "Return: pr, head sha, dual_critic path/verdict, remaining blockers.",
+    + "E) Commit + SSH-signed push to PR branch (or open PR against dev). ONE push after local verify.\n"
+    + "F) Dual-critic: write .grok/programs/**/evidence/pr-N-dual-critic.json (local pin preferred until CI green; "
+    + "no tip thrash). verdict APPROVE only if earned; independence honest (same_family ok if noted).\n"
+    + "G) Board: status=ready_for_babysit, pr=N, branch=..., head_sha=... — HAND OFF to W3. "
+    + "FORBIDDEN after push: sleep+gh pr checks loops, merge-on-green arms, multi-worker poll for this PR "
+    + "(see BABYSIT-SINGLE-FLIGHT.md). W3 is sole babysit owner.\n"
+    + "H) Heartbeat implement-claimed-lane note=handoff-pr-N (not waiting_ci idle).\n"
+    + "Autonomy: W3 merges on dual-critic APPROVE + oya-ci-required; human GH APPROVE not required.\n"
+    + "Return: pr, head sha, dual_critic path/verdict, handoff=ready_for_babysit.",
     #{ label: "w2-implement", capability_mode: "all", agent_type: "general-purpose", isolation_worktree: false }
 );
 
 phase("Hand off");
 let handoff = agent(
-    "Repo /Users/jasonlee/Developer/oyatie.\n"
-    + "Ensure task-board lane points at PR for babysit. "
-    + "python3 .grok/bin/mm-fabric-heartbeat --cwd /Users/jasonlee/Developer/oyatie "
-    + "--class implement-claimed-lane --note handoff\n"
-    + "python3 .grok/bin/mm-fabric-status --cwd /Users/jasonlee/Developer/oyatie\n"
-    + "Summarize handoff to W3 pr-babysit-lanes.",
+    "Repo /Users/jasonlee/Developer/oyatie. W2 HANDOFF (BABYSIT-SINGLE-FLIGHT.md).\n"
+    + "1) Board: set claimed lane status=ready_for_babysit with pr=N branch=... head_sha=...\n"
+    + "2) FORBIDDEN: multi-minute gh pr checks / sleep poll / merge-on-green arm — W3 is sole babysit owner.\n"
+    + "3) One-shot merge-check is optional; do NOT loop. If not green, leave for W3.\n"
+    + "4) python3 .grok/bin/mm-fabric-heartbeat --cwd /Users/jasonlee/Developer/oyatie "
+    + "--class implement-claimed-lane --note \"handoff pr=N ready_for_babysit\"\n"
+    + "5) python3 .grok/bin/mm-fabric-status --cwd /Users/jasonlee/Developer/oyatie\n"
+    + "6) Next productive act: claim a DIFFERENT path-disjoint ready lane or empty-board success.\n"
+    + "Summarize handoff to W3 only.",
     #{ label: "w2-handoff", capability_mode: "execute", agent_type: "general-purpose" }
 );
 

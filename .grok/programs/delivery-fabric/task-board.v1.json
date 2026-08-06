@@ -1,8 +1,8 @@
 {
   "schema": "task-board.v1",
   "version": 1,
-  "updated_at": "2026-08-06T11:16:03Z",
-  "updated_by": "mm-reorg-enqueue",
+  "updated_at": "2026-08-06T15:37:50Z",
+  "updated_by": "session-fabric-reorg-drive",
   "min_fabric_workflows_active": 4,
   "fabric_classes": [
     "portfolio-work-manager",
@@ -14,7 +14,7 @@
     {
       "id": "Q-PR1575-ci_red-cloud-ci-firewall-baseline-ratchet-gate-registra",
       "title": "PR #1575: ci_red \u2014 cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
-      "status": "claimed",
+      "status": "done",
       "priority": "P1",
       "paths": [
         ".grok/"
@@ -38,12 +38,13 @@
       "claimed_at": "2026-08-06T11:14:59Z",
       "mm_run_id": null,
       "first_seen_at": "2026-08-06T11:02:57Z",
-      "updated_at": "2026-08-06T11:14:59Z"
+      "updated_at": "2026-08-06T11:14:59Z",
+      "notes": "\n2026-08-06T15:37:50Z: train MERGED; clear soft/ci red board debt"
     },
     {
       "id": "Q-PR1575-soft_red-gate-platform-smoke-windows-amd64-soft",
       "title": "PR #1575: soft_red \u2014 gate \u00b7 platform smoke (windows-amd64 soft)",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "paths": [],
       "depends_on": [],
@@ -65,12 +66,13 @@
       "claimed_at": null,
       "mm_run_id": null,
       "first_seen_at": "2026-08-06T11:02:57Z",
-      "updated_at": "2026-08-06T11:11:11Z"
+      "updated_at": "2026-08-06T11:11:11Z",
+      "notes": "\n2026-08-06T15:37:50Z: train MERGED; clear soft/ci red board debt"
     },
     {
       "id": "Q-PR1574-soft_red-gate-platform-smoke-windows-amd64-soft",
       "title": "PR #1574: soft_red \u2014 gate \u00b7 platform smoke (windows-amd64 soft)",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "paths": [],
       "depends_on": [],
@@ -92,7 +94,8 @@
       "claimed_at": null,
       "mm_run_id": null,
       "first_seen_at": "2026-08-06T11:02:57Z",
-      "updated_at": "2026-08-06T11:15:30Z"
+      "updated_at": "2026-08-06T11:15:30Z",
+      "notes": "\n2026-08-06T15:37:50Z: train MERGED; clear soft/ci red board debt"
     },
     {
       "id": "LANE-20260806-01-w0b-port-engine",
@@ -132,7 +135,7 @@
     {
       "id": "LANE-20260806-02-console-w0-ont",
       "title": "Console W0 D-ONT ontology object-type backend increments",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "paths": [
         "/Users/jasonlee/Developer/console/backend/crates/ontology/",
@@ -164,7 +167,7 @@
     {
       "id": "LANE-20260806-03-console-w0-apr",
       "title": "Console W0 D-APR approval/preflight \u2014 babysit/merge PR #592",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "paths": [
         "/Users/jasonlee/Developer/console/backend/crates/governance/"
@@ -195,7 +198,7 @@
     {
       "id": "REORG-RR-FACE-DECOMMIT",
       "title": "[refactor/W1] Audit/remove re-committed derived faces violating de-commit ADRs (0613\u20130616)",
-      "status": "ready",
+      "status": "done",
       "priority": "P1",
       "paths": [
         "ci/facade/",
@@ -216,19 +219,20 @@
         "No hand-edit generated faces; materialize only",
         "PR one concern; dual-critic + oya-ci-required",
         "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
-        "Worktree from origin/dev@c7f60a9dbfe2",
+        "Worktree from origin/dev@1ff54ddc56fe",
         "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
       ],
       "blockers": [],
       "claimed_by": null,
       "claimed_at": null,
       "first_seen_at": "2026-08-06T11:16:03Z",
-      "updated_at": "2026-08-06T11:16:03Z"
+      "updated_at": "2026-08-06T15:37:35Z",
+      "notes": "\n2026-08-06T15:37:50Z: satisfied by #1576/#1577/#1578 train; re-open only if regression"
     },
     {
       "id": "REORG-RR-MOVEPLAN-SINGLETON",
       "title": "[refactor/W0] Enforce single active specs/reorg/*-move-plan.json (process/gate)",
-      "status": "ready",
+      "status": "done",
       "priority": "P1",
       "paths": [
         "specs/reorg/",
@@ -247,19 +251,20 @@
         "Document singleton rule in gate or checklist",
         "Fail closed or advisory on multiple active plans",
         "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
-        "Worktree from origin/dev@c7f60a9dbfe2",
+        "Worktree from origin/dev@1ff54ddc56fe",
         "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
       ],
       "blockers": [],
       "claimed_by": null,
       "claimed_at": null,
       "first_seen_at": "2026-08-06T11:16:03Z",
-      "updated_at": "2026-08-06T11:16:03Z"
+      "updated_at": "2026-08-06T15:37:35Z",
+      "notes": "\n2026-08-06T15:37:50Z: satisfied by #1576/#1577/#1578 train; re-open only if regression"
     },
     {
       "id": "REORG-RR-BRAND-0619",
       "title": "[rebrand/W0] Rebrand residue: strip forbidden harness brand as live authority (ADR-0619)",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "paths": [
         "docs/",
@@ -279,19 +284,20 @@
         "Scan for gjc/omc/omx/hermes as live authority claims",
         "Docs-only PR; no product behavior change",
         "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
-        "Worktree from origin/dev@c7f60a9dbfe2",
+        "Worktree from origin/dev@1ff54ddc56fe",
         "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
       ],
       "blockers": [],
       "claimed_by": null,
       "claimed_at": null,
       "first_seen_at": "2026-08-06T11:16:03Z",
-      "updated_at": "2026-08-06T11:16:03Z"
+      "updated_at": "2026-08-06T15:37:35Z",
+      "notes": "\n2026-08-06T15:37:50Z: satisfied by #1576/#1577/#1578 train; re-open only if regression"
     },
     {
       "id": "REORG-RR-DUAL-0615-FOLLOW",
       "title": "[mixed/W1] Follow dual-home oya/* disposition after #1568 inventory",
-      "status": "ready",
+      "status": "done",
       "priority": "P2",
       "paths": [
         "oya/",
@@ -311,14 +317,15 @@
         "Re-query origin/dev ADRs before PR",
         "One concern PR: dispose one dual-home cluster or plan-only",
         "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
-        "Worktree from origin/dev@c7f60a9dbfe2",
+        "Worktree from origin/dev@1ff54ddc56fe",
         "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
       ],
       "blockers": [],
       "claimed_by": null,
       "claimed_at": null,
       "first_seen_at": "2026-08-06T11:16:03Z",
-      "updated_at": "2026-08-06T11:16:03Z"
+      "updated_at": "2026-08-06T15:37:35Z",
+      "notes": "\n2026-08-06T15:37:50Z: satisfied by #1576/#1577/#1578 train; re-open only if regression"
     },
     {
       "id": "REORG-RR-CAS-3A",
@@ -344,7 +351,7 @@
         "Sole active move-plan for lane",
         "No warm CAS flip",
         "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
-        "Worktree from origin/dev@c7f60a9dbfe2",
+        "Worktree from origin/dev@1ff54ddc56fe",
         "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
       ],
       "blockers": [
@@ -353,37 +360,331 @@
       "claimed_by": null,
       "claimed_at": null,
       "first_seen_at": "2026-08-06T11:16:03Z",
-      "updated_at": "2026-08-06T11:16:03Z"
-    }
-  ],
-  "prs": [
-    {
-      "pr": 1575,
-      "title": "feat(mm-kit): land multi-model delivery kit (.grok)",
-      "branch": "agent/mm-kit-land-20260806",
-      "url": "https://github.com/jason931225/oyatie/pull/1575",
-      "soft_reds": [],
-      "binding_reds": [],
-      "mergeStateStatus": "BLOCKED",
-      "mergeable": "MERGEABLE",
-      "reviewDecision": ""
+      "updated_at": "2026-08-06T15:37:35Z"
     },
     {
-      "pr": 1574,
-      "title": "docs(adr): status case normalize + full disposition audit (no mass-Accept)",
-      "branch": "agent/adr-disposition-mechanical-20260806",
-      "url": "https://github.com/jason931225/oyatie/pull/1574",
-      "soft_reds": [
-        "gate \u00b7 platform smoke (windows-amd64 soft)"
+      "id": "REORG-RR-INTEL-REMAINDER",
+      "title": "[move/W1] Intelligence remainder reorg \u2014 unpark live move-plan then slice execute",
+      "status": "ready",
+      "priority": "P1",
+      "paths": [
+        "intelligence/",
+        "oya/intelligence/",
+        "specs/reorg/"
       ],
-      "binding_reds": [],
-      "mergeStateStatus": "BLOCKED",
-      "mergeable": "MERGEABLE",
-      "reviewDecision": ""
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-INTEL-REMAINDER",
+      "reorg_class": "move",
+      "reorg_wave": "W1",
+      "authority": "UG G024; singleton free after #1578; topology inventory #1577",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Unpark intelligence-remainder-move-plan.PARKED.json \u2192 live when slot free",
+        "Execute path-disjoint leaf slices (one PR concern); re-query tip ADRs",
+        "Net oya/intelligence crates decrease; no new dual-home",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:35:39Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-DUAL-TOPO-MARKETPLACE",
+      "title": "[delete/W0] Dual-home marketplace: rehome residual oya/marketplace non-crate surface \u2192 marketplace/",
+      "status": "ready",
+      "priority": "P1",
+      "paths": [
+        "oya/marketplace/",
+        "marketplace/",
+        "ci/facade/",
+        "cloud/cloud-billing/manifest.json"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-DUAL-TOPO-MARKETPLACE",
+      "reorg_class": "delete",
+      "reorg_wave": "W0",
+      "authority": "ADR-0562+0615; dual-topo inventory #1577; reduce-only",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Retarget gate/billing consumers; net path debt <= 0 under oya/",
+        "No second live move-plan required (artifact rehome + delete)",
+        "Consumer-absence or retarget proof in evidence/reorg/",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:35:39Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-DUAL-TOPO-COMPLIANCE",
+      "title": "[delete/W0] Dual-home compliance: rehome residual oya/compliance non-crate surface \u2192 compliance/",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "oya/compliance/",
+        "compliance/",
+        "ci/facade/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-DUAL-TOPO-COMPLIANCE",
+      "reorg_class": "delete",
+      "reorg_wave": "W0",
+      "authority": "ADR-0562+0615; dual-topo inventory #1577",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Retarget cross-artifact + cedar policy consumers",
+        "Net reduce oya/compliance dual-home; path-disjoint from marketplace PR",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:35:39Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-FABRIC-SINGLE-FLIGHT",
+      "title": "[refactor/W0] Process: babysit single-flight (one owner per PR; no multi-poll)",
+      "status": "claimed",
+      "priority": "P0",
+      "paths": [
+        ".grok/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-FABRIC-SINGLE-FLIGHT",
+      "reorg_class": "refactor",
+      "reorg_wave": "W0",
+      "authority": "FABRIC-REFINED + BABYSIT-SINGLE-FLIGHT.md",
+      "bead_id": null,
+      "pr": null,
+      "branch": "agent/fabric-single-flight-reorg-drive-20260806",
+      "dod": [
+        "W3 sole babysit; claim (pr,head); W2 handoff ready_for_babysit only",
+        "No product path edits",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": "session-fabric-reorg-drive",
+      "claimed_at": "2026-08-06T15:37:50Z",
+      "first_seen_at": "2026-08-06T15:35:39Z",
+      "updated_at": "2026-08-06T15:37:35Z",
+      "notes": "\n2026-08-06T15:37:50Z: implementing single-flight process PR"
+    },
+    {
+      "id": "REORG-RR-DUAL-TOPO-OBSERVABILITY",
+      "title": "[delete/W0] Dual-home observability: rehome residual oya/observability \u2192 observability/",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "oya/observability/",
+        "observability/",
+        "ci/facade/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-DUAL-TOPO-OBSERVABILITY",
+      "reorg_class": "delete",
+      "reorg_wave": "W0",
+      "authority": "ADR-0562+0615; dual-topo inventory #1577",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Retarget cedar/gate consumers; net reduce oya/observability dual-home",
+        "Path-disjoint from marketplace/compliance PRs",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:37:35Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-DUAL-TOPO-TASKS",
+      "title": "[delete/W1] Dual-home tasks: dispose zero-crate oya/tasks + tasks/ scaffolds",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "oya/tasks/",
+        "tasks/",
+        "ci/facade/",
+        "specs/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-DUAL-TOPO-TASKS",
+      "reorg_class": "delete",
+      "reorg_wave": "W1",
+      "authority": "dual-topo inventory #1577; reduce-only with consumer proof",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Fail-closed if gate/registry consumers remain; retarget or keep",
+        "Net path debt <= 0 under oya/tasks and/or tasks/",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:37:35Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-K8S-PORT-REWRITE-W0B",
+      "title": "[rewrite/W0] k8s-port Go\u2192Rust rewrite epic \u2014 W0-B mechanical port engine (G002)",
+      "status": "blocked",
+      "priority": "P2",
+      "paths": [
+        ".grok/programs/k8s-port/",
+        "k8s/",
+        "cloud/cloud-k8s/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-K8S-PORT-REWRITE-W0B",
+      "reorg_class": "rewrite",
+      "reorg_wave": "W0",
+      "authority": "k8s-port W0-B plan; rewrite class (not move-plan)",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Slice PRs only; may_start_engine_code gate respected",
+        "No dual-home reorg mixed into rewrite slices",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [
+        "prerequisite:G002-explicit-start"
+      ],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:37:35Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-INFRA-LEAF-DELETE",
+      "title": "[delete/W1] infra/* leaf delete/refactor \u2014 dead charts, unused bootstrap, non-CAS",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "infra/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-INFRA-LEAF-DELETE",
+      "reorg_class": "delete",
+      "reorg_wave": "W1",
+      "authority": "REORG-DOCTRINE; exclude CAS 3A/3B ordered moves",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "One leaf family per PR; consumer proof",
+        "Do not touch nativelink/CAS ordered lanes without G039",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:37:35Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-TOOLS-LEAF-DISPOSITION",
+      "title": "[mixed/W1] tools/* leaf disposition \u2014 delete retired / rehome keepers",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "tools/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-TOOLS-LEAF-DISPOSITION",
+      "reorg_class": "mixed",
+      "reorg_wave": "W1",
+      "authority": "REORG-REBRAND-BACKLOG RR-TOOLS-OYA-TAIL; CLI retirement",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Inventory keep/reorg/delete; one family per PR",
+        "No new tools as reorg debt under tools/",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:37:35Z",
+      "updated_at": "2026-08-06T15:37:35Z"
+    },
+    {
+      "id": "REORG-RR-CLOUD-SCAFFOLD-SWEEP",
+      "title": "[delete/W1] cloud/* zero-crate scaffold sweep (delete/rehome per capability)",
+      "status": "ready",
+      "priority": "P2",
+      "paths": [
+        "cloud/"
+      ],
+      "depends_on": [],
+      "source": "reorg",
+      "source_ref": "REORG-REBRAND-BACKLOG.md#RR-CLOUD-SCAFFOLD-SWEEP",
+      "reorg_class": "delete",
+      "reorg_wave": "W1",
+      "authority": "ADR-0562+0615; reduce-only; one capability per PR",
+      "bead_id": null,
+      "pr": null,
+      "branch": null,
+      "dod": [
+        "Not one mega cloud/* PR \u2014 leaf per capability",
+        "Registry/gitops consumers retargeted or proven absent",
+        "Re-query live ADRs on origin/dev before push (REORG-DOCTRINE \u00a71)",
+        "Worktree from origin/dev@1ff54ddc56fe",
+        "One concern per PR; dual-critic APPROVE + oya-ci-required for merge"
+      ],
+      "blockers": [],
+      "claimed_by": null,
+      "claimed_at": null,
+      "first_seen_at": "2026-08-06T15:37:35Z",
+      "updated_at": "2026-08-06T15:37:35Z"
     }
   ],
+  "prs": [],
   "notes": [
-    "mm-reorg-enqueue 2026-08-06T11:16:03Z: waves=['W0', 'W1', 'W2'] added/upserted 5 reorg lanes; origin/dev=c7f60a9dbfe2",
+    "mm-reorg-enqueue 2026-08-06T15:37:35Z: waves=['W0', 'W1', 'W2'] added/upserted 15 reorg lanes; origin/dev=1ff54ddc56fe",
     "mm-queue-ingest 2026-08-06T11:15:30Z: soft_red=1 ci_red=0 block=0 open_prs=2 (soft reds MUST stay on board until cleared)",
     "w4-productivity 2026-08-06T11:14:59Z: fail-closed soft_red_ready pre-claim>0 with zero claimed; claimed=Q-PR1575-ci_red-cloud-ci-firewall-baseline-ratchet-gate-registra; post soft_red_ready=2 ci_red_ready=0 claimed_lanes=1; live_ingest soft_red=0 (stale board reds retained until cleared; 1574 still has windows soft fail; 1575 mostly pending)",
     "portfolio-work-manager 2026-08-06T11:11:11Z: ready_lanes=6 path-disjoint; kept 3 soft_red/ci_red; upserted W0-B + console D-ONT + console D-APR#592",
@@ -443,9 +744,9 @@
     "fix_until_dual_critic_approve": true
   },
   "origin_dev": {
-    "sha": "c7f60a9dbfe28f5d2f17b094ba25ae8c8602e6cb",
-    "sha12": "c7f60a9dbfe2",
-    "at": "2026-08-06T11:16:03Z"
+    "sha": "1ff54ddc56fe820b55924a3b81e69f84bd1a8ba8",
+    "sha12": "1ff54ddc56fe",
+    "at": "2026-08-06T15:37:35Z"
   },
   "reorg_queue": {
     "waves": [
@@ -458,6 +759,16 @@
       "REORG-RR-MOVEPLAN-SINGLETON",
       "REORG-RR-BRAND-0619",
       "REORG-RR-DUAL-0615-FOLLOW",
+      "REORG-RR-INTEL-REMAINDER",
+      "REORG-RR-DUAL-TOPO-MARKETPLACE",
+      "REORG-RR-DUAL-TOPO-COMPLIANCE",
+      "REORG-RR-FABRIC-SINGLE-FLIGHT",
+      "REORG-RR-DUAL-TOPO-OBSERVABILITY",
+      "REORG-RR-DUAL-TOPO-TASKS",
+      "REORG-RR-K8S-PORT-REWRITE-W0B",
+      "REORG-RR-INFRA-LEAF-DELETE",
+      "REORG-RR-TOOLS-LEAF-DISPOSITION",
+      "REORG-RR-CLOUD-SCAFFOLD-SWEEP",
       "REORG-RR-CAS-3A"
     ],
     "doctrine": ".grok/programs/REORG-DOCTRINE.md",

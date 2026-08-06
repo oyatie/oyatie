@@ -12,7 +12,7 @@ How might we keep multi-agent delivery **continuously productive** so that work 
 |-------|---------------|---------|------|
 | **W1 Portfolio** | `portfolio-work-manager` | every 15–30m | Discover/claim lanes → `task-board.v1.json` + beads + hindsight |
 | **W2 Implement** | `implement-claimed-lane` | every 10–15m | Claim `ready` slice → mm-pipeline path → PR |
-| **W3 Babysit** | `pr-babysit-lanes` | every 5–10m | Open PRs (board + fleet) → CI fix loop |
+| **W3 Babysit** | `pr-babysit-lanes` | every 5–10m | **Sole** open-PR babysit owner (single-flight) → CI fix / merge |
 | **W4 Productivity** | `workflow-productivity-watch` | every 5–10m | Assert W1–W3 productive; re-arm; process_edits |
 
 **Invariant:** productivity-watch **fails closed** if fewer than 4 fabric classes have a live/recent run or armed scheduler. Idle chat is not productivity.
@@ -95,7 +95,8 @@ Silent ignore of soft reds is a **process defect**.
 - ≥4 fabric classes active (scheduler or run < max_stale_min)  
 - Board always has ≥1 `ready` **or** explicit empty after ingest with `queue_stats.soft_red=0`  
 - **Zero silent soft reds** — ingest every tick  
-- Open PRs not abandoned (babysit re-poll armed)  
+- Open PRs not abandoned (W3 single-flight claim per `(pr,head)`; see `BABYSIT-SINGLE-FLIGHT.md`)  
+- Implement never multi-polls CI after handoff (`ready_for_babysit`) 
 - Merge when agent APPROVE + CI green without waiting on human  
 - Process_edits when systematic failures  
 
