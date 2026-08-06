@@ -1,0 +1,125 @@
+{
+  "id": "REORG-TOOLS-DISPOSITION-20260806",
+  "class": "mixed",
+  "date": "2026-08-06T15:55:53Z",
+  "doctrine": "Reorg is not only move: tools/* needs rewrite/refactor/delete per leaf. No mass delete without consumer proof.",
+  "northstar": "process automation \u2192 .grok/; admission gates \u2192 ci/; no new tools/* surface",
+  "net_path_debt_this_pr": 0,
+  "this_pr_execute": "inventory only + tools/DISPOSITION.md SSOT pointer \u2014 no unsafe deletes",
+  "rows": [
+    {
+      "path": "tools/hooks",
+      "class": "rewrite",
+      "target": ".grok/hooks or retire when claude wiring goes",
+      "rationale": "enforcement hooks are process; product tree contamination",
+      "blockers": [
+        "ci/facade hook-wiring + baseline-ratchet bind tools/hooks"
+      ]
+    },
+    {
+      "path": "tools/opensk-vendored",
+      "class": "keep",
+      "target": "Phase-1 reference metadata only",
+      "rationale": "ADR-0508 reference; no source vendored yet; not dead",
+      "blockers": [
+        "iam authn-device TODOs; reachability registry"
+      ]
+    },
+    {
+      "path": "tools/oya-reorg-codemod-app",
+      "class": "keep",
+      "target": "stay until reorg epic done then rehome/delete",
+      "rationale": "load-bearing reorg execute tool"
+    },
+    {
+      "path": "tools/oya-xtask-metadata-augment-app",
+      "class": "keep",
+      "target": "ci/ or .grok later",
+      "rationale": "lockfile/graph augment for moves"
+    },
+    {
+      "path": "tools/*-merge-driver-app",
+      "class": "refactor",
+      "target": "ci/facade or .grok/bin family",
+      "rationale": "git merge drivers are process/platform not product",
+      "blockers": [
+        "git attributes wiring"
+      ]
+    },
+    {
+      "path": "tools/oya-governance-*-app",
+      "class": "rewrite",
+      "target": "governance/ or ci/facade gates",
+      "rationale": "fitness CLIs dual-home with libs kernels; should be gates not tools/* product debt",
+      "blockers": [
+        "module-membership + gate_registration matrix"
+      ]
+    },
+    {
+      "path": "tools/oya-bot-autofix-app",
+      "class": "refactor",
+      "target": "bot fleet under owned automation home",
+      "rationale": "ADR-0531/0700 propose-only remediation; not a random tools dump"
+    },
+    {
+      "path": "tools/oya-adapter-substitution-test-app",
+      "class": "refactor",
+      "target": "ci/facade test harness or intelligence adapters tests",
+      "rationale": "hexagonal seam test; belongs with gate/tests not tools forever"
+    },
+    {
+      "path": "tools/oya-fabric-loop-state-app",
+      "class": "rewrite",
+      "target": ".grok/ process kit",
+      "rationale": "fabric lane runtime is process \u2014 north-star process only under .grok"
+    },
+    {
+      "path": "tools/oya-lane-supervisor-app",
+      "class": "rewrite",
+      "target": ".grok/",
+      "rationale": "agent lane supervision is process"
+    },
+    {
+      "path": "tools/oya-checkout-guard-app",
+      "class": "rewrite",
+      "target": ".grok/ or tools/hooks consolidation",
+      "rationale": "checkout guard is process"
+    },
+    {
+      "path": "tools/oya-tooling-agent-read",
+      "class": "rewrite",
+      "target": ".grok/",
+      "rationale": "agent read bridge is process kit"
+    },
+    {
+      "path": "tools/oya-architecture-graph-generator-app",
+      "class": "refactor",
+      "target": "ci/facade or docs generator under governance",
+      "rationale": "dashboard generator is platform"
+    },
+    {
+      "path": "tools/oya-buck-test-wiring-app",
+      "class": "refactor",
+      "target": "ci/facade",
+      "rationale": "buck test wiring is CI platform"
+    }
+  ],
+  "follow_on_slices": [
+    {
+      "class": "rewrite",
+      "slice": "fabric-loop-state + lane-supervisor + tooling-agent-read \u2192 .grok"
+    },
+    {
+      "class": "refactor",
+      "slice": "merge-drivers \u2192 ci/ or .grok/bin"
+    },
+    {
+      "class": "rewrite",
+      "slice": "governance-*-app \u2192 ci/facade gates"
+    },
+    {
+      "class": "delete",
+      "slice": "only after consumer-absence proof per tool"
+    }
+  ]
+}
