@@ -1,0 +1,18 @@
+{
+  "pr": 1599,
+  "head": "7bef38b01a17e2175df504b1f178166937fe2871",
+  "critic": "A",
+  "verdict": "APPROVE",
+  "lenses": ["cartesian_doubt", "red_team", "essentialism"],
+  "findings": [],
+  "checked": [
+    "billing/BUCK declares corpus_yaml_facts_shards; corpus ceilings already at unpackaged=421 oya=4049",
+    "product-protocol expected_total 101→98 and live 60→57 after three live manifests left governed roots",
+    "no hand-edited *.generated.json; shrink-only inventory re-anchor"
+  ],
+  "commands": [
+    "buck2 test //ci/facade/corpus-index-coverage:ci-corpus-index-coverage-gate -> 19/19",
+    "buck2 test //ci/facade/product-protocol-policy:ci-product-protocol-policy-gate -> 12/12"
+  ],
+  "reviewed_at": "2026-08-06T18:54Z"
+}
