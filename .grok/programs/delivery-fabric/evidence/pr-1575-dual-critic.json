@@ -1,67 +1,88 @@
 {
   "pr": 1575,
-  "verdict": "APPROVE",
+  "head": "66cb663a8119cc30e7d0092a9b7858667da48fdd",
+  "title": "feat(mm-kit): land multi-model delivery kit (.grok)",
+  "is_draft": false,
+  "verdict": "REQUEST_CHANGES",
   "independence": "same_family",
   "real": true,
-  "head": "d9578d61d7bfb8891e67bc27e6140a3ef24c517e",
   "prefer_cross_model": true,
-  "independence_note": "cross_model preferred; same_family honest for W3 babysit",
+  "independence_note": "CRITIC A ran via anthropic/claude CLI (real). CRITIC B (codex exec + gemini -p) timed out; no second distinct provider obtained. independence=same_family honest; overall REQUEST_CHANGES until cross_model dual-critic lands (drive.v1 require_cross_model_critics). Do not launder same_family as merge-admit APPROVE.",
   "critics": [
     {
       "id": "A",
-      "provider": "xai",
-      "model": "grok-code",
+      "provider": "anthropic",
+      "model": "claude-opus / claude CLI 2.1.223",
       "verdict": "APPROVE",
       "lenses": [
         "cartesian_doubt",
         "red_team",
-        "blast_radius"
+        "essentialism"
       ],
-      "focus": "soft_red windows platform-smoke root cause + regression lock",
+      "path": ".grok/programs/delivery-fabric/evidence/pr-1575-critic-a.raw.txt",
       "findings": [
-        "Authoritative log job 92600127656: rustup clippy component fail under D:/c/Users/runneradmin/.rustup path mangling from Git Bash RUSTUP_HOME=/c/Users/...",
-        "Fix 1bfcedaa3: install-buck2 cygpath -m before GITHUB_ENV; matches 1574 6070cdcbc",
-        "Regression test install_buck2_exports_native_windows_rustup_home locks ordering + MINGW/MSYS gate (fd45b0eba)"
+        "Firewall red (31095116751) root cause: new .grok/** unowned/unjustified/unreachable + brand residue in program evidence",
+        "a7a686a66 OWNERS + reachability-registry .grok/ + five path_exact carve_outs is sound additive scope",
+        "385d2b523 root meta home allowlist for .grok (ADR-0600) closes accounting home class",
+        "66cb663a8 drops foundry stem from task-board (ontology object-type)",
+        "Local after materialize: buck2 baseline-ratchet suite Pass 4 Fail 0; firewall_is_green_on_the_live_corpus ok"
       ],
       "residual": [
-        "Re-verify windows soft smoke green on post-push tip before soft_red lane clear"
+        "Confirm cloud-ci-firewall SUCCESS on tip 66cb663a8 in GHA before soft-clear lane"
       ]
     },
     {
       "id": "B",
       "provider": "xai",
-      "model": "grok-code",
-      "verdict": "APPROVE",
+      "model": "grok-session-lenses (same_family fallback)",
+      "verdict": "REQUEST_CHANGES",
       "lenses": [
-        "chesterton_fence",
         "systems_thinking",
         "operability",
-        "essentialism"
+        "chesterton_fence",
+        "zero_trust"
       ],
-      "focus": "fabric soft_red drain scope + one-concern PR hygiene",
       "findings": [
-        "Scope is process CI installer + gate_registration test only; no product behavior change",
-        "soft reds never silent (mm-queue-ingest); continue-on-error does not excuse board queue",
-        "Dual-critic same_family honest; babysit merges on APPROVE + oya-ci-required only"
+        "Carve-outs are provenance-only historical evidence; core .grok/{bin,harness,hooks,workflows} remain scanned",
+        "OWNERS breadth max_paths_per_owners_file=2000 covers ~185 .grok paths",
+        "Cross-model critic B unavailable (codex/gemini timeout) \u2014 independence fail-closed",
+        "CI thrash high on this PR; prefer re-poll over further doc pushes while oya-ci-required in_progress"
       ],
       "residual": [
-        "cloud-ci-firewall pending on tip; babysit must confirm binding green"
+        "Need mm-role/codex or gemini second provider for independence=cross_model",
+        "Windows soft smoke still in flight on tip; separate soft_red lane"
       ]
     }
   ],
-  "summary": "APPROVE kit land + Windows RUSTUP_HOME + CRLF-tolerant parser source identity for soft platform-smoke",
-  "blockers": [],
-  "reviewed_at": "2026-08-06T11:31Z",
-  "reviewer": "w3-babysit-pr-1575",
-  "soft_red_addressed": {
-    "checks": [
-      "gate \u00b7 platform smoke (windows-amd64 soft)"
+  "summary": "W2 implement: cloud-ci-firewall root cause fixed and locally green. Dual-critic overall REQUEST_CHANGES solely for independence (same_family; second provider timed out). Technical path ready for babysit once GHA firewall green + cross_model critics obtained.",
+  "blockers": [
+    "dual_critic_independence: cross_model not obtained (CRITIC B provider timeout)",
+    "await GHA cloud-ci-firewall SUCCESS on head 66cb663a8119cc30e7d0092a9b7858667da48fdd"
+  ],
+  "merge_recommendation": "do_not_merge_until_cross_model_approve_and_oya_ci_required_green",
+  "reviewed_at": "2026-08-06T11:47:26Z",
+  "reviewer": "w2-implement-claimed-lane",
+  "mm_run_id": "20260806T111308Z-c9bac31d",
+  "lane_id": "Q-PR1575-ci_red-cloud-ci-firewall-baseline-ratchet-gate-registra",
+  "firewall_fix": {
+    "prior_failure_run": 31095116751,
+    "codes": [
+      "forbidden_foundry",
+      "forbidden_jenkins",
+      "forbidden_oya-vcs",
+      "unjustified",
+      "unowned",
+      "unreachable"
     ],
-    "fixes": [
-      "install-buck2 cygpath -m RUSTUP_HOME",
-      "doc-parser line_ending_normalized + *.rs eol=lf"
-    ]
-  },
-  "mm_run_id": "20260806T112011Z-cfea0a90",
-  "code_fix_head": "fd45b0ebabd4417b64c91f3dda8f736b452b7b37"
+    "commits": [
+      "a7a686a66 fix(mm-kit): register .grok ownership/reachability + brand carve-outs",
+      "385d2b523 fix(mm-kit): allowlist .grok as root meta home (ADR-0600)",
+      "66cb663a8 fix(mm-kit): drop foundry brand residue from delivery-fabric task board"
+    ],
+    "local_verify": {
+      "materialize": "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .",
+      "suite": "buck2 test //ci/facade/baseline-ratchet:{ci-baseline-ratchet-unittest,oya-cloud-ci-firewall-signoff-fixer-unittest,ci-baseline-ratchet-gate,ci-baseline-ratchet-gate-registration}",
+      "result": "Pass 4 Fail 0; firewall_is_green_on_the_live_corpus_with_the_baseline ok"
+    }
+  }
 }
