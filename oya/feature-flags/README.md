@@ -194,7 +194,7 @@ oya flags kill-switch engage dark-mode-v2 \
 - [ADR-0159](docs/decisions/ADR-0701-monorepo-capability-live-apex.md) — Binding ADR for feature-flag substrate.
 - [ADR-0160](docs/decisions/ADR-0709-general-live-apex.md) — Progressive delivery integration.
 - [ADR-0183](docs/decisions/ADR-0709-general-live-apex.md) — Cedar policy engine separation.
-- [ADR-0243](docs/decisions/ADR-0243-cedar-universal-gate.md) — Cedar as universal gate.
+- [ADR-0243](docs/adr-archive/ADR-0243-cedar-as-universal-gate.md) — Cedar as universal gate.
 - [ADR-0248](docs/decisions/ADR-0700-ci-admission-live-apex.md) — Cell architecture.
 
 ## On-call escalation

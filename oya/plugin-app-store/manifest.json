@@ -293,7 +293,7 @@
       "id": "ADR-0001",
       "title": "Cohesion thesis — one product, seven axes",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md"
+      "file": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"
     },
     {
       "id": "ADR-0007",
@@ -341,13 +341,13 @@
       "id": "ADR-0147",
       "title": "Wasmtime sandbox baseline",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0147-wasmtime-sandbox-baseline.md"
+      "file": "docs/adr-archive/ADR-0147-container-sandboxing-runtime-ladder.md"
     },
     {
       "id": "ADR-0181",
       "title": "Cosign signing",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0181-cosign-signing.md"
+      "file": "docs/adr-archive/ADR-0181-container-image-promotion-pipeline.md"
     },
     {
       "id": "ADR-0200",
@@ -359,13 +359,13 @@
       "id": "ADR-0211",
       "title": "In-house tech policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0211-in-house-tech-policy.md"
+      "file": "docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md"
     },
     {
       "id": "ADR-0212",
       "title": "Buildability bar",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0212-buildability-bar.md"
+      "file": "docs/adr-archive/ADR-0212-buildability-doctrine.md"
     },
     {
       "id": "ADR-0213",

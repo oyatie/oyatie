@@ -113,6 +113,9 @@ purpose: >
   violate ADR-0248 cellular independence and ADR-0345 vendor-lockin discipline.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0350: UUIDv7 Canonical ID Primitive Across Oyatie
 
 ## Status

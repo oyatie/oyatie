@@ -35,6 +35,9 @@ deliverables:
 purpose: Record the production design of the cloud-intelligence agent-dispatch gateway (microservices/cloud-intelligence; the oya-cloud-intelligence-kernel + oya-cloud-intelligence-rest crates) — a multi-provider key-pool reverse proxy — at a hyperscaler-grade design-maturity bar, grounded in cross-vendor best-practice research (Azure APIM AI gateway, AWS Bedrock, Cloudflare AI Gateway, Kong AI Proxy, LiteLLM, OWASP LLM Top 10 2025). This ADR is the decision record the design dossier (microservices/cloud-intelligence/{PRD.md, design/*, contracts/*, slos/*}) implements; it makes no runtime/deployment claim (the service is a code-backed local foundation per its manifest non-claims).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0373: cloud-intelligence gateway production design (provider-abstraction, key-pool resilience, audit)
 
 ## Status

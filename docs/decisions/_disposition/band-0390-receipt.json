@@ -99,7 +99,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md",
+    "docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md",
     "docs/decisions/_disposition/band-0390-receipt.json"
   ],
   "no_change": [

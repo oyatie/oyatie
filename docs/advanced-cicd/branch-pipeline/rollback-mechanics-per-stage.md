@@ -87,7 +87,7 @@ Rollback unit is per-cell (per ADR-0040). A bad release reverts in one cell with
 
 ### 6.4 Per-tenant prod rollback
 
-For regulated tenants (per [ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)), per-tenant rollback is supported via the stable-cohort traffic-shift mechanism (per `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md` §per-tenant blue/green). One tenant reverts to blue while others stay on green.
+For regulated tenants (per [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)), per-tenant rollback is supported via the stable-cohort traffic-shift mechanism (per `.omc/advanced-cicd/progressive-delivery/blue-green-spec.md` §per-tenant blue/green). One tenant reverts to blue while others stay on green.
 
 ## 7. Rollback evidence catalogue
 

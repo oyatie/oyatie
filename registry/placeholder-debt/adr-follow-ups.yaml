@@ -166,7 +166,7 @@ follow_ups:
       feedback_branch_pipeline_final_final) lands with the same effort.
     driver_docs:
       - .github/branch-protection.yaml
-      - docs/decisions/ADR-0361-cloud-native-ci-cd-revamp.md
+      - docs/adr-archive/ADR-0361-jenkins-native-cicd-revamp-execution.md
       - infra/ci/
     owner: council-architecture + ops-platform
     trigger: |
@@ -421,7 +421,7 @@ follow_ups:
       skeleton's `SkeletonTracingClient` `unimplemented`-equivalent path.
     driver_docs:
       - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-      - docs/decisions/ADR-0148-service-mesh-cilium.md
+      - docs/adr-archive/ADR-0148-service-mesh-cilium-ambient-layered.md
       - crates/oya-shared-tracing-client-kernel/src/lib.rs
     owner: council-architecture + axis-observability
     trigger: |
@@ -658,7 +658,7 @@ follow_ups:
     driver_docs:
       - registry/vendor-lockin-phaseout/index.json
       - crates/oya-dev-cli/src/lib.rs
-      - docs/decisions/ADR-0173-vendor-lockin-discipline.md
+      - docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md
     owner: council-architecture + axis-foundry
     trigger: |
       Doctrine decision on (a) / (b) / (c) above; then either align
@@ -702,8 +702,8 @@ follow_ups:
       finalised. Once the adapter ships, also queue
       `oya-collab-crdt-yrs-adapter` per ADR-0142.
     driver_docs:
-      - docs/decisions/ADR-0142-crdt-portability.md
-      - docs/decisions/ADR-0173-vendor-lockin-discipline.md
+      - docs/adr-archive/ADR-0142-crdt-portability-trait.md
+      - docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md
       - crates/oya-collab-crdt-portability-kernel/src/lib.rs
       - registry/vendor-lockin-phaseout/index.json
     owner: axis-connect-collab + council-architecture
@@ -726,7 +726,7 @@ follow_ups:
       is clap surface + eprintln-with-ADR-citation for unimplemented
       branches (no panic / no todo!()).
     driver_docs:
-      - docs/decisions/ADR-0167-tenant-facing-cli-binary.md
+      - docs/adr-archive/ADR-0167-tenant-cli.md
       - crates/oya-tenant-cli/src/main.rs
     owner: axis-tenant-experience
     trigger: |
@@ -746,7 +746,7 @@ follow_ups:
       replay API (≤60s p99). Current state is trait + NoopWebhookDeliveryClient
       adapter + runnable test asserting noop dead-letter semantics.
     driver_docs:
-      - docs/decisions/ADR-0169-webhook-dlq-and-retry.md
+      - docs/adr-archive/ADR-0169-webhook-dlq-retry.md
       - crates/oya-shared-webhook-delivery-kernel/src/lib.rs
     owner: axis-tenant-experience + ops-sre-reliability
     trigger: |
@@ -769,7 +769,7 @@ follow_ups:
     driver_docs:
       - microservices/ci-webhook-gateway/src/dispatch.rs
       - microservices/ci-webhook-gateway/src/error.rs
-      - docs/decisions/ADR-0374-ci-webhook-gateway-github-cloud-ci.md
+      - docs/adr-archive/ADR-0374-ci-webhook-gateway-github-actions.md
     owner: council-architecture + axis-intelligence
     trigger: |
       The Intelligence-service reviewer CI stage (ADR-0367 D2) is stood up
@@ -787,7 +787,7 @@ follow_ups:
       Unimplemented boundary.
     driver_docs:
       - microservices/ci-webhook-gateway/src/dispatch.rs
-      - docs/decisions/ADR-0374-ci-webhook-gateway-github-jenkins.md
+      - docs/adr-archive/ADR-0374-ci-webhook-gateway-github-actions.md
     owner: council-architecture + ops-platform
     trigger: |
       Concurrent open-PR volume on dev exceeds the point where

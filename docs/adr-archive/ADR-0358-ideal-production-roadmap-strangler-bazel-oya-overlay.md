@@ -10,6 +10,9 @@ superseded_by: [ADR-0392, ADR-0408]
 amends: []
 amendment_note: "2026-05-29 (founder decision): §2 toolchain build-graph + CI engine reversed from Bazel rules_rust to Buck2. Superseded-by ADR-0392 (Buck2 canonical build graph) + ADR-0408 (Buck2-driven CI/CD). ONLY §2's build-graph/CI engine is reversed; §1 strangler-fig, §3 define-production-100-first, and §4 masterplan planning authority remain in force."
 ---
+
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
 # ADR-0358: Ideal 0→100 production roadmap — strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first
 
 ## Status

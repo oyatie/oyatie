@@ -72,97 +72,97 @@
       "id": "ADR-0242",
       "title": "oyatie-is-a-tenant",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0242.md"
+      "file": "docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md"
     },
     {
       "id": "ADR-0243",
       "title": "Cedar universal gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0243.md"
+      "file": "docs/adr-archive/ADR-0243-cedar-as-universal-gate.md"
     },
     {
       "id": "ADR-0244",
       "title": "Tenant scoping primitive",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0244.md"
+      "file": "docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md"
     },
     {
       "id": "ADR-0245",
       "title": "Substrate vs product",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0245.md"
+      "file": "docs/adr-archive/ADR-0245-substrate-vs-product-layering.md"
     },
     {
       "id": "ADR-0246",
       "title": "Policy library-first amendment",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0246.md"
+      "file": "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md"
     },
     {
       "id": "ADR-0248",
       "title": "Cellular architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0248.md"
+      "file": "docs/adr-archive/ADR-0248-amazon-shape-cellular-architecture.md"
     },
     {
       "id": "ADR-0250",
       "title": "Build ahead of certification",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0250.md"
+      "file": "docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md"
     },
     {
       "id": "ADR-0251",
       "title": "Compliance packs",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0251.md"
+      "file": "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md"
     },
     {
       "id": "ADR-0252",
       "title": "HLC + TrueTime",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0252.md"
+      "file": "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md"
     },
     {
       "id": "ADR-0253",
       "title": "HTTP/3 + QUIC + ECH + PQC",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0253.md"
+      "file": "docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md"
     },
     {
       "id": "ADR-0254",
       "title": "K8s + Cloud Hypervisor + Kata",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0254.md"
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0258",
       "title": "API versioning",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0258.md"
+      "file": "docs/adr-archive/ADR-0258-api-versioning-model.md"
     },
     {
       "id": "ADR-0263",
       "title": "Observability emission contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0263.md"
+      "file": "docs/adr-archive/ADR-0263-observability-emission-contract.md"
     },
     {
       "id": "ADR-0294",
       "title": "Cedar fragment soak",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0294.md"
+      "file": "docs/adr-archive/ADR-0294-cedar-fragment-soak-anomaly-rollback.md"
     },
     {
       "id": "ADR-0295",
       "title": "Bootstrap CI SPIFFE + kill-switch",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0295.md"
+      "file": "docs/adr-archive/ADR-0295-bootstrap-ci-spiffe-kill-switch.md"
     },
     {
       "id": "ADR-0296",
       "title": "Library-first credential sidecar",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0296.md"
+      "file": "docs/adr-archive/ADR-0296-library-first-credential-sidecar.md"
     },
     {
       "id": "ADR-0297",

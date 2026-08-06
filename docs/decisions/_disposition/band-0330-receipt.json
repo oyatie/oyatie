@@ -84,7 +84,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md",
+    "docs/adr-archive/ADR-0333-cell-microservice-retired-pattern-not-service.md",
     "docs/decisions/_disposition/band-0330-receipt.json"
   ],
   "no_change": [

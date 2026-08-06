@@ -38,7 +38,7 @@ Swap a provider = change one workspace dep. Lane definitions live in `contracts/
 
 | Lane | Severity | Scope | Source |
 |---|---|---|---|
-| `oya-governance-cohesion` | BLOCKER | every PR / commit | [ADR-0001](../../../docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md) |
+| `oya-governance-cohesion` | BLOCKER | every PR / commit | [ADR-0001](../../../docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md) |
 | `oya-governance-supply-chain` | BLOCKER | every PR / commit | [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) |
 | `oya-governance-api-semver` | BLOCKER | every PR touching `contracts/` | [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md) |
 | `oya-governance-pr-shape` | BLOCKER (PR-level) | every PR | repo PR template |

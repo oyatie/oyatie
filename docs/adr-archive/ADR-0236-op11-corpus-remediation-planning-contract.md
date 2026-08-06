@@ -18,6 +18,9 @@ version: 1.0.0
 purpose: Record the OP-11 corpus-audit remediation plan without claiming that the aspirational-enforcement detector, workflow, branch-protection status check, or full source corpus already exists.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: OP-11 corpus remediation planning contract — historical audit contract; superseded by live masterplan+0515 process
 
 # ADR-0236: OP-11 Corpus Remediation Planning Contract

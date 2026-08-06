@@ -1,0 +1,25 @@
+{
+  "pr": 1574,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "REQUEST_CHANGES",
+      "note": "pre-fix"
+    },
+    {
+      "id": "B",
+      "verdict": "REQUEST_CHANGES",
+      "note": "pre-fix"
+    }
+  ],
+  "remediation": [
+    "regenerated ADR-INDEX + decisions.json for 10 apex",
+    "archive non-authority banners",
+    "path rewrites to adr-archive / apex",
+    "policy-deploy-parity + affected-set retarget",
+    "graphql synthetic ADR-0800",
+    "apex 0700 live hard norms + depends_on cleared"
+  ],
+  "post_fix_note": "Re-run critics if needed; CI babysit after push"
+}

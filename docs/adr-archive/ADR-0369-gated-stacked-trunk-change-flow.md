@@ -35,6 +35,9 @@ deliverables:
 purpose: Choose the change-flow MECHANISM that maximizes throughput for a concurrent agent fleet under the ADR-0367 trustless model — "gated stacked-trunk with a speculative train" on plain git + GitHub, evaluated against all options (PR, change-centric/Gerrit, stacked, jj, trunk+flags, pre-receive, merge-train).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0369: Gated stacked-trunk change-flow with a speculative merge-train
 
 ## Status

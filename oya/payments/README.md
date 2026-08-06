@@ -114,8 +114,8 @@ Per BC × layer, the crates are: `oya-payments-<bc>-{domain,kernel,usecase,adapt
 
 - [`PRD.md`](PRD.md) — full requirements.
 - [`docs/decisions/ADR-0702-identity-authz-live-apex.md`](../../docs/decisions/ADR-0702-identity-authz-live-apex.md) — tenant scoping rules.
-- [`docs/decisions/ADR-0251-compliance-pack-primitive.md`](../../docs/decisions/ADR-0251-compliance-pack-primitive.md) — compliance-pack model.
-- [`docs/decisions/ADR-0255-intelligence-two-layer-substrate.md`](../../docs/decisions/ADR-0255-intelligence-two-layer-substrate.md) §D-4 — provider-BYOK.
+- [`docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md) — compliance-pack model.
+- [`docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md) §D-4 — provider-BYOK.
 - [`docs/decisions/ADR-0706-observability-live-apex.md`](../../docs/decisions/ADR-0706-observability-live-apex.md) — audit-event emission.
 
 ## Change log

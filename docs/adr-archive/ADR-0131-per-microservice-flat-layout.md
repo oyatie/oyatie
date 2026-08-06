@@ -17,6 +17,9 @@ bominal_source: no Bominal equivalent
 purpose: Mandate one universal artifact layout — per-microservice flat folder containing PRD, phase specs, IPs, service-scoped ADRs, contracts, catalog, specs, runbooks, threat model, IaC, OpenSLO, crates, tests — for every µservice and every product oyatie ships, matching the convention used by AWS, Google, Microsoft, Oracle, and Stripe.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0131: Per-microservice flat layout (universal)
 
 ## Status

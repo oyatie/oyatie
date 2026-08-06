@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Surface
 
-Cloud-axis kernels under `crates/oya-cloud-*` ([ADR-0028](../../../docs/decisions/ADR-0028-cloud-provider-architecture.md)).
+Cloud-axis kernels under `crates/oya-cloud-*` ([ADR-0028](../../../docs/adr-archive/ADR-0028-cloud-microservice-architecture.md)).
 
 ## 2. Default rail per sub-axis
 

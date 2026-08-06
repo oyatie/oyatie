@@ -44,7 +44,7 @@ No new ADR is needed for the doctrine check itself; this doc serves as the resea
 
 Next available ADR number as of 2026-05-28: **ADR-0377** (ADR-0376 is the last filed).
 
-Proposed: `docs/decisions/ADR-0377-migrate-event-backbone-kafka-to-pulsar.md`
+Proposed: `docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md`
 
 > **Renumber note (2026-06-12, FRIC-1781390000):** the "next available" claim above was wrong
 > when written — ADR-0377 had already been claimed on 2026-05-27 by

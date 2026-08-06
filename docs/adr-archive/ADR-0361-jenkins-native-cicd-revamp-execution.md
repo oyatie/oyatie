@@ -13,6 +13,9 @@ superseded_by: [ADR-0515]
 amends:
   - ADR-0359-jenkins-completely-replaces-github-actions.md
 ---
+
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
 # ADR-0361: Execute the cloud-ci-native CI/CD revamp — license-vetted hyperscaler supply-chain stack, retire GitHub Actions, drop the parity gate (superseded by ADR-0515)
 
 ## Status

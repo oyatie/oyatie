@@ -11,7 +11,7 @@ supersedes: [ADR-9, ADR-10, ADR-21, ADR-28, ADR-29, ADR-30, ADR-31, ADR-35, ADR-
 superseded_by: []
 amends: []
 amended_by: []
-depends_on: [ADR-515, ADR-363, ADR-562]
+depends_on: []
 related: []
 milestone: W0
 ---
@@ -30,6 +30,14 @@ This apex consolidates **126** Accepted ADRs in the `ci_admission` topic. Member
 Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ## Decision
+
+### Live hard norms (restated from ADR-0515 lineage — full text in archive)
+
+1. **Single required admission context:** `oya-ci-required` is the sole protected merge context (no dual CI authority).
+2. **Cloud-native gates:** binding verification is Rust/Buck2 gate apps; legacy shell/CLI is bridge feedback only.
+3. **No dual-authority CI:** GitHub Actions is transitional adapter; no re-introduction of Prow/Jenkins as merge authority.
+4. **Warm CAS / RE activation:** fail-closed until explicit go-gate (credentials #1541, cache-only proof, Accepted activation ADR). Apex gists that mention `remote_enabled=true` are **historical design**, not activation authority.
+5. **Generated faces:** never hand-edit `*.generated.json`; materialize via sanctioned producers.
 
 1. **This ADR is the live reading entry** for topic `ci_admission` under the end-state ADR policy.
 2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.

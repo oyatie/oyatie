@@ -11,7 +11,7 @@
     "created_at": "2026-05-13T00:00:00Z",
     "canonical_sources": [
       "docs/MASTERPLAN.md",
-      "docs/decisions/ADR-0067-ops-oyatie-com-portal-foundation.md",
+      "docs/adr-archive/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
       ".omc/plans/ralplan-ops-portal-2026-05-13.md",
       "/specs/master-plan-sequencing.json",
       "/specs/hyperscaler-gates.json",
@@ -63,7 +63,7 @@
       "status": "plan_accepted",
       "evidence_refs": [
         ".omc/plans/ralplan-docs-portal-2026-05-13.md",
-        "docs/decisions/ADR-0065-documentation-as-leptos-pages.md",
+        "docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
         "docs/decisions/ADR-0704-k8s-port-live-apex.md"
       ],
       "blocked_reason": null

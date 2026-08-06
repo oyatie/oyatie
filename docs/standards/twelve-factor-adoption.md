@@ -526,7 +526,7 @@ crate_roots:
   - crates/oya-workflow-engine-adapter-postgres
   - crates/oya-workflow-engine-runtime
 related_adrs:
-  - docs/decisions/ADR-0105-layer-enum-ratchet.md
+  - docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md
   - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
   - docs/decisions/ADR-0700-ci-admission-live-apex.md
   - docs/decisions/ADR-0709-general-live-apex.md

@@ -8,6 +8,9 @@ superseded_by: [ADR-0375]
 related: [ADR-0083, ADR-0121]
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0120: Rust-first on-prem tooling; every install paired with uninstall
 
 > **Status:** Superseded by [ADR-0375](ADR-0375-talos-capi-argocd-fleet-substrate.md)

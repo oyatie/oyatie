@@ -1,6 +1,6 @@
 # oya-meter
 
-Bespoke Rust usage metering µservice. See [ADR-0479](../../docs/decisions/ADR-0479-bespoke-usage-metering.md) for design and delivery phases (D1–D5).
+Bespoke Rust usage metering µservice. See [ADR-0479](../../docs/adr-archive/ADR-0479-oya-meter-bespoke-usage-metering.md) for design and delivery phases (D1–D5).
 
 ## Crates
 

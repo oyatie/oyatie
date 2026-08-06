@@ -2502,11 +2502,11 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - docs/decisions/ADR-0708-platform-foundations-live-apex.md
-- docs/decisions/ADR-0255-intelligence-two-layer-model.md
-- docs/decisions/ADR-0263-audit-event-registry.md
+- docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- docs/adr-archive/ADR-0263-observability-emission-contract.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md
 - docs/decisions/ADR-0709-general-live-apex.md
-- docs/decisions/ADR-0316-capability-tier-deltas.md
+- docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - specs/microservices/accounting.json
 - specs/microservices/hr.json

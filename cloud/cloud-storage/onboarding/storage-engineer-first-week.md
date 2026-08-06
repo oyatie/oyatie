@@ -7,7 +7,7 @@ cross-region replication, and use the S3-compat API.
 ## Day 1 — read before touching
 
 - `docs/decisions/ADR-0700-ci-admission-live-apex.md` — per-cell storage planes.
-- `docs/decisions/ADR-0251-compliance-pack-primitive.md` — §D-10 binds AAD-mandatory envelope encryption.
+- `docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md` — §D-10 binds AAD-mandatory envelope encryption.
 - `docs/decisions/ADR-0702-identity-authz-live-apex.md` — tenant bucket scoping.
 - `docs/decisions/ADR-0702-identity-authz-live-apex.md`, `docs/decisions/ADR-0702-identity-authz-live-apex.md`, and `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` — tenant_class model + storage classes.
 - AWS S3 API reference (object lock, lifecycle, replication) — these guide our compatibility layer.

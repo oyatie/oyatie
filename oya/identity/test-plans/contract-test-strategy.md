@@ -340,5 +340,5 @@ Every conformance set ties back to consumer-driven pacts and explicit SemVer gat
 - Consumer surface: `microservices/drive/contracts/openapi/drive.yaml`.
 - Consumer surface: `microservices/payments/contracts/openapi-v1.yaml`.
 - Standard: `docs/standards/documentation-rigor.md`.
-- ADR: `docs/decisions/ADR-0258-api-versioning-and-deprecation.md`.
+- ADR: `docs/adr-archive/ADR-0258-api-versioning-model.md`.
 - ADR: `docs/decisions/ADR-0706-observability-live-apex.md`.

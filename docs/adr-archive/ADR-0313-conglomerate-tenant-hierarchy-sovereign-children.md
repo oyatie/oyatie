@@ -101,6 +101,9 @@ enforced_by:
   - oya-governance-conglomerate-grant-transitivity-deny
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Conglomerate tenant hierarchy
 
 # ADR-0313: Conglomerate-Tenant Hierarchy — Sovereign-Child + Policy-Engine-Mediated Controlling-Entity Grant

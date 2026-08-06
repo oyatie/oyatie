@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Vertical regulatory packs ([ADR-0033](../../../docs/decisions/ADR-0033-vertical-industry-cloud-pack-architecture.md), [ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)): healthcare (HIPAA / KR-HIPAA-equivalent), fintech (KR-FSC / PCI-DSS), legal (privilege / hold), public-sector (KISA / FedRAMP-equivalent), education (FERPA-equivalent).
+Vertical regulatory packs ([ADR-0033](../../../docs/decisions/ADR-0033-vertical-industry-cloud-pack-architecture.md), [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)): healthcare (HIPAA / KR-HIPAA-equivalent), fintech (KR-FSC / PCI-DSS), legal (privilege / hold), public-sector (KISA / FedRAMP-equivalent), education (FERPA-equivalent).
 
 ## 2. Default rail
 

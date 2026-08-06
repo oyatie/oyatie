@@ -648,10 +648,10 @@ multi-surface because naming is a contract, not a cosmetic label.
 change_id: rename-workflow-template-cancel-v1
 governing_standard: docs/standards/naming-convention-bnf-v4.md
 related_adrs:
-  - docs/decisions/ADR-0056-12-layer-enum.md
-  - docs/decisions/ADR-0105-layer-enum-ratchet.md
-  - docs/decisions/ADR-0131-flat-crate-architecture.md
-  - docs/decisions/ADR-0258-contract-version-ratchet.md
+  - docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md
+  - docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md
+  - docs/adr-archive/ADR-0131-per-microservice-flat-layout.md
+  - docs/adr-archive/ADR-0258-api-versioning-model.md
 old_names:
   crate: workflow_cancel
   openapi_operation: cancel
@@ -679,7 +679,7 @@ required_paths:
   - microservices/workflow-engine/contracts/state-machine-v1.asyncapi.yaml
   - microservices/workflow-engine/contracts/state-machine-v1.proto
   - microservices/workflow-engine/policy/workflow-template.cedar
-  - docs/decisions/ADR-0258-contract-version-ratchet.md
+  - docs/adr-archive/ADR-0258-api-versioning-model.md
   - docs/standards/capability-tier-matrix.md
 verification:
   commands:

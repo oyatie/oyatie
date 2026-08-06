@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Cross-axis contract registry ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)) + axis admission protocol ([ADR-0012](../../../docs/decisions/ADR-0012-axis-admission-protocol.md)).
+Cross-axis contract registry ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)) + axis admission protocol ([ADR-0012](../../../docs/decisions/ADR-0012-axis-admission-protocol.md)).
 
 ## 2. Default rail
 

@@ -4,6 +4,9 @@ status: Rejected
 doc_status: published
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: DCIM own-DC ops — optional; not on critical path for cloud-native first
 
 # ADR-0032: DCIM software for Oyatie-owned DC operations — `crates/oya-cloud-dcops-*` with anti-scope on custom silicon

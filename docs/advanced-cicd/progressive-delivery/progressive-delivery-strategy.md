@@ -56,7 +56,7 @@ Wall-clock floors: 5 min (stage 1), 10 min (stage 2), 30 min (stage 3), 1 h (sta
 
 ## 5. Stable cohorts
 
-Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthcare / fintech / gov) and contractual SLA-bound enterprise tenants **never see canary**. Cohort assignment is per-tenant, persisted in `oya-platform-tenant-cohort-kernel` (NEW), and inherited from per-vertical regulatory packs ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)).
+Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthcare / fintech / gov) and contractual SLA-bound enterprise tenants **never see canary**. Cohort assignment is per-tenant, persisted in `oya-platform-tenant-cohort-kernel` (NEW), and inherited from per-vertical regulatory packs ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)).
 
 ## 6. Rollback unit
 

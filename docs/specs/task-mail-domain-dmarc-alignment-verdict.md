@@ -147,4 +147,4 @@ All tests live in the `#[cfg(test)] mod tests` block at the bottom of `governanc
 - RFC 7208 §2.6 — SPF Result Codes
 - RFC 6376 §3.5 — DKIM `d=` tag
 - `crates/oya-mail-domain/src/governance.rs` — current implementation
-- `docs/decisions/ADR-0130-agentic-slo-gated-promotion.md` — SLO gate (no SLO change this task)
+- `docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md` — SLO gate (no SLO change this task)

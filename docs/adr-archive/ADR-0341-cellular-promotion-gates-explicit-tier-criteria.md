@@ -134,6 +134,9 @@ purpose: >
   ADR-0148 + ADR-0328 batch discipline.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Cellular promotion gates
 
 # ADR-0341: Cellular promotion gates — explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator

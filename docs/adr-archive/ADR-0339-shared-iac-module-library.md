@@ -121,6 +121,9 @@ purpose: >
   canonical-build phase order.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Shared IaC modules: path microservices/cloud-iac → cloud/cloud-iac
 
 # ADR-0339: Shared IaC module library (`cloud/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)

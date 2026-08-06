@@ -39,6 +39,9 @@ deliverables:
 purpose: Choose the LOCAL production-fidelity Kubernetes substrate for dogfooding the platform on this Apple Silicon host. Decision — multi-node Talos Linux on Parallels Desktop 26 (nested virt for Kata cloud-hypervisor), replacing single-node colima+k3s — driven by the platform's own invariants (ADR-0147 Kata runtimeClass, ADR-0165 chaos drills, ADR-0341 anti-affinity) which single-node and container-node clusters structurally cannot honor. Challenged via best-practice-research + adversarial verification + empirical nested-virt proof, per ADR-0368 D6.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0370: Local production-fidelity substrate — multi-node Talos on Apple Silicon
 
 ## Status

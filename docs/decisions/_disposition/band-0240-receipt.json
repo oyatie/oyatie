@@ -149,10 +149,10 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0245-substrate-vs-product-layering.md",
-    "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
-    "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
-    "docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md",
+    "docs/adr-archive/ADR-0245-substrate-vs-product-layering.md",
+    "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md",
+    "docs/adr-archive/ADR-0248-amazon-shape-cellular-architecture.md",
+    "docs/adr-archive/ADR-0249-multi-category-marketplace-doctrine.md",
     "docs/decisions/_disposition/band-0240-receipt.json"
   ],
   "no_change": [

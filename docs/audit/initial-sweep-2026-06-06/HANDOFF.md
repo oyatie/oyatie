@@ -80,7 +80,7 @@ Read-only audit (`justify-account-robustness/00-JUSTIFY-ACCOUNT-ROBUSTNESS.md`),
 
 - Charter / rulings SSOT: `synthesis/decision-record-oyatie-canon.md`
 - Firewall plan: `PHASE-0-FIREWALL-PLAN.md` + `_phase0/10-{ci-adr-spec,producer-plan,gates-registry,lane-spine}.md`
-- ADR-0515 (committed to source): `source/docs/decisions/ADR-0515-oya-ci-cd-unified-rust-native-cicd.md` (draft copy also at `_phase0/ADR-0515-DRAFT-*.md`)
+- ADR-0515 (committed to source): `source/docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md` (draft copy also at `_phase0/ADR-0515-DRAFT-*.md`)
 - Audit: `justify-account-robustness/00-JUSTIFY-ACCOUNT-ROBUSTNESS.md` (+ `10-*.md` lanes)
 - Reconciliation: `backlog-reconciliation/00-BACKLOG-RECONCILIATION.md`
 - The two consensus bodies: linux decision-record (above) + `source/.omx/backlog/platform-readiness-backlog.md` (pillars A-Q + register 1-21)

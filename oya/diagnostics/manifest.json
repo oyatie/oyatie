@@ -28,7 +28,7 @@
     "microservices/diagnostics/PRD.md",
     "microservices/diagnostics/ARCHITECTURE.md",
     "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
-    "docs/decisions/ADR-0132-no-grouping-policy.md",
+    "docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md",
     "microservices/imaging/PRD.md"
   ],
   "scope": "Laboratory and pathology diagnostic evidence production.",

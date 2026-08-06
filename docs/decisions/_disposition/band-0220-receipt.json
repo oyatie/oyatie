@@ -32,7 +32,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
+    "docs/adr-archive/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
     "docs/decisions/_disposition/band-0220-receipt.json"
   ],
   "no_change": ["ADR-0222"]

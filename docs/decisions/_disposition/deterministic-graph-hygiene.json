@@ -3,7 +3,7 @@
   "at": "2026-08-06T07:40:24Z",
   "changes": [
     {
-      "file": "docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md",
+      "file": "docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md",
       "adr": 316,
       "action": "status\u2192Superseded",
       "from": "Proposed",
@@ -11,7 +11,7 @@
       "higher": 329
     },
     {
-      "file": "docs/decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+      "file": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
       "adr": 358,
       "action": "status\u2192Superseded",
       "from": "Proposed",
@@ -19,7 +19,7 @@
       "higher": 392
     },
     {
-      "file": "docs/decisions/ADR-0357-vertical-slice-monorepo-nesting.md",
+      "file": "docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md",
       "adr": 357,
       "action": "status\u2192Superseded",
       "from": "Proposed",
@@ -27,7 +27,7 @@
       "higher": 512
     },
     {
-      "file": "docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md",
+      "file": "docs/adr-archive/ADR-0005-eventing-backbone-outbox-pattern.md",
       "adr": 5,
       "action": "status\u2192Superseded",
       "from": "Proposed",
@@ -35,7 +35,7 @@
       "higher": 557
     },
     {
-      "file": "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md",
+      "file": "docs/adr-archive/ADR-0064-canonical-base-and-localization-packs.md",
       "adr": 64,
       "action": "add amended_by",
       "from": [],
@@ -43,7 +43,7 @@
       "higher": 329
     },
     {
-      "file": "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+      "file": "docs/adr-archive/ADR-0116-retire-external-agent-coordination-tooling.md",
       "adr": 116,
       "action": "add amended_by",
       "from": [],
@@ -51,7 +51,7 @@
       "higher": 363
     },
     {
-      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "file": "docs/adr-archive/ADR-0092-workspace-dependency-seam-policy.md",
       "adr": 92,
       "action": "add amended_by",
       "from": [],
@@ -59,7 +59,7 @@
       "higher": 515
     },
     {
-      "file": "docs/decisions/ADR-0364-generative-adr-template-and-masterplan-generation.md",
+      "file": "docs/adr-archive/ADR-0364-generative-adr-template-and-masterplan-generation.md",
       "adr": 364,
       "action": "add amended_by",
       "from": [],
@@ -67,7 +67,7 @@
       "higher": 613
     },
     {
-      "file": "docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md",
+      "file": "docs/adr-archive/ADR-0069-active-machine-readable-artifact-contract.md",
       "adr": 69,
       "action": "add amended_by",
       "from": [],
@@ -75,7 +75,7 @@
       "higher": 619
     },
     {
-      "file": "docs/decisions/ADR-0335-intelligence-microservice-consolidation.md",
+      "file": "docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md",
       "adr": 335,
       "action": "add amended_by",
       "from": [],

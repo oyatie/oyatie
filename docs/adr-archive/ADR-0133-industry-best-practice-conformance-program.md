@@ -15,6 +15,9 @@ bominal_source: "override — Bominal does not maintain a continuous industry-be
 purpose: Establish a continuous, 6-axis industry-best-practice + hyperscaler-grade conformance program optimised for oyatie's fully-agentic development team. Every artifact in the repo (pipeline, directory, naming, standards, practices, policies) is audited against named industry references; a new BLOCKER CI lane refuses regression; quarterly refresh re-validates against current industry state.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0133: Industry-best-practice + hyperscaler-grade conformance program
 
 ## Status

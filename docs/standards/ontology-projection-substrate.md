@@ -538,7 +538,7 @@ derived_for:
     path: microservices/observability/projections/tenant-access-context-v1.yaml
 related_adrs:
   - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
-  - docs/decisions/ADR-0258-contract-version-ratchet.md
+  - docs/adr-archive/ADR-0258-api-versioning-model.md
   - docs/decisions/ADR-0709-general-live-apex.md
 source_events:
   - TenantCreatedV1

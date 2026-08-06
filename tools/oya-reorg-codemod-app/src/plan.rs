@@ -1038,13 +1038,13 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         // justification anchor (mirrors ADR-0565's real citation of catalog-domain/src/lib.rs).
         wf(
             root,
-            "docs/decisions/ADR-0001-graphql.md",
+            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
             "In `crates/oya-intelligence-catalog-domain/src/lib.rs`, the \"graphql\" value is banned.\n",
         );
         // A SIBLING doc that must be left byte-identical (no citation of the moved crate).
         wf(
             root,
-            "docs/decisions/ADR-0002-unrelated.md",
+            "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
             "This ADR mentions nothing about intelligence crates.\n",
         );
     }
@@ -1070,7 +1070,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
 
         let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
 
-        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-graphql.md")).unwrap();
+        let adr = std::fs::read_to_string(root.join("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md")).unwrap();
         assert_eq!(
             adr,
             "In `intelligence/core/catalog-domain/src/lib.rs`, the \"graphql\" value is banned.\n",
@@ -1084,13 +1084,13 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         // CANARY: this fails if Step 5b is removed (docs_rewritten would be empty).
         assert_eq!(
             outcome.docs_rewritten,
-            vec!["docs/decisions/ADR-0001-graphql.md".to_string()],
+            vec!["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md".to_string()],
             "only the citing doc is touched, and it must be recorded in the outcome"
         );
 
         // The sibling doc with no citation must be byte-identical (not merely unlisted).
         let unrelated =
-            std::fs::read_to_string(root.join("docs/decisions/ADR-0002-unrelated.md")).unwrap();
+            std::fs::read_to_string(root.join("docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md")).unwrap();
         assert_eq!(
             unrelated,
             "This ADR mentions nothing about intelligence crates.\n"
@@ -1161,7 +1161,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         wf(&root, "crates/a/nested/src/lib.rs", "pub fn nested() {}\n");
         wf(
             &root,
-            "docs/decisions/ADR-0001-both.md",
+            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
             "See `crates/a/nested/src/lib.rs` and also `crates/a/src/lib.rs`.\n",
         );
 
@@ -1186,7 +1186,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
 
         apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
 
-        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-both.md")).unwrap();
+        let adr = std::fs::read_to_string(root.join("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md")).unwrap();
         assert_eq!(
             adr,
             "See `capB/src/lib.rs` and also `capA/src/lib.rs`.\n",

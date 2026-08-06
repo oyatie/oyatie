@@ -77,7 +77,7 @@ Mirrored traffic is sampled **only** from cohorts that consent to participate. S
 
 ## 7. Auditability
 
-Every mirror activation emits a D14 audit-chain entry: which surface, which percentage, which cohort sample, start/stop timestamps, correlation IDs. Mirror activation requires named approver for surfaces tagged `regulated` ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)).
+Every mirror activation emits a D14 audit-chain entry: which surface, which percentage, which cohort sample, start/stop timestamps, correlation IDs. Mirror activation requires named approver for surfaces tagged `regulated` ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)).
 
 ## 8. Per-cell scope
 

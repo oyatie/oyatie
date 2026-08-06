@@ -4,8 +4,8 @@ version: 1.0.0
 sunset: none-before-GA
 related_adrs:
   - docs/decisions/ADR-0709-general-live-apex.md
-  - docs/decisions/ADR-0131-flat-microservices-layout.md
-  - docs/decisions/ADR-0132-flat-crate-naming-policy.md
+  - docs/adr-archive/ADR-0131-per-microservice-flat-layout.md
+  - docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md
   - id: CS-ENT-ACCOUNTING-002
     date: 2026-05-23
     summary: Adds accounting runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, ledger storage, Workflow execution, statutory filing rails, payment execution, Payroll calls, and runtime audit emission remain non-claims.

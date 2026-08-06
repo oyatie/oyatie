@@ -3,10 +3,10 @@
 Canonical pharmacy clinical and operational substrate for the Oyatie platform — medication catalog, formulary, ePrescribe, drug-interaction CDS, allergy check, dose range checking, pharmacist verification, compounding, inventory, auto-dispensing cabinets, BCMA, IV admixture, controlled substances, reimbursement, operations, interventions, medication reconciliation, outpatient retail, MTM, and DSCSA.
 
 - **Owner team**: `axis-pharmacy`
-- **Authority ADR**: `docs/decisions/ADR-0332-pharmacy-substrate.md`
+- **Authority ADR**: `docs/adr-archive/ADR-0332-healthcare-domain-decomposition.md`
 - **Layout authority**: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
-- **Suite policy**: `docs/decisions/ADR-0132-no-grouping-microservices.md`
-- **Inter-microservice**: `docs/decisions/ADR-0145-inter-microservice-direct-grpc.md`
+- **Suite policy**: `docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md`
+- **Inter-microservice**: `docs/adr-archive/ADR-0145-inter-microservice-communication-reform.md`
 - **Criticality tier**: T0 (patient-safety + DEA-regulated)
 - **Top-3 counterparts**: Oracle Health (Cerner) Pharmacy Manager / Epic Willow / BD Pyxis
 

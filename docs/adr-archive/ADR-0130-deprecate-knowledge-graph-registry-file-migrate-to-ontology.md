@@ -4,6 +4,9 @@ status: Superseded
 superseded_by: [ADR-335, ADR-562]
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0130: Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System
 
 **Status:** Accepted

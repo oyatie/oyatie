@@ -1717,9 +1717,9 @@ the walkthrough:
 11. `docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md`
 12. `docs/decisions/ADR-0700-ci-admission-live-apex.md`
 13. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
-14. `docs/decisions/ADR-0211-in-house-tech-stack-preference.md`
-15. `docs/decisions/ADR-0238-dual-context-isolation-invariant.md`
-16. `docs/decisions/ADR-0028-audit-chain-merkle-sealed.md`
+14. `docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md`
+15. `docs/adr-archive/ADR-0238-connect-super-app-expansion.md`
+16. `docs/adr-archive/ADR-0028-cloud-microservice-architecture.md`
 17. `microservices/messenger/PRD.md` (especially §1, §2, §4.2, §6, §10,
     §11, §13)
 18. `docs/standards/messenger-e2e-encryption-mls.md` (especially §3–§8,

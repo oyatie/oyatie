@@ -13,6 +13,9 @@ related_specs:
   - /specs/hyperscaler-architecture-invariants.json
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0160 — Progressive Delivery via Flagger 1.x (canary + blue-green + A/B), ArgoCD-integrated, SLO-gated promotion
 
 ## Status

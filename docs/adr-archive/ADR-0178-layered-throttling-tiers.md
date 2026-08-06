@@ -25,6 +25,9 @@ enforcement_status: advisory-until-public-rpc-coverage-complete
 enforced_by: oya gate validate throttling-tiers
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0178: Layered throttling — per-tenant / per-user / per-IP / per-key
 
 ## Status

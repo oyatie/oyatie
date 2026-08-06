@@ -109,6 +109,9 @@ purpose: >
   Wave 15-ZA after this ADR is Accepted.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0346: oya verify --ci-required MUST locally mirror the full CI matrix and block on exit-0 of EACH step before returning success
 
 ## Status

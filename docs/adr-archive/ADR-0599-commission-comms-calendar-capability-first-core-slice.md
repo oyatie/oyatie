@@ -18,6 +18,9 @@ related_specs:
 milestone: W2
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Context re-triage Accept: Comms calendar capability slice
 
 # ADR-0599: Commission the comms calendar capability-first slice

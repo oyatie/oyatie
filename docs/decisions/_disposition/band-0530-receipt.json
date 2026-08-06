@@ -112,8 +112,8 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0535-cross-product-versioning-release-governance.md",
-    "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
+    "docs/adr-archive/ADR-0535-cross-product-versioning-release-governance.md",
+    "docs/adr-archive/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
     "docs/decisions/_disposition/band-0530-receipt.json"
   ],
   "no_change": [

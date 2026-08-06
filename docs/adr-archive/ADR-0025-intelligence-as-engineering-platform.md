@@ -5,6 +5,9 @@ superseded_by: [ADR-709]
 doc_status: published
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Engineering platform absorbed into intelligence (ADR-0335); keep gate/catalog intent
 
 # ADR-0025: Intelligence as the engineering platform (Foundry retired as µservice per ADR-0335) — repoctl, catalog, gates, fitness functions, supply chain, customer-facing builder surfaces all under one axis

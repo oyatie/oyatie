@@ -110,7 +110,7 @@ Per-axis differentiation of the four-layer pipeline. Every axis follows the same
 
 ## 9. Cross-axis lockstep playbook
 
-When a single change crosses ≥ 2 axes (per [ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)):
+When a single change crosses ≥ 2 axes (per [ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)):
 
 | Stage | Lockstep mechanic |
 |---|---|
@@ -142,8 +142,8 @@ For emergency hot-fixes (per [`rollback-mechanics-per-stage.md`](rollback-mechan
 This file does not own:
 
 - Per-axis fitness-lane definitions — owned per ADR.
-- Cross-axis contract registry — owned by [ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md).
-- Vertical pack regulatory bindings — owned by [ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md).
+- Cross-axis contract registry — owned by [ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md).
+- Vertical pack regulatory bindings — owned by [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md).
 
 ## 13. Lift target
 

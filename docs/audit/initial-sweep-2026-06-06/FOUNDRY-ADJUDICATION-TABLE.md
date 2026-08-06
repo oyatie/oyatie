@@ -69,7 +69,7 @@ Lines matching `/palantir/i` are the external "Palantir Foundry" product referen
 | `docs/investor/ask-and-use-of-funds.md` | 8 |
 | `docs/architecture/adr-cross-reference-graph-2026-05-20.md` | 7 |
 | `docs/architecture/keystone-bundle-idea-refine-deep-dive.md` | 7 |
-| `docs/decisions/ADR-0136-foundry-as-single-microservice.md` | 7 |
+| `docs/adr-archive/ADR-0136-intelligence-as-single-microservice.md` | 7 |
 | `docs/decisions/ADR-0709-general-live-apex.md` | 7 |
 | `docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md` | 6 |
 | `docs/prds/ontology.md` | 6 |
@@ -85,7 +85,7 @@ Lines matching `/palantir/i` are the external "Palantir Foundry" product referen
 | `docs/decisions/ADR-0709-general-live-apex.md` | 4 |
 | `docs/decisions/ADR-0709-general-live-apex.md` | 4 |
 | `docs/decisions/ADR-0709-general-live-apex.md` | 4 |
-| `docs/decisions/ADR-0143-foundry-per-bc-release-pointer.md` | 4 |
+| `docs/adr-archive/ADR-0143-intelligence-per-bc-release-pointer.md` | 4 |
 | `docs/investor/moat-and-defensibility.md` | 4 |
 | `cloud/tenancy/ARCHITECTURE.md` | 3 |
 | `docs/architecture/keystone-bundle-reading-order.md` | 3 |

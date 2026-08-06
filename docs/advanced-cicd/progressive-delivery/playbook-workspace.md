@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Workspace productivity platform ([ADR-0029](../../../docs/decisions/ADR-0029-workspace-productivity-suite-architecture.md)) — Mail, Docs, Drive, Calendar, Meet, plus integrative surfaces.
+Workspace productivity platform ([ADR-0029](../../../docs/adr-archive/ADR-0029-connect-dual-context-architecture.md)) — Mail, Docs, Drive, Calendar, Meet, plus integrative surfaces.
 
 ## 2. Default rail per surface
 

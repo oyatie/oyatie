@@ -622,7 +622,7 @@ spec:
                 ".omc/ultragoal/OWNERS",
                 "ci/facade/x/src/lib.rs",
                 "libs/oya-foo/Cargo.toml",
-                "docs/decisions/ADR-0600.md",
+                "docs/adr-archive/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
             ]),
         );
         assert_eq!(report.verdict, Verdict::Green);

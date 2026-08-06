@@ -20,6 +20,9 @@ related_specs:
 milestone: W0
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0609: Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required)
 
 ## Status

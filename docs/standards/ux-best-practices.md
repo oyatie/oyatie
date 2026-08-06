@@ -2456,16 +2456,16 @@ For high-risk surfaces:
 
 ### 23.5 Internal references (oyatie)
 
-- `docs/decisions/ADR-0061-application-b2b-shell.md`
-- `docs/decisions/ADR-0064-canonical-base-plus-localization.md`
+- `docs/adr-archive/ADR-0061-application-b2b-unified-shell.md`
+- `docs/adr-archive/ADR-0064-canonical-base-and-localization-packs.md`
 - `docs/decisions/ADR-0700-ci-admission-live-apex.md`
-- `docs/decisions/ADR-0204-canvas-interaction.md`
-- `docs/decisions/ADR-0205-code-editor.md`
+- `docs/adr-archive/ADR-0204-workflow-studio-canvas-library.md`
+- `docs/adr-archive/ADR-0205-code-editor-canonical-codemirror.md`
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - `docs/decisions/ADR-0709-general-live-apex.md`
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - `docs/decisions/ADR-0709-general-live-apex.md`
-- `docs/decisions/ADR-0220-consumer-intelligence-ai-boundaries.md`
+- `docs/adr-archive/ADR-0220-consumer-intelligence-substrate.md`
 - `docs/standards/a11y-canonical.md`
 - `docs/standards/wcag-2-2-aa-checklist.md`
 - `docs/standards/i18n-canonical.md`

@@ -18,6 +18,9 @@ related_specs:
 milestone: W0
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** FixupTask v2 foundation — nonbinding successor design Accepted as design intent
 
 # ADR-0622: Define a nonbinding FixupTask v2 successor foundation

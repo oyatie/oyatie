@@ -1434,7 +1434,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - status: Accepted
 - depth: C-partial; lines=75; substance_markers=7
 - cross-ref-density: 34 refs / 75 lines = 45.33 per 100 lines
-- artifact: `docs/decisions/ADR-0234-community-social-expansion-planning-contract.md`
+- artifact: `docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md`
 - named gaps: none named; retain in regression audit
 ### ADR-0235 — ADR-0235-connect-core-public-contracts.md
 - status: Accepted

@@ -86,8 +86,8 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
-    "docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md",
+    "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
+    "docs/adr-archive/ADR-0005-eventing-backbone-outbox-pattern.md",
     "docs/decisions/_disposition/band-0000-receipt.json"
   ],
   "no_change": [

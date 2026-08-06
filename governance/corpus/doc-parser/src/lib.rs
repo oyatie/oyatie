@@ -2751,7 +2751,7 @@ mod tests {
     fn zero_structure_documents_still_require_a_valid_provenance_path() {
         let valid = parse_markdown_doc(&DocParseInput::new(
             "tenant",
-            "docs/decisions/ADR-0001.md",
+            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
             "",
         ))
         .expect("an empty document with canonical provenance remains valid");
@@ -2759,7 +2759,7 @@ mod tests {
 
         for path in [
             "",
-            "/docs/decisions/ADR-0001.md",
+            "/docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
             "docs/decisions/../private.md",
         ] {
             assert!(matches!(

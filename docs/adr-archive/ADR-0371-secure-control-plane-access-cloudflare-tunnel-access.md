@@ -39,6 +39,9 @@ deliverables:
 purpose: Securely serve the Talos Kubernetes control plane at k8s.oyatie.dev with no public IP and no inbound ports, while PRESERVING the apiserver's client-cert mTLS. Decision — Cloudflare Tunnel as an L4 TCP route fronted by Cloudflare Access (Zero Trust, Service Auth) — chosen because it is the only hyperscaler-grade pattern that adds an edge identity factor without terminating the apiserver TLS (which an L7 proxy would, breaking client-cert auth).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0371: Secure control-plane access via Cloudflare Tunnel (L4) + Access
 
 ## Status

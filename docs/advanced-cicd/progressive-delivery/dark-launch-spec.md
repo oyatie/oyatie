@@ -33,10 +33,10 @@ Two flavours:
 Write-side dark-launch is REQUIRED for:
 
 - **Foundry capability publish** with replay-affecting changes ([ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md)).
-- **Cross-axis contract** changes ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)).
+- **Cross-axis contract** changes ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)).
 - **Cedar policy** changes ([ADR-0007](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)).
 - **Audit-chain** schema changes ([ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md)).
-- **Billing / metering** logic ([ADR-0031](../../../docs/decisions/ADR-0031-ads-and-analytics-architecture.md)).
+- **Billing / metering** logic ([ADR-0031](../../../docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md)).
 - **Search ranking** changes (per [`playbook-search.md`](playbook-search.md)).
 - **DSR / proof-of-erasure** logic ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)).
 

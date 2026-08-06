@@ -1,0 +1,63 @@
+{
+  "pr": 1574,
+  "critic": "A",
+  "verdict": "REQUEST_CHANGES",
+  "findings": [
+    {
+      "severity": "high",
+      "title": "Topic apex misclustering makes live law unusable (ADR-0700/0703)",
+      "evidence": "ADR-0700 (topic ci_admission) supersedes and preserves gists for product/cell/search/ads/mail ADRs (e.g. ADR-9 cell architecture, ADR-28 cloud µservice, ADR-29 connect, ADR-30 search, ADR-31 ads) mixed with CI members including ADR-515. e5-consolidation-clusters.json already placed 28/29/30/31 under ci_admission_build. ADR-0703 (cas_cache) supersedes ADR-38 trust/DSR, ADR-106 usecase rename, ADR-172 CQRS, ADR-310 case management — only ADR-377/556 are CAS-adjacent. Apex Decision sections are generic boilerplate; agents cannot recover topic-correct norms from live tree alone.",
+      "fix": "Rebuild apex membership from human-reviewed topic partitions; move mis-filed members to correct apex (or new apexes); rewrite each apex Decision as restated live norms for that topic, not a dump of truncated member gists."
+    },
+    {
+      "severity": "high",
+      "title": "Normative content loss: truncated gists claim preservation while cutting mid-sentence",
+      "evidence": "END-STATE-POLICY §Consolidation rule 4 requires still-true normative text copied into live ADR before archive. ADR-0700 lists 126 members but stops list with '_…plus 66 additional members…_'. ADR-515 residual in ADR-0700 ends mid-token at 'byte-for-by'. Full ADR-0515 body (single oya-ci-required, Phase-0 firewall, no dual CI) is not restated as Decision bullets on the live apex — only truncated residual. Cartesian: claim 'normative gist is preserved' is false for most members.",
+      "fix": "For each apex, restate hard norms as complete Decision clauses (at minimum ADR-0515 lineage on 0700: single oya-ci-required, Rust gates, no dual-authority CI). Either fold full Decision sections for still-true members or explicitly mark archive as sole full-text with a verified extract checklist; ban mid-sentence truncations in live law."
+    },
+    {
+      "severity": "high",
+      "title": "Broken path citations remain to missing docs/decisions/ADR-0xxx live paths",
+      "evidence": "After claimed ~716 rewrites, live normative surfaces still cite missing live paths, e.g. specs/platform-architecture.json refs docs/decisions/ADR-0132/0148/0176/0211/0215/…; docs/standards/naming-convention-bnf-v4.md cites docs/decisions/ADR-0056/0105/0131; docs/standards/code-style-rust.md cites ADR-0015; docs/automation/audit-chain-map-spec.md treats docs/decisions/ADR-0003-* as constitutional authority. Those files are under docs/adr-archive/, not docs/decisions/.",
+      "fix": "Re-run citation rewrite against redirect map for docs/ and specs/ (and other binding surfaces); either rewrite to docs/adr-archive/… or to live apex path + redirect key. Add a gate that fails on docs/decisions/ADR-0[0-6]*.md path literals not present as direct children."
+    },
+    {
+      "severity": "high",
+      "title": "Agent false-green / dual-authority: archive ADR-0515 body still claims Accepted current-truth",
+      "evidence": "docs/adr-archive/ADR-0515-… frontmatter status: Superseded, superseded_by: [ADR-700], but body Status section still reads '**Accepted — 2026-06-07**' and 'This is the single current-truth CI/CD enforcement ADR'. Live apexes depend_on: [ADR-515, ADR-363, ADR-562] (archived numbers). live-accepted-index.json still count:256 with old docs/decisions file names. END-STATE-POLICY Progress table still says E4 BLOCKED / E5 QUEUED while completion table claims E3–E5 done — contradictory completion signal.",
+      "fix": "Stamp archived bodies with a non-authority banner (historical; live = ADR-0700…). Point depends_on at live apex ids. Refresh or retire live-accepted-index.json. Align END-STATE-POLICY progress with actual state. Prefer single completion receipt, not dual contradictory ledgers."
+    },
+    {
+      "severity": "high",
+      "title": "adr-redirect.v1.json fails its own schema; disposition enum underused",
+      "evidence": "adr-redirect.schema.json requires properties schema+tip+entries; live map has schema+generated_at+entries (missing tip). Schema disposition enum includes live|superseded|rejected|consolidated; observed entries are only disposition=consolidated (no rejected/historical-only). E3 run records 8 fold errors 'no successor' (101,97,102,138,57,387,384,381) yet redirect later maps them consolidated→ADR-709 without fold receipt of normative gist into 709.",
+      "fix": "Regenerate map to satisfy schema (tip SHA, optional archive_path in schema). Use rejected/superseded dispositions where appropriate. Close E3 no-successor set with explicit fold receipts or rejected disposition before claiming E3 complete."
+    },
+    {
+      "severity": "med",
+      "title": "RE/warm activation language present as ratified design in live CI apex gists",
+      "evidence": "ADR-0700 Decision §4 says activation-sensitive warm CAS/RE remain fail-closed. Same file preserved gist title/body includes 'buck2 Remote-Execution phase: … flip remote_enabled=true behind per-ident' labeled ratified design. Red-team: agents skimming gists may treat remote_enabled flip as live authority. ADR-0703 titled CAS fail-closed but mostly non-CAS members; real CAS warmth policy (ADR-556) is truncated residual only.",
+      "fix": "Elevate fail-closed RE/warm rules into apex Decision with explicit non-goals; move RE deployment ADRs to appendix labeled non-binding until go-gate; ensure no live Decision language can be read as enabling remote_enabled without separate activation ADR."
+    },
+    {
+      "severity": "med",
+      "title": "Census P3 direct-children risk is mitigated mechanically but evidence indexes lag",
+      "evidence": "README correctly states P3 selects only direct docs/decisions/ADR-*.md children (10 apex). Archive under docs/adr-archive/ is outside that selector — good. Risk remains if agents or tools use stale live-accepted-index.json (256), decade-bands.json paths under docs/decisions/, or INDEX.md/ADR-INDEX generation still expecting old corpus without epoch receipt update in this PR evidence set.",
+      "fix": "Verify census epoch receipt / ADR-0624 transition is either updated in-train or explicitly N/A with gate proof; regenerate any index that enumerates live Accepted ADRs to the 10 apex set only."
+    },
+    {
+      "severity": "med",
+      "title": "Contradiction resolution rule among members is unsafe under miscluster",
+      "evidence": "All apex Decision §3: contradictions resolved by 'later higher-number members' and by ADR-0515/0363/0562/0615/0635/0637–0639. Under ADR-0700 miscluster, later CI ADRs do not legitimately resolve cell/search/product conflicts; archived 0515/0363 are no longer live files. Creates circular authority (apex depends_on archived ids that apex supersedes).",
+      "fix": "Replace with explicit topic priority order on each apex; resolve depends_on to live apex ids; document that member numbers are provenance only, not competing law."
+    },
+    {
+      "severity": "low",
+      "title": "Mechanical structure goals partially achieved",
+      "evidence": "Live docs/decisions/ contains only 10 ADR-0700..0709 apex files + README + _disposition/ (+ BUCK/OWNERS/INDEX/templates/specs). e3-e5-run.json reports e4_archived:448 and e5_apex member counts summing to 386 consolidated members. Redirect maps 515→ADR-700 and 363→ADR-701. Activation boilerplate fail-closed line is present on all apex headers.",
+      "fix": "Keep archive+redirect skeleton; fix content authority before merge. Do not treat mechanical file moves as disposition complete."
+    }
+  ],
+  "real": true,
+  "lenses": ["cartesian", "red_team"]
+}

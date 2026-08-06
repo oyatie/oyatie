@@ -83,7 +83,7 @@ All five emitted by `oya-intelligence-evidence-kernel` and validated by `oya-gov
 
 ## 6. Per-tenant blue/green (regulated)
 
-Regulated tenants in the stable cohort may **stay on blue indefinitely** until per-vertical regulatory pack approves the green schema ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)). Per-tenant traffic-shift honours cohort.
+Regulated tenants in the stable cohort may **stay on blue indefinitely** until per-vertical regulatory pack approves the green schema ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)). Per-tenant traffic-shift honours cohort.
 
 ## 7. Cost
 

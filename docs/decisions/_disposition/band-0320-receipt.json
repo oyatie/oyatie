@@ -80,7 +80,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
+    "docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
     "docs/decisions/_disposition/band-0320-receipt.json"
   ],
   "no_change": [

@@ -11,6 +11,9 @@ related: [ADR-0482, ADR-0507, ADR-0506, ADR-0483, ADR-0484]
 door: two-way
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0508 — OpenSK canonical authenticator-side reference (Phase-1) + oya-authn-device Tier-3 bespoke hardware destination
 
 ## Status

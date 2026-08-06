@@ -68,7 +68,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+    "docs/adr-archive/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
     "docs/decisions/_disposition/band-0340-receipt.json"
   ],
   "no_change": [

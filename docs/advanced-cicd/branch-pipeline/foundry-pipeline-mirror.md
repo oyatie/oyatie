@@ -118,7 +118,7 @@ Demotion semantics. A capability that fails its staging eval-harness sweep is **
 
 ## 7. Cross-axis lockstep
 
-When a capability change crosses an axis boundary (per [ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)), all affected axes must promote in lockstep:
+When a capability change crosses an axis boundary (per [ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)), all affected axes must promote in lockstep:
 
 - Local-dev → origin/dev gate runs the cross-axis contract diff (`oya-contract-diff`) as part of the CI lane; any consumer axis with a broken contract fails the lane.
 - Origin/dev → staging is autonomous; lockstep is preserved because origin/dev → staging is one mechanical fast-forward per axis.

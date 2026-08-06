@@ -39,6 +39,9 @@ deliverables:
 purpose: Choose the app-shell FRONTEND stack on performance, scalability, resource-efficiency, and hyperscaler norms (not language ideology). Original decision — TypeScript + SolidJS (fine-grained reactivity, SolidStart SSR) for the DOM-heavy shell, with targeted Rust→WASM modules only for compute-bound widgets, and OpenAPI 3.2.0→TS codegen for end-to-end type safety. Backend/services/gateway stay Rust (settled, out of scope). AMENDED 2026-05-27 — the supersede-Leptos stance is REVERSED: Leptos is RETAINED as the canonical app-shell frontend; SolidJS is an evaluation track only, adopted as canonical solely on proven massive-scale superiority.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0372: Frontend stack — SolidJS/TS app-shell + Rust→WASM compute modules
 
 ## Status

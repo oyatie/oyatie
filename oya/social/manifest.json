@@ -329,7 +329,7 @@
       "id": "ADR-0234",
       "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",

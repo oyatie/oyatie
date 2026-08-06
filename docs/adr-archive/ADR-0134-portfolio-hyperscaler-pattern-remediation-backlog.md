@@ -19,6 +19,9 @@ version: 1.1.0
 purpose: Record the portfolio hyperscaler remediation backlog as proposed acceptance criteria without claiming that the named validators or branch-protected CI lanes already exist.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Context re-triage Accept: Hyperscaler pattern remediation backlog (living backlog ADR)
 
 # ADR-0134: Portfolio Hyperscaler Pattern Remediation Backlog

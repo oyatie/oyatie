@@ -22,6 +22,9 @@ related_specs:
 milestone: W3
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Activation posture (2026-08-06 disposition):** This ADR is **Accepted as policy design**. It does **not** authorize setting `remote_enabled=true` or deploying RE workers until #1541 / cache-only proof / Accepted CAS go-gate criteria are met. Fail closed.
 
 # ADR-0612: buck2 Remote-Execution phase — deploy the NativeLink scheduler + worker tiers, flip `remote_enabled=true`

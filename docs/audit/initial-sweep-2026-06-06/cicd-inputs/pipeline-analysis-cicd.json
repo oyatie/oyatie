@@ -39,7 +39,7 @@
         },
         {
           "pattern": "Forbidden-vocab + broken status poster: Jenkins oyaCiLane.groovy (named canonical producer in reported-status-contexts.json + forge-of-record.md) invokes retired oya-vcs-*/oya-dev-cli and POSTs to https://api.github.com/api/v1 (a Gitea/Forgejo path on GitHub's host) so every status post 404s; ADR-0513 still titles itself 'Forgejo-native'. Latent false-green if ever re-enabled.",
-          "where": "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy:102-106,150,154; infra/ci/jenkins/reported-status-contexts.json:13-14,23; docs/decisions/ADR-0513-*.md:18,26 (Superseded by ADR-0515)",
+          "where": "infra/ci/jenkins/shared-library/vars/oyaCiLane.groovy:102-106,150,154; infra/ci/jenkins/reported-status-contexts.json:13-14,23; docs/adr-archive/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md:18,26 (Superseded by ADR-0515)",
           "fix": "Quarantine/delete the Jenkins path AFTER oya-ci is built+proven (canon keeps the 89 Jenkinsfiles as an explicitly-unratified bridge until then), then run the brand-residue gate (registry/catalog/oya-check-brand-residue.yaml) to eradicate forgejo/foundry/jenkins/oya-vcs."
         },
         {
@@ -759,7 +759,7 @@
           {
             "category": "hidden-assumption/ADR-itself-stale",
             "claim": "WRONG-ASSUMPTION FLAG: ADR-0515 (the live Accepted SSOT, dated 2026-06-06) asserts live dev protection requires [cargo-fmt, cargo-check, cargo-clippy, cargo-nextest, oya-pr-review] with oya-pr-review at HTTP 501. The LIVE API shows ONLY github-lane-unlocker-required. The protection was changed after the ADR was authored — so the canonical CI/CD ADR's own Context is already stale vs reality. This is a live instance of the exact drift the firewall targets; any design grounded only on the ADR text is grounded on stale facts.",
-            "evidence": "docs/decisions/ADR-0515-oya-ci-cd-unified-rust-native-cicd.md:56 'Live GitHub `dev` protection actually requires `[cargo-fmt, cargo-check, cargo-clippy, cargo-nextest, oya-pr-review]`, and `oya-pr-review`s producer returns HTTP 501'; vs gh api live -> single context github-lane-unlocker-required. [CORRECTED: claim's 'Context sec.2' is loosely cited; exact location is line 56]",
+            "evidence": "docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md:56 'Live GitHub `dev` protection actually requires `[cargo-fmt, cargo-check, cargo-clippy, cargo-nextest, oya-pr-review]`, and `oya-pr-review`s producer returns HTTP 501'; vs gh api live -> single context github-lane-unlocker-required. [CORRECTED: claim's 'Context sec.2' is loosely cited; exact location is line 56]",
             "severity": "critical"
           },
           {
@@ -795,7 +795,7 @@
           {
             "category": "ground-truth/cutover-model",
             "claim": "ADR-0515 codifies build-first-cutover-later with explicit phasing: Phase-0 = this ADR + live oya-ci-required producer + 4 keystone gates (RED/GREEN-proven), Jenkins/Argo bridge operative-but-unratified; Phase-1 = controller spawns a Job per PR (Face A) + Face B minimal + minimal Tide admission + cut over and delete the Jenkins gate path; Phase-2 = Tide batch/speculative-retest/auto-rebase + DAG (Face C) + provenance signer (Face D) + oya-cd DeliveryPlane; Phase 3-5 = speculation-tree (0369) + agentic self-repair (0366) + owned engines own-when-proven. CD starts REUSE-behind-DeliveryPlane (Argo CD/Rollouts). Merge-queue (Tide) and reviewer-approve are owned IN the platform, not deferred.",
-            "evidence": "docs/decisions/ADR-0515-...md Phasing section (lines ~118-126): Phase-0/Phase-1 ('delete the Jenkins gate path')/Phase-2/Phase-3-5; Face A table row at line 76 'serial Tide-invariant merge-queue (batches > singletons, retest-base, abort-on-HEAD-move)'; CD row at line 80 'Argo CD / Argo Rollouts = REUSE-behind-DeliveryPlane in MVP'; supersession table :108-111. [CORRECTED: claim cited :121-124/:76/:80/:110/:115 — Face A=76, CD=80, 0124-supersede=110, enforcement-REAL=115 confirmed; phasing block is ~118-126 not 121-124]",
+            "evidence": "docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md Phasing section (lines ~118-126): Phase-0/Phase-1 ('delete the Jenkins gate path')/Phase-2/Phase-3-5; Face A table row at line 76 'serial Tide-invariant merge-queue (batches > singletons, retest-base, abort-on-HEAD-move)'; CD row at line 80 'Argo CD / Argo Rollouts = REUSE-behind-DeliveryPlane in MVP'; supersession table :108-111. [CORRECTED: claim cited :121-124/:76/:80/:110/:115 — Face A=76, CD=80, 0124-supersede=110, enforcement-REAL=115 confirmed; phasing block is ~118-126 not 121-124]",
             "severity": "info"
           }
         ],

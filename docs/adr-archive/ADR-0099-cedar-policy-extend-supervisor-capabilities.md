@@ -18,6 +18,9 @@ related:
   - ADR-0098   # Supervisor dep-policy Branch Y (crash atomicity context)
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0099: Cedar Policy Extension: Foundry Supervisor Capabilities at T1–T4
 
 ## Status

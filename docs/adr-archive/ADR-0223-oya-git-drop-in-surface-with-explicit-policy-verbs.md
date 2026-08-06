@@ -20,6 +20,9 @@ evidence:
   - evidence/pr-159-adr-0223-doubt-driven-design-checkpoint-2026-05-18.json
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0223: oya git drop-in surface with explicit policy verbs
 
 ## Status

@@ -16,6 +16,9 @@ amends_note: "Rewrites the prior 'Cilium primary + Istio Ambient Tier-2 opt-in' 
 amendment_2026_05_26: "Version currency fix. The original 'Cilium 1.16 LTS' pin is EOL — upstream Cilium supports only the 3 newest minors (1.17/1.18/1.19 as of 2026-05; 1.16's last patch was 2026-01-13). Canonical pin moved to Cilium 1.19.x (1.19.4). Istio Ambient version generalized to 'track current stable' (GA since 1.24; 1.30.x current). Two layering requirements made explicit in the deployment values (infra/talos/cilium-values.yaml): Hubble relay+metrics enabled (Cilium owns L4 flow observability), and socketLB.hostNamespaceOnly=true so Cilium's socket-LB does not bypass the Ambient ztunnel. Source: cilium/cilium releases + endoflife.date/cilium + istio.io ambient docs, verified 2026-05-26."
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0148 — Service-mesh canonical: Cilium L3/L4 + Istio Ambient L7 (layered globally; zero overlap)
 
 ## Status

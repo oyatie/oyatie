@@ -3309,7 +3309,7 @@
       "summary": "registry/knowledge-graph-semantic.json deleted; 36 node_types + 27 edge_types + 19 invariants + 11 read_side_query_examples migrated into specs/products/ontology.json#type_system. Single source of truth for semantic type definitions. Per ADR-0139 + OP-11 no compat seams.",
       "deprecated_artifact": "registry/knowledge-graph-semantic.json",
       "canonical_home": "specs/products/ontology.json#type_system",
-      "adr_ref": "docs/decisions/ADR-0139-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md"
+      "adr_ref": "docs/adr-archive/ADR-0139-agentic-slo-gated-promotion.md"
     }
   ]
 }

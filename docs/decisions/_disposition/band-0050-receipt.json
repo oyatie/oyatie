@@ -59,7 +59,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md",
+    "docs/adr-archive/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md",
     "docs/decisions/_disposition/band-0050-receipt.json"
   ],
   "no_change": [

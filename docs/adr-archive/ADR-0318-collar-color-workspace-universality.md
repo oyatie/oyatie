@@ -76,6 +76,9 @@ naming_justifications:
       Audit event emitted when the requested device profile falls back safely.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Collar-color / workspace universality
 
 # ADR-0318: Collar-Color and Workspace Universality Doctrine

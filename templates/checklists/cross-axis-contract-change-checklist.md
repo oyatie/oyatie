@@ -10,7 +10,7 @@ enforcing_fitness_lane: oya-governance-cross-axis-notify
 owner_team: council-architecture
 related:
   - docs/DESIGN.md
-  - docs/decisions/ADR-0011-cross-axis-contract-registry.md
+  - docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md
   - /templates/pull-request-template.md
 ---
 

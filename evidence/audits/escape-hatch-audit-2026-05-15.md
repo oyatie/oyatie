@@ -156,7 +156,7 @@ and stop re-flagging them.
     — "check namespace (BNF-exempt)".
     - **Verdict:** DEFERRED — same naming-kernel territory.
 
-16. `docs/decisions/ADR-0063-documentation-suite-coverage.md:82,89`
+16. `docs/adr-archive/ADR-0063-documentation-set-coverage.md:82,89`
     — "BNF-exempt" + "planned-only µservices ... are exempt from §1
     enforcement but logged".
     - **Verdict:** DEFERRED — same naming-kernel territory + doc-coverage

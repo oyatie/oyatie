@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Surface
 
-Search-axis ([ADR-0030](../../../docs/decisions/ADR-0030-search-engine-architecture.md)) — index pipeline, ranker, query planner, vector store ([ADR-0046](../../../docs/decisions/ADR-0709-general-live-apex.md)), backend ([ADR-0047](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)), Korean morphology ([ADR-0048](../../../docs/decisions/ADR-0709-general-live-apex.md)).
+Search-axis ([ADR-0030](../../../docs/adr-archive/ADR-0030-search-microservice-architecture.md)) — index pipeline, ranker, query planner, vector store ([ADR-0046](../../../docs/decisions/ADR-0709-general-live-apex.md)), backend ([ADR-0047](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)), Korean morphology ([ADR-0048](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 2. Default rail per sub-surface
 

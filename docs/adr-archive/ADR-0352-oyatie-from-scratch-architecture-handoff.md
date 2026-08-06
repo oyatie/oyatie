@@ -16,6 +16,9 @@ purpose: >
   following pointers to any other existing file.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: From-scratch architecture handoff — narrative dump; not a decision unit
 
 # ADR-0352: Oyatie from-scratch architecture handoff

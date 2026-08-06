@@ -12,6 +12,9 @@ superseded_by: [ADR-709]
 amended_by: [ADR-0632]
 related: [ADR-0457, ADR-0429, ADR-0443, ADR-0083, ADR-0411, ADR-0451, ADR-0509]
 ---
+
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
 # ADR-0478 — oya-billing: bespoke Rust billing engine
 
 ## Status

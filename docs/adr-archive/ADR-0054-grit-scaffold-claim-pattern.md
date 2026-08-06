@@ -4,6 +4,9 @@ status: Rejected
 doc_status: published
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0054: Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)
 
 > **Superseded by ADR-0116 (2026-05-16)** — external agent-coordination tooling (grit, rtk, icm, vox) is retired; the Foundry pipeline (M01-P18) is the canonical workflow. See `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`.

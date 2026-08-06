@@ -39,7 +39,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md"
+    "docs/adr-archive/ADR-0213-ecosystem-as-a-service-architecture.md"
   ],
   "no_change": [
     "ADR-0210"

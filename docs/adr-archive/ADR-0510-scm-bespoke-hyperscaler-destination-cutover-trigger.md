@@ -21,6 +21,9 @@ session_context:
 purpose: Record the SCM destination as the bespoke hyperscaler monorepo-VCS pattern (decided), name GitHub+git as the explicit TRANSITORY host, and gate the cutover on a NUMERIC trigger (clone-time / working-set / commit-status fan-out throughput) so the destination is deferred-not-absent. Make GitHub's transitory status explicit (amends ADR-0363, which framed GitHub as "canonical" without a horizon).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0510: SCM destination = bespoke hyperscaler monorepo-VCS; GitHub transitory; cutover numerically triggered
 
 ## Status

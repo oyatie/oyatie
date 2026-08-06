@@ -24,6 +24,9 @@ sunset:
 purpose: Make "we are hyperscaler mature" an evidence-gated claim, with Workflow Studio, integrations, pipeline, CI/CD, toolchain, development cycle, guardrails, safety, UX, ease of use, and competitor response as blocking surfaces.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0123: Hyperscaler maturity claim gate
 
 ## Status

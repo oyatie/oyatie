@@ -12,6 +12,9 @@ related_specs:
   - /specs/agentic-slo-gated-promotion.json
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0165 — Chaos Engineering Substrate (Chaos Mesh 2.x; SLO-driven nightly drills against staging)
 
 ## Status

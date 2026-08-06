@@ -24,6 +24,9 @@ depends_on:
 supersedes: []
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: FO/MO/BO information barrier — keep as Rejected until regulated-finance pack prioritizes
 
 # ADR-0319: Front Office / Middle Office / Back Office Information-Barrier Doctrine

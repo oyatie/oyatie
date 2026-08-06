@@ -68,7 +68,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
+    "docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
     "docs/decisions/_disposition/band-0290-receipt.json"
   ],
   "no_change": [

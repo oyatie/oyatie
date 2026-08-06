@@ -1184,8 +1184,8 @@ A case-study claim chain ties marketing copy to a sealed audit-chain projection 
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md
-- docs/decisions/ADR-0251-compliance-pack-primitive.md
-- docs/decisions/ADR-0255-intelligence-two-layer-substrate.md
+- docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md

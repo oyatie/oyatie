@@ -313,7 +313,7 @@
       "id": "ADR-0185",
       "title": "OpenAPI 3.2 codegen",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0185-openapi-3-2-codegen.md"
+      "file": "docs/adr-archive/ADR-0185-workflow-studio-client-stack.md"
     },
     {
       "id": "ADR-0199",
@@ -325,13 +325,13 @@
       "id": "ADR-0211",
       "title": "In-house tech policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0211-in-house-tech-policy.md"
+      "file": "docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md"
     },
     {
       "id": "ADR-0212",
       "title": "Buildability bar",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0212-buildability-bar.md"
+      "file": "docs/adr-archive/ADR-0212-buildability-doctrine.md"
     },
     {
       "id": "ADR-0213",

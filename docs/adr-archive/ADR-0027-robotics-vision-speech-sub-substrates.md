@@ -4,6 +4,9 @@ status: Rejected
 doc_status: published
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: Robotics/vision/speech — out of current operational horizon; reopen when product prioritizes
 
 # ADR-0027: Robotics, vision, and speech sub-substrates — vision/speech model crates, robotics control plane, deterministic latency, safety-critical anti-scope

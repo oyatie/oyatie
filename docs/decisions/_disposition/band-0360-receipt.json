@@ -94,7 +94,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0364-generative-adr-template-and-masterplan-generation.md",
+    "docs/adr-archive/ADR-0364-generative-adr-template-and-masterplan-generation.md",
     "docs/decisions/_disposition/band-0360-receipt.json"
   ],
   "no_change": [

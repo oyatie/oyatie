@@ -59,6 +59,9 @@ forbidden_primitives_for_implementation:
   - "External package-manager surface (e.g., npm registry, crates.io) for first-party SDK distribution — vendored under microservices/developer-sdk/iac/registry per ADR-0211 §package-distribution"
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 <!-- Canonical-base: specs/adr/canonical-frontmatter-schema.json + docs/templates/adr-boilerplate-fragments.md (SWEEP-I Slice 6 per ADR-0064) -->
 
 # ADR-0213: Ecosystem-as-a-Service architecture — Plugin/App Store substrate

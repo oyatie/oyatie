@@ -1564,8 +1564,8 @@ Shard 1 squash commit. Additionally:
 | Gate | Command | Expected exit |
 |---|---|:---:|
 | Zero hits global sweep | `rg -F -f /tmp/old-crate-names.txt . -g '!docs/CHANGELOG.md' -g '!docs/plans/rename-plan-*.md' -g '!docs/decisions/ADR-0054*' -g '!docs/decisions/ADR-0056*' -g '!docs/decisions/ADR-0057*'` | exit 1 (no match = pass) |
-| ADR-0056 status | `rg "^status: Accepted" docs/decisions/ADR-0056-*.md` | 0 |
-| ADR-0057 status | `rg "^status: Accepted" docs/decisions/ADR-0057-*.md` | 0 |
+| ADR-0056 status | `rg "^status: Accepted" docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md` | 0 |
+| ADR-0057 status | `rg "^status: Accepted" docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md` | 0 |
 | Bounded-context registry consistency | `cargo run -p xtask-metadata-augment -- --bounded-context-registry-check` | 0 (every bounded-context field in all 140 crates appears in `docs/standards/bounded-contexts.md`) |
 | **B6 closure — 4-check BLOCKER flip atomicity** (post-Shard-1, separate PR within 24 h; updated iter-2 from 11 → 4 per LEAN-A1–A4 collapse) | All 4 `oya-check-*` crates' CI workflow rows flip from `severity: report-only` to `severity: BLOCKER` in a single commit; verify via `rg "severity: BLOCKER" .github/workflows/checks.yml \| wc -l` returns `4` | 0 (count = 4) |
 
@@ -2278,8 +2278,8 @@ window.
   block for v4: "Amendment 2026-05-13: rename-event scaffold-claim
   authority (v4)" — carries the rename-event scaffold-claim authority
   to the v4 rename, replacing v3's amendment text)
-- `docs/decisions/ADR-0056-*.md` (NEW, BNF + bounded-context-registry)
-- `docs/decisions/ADR-0057-*.md` (NEW, supersedes ADR-0055)
+- `docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md` (NEW, BNF + bounded-context-registry)
+- `docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md` (NEW, supersedes ADR-0055)
 - `docs/ADR-INDEX.md` (new rows for ADR-0056 + ADR-0057)
 - `docs/CHANGELOG.md` (rename entry)
 - `docs/plans/rename-plan-v3-2026-05-12.md` (frontmatter update:

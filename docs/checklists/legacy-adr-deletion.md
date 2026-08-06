@@ -13,7 +13,7 @@ doc_status: published
 
 ## 1. Prerequisites (cannot delete until ALL satisfied)
 
-1. ☐ All 50 new pack ADRs authored at `docs/decisions/ADR-0001..0050-<slug>.md` (or council-approved fewer if consolidation reduces count)
+1. ☐ All 50 new pack ADRs authored at `docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md` (or council-approved fewer if consolidation reduces count)
 2. ☐ Per-new-ADR Status: Proposed → Accepted via council ratification
 3. ☐ `docs/decisions/README.md` reflects final pack
 4. ☐ `decisions/RETIRED.md` exists (already authored 2026-05-09)

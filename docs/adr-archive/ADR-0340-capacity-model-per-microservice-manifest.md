@@ -132,6 +132,9 @@ purpose: >
   updates in this ADR; that authoring is a follow-on sub-wave.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Context re-triage Accept: Capacity model per µservice manifest
 
 # ADR-0340: Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant + scaling_dimension + cell_placement_class)

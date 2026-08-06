@@ -377,7 +377,7 @@ The next buildable path is to define authoritative DNS core first: zone, record,
 | Anycast posture | Define serving topology per context and tenant_class | Architecture plus capacity model | Current docs declare latency targets but no topology proof |
 | OCI demo_trial tenant_class | Add Always Free admission profile | `iac/guest-on-oci/always-free/` plus tenant_class matrix row | Master plan `oci_always_free` is at `specs/master-plan-sequencing.json:857-867` |
 | OS matrix | Add supported OS manifest and package map | `supported-oses.json` or service manifest field | OS directive requires Tier-1 coverage in `feedback_os_support_matrix_2026_05_20.md:37-44` |
-| IaC substrate | Add OpenTofu modules per context | `iac/<context>/main.tf`, lockfile, and signing evidence | ADR-0328 D-16 at `docs/decisions/ADR-0328-...md:2241-2365` |
+| IaC substrate | Add OpenTofu modules per context | `iac/<context>/main.tf`, lockfile, and signing evidence | ADR-0328 D-16 at `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2365` |
 | SLO proof | Add authoritative-answer, propagation, and failover SLOs | OpenSLO file | Current service has benchmark text but no OpenSLO artifact |
 | Benchmarks | Add measured harness and raw-result retention | Benchmark result directory and methodology note | Existing benchmark doc cites missing evidence at `benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:119` |
 

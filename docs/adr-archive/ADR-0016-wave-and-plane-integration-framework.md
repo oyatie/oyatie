@@ -5,6 +5,9 @@ superseded_by: [ADR-709]
 doc_status: published
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Context re-triage Accept: Wave/plane integration framework
 
 # ADR-0016: Wave and plane integration framework — descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, status labels (preview / stable / GA), no M0/M1/M2/M3/minimum-shippable-tier vocab

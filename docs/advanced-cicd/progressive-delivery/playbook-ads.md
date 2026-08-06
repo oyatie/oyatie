@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Surface
 
-Ads + Analytics axis ([ADR-0031](../../../docs/decisions/ADR-0031-ads-and-analytics-architecture.md)) — auction, attribution, frequency-cap, audience builder, measurement, reporting.
+Ads + Analytics axis ([ADR-0031](../../../docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md)) — auction, attribution, frequency-cap, audience builder, measurement, reporting.
 
 ## 2. Default rail per sub-surface
 
@@ -49,7 +49,7 @@ Planned advisory lane: `oya-governance-cohort-honor` as a planned blocker for Ad
 Every Ads change MUST declare:
 
 1. PII surface touched (typed; per [ADR-0008](../../../docs/decisions/ADR-0709-general-live-apex.md)).
-2. Cross-axis data-flow ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)) — Ads cannot pull data from Workspace/SaaS without an explicit contract.
+2. Cross-axis data-flow ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)) — Ads cannot pull data from Workspace/SaaS without an explicit contract.
 3. Retention impact — does the change extend retention? If yes, DPA amendment required.
 4. Differential-privacy budget consumption (if applicable).
 5. Cohort exclusion list — at minimum `connect-no-ads`, `stable-regulated-healthcare`, `stable-regulated-fintech`.

@@ -35,7 +35,7 @@ Co-located with `oya-platform-tenant-kernel` (existing). Cohort decisions are pe
 
 | Cohort | Membership criteria | Canary visibility | Experiment visibility | Default lag |
 |---|---|---|---|---|
-| `stable-regulated` | Healthcare / fintech / gov / EU-public-sector tenants ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)) | None | None | 28 days |
+| `stable-regulated` | Healthcare / fintech / gov / EU-public-sector tenants ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)) | None | None | 28 days |
 | `stable-enterprise` | Contractual SLA ≥ 99.99% or rolling-window-stability clause | None | Opt-in only | 14 days |
 | `canary-eligible` | All other paying tenants | Stage 3+ (25%+) | Yes | 0 days |
 | `canary-pioneer` | Opted-in early-adopter program | Stage 1+ (1%+) | Yes | 0 days |

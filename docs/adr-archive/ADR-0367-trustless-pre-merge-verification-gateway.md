@@ -35,6 +35,9 @@ deliverables:
 purpose: Replace the traditional human-PR-review ceremony with a trustless pre-merge verification gateway. The producing agent never certifies its own work; a trusted runner re-executes and SIGNS the evidence, and a separate adversarial reviewer-agent approves. This closes the "the evidence collection itself could be false" hole and maximizes merge efficiency without lowering the quality bar.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0367: Trustless pre-merge verification gateway (PR-ceremony-less)
 
 ## Status

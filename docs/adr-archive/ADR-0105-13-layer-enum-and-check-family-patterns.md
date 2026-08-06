@@ -15,6 +15,9 @@ relates_to:
   - ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0105: 13-value canonical layer enum + check-family + backend-suffix patterns (amends ADR-0056)
 
 ## Status

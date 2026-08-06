@@ -19,6 +19,9 @@ renumbered_on: 2026-05-15
 renumber_reason: "ID-collision with ADR-0052-inventory-grit-cutover.md (Canonical Inventory Ledger for the grit/icm Cutover, dated 2026-05-12). Both ADRs cover the grit cutover but at different abstraction levels — this one is the high-level legacy-primitive replacement matrix; the older ADR-0052 is the operational ledger. Renumbered to ADR-0103 (next free slot) so both surface in the index."
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0103: Grit cutover inventory of legacy primitives
 
 ## Context

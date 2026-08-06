@@ -11,7 +11,7 @@ supersedes: [ADR-1, ADR-13, ADR-19, ADR-90, ADR-132, ADR-166, ADR-176, ADR-249, 
 superseded_by: []
 amends: []
 amended_by: []
-depends_on: [ADR-515, ADR-363, ADR-562]
+depends_on: []
 related: []
 milestone: W0
 ---

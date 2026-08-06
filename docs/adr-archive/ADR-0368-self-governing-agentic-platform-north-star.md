@@ -43,6 +43,9 @@ deliverables:
 purpose: North-star charter. Oyatie is a self-improving, self-healing, self-governing agentic platform: a maximal fleet of agents executes a masterplan generated from ADRs; the only human input is architectural decisions — and even those are challenged against hyperscaler best-practice. This ADR is the apex; every other ADR serves it. (Becomes ADR-0000 in the re-foundation.)
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0368: Self-governing agentic platform — north-star charter
 
 ## Status

@@ -12,6 +12,9 @@ amended_by: [ADR-0632]
 milestone: M-COST-ALLOCATION-V2
 related: [ADR-0443, ADR-0479, ADR-0193, ADR-0407, ADR-0083, ADR-0411, ADR-0423, ADR-0509]
 ---
+
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
 # ADR-0480 — oya-cost: bespoke Rust K8s cost allocation substrate
 
 ## Status

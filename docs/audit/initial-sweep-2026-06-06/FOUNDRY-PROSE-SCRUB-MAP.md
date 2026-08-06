@@ -75,9 +75,9 @@ KEEP unchanged — editing these would erase the retirement record.
 
 | Family | Files / lines | Why KEEP |
 |---|---|---|
-| `docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md` | body | the retirement decision itself; **slug = DEFER (0335)** |
-| `docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md` | body | bulk-rename decision; **slug = DEFER (0347)** |
-| `docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md` | body | vcs retirement; **slug = DEFER (0363)** |
+| `docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md` | body | the retirement decision itself; **slug = DEFER (0335)** |
+| `docs/adr-archive/ADR-0347-governance-fitness-bulk-rename.md` | body | bulk-rename decision; **slug = DEFER (0347)** |
+| `docs/adr-archive/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md` | body | vcs retirement; **slug = DEFER (0363)** |
 | `docs/decisions/**` other ADR bodies citing foundry | 1,875 lines / 212 files | historical cross-refs documenting retirement chain |
 | `evidence/**`, `registry/check-empirical-evidence/**` | 343 lines | acceptance/empirical evidence of the retirement (`2026-05-16-m02-exit-on-prem-foundry-live.json`, `score-card-…-foundry-pr126.json`) |
 | `oya/intelligence/_legacy-foundry/` (3 files: README.md, manifest.json, scorecards/overrides.json) | KEEP (class B by design) | `_legacy-` prefix already marks it as a retirement archive; 0 content refs; dated 2026-05-21. The foundry name IS the archived subject. (Path is NOT a class-C rename target.) |

@@ -13,6 +13,9 @@ related:
 purpose: Define the merge-queue algorithm (projected-merge-state diff validation + fix-at-any-stage adjustment) that prevents divergence + conflicts under heavy agentic concurrency.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0111: Merge queue: projected-merge-state + fix-at-any-stage
 
 ## Context

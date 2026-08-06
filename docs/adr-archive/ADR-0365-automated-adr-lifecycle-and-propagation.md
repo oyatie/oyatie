@@ -43,6 +43,9 @@ deliverables:
 purpose: Make the decision LIFECYCLE itself enforced and automated. An ADR is the output of a governed pipeline (research -> consensus-plan -> ADR) and, once accepted, propagates automatically to every dependent doc including the masterplan. Nothing that can be generated is hand-maintained; nothing that can be enforced is left to discipline.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0365: Automated ADR lifecycle — research → consensus → ADR → auto-propagate
 
 ## Status

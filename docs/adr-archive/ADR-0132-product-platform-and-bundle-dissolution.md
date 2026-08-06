@@ -17,6 +17,9 @@ bominal_source: "override — Bominal's bundled product groupings (legacy suite 
 purpose: Forward-policy — no new bundle or vertical-grouping µservices anywhere in oyatie. Customer-facing language names concrete services and tenant/RBAC packaging; architecture still ships every new µservice as a flat single-concern µservice consistent with AWS / Google / Microsoft / Stripe per-service practice and ADR-0131 (per-microservice flat layout).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0132: No-grouping forward-policy (universal flat catalog)
 
 ## Status

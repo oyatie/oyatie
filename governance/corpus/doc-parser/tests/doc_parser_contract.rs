@@ -44,7 +44,7 @@ fn census_input(decision_sources: Vec<CensusSource>) -> CensusInput {
 #[test]
 fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
     let source = census_source(
-        "docs/decisions/ADR-0001-example.md",
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
     );
     let first = build_receipt(&census_input(vec![source.clone()]))
@@ -63,7 +63,7 @@ fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
 #[test]
 fn adr_census_receipt_uses_a_domain_and_length_framed_entry_fold() {
     let source = census_source(
-        "docs/decisions/ADR-0001-example.md",
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
     );
     let receipt = build_receipt(&census_input(vec![source]))
@@ -78,7 +78,7 @@ fn adr_census_receipt_uses_a_domain_and_length_framed_entry_fold() {
 
 #[test]
 fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch() {
-    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    let source = census_source("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md", b"not an ADR");
     assert_eq!(
         build_receipt(&census_input(vec![source.clone(), source])).unwrap_err(),
         CensusViolation::DuplicatePath
@@ -94,7 +94,7 @@ fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch()
     );
 
     let mut input = census_input(vec![census_source(
-        "docs/decisions/ADR-0001-example.md",
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         b"not an ADR",
     )]);
     input.parser_sources[0].bytes.push(b'!');
@@ -126,7 +126,7 @@ fn adr_census_builder_accepts_crlf_only_divergence_on_parser_source_bytes() {
 
 #[test]
 fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles() {
-    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    let source = census_source("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md", b"not an ADR");
     let mut invalid_object_id = census_input(vec![source.clone()]);
     invalid_object_id.repository_commit = OID_A.to_uppercase();
     assert_eq!(
@@ -145,7 +145,7 @@ fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles
 #[test]
 fn adr_census_builder_retains_only_the_first_parser_error_with_its_source_span() {
     let receipt = build_receipt(&census_input(vec![census_source(
-        "docs/decisions/ADR-0001-example.md",
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         b"---\nid: ADR-0002\nid: ADR-0001\n---\n# ADR-0001: Example\n",
     )]))
     .expect("parser errors remain deterministic diagnostic data");
@@ -368,7 +368,7 @@ fn malformed_frontmatter_fails_closed() {
     );
 }
 
-const ADR_PATH: &str = "docs/decisions/ADR-0517-owned-parser.md";
+const ADR_PATH: &str = "docs/adr-archive/ADR-0517-one-owned-ast-substrate-content-addressed.md";
 const LEGACY_MISSING_REQUIRED: &str = r"---
 id: ADR-0517
 status: Accepted
@@ -684,28 +684,28 @@ fn nonbinding_forward_edges_precede_self_and_missing_target_failures() {
 #[test]
 fn controlling_adr_chronology_keeps_full_population_provenance_and_detects_cycles() {
     let accepted = parse_chronology_adr_at_path(
-        "docs/decisions/ADR-0001-accepted.md",
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "ADR-0001",
         "Accepted",
         "2026-01-01",
         "amends: [ADR-0002]\n",
     );
     let proposed_duplicate = parse_chronology_adr_at_path(
-        "docs/decisions/ADR-0001-proposed.md",
+        "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
         "ADR-0001",
         "Proposed",
         "2026-01-01",
         "",
     );
     let proposed_one = parse_chronology_adr_at_path(
-        "docs/decisions/ADR-0003-proposed-a.md",
+        "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
         "ADR-0003",
         "Proposed",
         "2026-01-01",
         "",
     );
     let proposed_two = parse_chronology_adr_at_path(
-        "docs/decisions/ADR-0003-proposed-b.md",
+        "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
         "ADR-0003",
         "Proposed",
         "2026-01-01",
@@ -758,7 +758,7 @@ fn controlling_adr_chronology_keeps_full_population_provenance_and_detects_cycle
 fn controlling_adr_chronology_preserves_hold_and_only_cycles_forward_amends_and_supersedes() {
     let accepted = parse_chronology_adr("ADR-0001", "Accepted", "2026-01-01", "");
     let nonbinding = parse_chronology_adr_at_path(
-        "docs/decisions/ADR-0002-proposed.md",
+        "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
         "ADR-0002",
         "Proposed",
         "2026-01-01",
@@ -1218,7 +1218,7 @@ fn adr_ir_uses_the_exact_first_h1_title_and_requires_repo_relative_paths() {
 
     assert!(matches!(
         parse_adr_decision(&AdrParseInput::new(
-            "/repo/docs/decisions/ADR-0517-owned-parser.md",
+            "/repo/docs/adr-archive/ADR-0517-one-owned-ast-substrate-content-addressed.md",
             source,
         )),
         Err(AdrParseError::InvalidSourcePath { .. })

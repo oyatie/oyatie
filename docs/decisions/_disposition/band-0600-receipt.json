@@ -77,7 +77,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
+    "docs/adr-archive/ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
     "docs/decisions/_disposition/band-0600-receipt.json"
   ],
   "no_change": [

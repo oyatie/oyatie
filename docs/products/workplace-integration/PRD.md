@@ -2041,7 +2041,7 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 - `ADR-0242`
 - `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
 - `docs/decisions/ADR-0702-identity-authz-live-apex.md`
-- `docs/decisions/ADR-0252-workflow-engine-per-step-idempotency.md`
+- `docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md`
 - `docs/products/_TEMPLATE.md` (PRD template)
 - Memory ledger: `feedback_oyatie_is_a_tenant_doctrine`, `feedback_substrate_vs_product_layering`, `feedback_workflow_studio_scope`, `feedback_quality_performance_scalability_bar`, `feedback_clean_architecture_requirements`, `feedback_autonomous_implementation_artifacts`, `feedback_canonical_base_localization`, `feedback_doc_coverage_enforced`, `feedback_no_silent_regression`
 
@@ -2476,10 +2476,10 @@ This product consumes current SSOT doctrine for the intelligence substrate, cell
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - docs/decisions/ADR-0708-platform-foundations-live-apex.md
-- docs/decisions/ADR-0252-workflow-engine-per-step-idempotency.md
-- docs/decisions/ADR-0255-intelligence-two-layer-model.md
-- docs/decisions/ADR-0263-audit-event-registry.md
-- docs/decisions/ADR-0316-capability-tier-deltas.md
+- docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md
+- docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- docs/adr-archive/ADR-0263-observability-emission-contract.md
+- docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - `registry/stores/instructions-store.json` D-CICD-AUTHORITY / D-CLOUD-NATIVE current CI authority
 - specs/products/workplace-integration.json

@@ -91,7 +91,7 @@ Target promotion fires automatically when **all five** are green on `staging` HE
 
 Promotion mechanic: `prod-promoter` agent fast-forwards `prod` to `staging` HEAD. Linear history preserved; Cosign-signed commit per [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md); SLSA L2+ provenance bundle attached.
 
-**Exception path (Directive 12 carve-out).** Compliance-pack updates ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)) and KMS root rotation ([ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)) add `requires_human_signoff: true`. Those classes only: `prod-promoter` requires a Cosign-signed approval commit from a `@council-architecture` member. No other class requires a human button.
+**Exception path (Directive 12 carve-out).** Compliance-pack updates ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)) and KMS root rotation ([ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)) add `requires_human_signoff: true`. Those classes only: `prod-promoter` requires a Cosign-signed approval commit from a `@council-architecture` member. No other class requires a human button.
 
 ## 6. Why this model, in one paragraph
 

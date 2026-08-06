@@ -82,6 +82,9 @@ purpose: >
   underlying tenant slug stays fixed.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: Platform-owner-name indirection — thin; fold into tenant doctrine if needed
 
 # ADR-0284: Platform-Owner-Name Indirection

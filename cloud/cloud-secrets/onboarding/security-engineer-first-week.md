@@ -5,9 +5,9 @@ Audience: a security/cryptography engineer with KMS + HSM experience (Vault / AW
 
 ## Day 1 — required reading
 
-- `docs/decisions/ADR-0219-cloud-secrets-canonical-credential-plane.md` — binding scope.
-- `docs/decisions/ADR-0255-intelligence-two-layer-substrate.md` §D-4 — provider-credential BYOK.
-- `docs/decisions/ADR-0251-compliance-pack-primitive.md` — pack overlays for HIPAA/GDPR/SOC2/PCI/EU-AI-Act.
+- `docs/adr-archive/ADR-0219-no-code-first-ux-with-optional-ai-assist.md` — binding scope.
+- `docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md` §D-4 — provider-credential BYOK.
+- `docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md` — pack overlays for HIPAA/GDPR/SOC2/PCI/EU-AI-Act.
 - NIST SP 800-57 Part 1 Rev 5 — key management lifecycle (you'll need this for rotation reasoning).
 - RFC 9180 — HPKE; cloud-secrets uses HPKE for cross-region replication of secret envelopes.
 

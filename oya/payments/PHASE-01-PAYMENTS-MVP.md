@@ -190,10 +190,10 @@ Sequencing: domain → kernel → usecase → adapter → REST / gRPC / worker �
 - [`compliance.md`](compliance.md).
 - [`threat-model.md`](threat-model.md).
 - [ADR-0244 — tenant scoping](../../docs/decisions/ADR-0702-identity-authz-live-apex.md).
-- [ADR-0251 — compliance packs](../../docs/decisions/ADR-0251-compliance-pack-primitive.md).
-- [ADR-0255 §D-4 — provider-BYOK](../../docs/decisions/ADR-0255-intelligence-two-layer-substrate.md).
+- [ADR-0251 — compliance packs](../../docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md).
+- [ADR-0255 §D-4 — provider-BYOK](../../docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md).
 - [ADR-0263 — observability emission](../../docs/decisions/ADR-0706-observability-live-apex.md).
-- [ADR-0292 — minor-protection](../../docs/decisions/ADR-0292-minor-user-doctrine.md).
+- [ADR-0292 — minor-protection](../../docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md).
 - Stripe docs — `stripe.com/docs/connect`.
 - Adyen MarketPay docs — `docs.adyen.com/marketpay`.
 - KR-FSS oversight — `fss.or.kr` (Korean Financial Supervisory Service).

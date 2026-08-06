@@ -445,7 +445,7 @@
       "id": "ADR-0191",
       "title": "Edge authz tenant_class vs origin Cedar PDP",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0191-edge-authz-tenant_class-vs-origin-cedar-pdp.md"
+      "file": "docs/adr-archive/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md"
     },
     {
       "id": "ADR-0215",
@@ -494,7 +494,7 @@
       "id": "ADR-0329",
       "title": "tenant_class system retired; replaced by tenant_class model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0329-tenant_class-system-retired-replaced-by-tenant-class.md"
+      "file": "docs/adr-archive/ADR-0329-tier-system-retired-replaced-by-tenant-class.md"
     },
     {
       "id": "ADR-0330",

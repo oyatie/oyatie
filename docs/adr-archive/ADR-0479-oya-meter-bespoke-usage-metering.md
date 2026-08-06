@@ -12,6 +12,9 @@ amended_by: [ADR-0632]
 milestone: M-METERING-V2
 related: [ADR-0429, ADR-0478, ADR-0193, ADR-0397, ADR-0083, ADR-0411, ADR-0403, ADR-0420, ADR-0449, ADR-0131, ADR-0132, ADR-0509]
 ---
+
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
 # ADR-0479 — oya-meter: bespoke Rust usage metering substrate
 
 ## Status

@@ -31,6 +31,9 @@ companion_docs:
   - docs/standards/testing.md
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0083: Rust Error-Handling Tier Decision — thiserror at libraries / anyhow at binaries / no panics in library code
 
 > **Status:** Accepted — 2026-05-15

@@ -114,7 +114,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+    "docs/adr-archive/ADR-0116-retire-external-agent-coordination-tooling.md",
     "docs/decisions/_disposition/band-0110-receipt.json"
   ],
   "no_change": [

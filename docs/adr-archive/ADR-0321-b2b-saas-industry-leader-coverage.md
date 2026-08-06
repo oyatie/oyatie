@@ -33,6 +33,9 @@ vendor_dossier_count: 165
 new_microservice_count: 13
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 > **Disposition light-edit (2026-08-06):** Keep Rejected: B2B industry-leader coverage — portfolio aspiration not binding
 
 # ADR-0321: B2B SaaS Industry-Leader Coverage Doctrine

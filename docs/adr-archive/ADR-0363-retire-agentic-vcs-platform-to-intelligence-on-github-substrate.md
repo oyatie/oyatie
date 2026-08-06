@@ -17,6 +17,9 @@ session_context:
 purpose: Retire the bespoke agentic-VCS layer (oya vcs CLI + oya git wrapper + changeset-state machine + merge-queue + webhook-receiver) in favour of plain git + GitHub (interim) PRs + Prow-shaped cloud-ci/oya-ci required contexts. The legacy cloud-ci bridge is bridge evidence only. Narrow the oya toolchain away from CLI authority; governance semantics move to Rust gate crates/cloud-ci contexts. Absorb Foundry's AI-agent platform into Intelligence; keep Governance as its own service.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0363: Retire bespoke agentic-VCS; Foundry→Intelligence; `oya` is a governance-gate engine
 
 ## Status

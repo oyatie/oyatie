@@ -12,6 +12,9 @@ supersession_note: "ADR-0512 supersedes this; status was drifted (0512 named it 
 related: [ADR-0392, ADR-0476, ADR-0478, ADR-0479, ADR-0480, ADR-0481]
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0509 — Hyperscaler service decomposition pattern (single-crate-per-service + mod-based subsystems)
 
 ## Status

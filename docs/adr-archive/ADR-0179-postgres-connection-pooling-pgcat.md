@@ -13,6 +13,9 @@ related_specs:
 renumber_note: "Originally allocated ADR-0173 in PR #143 Fix-L round 2; renumbered to ADR-0179 after a multi-stage rebump because ADR-0173-0178 were concurrently allocated by Fix-J / Fix-K agents (saga-compensation-portfolio-policy, finops-cost-attribution-chargeback, istio-ambient-waypoint-for-regulatory-packs, brownout-degradation-signal-api, vendor-lock-in-avoidance-and-stack-ownership)."
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0179 — Postgres connection pooling canonical: pgcat (Rust pgbouncer-class)
 
 ## Status

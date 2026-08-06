@@ -45,7 +45,7 @@
     {
       "num": 1,
       "id": "ADR-0001",
-      "file": "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+      "file": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0001: Adopt the cohesion thesis \u2014 one product across a flat microservice catalog joined at six shared substrates",
@@ -68,7 +68,7 @@
     {
       "num": 2,
       "id": "ADR-0002",
-      "file": "docs/decisions/ADR-0002-tenant-and-identity-kernel.md",
+      "file": "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0002: Establish the Tenant and Identity kernel as the single substrate every axis consumes",
@@ -91,7 +91,7 @@
     {
       "num": 3,
       "id": "ADR-0003",
-      "file": "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
+      "file": "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0003: Audit chain and evidence emission as the single tamper-evident record-keeping substrate",
@@ -114,7 +114,7 @@
     {
       "num": 4,
       "id": "ADR-0004",
-      "file": "docs/decisions/ADR-0004-plane-separation-control-data-analytics.md",
+      "file": "docs/adr-archive/ADR-0004-plane-separation-control-data-analytics.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0004: Plane separation across control / data / analytics with catalog-declared plane class",
@@ -137,7 +137,7 @@
     {
       "num": 5,
       "id": "ADR-0005",
-      "file": "docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md",
+      "file": "docs/adr-archive/ADR-0005-eventing-backbone-outbox-pattern.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0005: Eventing backbone on Apache Kafka with outbox pattern, CloudEvents envelope, and per-tenant per-cell partitioning",
@@ -163,7 +163,7 @@
     {
       "num": 6,
       "id": "ADR-0006",
-      "file": "docs/decisions/ADR-0006-ontology-typed-entity-layer.md",
+      "file": "docs/adr-archive/ADR-0006-ontology-typed-entity-layer.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0006: Ontology as the engine-enforced typed-entity layer with per-property tier classification",
@@ -186,7 +186,7 @@
     {
       "num": 7,
       "id": "ADR-0007",
-      "file": "docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md",
+      "file": "docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0007: Cedar policy engine for RBAC/ABAC + persona-tier autonomy ceiling (T1\u2013T4) with per-capability runtime enforcement",
@@ -209,7 +209,7 @@
     {
       "num": 8,
       "id": "ADR-0008",
-      "file": "docs/decisions/ADR-0008-data-use-boundary.md",
+      "file": "docs/adr-archive/ADR-0008-data-use-boundary.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0008: Data Use Boundary \u2014 twelve data classes with HARD_DENY for PHI/PCI/PIPA-Art23/CHILDREN, orthogonal subject_class, purpose-permissi",
@@ -232,7 +232,7 @@
     {
       "num": 9,
       "id": "ADR-0009",
-      "file": "docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md",
+      "file": "docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0009: Cell architecture \u2014 per-tenant per-region blast-radius cells with cell-routing primitives at edge / mesh / store / event",
@@ -255,7 +255,7 @@
     {
       "num": 10,
       "id": "ADR-0010",
-      "file": "docs/decisions/ADR-0010-regional-pack-architecture.md",
+      "file": "docs/adr-archive/ADR-0010-regional-pack-architecture.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0010: Regional pack architecture \u2014 canonical seams + per-locale plug-ins for regulatory, compliance, i18n, currency, calendar, tax, iden",
@@ -278,7 +278,7 @@
     {
       "num": 11,
       "id": "ADR-0011",
-      "file": "docs/decisions/ADR-0011-cross-microservice-contract-registry.md",
+      "file": "docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0011: Cross-microservice contract registry \u2014 `contracts/microservice-contracts.yaml` source-of-truth, openapi/proto/asyncapi sub-directo",
@@ -301,7 +301,7 @@
     {
       "num": 13,
       "id": "ADR-0013",
-      "file": "docs/decisions/ADR-0013-product-license-policy.md",
+      "file": "docs/adr-archive/ADR-0013-product-license-policy.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0013: Product license policy \u2014 allowed (Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 / Unicode), forbidden in product code (AGPL / GPL)",
@@ -324,7 +324,7 @@
     {
       "num": 14,
       "id": "ADR-0014",
-      "file": "docs/decisions/ADR-0014-build-vs-buy-policy.md",
+      "file": "docs/adr-archive/ADR-0014-build-vs-buy-policy.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0014: Build-vs-buy policy \u2014 per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, ",
@@ -347,7 +347,7 @@
     {
       "num": 16,
       "id": "ADR-0016",
-      "file": "docs/decisions/ADR-0016-wave-and-plane-integration-framework.md",
+      "file": "docs/adr-archive/ADR-0016-wave-and-plane-integration-framework.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0016: Wave and plane integration framework \u2014 descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, sta",
@@ -370,7 +370,7 @@
     {
       "num": 17,
       "id": "ADR-0017",
-      "file": "docs/decisions/ADR-0017-brand-naming-and-repo-layout.md",
+      "file": "docs/adr-archive/ADR-0017-brand-naming-and-repo-layout.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0017: Brand naming and repo layout \u2014 Oyatie / oYa logo / oyatie.com domain, oya-<microservice>-<layer> Cargo prefix, repo path / GitHub ",
@@ -395,7 +395,7 @@
     {
       "num": 18,
       "id": "ADR-0018",
-      "file": "docs/decisions/ADR-0018-glossary-and-terminology-canon.md",
+      "file": "docs/adr-archive/ADR-0018-glossary-and-terminology-canon.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0018: Glossary and terminology canon \u2014 industry-aligned vocabulary, Oyatie-specific terms with industry analog, Korean-English parity ta",
@@ -418,7 +418,7 @@
     {
       "num": 19,
       "id": "ADR-0019",
-      "file": "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+      "file": "docs/adr-archive/ADR-0019-doc-catalog-and-update-protocol.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0019: Doc catalog and update protocol \u2014 every consolidated doc has owner / trigger / cadence / dependent-docs / validation; pre-flight +",
@@ -441,7 +441,7 @@
     {
       "num": 20,
       "id": "ADR-0020",
-      "file": "docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md",
+      "file": "docs/adr-archive/ADR-0020-intelligence-multi-provider-adapter-model.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0020: Foundry multi-provider adapter model \u2014 `ProviderAdapter` trait, ProviderAuth, capability-level routing",
@@ -464,7 +464,7 @@
     {
       "num": 21,
       "id": "ADR-0021",
-      "file": "docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md",
+      "file": "docs/adr-archive/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0021: Foundry capability registry and MCP gateway \u2014 `Capability` schema, MCP-compatible discovery, per-tenant endpoint",
@@ -487,7 +487,7 @@
     {
       "num": 22,
       "id": "ADR-0022",
-      "file": "docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md",
+      "file": "docs/adr-archive/ADR-0022-autonomy-ceiling-runtime-enforcement.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0022: Autonomy ceiling \u2014 runtime enforcement via Cedar policy at every capability invocation",
@@ -510,7 +510,7 @@
     {
       "num": 23,
       "id": "ADR-0023",
-      "file": "docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md",
+      "file": "docs/adr-archive/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0023: Foundry sandbox \u2014 Wasmtime + WASI Preview 2 for short-lived tools, Firecracker microVMs for full-kernel tools",
@@ -533,7 +533,7 @@
     {
       "num": 24,
       "id": "ADR-0024",
-      "file": "docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md",
+      "file": "docs/adr-archive/ADR-0024-intelligence-eval-harness-and-replay.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0024: Foundry eval harness and replay \u2014 per-capability golden sets, A/B routing, adversarial cohorts, regional linguistic eval",
@@ -556,7 +556,7 @@
     {
       "num": 25,
       "id": "ADR-0025",
-      "file": "docs/decisions/ADR-0025-intelligence-as-engineering-platform.md",
+      "file": "docs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0025: Foundry as the engineering platform \u2014 repoctl, catalog, gates, fitness functions, supply chain, customer-facing builder surfaces a",
@@ -579,7 +579,7 @@
     {
       "num": 26,
       "id": "ADR-0026",
-      "file": "docs/decisions/ADR-0026-in-house-ai-model-substrate-roadmap.md",
+      "file": "docs/adr-archive/ADR-0026-in-house-ai-model-substrate-roadmap.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0026: In-house AI model substrate \u2014 long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval set favors in-house",
@@ -602,7 +602,7 @@
     {
       "num": 27,
       "id": "ADR-0027",
-      "file": "docs/decisions/ADR-0027-robotics-vision-speech-sub-substrates.md",
+      "file": "docs/adr-archive/ADR-0027-robotics-vision-speech-sub-substrates.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0027: Robotics, vision, and speech sub-substrates \u2014 vision/speech model crates, robotics control plane, deterministic latency, safety-cr",
@@ -625,7 +625,7 @@
     {
       "num": 28,
       "id": "ADR-0028",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md",
+      "file": "docs/adr-archive/ADR-0028-cloud-microservice-architecture.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0028: Cloud microservice \u2014 compute substrate with stable product surface across three infrastructure phases",
@@ -648,7 +648,7 @@
     {
       "num": 29,
       "id": "ADR-0029",
-      "file": "docs/decisions/ADR-0029-connect-dual-context-architecture.md",
+      "file": "docs/adr-archive/ADR-0029-connect-dual-context-architecture.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0029: microservice \u2014 dual-context communications (Professional + Personal) as cohesion-bound replacement for Google Workspace / M365 / N",
@@ -671,7 +671,7 @@
     {
       "num": 30,
       "id": "ADR-0030",
-      "file": "docs/decisions/ADR-0030-search-microservice-architecture.md",
+      "file": "docs/adr-archive/ADR-0030-search-microservice-architecture.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0030: Search microservice \u2014 crawler / parser / index / ranker / SERP architecture with KR-first morphology and Data-Use-Boundary segrega",
@@ -694,7 +694,7 @@
     {
       "num": 31,
       "id": "ADR-0031",
-      "file": "docs/decisions/ADR-0031-ads-and-analytics-microservice-architecture.md",
+      "file": "docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0031: Ads + Analytics microservice \u2014 singleton tenant-ads-gate sourcing, sub-100ms auction, privacy-preserving attribution, Data-Use-Bou",
@@ -717,7 +717,7 @@
     {
       "num": 32,
       "id": "ADR-0032",
-      "file": "docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md",
+      "file": "docs/adr-archive/ADR-0032-dcim-software-for-own-dc-ops.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0032: DCIM software for Oyatie-owned DC operations \u2014 `crates/oya-cloud-dcops-*` with anti-scope on custom silicon",
@@ -740,7 +740,7 @@
     {
       "num": 34,
       "id": "ADR-0034",
-      "file": "docs/decisions/ADR-0034-per-microservice-data-class-overrides.md",
+      "file": "docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0034: Per-microservice data class overrides \u2014 microservice-side hard-deny pack that tenant admin cannot raise",
@@ -763,7 +763,7 @@
     {
       "num": 35,
       "id": "ADR-0035",
-      "file": "docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+      "file": "docs/adr-archive/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0035: Workflow engine \u2014 hybrid state-machine + DAG (not pure BPMN), per-tenant versioning, jurisdiction overlay, agent-authored steps",
@@ -786,7 +786,7 @@
     {
       "num": 36,
       "id": "ADR-0036",
-      "file": "docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md",
+      "file": "docs/adr-archive/ADR-0036-plugin-substrate-wasm-and-trust.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0036: Plugin substrate \u2014 Wasmtime + WASI Preview 2 with capability-gated context, Cosign signing, trust tiers, marketplace economics",
@@ -809,7 +809,7 @@
     {
       "num": 38,
       "id": "ADR-0038",
-      "file": "docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
+      "file": "docs/adr-archive/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0038: Trust framework \u2014 cross-microservice lineage, DSR cascade across all all microservices, Cosign-signed proof-of-erasure, tenant tru",
@@ -832,7 +832,7 @@
     {
       "num": 39,
       "id": "ADR-0039",
-      "file": "docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+      "file": "docs/adr-archive/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0039: Supply chain security \u2014 Trivy 4-layer scan, Cosign keyless signing, SBOM dual-format, signed commits and tags, Kyverno admission",
@@ -855,7 +855,7 @@
     {
       "num": 40,
       "id": "ADR-0040",
-      "file": "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+      "file": "docs/adr-archive/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0040: Progressive delivery \u2014 Argo Rollouts canary, blue-green for stateful surfaces, metric-gated rollback at SLO burn-rate \u2265 14.4\u00d7",
@@ -878,7 +878,7 @@
     {
       "num": 42,
       "id": "ADR-0042",
-      "file": "docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md",
+      "file": "docs/adr-archive/ADR-0042-observability-stack-otel-and-in-house-ui.md",
       "status_raw": "superseded",
       "status_key": "superseded",
       "title": "ADR-0042: Observability stack \u2014 OpenTelemetry SDK + VictoriaMetrics, in-house Leptos portal long-horizon, gen_ai semconv per capability",
@@ -903,7 +903,7 @@
     {
       "num": 43,
       "id": "ADR-0043",
-      "file": "docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
+      "file": "docs/adr-archive/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0043: Secrets management \u2014 OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCminimum-shippable-tier + FIPS 14",
@@ -926,7 +926,7 @@
     {
       "num": 44,
       "id": "ADR-0044",
-      "file": "docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md",
+      "file": "docs/adr-archive/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0044: Service mesh \u2014 Istio Ambient mode for east-west, Envoy as edge gateway, mTLS everywhere, per-cell namespace, audited cross-cell tr",
@@ -949,7 +949,7 @@
     {
       "num": 45,
       "id": "ADR-0045",
-      "file": "docs/decisions/ADR-0045-database-tier-strategy.md",
+      "file": "docs/adr-archive/ADR-0045-database-tier-strategy.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0045: Database tier strategy \u2014 PostgreSQL + Citus for OLTP, ClickHouse-fork for OLAP, Iceberg + DataFusion for lakehouse",
@@ -972,7 +972,7 @@
     {
       "num": 47,
       "id": "ADR-0047",
-      "file": "docs/decisions/ADR-0047-search-backend-strategy.md",
+      "file": "docs/adr-archive/ADR-0047-search-backend-strategy.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0047: Search backend strategy \u2014 pgroonga day-1 (LGPL legal isolation), Tantivy in-Rust at scale, OpenSearch as Apache-2 adapter, in-hous",
@@ -995,7 +995,7 @@
     {
       "num": 48,
       "id": "ADR-0048",
-      "file": "docs/decisions/ADR-0048-korean-morphology-and-multilingual-tokenization.md",
+      "file": "docs/adr-archive/ADR-0048-korean-morphology-and-multilingual-tokenization.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0048: Korean morphology + multilingual tokenization \u2014 `Tokenizer` trait per language family, mecab-ko + khaiii FFI day-1, in-house Rust ",
@@ -1018,7 +1018,7 @@
     {
       "num": 49,
       "id": "ADR-0049",
-      "file": "docs/decisions/ADR-0049-cross-region-replication-and-residency.md",
+      "file": "docs/adr-archive/ADR-0049-cross-region-replication-and-residency.md",
       "status_raw": "proposed",
       "status_key": "proposed",
       "title": "ADR-0049: Cross-region replication + residency \u2014 per-pack default residency class, opt-in cross-region per consent, immutable post-create",
@@ -1041,7 +1041,7 @@
     {
       "num": 51,
       "id": "ADR-0051",
-      "file": "docs/decisions/ADR-0051-mobile-and-native-client-strategy.md",
+      "file": "docs/adr-archive/ADR-0051-mobile-and-native-client-strategy.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0051: Mobile and Native Client Strategy",
@@ -1066,7 +1066,7 @@
     {
       "num": 54,
       "id": "ADR-0054",
-      "file": "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md",
+      "file": "docs/adr-archive/ADR-0054-grit-scaffold-claim-pattern.md",
       "status_raw": "deprecated",
       "status_key": "deprecated",
       "title": "ADR-0054: Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)",
@@ -1086,7 +1086,7 @@
     {
       "num": 55,
       "id": "ADR-0055",
-      "file": "docs/decisions/ADR-0055-object-graph-renamed-to-ontology.md",
+      "file": "docs/adr-archive/ADR-0055-object-graph-renamed-to-ontology.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0055: Object Graph renamed to Ontology",
@@ -1109,7 +1109,7 @@
     {
       "num": 57,
       "id": "ADR-0057",
-      "file": "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md",
+      "file": "docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "ADR-0057: Cutover Mechanics \u2014 Rename Plan v4 (Hybrid C)",
@@ -1133,7 +1133,7 @@
     {
       "num": 58,
       "id": "ADR-0058",
-      "file": "docs/decisions/ADR-0058-flat-microservice-catalog.md",
+      "file": "docs/adr-archive/ADR-0058-flat-microservice-catalog.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0058: Flat microservice catalog \u2014 Product Groups retired",
@@ -1156,7 +1156,7 @@
     {
       "num": 59,
       "id": "ADR-0059",
-      "file": "docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md",
+      "file": "docs/adr-archive/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0059: Workflow + Ontology = ecosystem adapter layer",
@@ -1179,7 +1179,7 @@
     {
       "num": 60,
       "id": "ADR-0060",
-      "file": "docs/decisions/ADR-0060-bominal-inheritance-precedence.md",
+      "file": "docs/adr-archive/ADR-0060-bominal-inheritance-precedence.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0060: Bominal-inheritance precedence \u2014 default inherit Bominal ADRs; session decisions override",
@@ -1202,7 +1202,7 @@
     {
       "num": 61,
       "id": "ADR-0061",
-      "file": "docs/decisions/ADR-0061-application-b2b-unified-shell.md",
+      "file": "docs/adr-archive/ADR-0061-application-b2b-unified-shell.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0061: Application \u2014 B2B unified shell with \u00e0-la-carte product enablement",
@@ -1225,7 +1225,7 @@
     {
       "num": 62,
       "id": "ADR-0062",
-      "file": "docs/decisions/ADR-0062-quality-performance-scalability-bar.md",
+      "file": "docs/adr-archive/ADR-0062-quality-performance-scalability-bar.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0062: Quality/Performance/Scalability bar \u2014 industry leaders + hyperscaler scale, mandatory from day one",
@@ -1248,7 +1248,7 @@
     {
       "num": 63,
       "id": "ADR-0063",
-      "file": "docs/decisions/ADR-0063-documentation-set-coverage.md",
+      "file": "docs/adr-archive/ADR-0063-documentation-set-coverage.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0063: Documentation set coverage \u2014 every planned feature ships with a complete doc set, CI-enforced",
@@ -1271,7 +1271,7 @@
     {
       "num": 64,
       "id": "ADR-0064",
-      "file": "docs/decisions/ADR-0064-canonical-base-and-localization-packs.md",
+      "file": "docs/adr-archive/ADR-0064-canonical-base-and-localization-packs.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0064: Canonical base + localization packs \u2014 pack-pluggable \u00b5service architecture, Korea is pack #1",
@@ -1294,7 +1294,7 @@
     {
       "num": 65,
       "id": "ADR-0065",
-      "file": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+      "file": "docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0065: Documentation as Leptos web pages with machine-readable JSON/YAML/TOML co-emission",
@@ -1317,7 +1317,7 @@
     {
       "num": 66,
       "id": "ADR-0066",
-      "file": "docs/decisions/ADR-0066-live-code-introspection-docs-portal.md",
+      "file": "docs/adr-archive/ADR-0066-live-code-introspection-docs-portal.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0066: Live code-introspection \u2014 docs portal reflects realtime project state with full endpoint / dep graph / dead-code coverage",
@@ -1340,7 +1340,7 @@
     {
       "num": 67,
       "id": "ADR-0067",
-      "file": "docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
+      "file": "docs/adr-archive/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0067: `ops.oyatie.com` \u2014 the canonical hyperscaler-grade operations console for the entire oyatie platform",
@@ -1363,7 +1363,7 @@
     {
       "num": 69,
       "id": "ADR-0069",
-      "file": "docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md",
+      "file": "docs/adr-archive/ADR-0069-active-machine-readable-artifact-contract.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0069: Active machine-readable artifact contract \u2014 9-capability declaration, knowledge-graph substrate, registry-pattern control plane",
@@ -1386,7 +1386,7 @@
     {
       "num": 90,
       "id": "ADR-0090",
-      "file": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "file": "docs/adr-archive/ADR-0090-hyper-canonical-http-backbone.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0090: Hyper canonical HTTP backbone (ADR-tracked LTS extension for hyper 1.x)",
@@ -1409,7 +1409,7 @@
     {
       "num": 91,
       "id": "ADR-0091",
-      "file": "docs/decisions/ADR-0091-governance-write-gate-foundations.md",
+      "file": "docs/adr-archive/ADR-0091-governance-write-gate-foundations.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0091: Foundry write-gate foundations (Phase 05 contract)",
@@ -1432,7 +1432,7 @@
     {
       "num": 92,
       "id": "ADR-0092",
-      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "file": "docs/adr-archive/ADR-0092-workspace-dependency-seam-policy.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0092: Workspace dependency-seam policy",
@@ -1455,7 +1455,7 @@
     {
       "num": 93,
       "id": "ADR-0093",
-      "file": "docs/decisions/ADR-0093-latency-budget-reporter-rename.md",
+      "file": "docs/adr-archive/ADR-0093-latency-budget-reporter-rename.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0093: DeadlineMiddleware \u2192 LatencyBudgetReporter (honest naming)",
@@ -1478,7 +1478,7 @@
     {
       "num": 94,
       "id": "ADR-0094",
-      "file": "docs/decisions/ADR-0094-handler-trait-with-associated-error.md",
+      "file": "docs/adr-archive/ADR-0094-handler-trait-with-associated-error.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0094: `Handler` trait with associated `Error` type",
@@ -1501,7 +1501,7 @@
     {
       "num": 95,
       "id": "ADR-0095",
-      "file": "docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md",
+      "file": "docs/adr-archive/ADR-0095-tenant-slug-in-tenancy-kernel.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0095: `TenantSlug` centralized in `oya-tenancy-kernel`",
@@ -1524,7 +1524,7 @@
     {
       "num": 96,
       "id": "ADR-0096",
-      "file": "docs/decisions/ADR-0096-supervisor-language-rust-not-node.md",
+      "file": "docs/adr-archive/ADR-0096-supervisor-language-rust-not-node.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "Supervisor language: Rust, not Node (build-vs-adopt Siigari/claude-heartbeat)",
@@ -1547,7 +1547,7 @@
     {
       "num": 97,
       "id": "ADR-0097",
-      "file": "docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
+      "file": "docs/adr-archive/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "Rename oya-intelligence-account-adapter-{claude-code,codex-cli,gemini-cli} \u2192 oya-foundry-{claude,codex,gemini}-account-adapter",
@@ -1569,7 +1569,7 @@
     {
       "num": 98,
       "id": "ADR-0098",
-      "file": "docs/decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md",
+      "file": "docs/adr-archive/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "Supervisor dependency policy Branch Y \u2014 zero net-new external Cargo deps + best-effort durability",
@@ -1592,7 +1592,7 @@
     {
       "num": 99,
       "id": "ADR-0099",
-      "file": "docs/decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md",
+      "file": "docs/adr-archive/ADR-0099-cedar-policy-extend-supervisor-capabilities.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "Cedar policy extension \u2014 foundry supervisor capabilities in docs/policies/foundry-supervisor.cedar",
@@ -1615,7 +1615,7 @@
     {
       "num": 101,
       "id": "ADR-0101",
-      "file": "docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md",
+      "file": "docs/adr-archive/ADR-0101-supervisor-mountpoint-direct-hyper.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "Foundry Supervisor Mountpoint (Direct Hyper)",
@@ -1637,7 +1637,7 @@
     {
       "num": 102,
       "id": "ADR-0102",
-      "file": "docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md",
+      "file": "docs/adr-archive/ADR-0102-intelligence-settings-template-canonical-rendering.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "Foundry Settings Template Canonical Rendering",
@@ -1659,7 +1659,7 @@
     {
       "num": 111,
       "id": "ADR-0111",
-      "file": "docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md",
+      "file": "docs/adr-archive/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0111: Merge queue: projected-merge-state + fix-at-any-stage",
@@ -1679,7 +1679,7 @@
     {
       "num": 114,
       "id": "ADR-0114",
-      "file": "docs/decisions/ADR-0114-canary-observability-rollback.md",
+      "file": "docs/adr-archive/ADR-0114-canary-observability-rollback.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0114: Canary observability gate + rollback",
@@ -1699,7 +1699,7 @@
     {
       "num": 116,
       "id": "ADR-0116",
-      "file": "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+      "file": "docs/adr-archive/ADR-0116-retire-external-agent-coordination-tooling.md",
       "status_raw": "accepted",
       "status_key": "accepted",
       "title": "ADR-0116: Retire external agent-coordination tooling (grit, rtk, icm, vox) in favour of the Foundry pipeline",
@@ -1722,7 +1722,7 @@
     {
       "num": 130,
       "id": "ADR-0130",
-      "file": "docs/decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+      "file": "docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0130: Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
@@ -1744,7 +1744,7 @@
     {
       "num": 134,
       "id": "ADR-0134",
-      "file": "docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
+      "file": "docs/adr-archive/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0134: Portfolio Hyperscaler Pattern Remediation Backlog",
@@ -1764,7 +1764,7 @@
     {
       "num": 138,
       "id": "ADR-0138",
-      "file": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md",
+      "file": "docs/adr-archive/ADR-0138-intelligence-six-path-deprecation.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "ADR-0138: Foundry six-path deprecation \u2014 Strangler migration",
@@ -1799,7 +1799,7 @@
     {
       "num": 146,
       "id": "ADR-0146",
-      "file": "docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md",
+      "file": "docs/adr-archive/ADR-0146-container-base-image-distroless-nonroot.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0146 \u2014 Container base image: distroless `static-debian12:nonroot`",
@@ -1821,7 +1821,7 @@
     {
       "num": 147,
       "id": "ADR-0147",
-      "file": "docs/decisions/ADR-0147-container-sandboxing-runtime-ladder.md",
+      "file": "docs/adr-archive/ADR-0147-container-sandboxing-runtime-ladder.md",
       "status_raw": "Amended",
       "status_key": "amended",
       "title": "ADR-0147: Container sandboxing runtime ladder",
@@ -1850,7 +1850,7 @@
     {
       "num": 149,
       "id": "ADR-0149",
-      "file": "docs/decisions/ADR-0149-idempotency-keys-canonical.md",
+      "file": "docs/adr-archive/ADR-0149-idempotency-keys-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0149: Idempotency Keys Canonical",
@@ -1872,7 +1872,7 @@
     {
       "num": 150,
       "id": "ADR-0150",
-      "file": "docs/decisions/ADR-0150-cursor-pagination-canonical.md",
+      "file": "docs/adr-archive/ADR-0150-cursor-pagination-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0150: Cursor Pagination Canonical",
@@ -1894,7 +1894,7 @@
     {
       "num": 151,
       "id": "ADR-0151",
-      "file": "docs/decisions/ADR-0151-request-id-propagation.md",
+      "file": "docs/adr-archive/ADR-0151-request-id-propagation.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0151: X-Request-Id Propagation",
@@ -1916,7 +1916,7 @@
     {
       "num": 152,
       "id": "ADR-0152",
-      "file": "docs/decisions/ADR-0152-rpo-rto-canonical.md",
+      "file": "docs/adr-archive/ADR-0152-rpo-rto-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0152: RPO/RTO Canonical (Five-Tier Recovery Model)",
@@ -1938,7 +1938,7 @@
     {
       "num": 153,
       "id": "ADR-0153",
-      "file": "docs/decisions/ADR-0153-outbox-pattern.md",
+      "file": "docs/adr-archive/ADR-0153-outbox-pattern.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0153: Outbox Pattern",
@@ -1960,7 +1960,7 @@
     {
       "num": 154,
       "id": "ADR-0154",
-      "file": "docs/decisions/ADR-0154-event-schema-versioning.md",
+      "file": "docs/adr-archive/ADR-0154-event-schema-versioning.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0154: Event Schema Versioning",
@@ -1982,7 +1982,7 @@
     {
       "num": 155,
       "id": "ADR-0155",
-      "file": "docs/decisions/ADR-0155-per-tenant-resource-quotas.md",
+      "file": "docs/adr-archive/ADR-0155-per-tenant-resource-quotas.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0155: Per-Tenant Resource Quotas",
@@ -2004,7 +2004,7 @@
     {
       "num": 156,
       "id": "ADR-0156",
-      "file": "docs/decisions/ADR-0156-pii-registry-canonical.md",
+      "file": "docs/adr-archive/ADR-0156-pii-registry-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0156: PII Registry Canonical (Cross-Cutting Data Classification)",
@@ -2026,7 +2026,7 @@
     {
       "num": 173,
       "id": "ADR-0173",
-      "file": "docs/decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
+      "file": "docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0173 \u2014 Vendor lock-in avoidance and stack ownership",
@@ -2048,7 +2048,7 @@
     {
       "num": 200,
       "id": "ADR-0200",
-      "file": "docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md",
+      "file": "docs/adr-archive/ADR-0200-wasm-runtime-canonical-wasmtime.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0200 \u2014 WASM runtime canonical: Wasmtime",
@@ -2070,7 +2070,7 @@
     {
       "num": 201,
       "id": "ADR-0201",
-      "file": "docs/decisions/ADR-0201-email-transactional-comms-adapter-substrate.md",
+      "file": "docs/adr-archive/ADR-0201-email-transactional-comms-adapter-substrate.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0201 \u2014 Email + transactional comms adapter substrate",
@@ -2092,7 +2092,7 @@
     {
       "num": 202,
       "id": "ADR-0202",
-      "file": "docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
+      "file": "docs/adr-archive/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0202 \u2014 GitOps + IaC + Cluster lifecycle: three-tier separation",
@@ -2114,7 +2114,7 @@
     {
       "num": 203,
       "id": "ADR-0203",
-      "file": "docs/decisions/ADR-0203-documentation-engine-three-tier.md",
+      "file": "docs/adr-archive/ADR-0203-documentation-engine-three-tier.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0203 \u2014 Documentation engine: three-tier separation",
@@ -2136,7 +2136,7 @@
     {
       "num": 211,
       "id": "ADR-0211",
-      "file": "docs/decisions/ADR-0211-in-house-tech-stack-policy.md",
+      "file": "docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0211 \u2014 In-House Tech Stack Policy",
@@ -2158,7 +2158,7 @@
     {
       "num": 212,
       "id": "ADR-0212",
-      "file": "docs/decisions/ADR-0212-buildability-doctrine.md",
+      "file": "docs/adr-archive/ADR-0212-buildability-doctrine.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0212 \u2014 Buildability Doctrine",
@@ -2180,7 +2180,7 @@
     {
       "num": 213,
       "id": "ADR-0213",
-      "file": "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md",
+      "file": "docs/adr-archive/ADR-0213-ecosystem-as-a-service-architecture.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Ecosystem-as-a-Service architecture \u2014 Plugin/App Store substrate (third-party developer plugins/apps) + Developer SDK",
@@ -2200,7 +2200,7 @@
     {
       "num": 214,
       "id": "ADR-0214",
-      "file": "docs/decisions/ADR-0214-cross-tenant-real-time-visibility.md",
+      "file": "docs/adr-archive/ADR-0214-cross-tenant-real-time-visibility.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0214: Cross-Tenant Real-Time Visibility (Consent-Graph + Ontology Projection Extension)",
@@ -2222,7 +2222,7 @@
     {
       "num": 215,
       "id": "ADR-0215",
-      "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md",
+      "file": "docs/adr-archive/ADR-0215-multi-context-platform-architecture.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0215: Multi-Context Platform Architecture",
@@ -2244,7 +2244,7 @@
     {
       "num": 216,
       "id": "ADR-0216",
-      "file": "docs/decisions/ADR-0216-open-integration-and-migration-out-policy.md",
+      "file": "docs/adr-archive/ADR-0216-open-integration-and-migration-out-policy.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0216: Open Integration and Migration-Out Policy",
@@ -2266,7 +2266,7 @@
     {
       "num": 217,
       "id": "ADR-0217",
-      "file": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "file": "docs/adr-archive/ADR-0217-vertical-slice-rollout-order.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0217: Service Packaging Rollout Order",
@@ -2288,7 +2288,7 @@
     {
       "num": 218,
       "id": "ADR-0218",
-      "file": "docs/decisions/ADR-0218-tenant-granular-control-surface.md",
+      "file": "docs/adr-archive/ADR-0218-tenant-granular-control-surface.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0218: Tenant Granular Control Surface",
@@ -2310,7 +2310,7 @@
     {
       "num": 219,
       "id": "ADR-0219",
-      "file": "docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
+      "file": "docs/adr-archive/ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0219: No-Code-First UX with Optional AI-Assist",
@@ -2332,7 +2332,7 @@
     {
       "num": 220,
       "id": "ADR-0220",
-      "file": "docs/decisions/ADR-0220-consumer-intelligence-substrate.md",
+      "file": "docs/adr-archive/ADR-0220-consumer-intelligence-substrate.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0220: Consumer Intelligence Substrate",
@@ -2354,7 +2354,7 @@
     {
       "num": 221,
       "id": "ADR-0221",
-      "file": "docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md",
+      "file": "docs/adr-archive/ADR-0221-agentic-development-pipeline-hardening.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0221 \u2014 Agentic Development Pipeline Hardening",
@@ -2376,7 +2376,7 @@
     {
       "num": 236,
       "id": "ADR-0236",
-      "file": "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md",
+      "file": "docs/adr-archive/ADR-0236-op11-corpus-remediation-planning-contract.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0236: OP-11 Corpus Remediation Planning Contract",
@@ -2396,7 +2396,7 @@
     {
       "num": 239,
       "id": "ADR-0239",
-      "file": "docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md",
+      "file": "docs/adr-archive/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0239: Foundry Scope Clarification (Internal-Only Amendment)",
@@ -2418,7 +2418,7 @@
     {
       "num": 242,
       "id": "ADR-0242",
-      "file": "docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md",
+      "file": "docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0242: `oyatie`-is-a-tenant doctrine",
@@ -2438,7 +2438,7 @@
     {
       "num": 243,
       "id": "ADR-0243",
-      "file": "docs/decisions/ADR-0243-cedar-as-universal-gate.md",
+      "file": "docs/adr-archive/ADR-0243-cedar-as-universal-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0243: Cedar as Universal Gate",
@@ -2458,7 +2458,7 @@
     {
       "num": 244,
       "id": "ADR-0244",
-      "file": "docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md",
+      "file": "docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0244: Tenant as Universal Scoping Primitive",
@@ -2478,7 +2478,7 @@
     {
       "num": 245,
       "id": "ADR-0245",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md",
+      "file": "docs/adr-archive/ADR-0245-substrate-vs-product-layering.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0245: Substrate vs Product Layering",
@@ -2500,7 +2500,7 @@
     {
       "num": 246,
       "id": "ADR-0246",
-      "file": "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
+      "file": "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0246: Policy-Engine Substrate Promotion",
@@ -2520,7 +2520,7 @@
     {
       "num": 248,
       "id": "ADR-0248",
-      "file": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+      "file": "docs/adr-archive/ADR-0248-amazon-shape-cellular-architecture.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0248: Amazon-shape Cellular Architecture",
@@ -2540,7 +2540,7 @@
     {
       "num": 249,
       "id": "ADR-0249",
-      "file": "docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md",
+      "file": "docs/adr-archive/ADR-0249-multi-category-marketplace-doctrine.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0249: Multi-Category Marketplace Doctrine",
@@ -2560,7 +2560,7 @@
     {
       "num": 250,
       "id": "ADR-0250",
-      "file": "docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md",
+      "file": "docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0250: Build-Ahead-of-Certification Doctrine",
@@ -2580,7 +2580,7 @@
     {
       "num": 251,
       "id": "ADR-0251",
-      "file": "docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md",
+      "file": "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0251: Compliance Pack + Cell Certification Levels",
@@ -2600,7 +2600,7 @@
     {
       "num": 252,
       "id": "ADR-0252",
-      "file": "docs/decisions/ADR-0252-time-coordination-distributed-consistency.md",
+      "file": "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0252: Time, Coordination, and Distributed Consistency",
@@ -2620,7 +2620,7 @@
     {
       "num": 253,
       "id": "ADR-0253",
-      "file": "docs/decisions/ADR-0253-network-topology-edge-service-mesh.md",
+      "file": "docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0253: Network topology \u2014 Anycast apex + edge POPs + Cilium ambient service mesh inside cells",
@@ -2640,7 +2640,7 @@
     {
       "num": 254,
       "id": "ADR-0254",
-      "file": "docs/decisions/ADR-0254-deployment-model-spectrum.md",
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0254: Deployment model spectrum",
@@ -2660,7 +2660,7 @@
     {
       "num": 255,
       "id": "ADR-0255",
-      "file": "docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
+      "file": "docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0255: Intelligence as Two-Layer AI Substrate",
@@ -2680,7 +2680,7 @@
     {
       "num": 257,
       "id": "ADR-0257",
-      "file": "docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md",
+      "file": "docs/adr-archive/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0257: Ontology Object-Type Versioning + Deprecation Handshake",
@@ -2700,7 +2700,7 @@
     {
       "num": 263,
       "id": "ADR-0263",
-      "file": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "file": "docs/adr-archive/ADR-0263-observability-emission-contract.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0263 \u2014 Observability Emission Contract",
@@ -2720,7 +2720,7 @@
     {
       "num": 272,
       "id": "ADR-0272",
-      "file": "docs/decisions/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md",
+      "file": "docs/adr-archive/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0272: Cookie Consent + Per-Purpose Analytics Opt-In",
@@ -2740,7 +2740,7 @@
     {
       "num": 273,
       "id": "ADR-0273",
-      "file": "docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md",
+      "file": "docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0273 \u2014 Per-tenant DKIM/SPF/DMARC email deliverability",
@@ -2760,7 +2760,7 @@
     {
       "num": 276,
       "id": "ADR-0276",
-      "file": "docs/decisions/ADR-0276-backup-portability-format-gdpr-article-20.md",
+      "file": "docs/adr-archive/ADR-0276-backup-portability-format-gdpr-article-20.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0276: Backup + Portability Format (GDPR Article 20)",
@@ -2780,7 +2780,7 @@
     {
       "num": 284,
       "id": "ADR-0284",
-      "file": "docs/decisions/ADR-0284-platform-owner-name-indirection.md",
+      "file": "docs/adr-archive/ADR-0284-platform-owner-name-indirection.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0284: Platform-Owner-Name Indirection",
@@ -2800,7 +2800,7 @@
     {
       "num": 292,
       "id": "ADR-0292",
-      "file": "docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
+      "file": "docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0292: Minor User Doctrine \u2014 COPPA + KOSA + EU Age Verification",
@@ -2820,7 +2820,7 @@
     {
       "num": 293,
       "id": "ADR-0293",
-      "file": "docs/decisions/ADR-0293-governance-meta-trust-root.md",
+      "file": "docs/adr-archive/ADR-0293-governance-meta-trust-root.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0293: Foundry Meta-Trust-Root for Self-Modification Witness",
@@ -2840,7 +2840,7 @@
     {
       "num": 294,
       "id": "ADR-0294",
-      "file": "docs/decisions/ADR-0294-cedar-fragment-soak-anomaly-rollback.md",
+      "file": "docs/adr-archive/ADR-0294-cedar-fragment-soak-anomaly-rollback.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0294: Cedar Fragment Soak + Anomaly-Rollback",
@@ -2860,7 +2860,7 @@
     {
       "num": 295,
       "id": "ADR-0295",
-      "file": "docs/decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md",
+      "file": "docs/adr-archive/ADR-0295-bootstrap-ci-spiffe-kill-switch.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0295: Bootstrap CI SPIFFE Identity + T+8h Kill-Switch",
@@ -2880,7 +2880,7 @@
     {
       "num": 296,
       "id": "ADR-0296",
-      "file": "docs/decisions/ADR-0296-library-first-credential-sidecar.md",
+      "file": "docs/adr-archive/ADR-0296-library-first-credential-sidecar.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0296: Library-First Credential Sidecar",
@@ -2900,7 +2900,7 @@
     {
       "num": 297,
       "id": "ADR-0297",
-      "file": "docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md",
+      "file": "docs/adr-archive/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0297: Abuse-Defence Baseline \u2014 Anti-Bot + Anti-Spoof + Anti-Scrape",
@@ -2920,7 +2920,7 @@
     {
       "num": 298,
       "id": "ADR-0298",
-      "file": "docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md",
+      "file": "docs/adr-archive/ADR-0298-emergency-services-bypass-life-safety.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0298: Emergency-Services Bypass \u2014 Life-Safety Hard Rule",
@@ -2940,7 +2940,7 @@
     {
       "num": 299,
       "id": "ADR-0299",
-      "file": "docs/decisions/ADR-0299-account-recovery-resilience.md",
+      "file": "docs/adr-archive/ADR-0299-account-recovery-resilience.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0299: Account-Recovery + Hijack-Recovery Resilience",
@@ -2960,7 +2960,7 @@
     {
       "num": 300,
       "id": "ADR-0300",
-      "file": "docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md",
+      "file": "docs/adr-archive/ADR-0300-whistleblower-press-freedom-anonymity.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0300: Whistleblower + Press-Freedom + Anonymity Doctrine",
@@ -2980,7 +2980,7 @@
     {
       "num": 301,
       "id": "ADR-0301",
-      "file": "docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md",
+      "file": "docs/adr-archive/ADR-0301-survivor-safety-domestic-abuse-mode.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0301: Survivor-Safety + Domestic-Abuse Mode",
@@ -3000,7 +3000,7 @@
     {
       "num": 302,
       "id": "ADR-0302",
-      "file": "docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md",
+      "file": "docs/adr-archive/ADR-0302-deceased-user-inheritance-doctrine.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0302: Deceased-User Inheritance Doctrine",
@@ -3020,7 +3020,7 @@
     {
       "num": 303,
       "id": "ADR-0303",
-      "file": "docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md",
+      "file": "docs/adr-archive/ADR-0303-cognitive-impairment-decision-resilience.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0303: Cognitive-Impairment and Decision-Resilience Doctrine",
@@ -3040,7 +3040,7 @@
     {
       "num": 304,
       "id": "ADR-0304",
-      "file": "docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md",
+      "file": "docs/adr-archive/ADR-0304-cross-jurisdiction-conflict-resolution.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0304: Cross-Jurisdiction Conflict Resolution Doctrine",
@@ -3060,7 +3060,7 @@
     {
       "num": 305,
       "id": "ADR-0305",
-      "file": "docs/decisions/ADR-0305-delegated-agent-authority-chain.md",
+      "file": "docs/adr-archive/ADR-0305-delegated-agent-authority-chain.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0305: Delegated-Agent Authority Chain Doctrine",
@@ -3080,7 +3080,7 @@
     {
       "num": 306,
       "id": "ADR-0306",
-      "file": "docs/decisions/ADR-0306-disaster-mode-cell-resilience.md",
+      "file": "docs/adr-archive/ADR-0306-disaster-mode-cell-resilience.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0306: Disaster-Mode + Cell-Resilience Doctrine",
@@ -3100,7 +3100,7 @@
     {
       "num": 307,
       "id": "ADR-0307",
-      "file": "docs/decisions/ADR-0307-detection-substrate-streaming-batch.md",
+      "file": "docs/adr-archive/ADR-0307-detection-substrate-streaming-batch.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0307: Detection Substrate \u2014 Streaming + Batch (DRMP \"D\" Layer)",
@@ -3120,7 +3120,7 @@
     {
       "num": 308,
       "id": "ADR-0308",
-      "file": "docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
+      "file": "docs/adr-archive/ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0308: ML Model Lifecycle \u2014 EU AI Act + NIST AI RMF + ISO/IEC 42001 Compliance",
@@ -3140,7 +3140,7 @@
     {
       "num": 309,
       "id": "ADR-0309",
-      "file": "docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md",
+      "file": "docs/adr-archive/ADR-0309-detection-fairness-audit-civil-rights.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0309: Detection Fairness + Civil-Rights Compliance Baseline",
@@ -3160,7 +3160,7 @@
     {
       "num": 310,
       "id": "ADR-0310",
-      "file": "docs/decisions/ADR-0310-investigation-case-management.md",
+      "file": "docs/adr-archive/ADR-0310-investigation-case-management.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0310: Investigation Case-Management Substrate",
@@ -3180,7 +3180,7 @@
     {
       "num": 311,
       "id": "ADR-0311",
-      "file": "docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md",
+      "file": "docs/adr-archive/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0311: Dual-Tenant Identity \u2014 Personal-vs-Work Boundary",
@@ -3200,7 +3200,7 @@
     {
       "num": 312,
       "id": "ADR-0312",
-      "file": "docs/decisions/ADR-0312-court-warrant-scoped-piercing.md",
+      "file": "docs/adr-archive/ADR-0312-court-warrant-scoped-piercing.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0312: Court-Warrant Scoped Piercing",
@@ -3220,7 +3220,7 @@
     {
       "num": 313,
       "id": "ADR-0313",
-      "file": "docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md",
+      "file": "docs/adr-archive/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0313: Conglomerate-Tenant Hierarchy \u2014 Sovereign-Child + Policy-Engine-Mediated Controlling-Entity Grant",
@@ -3240,7 +3240,7 @@
     {
       "num": 314,
       "id": "ADR-0314",
-      "file": "docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md",
+      "file": "docs/adr-archive/ADR-0314-marketplace-as-universal-deal-settlement.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0314: Marketplace as Universal Deal-Settlement Substrate",
@@ -3260,7 +3260,7 @@
     {
       "num": 315,
       "id": "ADR-0315",
-      "file": "docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md",
+      "file": "docs/adr-archive/ADR-0315-erp-coverage-doctrine-sap-parity.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0315: ERP Coverage Doctrine - SAP-Parity Goal",
@@ -3280,7 +3280,7 @@
     {
       "num": 316,
       "id": "ADR-0316",
-      "file": "docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md",
+      "file": "docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0316: Capability-Tier Over Product Fragmentation Doctrine",
@@ -3304,7 +3304,7 @@
     {
       "num": 317,
       "id": "ADR-0317",
-      "file": "docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md",
+      "file": "docs/adr-archive/ADR-0317-role-based-projection-unified-ux-shell.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0317: Role-Based Projection + Unified UX Shell Doctrine",
@@ -3324,7 +3324,7 @@
     {
       "num": 318,
       "id": "ADR-0318",
-      "file": "docs/decisions/ADR-0318-collar-color-workspace-universality.md",
+      "file": "docs/adr-archive/ADR-0318-collar-color-workspace-universality.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Adopt collar-color and workspace universality doctrine",
@@ -3344,7 +3344,7 @@
     {
       "num": 319,
       "id": "ADR-0319",
-      "file": "docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md",
+      "file": "docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Front Office / Middle Office / Back Office Information-Barrier Doctrine",
@@ -3364,7 +3364,7 @@
     {
       "num": 320,
       "id": "ADR-0320",
-      "file": "docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md",
+      "file": "docs/adr-archive/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Apprentice, Intern, Resident, and Fellow Transient Identity Doctrine",
@@ -3384,7 +3384,7 @@
     {
       "num": 321,
       "id": "ADR-0321",
-      "file": "docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md",
+      "file": "docs/adr-archive/ADR-0321-b2b-saas-industry-leader-coverage.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0321: B2B SaaS Industry-Leader Coverage Doctrine",
@@ -3404,7 +3404,7 @@
     {
       "num": 324,
       "id": "ADR-0324",
-      "file": "docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md",
+      "file": "docs/adr-archive/ADR-0324-anti-script-anti-template-doctrine.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0324: Anti-Script Anti-Template Doctrine",
@@ -3424,7 +3424,7 @@
     {
       "num": 325,
       "id": "ADR-0325",
-      "file": "docs/decisions/ADR-0325-capability-tier-pricing-anchors-public.md",
+      "file": "docs/adr-archive/ADR-0325-capability-tier-pricing-anchors-public.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0325: Capability Tier Pricing Anchors Public",
@@ -3444,7 +3444,7 @@
     {
       "num": 326,
       "id": "ADR-0326",
-      "file": "docs/decisions/ADR-0326-per-tenant-data-residency-attestation.md",
+      "file": "docs/adr-archive/ADR-0326-per-tenant-data-residency-attestation.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0326: Per-Tenant Data Residency Attestation",
@@ -3464,7 +3464,7 @@
     {
       "num": 328,
       "id": "ADR-0328",
-      "file": "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
+      "file": "docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Substance Bar as Canonical Sequence and Batch Discipline",
@@ -3484,7 +3484,7 @@
     {
       "num": 336,
       "id": "ADR-0336",
-      "file": "docs/decisions/ADR-0336-valkey-not-redis-substrate.md",
+      "file": "docs/adr-archive/ADR-0336-valkey-not-redis-substrate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Valkey is the canonical in-memory KV / cache / pubsub substrate (Redis retired for license drift)",
@@ -3504,7 +3504,7 @@
     {
       "num": 337,
       "id": "ADR-0337",
-      "file": "docs/decisions/ADR-0337-iceberg-canonical-olap-write-path.md",
+      "file": "docs/adr-archive/ADR-0337-iceberg-canonical-olap-write-path.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Apache Iceberg is the canonical OLAP table-format write path (Delta + Hudi demoted to migration adapters; ClickHouse compute layered on Iceb",
@@ -3524,7 +3524,7 @@
     {
       "num": 338,
       "id": "ADR-0338",
-      "file": "docs/decisions/ADR-0338-pod-runtime-tier-0-to-3.md",
+      "file": "docs/adr-archive/ADR-0338-pod-runtime-tier-0-to-3.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc for first-party + edge)",
@@ -3544,7 +3544,7 @@
     {
       "num": 339,
       "id": "ADR-0339",
-      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md",
+      "file": "docs/adr-archive/ADR-0339-shared-iac-module-library.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Shared IaC module library (`microservices/cloud-iac/modules/<context>/<primitive>/` is canonical; per-\u00b5service `iac/<context>/main.tf` is a ",
@@ -3564,7 +3564,7 @@
     {
       "num": 340,
       "id": "ADR-0340",
-      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md",
+      "file": "docs/adr-archive/ADR-0340-capacity-model-per-microservice-manifest.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Capacity model per microservice manifest (baseline_cpu_per_tenant + baseline_ram_per_tenant + storage_per_tenant + connections_per_tenant + ",
@@ -3584,7 +3584,7 @@
     {
       "num": 341,
       "id": "ADR-0341",
-      "file": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md",
+      "file": "docs/adr-archive/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Cellular promotion gates \u2014 explicit per-Tier 0..4 machine-checkable criteria + auto-promotion via cell-orchestrator",
@@ -3604,7 +3604,7 @@
     {
       "num": 343,
       "id": "ADR-0343",
-      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md",
+      "file": "docs/adr-archive/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "DR + RTO/RPO matrix per-\u00b5service + per-compliance-pack (effective tenant RTO/RPO = max(\u00b5service declared, all-applicable-pack floors))",
@@ -3624,7 +3624,7 @@
     {
       "num": 344,
       "id": "ADR-0344",
-      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md",
+      "file": "docs/adr-archive/ADR-0344-sustainability-finops-dimensional-model.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongside every audit row; finops-portal dimen",
@@ -3644,7 +3644,7 @@
     {
       "num": 346,
       "id": "ADR-0346",
-      "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+      "file": "docs/adr-archive/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "oya verify --ci-required MUST locally mirror the full CI matrix (cargo fmt + cargo check + cargo clippy + cargo nextest + oya gate run-all +",
@@ -3664,7 +3664,7 @@
     {
       "num": 347,
       "id": "ADR-0347",
-      "file": "docs/decisions/ADR-0347-governance-fitness-bulk-rename.md",
+      "file": "docs/adr-archive/ADR-0347-governance-fitness-bulk-rename.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + catalog + ADR cross-references co",
@@ -3684,7 +3684,7 @@
     {
       "num": 348,
       "id": "ADR-0348",
-      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "file": "docs/adr-archive/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant\u2192cell",
@@ -3704,7 +3704,7 @@
     {
       "num": 352,
       "id": "ADR-0352",
-      "file": "docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md",
+      "file": "docs/adr-archive/ADR-0352-oyatie-from-scratch-architecture-handoff.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Oyatie from-scratch architecture handoff",
@@ -3724,7 +3724,7 @@
     {
       "num": 353,
       "id": "ADR-0353",
-      "file": "docs/decisions/ADR-0353-amendment-library-first-network-opt-in-clarification.md",
+      "file": "docs/adr-archive/ADR-0353-amendment-library-first-network-opt-in-clarification.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0353: Amendment \u2014 Library-First / Network-Opt-In Clarification",
@@ -3744,7 +3744,7 @@
     {
       "num": 354,
       "id": "ADR-0354",
-      "file": "docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+      "file": "docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0354: Amendment \u2014 HTTP/3 Fallback Chain, Strict TLS, ECH, PQC Hybrid",
@@ -3766,7 +3766,7 @@
     {
       "num": 355,
       "id": "ADR-0355",
-      "file": "docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md",
+      "file": "docs/adr-archive/ADR-0355-amendment-library-first-network-opt-in-clarification.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0355: Amendment \u2014 Library-First / Network-Opt-In Clarification",
@@ -3786,7 +3786,7 @@
     {
       "num": 356,
       "id": "ADR-0356",
-      "file": "docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md",
+      "file": "docs/adr-archive/ADR-0356-amendment-library-first-ontology-read-path.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0356: Amendment \u2014 Library-First Ontology Read-Path Clarification",
@@ -3806,7 +3806,7 @@
     {
       "num": 357,
       "id": "ADR-0357",
-      "file": "docs/decisions/ADR-0357-vertical-slice-monorepo-nesting.md",
+      "file": "docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0357: Vertical-slice monorepo nesting (co-locate crate code under microservices/<ms>/crates/)",
@@ -3826,7 +3826,7 @@
     {
       "num": 358,
       "id": "ADR-0358",
-      "file": "docs/decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+      "file": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0358: Ideal 0\u2192100 production roadmap \u2014 strangler-fig migration, Bazel rules_rust + oya governance overlay, define-production-100-first",
@@ -3846,7 +3846,7 @@
     {
       "num": 377,
       "id": "ADR-0377",
-      "file": "docs/decisions/ADR-0377-github-board-git-ref-cas-fallback.md",
+      "file": "docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md",
       "status_raw": "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)",
       "status_key": "proposed",
       "title": "ADR-0377: GitHub board projection with git-ref CAS fallback",
@@ -3876,7 +3876,7 @@
     {
       "num": 381,
       "id": "ADR-0381",
-      "file": "docs/decisions/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md",
+      "file": "docs/adr-archive/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0381: Kaniko \u2192 BuildKit migration + multi-node Talos cell topology",
@@ -3905,7 +3905,7 @@
     {
       "num": 382,
       "id": "ADR-0382",
-      "file": "docs/decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md",
+      "file": "docs/adr-archive/ADR-0382-bare-metal-talos-zero-day-sidero.md",
       "status_raw": "Rejected",
       "status_key": "rejected",
       "title": "ADR-0382: Bare-metal Talos zero-day bring-up via Sidero Metal",
@@ -3933,7 +3933,7 @@
     {
       "num": 384,
       "id": "ADR-0384",
-      "file": "docs/decisions/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md",
+      "file": "docs/adr-archive/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0384 \u2014 cloud-intelligence gateway Path B redesign: OAuth subscription-pool replacing static API-key pool",
@@ -3959,7 +3959,7 @@
     {
       "num": 387,
       "id": "ADR-0387",
-      "file": "docs/decisions/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md",
+      "file": "docs/adr-archive/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "ADR-0387 \u2014 CI Webhook Gateway: GitHub \u2192 Jenkins \u2192 GitHub Commit-Status Bridge",
@@ -3985,7 +3985,7 @@
     {
       "num": 388,
       "id": "ADR-0388",
-      "file": "docs/decisions/ADR-0388-doc-axis-convention.md",
+      "file": "docs/adr-archive/ADR-0388-doc-axis-convention.md",
       "status_raw": "Amended",
       "status_key": "amended",
       "title": "Doc-axis convention to prevent doc sprawl",
@@ -4008,7 +4008,7 @@
     {
       "num": 397,
       "id": "ADR-0397",
-      "file": "docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md",
+      "file": "docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Pulsar 4.x + Oxia canonical event-bus (reconstructed record)",
@@ -4042,7 +4042,7 @@
     {
       "num": 481,
       "id": "ADR-0481",
-      "file": "docs/decisions/ADR-0481-oya-flags-bespoke-feature-flag-server.md",
+      "file": "docs/adr-archive/ADR-0481-oya-flags-bespoke-feature-flag-server.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "oya-flags: bespoke Rust feature flag server superseding flagd",
@@ -4134,7 +4134,7 @@
     {
       "num": 537,
       "id": "ADR-0537",
-      "file": "docs/decisions/ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
+      "file": "docs/adr-archive/ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Dogfood bootstrap order + Rust-owned stack doctrine \u2014 the circular-dependency-free ten-step bring-up, the buck2 tier-dependency lint, the ku",
@@ -4193,7 +4193,7 @@
     {
       "num": 538,
       "id": "ADR-0538",
-      "file": "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
+      "file": "docs/adr-archive/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Globbed root workspace membership and coverage gate",
@@ -4229,7 +4229,7 @@
     {
       "num": 539,
       "id": "ADR-0539",
-      "file": "docs/decisions/ADR-0539-cloud-ci-freshness-gate.md",
+      "file": "docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity",
@@ -4263,7 +4263,7 @@
     {
       "num": 540,
       "id": "ADR-0540",
-      "file": "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md",
+      "file": "docs/adr-archive/ADR-0540-cargo-buck2-target-parity-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Cargo workspace to Buck2 target parity gate",
@@ -4299,7 +4299,7 @@
     {
       "num": 541,
       "id": "ADR-0541",
-      "file": "docs/decisions/ADR-0541-corpus-liveness-graph.md",
+      "file": "docs/adr-archive/ADR-0541-corpus-liveness-graph.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Corpus Liveness Graph: one content-addressed corpus graph with per-class decay invariants",
@@ -4332,7 +4332,7 @@
     {
       "num": 542,
       "id": "ADR-0542",
-      "file": "docs/decisions/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
+      "file": "docs/adr-archive/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Cloud-Intelligence XPROXY External-Proxy Parity Lane: commissioning and governance path",
@@ -4363,7 +4363,7 @@
     {
       "num": 543,
       "id": "ADR-0543",
-      "file": "docs/decisions/ADR-0543-cloud-kms-operator-commissioning.md",
+      "file": "docs/adr-archive/ADR-0543-cloud-kms-operator-commissioning.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the cloud-kms K8s operator (G002 slice 2)",
@@ -4383,7 +4383,7 @@
     {
       "num": 544,
       "id": "ADR-0544",
-      "file": "docs/decisions/ADR-0544-friction-ledger-closed-loop-accounting-gate.md",
+      "file": "docs/adr-archive/ADR-0544-friction-ledger-closed-loop-accounting-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Friction-ledger closed-loop accounting meta-gate",
@@ -4420,7 +4420,7 @@
     {
       "num": 545,
       "id": "ADR-0545",
-      "file": "docs/decisions/ADR-0545-embedded-asset-hermeticity-gate.md",
+      "file": "docs/adr-archive/ADR-0545-embedded-asset-hermeticity-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Embedded-asset hermeticity gate",
@@ -4460,7 +4460,7 @@
     {
       "num": 546,
       "id": "ADR-0546",
-      "file": "docs/decisions/ADR-0546-canonical-json-determinism-gate.md",
+      "file": "docs/adr-archive/ADR-0546-canonical-json-determinism-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Canonical-JSON determinism gate",
@@ -4498,7 +4498,7 @@
     {
       "num": 547,
       "id": "ADR-0547",
-      "file": "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
+      "file": "docs/adr-archive/ADR-0547-kernel-purity-dependency-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Kernel-purity dependency gate",
@@ -4538,7 +4538,7 @@
     {
       "num": 548,
       "id": "ADR-0548",
-      "file": "docs/decisions/ADR-0548-pipeline-as-product-paved-road.md",
+      "file": "docs/adr-archive/ADR-0548-pipeline-as-product-paved-road.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Pipeline as product: neutral ratchet engine + policy packs on the paved road",
@@ -4579,7 +4579,7 @@
     {
       "num": 549,
       "id": "ADR-0549",
-      "file": "docs/decisions/ADR-0549-buck-syntax-kernel.md",
+      "file": "docs/adr-archive/ADR-0549-buck-syntax-kernel.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness",
@@ -4616,7 +4616,7 @@
     {
       "num": 551,
       "id": "ADR-0551",
-      "file": "docs/decisions/ADR-0551-merge-base-frozen-baseline-ratchet.md",
+      "file": "docs/adr-archive/ADR-0551-merge-base-frozen-baseline-ratchet.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Merge-base frozen baseline ratchet",
@@ -4650,7 +4650,7 @@
     {
       "num": 552,
       "id": "ADR-0552",
-      "file": "docs/decisions/ADR-0552-stable-volatile-scm-facts-split.md",
+      "file": "docs/adr-archive/ADR-0552-stable-volatile-scm-facts-split.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Stable/volatile SCM-facts split: history-derived facts leave the merged surface",
@@ -4683,7 +4683,7 @@
     {
       "num": 553,
       "id": "ADR-0553",
-      "file": "docs/decisions/ADR-0553-oya-identity-workload-service-commissioning.md",
+      "file": "docs/adr-archive/ADR-0553-oya-identity-workload-service-commissioning.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the oya-identity runnable workload-identity service (G005 slice 1)",
@@ -4714,7 +4714,7 @@
     {
       "num": 554,
       "id": "ADR-0554",
-      "file": "docs/decisions/ADR-0554-binding-buck2-workspace-coverage.md",
+      "file": "docs/adr-archive/ADR-0554-binding-buck2-workspace-coverage.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Binding buck2 coverage for the full workspace: affected-set lane with fail-closed full-run escalation",
@@ -4748,7 +4748,7 @@
     {
       "num": 555,
       "id": "ADR-0555",
-      "file": "docs/decisions/ADR-0555-unaccounted-artifacts-unmergeable-structural-accounting.md",
+      "file": "docs/adr-archive/ADR-0555-unaccounted-artifacts-unmergeable-structural-accounting.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Unaccounted artifacts are unmergeable: advisory\u2192blocking accounting conversion + the structural accounting model",
@@ -4780,7 +4780,7 @@
     {
       "num": 558,
       "id": "ADR-0558",
-      "file": "docs/decisions/ADR-0558-friction-ledger-structural-merge-driver.md",
+      "file": "docs/adr-archive/ADR-0558-friction-ledger-structural-merge-driver.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Friction-ledger structural merge driver: id-aware union + second-author conversion",
@@ -4811,7 +4811,7 @@
     {
       "num": 559,
       "id": "ADR-0559",
-      "file": "docs/decisions/ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md",
+      "file": "docs/adr-archive/ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service over the shared embedded engine",
@@ -4846,7 +4846,7 @@
     {
       "num": 563,
       "id": "ADR-0563",
-      "file": "docs/decisions/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md",
+      "file": "docs/adr-archive/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Rename-aware path-keyed CI baseline relabel at the scm-facts emitter \u2014 the systemic productization that unblocks strangler moves of already-",
@@ -4878,7 +4878,7 @@
     {
       "num": 564,
       "id": "ADR-0564",
-      "file": "docs/decisions/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md",
+      "file": "docs/adr-archive/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the tenancy tenant-lifecycle registration service (G006 slice 1): a runnable tenant register/provision/read delivery surface over",
@@ -4917,7 +4917,7 @@
     {
       "num": 565,
       "id": "ADR-0565",
-      "file": "docs/decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md",
+      "file": "docs/adr-archive/ADR-0565-zero-graphql-in-the-owned-api-surface.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Zero GraphQL in the owned API surface \u2014 the canonical surface set is REST + gRPC + async + realtime, and GraphQL returns only by an ADR that",
@@ -4964,7 +4964,7 @@
     {
       "num": 566,
       "id": "ADR-0566",
-      "file": "docs/decisions/ADR-0566-authz-coverage-gate.md",
+      "file": "docs/adr-archive/ADR-0566-authz-coverage-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Authz-coverage gate (unauthenticated HTTP control-plane backstop)",
@@ -5001,7 +5001,7 @@
     {
       "num": 567,
       "id": "ADR-0567",
-      "file": "docs/decisions/ADR-0567-auth-durable-store-postgres-rls-plans.md",
+      "file": "docs/adr-archive/ADR-0567-auth-durable-store-postgres-rls-plans.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission auth durable stores with Postgres + RLS (tenant-lifecycle-store-postgres and identity-scim-store-postgres)",
@@ -5038,7 +5038,7 @@
     {
       "num": 568,
       "id": "ADR-0568",
-      "file": "docs/decisions/ADR-0568-born-accounting-register-crate-registrar-kernel.md",
+      "file": "docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "born-accounting register_crate: the pure registrar kernel (RegisterCrateRequest \u2192 RegistrationPlan)",
@@ -5072,7 +5072,7 @@
     {
       "num": 569,
       "id": "ADR-0569",
-      "file": "docs/decisions/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
+      "file": "docs/adr-archive/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the oya-data outbox CDC change-stream Postgres adapter (oya-data-outbox-adapter-postgres) behind the ChangeStreamSource port",
@@ -5109,7 +5109,7 @@
     {
       "num": 570,
       "id": "ADR-0570",
-      "file": "docs/decisions/ADR-0570-port-placement-clean-arch-gate.md",
+      "file": "docs/adr-archive/ADR-0570-port-placement-clean-arch-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Clean-arch port-placement gate (ports defined in core, not adapters)",
@@ -5148,7 +5148,7 @@
     {
       "num": 571,
       "id": "ADR-0571",
-      "file": "docs/decisions/ADR-0571-home-connect-address-book-into-comms-and-commission-the-contact-management-port-and-usecase.md",
+      "file": "docs/adr-archive/ADR-0571-home-connect-address-book-into-comms-and-commission-the-contact-management-port-and-usecase.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Home the connect address-book domain into the comms capability and commission the contact-management port + usecase (wave1 strangler MOVE + ",
@@ -5189,7 +5189,7 @@
     {
       "num": 573,
       "id": "ADR-0573",
-      "file": "docs/decisions/ADR-0573-fail-closed-authz-for-cloud-kms-crypto-control-plane.md",
+      "file": "docs/adr-archive/ADR-0573-fail-closed-authz-for-cloud-kms-crypto-control-plane.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed authz for the Cloud KMS crypto control plane (AUTH-005 / C5 remediation)",
@@ -5222,7 +5222,7 @@
     {
       "num": 580,
       "id": "ADR-0580",
-      "file": "docs/decisions/ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md",
+      "file": "docs/adr-archive/ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "corpus substrate Phase -1: the conservative-v1 syn-over-source AST extractor spike",
@@ -5253,7 +5253,7 @@
     {
       "num": 581,
       "id": "ADR-0581",
-      "file": "docs/decisions/ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md",
+      "file": "docs/adr-archive/ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed verified-caller + PDP authorization for the workload-principal lifecycle control plane (:suspend/:retire)",
@@ -5280,7 +5280,7 @@
     {
       "num": 582,
       "id": "ADR-0582",
-      "file": "docs/decisions/ADR-0582-dto-authz-trust-gate.md",
+      "file": "docs/adr-archive/ADR-0582-dto-authz-trust-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "DTO-authz-trust gate (caller-supplied authorization decision backstop)",
@@ -5316,7 +5316,7 @@
     {
       "num": 586,
       "id": "ADR-0586",
-      "file": "docs/decisions/ADR-0586-fail-closed-verified-principal-and-server-side-pdp-authz-for-tenant-create-and-tenant-lifecycle.md",
+      "file": "docs/adr-archive/ADR-0586-fail-closed-verified-principal-and-server-side-pdp-authz-for-tenant-create-and-tenant-lifecycle.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed verified-principal + server-side PDP authorization for tenant.create and the tenant-lifecycle operator scope (C7/C8)",
@@ -5345,7 +5345,7 @@
     {
       "num": 587,
       "id": "ADR-0587",
-      "file": "docs/decisions/ADR-0587-fail-closed-authz-for-cloud-network-create-control-planes.md",
+      "file": "docs/adr-archive/ADR-0587-fail-closed-authz-for-cloud-network-create-control-planes.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed verified-principal + PDP authorization for the Cloud Network LB/VPC/DNS create control planes",
@@ -5374,7 +5374,7 @@
     {
       "num": 588,
       "id": "ADR-0588",
-      "file": "docs/decisions/ADR-0588-fail-closed-authz-for-audit-event-emit-boundary.md",
+      "file": "docs/adr-archive/ADR-0588-fail-closed-authz-for-audit-event-emit-boundary.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed verified-principal + PDP authorization for the audit.event.emit boundary (C15 tamper-evidence remediation)",
@@ -5401,7 +5401,7 @@
     {
       "num": 589,
       "id": "ADR-0589",
-      "file": "docs/decisions/ADR-0589-fail-closed-authz-for-dsr-erasure-cascade.md",
+      "file": "docs/adr-archive/ADR-0589-fail-closed-authz-for-dsr-erasure-cascade.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed authz for the DSR erasure cascade (AUTH-005 / Wave-2b remediation)",
@@ -5432,7 +5432,7 @@
     {
       "num": 590,
       "id": "ADR-0590",
-      "file": "docs/decisions/ADR-0590-fail-closed-authz-cloud-observability-audit-read.md",
+      "file": "docs/adr-archive/ADR-0590-fail-closed-authz-cloud-observability-audit-read.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed verified-principal + server-side PDP authz for the Cloud Observability audit-read surface (C18 / AUTH-005 remediation)",
@@ -5465,7 +5465,7 @@
     {
       "num": 591,
       "id": "ADR-0591",
-      "file": "docs/decisions/ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
+      "file": "docs/adr-archive/ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed authz for the Cloud FinOps report API (AUTH-005 capability-billing remediation)",
@@ -5498,7 +5498,7 @@
     {
       "num": 592,
       "id": "ADR-0592",
-      "file": "docs/decisions/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
+      "file": "docs/adr-archive/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Tenant-scoped, body-fingerprinted accounting idempotency keys (cross-tenant collision fix)",
@@ -5525,7 +5525,7 @@
     {
       "num": 593,
       "id": "ADR-0593",
-      "file": "docs/decisions/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
+      "file": "docs/adr-archive/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed authz for the Accounting + Payroll money-mutation control planes (AUTH-005 / Wave-2b money-CRIT remediation)",
@@ -5563,7 +5563,7 @@
     {
       "num": 595,
       "id": "ADR-0595",
-      "file": "docs/decisions/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+      "file": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "De-commit the pure-derivation cloud-ci accounting faces \u2014 derive-on-demand + gate teaching",
@@ -5594,7 +5594,7 @@
     {
       "num": 597,
       "id": "ADR-0597",
-      "file": "docs/decisions/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+      "file": "docs/adr-archive/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "oya-ci-materializer-kernel (E1): universal generated-artifact lifecycle \u2014 pure planner kernel",
@@ -5629,7 +5629,7 @@
     {
       "num": 598,
       "id": "ADR-0598",
-      "file": "docs/decisions/ADR-0598-commission-comms-meet-capability-first-core-slice.md",
+      "file": "docs/adr-archive/ADR-0598-commission-comms-meet-capability-first-core-slice.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the comms meet capability-first core slice (comms-meet-api port + comms-meet-usecase)",
@@ -5666,7 +5666,7 @@
     {
       "num": 599,
       "id": "ADR-0599",
-      "file": "docs/decisions/ADR-0599-commission-comms-calendar-capability-first-core-slice.md",
+      "file": "docs/adr-archive/ADR-0599-commission-comms-calendar-capability-first-core-slice.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commission the comms calendar capability-first move + cloud-agnostic core slice (comms-calendar-domain/api/usecase)",
@@ -5705,7 +5705,7 @@
     {
       "num": 600,
       "id": "ADR-0600",
-      "file": "docs/decisions/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
+      "file": "docs/adr-archive/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Root-workspace-hygiene allowlist gate \u2014 make committed repo-root scratch structurally impossible",
@@ -5735,7 +5735,7 @@
     {
       "num": 603,
       "id": "ADR-0603",
-      "file": "docs/decisions/ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md",
+      "file": "docs/adr-archive/ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation)",
@@ -5766,7 +5766,7 @@
     {
       "num": 604,
       "id": "ADR-0604",
-      "file": "docs/decisions/ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
+      "file": "docs/adr-archive/ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "De-commit the scm-facts boundary snapshot \u2014 the last committed pure-derivation face (completes ADR-0595)",
@@ -5799,7 +5799,7 @@
     {
       "num": 605,
       "id": "ADR-0605",
-      "file": "docs/decisions/ADR-0605-supply-chain-audit-gate.md",
+      "file": "docs/adr-archive/ADR-0605-supply-chain-audit-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)",
@@ -5832,7 +5832,7 @@
     {
       "num": 606,
       "id": "ADR-0606",
-      "file": "docs/decisions/ADR-0606-operator-secret-bootstrap-rbac-gate.md",
+      "file": "docs/adr-archive/ADR-0606-operator-secret-bootstrap-rbac-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)",
@@ -5866,7 +5866,7 @@
     {
       "num": 607,
       "id": "ADR-0607",
-      "file": "docs/decisions/ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md",
+      "file": "docs/adr-archive/ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecycle / control-plane-host / tenant-quota)",
@@ -5898,7 +5898,7 @@
     {
       "num": 608,
       "id": "ADR-0608",
-      "file": "docs/decisions/ADR-0608-cedar-deploy-parity-gate.md",
+      "file": "docs/adr-archive/ADR-0608-cedar-deploy-parity-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Cedar deploy-parity gate (deployed ConfigMap \u2286 authored policy; no action-agnostic blanket permit)",
@@ -5937,7 +5937,7 @@
     {
       "num": 609,
       "id": "ADR-0609",
-      "file": "docs/decisions/ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md",
+      "file": "docs/adr-archive/ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required)",
@@ -5972,7 +5972,7 @@
     {
       "num": 610,
       "id": "ADR-0610",
-      "file": "docs/decisions/ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md",
+      "file": "docs/adr-archive/ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Policy-IR benchmark stage-0: pre-registered frozen rubric + fixture suite as governed data",
@@ -5998,7 +5998,7 @@
     {
       "num": 611,
       "id": "ADR-0611",
-      "file": "docs/decisions/ADR-0611-land-asterinas-real-boot-foundation-kernel.md",
+      "file": "docs/adr-archive/ADR-0611-land-asterinas-real-boot-foundation-kernel.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Land the Asterinas real-boot foundation harness under kernel/ (kuberos Wave-1 shard-1)",
@@ -6026,7 +6026,7 @@
     {
       "num": 614,
       "id": "ADR-0614",
-      "file": "docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
+      "file": "docs/adr-archive/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "De-commit the reorg move-manifest bijection (finish the pure-derivation strangler for the last committed reorg face)",
@@ -6065,7 +6065,7 @@
     {
       "num": 616,
       "id": "ADR-0616",
-      "file": "docs/decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
+      "file": "docs/adr-archive/ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "De-commit the firewall frozen-reference baseline \u2014 regenerate it from merge-base SOURCE (reverses ADR-0596)",
@@ -6112,7 +6112,7 @@
     {
       "num": 617,
       "id": "ADR-0617",
-      "file": "docs/decisions/ADR-0617-living-monorepo-governance-graph.md",
+      "file": "docs/adr-archive/ADR-0617-living-monorepo-governance-graph.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "The Living Monorepo Governance Graph \u2014 monorepo management + project lifecycle as one governed, federated, content-addressed graph (amends t",
@@ -6152,7 +6152,7 @@
     {
       "num": 618,
       "id": "ADR-0618",
-      "file": "docs/decisions/ADR-0618-contract-slice-gate-scope-boundary.md",
+      "file": "docs/adr-archive/ADR-0618-contract-slice-gate-scope-boundary.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Contract-slice conformance gate scope boundary: single-document internal-shape validation, cross-reference/registry integrity is a separate ",
@@ -6180,7 +6180,7 @@
     {
       "num": 619,
       "id": "ADR-0619",
-      "file": "docs/decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
+      "file": "docs/adr-archive/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Zero-live-context retirement of an external agent-harness brand",
@@ -6217,7 +6217,7 @@
     {
       "num": 620,
       "id": "ADR-0620",
-      "file": "docs/decisions/ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md",
+      "file": "docs/adr-archive/ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Pre-admission inventory provenance for history-only retirement observation surfaces",
@@ -6247,7 +6247,7 @@
     {
       "num": 621,
       "id": "ADR-0621",
-      "file": "docs/decisions/ADR-0621-de-commit-active-artifact-contract-graph-projection.md",
+      "file": "docs/adr-archive/ADR-0621-de-commit-active-artifact-contract-graph-projection.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "De-commit the active-artifact-contract graph projection",
@@ -6274,7 +6274,7 @@
     {
       "num": 622,
       "id": "ADR-0622",
-      "file": "docs/decisions/ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md",
+      "file": "docs/adr-archive/ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Define a nonbinding FixupTask v2 successor foundation",
@@ -6301,7 +6301,7 @@
     {
       "num": 623,
       "id": "ADR-0623",
-      "file": "docs/decisions/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md",
+      "file": "docs/adr-archive/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral",
@@ -6336,7 +6336,7 @@
     {
       "num": 625,
       "id": "ADR-0625",
-      "file": "docs/decisions/ADR-0625-commit-opentofu-provider-locks.md",
+      "file": "docs/adr-archive/ADR-0625-commit-opentofu-provider-locks.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Commit OpenTofu provider dependency locks for every deployable root",
@@ -6358,7 +6358,7 @@
     {
       "num": 626,
       "id": "ADR-0626",
-      "file": "docs/decisions/ADR-0626-structural-merge-driver-for-the-fixup-ledger.md",
+      "file": "docs/adr-archive/ADR-0626-structural-merge-driver-for-the-fixup-ledger.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Resolve fixup-ledger merges structurally instead of by hand",
@@ -6381,7 +6381,7 @@
     {
       "num": 627,
       "id": "ADR-0627",
-      "file": "docs/decisions/ADR-0627-facade-core-layering-gate.md",
+      "file": "docs/adr-archive/ADR-0627-facade-core-layering-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Enforce ADR-0562's facade\u2192core layering rule, keyed to survive the remaining capability migration",
@@ -6411,7 +6411,7 @@
     {
       "num": 628,
       "id": "ADR-0628",
-      "file": "docs/decisions/ADR-0628-scan-root-liveness-gate.md",
+      "file": "docs/adr-archive/ADR-0628-scan-root-liveness-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Scan-root liveness: a declared coverage root that no longer resolves is a gate blind spot, not clean coverage",
@@ -6439,7 +6439,7 @@
     {
       "num": 629,
       "id": "ADR-0629",
-      "file": "docs/decisions/ADR-0629-crate-catalog-coverage-gate.md",
+      "file": "docs/adr-archive/ADR-0629-crate-catalog-coverage-gate.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Crate-catalog coverage: every live crate carries a catalog row, closing the crate\u2192row direction",
@@ -6467,7 +6467,7 @@
     {
       "num": 630,
       "id": "ADR-0630",
-      "file": "docs/decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
+      "file": "docs/adr-archive/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Actions Runner Controller as the interim owned-runner substrate, declared in infra/arc/, behind the ADR-0515 D5 owned-CI destination",
@@ -6501,7 +6501,7 @@
     {
       "num": 631,
       "id": "ADR-0631",
-      "file": "docs/decisions/ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md",
+      "file": "docs/adr-archive/ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "A capability that spans strata has a wrong boundary, not a tier problem: split iam into iam (S1 PDP) and identity (S3 product), consolidate ",
@@ -6532,7 +6532,7 @@
     {
       "num": 633,
       "id": "ADR-0633",
-      "file": "docs/decisions/ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md",
+      "file": "docs/adr-archive/ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Enforcement belongs to the layer that OWNS the fact: T1 mutation coupling, T2 non-emptiability, a promotion gate that keeps false-positive c",
@@ -6562,7 +6562,7 @@
     {
       "num": 634,
       "id": "ADR-0634",
-      "file": "docs/decisions/ADR-0634-approval-attaches-to-the-producer-not-the-reader.md",
+      "file": "docs/adr-archive/ADR-0634-approval-attaches-to-the-producer-not-the-reader.md",
       "status_raw": "Proposed",
       "status_key": "proposed",
       "title": "Approval attaches to the PRODUCER of a change, not to a reader of its diff: a mechanical auto-approval predicate over declared change classe",
@@ -6595,7 +6595,7 @@
     {
       "num": 635,
       "id": "ADR-0635",
-      "file": "docs/decisions/ADR-0635-face-aware-substrate-dependency-graph-v2.md",
+      "file": "docs/adr-archive/ADR-0635-face-aware-substrate-dependency-graph-v2.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Face-aware substrate dependency graph v2: five typed graphs and derived failure closure",
@@ -6631,7 +6631,7 @@
     {
       "num": 636,
       "id": "ADR-0636",
-      "file": "docs/decisions/ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
+      "file": "docs/adr-archive/ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Bound interim cross-run affected-set baseline reuse to immutable producer provenance",
@@ -6663,7 +6663,7 @@
     {
       "num": 637,
       "id": "ADR-0637",
-      "file": "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+      "file": "docs/adr-archive/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Owned deterministic Go-to-Rust port engine",
@@ -6721,7 +6721,7 @@
     {
       "num": 638,
       "id": "ADR-0638",
-      "file": "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+      "file": "docs/adr-archive/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Mechanically maintained Kubernetes Rust port",
@@ -6777,7 +6777,7 @@
     {
       "num": 639,
       "id": "ADR-0639",
-      "file": "docs/decisions/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
+      "file": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Path- and event-conditional constituents under the single oya-ci-required fan-in",
@@ -6812,7 +6812,7 @@
     {
       "num": 565,
       "id": "ADR-0565",
-      "file": "docs/decisions/ADR-0565-zero-graphql-in-the-owned-api-surface.md",
+      "file": "docs/adr-archive/ADR-0565-zero-graphql-in-the-owned-api-surface.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Zero GraphQL in the owned API surface \u2014 the canonical surface set is REST + gRPC + async + realtime, and GraphQL returns only by an ADR that",
@@ -6859,7 +6859,7 @@
     {
       "num": 614,
       "id": "ADR-0614",
-      "file": "docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
+      "file": "docs/adr-archive/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "De-commit the reorg move-manifest bijection (finish the pure-derivation strangler for the last committed reorg face)",
@@ -6898,7 +6898,7 @@
     {
       "num": 616,
       "id": "ADR-0616",
-      "file": "docs/decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
+      "file": "docs/adr-archive/ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "De-commit the firewall frozen-reference baseline \u2014 regenerate it from merge-base SOURCE (reverses ADR-0596)",
@@ -6945,7 +6945,7 @@
     {
       "num": 619,
       "id": "ADR-0619",
-      "file": "docs/decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
+      "file": "docs/adr-archive/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Zero-live-context retirement of an external agent-harness brand",
@@ -6982,7 +6982,7 @@
     {
       "num": 630,
       "id": "ADR-0630",
-      "file": "docs/decisions/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
+      "file": "docs/adr-archive/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Actions Runner Controller as the interim owned-runner substrate, declared in infra/arc/, behind the ADR-0515 D5 owned-CI destination",
@@ -7016,7 +7016,7 @@
     {
       "num": 635,
       "id": "ADR-0635",
-      "file": "docs/decisions/ADR-0635-face-aware-substrate-dependency-graph-v2.md",
+      "file": "docs/adr-archive/ADR-0635-face-aware-substrate-dependency-graph-v2.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Face-aware substrate dependency graph v2: five typed graphs and derived failure closure",
@@ -7052,7 +7052,7 @@
     {
       "num": 636,
       "id": "ADR-0636",
-      "file": "docs/decisions/ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
+      "file": "docs/adr-archive/ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Bound interim cross-run affected-set baseline reuse to immutable producer provenance",
@@ -7084,7 +7084,7 @@
     {
       "num": 637,
       "id": "ADR-0637",
-      "file": "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+      "file": "docs/adr-archive/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Owned deterministic Go-to-Rust port engine",
@@ -7142,7 +7142,7 @@
     {
       "num": 638,
       "id": "ADR-0638",
-      "file": "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+      "file": "docs/adr-archive/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Mechanically maintained Kubernetes Rust port",
@@ -7198,7 +7198,7 @@
     {
       "num": 639,
       "id": "ADR-0639",
-      "file": "docs/decisions/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
+      "file": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
       "status_raw": "Accepted",
       "status_key": "accepted",
       "title": "Path- and event-conditional constituents under the single oya-ci-required fan-in",
@@ -7233,7 +7233,7 @@
     {
       "num": 130,
       "id": "ADR-0130",
-      "file": "docs/decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+      "file": "docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0130: Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
@@ -7255,7 +7255,7 @@
     {
       "num": 146,
       "id": "ADR-0146",
-      "file": "docs/decisions/ADR-0146-container-base-image-distroless-nonroot.md",
+      "file": "docs/adr-archive/ADR-0146-container-base-image-distroless-nonroot.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0146 \u2014 Container base image: distroless `static-debian12:nonroot`",
@@ -7277,7 +7277,7 @@
     {
       "num": 149,
       "id": "ADR-0149",
-      "file": "docs/decisions/ADR-0149-idempotency-keys-canonical.md",
+      "file": "docs/adr-archive/ADR-0149-idempotency-keys-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0149: Idempotency Keys Canonical",
@@ -7299,7 +7299,7 @@
     {
       "num": 150,
       "id": "ADR-0150",
-      "file": "docs/decisions/ADR-0150-cursor-pagination-canonical.md",
+      "file": "docs/adr-archive/ADR-0150-cursor-pagination-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0150: Cursor Pagination Canonical",
@@ -7321,7 +7321,7 @@
     {
       "num": 151,
       "id": "ADR-0151",
-      "file": "docs/decisions/ADR-0151-request-id-propagation.md",
+      "file": "docs/adr-archive/ADR-0151-request-id-propagation.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0151: X-Request-Id Propagation",
@@ -7343,7 +7343,7 @@
     {
       "num": 152,
       "id": "ADR-0152",
-      "file": "docs/decisions/ADR-0152-rpo-rto-canonical.md",
+      "file": "docs/adr-archive/ADR-0152-rpo-rto-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0152: RPO/RTO Canonical (Five-Tier Recovery Model)",
@@ -7365,7 +7365,7 @@
     {
       "num": 153,
       "id": "ADR-0153",
-      "file": "docs/decisions/ADR-0153-outbox-pattern.md",
+      "file": "docs/adr-archive/ADR-0153-outbox-pattern.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0153: Outbox Pattern",
@@ -7387,7 +7387,7 @@
     {
       "num": 154,
       "id": "ADR-0154",
-      "file": "docs/decisions/ADR-0154-event-schema-versioning.md",
+      "file": "docs/adr-archive/ADR-0154-event-schema-versioning.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0154: Event Schema Versioning",
@@ -7409,7 +7409,7 @@
     {
       "num": 155,
       "id": "ADR-0155",
-      "file": "docs/decisions/ADR-0155-per-tenant-resource-quotas.md",
+      "file": "docs/adr-archive/ADR-0155-per-tenant-resource-quotas.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0155: Per-Tenant Resource Quotas",
@@ -7431,7 +7431,7 @@
     {
       "num": 156,
       "id": "ADR-0156",
-      "file": "docs/decisions/ADR-0156-pii-registry-canonical.md",
+      "file": "docs/adr-archive/ADR-0156-pii-registry-canonical.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0156: PII Registry Canonical (Cross-Cutting Data Classification)",
@@ -7453,7 +7453,7 @@
     {
       "num": 173,
       "id": "ADR-0173",
-      "file": "docs/decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
+      "file": "docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0173 \u2014 Vendor lock-in avoidance and stack ownership",
@@ -7475,7 +7475,7 @@
     {
       "num": 200,
       "id": "ADR-0200",
-      "file": "docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md",
+      "file": "docs/adr-archive/ADR-0200-wasm-runtime-canonical-wasmtime.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0200 \u2014 WASM runtime canonical: Wasmtime",
@@ -7497,7 +7497,7 @@
     {
       "num": 201,
       "id": "ADR-0201",
-      "file": "docs/decisions/ADR-0201-email-transactional-comms-adapter-substrate.md",
+      "file": "docs/adr-archive/ADR-0201-email-transactional-comms-adapter-substrate.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0201 \u2014 Email + transactional comms adapter substrate",
@@ -7519,7 +7519,7 @@
     {
       "num": 202,
       "id": "ADR-0202",
-      "file": "docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
+      "file": "docs/adr-archive/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0202 \u2014 GitOps + IaC + Cluster lifecycle: three-tier separation",
@@ -7541,7 +7541,7 @@
     {
       "num": 203,
       "id": "ADR-0203",
-      "file": "docs/decisions/ADR-0203-documentation-engine-three-tier.md",
+      "file": "docs/adr-archive/ADR-0203-documentation-engine-three-tier.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0203 \u2014 Documentation engine: three-tier separation",
@@ -7563,7 +7563,7 @@
     {
       "num": 211,
       "id": "ADR-0211",
-      "file": "docs/decisions/ADR-0211-in-house-tech-stack-policy.md",
+      "file": "docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0211 \u2014 In-House Tech Stack Policy",
@@ -7585,7 +7585,7 @@
     {
       "num": 212,
       "id": "ADR-0212",
-      "file": "docs/decisions/ADR-0212-buildability-doctrine.md",
+      "file": "docs/adr-archive/ADR-0212-buildability-doctrine.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0212 \u2014 Buildability Doctrine",
@@ -7607,7 +7607,7 @@
     {
       "num": 214,
       "id": "ADR-0214",
-      "file": "docs/decisions/ADR-0214-cross-tenant-real-time-visibility.md",
+      "file": "docs/adr-archive/ADR-0214-cross-tenant-real-time-visibility.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0214: Cross-Tenant Real-Time Visibility (Consent-Graph + Ontology Projection Extension)",
@@ -7629,7 +7629,7 @@
     {
       "num": 215,
       "id": "ADR-0215",
-      "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md",
+      "file": "docs/adr-archive/ADR-0215-multi-context-platform-architecture.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0215: Multi-Context Platform Architecture",
@@ -7651,7 +7651,7 @@
     {
       "num": 216,
       "id": "ADR-0216",
-      "file": "docs/decisions/ADR-0216-open-integration-and-migration-out-policy.md",
+      "file": "docs/adr-archive/ADR-0216-open-integration-and-migration-out-policy.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0216: Open Integration and Migration-Out Policy",
@@ -7673,7 +7673,7 @@
     {
       "num": 217,
       "id": "ADR-0217",
-      "file": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "file": "docs/adr-archive/ADR-0217-vertical-slice-rollout-order.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0217: Service Packaging Rollout Order",
@@ -7695,7 +7695,7 @@
     {
       "num": 218,
       "id": "ADR-0218",
-      "file": "docs/decisions/ADR-0218-tenant-granular-control-surface.md",
+      "file": "docs/adr-archive/ADR-0218-tenant-granular-control-surface.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0218: Tenant Granular Control Surface",
@@ -7717,7 +7717,7 @@
     {
       "num": 219,
       "id": "ADR-0219",
-      "file": "docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
+      "file": "docs/adr-archive/ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0219: No-Code-First UX with Optional AI-Assist",
@@ -7739,7 +7739,7 @@
     {
       "num": 220,
       "id": "ADR-0220",
-      "file": "docs/decisions/ADR-0220-consumer-intelligence-substrate.md",
+      "file": "docs/adr-archive/ADR-0220-consumer-intelligence-substrate.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0220: Consumer Intelligence Substrate",
@@ -7761,7 +7761,7 @@
     {
       "num": 221,
       "id": "ADR-0221",
-      "file": "docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md",
+      "file": "docs/adr-archive/ADR-0221-agentic-development-pipeline-hardening.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0221 \u2014 Agentic Development Pipeline Hardening",
@@ -7783,7 +7783,7 @@
     {
       "num": 239,
       "id": "ADR-0239",
-      "file": "docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md",
+      "file": "docs/adr-archive/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md",
       "status_raw": null,
       "status_key": "missing_status",
       "title": "ADR-0239: Foundry Scope Clarification (Internal-Only Amendment)",
@@ -7807,7 +7807,7 @@
     {
       "num": 57,
       "id": "ADR-0057",
-      "file": "docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md",
+      "file": "docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "ADR-0057: Cutover Mechanics \u2014 Rename Plan v4 (Hybrid C)",
@@ -7831,7 +7831,7 @@
     {
       "num": 97,
       "id": "ADR-0097",
-      "file": "docs/decisions/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
+      "file": "docs/adr-archive/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "Rename oya-intelligence-account-adapter-{claude-code,codex-cli,gemini-cli} \u2192 oya-foundry-{claude,codex,gemini}-account-adapter",
@@ -7853,7 +7853,7 @@
     {
       "num": 101,
       "id": "ADR-0101",
-      "file": "docs/decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md",
+      "file": "docs/adr-archive/ADR-0101-supervisor-mountpoint-direct-hyper.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "Foundry Supervisor Mountpoint (Direct Hyper)",
@@ -7875,7 +7875,7 @@
     {
       "num": 102,
       "id": "ADR-0102",
-      "file": "docs/decisions/ADR-0102-intelligence-settings-template-canonical-rendering.md",
+      "file": "docs/adr-archive/ADR-0102-intelligence-settings-template-canonical-rendering.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "Foundry Settings Template Canonical Rendering",
@@ -7897,7 +7897,7 @@
     {
       "num": 138,
       "id": "ADR-0138",
-      "file": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md",
+      "file": "docs/adr-archive/ADR-0138-intelligence-six-path-deprecation.md",
       "status_raw": "Superseded",
       "status_key": "superseded",
       "title": "ADR-0138: Foundry six-path deprecation \u2014 Strangler migration",

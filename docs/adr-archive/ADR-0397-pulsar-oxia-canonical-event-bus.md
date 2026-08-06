@@ -11,6 +11,9 @@ superseded_by: [ADR-709]
 related: [ADR-0005, ADR-0011, ADR-0132, ADR-0195, ADR-0476, ADR-0478, ADR-0479, ADR-0481, ADR-0482, ADR-0510, ADR-0536, ADR-0537, ADR-0557]
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0397 — Pulsar 4.x + Oxia canonical event-bus
 
 > **RECONSTRUCTION.** This record was cited before it was written. Seven governed surfaces

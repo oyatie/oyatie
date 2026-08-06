@@ -68,9 +68,9 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md",
-    "docs/decisions/ADR-0252-time-coordination-distributed-consistency.md",
-    "docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
+    "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md",
+    "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md",
+    "docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
     "docs/decisions/_disposition/band-0250-receipt.json"
   ],
   "no_change": ["ADR-0250", "ADR-0253", "ADR-0254", "ADR-0257", "ADR-0258"]

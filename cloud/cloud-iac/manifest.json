@@ -478,7 +478,7 @@
       "id": "ADR-0218",
       "title": "OpenTofu Not Terraform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0218-opentofu-not-terraform.md"
+      "file": "docs/adr-archive/ADR-0218-tenant-granular-control-surface.md"
     },
     {
       "id": "ADR-0339",
@@ -514,7 +514,7 @@
       "id": "ADR-0349",
       "title": "GitHub Actions oya-ci Argocd Self Hostable Ci Cd Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0349-github-actions-oya-ci-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/adr-archive/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
     }
   ],
   "hyperscaler_inv_coverage": {

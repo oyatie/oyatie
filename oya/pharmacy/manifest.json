@@ -6,7 +6,7 @@
   "dr_tier": "T2",
   "version": "0.1.0",
   "owner": "axis-pharmacy",
-  "authority_adr": "docs/decisions/ADR-0332-pharmacy-substrate.md",
+  "authority_adr": "docs/adr-archive/ADR-0332-healthcare-domain-decomposition.md",
   "layout_authority": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
   "grouping_policy": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
   "summary": "Pharmacy clinical and operational substrate — medication catalog (NDC + RxNorm + GPI + ATC + UNII), formulary, ePrescribe (Surescripts + NCPDP SCRIPT + EPCS), drug interactions (DDI/DAI/DCI/DPI/DDxI/DLI/DFI/DDoseI), allergy + dose checking, pharmacist verification, compounding (USP 795/797/800), inventory, auto-dispensing cabinets (Pyxis/Omnicell/Carousel), BCMA, IV admixture + smart pump (Alaris/Plum/Hospira), controlled substances (DEA CII–CV + Form 222 + EPCS), reimbursement (340B + PBM NCPDP D.0), operations, interventions, medication reconciliation, outpatient retail/drive-through/mail/specialty, MTM (CMR/TMR/MAP/PML), DSCSA (SGTIN-198 + T1/T2/T3 + saleable returns + suspect product).",
@@ -385,7 +385,7 @@
       "id": "ADR-0145",
       "title": "Inter-Microservice Direct gRPC + 3 invariants",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0145-inter-microservice-direct-grpc.md"
+      "file": "docs/adr-archive/ADR-0145-inter-microservice-communication-reform.md"
     },
     {
       "id": "ADR-0248",
@@ -397,37 +397,37 @@
       "id": "ADR-0251",
       "title": "Compliance Pack Primitive",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0251-compliance-pack-primitive.md"
+      "file": "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md"
     },
     {
       "id": "ADR-0252",
       "title": "HLC Default TrueTime Tier",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0252-hlc-default-truetime-tier.md"
+      "file": "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md"
     },
     {
       "id": "ADR-0253",
       "title": "HTTP/3 + QUIC Default",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0253-http3-quic-default.md"
+      "file": "docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md"
     },
     {
       "id": "ADR-0254",
       "title": "Kubernetes Everywhere Cloud Hypervisor",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0254-kubernetes-everywhere-cloud-hypervisor.md"
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0328",
       "title": "Multispectrum Review v2.4.0",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0328-multispectrum-review-v2-4-0.md"
+      "file": "docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md"
     },
     {
       "id": "ADR-0332",
       "title": "Pharmacy Substrate Authorization",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0332-pharmacy-substrate.md"
+      "file": "docs/adr-archive/ADR-0332-healthcare-domain-decomposition.md"
     },
     {
       "id": "ADR-MS-PHARM-001",

@@ -11,14 +11,14 @@
  M docs/decisions/ADR-0704-k8s-port-live-apex.md
  M docs/decisions/ADR-0701-monorepo-capability-live-apex.md
  M docs/decisions/ADR-0700-ci-admission-live-apex.md
-RM docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md -> docs/decisions/ADR-0700-ci-admission-live-apex.md
-RM docs/decisions/ADR-0132-connect-core-public-contracts.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/decisions/ADR-0134-connect-dissolution-strangler-migration.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/decisions/ADR-0135-connect-super-app-expansion.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/decisions/ADR-0136-amendment-foundry-internal-scope-clarification-2026-05-18.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/decisions/ADR-0179-sovereign-cloud-per-regional-pack.md -> docs/decisions/ADR-0708-platform-foundations-live-apex.md
-RM docs/decisions/ADR-0180-dr-business-continuity-portfolio-policy.md -> docs/decisions/ADR-0704-k8s-port-live-apex.md
+RM docs/adr-archive/ADR-0131-per-microservice-flat-layout.md -> docs/decisions/ADR-0700-ci-admission-live-apex.md
+RM docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md -> docs/decisions/ADR-0709-general-live-apex.md
+RM docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md -> docs/decisions/ADR-0709-general-live-apex.md
+RM docs/adr-archive/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md -> docs/decisions/ADR-0709-general-live-apex.md
+RM docs/adr-archive/ADR-0135-aspirational-enforcement-gate.md -> docs/decisions/ADR-0709-general-live-apex.md
+RM docs/adr-archive/ADR-0136-intelligence-as-single-microservice.md -> docs/decisions/ADR-0709-general-live-apex.md
+RM docs/adr-archive/ADR-0179-postgres-connection-pooling-pgcat.md -> docs/decisions/ADR-0708-platform-foundations-live-apex.md
+RM docs/adr-archive/ADR-0180-slo-composition-inheritance-arithmetic.md -> docs/decisions/ADR-0704-k8s-port-live-apex.md
  M docs/machine-readable/decisions.json
  M docs/standards/backup-canonical.md
  M docs/standards/ci-lanes.md

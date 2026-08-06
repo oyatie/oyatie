@@ -15,8 +15,8 @@ related_adrs:
   - docs/decisions/ADR-0702-identity-authz-live-apex.md
   - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
   - docs/decisions/ADR-0705-product-protocol-live-apex.md
-  - docs/decisions/ADR-0251-compliance-pack-primitive.md
-  - docs/decisions/ADR-0255-intelligence-two-layer-substrate.md
+  - docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+  - docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
   - docs/decisions/ADR-0702-identity-authz-live-apex.md
   - docs/decisions/ADR-0700-ci-admission-live-apex.md
   - docs/decisions/ADR-0705-product-protocol-live-apex.md
@@ -2447,18 +2447,18 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
 - docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md
-- docs/decisions/ADR-0242-oyatie-is-a-tenant.md
+- docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - docs/decisions/ADR-0247-self-modification-doctrine.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md
-- docs/decisions/ADR-0251-compliance-pack-primitive.md
-- docs/decisions/ADR-0252-hlc-default-truetime-tier.md
-- docs/decisions/ADR-0253-http3-quic-default-protocol.md
-- docs/decisions/ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md
-- docs/decisions/ADR-0255-intelligence-two-layer-substrate.md
+- docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md
+- docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md
+- docs/adr-archive/ADR-0254-deployment-model-spectrum.md
+- docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
 - docs/decisions/ADR-0702-identity-authz-live-apex.md
 - docs/decisions/ADR-0700-ci-admission-live-apex.md
 - docs/decisions/ADR-0705-product-protocol-live-apex.md

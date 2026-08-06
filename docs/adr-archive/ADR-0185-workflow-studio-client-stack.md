@@ -11,6 +11,9 @@ related: [ADR-0064, ADR-0131, ADR-0145, ADR-0148, ADR-0182, ADR-0183, ADR-0184, 
 related_specs:
   - /specs/microservices/manifest-schema.json
 ---
+
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
 # ADR-0185 — Workflow Studio client stack: per-surface native rendering; OpenAPI contract is the cross-ecosystem unifier
 
 ## Status

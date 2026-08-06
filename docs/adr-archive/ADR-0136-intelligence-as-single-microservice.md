@@ -29,6 +29,9 @@ purpose: |
   inseparable hot path.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0136: Foundry as a single µservice (with internal bounded contexts)
 
 ## Status

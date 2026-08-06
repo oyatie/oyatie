@@ -294,7 +294,7 @@ mod tests {
     #[test]
     fn docs_and_yaml_only_is_no_rust() {
         let changed = vec![
-            "docs/decisions/ADR-0360.md".to_string(),
+            "docs/adr-archive/ADR-0360-ci-pipeline-optimization-program.md".to_string(),
             "specs/masterplan.json".to_string(),
             "evidence/ci/x.txt".to_string(),
             "registry/catalog/oya-foo.yaml".to_string(),

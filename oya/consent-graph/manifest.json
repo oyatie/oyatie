@@ -306,7 +306,7 @@
       "id": "ADR-0130",
       "title": "Agentic SLO-Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+      "file": "docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md"
     },
     {
       "id": "ADR-0131",

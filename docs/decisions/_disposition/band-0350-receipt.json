@@ -95,8 +95,8 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0357-vertical-slice-monorepo-nesting.md",
-    "docs/decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+    "docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md",
+    "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
     "docs/decisions/_disposition/band-0350-receipt.json"
   ],
   "no_change": [

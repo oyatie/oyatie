@@ -48,6 +48,9 @@ deliverables:
     verified_by: "cargo nextest -p oya-cloud-intelligence-rest transit_envelope_decrypt_roundtrip"
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0384 — cloud-intelligence gateway Path B redesign: OAuth subscription-pool replacing static API-key pool
 
 ## Status

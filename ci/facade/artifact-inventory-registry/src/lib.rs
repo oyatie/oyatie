@@ -1683,7 +1683,7 @@ mod tests {
         assert_eq!(policy.classify("third-party/foo/lib.rs"), "vendor");
         assert_eq!(policy.classify("docs/foo.generated.json"), "generated");
         assert_eq!(policy.classify("specs/masterplan.json"), "spec");
-        assert_eq!(policy.classify("docs/decisions/ADR-0001.md"), "doc");
+        assert_eq!(policy.classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"), "doc");
         assert_eq!(policy.classify("oya/x/src/lib.rs"), "code");
         assert_eq!(policy.classify("some/unknown/blob"), "husk");
     }

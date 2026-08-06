@@ -16,6 +16,9 @@ session_context:
 purpose: Retire ALL product grouping (suite / family / bundle / vertical) as an architecture artifact. ADR-0132 set a forward-policy and grandfathered existing suites; this ADR removes that grandfather and the brand-layer carve-out, and makes the no-grouping gate real (ADR-0132 specified it but it was never implemented).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0362: Full grouping retirement (flat-only catalog)
 
 ## Status

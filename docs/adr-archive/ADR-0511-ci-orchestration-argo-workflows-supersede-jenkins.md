@@ -20,6 +20,9 @@ session_context:
 purpose: Name Argo Workflows as the destination CI orchestrator (CNCF, k8s-native, self-hostable — passes the hyperscaler-lens), supersede the Proposed cloud-ci-sole-CI ADR-0359, and frame cloud-ci as the transitory bootstrap orchestrator. Keep the oya gate engine as the bespoke governance overlay and the cloud-scm Commit Status API as the gate-result sink. Compose around the in-flight Buck2 reversal (ADR-0392/0408) without re-deciding it.
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0511: CI orchestration = Argo Workflows (k8s-native); cloud-ci transitory; supersede Proposed ADR-0359 (superseded by ADR-0515)
 
 ## Status

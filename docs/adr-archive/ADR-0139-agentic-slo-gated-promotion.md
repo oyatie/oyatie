@@ -19,6 +19,9 @@ competitor_parity_reference: |
 purpose: Make every fast-forward of `staging` and `production` strictly conditional on hyperscaler-grade SLO evidence, by adopting the OSS observability leaders (Grafana Alloy + Prometheus + Mimir + Loki + Tempo + Pyroscope + Grafana + Alertmanager + Grafana OnCall) as the substrate and owning the differentiator (OpenSLO-driven SLO engine + per-component release pointers + agentic promotion-eligibility ledger + event-driven promote workflows + automated rollback + canary cohort weighting).
 ---
 
+> **HISTORICAL / NON-AUTHORITY (2026-08-06):** Not live law. Live source of truth is `docs/decisions/ADR-0700`…`ADR-0709` (see `_disposition/adr-redirect.v1.json`). Frontmatter `status` may still say Accepted for provenance; treat as archived.
+
+
 # ADR-0139: Agentic SLO-gated promotion
 
 ## Status

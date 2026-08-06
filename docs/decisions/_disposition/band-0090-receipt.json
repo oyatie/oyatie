@@ -117,7 +117,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+    "docs/adr-archive/ADR-0092-workspace-dependency-seam-policy.md",
     "docs/decisions/_disposition/band-0090-receipt.json"
   ],
   "no_change": [

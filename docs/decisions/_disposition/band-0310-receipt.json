@@ -84,7 +84,7 @@
     }
   ],
   "files_changed": [
-    "docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md",
+    "docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md",
     "docs/decisions/_disposition/band-0310-receipt.json"
   ],
   "no_change": [

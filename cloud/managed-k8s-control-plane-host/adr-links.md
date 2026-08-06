@@ -9,7 +9,7 @@
 | [ADR-0083](../../docs/decisions/ADR-0700-ci-admission-live-apex.md) | Rust error-handling tier decision | Tier-3 panic-free posture; typed `ProvisioningError` on every fallible path; `#![forbid(unsafe_code)]`. |
 | [ADR-0105](../../docs/decisions/ADR-0709-general-live-apex.md) | 13-layer enum + check-family patterns | Crate role/layer assignment (kernel/api/adapter/app) + architecture-boundary edges. |
 | [ADR-0131](../../docs/decisions/ADR-0701-monorepo-capability-live-apex.md) | Per-microservice flat layout | Single-concern flat layout; `src/` canonical crate root. |
-| [ADR-0132](../../docs/decisions/ADR-0132-no-grouping-microservices.md) | No platform/bundle microservices | This is a single-concern microservice (control-plane-host), not a suite. |
+| [ADR-0132](../../docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md) | No platform/bundle microservices | This is a single-concern microservice (control-plane-host), not a suite. |
 
 ## Deferred / follow-on
 

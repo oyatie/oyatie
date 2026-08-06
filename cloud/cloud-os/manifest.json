@@ -106,7 +106,7 @@
       "id": "ADR-0254",
       "title": "Deployment Model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0254-deployment-model.md"
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0363",
