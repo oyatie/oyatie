@@ -1,0 +1,16 @@
+{
+  "_comment": "PARKED (not executable): CAS Lane 3A (approved-plan-cas-re-20260805): rehome the dark NativeLink CAS/AC provider declaration from infra/nativelink/ into the storage capability adapters face (ADR-0562 capability-first; storage owns CAS substrate). Artifact-only plan (zero crate moves): the surface is a cache-only k8s manifest + OWNERS seed, not a Rust crate. Path move only - preserves cache-only behavior, identities, instance names, image digest, and RWO topology byte-for-byte. No warm activation (ADR-0560 warm_reads_licensed remains false). No RE scheduler/worker (ADR-0612). No symlink, copy, or compatibility alias. Consumers (reachability, operator-secret-bootstrap scan roots/manifest_paths, structural tests, runbook path citations) rewrite to storage/adapters/nativelink/ in the same PR. PARK reason: REORG singleton \u2014 only one live *-move-plan.json may be executable at a time; unpark when CAS 3A prereq (G039 terminal) is met and this becomes the sole live rehome. See specs/reorg/README.md.",
+  "capability": "storage",
+  "moves": [],
+  "artifacts": [
+    {
+      "old_path": "infra/nativelink",
+      "new_path": "storage/adapters/nativelink"
+    }
+  ],
+  "_park": {
+    "status": "PARKED",
+    "reason": "singleton_active_move_plan + CAS 3A prerequisite G039",
+    "unpark_when": "G039 terminal packet + this plan is the single live rehome lane"
+  }
+}
