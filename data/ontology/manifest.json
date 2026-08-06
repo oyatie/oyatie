@@ -55,7 +55,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/ontology/contracts/proto/ontology.proto"
+        "data/ontology/contracts/proto/ontology.proto"
       ]
     }
   },
@@ -348,10 +348,10 @@
       "connection_budget_field": "capacity_model.connections_per_tenant.valkey",
       "connections_per_tenant": 3
     },
-    "counterpart_fact_policy": "No quote-bound third-party legacy cache counterpart facts are present under oya/ontology in this slice; any future external counterpart fact must remain quote-bound and must not become ontology substrate posture.",
+    "counterpart_fact_policy": "No quote-bound third-party legacy cache counterpart facts are present under data/ontology in this slice; any future external counterpart fact must remain quote-bound and must not become ontology substrate posture.",
     "validation_evidence": [
-      "python3 -m json.tool oya/ontology/manifest.json >/dev/null",
-      "targeted VALKEY-001 invariant: manifest cites ADR-0336, pins capacity_model.connections_per_tenant.valkey=3, carries valkey_only posture, and contains no legacy cache substrate token under oya/ontology except the ADR-0336 file slug."
+      "python3 -m json.tool data/ontology/manifest.json >/dev/null",
+      "targeted VALKEY-001 invariant: manifest cites ADR-0336, pins capacity_model.connections_per_tenant.valkey=3, carries valkey_only posture, and contains no legacy cache substrate token under data/ontology except the ADR-0336 file slug."
     ],
     "non_claims": [
       "no Valkey runtime adapter implementation is introduced by VALKEY-001",

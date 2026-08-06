@@ -85,7 +85,7 @@ const GH_987_CLOUD_PATHS: [&str; 14] = [
     "cloud/cell-rebalancer/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-billing-tax/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-billing/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-data/iac/k8s/helm/templates/cedar.yaml",
+    "data/cloud-data/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-iac/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-k8s/iac/k8s/helm/templates/cedar.yaml",
