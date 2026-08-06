@@ -7089,10 +7089,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-adapter-substitution-test-app"
-version = "0.1.0"
-
-[[package]]
 name = "oya-advisory-mirror-kernel"
 version = "0.1.0"
 dependencies = [
@@ -7157,13 +7153,6 @@ name = "oya-architecture-graph-generator-app"
 version = "0.1.0"
 dependencies = [
  "serde_json",
-]
-
-[[package]]
-name = "oya-bot-autofix-app"
-version = "0.1.0"
-dependencies = [
- "oya-ci-gate-contract",
 ]
 
 [[package]]
