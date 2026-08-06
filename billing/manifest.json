@@ -8,7 +8,7 @@
     "stratum": "forward-declared",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
   },
   "version": "0.1.0",
   "owner": "axis-cloud-billing",
@@ -330,7 +330,7 @@
       "context": "aws-guest",
       "primitive": "sg-baseline",
       "version_pin": "v0.1.0",
-      "source": "../../../../iac/modules/aws-guest/sg-baseline",
+      "source": "../../../iac/modules/aws-guest/sg-baseline",
       "wrapper": "billing/iac/aws-guest/main.tofu",
       "tenant_class_scope": "both"
     }
@@ -366,8 +366,8 @@
     "downstream_traceability_refs": [
       "finops-portal/contracts/focus-export-internal.asyncapi.yaml",
       "finops-portal/contracts/tenant-invoice-public.openapi.yaml",
-      "../../marketplace/contracts/openapi-v1.yaml",
-      "../../marketplace/contracts/asyncapi-v1.yaml"
+      "../oya/marketplace/contracts/openapi-v1.yaml",
+      "../oya/marketplace/contracts/asyncapi-v1.yaml"
     ],
     "non_claim": "Traceability only: this records billing, FinOps, and marketplace contract handoff surfaces. It does not implement live metering ingest, FOCUS export generation, invoice rendering, settlement payout, escrow, entitlement, external marketplace API integration, broker delivery, storage, audit-chain persistence, or production billing readiness."
   }

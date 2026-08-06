@@ -15,7 +15,7 @@ variable "allowed_egress_cidrs" {
 }
 
 module "aws_guest_sg_baseline" {
-  source = "../../../../iac/modules/aws-guest/sg-baseline"
+  source = "../../../iac/modules/aws-guest/sg-baseline"
 
   tenant_id                = var.tenant_id
   tenant_class             = var.tenant_class
