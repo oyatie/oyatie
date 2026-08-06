@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "69ed3f2fcb0b9f2c510a33edf40faa8b114bcc45",
+  "head": "b72d344c2861875d284779811ab741ad39736edf",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; same_family recorded honestly for this W2 session",
   "critics": [
@@ -57,5 +57,7 @@
     "fix": "CRLF-tolerant parser source identity + eol=lf + CENSUS_DECISION_PATH contract",
     "prior_rustup": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
   },
-  "tip_note": "exact tip after pin commit"
+  "tip_note": "exact tip after pin commit",
+  "code_tip": "b72d344c2861875d284779811ab741ad39736edf",
+  "evidence_note": "head is code tip with CENSUS_DECISION_PATH; evidence commits trail"
 }
