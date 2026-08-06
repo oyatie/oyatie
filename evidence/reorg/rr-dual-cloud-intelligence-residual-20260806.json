@@ -1,0 +1,42 @@
+{
+  "id": "REORG-DUAL-CLOUD-INTELLIGENCE-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T18:00:00Z",
+  "origin_dev": "1ff54ddc5",
+  "branch": "agent/reorg-intel-residual-docs-20260806",
+  "summary": "Rehome residual zero-crate cloud/cloud-intelligence surface into registered intelligence/ home; retarget live consumers; delete dual-home debt under cloud/ for this residual.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/cloud-intelligence",
+  "moves": [
+    {
+      "from": "cloud/cloud-intelligence/{capabilities,contracts,design,iac,k8s,policy,runbooks,manifest.json,README.md,PRD.md,Dockerfile,SETUP-RUNBOOK.md,IP-001-...}",
+      "to": "intelligence/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "ci/facade/slo-coverage/tests/slo_coverage.rs",
+    "intelligence/adapters/authz-cedar-adapter/{BUCK,Cargo.toml,src/lib.rs,tests/cross_tenant_forbid.rs}",
+    "intelligence/facade/app/src/lib.rs",
+    "intelligence/facade/worker/tests/xproxy_worker_ownership.rs",
+    "intelligence/core/kernel/capability-parity/external-proxy-reference-20260610.json",
+    "intelligence/core/kernel/capability-parity/external-proxy-reference-draft-targets-20260610.json",
+    "intelligence/contracts/tests/*",
+    "intelligence/manifest.json",
+    "oya/intelligence/iac/helm/eval/baseline-store/values.yaml",
+    "registry/fixuptasks.jsonl"
+  ],
+  "net_path_debt": "negative under cloud/cloud-intelligence (deleted); intelligence/ gains residual zero-crate product artifacts at capability home; absorbs_current_dirs reduces by cloud/cloud-intelligence",
+  "path_disjoint_from": {
+    "live_move_plan": "intelligence-remainder-move-plan (oya/intelligence/crates/* only; PR #1581 unpark) \u2014 this residual touches no oya/intelligence crates and does not open a second move-plan"
+  },
+  "non_goals": [
+    "no crate renames or crate path moves",
+    "no second live *-move-plan.json",
+    "no oya/detection residual (separate leaf)",
+    "no oya/intelligence crate remainder execution",
+    "historical docs/audit, docs/adr-archive, and disposition path strings left as historical inventory"
+  ],
+  "file_count_rehomed": 37,
+  "zero_crate": true
+}

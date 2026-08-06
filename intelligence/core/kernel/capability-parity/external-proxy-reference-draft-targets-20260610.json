@@ -112,7 +112,7 @@
       "target_capability": "Map sandbox and network-control ideas to Kubernetes admission, network policy, and worker/controller ownership; keep owned policy-engine and owned secret-provider details behind adapters.",
       "target_tests": [
         "intelligence/facade/worker/tests/xproxy_worker_ownership.rs::k8s_manifest_declares_crds_workers_canaries_and_hardening",
-        "cloud/cloud-intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces"
+        "intelligence/contracts/tests/xproxy_contract_parity.rs::xproxy_openapi_declares_reference_protocol_and_admin_surfaces"
       ]
     },
     {

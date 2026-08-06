@@ -41,7 +41,7 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
 }
 
 fn manifest() -> String {
-    std::fs::read_to_string("cloud/cloud-intelligence/k8s/cloud-intelligence.yaml")
+    std::fs::read_to_string("intelligence/k8s/cloud-intelligence.yaml")
         .expect("read cloud-intelligence manifest")
 }
 

@@ -12,7 +12,7 @@ use ci_slo_coverage::{Verdict, evaluate, evaluate_keyed};
 use serde_json::Value;
 
 const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
-    "cloud/cloud-intelligence/manifest.json",
+    "intelligence/manifest.json",
     "cloud/managed-k8s-cluster-lifecycle/manifest.json",
     "cloud/managed-k8s-control-plane-host/manifest.json",
     "cloud/managed-k8s-sla-observability/manifest.json",

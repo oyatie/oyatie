@@ -90,7 +90,7 @@ cosignVerifier:
   enabled: true
   # ⚠ VERIFIER VERSION SKEW — cosign v2 CANNOT verify v3-produced signatures.
   # The buildkit signing jobs (infra/ci-webhook-gateway/buildkit-build.yaml,
-  # cloud/cloud-intelligence/k8s/buildkit-build.yaml) now sign with v3.1.2, whose
+  # intelligence/k8s/buildkit-build.yaml) now sign with v3.1.2, whose
   # bundle format a v2 client cannot even discover. Proven against a local
   # registry with no egress: v2.4.1 and v2.5.0 both exit 10 "no signatures
   # found" on a v3-signed image; v3.1.2 exits 0.

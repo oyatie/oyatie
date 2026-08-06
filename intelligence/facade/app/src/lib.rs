@@ -1398,7 +1398,7 @@ mod tests {
     #[test]
     fn helm_template_declares_all_boot_required_env_vars() {
         let deployment_template =
-            read_repo_file("cloud/cloud-intelligence/iac/k8s/helm/templates/deployment.yaml");
+            read_repo_file("intelligence/iac/k8s/helm/templates/deployment.yaml");
         for expected in [
             "OYA_CLOUD_INTEL_LISTEN_ADDR",
             "OYA_CLOUD_INTEL_TENANT_ID",
@@ -1427,7 +1427,7 @@ mod tests {
         let app_source = read_repo_file("intelligence/facade/app/src/lib.rs");
         let rest_source = read_repo_file("intelligence/adapters/rest/src/lib.rs");
         let deployment_template =
-            read_repo_file("cloud/cloud-intelligence/iac/k8s/helm/templates/deployment.yaml");
+            read_repo_file("intelligence/iac/k8s/helm/templates/deployment.yaml");
 
         assert!(
             app_source.contains("SecretProvider") && rest_source.contains("SecretProvider"),
@@ -1455,9 +1455,9 @@ mod tests {
     #[test]
     fn probe_paths_are_consistent_between_helm_and_openapi() {
         let deployment_template =
-            read_repo_file("cloud/cloud-intelligence/iac/k8s/helm/templates/deployment.yaml");
+            read_repo_file("intelligence/iac/k8s/helm/templates/deployment.yaml");
         let openapi_contract =
-            read_repo_file("cloud/cloud-intelligence/contracts/cloud-intelligence.openapi.yaml");
+            read_repo_file("intelligence/contracts/cloud-intelligence.openapi.yaml");
         for path in ["/healthz", "/livez", "/readyz"] {
             assert!(
                 deployment_template.contains(&format!("path: {path}"))
@@ -1474,7 +1474,7 @@ mod tests {
     #[test]
     fn tenant_subscription_openapi_matches_runtime_registration_semantics() {
         let openapi_contract =
-            read_repo_file("cloud/cloud-intelligence/contracts/cloud-intelligence.openapi.yaml");
+            read_repo_file("intelligence/contracts/cloud-intelligence.openapi.yaml");
         let operation_start = openapi_contract
             .find("  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:\n")
             .expect("tenant subscription admin path missing from OpenAPI");
@@ -1518,7 +1518,7 @@ mod tests {
     #[test]
     fn external_secret_exposes_handles_not_raw_provider_credentials() {
         let external_secret_template =
-            read_repo_file("cloud/cloud-intelligence/iac/k8s/helm/templates/externalsecret.yaml");
+            read_repo_file("intelligence/iac/k8s/helm/templates/externalsecret.yaml");
         for forbidden in [
             "anthropic_refresh_token",
             "openai_api_key",
