@@ -91,7 +91,7 @@ mod tests {
         let report = check(&[
             artifact("docs/AGENTS.md", true, true, false),
             artifact(
-                "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+                "docs/decisions/ADR-0709-general-live-apex.md",
                 true,
                 true,
                 false,

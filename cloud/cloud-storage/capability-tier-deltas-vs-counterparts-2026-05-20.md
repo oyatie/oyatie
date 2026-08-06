@@ -6,15 +6,15 @@ Verdict style: ahead / parity / catch-up / missing / not-applicable.
 
 ## Anchor block
 
-1. Canonical sequence: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2214`, `:2241-2494`, `:3441-3754`, and `:3756-4146`.
+1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2214`, `:2241-2494`, `:3441-3754`, and `:3756-4146`.
 2. Machine-readable direction: `specs/master-plan-sequencing.json:704-867`.
-3. Service PRD citation: service-local `PRD.md` is absent; substitute purpose evidence is `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:8-11` and root cloud PRD `docs/products/cloud/PRD.md:1587-1665`.
+3. Service PRD citation: service-local `PRD.md` is absent; substitute purpose evidence is `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` and root cloud PRD `docs/products/cloud/PRD.md:1587-1665`.
 4. Service architecture citation: service-local `ARCHITECTURE.md` is absent; substitute architecture evidence is `microservices/cloud-storage/faqs/storage-engineer-faq.md:15-22` and root crate map `docs/products/cloud/PRD.md:131-137`.
 5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` and `docs/standards/documentation-rigor.md:133-156`.
 
 ## §1 tenant_class Profile Definitions in Oyatie
 
-demo_trial source: `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:13-32`.
+demo_trial source: `docs/decisions/ADR-0702-identity-authz-live-apex.md:13-32`.
 demo_trial current tenant: B2C/community tenant.
 demo_trial current backend: shared regional MinIO cluster.
 demo_trial current storage classes: Hot only.
@@ -33,7 +33,7 @@ demo_trial canonical OCI ceiling: 10GB object storage and 10GB archive storage.
 demo_trial canonical block ceiling: 200GB block volume pool.
 demo_trial target posture: developer/community class with explicit free-tier guardrails.
 
-paid baseline profile source: `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:34-53`.
+paid baseline profile source: `docs/decisions/ADR-0702-identity-authz-live-apex.md:34-53`.
 paid baseline profile current tenant: SMB/workgroup.
 paid baseline profile current backend: dedicated MinIO pool plus `aws-s3-glacier-deep` adapter.
 paid baseline profile current storage classes: Hot, Warm, Cold.
@@ -50,7 +50,7 @@ paid baseline profile current price: about $420/mo.
 paid baseline profile canonical correction: AWS Glacier adapter must become optional backing adapter, not tier baseline.
 paid baseline profile target posture: paid baseline with versioning, lifecycle, one async replica, and daily inventory.
 
-paid production profile source: `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:55-74`.
+paid production profile source: `docs/decisions/ADR-0702-identity-authz-live-apex.md:55-74`.
 paid production profile current tenant: mid-market.
 paid production profile current backend: dedicated EC:14+4 cluster plus SSD metadata and edge cache.
 paid production profile current storage classes: Hot, Warm, Cold, Archive.
@@ -67,7 +67,7 @@ paid production profile current price: about $2200/mo.
 paid production profile contradiction: FAQ and benchmark describe async replication, while migration says sync paid production profile.
 paid production profile target posture: production parity with S3/GCS/Azure for object storage, plus Cedar/audit additions.
 
-paid regulated profile source: `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:76-95`.
+paid regulated profile source: `docs/decisions/ADR-0702-identity-authz-live-apex.md:76-95`.
 paid regulated profile current tenant: regulated / large enterprise.
 paid regulated profile current backend: dedicated per-tenant per-region clusters plus HSM and optional tape escrow.
 paid regulated profile current storage classes: Hot, Warm, Cold, Archive, LegalHold, DeepTape.
@@ -303,9 +303,9 @@ paid regulated profile safe claim: target profile only.
 
 ## §4 OCI demo_trial = Always Free Reconciliation
 
-Canonical OCI source: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3441-3466`.
-Canonical OCI module source: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3593-3655`.
-Canonical OCI stop condition: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3748-3754`.
+Canonical OCI source: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3441-3466`.
+Canonical OCI module source: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3593-3655`.
+Canonical OCI stop condition: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3748-3754`.
 OCI Always Free compute budget: up to 4 Arm OCPU and 24GB memory.
 OCI Always Free block budget: 200GB total block volume.
 OCI Always Free object budget: 10GB object storage.

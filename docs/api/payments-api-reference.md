@@ -515,4 +515,4 @@ Contract file: [`microservices/payments/contracts/payments-v1.proto`](../../micr
 - PSP adapter trait: [`microservices/payments/contracts/psp-adapter-trait.md`](../../microservices/payments/contracts/psp-adapter-trait.md).
 - Policies: [`microservices/payments/policy/`](../../microservices/payments/policy/).
 - API standard: [`docs/standards/api-design.md`](../standards/api-design.md).
-- ADR-0316: [`docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`](../decisions/ADR-0316-capability-tier-over-product-fragmentation.md).
+- ADR-0316: [`docs/decisions/ADR-0709-general-live-apex.md`](../decisions/ADR-0316-capability-tier-over-product-fragmentation.md).

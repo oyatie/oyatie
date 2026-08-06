@@ -1161,7 +1161,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         wf(&root, "crates/a/nested/src/lib.rs", "pub fn nested() {}\n");
         wf(
             &root,
-            "docs/decisions/ADR-0001-both.md",
+            "docs/decisions/ADR-0001-graphql.md",
             "See `crates/a/nested/src/lib.rs` and also `crates/a/src/lib.rs`.\n",
         );
 
@@ -1186,7 +1186,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
 
         apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
 
-        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-both.md")).unwrap();
+        let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-graphql.md")).unwrap();
         assert_eq!(
             adr,
             "See `capB/src/lib.rs` and also `capA/src/lib.rs`.\n",

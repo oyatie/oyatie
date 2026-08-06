@@ -9719,17 +9719,17 @@ The live repository contains 56 top-level microservice directories after the ERP
 
 ### §19.1 Internal doctrine references
 
-- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-- docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- docs/decisions/ADR-0245-substrate-vs-product-layering.md
-- docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-- docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md
-- docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-- docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-- docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-- docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-- docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-- docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
 - docs/standards/documentation-rigor.md
 - docs/products/erp-coverage/PRD.md
 - specs/root-hub-pointers.json

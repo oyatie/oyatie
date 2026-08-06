@@ -19,8 +19,8 @@
       "specs/brownout-degradation-signal.json"
     ],
     "context_only_sources": [
-      "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
-      "docs/decisions/ADR-0114-canary-observability-rollback.md"
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0706-observability-live-apex.md"
     ],
     "context_boundary": "ADR-0040 and ADR-0114 are Proposed and are used only as rollout/canary design context. Accepted authority for this slice comes from ADR-0139/0159-backed specs plus the accepted brownout degradation signal contract."
   },

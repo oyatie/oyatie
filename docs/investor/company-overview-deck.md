@@ -647,10 +647,10 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Zylo source URL: https://zylo.com/2026-saas-management-index
 - Internal source: `specs/masterplan.json`, FD-001 scope and claim boundary.
 - Internal source: `specs/hyperscaler-architecture-invariants.json`, architecture invariants.
-- Internal source: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`, capability-tier doctrine.
-- Internal source: `docs/decisions/ADR-0243-cedar-as-universal-gate.md`, Cedar universal gate doctrine.
-- Internal source: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`, audit-chain doctrine.
-- Internal source: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`, compliance-pack doctrine.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md`, capability-tier doctrine.
+- Internal source: `docs/decisions/ADR-0700-ci-admission-live-apex.md`, Cedar universal gate doctrine.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md`, audit-chain doctrine.
+- Internal source: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`, compliance-pack doctrine.
 - Internal source: `docs/standards/per-tenant-resource-quotas-canonical.md`, quota axes.
 - Internal source: `microservices/intelligence/capability-tiers/tier-matrix.md`, tier model.
 - Internal source: local file count, 78 microservice directories.

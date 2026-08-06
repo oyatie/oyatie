@@ -1,0 +1,142 @@
+{
+  "band": [510, 519],
+  "reviewed": [
+    "ADR-0510",
+    "ADR-0512",
+    "ADR-0515",
+    "ADR-0516",
+    "ADR-0517",
+    "ADR-0518",
+    "ADR-0519"
+  ],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "adr": "ADR-0511",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0515"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    },
+    {
+      "adr": "ADR-0513",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0515"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    },
+    {
+      "adr": "ADR-0514",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0515"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0510",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0510. Live Accepted amender ADR-0518 is already in amended_by. ADR-0526 is also listed in amended_by (WAVE-1 note: de-risks cutover via scm-facts adapter); 0526 frontmatter amends 0525/0515 only and body says 'de-risks' rather than formal amends—edge is asymmetric but not a false-Accepted supersession defect; do not invent remove without body rewrite. Destination remains recorded-but-deferred bespoke monorepo-VCS behind numeric triggers; aligns with north star (owned stack; GitHub/0363 transitory). Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0518",
+        "ADR-0526",
+        "ADR-0550",
+        "ADR-0562"
+      ]
+    },
+    {
+      "adr": "ADR-0512",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0512 in full. ADR-0562 Accepted amends layout clause only (capability-first supersedes cloud/oya/libs root assumption; clauses 2–5 survive); amended_by already lists ADR-0562. ADR-0550 also amends but is itself Superseded by 0562—not required as live peer. Body ratification stamp (2026-07-10) explicitly: scoped amendment NOT full supersession. Aligns with capability-first cluster 0562+0615+0635. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0550",
+        "ADR-0562",
+        "ADR-0615",
+        "ADR-0635"
+      ]
+    },
+    {
+      "adr": "ADR-0515",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live single-admission CI authority (oya-ci-required). No higher ADR supersedes. All nine Accepted amenders present in amended_by: 0516, 0519, 0526, 0527, 0528, 0529, 0530, 0624, 0639. ADR-0622 body explicitly does not supersede 0515. Supersedes 0511/0513/0514 correctly. Aligns with north star: no dual-authority CI; live-resolved with amends 0624/0639. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0516",
+        "ADR-0519",
+        "ADR-0526",
+        "ADR-0527",
+        "ADR-0528",
+        "ADR-0529",
+        "ADR-0530",
+        "ADR-0622",
+        "ADR-0624",
+        "ADR-0630",
+        "ADR-0639"
+      ]
+    },
+    {
+      "adr": "ADR-0516",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Fabric apex remains live. No higher Accepted supersedes or amends. amended_by lists ADR-0617 which is Proposed (forward reference only; not implement authority)—not a false-Accepted parent defect; do not mass-Accept 0617. Decomposition ADRs 0517–0535 hang under without replacing apex. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0517",
+        "ADR-0518",
+        "ADR-0519",
+        "ADR-0520",
+        "ADR-0522",
+        "ADR-0617"
+      ]
+    },
+    {
+      "adr": "ADR-0517",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0517. Content-addressed owned AST substrate + work-area hash remains live W1 interface authority; higher refs (0520/0522) cite as foundation without replacement. Aligns with owned Rust stack. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0518",
+        "ADR-0520",
+        "ADR-0522",
+        "ADR-0530",
+        "ADR-0617"
+      ]
+    },
+    {
+      "adr": "ADR-0518",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0518. Defines deferred ADR-0510 destination (10-stage AST work-area pipeline); cutover still gated by 0510 numeric triggers. ADR-0526 de-risks cutover without superseding 0518. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0521",
+        "ADR-0526"
+      ]
+    },
+    {
+      "adr": "ADR-0519",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0519. Vision-level AUTO/ADVISE/GATE governor; ADR-0529 operationalizes at gate layer and amends 0515 (not 0519)—amended_by empty is correct. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0529",
+        "ADR-0530",
+        "ADR-0531"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0510",
+    "ADR-0512",
+    "ADR-0515",
+    "ADR-0516",
+    "ADR-0517",
+    "ADR-0518",
+    "ADR-0519"
+  ]
+}

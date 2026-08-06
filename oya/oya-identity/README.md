@@ -22,7 +22,7 @@ Supersedes Keycloak Phase-1 per **ADR-0476**.
 
 ## ADR reference
 
-- [ADR-0476](../../docs/decisions/ADR-0476-bespoke-rust-human-identity-substrate.md) — authoritative design decision superseding Keycloak Phase-1
+- [ADR-0476](../../docs/adr-archive/ADR-0476-oya-identity-bespoke-human-identity.md) — authoritative design decision superseding Keycloak Phase-1
 
 ## SLOs
 

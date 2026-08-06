@@ -9,7 +9,7 @@
     "summary": "Add a provider-neutral metering-kernel quota projection helper keyed by tenant, capability, and meter unit.",
     "files_touched": [
       "billing/core/metering/src/lib.rs",
-      "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "evidence/multispectrum/wavea-market-billing-metering-quota-20260625-1782430229.json"
     ],
     "explicit_non_claims": [

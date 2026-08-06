@@ -10,11 +10,11 @@ top_3_counterparts: [AWS EKS, GCP GKE, Azure AKS]
 status: PASS-WITH-FINDINGS
 substance_floor: 600-lines
 source_anchors:
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
   - /Users/jasonlee/oyatie/specs/master-plan-sequencing.json
   - /Users/jasonlee/oyatie/docs/standards/brief-template.md
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0254-deployment-model-spectrum.md
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
 related_local_docs:
   - microservices/cloud-k8s/PRD.md
   - microservices/cloud-k8s/ARCHITECTURE.md

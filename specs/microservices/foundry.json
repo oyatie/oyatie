@@ -128,7 +128,7 @@
       "microservices/intelligence/manifest.json",
       "microservices/intelligence/PRD.md",
       "microservices/intelligence/ARCHITECTURE.md",
-      "docs/decisions/ADR-0335-intelligence-microservice-consolidation.md"
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     ]
   }
 }

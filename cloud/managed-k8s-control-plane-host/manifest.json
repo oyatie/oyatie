@@ -111,37 +111,37 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface (two-tier hosted+dedicated)",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0375",
       "title": "Talos + Cluster API + Argo CD fleet substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0148",
       "title": "Service mesh: Cilium L3/L4 + Istio Ambient L7",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0092",
       "title": "Workspace dependency-seam policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0083",
       "title": "Rust error-handling tier decision",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0083-rust-error-handling-tier-decision.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13-layer enum and check-family patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

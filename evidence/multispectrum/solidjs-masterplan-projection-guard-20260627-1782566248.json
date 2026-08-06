@@ -35,8 +35,8 @@
   "summary": "Add a live-corpus regression proving the masterplan generator excludes superseded ADR-0372/SolidJS planning text from live generated planning output.",
   "traceability": {
     "primary_decisions": [
-      "docs/decisions/ADR-0393-leptos-canonical-app-shell-frontend.md",
-      "docs/decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       "registry/generated-artifact-control-plane.json",
       "docs/AGENTS.md"
     ],

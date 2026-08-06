@@ -1,0 +1,83 @@
+{
+  "band": [290, 299],
+  "reviewed": [292, 293, 294, 295, 296, 297, 298, 299],
+  "findings": [
+    {
+      "adr": "ADR-0292",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add amended_by: [ADR-0350]",
+      "reason": "Accepted ADR-0350 frontmatter amends + body authority_chain amends ADR-0292 (UUIDv7 replaces ULID event_id examples only); reverse-link was missing. Proposed ADR-0317 also amends frontmatter but is not Accepted authority — not reverse-linked. No higher Accepted supersedes. Remain Proposed (not mass-Accept).",
+      "higher_adrs_cited": ["ADR-0317", "ADR-0350"]
+    },
+    {
+      "adr": "ADR-0293",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted lists ADR-0293 under supersedes: or amends:. Cited as related/design-input by higher Proposed ADRs (e.g. 0354 impact notes). Remain Proposed (not mass-Accept). Meta-trust-root doctrine not contradicted by live 0515/0363 admission substrate.",
+      "higher_adrs_cited": ["ADR-0354"]
+    },
+    {
+      "adr": "ADR-0294",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted supersedes or amends. Cedar fragment soak/anomaly-rollback remains design-input cited by higher Proposed doctrine cluster; no live supersession evidence. Remain Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0295",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted lists ADR-0295 under supersedes: or amends:. Bootstrap SPIFFE kill-switch is related design-input (e.g. Proposed 0354/0561); does not create dual-authority CI vs Accepted ADR-0515 (no supersession claim found). Remain Proposed.",
+      "higher_adrs_cited": ["ADR-0354", "ADR-0561"]
+    },
+    {
+      "adr": "ADR-0296",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted supersedes or amends. Accepted ADR-0335 only cites credential isolation as related OpenBao wiring, does not amends/supersedes 0296. Proposed 0355 is mutual amendment partner (lower/peer scope) not reverse-linked as Accepted. Remain Proposed.",
+      "higher_adrs_cited": ["ADR-0335", "ADR-0355"]
+    },
+    {
+      "adr": "ADR-0297",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted supersedes or amends. Abuse-defence baseline remains Proposed design-input for Wave-3-G safety cluster; no live supersession. Remain Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0298",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted supersedes or amends. Emergency-services life-safety bypass remains Proposed design-input; no live supersession. Remain Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0299",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Only Proposed ADR-0317 frontmatter-amends ADR-0299; not Accepted authority so no amended_by reverse-link. No higher Accepted supersedes. (Note: ADR-0320/0313 prose sometimes mis-labels unrelated topics as ADR-0299; not treated as supersession evidence.) Remain Proposed.",
+      "higher_adrs_cited": ["ADR-0317"]
+    }
+  ],
+  "files_changed": [
+    "docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
+    "docs/decisions/_disposition/band-0290-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0293",
+    "ADR-0294",
+    "ADR-0295",
+    "ADR-0296",
+    "ADR-0297",
+    "ADR-0298",
+    "ADR-0299"
+  ]
+}

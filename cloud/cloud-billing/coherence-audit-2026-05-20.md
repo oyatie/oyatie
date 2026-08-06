@@ -24,7 +24,7 @@ remediation_authorized: false
 
 ## Canonical Anchors (5-Citation Header)
 
-1. `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` §D-1 (Phase 0 service 12 placement), §D-4 (5-dimension audit protocol), §D-5 (UNION-coverage parity bar), §D-6 (4-doc deliverable, here reduced to 3 per amendment), §D-15..§D-20 (six-context deployment matrix + OpenTofu IaC + OS support + Rust-strict).
+1. `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md` §D-1 (Phase 0 service 12 placement), §D-4 (5-dimension audit protocol), §D-5 (UNION-coverage parity bar), §D-6 (4-doc deliverable, here reduced to 3 per amendment), §D-15..§D-20 (six-context deployment matrix + OpenTofu IaC + OS support + Rust-strict).
 2. `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json` keys `canonical_build_sequence.phases[0]`, `deployment_contexts`, `iac_substrate`, `supported_oses`, `language_policy`, `oci_always_free` — `cloud-billing` is named in Phase 0 service 12 and inherits all five constraint dimensions.
 3. `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md` — `cloud-billing` is the KEYSTONE µservice for the binary tenant_class enum {demo_trial, paid} and the paid `billing_components` set ⊆ {revenue_share, per_seat, per_usage}.
 4. `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_no_tenant_class_2026_05_20.md` + `feedback_oci_always_free_maximization_2026_05_20.md` — tier system retired; OCI Always Free is the default infra profile for demo/trial tenants, not a demo_trial tenant_class.
@@ -255,7 +255,7 @@ The audit was performed by reading the following artifacts in full:
 
 In addition, the audit consulted the following canonical-direction sources to evaluate alignment:
 
-(12) `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` (§A-§D-20).
+(12) `docs/decisions/ADR-0700-ci-admission-live-apex.md` (§A-§D-20).
 (13) `specs/master-plan-sequencing.json` (keys `canonical_build_sequence`, `deployment_contexts`, `iac_substrate`, `supported_oses`, `language_policy`, `oci_always_free`, `forbidden_primitives`).
 (14) `docs/standards/brief-template.md` (§3.1 µservice ownership audit anchors + §3.9..§3.12 multi-context, OpenTofu, OS support, language policy anchors).
 

@@ -8,9 +8,9 @@ Audit date: 2026-05-20.
 
 ## Anchor block
 
-1. Canonical sequence: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2214` for §D-15 multi-context and cloud-storage ownership; `:2241-2494` for §D-16 OpenTofu; `:3441-3754` for §D-19 OCI Always Free; `:3756-4146` for §D-20 audit decision tree.
+1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2214` for §D-15 multi-context and cloud-storage ownership; `:2241-2494` for §D-16 OpenTofu; `:3441-3754` for §D-19 OCI Always Free; `:3756-4146` for §D-20 audit decision tree.
 2. Machine-readable plan: `specs/master-plan-sequencing.json:704-867` for six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
-3. Service PRD citation: service-local `microservices/cloud-storage/PRD.md` is absent; closest product-purpose evidence read is `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:8-11` plus root cloud PRD capability records `docs/products/cloud/PRD.md:1587-1665`.
+3. Service PRD citation: service-local `microservices/cloud-storage/PRD.md` is absent; closest product-purpose evidence read is `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` plus root cloud PRD capability records `docs/products/cloud/PRD.md:1587-1665`.
 4. Service architecture citation: service-local `microservices/cloud-storage/ARCHITECTURE.md` is absent; closest architecture evidence read is root crate map `docs/products/cloud/PRD.md:131-137` and local backend explanation `microservices/cloud-storage/faqs/storage-engineer-faq.md:15-22`.
 5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` sets full-platform requirements and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability and hyperscaler-grade tests.
 
@@ -97,7 +97,7 @@ Missing service-local artifact: service-local benchmark harness.
 ### §3.1 Dimension 1 - Internal Coherence
 
 Finding D1-001: Internal corpus is coherent around object-storage vocabulary, but incomplete against root cloud-storage scope.
-Citation: `docs/decisions/ADR-0329-tier-system-retired-replaced-by-tenant-class.md:8-11` defines object-storage duties.
+Citation: `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` defines object-storage duties.
 Citation: `docs/products/cloud/PRD.md:131-137` includes object, block, and file storage APIs.
 Classification: partial, P2.
 Internal reference check: `ADR-0329/ADR-0330/ADR-0331:3` cites ADR-0244; target exists under `docs/decisions/`.

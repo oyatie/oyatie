@@ -9,7 +9,7 @@ VCS CLAIM: `./bin/oya vcs claim --agent codex-cloud-network-dns-audit --intent "
 
 ## Header citation anchors
 
-1. ADR-0328 §D-15..§D-20: deployment contexts, OpenTofu, OS matrix, Rust-strict, OCI Always Free, and audit dimensions are canonical; key line ranges read include `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
+1. ADR-0328 §D-15..§D-20: deployment contexts, OpenTofu, OS matrix, Rust-strict, OCI Always Free, and audit dimensions are canonical; key line ranges read include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
 2. Master plan machine contract: `specs/master-plan-sequencing.json:704-867` defines the six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
 3. Service PRD anchor: `microservices/cloud-network-dns/PRD.md` is absent in the service inventory; nearest service-local product-purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`.
 4. Service architecture anchor: `microservices/cloud-network-dns/ARCHITECTURE.md` is absent in the service inventory; nearest service-local architecture-equivalent evidence is `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5` and `microservices/cloud-network-dns/faqs/dns-engineer-faq.md:26-30`.
@@ -37,8 +37,8 @@ The implementation evidence outside the service path is much narrower: the OpenA
 The Rust API crate similarly describes tenant DNS zone creation, request normalization, idempotency, and authenticated projection before handing typed zone creation to the cloud network kernel (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`).
 The runtime tests prove public-zone creation, idempotent replay, and private-zone binding to a known VPC (`crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211`).
 This creates the core audit result: the service docs describe a full hyperscaler DNS product, but current local contract and runtime evidence only prove a zone-create control-plane slice.
-The right product boundary should remain ambitious because ADR-0328 places `cloud-network-dns` in Phase 0 shared infrastructure (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:450-465`).
-The service belongs in the network seam for public cloud and provider-mode contexts (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1752-1754` and `:1996`).
+The right product boundary should remain ambitious because ADR-0328 places `cloud-network-dns` in Phase 0 shared infrastructure (`docs/decisions/ADR-0700-ci-admission-live-apex.md:450-465`).
+The service belongs in the network seam for public cloud and provider-mode contexts (`docs/decisions/ADR-0700-ci-admission-live-apex.md:1752-1754` and `:1996`).
 The docs cannot yet support a GA claim across all six deployment contexts because no service-local manifest, IaC modules, SLOs, policies, or OpenTofu state-backend declarations exist.
 The product purpose is coherent as a target: Oyatie needs DNS as its own IaaS/network substrate to avoid a provider-wrapped Route 53 or Cloud DNS dependency.
 The artifact set is incoherent as a build package: the most critical documents and machine-readable surfaces are absent from the microservice directory.
@@ -61,7 +61,7 @@ The audit recommends preserving the DNS-substrate ambition while reducing curren
 | `README.md` | 0 | missing | Service entrypoint | no: required by documentation-rigor (`docs/standards/documentation-rigor.md:64-66`) |
 | `contracts/` | 0 | missing service-local | API/event/proto contracts | no: documentation-rigor requires OpenAPI, AsyncAPI, proto surfaces (`docs/standards/documentation-rigor.md:70`) |
 | `slos/` | 0 | missing | OpenSLO evidence | no: documentation-rigor requires OpenSLO docs (`docs/standards/documentation-rigor.md:73`) |
-| `iac/` | 0 | missing | OpenTofu deployment modules | no: ADR-0328 requires per-service and per-context IaC (`docs/decisions/ADR-0328-...md:2275-2295`) |
+| `iac/` | 0 | missing | OpenTofu deployment modules | no: ADR-0328 requires per-service and per-context IaC (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2295`) |
 | `supported-oses.json` or manifest field | 0 | missing | OS matrix | no: master plan requires per-microservice manifest (`specs/master-plan-sequencing.json:777-815`) |
 | `src/` and service-local `Cargo.toml` | 0 | missing | Runtime implementation | no: runtime code is outside service path and proves only zone-create slice (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`) |
 | `tests/` | 0 | missing service-local | Test evidence | no: tests are outside service path and only prove zone-create behavior (`crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211`) |
@@ -90,8 +90,8 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 14. Capability tenant_class paid pricing is $640/month (`retired tenant_class adoption artifact:64`), and migration playbook explicitly says AWS/GCP/Azure/Cloudflare are much cheaper at mid-market scale (`migration-playbooks/from-route53-and-ns1.md:168-173`); this resolves as an honest tradeoff.
 15. Benchmark TCO table also says AWS/GCP/Azure/Cloudflare are cheaper than paid at mid-market scale (`benchmarks/...:74-88`); this supports migration playbook tradeoff lines.
 16. FAQ says registrar stays external and NS records point to Oyatie (`faqs/dns-engineer-faq.md:7-11`), while onboarding/tutoring require manual DS publication at registrar (`onboarding/...:96`, `tutorials/...:80`); this is a P2 gap because registrar automation is identified as future.
-17. The zero-handroll doctrine forbids manual DNS mutation in onboarding (`docs/decisions/ADR-0328-...md:1782-1783`); manual DS publication therefore escalates to P1 for production onboarding claims.
-18. Onboarding Day 2 uses `make dev-cell.up` and `make dev-tenant.create` (`onboarding/...:22-24`), while Rust-strict canonical build forbids `make` as backend build invocation (`docs/decisions/ADR-0328-...md:3215-3231`); P2 doc-invocation drift.
+17. The zero-handroll doctrine forbids manual DNS mutation in onboarding (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1782-1783`); manual DS publication therefore escalates to P1 for production onboarding claims.
+18. Onboarding Day 2 uses `make dev-cell.up` and `make dev-tenant.create` (`onboarding/...:22-24`), while Rust-strict canonical build forbids `make` as backend build invocation (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3231`); P2 doc-invocation drift.
 19. Tutorial prerequisites repeat `make` commands (`tutorials/...:6-8`); same P2 drift.
 20. Benchmark reproducibility also uses `make benchmarks.cloud-network-dns.run` (`benchmarks/...:110-117`); this conflicts with the cargo-only build lane for release evidence.
 21. Migration playbook uses `jq | while read` loops for Route 53 and NS1 exports (`migration-playbooks/...:16-28`, `:33-38`); Rust-strict memory forbids shell beyond tiny glue and migration scripts (`feedback_rust_strict_only_no_python_2026_05_20.md:51-64`).
@@ -110,7 +110,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 34. Capability tenant_class claims BGP anycast advertising (`retired tenant_class adoption artifact:7-10`, `:94`), but no FRR/BGP/OpenTofu/network adapter docs exist; P1 for a network substrate.
 35. Benchmark doc claims measured data across dates (`benchmarks/...:3-5`) but the cited evidence path is absent (`benchmarks/...:119`); P1 evidence gap.
 36. Benchmark doc includes Azure DNS, NS1, and Akamai in addition to the requested top-three counterparts (`benchmarks/...:1`); not a contradiction, but audit top-three union coverage should focus on Route 53, Cloud DNS, and Cloudflare DNS.
-37. Onboarding references `docs/decisions/ADR-0253-http3-quic-default-protocol.md` (`onboarding/...:9-11`), but the exact file does not exist; P2 broken internal-reference path.
+37. Onboarding references `docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md` (`onboarding/...:9-11`), but the exact file does not exist; P2 broken internal-reference path.
 38. Capability tenant_class cites ADR-0253 more generally (`retired tenant_class adoption artifact:4-5`); this can resolve to existing ADR-0253 amendment or topology files only after path correction.
 39. Reference implementation uses `oya-cloud-network-dns-sdk = "0.42.0"` (`reference-implementations/...:14-22`), but the repo evidence read only proves `oya-cloud-network-dns-api`; P2 SDK provenance gap.
 40. Reference implementation tests mention an in-process Knot DNS resolver and SoftHSM (`reference-implementations/...:229-236`), but no service-local test fixtures exist; P2 test evidence gap.
@@ -127,8 +127,8 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 
 ### §3.2 Dimension 2 — outbound cross-references and inbound references
 
-1. ADR-0248 reference in onboarding resolves: `onboarding/dns-engineer-first-week.md:9` points to `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md`, and the file exists.
-2. ADR-0253 exact path in onboarding does not resolve: `onboarding/...:10` names `docs/decisions/ADR-0253-http3-quic-default-protocol.md`, but the repo contains differently named ADR-0253 files.
+1. ADR-0248 reference in onboarding resolves: `onboarding/dns-engineer-first-week.md:9` points to `docs/decisions/ADR-0700-ci-admission-live-apex.md`, and the file exists.
+2. ADR-0253 exact path in onboarding does not resolve: `onboarding/...:10` names `docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md`, but the repo contains differently named ADR-0253 files.
 3. Capability tenant_class cites ADR-0244, ADR-0248, ADR-0253, and ADR-0316 without paths (`retired tenant_class adoption artifact:3-5`); these are partially resolvable but should be exact links.
 4. Capability tenant_class cites RFC 4033-4035, RFC 8484, RFC 7858, and RFC 9230 (`tenant-class-adoption/...:4-5`); standards are appropriate external references for DNSSEC, DoH, DoT, and ODoH.
 5. Onboarding cites the same RFC set plus RFC 9250 for DoQ (`onboarding/...:9-11`); resolves conceptually.
@@ -138,8 +138,8 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 9. FAQ names Apple Private Relay and Cloudflare ODoH proxy (`faqs/...:41-46`); external privacy interoperability is a product feature but not in contract.
 10. FAQ names Thales Luna 7 and Utimaco Se Gen2 HSM (`faqs/...:33-37`); no service-local hardware support matrix exists.
 11. FAQ names `cloud-network`, `cloud-iac`, Foundry, Cedar, `audit-chain`, and `observability` (`faqs/...:82-153`); no service-local cross-microservice handoff file exists.
-12. ADR-0273 references this service for DKIM/SPF/DMARC publication and propagation probing (`docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:326-365`, `:443-465`).
-13. ADR-0273 expects `microservices/cloud-network-dns/iac/helm/dns-orchestrator/` (`docs/decisions/ADR-0273-...md:1330-1332`), but no `iac/` directory exists; P1 inbound broken expectation.
+12. ADR-0273 references this service for DKIM/SPF/DMARC publication and propagation probing (`docs/decisions/ADR-0700-ci-admission-live-apex.md:326-365`, `:443-465`).
+13. ADR-0273 expects `microservices/cloud-network-dns/iac/helm/dns-orchestrator/` (`docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332`), but no `iac/` directory exists; P1 inbound broken expectation.
 14. `docs/products/cloud/PRD.md:138-143` lists `oya-cloud-network-dns-api` as the DNS zone create REST API, narrowing the runtime surface.
 15. `docs/products/cloud/PRD.md:161-176` places the DNS contract in the VPC/Network API family with p99 <=500 ms create-boundary SLO.
 16. `contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` confirms the only read contract is zone create.
@@ -185,7 +185,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 3. A cold intern cannot build the architecture because `ARCHITECTURE.md` is absent, also contrary to the mandatory roster (`docs/standards/documentation-rigor.md:64-66`).
 4. A cold intern cannot discover service-local APIs because `contracts/` is absent despite the contract requirement (`docs/standards/documentation-rigor.md:70`).
 5. A cold intern cannot discover SLOs because `slos/` is absent despite the OpenSLO requirement (`docs/standards/documentation-rigor.md:73`).
-6. A cold intern cannot deploy the service because `iac/` is absent despite ADR-0328's per-service IaC directory contract (`docs/decisions/ADR-0328-...md:2275-2295`).
+6. A cold intern cannot deploy the service because `iac/` is absent despite ADR-0328's per-service IaC directory contract (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2295`).
 7. A cold intern cannot verify OS support because the manifest/supported_oses field is absent despite `specs/master-plan-sequencing.json:777-815`.
 8. A cold intern cannot build the runtime from the service path because no `src/` or service-local `Cargo.toml` exists.
 9. A cold intern can find an external Rust API crate, but it only proves zone-create behavior (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`).
@@ -233,7 +233,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 
 ### §3.4 Dimension 4 — canonical-direction alignment
 
-1. Multi-context doctrine applies because this service is a network substrate (`docs/decisions/ADR-0328-...md:1732-1734`).
+1. Multi-context doctrine applies because this service is a network substrate (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1732-1734`).
 2. Six contexts are canonical: `oyatie-public-cloud`, `guest-on-aws`, `guest-on-oci`, `on-prem`, `colo`, and `oyatie-as-cloud-provider` (`specs/master-plan-sequencing.json:704-745`).
 3. Service-local docs do not enumerate any six-context support matrix; P1 drift from `feedback_multi_context_provider_agnostic_2026_05_20.md:32-38`.
 4. Service-local docs imply all contexts through sovereign, on-prem, and provider-displacement claims, but do not bind the claim to context-specific deployment mechanics.
@@ -246,7 +246,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 11. OpenTofu substrate is canonical and Terraform/Pulumi/CloudFormation are forbidden engines (`specs/master-plan-sequencing.json:747-775`).
 12. Service-local grep found no Terraform/Pulumi/CloudFormation references; aligned on forbidden engine naming.
 13. Service-local path has no OpenTofu modules, state backend, module signing, or `tofu` invocation; P1 missing IaC.
-14. ADR-0328 requires module signing through sigstore and cosign (`docs/decisions/ADR-0328-...md:2357-2365`); no service-local signing plan exists.
+14. ADR-0328 requires module signing through sigstore and cosign (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2357-2365`); no service-local signing plan exists.
 15. State backend by context is canonical (`specs/master-plan-sequencing.json:758-765`); no service-local state reference exists.
 16. OS support is canonical with 13 Tier-1 OS targets (`specs/master-plan-sequencing.json:777-793`).
 17. Service-local path has no supported OS manifest; P1 drift.
@@ -255,7 +255,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 20. Service-local forbidden source-file grep found no `*.py`, `*.js`, `*.ts`, `*.rb`, `*.go`, `*.java`, `*.scala`, `*.groovy`, `*.php`, or `*.fs` files; aligned on file inventory.
 21. Authorized non-Rust service-local files are Markdown only; aligned with `specs/master-plan-sequencing.json:828-839`.
 22. Docs contain shell loops and `make` commands; drift from `feedback_rust_strict_only_no_python_2026_05_20.md:51-64`.
-23. Canonical backend build invocation is `cargo build --workspace --release --all-features --locked` (`docs/decisions/ADR-0328-...md:3215-3219`).
+23. Canonical backend build invocation is `cargo build --workspace --release --all-features --locked` (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3219`).
 24. Service-local docs use `cargo run --release` and `cargo test --features hermetic` in the reference implementation (`reference-implementations/...:201-233`), which is acceptable for example/test but not a full release claim.
 25. OCI Always Free is canonical for `guest-on-oci` demo/sandbox/trial/dev tenants (`specs/master-plan-sequencing.json:857-867`).
 26. Service tenant_class matrix does not state OCI demo_trial tenant_class = Always Free; P1 drift from `feedback_oci_always_free_maximization_2026_05_20.md:74-82`.
@@ -267,7 +267,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 32. The user-required ownership directive says one agent must own every file under the microservice path and verify contradictions (`feedback_microservice_ownership_coherence_2026_05_20.md:18-59`); this audit followed that scope.
 33. The verify-deliverables directive rejects line count as a quality proxy (`feedback_verify_deliverables_not_just_line_count_2026_05_20.md:10-31`); this report cites actual file evidence.
 34. The docs-substance directive rejects thin scaffolds (`feedback_docs_substance_not_scaffold_2026_05_20.md:10-20`); existing docs have substance but incomplete deployability.
-35. ADR-0328 D-20 requires dimension-specific audit application for Batch 2.1 (`docs/decisions/ADR-0328-...md:3756-4151`).
+35. ADR-0328 D-20 requires dimension-specific audit application for Batch 2.1 (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3756-4151`).
 36. Dimension 6/7/8/9 criteria are each evaluated separately below.
 37. Alignment classification for multi-context: drifted-fixable.
 38. Alignment classification for OpenTofu: drifted-fixable with P1 missing modules.
@@ -340,8 +340,8 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 ### §3.6 Dimension 6 — multi-context deployment support
 
 1. Context `oyatie-public-cloud`: required for managed GA service; no `iac/oyatie-public-cloud/` directory exists.
-2. Context `oyatie-public-cloud`: DNS is explicitly part of the context network seam (`docs/decisions/ADR-0328-...md:1752-1754`).
-3. Context `oyatie-public-cloud`: onboarding must run `tofu init`, `tofu plan`, `tofu apply` through cloud-iac (`docs/decisions/ADR-0328-...md:1778-1783`); service docs use `make` and manual DS steps.
+2. Context `oyatie-public-cloud`: DNS is explicitly part of the context network seam (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1752-1754`).
+3. Context `oyatie-public-cloud`: onboarding must run `tofu init`, `tofu plan`, `tofu apply` through cloud-iac (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1778-1783`); service docs use `make` and manual DS steps.
 4. Context `guest-on-aws`: required because source migration and backing AWS primitives are in scope, but no `iac/guest-on-aws/` directory exists.
 5. Context `guest-on-aws`: AWS Route 53 may be a backing resource but not the product surface (`specs/master-plan-sequencing.json:715-718`); service docs correctly frame Route 53 as displaced source/backing provider, not user-facing surface.
 6. Context `guest-on-oci`: required because OCI Always Free is canonical; no `iac/oci-guest/` directory exists.
@@ -400,11 +400,11 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 6. `iac/on-prem/` is absent.
 7. `iac/colo/` is absent.
 8. `iac/oyatie-iaas/` is absent.
-9. ADR-0328 requires a deployable microservice to own `microservices/<name>/iac/` (`docs/decisions/ADR-0328-...md:2275-2279`).
-10. ADR-0328 requires `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, and README per context (`docs/decisions/ADR-0328-...md:2296-2309`).
-11. Required variables include tenant_id, deployment_context, cell_id, region/facility_id, tenant_class, billing account, and data residency policy (`docs/decisions/ADR-0328-...md:2323-2337`).
-12. Required outputs include service endpoint, observability export, billing meter IDs, IAM bindings, state backend ref, and module attestation ref (`docs/decisions/ADR-0328-...md:2339-2355`).
-13. Module signing via sigstore/cosign is mandatory (`docs/decisions/ADR-0328-...md:2357-2365`).
+9. ADR-0328 requires a deployable microservice to own `microservices/<name>/iac/` (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2279`).
+10. ADR-0328 requires `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, and README per context (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2296-2309`).
+11. Required variables include tenant_id, deployment_context, cell_id, region/facility_id, tenant_class, billing account, and data residency policy (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2323-2337`).
+12. Required outputs include service endpoint, observability export, billing meter IDs, IAM bindings, state backend ref, and module attestation ref (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2339-2355`).
+13. Module signing via sigstore/cosign is mandatory (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2357-2365`).
 14. Service-local grep found no Terraform engine references.
 15. Service-local grep found no Pulumi references.
 16. Service-local grep found no CloudFormation references.
@@ -427,7 +427,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 33. OpenTofu should own DNS cell resources, resolver deployments, anycast/BGP components, HSM/key bindings, health-check worker infrastructure, telemetry sinks, and context-specific network attachments.
 34. OpenTofu should not own business logic such as record validation or DNSSEC signing algorithms.
 35. `cloud-iac` should orchestrate modules; FAQ mentions `cloud-iac` declarative record creation (`faqs/...:141-145`) but no module contract exists.
-36. ADR-0273 expects an iac/helm DNS orchestrator path (`docs/decisions/ADR-0273-...md:1330-1332`); this conflicts with missing service-local IaC.
+36. ADR-0273 expects an iac/helm DNS orchestrator path (`docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332`); this conflicts with missing service-local IaC.
 37. Helm path expectation also conflicts with OpenTofu-first unless Helm values are generated/managed by OpenTofu through approved modules.
 38. Required IaC inventory after remediation should include DNS authoritative pods/daemonsets, CoreDNS/Knot/PowerDNS choice, Cilium policies, anycast advertisement resources, health monitor deployment, HSM/SoftHSM bindings, metrics/logs, and per-context networking.
 39. Required OCI Always Free module must fit 4 OCPU/24GB, 200GB block, 10GB object/archive, and 10Mbps LB (`feedback_oci_always_free_maximization_2026_05_20.md:67-84`).
@@ -524,7 +524,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 24. Onboarding uses `make dev-cell.up` and `make dev-tenant.create` (`onboarding/...:22-24`).
 25. Tutorial uses `make dev-cell.up` and `make dev-tenant.create` (`tutorials/...:6-8`).
 26. Benchmark reproducibility uses `make benchmarks.cloud-network-dns.run` (`benchmarks/...:112-117`).
-27. ADR-0328 forbids `make` as backend build invocation (`docs/decisions/ADR-0328-...md:3230-3231`).
+27. ADR-0328 forbids `make` as backend build invocation (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3230-3231`).
 28. Reference implementation uses Cargo for example execution (`reference-implementations/...:201-205`).
 29. Reference implementation uses Cargo for hermetic tests (`reference-implementations/...:229-233`).
 30. Canonical release build is absent from service docs: `cargo build --workspace --release --all-features --locked` is not included.
@@ -560,14 +560,14 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 | P1 | D1/D3 | Audit/event/query stream claims lack AsyncAPI/event schemas | `retired tenant_class adoption artifact:90-91`; `faqs/dns-engineer-faq.md:82-86` | Add AsyncAPI and event schema entries |
 | P1 | D1 | HSM/KSK import tenant_class statement is internally contradictory | `migration-playbooks/from-route53-and-ns1.md:88-98`; `retired tenant_class adoption artifact:74-80` | Rewrite import policy by tier: software key vs HSM |
 | P1 | D1 | Benchmark claims measured evidence, but cited evidence path is absent | `benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-5,119` | Mark as target numbers or land evidence bundle |
-| P1 | D2 | ADR-0273 expects DNS orchestrator IaC path that does not exist | `docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332` | Add IaC path or update ADR via owning workflow |
+| P1 | D2 | ADR-0273 expects DNS orchestrator IaC path that does not exist | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1330-1332` | Add IaC path or update ADR via owning workflow |
 | P1 | D3 | Full doc-set floor is not met: 7 artifacts versus >=70 floor | `docs/standards/documentation-rigor.md:62-81` | Build PR-143-style suite for this service |
 | P1 | D4/D6 | No six-context support matrix exists | `specs/master-plan-sequencing.json:704-745`; `feedback_multi_context_provider_agnostic_2026_05_20.md:32-38` | Add manifest/PRD context matrix |
-| P1 | D4/D7 | No OpenTofu `iac/` directory exists | `docs/decisions/ADR-0328-...md:2275-2295` | Add per-context OpenTofu modules |
+| P1 | D4/D7 | No OpenTofu `iac/` directory exists | `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2295` | Add per-context OpenTofu modules |
 | P1 | D4/D8 | No OS support manifest exists | `specs/master-plan-sequencing.json:777-815`; `feedback_os_support_matrix_2026_05_20.md:56-78` | Add supported OS manifest and CI lanes |
 | P1 | D4/D6 | OCI demo_trial tenant_class Always Free not documented; demo_trial says ~$5/month | `retired tenant_class adoption artifact:28`; `feedback_oci_always_free_maximization_2026_05_20.md:74-82` | Add OCI demo_trial tenant_class Always Free reconciliation |
 | P1 | D6 | All six contexts lack IaC evidence | `specs/master-plan-sequencing.json:709-742` | Create `iac/oyatie-public-cloud`, `guest-on-aws`, `oci-guest`, `on-prem`, `colo`, `oyatie-iaas` |
-| P1 | D7 | No sigstore/cosign module signing wiring | `docs/decisions/ADR-0328-...md:2357-2365` | Add module attestation output and release flow |
+| P1 | D7 | No sigstore/cosign module signing wiring | `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2357-2365` | Add module attestation output and release flow |
 | P1 | D7 | No state backend per context | `specs/master-plan-sequencing.json:758-765` | Add backend declaration per module README |
 | P1 | D5 | DNS Firewall/RPZ/threat-filtering missing versus AWS/Cloudflare union coverage | AWS DNS Firewall docs; Cloudflare DNS Firewall docs | Add DNS security/filtering product slice |
 | P1 | D5 | Secondary DNS/AXFR/IXFR missing versus Cloudflare union coverage | Cloudflare zone transfer docs | Add secondary DNS and TSIG/ACL design |
@@ -575,7 +575,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 | P2 | D1 | Broken ADR-0253 path in onboarding | `onboarding/dns-engineer-first-week.md:9-11` | Replace with exact existing ADR path |
 | P2 | D1/D9 | `make` used in onboarding/tutorial/benchmark docs | `onboarding/...:22-24`; `tutorials/...:6-8`; `benchmarks/...:112-117` | Replace with Cargo/Rust CLI/OpenTofu |
 | P2 | D1/D9 | Shell loops used for migration and health-check creation | `migration-playbooks/...:16-28`; `tutorials/...:106-120` | Use Rust migrator subcommands or explicit commands |
-| P2 | D1/D6 | Manual DS publication contradicts zero-handroll production onboarding | `onboarding/...:96`; `tutorials/...:80`; `docs/decisions/ADR-0328-...md:1782-1783` | Add registrar integration boundary |
+| P2 | D1/D6 | Manual DS publication contradicts zero-handroll production onboarding | `onboarding/...:96`; `tutorials/...:80`; `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1782-1783` | Add registrar integration boundary |
 | P2 | D1 | SDK crate/version in reference implementation not proven service-local | `reference-implementations/...:14-22` | Add SDK manifest or update crate name/version |
 | P2 | D1 | HSM products named without deployment/support matrix | `faqs/dns-engineer-faq.md:33-37` | Add HSM support doc and cloud-kms handoff |
 | P2 | D1 | MaxMind/RIPE data source lacks licensing and update runbook | `faqs/dns-engineer-faq.md:50-53` | Add data-source refresh and license controls |
@@ -587,7 +587,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 | P2 | D8 | OS package formats absent | `feedback_os_support_matrix_2026_05_20.md:37-44` | Add RPM/DEB/container/.pkg/Homebrew plan |
 | P3 | D2 | References to ADRs are mostly numeric, not exact links | `retired tenant_class adoption artifact:3-5` | Convert to exact relative links |
 | P3 | D5 | Additive PQC DNSSEC lacks experimental safety caveat | `retired tenant_class adoption artifact:74` | Mark experimental, gated, not GA-default |
-| P3 | D7 | Helm expectation in ADR-0273 needs OpenTofu-managed framing | `docs/decisions/ADR-0273-...md:1330-1332` | Document Helm as generated deployment artifact if retained |
+| P3 | D7 | Helm expectation in ADR-0273 needs OpenTofu-managed framing | `docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332` | Document Helm as generated deployment artifact if retained |
 
 Severity totals: P0 = 0, P1 = 19, P2 = 12, P3 = 3.
 

@@ -1,0 +1,46 @@
+{
+  "pr": 1574,
+  "pass": "post-deliverables",
+  "verdict": "APPROVE",
+  "real": true,
+  "head": "ab7aeb0d4187f151dc6b5b062f0e4dbe970f92af",
+  "prior_head_user_expected": "17ad2138ea3de750da6e5540acaf1a2a47fbb6e1",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "focus": "cartesian/red_team on SoT+deliverables+generated faces"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "focus": "systems/contrarian on path/index/CI second-order + carve-outs"
+    }
+  ],
+  "remediation_commits_this_pass": [
+    "4718c6613 fix(adr): apex deliverables + rebind planning_authority for board-sync",
+    "17ad2138e chore(docs): rematerialize MASTERPLAN.md after apex bound_adrs rebase",
+    "fd98f788b fix(adr): census/scm-facts + archive id zero-pad for tip reds",
+    "ab7aeb0d4 fix(ci): archive vocab carve-out + path retarget for disposition"
+  ],
+  "live_corpus": [
+    "ADR-0700",
+    "ADR-0701",
+    "ADR-0702",
+    "ADR-0703",
+    "ADR-0704",
+    "ADR-0705",
+    "ADR-0706",
+    "ADR-0707",
+    "ADR-0708",
+    "ADR-0709"
+  ],
+  "blocking": [],
+  "residual_risks": [
+    "oya-ci-required must go green on ab7aeb0d4 before merge",
+    "vocab carve-out docs/decisions/ADR-07 is broader than archive-only",
+    "sequencing still carries archived planning_impact:true IDs outside bound_adrs",
+    "CLAUDE.md historical path collapse / optional topic polish"
+  ],
+  "content_ready_if_oya_ci_required_green": true
+}

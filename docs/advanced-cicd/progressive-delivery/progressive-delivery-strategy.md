@@ -18,7 +18,7 @@ doc_status: published
 
 # Progressive-Delivery Strategy — Oyatie
 
-> **Status:** pending approval. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md).
+> **Status:** pending approval. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
 
 ## 1. Thesis
 
@@ -37,13 +37,13 @@ Hyperscaler equivalents we honour: Google SRE multi-window burn-rate ([SRE Workb
 | **Adapter** (`-adapter-<provider>`) | Canary, **per-provider** | Provider behaviour drift is the #1 incident class | N/A | Flagger |
 | **Runtime** (agent / WASM substrate) | Blue/green per cell | Replay-safety; stateful runtime | All-tenant blue/green | Argo Rollouts (BG) |
 | **Migration** (schema / data) | Blue/green + dual-write | Replay infeasible; D14 mandate | All-tenant blue/green | Argo Rollouts (BG) |
-| **Capability** (Foundry publish) | Canary + eval-set gate | Per [ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md) | Stable cohort honoured | Flagger + capability-publish-kernel |
+| **Capability** (Foundry publish) | Canary + eval-set gate | Per [ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md) | Stable cohort honoured | Flagger + capability-publish-kernel |
 
 **Default = canary.** Blue/green is reserved for stateful migrations + runtime cutovers + KMS roots. **Rolling-update is forbidden** for any change class above (rolling = no metric gate).
 
 ## 3. Sanctioned controllers
 
-- **Flagger** (CNCF) — primary K8s-native rail. Lightweight, service-mesh-native (works on Istio Ambient per [ADR-0044](../../../docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md)). New default for axes that do not need cross-axis analysis primitives.
+- **Flagger** (CNCF) — primary K8s-native rail. Lightweight, service-mesh-native (works on Istio Ambient per [ADR-0044](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)). New default for axes that do not need cross-axis analysis primitives.
 - **Argo Rollouts** (CNCF Graduated) — second sanctioned option. Used where blue/green primitives, cross-axis analysis-templates, or per-cell experiment graphs are needed.
 
 Both are adapted behind `oya-platform-rollout-controller-kernel` (NEW; provider-agnostic core) + per-controller adapter crate (`-adapter-flagger`, `-adapter-argo-rollouts`).
@@ -56,15 +56,15 @@ Wall-clock floors: 5 min (stage 1), 10 min (stage 2), 30 min (stage 3), 1 h (sta
 
 ## 5. Stable cohorts
 
-Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthcare / fintech / gov) and contractual SLA-bound enterprise tenants **never see canary**. Cohort assignment is per-tenant, persisted in `oya-platform-tenant-cohort-kernel` (NEW), and inherited from per-vertical regulatory packs ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)).
+Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthcare / fintech / gov) and contractual SLA-bound enterprise tenants **never see canary**. Cohort assignment is per-tenant, persisted in `oya-platform-tenant-cohort-kernel` (NEW), and inherited from per-vertical regulatory packs ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)).
 
 ## 6. Rollback unit
 
-Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is tracked by planned advisory lane `oya-governance-rollback-evidence`.
+Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md)) and is tracked by planned advisory lane `oya-governance-rollback-evidence`.
 
 ## 7. Anti-scope
 
-This strategy does not own: SLO catalog (per [ADR-0042](../../../docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md)), gitops branch model ([ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md)), supply-chain signing ([ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md)).
+This strategy does not own: SLO catalog (per [ADR-0042](../../../docs/decisions/ADR-0709-general-live-apex.md)), gitops branch model ([ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md)), supply-chain signing ([ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 8. Compliance gates
 

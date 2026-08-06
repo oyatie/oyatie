@@ -15,5 +15,5 @@ keywords:
   - sovereignty
   - HG-CONSENT
 annotations:
-  oya.dev/authority-adr: docs/decisions/ADR-0214-cross-tenant-real-time-visibility.md
-  oya.dev/layout-authority: docs/decisions/ADR-0131-per-microservice-flat-layout.md
+  oya.dev/authority-adr: docs/decisions/ADR-0702-identity-authz-live-apex.md
+  oya.dev/layout-authority: docs/decisions/ADR-0701-monorepo-capability-live-apex.md

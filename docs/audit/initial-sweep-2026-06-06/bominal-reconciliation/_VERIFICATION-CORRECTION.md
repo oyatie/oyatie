@@ -8,14 +8,14 @@ sources_read:
   - /Users/jasonlee/Developer/source/docs/ADR-LEGACY-REGRESSION-MAPPING.md          # authoritative migration-coverage map, 127 rows
   - /Users/jasonlee/Developer/linux/docs/audit/initial-sweep-2026-06-06/bominal-reconciliation/00-INTERVIEW-AGENDA.md
   - /Users/jasonlee/Developer/linux/docs/audit/initial-sweep-2026-06-06/bominal-reconciliation/20-LOST-CONTEXT-REGISTER.md
-  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0332-healthcare-domain-decomposition.md  # healthcare decomp, CDSS service
-  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0027-robotics-vision-speech-sub-substrates.md  # robotics/AMR
-  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md  # NERC-CIP mention
+  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0701-monorepo-capability-live-apex.md  # healthcare decomp, CDSS service
+  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0709-general-live-apex.md  # robotics/AMR
+  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0709-general-live-apex.md  # NERC-CIP mention
   - /Users/jasonlee/Developer/source/docs/teams/vertical-industrial/CHARTER.md      # SCADA/OT boundary
   - /Users/jasonlee/Developer/source/docs/prds/payroll.md                           # 4대보험/KR payroll depth
   - /Users/jasonlee/Developer/source/docs/regional-packs/oya-pack-kr/PACK.md        # KR statute citations
-  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0060-bominal-inheritance-precedence.md  # M03 first-customer
-  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0064-canonical-base-and-localization-packs.md  # 전자금융업
+  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0709-general-live-apex.md  # M03 first-customer
+  - /Users/jasonlee/Developer/source/docs/decisions/ADR-0709-general-live-apex.md  # 전자금융업
   - /Users/jasonlee/Developer/source/docs/user-journeys/j157-diana-lazar-print-operator-batch-defect-and-quality-recall/README.md
   - /Users/jasonlee/Developer/source/docs/user-journeys/j160-cleaning-co-tomas-horak-bid-cross-tenant-and-onboard/README.md
   - /Users/jasonlee/Developer/source/docs/ROADMAP.md

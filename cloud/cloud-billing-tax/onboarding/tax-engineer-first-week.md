@@ -6,8 +6,8 @@ certificate, track nexus, and generate a filing artefact.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` — every calculation carries `tenant_id`.
-- `docs/decisions/ADR-0245-substrate-vs-product-layering.md` — `cloud-billing-tax` is substrate beneath `cloud-billing`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md` — every calculation carries `tenant_id`.
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` — `cloud-billing-tax` is substrate beneath `cloud-billing`.
 - OECD VAT/GST International Guidelines (vendored at `vendor/oecd-vat-gst-guidelines/SUMMARY.md`).
 - EU VAT in the Digital Age (ViDA) Directive — particularly the e-invoicing pillar effective 2030.
 - US Wayfair v. South Dakota (2018) ruling — establishes the economic-nexus framework.

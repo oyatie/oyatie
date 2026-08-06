@@ -1,0 +1,141 @@
+{
+  "band": [30, 39],
+  "reviewed": [
+    "ADR-0030",
+    "ADR-0031",
+    "ADR-0032",
+    "ADR-0034",
+    "ADR-0035",
+    "ADR-0036",
+    "ADR-0038",
+    "ADR-0039"
+  ],
+  "skipped_missing": [
+    {
+      "adr": "ADR-0033",
+      "note": "No file under docs/decisions/; not in decade-bands all_nums"
+    },
+    {
+      "adr": "ADR-0037",
+      "note": "No file under docs/decisions/; not in decade-bands all_nums"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0030",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Search µservice five-stage architecture remains live product authority. No higher ADR frontmatter supersedes or amends ADR-0030. Higher peers refine substrates only: ADR-0046 (Superseded→0192) vector store; ADR-0047/0048 Proposed search-backend/morphology; ADR-0192 Accepted lists 0030 as related and supersedes 0046 only. Body pointer to ADR-0046 is related-spec lag, not supersession of 0030 — do not rewrite body. Not dual-authority CI / warm CAS; orthogonal to live 0515/0363/0562. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0046",
+        "ADR-0047",
+        "ADR-0048",
+        "ADR-0192",
+        "ADR-0058"
+      ]
+    },
+    {
+      "adr": "ADR-0031",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Singleton tenant-ads-gate + Ads/Analytics architecture still live. No higher ADR supersedes or amends ADR-0031. ADR-0193 Accepted (ClickHouse OLAP) cites 0031 as related only and owns warehouse tier, not ads-gate doctrine. Keep Accepted; do not invent supersession.",
+      "higher_adrs_cited": [
+        "ADR-0193",
+        "ADR-0034",
+        "ADR-0038"
+      ]
+    },
+    {
+      "adr": "ADR-0032",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed DCIM / oya-cloud-dcops scope with commercial-silicon anti-scope. Not implement authority. No later Accepted supersedes or amends. Leave Proposed (do not mass-Accept).",
+      "higher_adrs_cited": [
+        "ADR-0132",
+        "ADR-0515",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0562"
+      ]
+    },
+    {
+      "adr": "ADR-0034",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Per-µservice hard-deny override packs (Cedar floor below tenant DUBO) remain live privacy/compliance authority. No higher ADR supersedes or amends ADR-0034. Later citations (e.g. 0276 related) do not replace mechanism. Aligns with zero-trust / data-use boundary stack (0007/0008). Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0276",
+        "ADR-0008",
+        "ADR-0243"
+      ]
+    },
+    {
+      "adr": "ADR-0035",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed workflow hybrid SM+DAG. Forward amends edge exists only from ADR-0252 (status Proposed) — task requires later Accepted amends before adding amended_by; do not reverse-link Proposed-only amender. ADR-0222 Accepted is related saga portfolio policy, does not supersede/amend 0035. Leave Proposed; do not mass-Accept.",
+      "higher_adrs_cited": [
+        "ADR-0175",
+        "ADR-0222",
+        "ADR-0252"
+      ]
+    },
+    {
+      "adr": "ADR-0036",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed plugin substrate (Wasmtime + WASI + Cosign trust tiers). ADR-0200 Accepted names Wasmtime as canonical runtime with Supersedes: none and does not claim supersession of 0036 (narrower runtime choice vs full plugin marketplace substrate). No later Accepted supersedes/amends 0036. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0039",
+        "ADR-0200",
+        "ADR-0335"
+      ]
+    },
+    {
+      "adr": "ADR-0038",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed trust framework / DSR cascade / Cosign proof-of-erasure / tenant trust portal. Higher peers related only (0156 PII registry Accepted; 0175 lifecycle; 0276 backup portability; 0589 Proposed DSR fail-closed authz). No later Accepted supersedes or amends. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0156",
+        "ADR-0175",
+        "ADR-0276",
+        "ADR-0589"
+      ]
+    },
+    {
+      "adr": "ADR-0039",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed supply-chain (Trivy 4-layer, Cosign keyless, SBOM dual-format, signed commits, Kyverno admission, governance CI lane). ADR-0379 Accepted supersedes ADR-0183 (Kyverno→Kubewarden default) and lists 0039 as related only — does not supersede whole 0039. ADR-0181/0605 cite as design-input; 0605 is Proposed gate under live 0515. Proposed is not implement authority; partial Kyverno default lag is body-level, not high-confidence full supersession without inventing edges. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0117",
+        "ADR-0181",
+        "ADR-0379",
+        "ADR-0515",
+        "ADR-0605"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/_disposition/band-0030-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0030",
+    "ADR-0031",
+    "ADR-0032",
+    "ADR-0034",
+    "ADR-0035",
+    "ADR-0036",
+    "ADR-0038",
+    "ADR-0039"
+  ]
+}

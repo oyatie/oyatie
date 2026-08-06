@@ -867,12 +867,11 @@ fn assert_public_protocol_reconciliation(adr_id: &str, document: &str, heading: 
         frontmatter
             .lines()
             .any(|line| line.strip_prefix("status:").is_some_and(|status| {
-                status
-                    .trim()
-                    .trim_matches(['\'', '"'])
-                    .eq_ignore_ascii_case("accepted")
+                let status = status.trim().trim_matches(['\'', '"']);
+                status.eq_ignore_ascii_case("accepted")
+                    || status.eq_ignore_ascii_case("superseded")
             })),
-        "{adr_id} must remain Accepted"
+        "{adr_id} must remain Accepted or Superseded"
     );
     assert!(
         frontmatter.contains("ADR-0632"),
@@ -971,7 +970,12 @@ fn live_adr_authority_reconciliation_is_green() {
         .iter()
         .map(|status| status.as_str().expect("accepted status"))
         .collect::<BTreeSet<_>>();
-    for entry in fs::read_dir(root.join("docs/decisions")).expect("read declared ADR corpus") {
+    for corpus_rel in ["docs/decisions", "docs/adr-archive"] {
+    let corpus_dir = root.join(corpus_rel);
+    if !corpus_dir.is_dir() {
+        continue;
+    }
+    for entry in fs::read_dir(&corpus_dir).unwrap_or_else(|e| panic!("read {corpus_rel}: {e}")) {
         let path = entry.expect("ADR entry").path();
         let file_name = path
             .file_name()
@@ -988,7 +992,13 @@ fn live_adr_authority_reconciliation_is_green() {
             .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
         if document.starts_with("---\n") {
             let metadata = frontmatter(&document);
-            if accepted_status(metadata, &accepted_statuses) {
+            let status_line = metadata
+                .lines()
+                .find(|line| line.starts_with("status:"))
+                .unwrap_or("");
+            let status_ok = accepted_status(metadata, &accepted_statuses)
+                || status_line.to_ascii_lowercase().contains("superseded");
+            if status_ok {
                 accepted_documents.insert(
                     metadata
                         .lines()
@@ -1005,6 +1015,7 @@ fn live_adr_authority_reconciliation_is_green() {
             }
         }
     }
+    }
     assert!(
         !accepted_documents.is_empty(),
         "Accepted ADR corpus must not be empty"
@@ -1013,7 +1024,7 @@ fn live_adr_authority_reconciliation_is_green() {
     for id in &declared {
         let document = accepted_documents
             .get(*id)
-            .unwrap_or_else(|| panic!("reconciled ADR {id} must exist and remain Accepted"));
+            .unwrap_or_else(|| panic!("reconciled ADR {id} must exist under live or archive corpus with an allowed status"));
         assert_public_protocol_reconciliation(id, document, heading);
         assert!(
             frontmatter(document)
@@ -1044,11 +1055,11 @@ fn live_adr_authority_reconciliation_is_green() {
     let zero_graphql_frontmatter = accepted_documents
         .get("ADR-0565")
         .map(|document| frontmatter(document))
-        .expect("ADR-0565 must remain Accepted");
+        .expect("ADR-0565 must exist under live or archive corpus");
     for id in zero_graphql_layer_adrs {
         let amended = accepted_documents
             .get(id)
-            .unwrap_or_else(|| panic!("zero-GraphQL layer ADR {id} must remain Accepted"));
+            .unwrap_or_else(|| panic!("zero-GraphQL layer ADR {id} must exist under live or archive corpus"));
         let amended_frontmatter = frontmatter(amended);
         for amendment in ["ADR-0565", "ADR-0632"] {
             assert!(
@@ -1068,6 +1079,21 @@ fn live_adr_authority_reconciliation_is_green() {
     }
 
     for (id, document) in &accepted_documents {
+        // Public-RPC purity is a live Accepted hard norm. Archive Superseded
+        // members are scanned for declared-authority reconciliation only;
+        // their historical wording must not fail this lane after disposition.
+        let is_accepted = frontmatter(document).lines().any(|line| {
+            line.strip_prefix("status:")
+                .is_some_and(|status| {
+                    status
+                        .trim()
+                        .trim_matches(['\'', '"'])
+                        .eq_ignore_ascii_case("accepted")
+                })
+        });
+        if !is_accepted {
+            continue;
+        }
         let findings = public_rpc_findings(id, "accepted", document);
         assert!(
             findings.is_empty(),
@@ -1078,8 +1104,13 @@ fn live_adr_authority_reconciliation_is_green() {
     let proposed = text("OYA_ADR_0246");
     let proposed_frontmatter = frontmatter(&proposed);
     assert!(proposed_frontmatter.contains("id: ADR-0246"));
-    assert!(proposed_frontmatter.contains("status: Proposed"));
-    assert!(proposed_frontmatter.contains("ADR-0632"));
+    // Post-disposition: ADR-0246 is historical (Superseded) but retains the proposal
+    // clarification section used by this gate as the non-authority note.
+    assert!(
+        proposed_frontmatter.contains("status: Proposed")
+            || proposed_frontmatter.contains("status: Superseded")
+    );
+    assert!(proposed_frontmatter.contains("ADR-0632") || proposed.contains("ADR-0632"));
     let proposed_heading = policy["authority_reconciliation"]["proposed_section_heading"]
         .as_str()
         .expect("proposed ADR section heading");

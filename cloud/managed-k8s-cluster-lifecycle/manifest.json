@@ -64,7 +64,7 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface",
       "acceptance_status": "accepted",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "IP-001-cluster-lifecycle-foundation",
@@ -93,25 +93,25 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0155",
       "title": "Port and Adapter Pattern",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0155-port-and-adapter-pattern.md"
+      "file": "docs/adr-archive/ADR-0155-per-tenant-resource-quotas.md"
     },
     {
       "id": "ADR-0092",
       "title": "Workspace dependency-seam policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0083",
       "title": "Pod Runtime Tier Panic Policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0083-pod-runtime-tier-panic-policy.md"
+      "file": "docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md"
     }
   ],
   "audit_chain": {

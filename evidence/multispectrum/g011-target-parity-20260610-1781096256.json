@@ -19,7 +19,7 @@
       "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/lib.rs",
       "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs",
       "cloud/cloud-ci/gates/oya-cloud-ci-target-parity-app/",
-      "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "docs/oya-ci/gate-catalog.md",
       "docs/CHANGELOG.md",
       "evidence/audit-chain.jsonl",

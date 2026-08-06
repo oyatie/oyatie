@@ -24,7 +24,7 @@ companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/dependency-policy.md
   - docs/standards/testing.md
-  - docs/decisions/ADR-0015-flat-crates.md
+  - docs/adr-archive/ADR-0015-architectural-flattening-target.md
 related_adrs:
   - ADR-0053
   - ADR-0052

@@ -33,7 +33,7 @@
     "required_gate_inputs": [
       "/specs/root-hub-pointers.json",
       "/specs/masterplan.json",
-      "docs/decisions/ADR-0217-vertical-slice-rollout-order.md"
+      "docs/decisions/ADR-0709-general-live-apex.md"
     ]
   },
   "first_deliverable": {

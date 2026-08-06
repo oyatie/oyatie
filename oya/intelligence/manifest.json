@@ -492,83 +492,83 @@
   "adrs": [
     {
       "id": "ADR-0255",
-      "file": "docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0255-amendment-library-first",
-      "file": "docs/decisions/ADR-0255-amendment-library-first-network-opt-in-clarification.md"
+      "file": "docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
     },
     {
       "id": "ADR-0242",
-      "file": "docs/decisions/ADR-0242-oyatie-is-a-reserved-namespace-tenant.md"
+      "file": "docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md"
     },
     {
       "id": "ADR-0243",
-      "file": "docs/decisions/ADR-0243-cedar-as-universal-authorization-gate.md"
+      "file": "docs/adr-archive/ADR-0243-cedar-as-universal-gate.md"
     },
     {
       "id": "ADR-0244",
-      "file": "docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md"
+      "file": "docs/decisions/ADR-0702-identity-authz-live-apex.md"
     },
     {
       "id": "ADR-0245",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0246",
-      "file": "docs/decisions/ADR-0246-policy-engine-library-first.md"
+      "file": "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md"
     },
     {
       "id": "ADR-0248",
-      "file": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0250",
-      "file": "docs/decisions/ADR-0250-build-ahead-of-certification.md"
+      "file": "docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md"
     },
     {
       "id": "ADR-0251",
-      "file": "docs/decisions/ADR-0251-compliance-pack-primitive.md"
+      "file": "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md"
     },
     {
       "id": "ADR-0252",
-      "file": "docs/decisions/ADR-0252-hlc-default-truetime-tier.md"
+      "file": "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md"
     },
     {
       "id": "ADR-0253",
-      "file": "docs/decisions/ADR-0253-http3-quic-default-protocol.md"
+      "file": "docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md"
     },
     {
       "id": "ADR-0254",
-      "file": "docs/decisions/ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md"
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0263",
-      "file": "docs/decisions/ADR-0263-observability-emission-contract.md"
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
     },
     {
       "id": "ADR-0292",
-      "file": "docs/decisions/ADR-0292-minor-user-doctrine.md"
+      "file": "docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md"
     },
     {
       "id": "ADR-0296",
-      "file": "docs/decisions/ADR-0296-library-first-credential-sidecar.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0297",
-      "file": "docs/decisions/ADR-0297-abuse-defence-anti-bot-anti-spoof-anti-scrape.md"
+      "file": "docs/adr-archive/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md"
     },
     {
       "id": "ADR-0105",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-canonical.md"
+      "file": "docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md"
     },
     {
       "id": "ADR-0131",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0145",
-      "file": "docs/decisions/ADR-0145-inter-microservice-communication-reform.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

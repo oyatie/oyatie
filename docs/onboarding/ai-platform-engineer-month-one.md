@@ -5,15 +5,15 @@ status: Published
 date: 2026-05-20
 owner: "axis-intelligence + ops-ml-platform + council-ml"
 related_oyatie_adrs:
-  - docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
-  - docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
-  - docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
-  - docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
-  - docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/DOC-CATALOG.md
@@ -101,9 +101,9 @@ Day-one artifact checklist:
 ## Week 1: Code Walkthrough
 
 Read these files in order. Do not browse randomly; the order teaches authority, doctrine, contract, implementation, test, and operational evidence.
-1. docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
-2. docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
-3. docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+1. docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+2. docs/decisions/ADR-0709-general-live-apex.md
+3. docs/decisions/ADR-0709-general-live-apex.md
 4. specs/capabilities/eu-ai-act-risk-class-registry.json
 5. contracts/openapi/foundry/rag-v1.yaml
 6. contracts/openapi/foundry/rag-v1.meta.yaml
@@ -357,9 +357,9 @@ Handoff rules:
 
 ## Resources & References
 
-- docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
-- docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
-- docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
 - contracts/openapi/foundry/rag-v1.yaml
 - docs/runbooks/foundry/prompt-injection-fired.md
 - docs/runbooks/foundry-model-cutover.md
@@ -372,7 +372,7 @@ Reference-reading protocol: open the resource, identify the authority section, w
 Use this ledger when you need extra practice or when a mentor asks for stronger evidence. Each drill is intentionally small but must end with a verifiable artifact.
 
 ### Drill AI-001: tenant-isolated RAG retrieve
-- Read: docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- Read: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - Connects to: two-layer intelligence substrate and brand surface separation
 - Build or inspect: a minimal artifact that proves tenant-isolated RAG retrieve without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant-isolated RAG retrieve.
@@ -382,7 +382,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-001 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-002: model router policy deny
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves model router policy deny without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model router policy deny.
@@ -392,7 +392,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-002 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-003: provider-BYOK credential selection
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: RAG retrieval isolation and context boundary
 - Build or inspect: a minimal artifact that proves provider-BYOK credential selection without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for provider-BYOK credential selection.
@@ -522,7 +522,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-015 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-016: human appeal path
-- Read: docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- Read: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - Connects to: EU AI Act graduated risk tier and deployment-context mutation
 - Build or inspect: a minimal artifact that proves human appeal path without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for human appeal path.
@@ -532,7 +532,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-016 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-017: GPAI transparency notice
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves GPAI transparency notice without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for GPAI transparency notice.
@@ -542,7 +542,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-017 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-018: audit-chain output attribution
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: fairness audit and civil-rights evidence
 - Build or inspect: a minimal artifact that proves audit-chain output attribution without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for audit-chain output attribution.
@@ -672,7 +672,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-030 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-031: Cedar gated tool call
-- Read: docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- Read: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - Connects to: two-layer intelligence substrate and brand surface separation
 - Build or inspect: a minimal artifact that proves Cedar gated tool call without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar gated tool call.
@@ -682,7 +682,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-031 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-032: cost-aware model route
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves cost-aware model route without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for cost-aware model route.
@@ -692,7 +692,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-032 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-033: drift signal threshold
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: RAG retrieval isolation and context boundary
 - Build or inspect: a minimal artifact that proves drift signal threshold without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for drift signal threshold.
@@ -822,7 +822,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-045 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-046: fairness audit evidence
-- Read: docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- Read: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - Connects to: EU AI Act graduated risk tier and deployment-context mutation
 - Build or inspect: a minimal artifact that proves fairness audit evidence without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for fairness audit evidence.
@@ -832,7 +832,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-046 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-047: retrieval source attribution
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: high-risk AI refusal until conformity path exists
 - Build or inspect: a minimal artifact that proves retrieval source attribution without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for retrieval source attribution.
@@ -842,7 +842,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-047 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-048: cross-tenant context leak
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: fairness audit and civil-rights evidence
 - Build or inspect: a minimal artifact that proves cross-tenant context leak without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for cross-tenant context leak.
@@ -972,7 +972,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-060 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-061: high-risk refusal
-- Read: docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- Read: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 - Connects to: two-layer intelligence substrate and brand surface separation
 - Build or inspect: a minimal artifact that proves high-risk refusal without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for high-risk refusal.
@@ -982,7 +982,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-061 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-062: model card completeness
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: per-tenant model router and provider-BYOK credential model
 - Build or inspect: a minimal artifact that proves model card completeness without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model card completeness.
@@ -992,7 +992,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row AI-062 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill AI-063: model rollback drill
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: RAG retrieval isolation and context boundary
 - Build or inspect: a minimal artifact that proves model rollback drill without widening beyond AI platform engineer, intelligence microservice.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for model rollback drill.

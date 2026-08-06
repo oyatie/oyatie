@@ -16,7 +16,7 @@ doc_status: published
 
 # Progressive-Delivery + SLO-Burn-Rate-Rollback Architecture — Index
 
-> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md).
+> **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Extends:** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
 
 ## Strategy + specs (lift to `oyatie/docs/release/`)
 

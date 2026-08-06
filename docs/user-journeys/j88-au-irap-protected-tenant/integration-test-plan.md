@@ -12,7 +12,7 @@ microservice_count_declared: 45
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0251, ADR-0263, ADR-0311, ADR-0313]
 companion_docs:
   - docs/standards/documentation-rigor.md
-  - docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
   - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
 regulator_articles:
   - Australian Privacy Principles APP 1 open and transparent management

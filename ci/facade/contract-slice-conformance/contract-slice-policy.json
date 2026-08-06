@@ -1714,8 +1714,8 @@
         {
           "field": "authority.context_only_sources",
           "members": [
-            "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
-            "docs/decisions/ADR-0114-canary-observability-rollback.md"
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+            "docs/decisions/ADR-0706-observability-live-apex.md"
           ]
         },
         {

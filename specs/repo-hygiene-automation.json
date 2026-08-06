@@ -259,7 +259,7 @@
       "README.md",
       "docs/AGENTS.md",
       "docs/ci/github-actions-lane-unlocker.md",
-      "docs/decisions/ADR-0516-github-actions-interim-lane-unlocker.md",
+      "docs/adr-archive/ADR-0516-agentic-delivery-fabric-apex-vision.md",
       ".github/branch-protection.yaml",
       "infra/branch-protection/dev.json"
     ],

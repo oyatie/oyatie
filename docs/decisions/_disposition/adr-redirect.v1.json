@@ -1,0 +1,3211 @@
+{
+  "schema": "adr-redirect.v1",
+  "generated_at": "2026-08-06T09:24:38Z",
+  "entries": {
+    "196": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md",
+      "archive_path": "docs/adr-archive/ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md"
+    },
+    "21": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md",
+      "archive_path": "docs/adr-archive/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md"
+    },
+    "273": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md",
+      "archive_path": "docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md"
+    },
+    "516": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0516-agentic-delivery-fabric-apex-vision.md",
+      "archive_path": "docs/adr-archive/ADR-0516-agentic-delivery-fabric-apex-vision.md"
+    },
+    "205": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0205-code-editor-canonical-codemirror.md",
+      "archive_path": "docs/adr-archive/ADR-0205-code-editor-canonical-codemirror.md"
+    },
+    "5": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0005-eventing-backbone-outbox-pattern.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0005-eventing-backbone-outbox-pattern.md"
+    },
+    "297": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md",
+      "archive_path": "docs/adr-archive/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md"
+    },
+    "551": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0551-merge-base-frozen-baseline-ratchet.md",
+      "archive_path": "docs/adr-archive/ADR-0551-merge-base-frozen-baseline-ratchet.md"
+    },
+    "176": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md",
+      "archive_path": "docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md"
+    },
+    "638": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+      "archive_path": "docs/adr-archive/ADR-0638-mechanically-maintained-kubernetes-rust-port.md"
+    },
+    "103": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0103-grit-cutover-inventory.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0103-grit-cutover-inventory.md"
+    },
+    "367": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "archive_path": "docs/adr-archive/ADR-0367-trustless-pre-merge-verification-gateway.md"
+    },
+    "171": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0171-multi-cluster-federation.md",
+      "archive_path": "docs/adr-archive/ADR-0171-multi-cluster-federation.md"
+    },
+    "219": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
+      "archive_path": "docs/adr-archive/ADR-0219-no-code-first-ux-with-optional-ai-assist.md"
+    },
+    "303": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0303-cognitive-impairment-decision-resilience.md",
+      "archive_path": "docs/adr-archive/ADR-0303-cognitive-impairment-decision-resilience.md"
+    },
+    "203": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0203-documentation-engine-three-tier.md",
+      "archive_path": "docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"
+    },
+    "629": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0629-crate-catalog-coverage-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0629-crate-catalog-coverage-gate.md"
+    },
+    "511": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md"
+    },
+    "524": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0524-kernel-buckification-additive-first-verify-parity.md",
+      "archive_path": "docs/adr-archive/ADR-0524-kernel-buckification-additive-first-verify-parity.md"
+    },
+    "140": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0140-cross-cutting-carriers-adapter-exemption.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
+    },
+    "197": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0197-backup-substrate-velero-pgbackrest-restic.md",
+      "archive_path": "docs/adr-archive/ADR-0197-backup-substrate-velero-pgbackrest-restic.md"
+    },
+    "340": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0340-capacity-model-per-microservice-manifest.md",
+      "archive_path": "docs/adr-archive/ADR-0340-capacity-model-per-microservice-manifest.md"
+    },
+    "538": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md"
+    },
+    "220": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0220-consumer-intelligence-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0220-consumer-intelligence-substrate.md"
+    },
+    "44": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md",
+      "archive_path": "docs/adr-archive/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md"
+    },
+    "341": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md",
+      "archive_path": "docs/adr-archive/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md"
+    },
+    "158": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0708",
+      "note": "consolidated into ADR-0708; archive docs/adr-archive/ADR-0158-multi-region-active-active.md",
+      "archive_path": "docs/adr-archive/ADR-0158-multi-region-active-active.md"
+    },
+    "363": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+    },
+    "369": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0369-gated-stacked-trunk-change-flow.md",
+      "archive_path": "docs/adr-archive/ADR-0369-gated-stacked-trunk-change-flow.md"
+    },
+    "378": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0378-canonical-local-substrate-vfkit-talos.md",
+      "archive_path": "docs/adr-archive/ADR-0378-canonical-local-substrate-vfkit-talos.md"
+    },
+    "115": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0115-registry-consolidation-flat-singular.md",
+      "archive_path": "docs/adr-archive/ADR-0115-registry-consolidation-flat-singular.md"
+    },
+    "515": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+      "archive_path": "docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    },
+    "51": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0051-mobile-and-native-client-strategy.md",
+      "archive_path": "docs/adr-archive/ADR-0051-mobile-and-native-client-strategy.md"
+    },
+    "631": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md",
+      "archive_path": "docs/adr-archive/ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md"
+    },
+    "552": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0552-stable-volatile-scm-facts-split.md",
+      "archive_path": "docs/adr-archive/ADR-0552-stable-volatile-scm-facts-split.md"
+    },
+    "179": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0179-postgres-connection-pooling-pgcat.md",
+      "archive_path": "docs/adr-archive/ADR-0179-postgres-connection-pooling-pgcat.md"
+    },
+    "480": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
+      "archive_path": "docs/adr-archive/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md"
+    },
+    "611": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0611-land-asterinas-real-boot-foundation-kernel.md",
+      "archive_path": "docs/adr-archive/ADR-0611-land-asterinas-real-boot-foundation-kernel.md"
+    },
+    "11": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md",
+      "archive_path": "docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md"
+    },
+    "537": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md"
+    },
+    "99": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0099-cedar-policy-extend-supervisor-capabilities.md",
+      "archive_path": "docs/adr-archive/ADR-0099-cedar-policy-extend-supervisor-capabilities.md"
+    },
+    "38": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0703",
+      "note": "consolidated into ADR-0703; archive docs/adr-archive/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
+      "archive_path": "docs/adr-archive/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md"
+    },
+    "94": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0094-handler-trait-with-associated-error.md",
+      "archive_path": "docs/adr-archive/ADR-0094-handler-trait-with-associated-error.md"
+    },
+    "605": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0605-supply-chain-audit-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0605-supply-chain-audit-gate.md"
+    },
+    "391": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md",
+      "archive_path": "docs/adr-archive/ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md"
+    },
+    "348": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "archive_path": "docs/adr-archive/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+    },
+    "113": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0113-vcs-orchestrator-end-to-end.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0113-vcs-orchestrator-end-to-end.md"
+    },
+    "169": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0169-webhook-dlq-retry.md",
+      "archive_path": "docs/adr-archive/ADR-0169-webhook-dlq-retry.md"
+    },
+    "211": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md"
+    },
+    "562": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+      "archive_path": "docs/adr-archive/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md"
+    },
+    "90": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0090-hyper-canonical-http-backbone.md",
+      "archive_path": "docs/adr-archive/ADR-0090-hyper-canonical-http-backbone.md"
+    },
+    "168": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0168-public-status-page.md",
+      "archive_path": "docs/adr-archive/ADR-0168-public-status-page.md"
+    },
+    "152": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0152-rpo-rto-canonical.md",
+      "archive_path": "docs/adr-archive/ADR-0152-rpo-rto-canonical.md"
+    },
+    "627": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0627-facade-core-layering-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0627-facade-core-layering-gate.md"
+    },
+    "167": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0167-tenant-cli.md",
+      "archive_path": "docs/adr-archive/ADR-0167-tenant-cli.md"
+    },
+    "255": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
+    },
+    "527": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0527-oya-ci-conformance-floor-config-driven-engine.md",
+      "archive_path": "docs/adr-archive/ADR-0527-oya-ci-conformance-floor-config-driven-engine.md"
+    },
+    "222": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0222-saga-compensation-portfolio-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0222-saga-compensation-portfolio-policy.md"
+    },
+    "240": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0708",
+      "note": "consolidated into ADR-0708; archive docs/adr-archive/ADR-0240-sovereign-cloud-per-regional-pack.md",
+      "archive_path": "docs/adr-archive/ADR-0240-sovereign-cloud-per-regional-pack.md"
+    },
+    "507": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0507-webauthn-rs-canonical-relying-party.md",
+      "archive_path": "docs/adr-archive/ADR-0507-webauthn-rs-canonical-relying-party.md"
+    },
+    "302": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0707",
+      "note": "consolidated into ADR-0707; archive docs/adr-archive/ADR-0302-deceased-user-inheritance-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0302-deceased-user-inheritance-doctrine.md"
+    },
+    "223": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md"
+    },
+    "83": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md",
+      "archive_path": "docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md"
+    },
+    "241": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0241-dr-business-continuity-portfolio-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0241-dr-business-continuity-portfolio-policy.md"
+    },
+    "368": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0368-self-governing-agentic-platform-north-star.md",
+      "archive_path": "docs/adr-archive/ADR-0368-self-governing-agentic-platform-north-star.md"
+    },
+    "299": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0299-account-recovery-resilience.md",
+      "archive_path": "docs/adr-archive/ADR-0299-account-recovery-resilience.md"
+    },
+    "162": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0162-per-tenant-audit-log-slicing.md",
+      "archive_path": "docs/adr-archive/ADR-0162-per-tenant-audit-log-slicing.md"
+    },
+    "294": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0294-cedar-fragment-soak-anomaly-rollback.md",
+      "archive_path": "docs/adr-archive/ADR-0294-cedar-fragment-soak-anomaly-rollback.md"
+    },
+    "301": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0707",
+      "note": "consolidated into ADR-0707; archive docs/adr-archive/ADR-0301-survivor-safety-domestic-abuse-mode.md",
+      "archive_path": "docs/adr-archive/ADR-0301-survivor-safety-domestic-abuse-mode.md"
+    },
+    "361": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0361-jenkins-native-cicd-revamp-execution.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0361-jenkins-native-cicd-revamp-execution.md"
+    },
+    "174": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0174-finops-cost-attribution-chargeback.md",
+      "archive_path": "docs/adr-archive/ADR-0174-finops-cost-attribution-chargeback.md"
+    },
+    "337": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0337-iceberg-canonical-olap-write-path.md",
+      "archive_path": "docs/adr-archive/ADR-0337-iceberg-canonical-olap-write-path.md"
+    },
+    "528": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0528-remediation-first-class-on-gate-contract.md",
+      "archive_path": "docs/adr-archive/ADR-0528-remediation-first-class-on-gate-contract.md"
+    },
+    "520": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0520-owned-substrate-stack-transitional-impl-behind-interface.md",
+      "archive_path": "docs/adr-archive/ADR-0520-owned-substrate-stack-transitional-impl-behind-interface.md"
+    },
+    "525": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md"
+    },
+    "6": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0006-ontology-typed-entity-layer.md",
+      "archive_path": "docs/adr-archive/ADR-0006-ontology-typed-entity-layer.md"
+    },
+    "178": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0178-layered-throttling-tiers.md",
+      "archive_path": "docs/adr-archive/ADR-0178-layered-throttling-tiers.md"
+    },
+    "626": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0626-structural-merge-driver-for-the-fixup-ledger.md",
+      "archive_path": "docs/adr-archive/ADR-0626-structural-merge-driver-for-the-fixup-ledger.md"
+    },
+    "194": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0194-tenant-facing-timeseries-timescaledb.md",
+      "archive_path": "docs/adr-archive/ADR-0194-tenant-facing-timeseries-timescaledb.md"
+    },
+    "4": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0004-plane-separation-control-data-analytics.md",
+      "archive_path": "docs/adr-archive/ADR-0004-plane-separation-control-data-analytics.md"
+    },
+    "706": {
+      "disposition": "live",
+      "live_id": "ADR-0706",
+      "note": "topic apex"
+    },
+    "307": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0307-detection-substrate-streaming-batch.md",
+      "archive_path": "docs/adr-archive/ADR-0307-detection-substrate-streaming-batch.md"
+    },
+    "373": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0373-llm-gateway-production-design.md",
+      "archive_path": "docs/adr-archive/ADR-0373-llm-gateway-production-design.md"
+    },
+    "328": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
+      "archive_path": "docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md"
+    },
+    "539": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0539-cloud-ci-freshness-gate.md"
+    },
+    "365": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0365-automated-adr-lifecycle-and-propagation.md",
+      "archive_path": "docs/adr-archive/ADR-0365-automated-adr-lifecycle-and-propagation.md"
+    },
+    "313": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md",
+      "archive_path": "docs/adr-archive/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md"
+    },
+    "173": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
+      "archive_path": "docs/adr-archive/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md"
+    },
+    "9": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md",
+      "archive_path": "docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md"
+    },
+    "101": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0101-supervisor-mountpoint-direct-hyper.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0101-supervisor-mountpoint-direct-hyper.md"
+    },
+    "580": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md",
+      "archive_path": "docs/adr-archive/ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md"
+    },
+    "214": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0214-cross-tenant-real-time-visibility.md",
+      "archive_path": "docs/adr-archive/ADR-0214-cross-tenant-real-time-visibility.md"
+    },
+    "156": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0156-pii-registry-canonical.md",
+      "archive_path": "docs/adr-archive/ADR-0156-pii-registry-canonical.md"
+    },
+    "181": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0181-container-image-promotion-pipeline.md",
+      "archive_path": "docs/adr-archive/ADR-0181-container-image-promotion-pipeline.md"
+    },
+    "251": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0708",
+      "note": "consolidated into ADR-0708; archive docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md",
+      "archive_path": "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md"
+    },
+    "702": {
+      "disposition": "live",
+      "live_id": "ADR-0702",
+      "note": "topic apex"
+    },
+    "187": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0187-canonical-oidc-idp-zitadel-primary.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0187-canonical-oidc-idp-zitadel-primary.md"
+    },
+    "93": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0093-latency-budget-reporter-rename.md",
+      "archive_path": "docs/adr-archive/ADR-0093-latency-budget-reporter-rename.md"
+    },
+    "609": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md",
+      "archive_path": "docs/adr-archive/ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md"
+    },
+    "292": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
+      "archive_path": "docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md"
+    },
+    "130": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md"
+    },
+    "623": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md",
+      "archive_path": "docs/adr-archive/ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md"
+    },
+    "119": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0119-specs-flat-root-topology.md",
+      "archive_path": "docs/adr-archive/ADR-0119-specs-flat-root-topology.md"
+    },
+    "43": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
+      "archive_path": "docs/adr-archive/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md"
+    },
+    "531": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
+      "archive_path": "docs/adr-archive/ADR-0531-auto-remediation-delivery-oya-bot-autofix.md"
+    },
+    "250": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md"
+    },
+    "53": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0053-grit-icm-as-sanctioned-primitives.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0053-grit-icm-as-sanctioned-primitives.md"
+    },
+    "296": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0296-library-first-credential-sidecar.md",
+      "archive_path": "docs/adr-archive/ADR-0296-library-first-credential-sidecar.md"
+    },
+    "161": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0161-csi-storage-class-canonical.md",
+      "archive_path": "docs/adr-archive/ADR-0161-csi-storage-class-canonical.md"
+    },
+    "293": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0293-governance-meta-trust-root.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0293-governance-meta-trust-root.md"
+    },
+    "47": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0047-search-backend-strategy.md",
+      "archive_path": "docs/adr-archive/ADR-0047-search-backend-strategy.md"
+    },
+    "200": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0200-wasm-runtime-canonical-wasmtime.md",
+      "archive_path": "docs/adr-archive/ADR-0200-wasm-runtime-canonical-wasmtime.md"
+    },
+    "632": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0632-product-protocol-and-owned-fabric-posture.md",
+      "archive_path": "docs/adr-archive/ADR-0632-product-protocol-and-owned-fabric-posture.md"
+    },
+    "349": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md"
+    },
+    "581": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md",
+      "archive_path": "docs/adr-archive/ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md"
+    },
+    "569": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
+      "archive_path": "docs/adr-archive/ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md"
+    },
+    "100": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0100-supervisor-public-contract-lean-a10.md",
+      "archive_path": "docs/adr-archive/ADR-0100-supervisor-public-contract-lean-a10.md"
+    },
+    "216": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0216-open-integration-and-migration-out-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0216-open-integration-and-migration-out-policy.md"
+    },
+    "218": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0218-tenant-granular-control-surface.md",
+      "archive_path": "docs/adr-archive/ADR-0218-tenant-granular-control-surface.md"
+    },
+    "607": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md",
+      "archive_path": "docs/adr-archive/ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md"
+    },
+    "637": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+      "archive_path": "docs/adr-archive/ADR-0637-owned-deterministic-go-to-rust-port-engine.md"
+    },
+    "364": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0364-generative-adr-template-and-masterplan-generation.md",
+      "archive_path": "docs/adr-archive/ADR-0364-generative-adr-template-and-masterplan-generation.md"
+    },
+    "42": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0042-observability-stack-otel-and-in-house-ui.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0042-observability-stack-otel-and-in-house-ui.md"
+    },
+    "558": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0558-friction-ledger-structural-merge-driver.md",
+      "archive_path": "docs/adr-archive/ADR-0558-friction-ledger-structural-merge-driver.md"
+    },
+    "482": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0482-bespoke-substrate-roadmap.md",
+      "archive_path": "docs/adr-archive/ADR-0482-bespoke-substrate-roadmap.md"
+    },
+    "553": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0553-oya-identity-workload-service-commissioning.md",
+      "archive_path": "docs/adr-archive/ADR-0553-oya-identity-workload-service-commissioning.md"
+    },
+    "23": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md",
+      "archive_path": "docs/adr-archive/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md"
+    },
+    "319": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md"
+    },
+    "13": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0013-product-license-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0013-product-license-policy.md"
+    },
+    "346": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+      "archive_path": "docs/adr-archive/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+    },
+    "513": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md"
+    },
+    "329": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0329-tier-system-retired-replaced-by-tenant-class.md",
+      "archive_path": "docs/adr-archive/ADR-0329-tier-system-retired-replaced-by-tenant-class.md"
+    },
+    "540": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0540-cargo-buck2-target-parity-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0540-cargo-buck2-target-parity-gate.md"
+    },
+    "560": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md",
+      "archive_path": "docs/adr-archive/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md"
+    },
+    "709": {
+      "disposition": "live",
+      "live_id": "ADR-0709",
+      "note": "topic apex"
+    },
+    "359": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0359-jenkins-completely-replaces-github-actions.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0359-jenkins-completely-replaces-github-actions.md"
+    },
+    "566": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0566-authz-coverage-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0566-authz-coverage-gate.md"
+    },
+    "97": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0097-intelligence-account-adapter-rename-target-slot-last.md"
+    },
+    "183": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+    },
+    "616": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
+      "archive_path": "docs/adr-archive/ADR-0616-de-commit-firewall-frozen-reference-baseline.md"
+    },
+    "116": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0116-retire-external-agent-coordination-tooling.md",
+      "archive_path": "docs/adr-archive/ADR-0116-retire-external-agent-coordination-tooling.md"
+    },
+    "118": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0118-retire-archive-orphan-fitness-lane.md",
+      "archive_path": "docs/adr-archive/ADR-0118-retire-archive-orphan-fitness-lane.md"
+    },
+    "526": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md",
+      "archive_path": "docs/adr-archive/ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md"
+    },
+    "146": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0146-container-base-image-distroless-nonroot.md",
+      "archive_path": "docs/adr-archive/ADR-0146-container-base-image-distroless-nonroot.md"
+    },
+    "188": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0188-passkey-webauthn-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0188-passkey-webauthn-substrate.md"
+    },
+    "356": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0356-amendment-library-first-ontology-read-path.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0356-amendment-library-first-ontology-read-path.md"
+    },
+    "557": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0557-kafka-to-pulsar-via-kop.md",
+      "archive_path": "docs/adr-archive/ADR-0557-kafka-to-pulsar-via-kop.md"
+    },
+    "234": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md",
+      "archive_path": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
+    },
+    "59": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md"
+    },
+    "534": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0534-gate-pipeline-step-sdk-and-marketplace.md",
+      "archive_path": "docs/adr-archive/ADR-0534-gate-pipeline-step-sdk-and-marketplace.md"
+    },
+    "597": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+      "archive_path": "docs/adr-archive/ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md"
+    },
+    "547": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0547-kernel-purity-dependency-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0547-kernel-purity-dependency-gate.md"
+    },
+    "3": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
+      "archive_path": "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md"
+    },
+    "514": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md"
+    },
+    "208": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0208-realtime-transport-tier.md",
+      "archive_path": "docs/adr-archive/ADR-0208-realtime-transport-tier.md"
+    },
+    "625": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0625-commit-opentofu-provider-locks.md",
+      "archive_path": "docs/adr-archive/ADR-0625-commit-opentofu-provider-locks.md"
+    },
+    "14": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0014-build-vs-buy-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0014-build-vs-buy-policy.md"
+    },
+    "25": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md",
+      "archive_path": "docs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md"
+    },
+    "615": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md",
+      "archive_path": "docs/adr-archive/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md"
+    },
+    "148": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0148-service-mesh-cilium-ambient-layered.md",
+      "archive_path": "docs/adr-archive/ADR-0148-service-mesh-cilium-ambient-layered.md"
+    },
+    "561": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0561-commission-workload-x509-svid-issuance-and-pdp-mtls-caller-auth.md",
+      "archive_path": "docs/adr-archive/ADR-0561-commission-workload-x509-svid-issuance-and-pdp-mtls-caller-auth.md"
+    },
+    "628": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0628-scan-root-liveness-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0628-scan-root-liveness-gate.md"
+    },
+    "16": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0016-wave-and-plane-integration-framework.md",
+      "archive_path": "docs/adr-archive/ADR-0016-wave-and-plane-integration-framework.md"
+    },
+    "600": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0600-root-workspace-hygiene-allowlist-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0600-root-workspace-hygiene-allowlist-gate.md"
+    },
+    "145": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0145-inter-microservice-communication-reform.md",
+      "archive_path": "docs/adr-archive/ADR-0145-inter-microservice-communication-reform.md"
+    },
+    "377": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0703",
+      "note": "consolidated into ADR-0703; archive docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md",
+      "archive_path": "docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md"
+    },
+    "570": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0570-port-placement-clean-arch-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0570-port-placement-clean-arch-gate.md"
+    },
+    "608": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0608-cedar-deploy-parity-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0608-cedar-deploy-parity-gate.md"
+    },
+    "124": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0124-own-merge-queue-webhook-driven.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0124-own-merge-queue-webhook-driven.md"
+    },
+    "476": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0476-oya-identity-bespoke-human-identity.md",
+      "archive_path": "docs/adr-archive/ADR-0476-oya-identity-bespoke-human-identity.md"
+    },
+    "624": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0624-stage-immutable-adr-census-epoch-transition.md",
+      "archive_path": "docs/adr-archive/ADR-0624-stage-immutable-adr-census-epoch-transition.md"
+    },
+    "185": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0185-workflow-studio-client-stack.md",
+      "archive_path": "docs/adr-archive/ADR-0185-workflow-studio-client-stack.md"
+    },
+    "535": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0535-cross-product-versioning-release-governance.md",
+      "archive_path": "docs/adr-archive/ADR-0535-cross-product-versioning-release-governance.md"
+    },
+    "324": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0324-anti-script-anti-template-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0324-anti-script-anti-template-doctrine.md"
+    },
+    "160": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0160-progressive-delivery-flagger.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0160-progressive-delivery-flagger.md"
+    },
+    "252": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md",
+      "archive_path": "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md"
+    },
+    "249": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0249-multi-category-marketplace-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0249-multi-category-marketplace-doctrine.md"
+    },
+    "509": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0509-hyperscaler-service-decomposition-pattern.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0509-hyperscaler-service-decomposition-pattern.md"
+    },
+    "564": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md",
+      "archive_path": "docs/adr-archive/ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md"
+    },
+    "508": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0508-opensk-canonical-authenticator-reference.md",
+      "archive_path": "docs/adr-archive/ADR-0508-opensk-canonical-authenticator-reference.md"
+    },
+    "207": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0207-accessibility-wcag-2-2-aa.md",
+      "archive_path": "docs/adr-archive/ADR-0207-accessibility-wcag-2-2-aa.md"
+    },
+    "532": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0532-platform-product-line-taxonomy-canonical-names.md",
+      "archive_path": "docs/adr-archive/ADR-0532-platform-product-line-taxonomy-canonical-names.md"
+    },
+    "548": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0548-pipeline-as-product-paved-road.md",
+      "archive_path": "docs/adr-archive/ADR-0548-pipeline-as-product-paved-road.md"
+    },
+    "312": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0312-court-warrant-scoped-piercing.md",
+      "archive_path": "docs/adr-archive/ADR-0312-court-warrant-scoped-piercing.md"
+    },
+    "592": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
+      "archive_path": "docs/adr-archive/ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md"
+    },
+    "358": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md"
+    },
+    "518": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md",
+      "archive_path": "docs/adr-archive/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md"
+    },
+    "565": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0565-zero-graphql-in-the-owned-api-surface.md",
+      "archive_path": "docs/adr-archive/ADR-0565-zero-graphql-in-the-owned-api-surface.md"
+    },
+    "112": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0112-webhook-driven-intelligence-agent-invocation.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0112-webhook-driven-intelligence-agent-invocation.md"
+    },
+    "237": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0237-connect-dissolution-strangler-migration.md",
+      "archive_path": "docs/adr-archive/ADR-0237-connect-dissolution-strangler-migration.md"
+    },
+    "347": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0347-governance-fitness-bulk-rename.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0347-governance-fitness-bulk-rename.md"
+    },
+    "634": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0634-approval-attaches-to-the-producer-not-the-reader.md",
+      "archive_path": "docs/adr-archive/ADR-0634-approval-attaches-to-the-producer-not-the-reader.md"
+    },
+    "31": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md"
+    },
+    "206": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0206-i18n-substrate-fluent-icu.md",
+      "archive_path": "docs/adr-archive/ADR-0206-i18n-substrate-fluent-icu.md"
+    },
+    "65": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+      "archive_path": "docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md"
+    },
+    "306": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0707",
+      "note": "consolidated into ADR-0707; archive docs/adr-archive/ADR-0306-disaster-mode-cell-resilience.md",
+      "archive_path": "docs/adr-archive/ADR-0306-disaster-mode-cell-resilience.md"
+    },
+    "521": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0521-staged-w0-w6-fabric-roadmap.md",
+      "archive_path": "docs/adr-archive/ADR-0521-staged-w0-w6-fabric-roadmap.md"
+    },
+    "104": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md",
+      "archive_path": "docs/adr-archive/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md"
+    },
+    "258": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0258-api-versioning-model.md",
+      "archive_path": "docs/adr-archive/ADR-0258-api-versioning-model.md"
+    },
+    "2": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
+      "archive_path": "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md"
+    },
+    "32": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0032-dcim-software-for-own-dc-ops.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0032-dcim-software-for-own-dc-ops.md"
+    },
+    "541": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0541-corpus-liveness-graph.md",
+      "archive_path": "docs/adr-archive/ADR-0541-corpus-liveness-graph.md"
+    },
+    "393": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0393-leptos-canonical-app-shell-frontend.md",
+      "archive_path": "docs/adr-archive/ADR-0393-leptos-canonical-app-shell-frontend.md"
+    },
+    "588": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0588-fail-closed-authz-for-audit-event-emit-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0588-fail-closed-authz-for-audit-event-emit-boundary.md"
+    },
+    "26": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0026-in-house-ai-model-substrate-roadmap.md",
+      "archive_path": "docs/adr-archive/ADR-0026-in-house-ai-model-substrate-roadmap.md"
+    },
+    "572": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0572-fail-closed-authz-for-cedar-policy-publish-control-plane.md",
+      "archive_path": "docs/adr-archive/ADR-0572-fail-closed-authz-for-cedar-policy-publish-control-plane.md"
+    },
+    "263": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0706",
+      "note": "consolidated into ADR-0706; archive docs/adr-archive/ADR-0263-observability-emission-contract.md",
+      "archive_path": "docs/adr-archive/ADR-0263-observability-emission-contract.md"
+    },
+    "67": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
+      "archive_path": "docs/adr-archive/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md"
+    },
+    "201": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0201-email-transactional-comms-adapter-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0201-email-transactional-comms-adapter-substrate.md"
+    },
+    "622": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md",
+      "archive_path": "docs/adr-archive/ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md"
+    },
+    "523": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0523-zero-shell-posture-and-irreducible-glue-ledger.md",
+      "archive_path": "docs/adr-archive/ADR-0523-zero-shell-posture-and-irreducible-glue-ledger.md"
+    },
+    "30": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0030-search-microservice-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0030-search-microservice-architecture.md"
+    },
+    "339": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0339-shared-iac-module-library.md",
+      "archive_path": "docs/adr-archive/ADR-0339-shared-iac-module-library.md"
+    },
+    "614": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
+      "archive_path": "docs/adr-archive/ADR-0614-de-commit-reorg-move-manifest-bijection.md"
+    },
+    "335": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md",
+      "archive_path": "docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md"
+    },
+    "60": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0060-bominal-inheritance-precedence.md",
+      "archive_path": "docs/adr-archive/ADR-0060-bominal-inheritance-precedence.md"
+    },
+    "305": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0305-delegated-agent-authority-chain.md",
+      "archive_path": "docs/adr-archive/ADR-0305-delegated-agent-authority-chain.md"
+    },
+    "315": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0315-erp-coverage-doctrine-sap-parity.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0315-erp-coverage-doctrine-sap-parity.md"
+    },
+    "63": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0063-documentation-set-coverage.md",
+      "archive_path": "docs/adr-archive/ADR-0063-documentation-set-coverage.md"
+    },
+    "544": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0544-friction-ledger-closed-loop-accounting-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0544-friction-ledger-closed-loop-accounting-gate.md"
+    },
+    "284": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0284-platform-owner-name-indirection.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0284-platform-owner-name-indirection.md"
+    },
+    "120": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md"
+    },
+    "620": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md",
+      "archive_path": "docs/adr-archive/ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md"
+    },
+    "62": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0062-quality-performance-scalability-bar.md",
+      "archive_path": "docs/adr-archive/ADR-0062-quality-performance-scalability-bar.md"
+    },
+    "355": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0355-amendment-library-first-network-opt-in-clarification.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0355-amendment-library-first-network-opt-in-clarification.md"
+    },
+    "45": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0045-database-tier-strategy.md",
+      "archive_path": "docs/adr-archive/ADR-0045-database-tier-strategy.md"
+    },
+    "276": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0276-backup-portability-format-gdpr-article-20.md",
+      "archive_path": "docs/adr-archive/ADR-0276-backup-portability-format-gdpr-article-20.md"
+    },
+    "121": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md"
+    },
+    "295": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0295-bootstrap-ci-spiffe-kill-switch.md",
+      "archive_path": "docs/adr-archive/ADR-0295-bootstrap-ci-spiffe-kill-switch.md"
+    },
+    "481": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0481-oya-flags-bespoke-feature-flag-server.md",
+      "archive_path": "docs/adr-archive/ADR-0481-oya-flags-bespoke-feature-flag-server.md"
+    },
+    "243": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0243-cedar-as-universal-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0243-cedar-as-universal-gate.md"
+    },
+    "122": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0122-ontology-crate-rename-from-object-graph.md",
+      "archive_path": "docs/adr-archive/ADR-0122-ontology-crate-rename-from-object-graph.md"
+    },
+    "102": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0102-intelligence-settings-template-canonical-rendering.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0102-intelligence-settings-template-canonical-rendering.md"
+    },
+    "331": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0331-cross-microservice-tenant-class-adoption-template.md",
+      "archive_path": "docs/adr-archive/ADR-0331-cross-microservice-tenant-class-adoption-template.md"
+    },
+    "138": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0138-intelligence-six-path-deprecation.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0138-intelligence-six-path-deprecation.md"
+    },
+    "36": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0036-plugin-substrate-wasm-and-trust.md",
+      "archive_path": "docs/adr-archive/ADR-0036-plugin-substrate-wasm-and-trust.md"
+    },
+    "636": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
+      "archive_path": "docs/adr-archive/ADR-0636-bounded-cross-run-affected-baseline-reuse.md"
+    },
+    "332": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0332-healthcare-domain-decomposition.md",
+      "archive_path": "docs/adr-archive/ADR-0332-healthcare-domain-decomposition.md"
+    },
+    "17": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0017-brand-naming-and-repo-layout.md",
+      "archive_path": "docs/adr-archive/ADR-0017-brand-naming-and-repo-layout.md"
+    },
+    "707": {
+      "disposition": "live",
+      "live_id": "ADR-0707",
+      "note": "topic apex"
+    },
+    "300": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0707",
+      "note": "consolidated into ADR-0707; archive docs/adr-archive/ADR-0300-whistleblower-press-freedom-anonymity.md",
+      "archive_path": "docs/adr-archive/ADR-0300-whistleblower-press-freedom-anonymity.md"
+    },
+    "343": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md",
+      "archive_path": "docs/adr-archive/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+    },
+    "217": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0217-vertical-slice-rollout-order.md",
+      "archive_path": "docs/adr-archive/ADR-0217-vertical-slice-rollout-order.md"
+    },
+    "235": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0235-connect-core-public-contracts.md",
+      "archive_path": "docs/adr-archive/ADR-0235-connect-core-public-contracts.md"
+    },
+    "633": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md",
+      "archive_path": "docs/adr-archive/ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md"
+    },
+    "320": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md"
+    },
+    "371": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md",
+      "archive_path": "docs/adr-archive/ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md"
+    },
+    "236": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0236-op11-corpus-remediation-planning-contract.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0236-op11-corpus-remediation-planning-contract.md"
+    },
+    "154": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0154-event-schema-versioning.md",
+      "archive_path": "docs/adr-archive/ADR-0154-event-schema-versioning.md"
+    },
+    "213": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0213-ecosystem-as-a-service-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0213-ecosystem-as-a-service-architecture.md"
+    },
+    "182": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+      "archive_path": "docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md"
+    },
+    "46": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0046-vector-store-strategy.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0046-vector-store-strategy.md"
+    },
+    "10": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0010-regional-pack-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0010-regional-pack-architecture.md"
+    },
+    "595": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+      "archive_path": "docs/adr-archive/ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md"
+    },
+    "586": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0586-fail-closed-verified-principal-and-server-side-pdp-authz-for-tenant-create-and-tenant-lifecycle.md",
+      "archive_path": "docs/adr-archive/ADR-0586-fail-closed-verified-principal-and-server-side-pdp-authz-for-tenant-create-and-tenant-lifecycle.md"
+    },
+    "318": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0318-collar-color-workspace-universality.md",
+      "archive_path": "docs/adr-archive/ADR-0318-collar-color-workspace-universality.md"
+    },
+    "543": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0543-cloud-kms-operator-commissioning.md",
+      "archive_path": "docs/adr-archive/ADR-0543-cloud-kms-operator-commissioning.md"
+    },
+    "189": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0189-step-up-authentication-acr-classes.md",
+      "archive_path": "docs/adr-archive/ADR-0189-step-up-authentication-acr-classes.md"
+    },
+    "202": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
+      "archive_path": "docs/adr-archive/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md"
+    },
+    "166": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0166-schema-registry.md",
+      "archive_path": "docs/adr-archive/ADR-0166-schema-registry.md"
+    },
+    "136": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0136-intelligence-as-single-microservice.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0136-intelligence-as-single-microservice.md"
+    },
+    "57": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0057-cutover-mechanics-rename-plan-v4.md"
+    },
+    "387": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0387-ci-webhook-gateway-github-actions-commit-status.md"
+    },
+    "546": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0546-canonical-json-determinism-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0546-canonical-json-determinism-gate.md"
+    },
+    "198": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0198-k8s-node-autoscaling-karpenter.md",
+      "archive_path": "docs/adr-archive/ADR-0198-k8s-node-autoscaling-karpenter.md"
+    },
+    "129": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md"
+    },
+    "143": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0143-intelligence-per-bc-release-pointer.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0143-intelligence-per-bc-release-pointer.md"
+    },
+    "604": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
+      "archive_path": "docs/adr-archive/ADR-0604-de-commit-scm-facts-boundary-snapshot.md"
+    },
+    "199": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0199-per-tenant-cost-attribution-finops-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0199-per-tenant-cost-attribution-finops-substrate.md"
+    },
+    "280": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0280-substrate-of-substrate-dependency-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0280-substrate-of-substrate-dependency-doctrine.md"
+    },
+    "630": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0630-arc-owned-runner-fleet-interim-substrate.md"
+    },
+    "567": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0567-auth-durable-store-postgres-rls-plans.md",
+      "archive_path": "docs/adr-archive/ADR-0567-auth-durable-store-postgres-rls-plans.md"
+    },
+    "333": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0333-cell-microservice-retired-pattern-not-service.md",
+      "archive_path": "docs/adr-archive/ADR-0333-cell-microservice-retired-pattern-not-service.md"
+    },
+    "92": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0092-workspace-dependency-seam-policy.md",
+      "archive_path": "docs/adr-archive/ADR-0092-workspace-dependency-seam-policy.md"
+    },
+    "350": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0350-uuidv7-canonical-id-primitive.md",
+      "archive_path": "docs/adr-archive/ADR-0350-uuidv7-canonical-id-primitive.md"
+    },
+    "180": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0706",
+      "note": "consolidated into ADR-0706; archive docs/adr-archive/ADR-0180-slo-composition-inheritance-arithmetic.md",
+      "archive_path": "docs/adr-archive/ADR-0180-slo-composition-inheritance-arithmetic.md"
+    },
+    "563": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md",
+      "archive_path": "docs/adr-archive/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md"
+    },
+    "144": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0144-eu-ai-act-graduated-risk-tier-model.md",
+      "archive_path": "docs/adr-archive/ADR-0144-eu-ai-act-graduated-risk-tier-model.md"
+    },
+    "193": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0193-olap-analytics-warehouse-clickhouse.md",
+      "archive_path": "docs/adr-archive/ADR-0193-olap-analytics-warehouse-clickhouse.md"
+    },
+    "212": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0212-buildability-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0212-buildability-doctrine.md"
+    },
+    "106": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0703",
+      "note": "consolidated into ADR-0703; archive docs/adr-archive/ADR-0106-rename-application-to-usecase.md",
+      "archive_path": "docs/adr-archive/ADR-0106-rename-application-to-usecase.md"
+    },
+    "28": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0028-cloud-microservice-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0028-cloud-microservice-architecture.md"
+    },
+    "192": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0192-vector-database-canonical-milvus.md",
+      "archive_path": "docs/adr-archive/ADR-0192-vector-database-canonical-milvus.md"
+    },
+    "506": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0506-aws-lc-rs-canonical-crypto-provider.md",
+      "archive_path": "docs/adr-archive/ADR-0506-aws-lc-rs-canonical-crypto-provider.md"
+    },
+    "153": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0153-outbox-pattern.md",
+      "archive_path": "docs/adr-archive/ADR-0153-outbox-pattern.md"
+    },
+    "111": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md"
+    },
+    "248": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0248-amazon-shape-cellular-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0248-amazon-shape-cellular-architecture.md"
+    },
+    "390": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md",
+      "archive_path": "docs/adr-archive/ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md"
+    },
+    "559": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md",
+      "archive_path": "docs/adr-archive/ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md"
+    },
+    "372": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md"
+    },
+    "334": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0334-shorts-microservice-merged-into-social.md",
+      "archive_path": "docs/adr-archive/ADR-0334-shorts-microservice-merged-into-social.md"
+    },
+    "35": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+      "archive_path": "docs/adr-archive/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md"
+    },
+    "383": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md",
+      "archive_path": "docs/adr-archive/ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md"
+    },
+    "380": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md",
+      "archive_path": "docs/adr-archive/ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md"
+    },
+    "147": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0147-container-sandboxing-runtime-ladder.md",
+      "archive_path": "docs/adr-archive/ADR-0147-container-sandboxing-runtime-ladder.md"
+    },
+    "150": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0150-cursor-pagination-canonical.md",
+      "archive_path": "docs/adr-archive/ADR-0150-cursor-pagination-canonical.md"
+    },
+    "210": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0706",
+      "note": "consolidated into ADR-0706; archive docs/adr-archive/ADR-0210-otel-tail-sampling.md",
+      "archive_path": "docs/adr-archive/ADR-0210-otel-tail-sampling.md"
+    },
+    "326": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0326-per-tenant-data-residency-attestation.md",
+      "archive_path": "docs/adr-archive/ADR-0326-per-tenant-data-residency-attestation.md"
+    },
+    "321": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0321-b2b-saas-industry-leader-coverage.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0321-b2b-saas-industry-leader-coverage.md"
+    },
+    "617": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0617-living-monorepo-governance-graph.md",
+      "archive_path": "docs/adr-archive/ADR-0617-living-monorepo-governance-graph.md"
+    },
+    "591": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
+      "archive_path": "docs/adr-archive/ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md"
+    },
+    "48": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0048-korean-morphology-and-multilingual-tokenization.md",
+      "archive_path": "docs/adr-archive/ADR-0048-korean-morphology-and-multilingual-tokenization.md"
+    },
+    "530": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0530-enforced-engineering-excellence-property-set.md",
+      "archive_path": "docs/adr-archive/ADR-0530-enforced-engineering-excellence-property-set.md"
+    },
+    "344": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0344-sustainability-finops-dimensional-model.md",
+      "archive_path": "docs/adr-archive/ADR-0344-sustainability-finops-dimensional-model.md"
+    },
+    "612": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md",
+      "archive_path": "docs/adr-archive/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md"
+    },
+    "157": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0157-api-gateway-tier.md",
+      "archive_path": "docs/adr-archive/ADR-0157-api-gateway-tier.md"
+    },
+    "314": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0314-marketplace-as-universal-deal-settlement.md",
+      "archive_path": "docs/adr-archive/ADR-0314-marketplace-as-universal-deal-settlement.md"
+    },
+    "705": {
+      "disposition": "live",
+      "live_id": "ADR-0705",
+      "note": "topic apex"
+    },
+    "238": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0238-connect-super-app-expansion.md",
+      "archive_path": "docs/adr-archive/ADR-0238-connect-super-app-expansion.md"
+    },
+    "351": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md",
+      "archive_path": "docs/adr-archive/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md"
+    },
+    "610": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md",
+      "archive_path": "docs/adr-archive/ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md"
+    },
+    "479": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0479-oya-meter-bespoke-usage-metering.md",
+      "archive_path": "docs/adr-archive/ADR-0479-oya-meter-bespoke-usage-metering.md"
+    },
+    "354": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+      "archive_path": "docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"
+    },
+    "39": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+      "archive_path": "docs/adr-archive/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md"
+    },
+    "353": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0353-amendment-library-first-network-opt-in-clarification.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0353-amendment-library-first-network-opt-in-clarification.md"
+    },
+    "64": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0064-canonical-base-and-localization-packs.md",
+      "archive_path": "docs/adr-archive/ADR-0064-canonical-base-and-localization-packs.md"
+    },
+    "149": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0149-idempotency-keys-canonical.md",
+      "archive_path": "docs/adr-archive/ADR-0149-idempotency-keys-canonical.md"
+    },
+    "700": {
+      "disposition": "live",
+      "live_id": "ADR-0700",
+      "note": "topic apex"
+    },
+    "165": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0165-chaos-engineering-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0165-chaos-engineering-substrate.md"
+    },
+    "598": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0598-commission-comms-meet-capability-first-core-slice.md",
+      "archive_path": "docs/adr-archive/ADR-0598-commission-comms-meet-capability-first-core-slice.md"
+    },
+    "366": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0366-agentic-high-throughput-self-enforcing-pipeline.md",
+      "archive_path": "docs/adr-archive/ADR-0366-agentic-high-throughput-self-enforcing-pipeline.md"
+    },
+    "29": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0029-connect-dual-context-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0029-connect-dual-context-architecture.md"
+    },
+    "308": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
+      "archive_path": "docs/adr-archive/ADR-0308-ml-model-lifecycle-ai-act-compliance.md"
+    },
+    "379": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0379-kubewarden-default-admission-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0379-kubewarden-default-admission-substrate.md"
+    },
+    "253": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0708",
+      "note": "consolidated into ADR-0708; archive docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md",
+      "archive_path": "docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md"
+    },
+    "96": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0096-supervisor-language-rust-not-node.md",
+      "archive_path": "docs/adr-archive/ADR-0096-supervisor-language-rust-not-node.md"
+    },
+    "245": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0245-substrate-vs-product-layering.md",
+      "archive_path": "docs/adr-archive/ADR-0245-substrate-vs-product-layering.md"
+    },
+    "131": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0131-per-microservice-flat-layout.md",
+      "archive_path": "docs/adr-archive/ADR-0131-per-microservice-flat-layout.md"
+    },
+    "336": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0336-valkey-not-redis-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0336-valkey-not-redis-substrate.md"
+    },
+    "392": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0392-buck2-canonical-build-graph.md",
+      "archive_path": "docs/adr-archive/ADR-0392-buck2-canonical-build-graph.md"
+    },
+    "98": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md",
+      "archive_path": "docs/adr-archive/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md"
+    },
+    "542": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
+      "archive_path": "docs/adr-archive/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md"
+    },
+    "394": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0394-bespoke-rust-idp-central-hub.md",
+      "archive_path": "docs/adr-archive/ADR-0394-bespoke-rust-idp-central-hub.md"
+    },
+    "109": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0109-lifecycle-automation-framework.md",
+      "archive_path": "docs/adr-archive/ADR-0109-lifecycle-automation-framework.md"
+    },
+    "389": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md",
+      "archive_path": "docs/adr-archive/ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md"
+    },
+    "137": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0137-intelligence-bounded-contexts.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0137-intelligence-bounded-contexts.md"
+    },
+    "382": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0382-bare-metal-talos-zero-day-sidero.md",
+      "archive_path": "docs/adr-archive/ADR-0382-bare-metal-talos-zero-day-sidero.md"
+    },
+    "128": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0128-hyperscaler-architecture-invariants.md",
+      "archive_path": "docs/adr-archive/ADR-0128-hyperscaler-architecture-invariants.md"
+    },
+    "221": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0221-agentic-development-pipeline-hardening.md",
+      "archive_path": "docs/adr-archive/ADR-0221-agentic-development-pipeline-hardening.md"
+    },
+    "550": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0550-repository-layout-doctrine.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0550-repository-layout-doctrine.md"
+    },
+    "304": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0304-cross-jurisdiction-conflict-resolution.md",
+      "archive_path": "docs/adr-archive/ADR-0304-cross-jurisdiction-conflict-resolution.md"
+    },
+    "619": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
+      "archive_path": "docs/adr-archive/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md"
+    },
+    "510": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md",
+      "archive_path": "docs/adr-archive/ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md"
+    },
+    "110": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0110-changeset-state-machine.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0110-changeset-state-machine.md"
+    },
+    "139": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0139-agentic-slo-gated-promotion.md",
+      "archive_path": "docs/adr-archive/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    "362": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0362-full-grouping-retirement-flat-only-catalog.md",
+      "archive_path": "docs/adr-archive/ADR-0362-full-grouping-retirement-flat-only-catalog.md"
+    },
+    "190": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0190-scim-2-provisioning-enterprise-tenants.md",
+      "archive_path": "docs/adr-archive/ADR-0190-scim-2-provisioning-enterprise-tenants.md"
+    },
+    "175": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0175-tenant-lifecycle-workflow.md",
+      "archive_path": "docs/adr-archive/ADR-0175-tenant-lifecycle-workflow.md"
+    },
+    "352": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0352-oyatie-from-scratch-architecture-handoff.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0352-oyatie-from-scratch-architecture-handoff.md"
+    },
+    "19": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0019-doc-catalog-and-update-protocol.md",
+      "archive_path": "docs/adr-archive/ADR-0019-doc-catalog-and-update-protocol.md"
+    },
+    "159": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0159-feature-flag-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0159-feature-flag-substrate.md"
+    },
+    "132": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md",
+      "archive_path": "docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md"
+    },
+    "325": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0325-capability-tier-pricing-anchors-public.md",
+      "archive_path": "docs/adr-archive/ADR-0325-capability-tier-pricing-anchors-public.md"
+    },
+    "66": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0066-live-code-introspection-docs-portal.md",
+      "archive_path": "docs/adr-archive/ADR-0066-live-code-introspection-docs-portal.md"
+    },
+    "184": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0184-storage-tier-layering.md",
+      "archive_path": "docs/adr-archive/ADR-0184-storage-tier-layering.md"
+    },
+    "370": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md",
+      "archive_path": "docs/adr-archive/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md"
+    },
+    "376": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0376-managed-kubernetes-product-surface.md",
+      "archive_path": "docs/adr-archive/ADR-0376-managed-kubernetes-product-surface.md"
+    },
+    "388": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0388-doc-axis-convention.md",
+      "archive_path": "docs/adr-archive/ADR-0388-doc-axis-convention.md"
+    },
+    "61": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0061-application-b2b-unified-shell.md",
+      "archive_path": "docs/adr-archive/ADR-0061-application-b2b-unified-shell.md"
+    },
+    "135": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0135-aspirational-enforcement-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0135-aspirational-enforcement-gate.md"
+    },
+    "142": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0142-crdt-portability-trait.md",
+      "archive_path": "docs/adr-archive/ADR-0142-crdt-portability-trait.md"
+    },
+    "384": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md"
+    },
+    "381": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md"
+    },
+    "177": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0177-internal-external-api-surface-separation.md",
+      "archive_path": "docs/adr-archive/ADR-0177-internal-external-api-surface-separation.md"
+    },
+    "141": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0141-workflow-ontology-read-path-direct.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0141-workflow-ontology-read-path-direct.md"
+    },
+    "606": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0606-operator-secret-bootstrap-rbac-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0606-operator-secret-bootstrap-rbac-gate.md"
+    },
+    "246": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md",
+      "archive_path": "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md"
+    },
+    "309": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0309-detection-fairness-audit-civil-rights.md",
+      "archive_path": "docs/adr-archive/ADR-0309-detection-fairness-audit-civil-rights.md"
+    },
+    "105": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md",
+      "archive_path": "docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    "374": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0374-ci-webhook-gateway-github-actions.md",
+      "archive_path": "docs/adr-archive/ADR-0374-ci-webhook-gateway-github-actions.md"
+    },
+    "172": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0703",
+      "note": "consolidated into ADR-0703; archive docs/adr-archive/ADR-0172-cqrs-read-replicas.md",
+      "archive_path": "docs/adr-archive/ADR-0172-cqrs-read-replicas.md"
+    },
+    "599": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0599-commission-comms-calendar-capability-first-core-slice.md",
+      "archive_path": "docs/adr-archive/ADR-0599-commission-comms-calendar-capability-first-core-slice.md"
+    },
+    "133": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md",
+      "archive_path": "docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md"
+    },
+    "360": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0360-ci-pipeline-optimization-program.md",
+      "archive_path": "docs/adr-archive/ADR-0360-ci-pipeline-optimization-program.md"
+    },
+    "22": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0022-autonomy-ceiling-runtime-enforcement.md",
+      "archive_path": "docs/adr-archive/ADR-0022-autonomy-ceiling-runtime-enforcement.md"
+    },
+    "257": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md",
+      "archive_path": "docs/adr-archive/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md"
+    },
+    "242": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md",
+      "archive_path": "docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md"
+    },
+    "254": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0254-deployment-model-spectrum.md",
+      "archive_path": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
+    },
+    "195": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0195-stream-processing-tier.md",
+      "archive_path": "docs/adr-archive/ADR-0195-stream-processing-tier.md"
+    },
+    "522": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0522-lifecycle-wide-hermeticity-one-graph-four-runners.md",
+      "archive_path": "docs/adr-archive/ADR-0522-lifecycle-wide-hermeticity-one-graph-four-runners.md"
+    },
+    "20": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0020-intelligence-multi-provider-adapter-model.md",
+      "archive_path": "docs/adr-archive/ADR-0020-intelligence-multi-provider-adapter-model.md"
+    },
+    "209": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0209-compliance-evidence-automation.md",
+      "archive_path": "docs/adr-archive/ADR-0209-compliance-evidence-automation.md"
+    },
+    "215": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0215-multi-context-platform-architecture.md",
+      "archive_path": "docs/adr-archive/ADR-0215-multi-context-platform-architecture.md"
+    },
+    "635": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0635-face-aware-substrate-dependency-graph-v2.md",
+      "archive_path": "docs/adr-archive/ADR-0635-face-aware-substrate-dependency-graph-v2.md"
+    },
+    "549": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0549-buck-syntax-kernel.md",
+      "archive_path": "docs/adr-archive/ADR-0549-buck-syntax-kernel.md"
+    },
+    "204": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0204-workflow-studio-canvas-library.md",
+      "archive_path": "docs/adr-archive/ADR-0204-workflow-studio-canvas-library.md"
+    },
+    "95": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0095-tenant-slug-in-tenancy-kernel.md",
+      "archive_path": "docs/adr-archive/ADR-0095-tenant-slug-in-tenancy-kernel.md"
+    },
+    "117": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md",
+      "archive_path": "docs/adr-archive/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    "338": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0338-pod-runtime-tier-0-to-3.md",
+      "archive_path": "docs/adr-archive/ADR-0338-pod-runtime-tier-0-to-3.md"
+    },
+    "107": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0107-tools-implicit-app-convention.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0107-tools-implicit-app-convention.md"
+    },
+    "317": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0317-role-based-projection-unified-ux-shell.md",
+      "archive_path": "docs/adr-archive/ADR-0317-role-based-projection-unified-ux-shell.md"
+    },
+    "108": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0108-sunset-lifecycle-automation.md",
+      "archive_path": "docs/adr-archive/ADR-0108-sunset-lifecycle-automation.md"
+    },
+    "529": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
+      "archive_path": "docs/adr-archive/ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md"
+    },
+    "311": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md"
+    },
+    "573": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0573-fail-closed-authz-for-cloud-kms-crypto-control-plane.md",
+      "archive_path": "docs/adr-archive/ADR-0573-fail-closed-authz-for-cloud-kms-crypto-control-plane.md"
+    },
+    "54": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0054-grit-scaffold-claim-pattern.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0054-grit-scaffold-claim-pattern.md"
+    },
+    "639": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md",
+      "archive_path": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md"
+    },
+    "618": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0618-contract-slice-gate-scope-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0618-contract-slice-gate-scope-boundary.md"
+    },
+    "191": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md",
+      "archive_path": "docs/adr-archive/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md"
+    },
+    "123": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0123-hyperscaler-maturity-claim-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    "49": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0708",
+      "note": "consolidated into ADR-0708; archive docs/adr-archive/ADR-0049-cross-region-replication-and-residency.md",
+      "archive_path": "docs/adr-archive/ADR-0049-cross-region-replication-and-residency.md"
+    },
+    "55": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0055-object-graph-renamed-to-ontology.md",
+      "archive_path": "docs/adr-archive/ADR-0055-object-graph-renamed-to-ontology.md"
+    },
+    "310": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0703",
+      "note": "consolidated into ADR-0703; archive docs/adr-archive/ADR-0310-investigation-case-management.md",
+      "archive_path": "docs/adr-archive/ADR-0310-investigation-case-management.md"
+    },
+    "556": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0703",
+      "note": "consolidated into ADR-0703; archive docs/adr-archive/ADR-0556-build-cache-warmth-classification.md",
+      "archive_path": "docs/adr-archive/ADR-0556-build-cache-warmth-classification.md"
+    },
+    "34": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md",
+      "archive_path": "docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md"
+    },
+    "330": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md",
+      "archive_path": "docs/adr-archive/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md"
+    },
+    "298": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0298-emergency-services-bypass-life-safety.md",
+      "archive_path": "docs/adr-archive/ADR-0298-emergency-services-bypass-life-safety.md"
+    },
+    "571": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0571-home-connect-address-book-into-comms-and-commission-the-contact-management-port-and-usecase.md",
+      "archive_path": "docs/adr-archive/ADR-0571-home-connect-address-book-into-comms-and-commission-the-contact-management-port-and-usecase.md"
+    },
+    "603": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md",
+      "archive_path": "docs/adr-archive/ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md"
+    },
+    "533": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0533-config-driven-public-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0533-config-driven-public-boundary.md"
+    },
+    "114": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0706",
+      "note": "consolidated into ADR-0706; archive docs/adr-archive/ADR-0114-canary-observability-rollback.md",
+      "archive_path": "docs/adr-archive/ADR-0114-canary-observability-rollback.md"
+    },
+    "568": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md",
+      "archive_path": "docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md"
+    },
+    "27": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0027-robotics-vision-speech-sub-substrates.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0027-robotics-vision-speech-sub-substrates.md"
+    },
+    "40": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+      "archive_path": "docs/adr-archive/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md"
+    },
+    "596": {
+      "disposition": "superseded",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0596-forbid-de-committing-firewall-frozen-reference-artifacts.md"
+    },
+    "244": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md",
+      "archive_path": "docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md"
+    },
+    "517": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+      "archive_path": "docs/adr-archive/ADR-0517-one-owned-ast-substrate-content-addressed.md"
+    },
+    "397": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md",
+      "archive_path": "docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md"
+    },
+    "703": {
+      "disposition": "live",
+      "live_id": "ADR-0703",
+      "note": "topic apex"
+    },
+    "186": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0706",
+      "note": "consolidated into ADR-0706; archive docs/adr-archive/ADR-0186-observability-backplane-layering.md",
+      "archive_path": "docs/adr-archive/ADR-0186-observability-backplane-layering.md"
+    },
+    "52": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0052-inventory-grit-cutover.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0052-inventory-grit-cutover.md"
+    },
+    "519": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0519-auto-advise-gate-safety-governor.md",
+      "archive_path": "docs/adr-archive/ADR-0519-auto-advise-gate-safety-governor.md"
+    },
+    "164": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0164-sovereign-cloud-air-gapped.md",
+      "archive_path": "docs/adr-archive/ADR-0164-sovereign-cloud-air-gapped.md"
+    },
+    "24": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0024-intelligence-eval-harness-and-replay.md",
+      "archive_path": "docs/adr-archive/ADR-0024-intelligence-eval-harness-and-replay.md"
+    },
+    "69": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0069-active-machine-readable-artifact-contract.md",
+      "archive_path": "docs/adr-archive/ADR-0069-active-machine-readable-artifact-contract.md"
+    },
+    "155": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0155-per-tenant-resource-quotas.md",
+      "archive_path": "docs/adr-archive/ADR-0155-per-tenant-resource-quotas.md"
+    },
+    "91": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0091-governance-write-gate-foundations.md",
+      "archive_path": "docs/adr-archive/ADR-0091-governance-write-gate-foundations.md"
+    },
+    "272": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md",
+      "archive_path": "docs/adr-archive/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md"
+    },
+    "512": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0512-canonical-monorepo-pattern.md",
+      "archive_path": "docs/adr-archive/ADR-0512-canonical-monorepo-pattern.md"
+    },
+    "582": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0582-dto-authz-trust-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0582-dto-authz-trust-gate.md"
+    },
+    "58": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0058-flat-microservice-catalog.md",
+      "archive_path": "docs/adr-archive/ADR-0058-flat-microservice-catalog.md"
+    },
+    "56": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md",
+      "archive_path": "docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    "239": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md",
+      "archive_path": "docs/adr-archive/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md"
+    },
+    "357": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md"
+    },
+    "555": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0555-unaccounted-artifacts-unmergeable-structural-accounting.md",
+      "archive_path": "docs/adr-archive/ADR-0555-unaccounted-artifacts-unmergeable-structural-accounting.md"
+    },
+    "704": {
+      "disposition": "live",
+      "live_id": "ADR-0704",
+      "note": "topic apex"
+    },
+    "1": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0705",
+      "note": "consolidated into ADR-0705; archive docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+      "archive_path": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"
+    },
+    "593": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
+      "archive_path": "docs/adr-archive/ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md"
+    },
+    "536": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
+      "archive_path": "docs/adr-archive/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md"
+    },
+    "316": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0316-capability-tier-over-product-fragmentation.md"
+    },
+    "8": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0008-data-use-boundary.md",
+      "archive_path": "docs/adr-archive/ADR-0008-data-use-boundary.md"
+    },
+    "545": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0545-embedded-asset-hermeticity-gate.md",
+      "archive_path": "docs/adr-archive/ADR-0545-embedded-asset-hermeticity-gate.md"
+    },
+    "7": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md",
+      "archive_path": "docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
+    },
+    "708": {
+      "disposition": "live",
+      "live_id": "ADR-0708",
+      "note": "topic apex"
+    },
+    "151": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0151-request-id-propagation.md",
+      "archive_path": "docs/adr-archive/ADR-0151-request-id-propagation.md"
+    },
+    "590": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0590-fail-closed-authz-cloud-observability-audit-read.md",
+      "archive_path": "docs/adr-archive/ADR-0590-fail-closed-authz-cloud-observability-audit-read.md"
+    },
+    "15": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "full text docs/adr-archive/ADR-0015-architectural-flattening-target.md; live apex ADR-0709",
+      "archive_path": "docs/adr-archive/ADR-0015-architectural-flattening-target.md"
+    },
+    "621": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0621-de-commit-active-artifact-contract-graph-projection.md",
+      "archive_path": "docs/adr-archive/ADR-0621-de-commit-active-artifact-contract-graph-projection.md"
+    },
+    "554": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0554-binding-buck2-workspace-coverage.md",
+      "archive_path": "docs/adr-archive/ADR-0554-binding-buck2-workspace-coverage.md"
+    },
+    "163": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0163-tenant-environment-tiers.md",
+      "archive_path": "docs/adr-archive/ADR-0163-tenant-environment-tiers.md"
+    },
+    "478": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0478-oya-billing-bespoke-billing-engine.md",
+      "archive_path": "docs/adr-archive/ADR-0478-oya-billing-bespoke-billing-engine.md"
+    },
+    "134": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0704",
+      "note": "consolidated into ADR-0704; archive docs/adr-archive/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
+      "archive_path": "docs/adr-archive/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md"
+    },
+    "589": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0702",
+      "note": "consolidated into ADR-0702; archive docs/adr-archive/ADR-0589-fail-closed-authz-for-dsr-erasure-cascade.md",
+      "archive_path": "docs/adr-archive/ADR-0589-fail-closed-authz-for-dsr-erasure-cascade.md"
+    },
+    "375": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0701",
+      "note": "consolidated into ADR-0701; archive docs/adr-archive/ADR-0375-talos-capi-argocd-fleet-substrate.md",
+      "archive_path": "docs/adr-archive/ADR-0375-talos-capi-argocd-fleet-substrate.md"
+    },
+    "18": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0709",
+      "note": "consolidated into ADR-0709; archive docs/adr-archive/ADR-0018-glossary-and-terminology-canon.md",
+      "archive_path": "docs/adr-archive/ADR-0018-glossary-and-terminology-canon.md"
+    },
+    "701": {
+      "disposition": "live",
+      "live_id": "ADR-0701",
+      "note": "topic apex"
+    },
+    "587": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0587-fail-closed-authz-for-cloud-network-create-control-planes.md",
+      "archive_path": "docs/adr-archive/ADR-0587-fail-closed-authz-for-cloud-network-create-control-planes.md"
+    },
+    "613": {
+      "disposition": "consolidated",
+      "live_id": "ADR-0700",
+      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md",
+      "archive_path": "docs/adr-archive/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md"
+    }
+  },
+  "counts": {
+    "live_apex": 10,
+    "archived": 448,
+    "thin_stubs": 0
+  },
+  "live_ids": [
+    700,
+    701,
+    702,
+    703,
+    704,
+    705,
+    706,
+    707,
+    708,
+    709
+  ],
+  "thin_redirect_stubs": [
+    "ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+    "ADR-0002-tenant-and-identity-kernel.md",
+    "ADR-0003-audit-chain-and-evidence-emission.md",
+    "ADR-0004-plane-separation-control-data-analytics.md",
+    "ADR-0005-eventing-backbone-outbox-pattern.md",
+    "ADR-0006-ontology-typed-entity-layer.md",
+    "ADR-0007-cedar-authorization-policy-and-persona-tier.md",
+    "ADR-0008-data-use-boundary.md",
+    "ADR-0009-cell-architecture-per-tenant-per-region.md",
+    "ADR-0010-regional-pack-architecture.md",
+    "ADR-0011-cross-microservice-contract-registry.md",
+    "ADR-0013-product-license-policy.md",
+    "ADR-0014-build-vs-buy-policy.md",
+    "ADR-0015-architectural-flattening-target.md",
+    "ADR-0016-wave-and-plane-integration-framework.md",
+    "ADR-0017-brand-naming-and-repo-layout.md",
+    "ADR-0018-glossary-and-terminology-canon.md",
+    "ADR-0019-doc-catalog-and-update-protocol.md",
+    "ADR-0020-intelligence-multi-provider-adapter-model.md",
+    "ADR-0021-intelligence-capability-registry-and-mcp-gateway.md",
+    "ADR-0022-autonomy-ceiling-runtime-enforcement.md",
+    "ADR-0023-intelligence-sandbox-wasmtime-firecracker.md",
+    "ADR-0024-intelligence-eval-harness-and-replay.md",
+    "ADR-0025-intelligence-as-engineering-platform.md",
+    "ADR-0026-in-house-ai-model-substrate-roadmap.md",
+    "ADR-0027-robotics-vision-speech-sub-substrates.md",
+    "ADR-0028-cloud-microservice-architecture.md",
+    "ADR-0029-connect-dual-context-architecture.md",
+    "ADR-0030-search-microservice-architecture.md",
+    "ADR-0031-ads-and-analytics-microservice-architecture.md",
+    "ADR-0032-dcim-software-for-own-dc-ops.md",
+    "ADR-0034-per-microservice-data-class-overrides.md",
+    "ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+    "ADR-0036-plugin-substrate-wasm-and-trust.md",
+    "ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
+    "ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+    "ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+    "ADR-0042-observability-stack-otel-and-in-house-ui.md",
+    "ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
+    "ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md",
+    "ADR-0045-database-tier-strategy.md",
+    "ADR-0046-vector-store-strategy.md",
+    "ADR-0047-search-backend-strategy.md",
+    "ADR-0048-korean-morphology-and-multilingual-tokenization.md",
+    "ADR-0049-cross-region-replication-and-residency.md",
+    "ADR-0051-mobile-and-native-client-strategy.md",
+    "ADR-0052-inventory-grit-cutover.md",
+    "ADR-0053-grit-icm-as-sanctioned-primitives.md",
+    "ADR-0054-grit-scaffold-claim-pattern.md",
+    "ADR-0055-object-graph-renamed-to-ontology.md",
+    "ADR-0056-rust-clean-architecture-bnf.md",
+    "ADR-0057-cutover-mechanics-rename-plan-v4.md",
+    "ADR-0058-flat-microservice-catalog.md",
+    "ADR-0059-workflow-ontology-ecosystem-adapter-layer.md",
+    "ADR-0060-bominal-inheritance-precedence.md",
+    "ADR-0061-application-b2b-unified-shell.md",
+    "ADR-0062-quality-performance-scalability-bar.md",
+    "ADR-0063-documentation-set-coverage.md",
+    "ADR-0064-canonical-base-and-localization-packs.md",
+    "ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+    "ADR-0066-live-code-introspection-docs-portal.md",
+    "ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
+    "ADR-0069-active-machine-readable-artifact-contract.md",
+    "ADR-0083-rust-error-handling-tier-decision.md",
+    "ADR-0090-hyper-canonical-http-backbone.md",
+    "ADR-0091-governance-write-gate-foundations.md",
+    "ADR-0092-workspace-dependency-seam-policy.md",
+    "ADR-0093-latency-budget-reporter-rename.md",
+    "ADR-0094-handler-trait-with-associated-error.md",
+    "ADR-0095-tenant-slug-in-tenancy-kernel.md",
+    "ADR-0096-supervisor-language-rust-not-node.md",
+    "ADR-0097-intelligence-account-adapter-rename-target-slot-last.md",
+    "ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md",
+    "ADR-0099-cedar-policy-extend-supervisor-capabilities.md",
+    "ADR-0100-supervisor-public-contract-lean-a10.md",
+    "ADR-0101-supervisor-mountpoint-direct-hyper.md",
+    "ADR-0102-intelligence-settings-template-canonical-rendering.md",
+    "ADR-0103-grit-cutover-inventory.md",
+    "ADR-0104-ecosystem-expansion-toolchain-and-adapters.md",
+    "ADR-0105-13-layer-enum-and-check-family-patterns.md",
+    "ADR-0106-rename-application-to-usecase.md",
+    "ADR-0107-tools-implicit-app-convention.md",
+    "ADR-0108-sunset-lifecycle-automation.md",
+    "ADR-0109-lifecycle-automation-framework.md",
+    "ADR-0110-changeset-state-machine.md",
+    "ADR-0111-merge-queue-projected-state-fix-at-any-stage.md",
+    "ADR-0112-webhook-driven-intelligence-agent-invocation.md",
+    "ADR-0113-vcs-orchestrator-end-to-end.md",
+    "ADR-0114-canary-observability-rollback.md",
+    "ADR-0115-registry-consolidation-flat-singular.md",
+    "ADR-0116-retire-external-agent-coordination-tooling.md",
+    "ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md",
+    "ADR-0118-retire-archive-orphan-fitness-lane.md",
+    "ADR-0119-specs-flat-root-topology.md",
+    "ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md",
+    "ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
+    "ADR-0122-ontology-crate-rename-from-object-graph.md",
+    "ADR-0123-hyperscaler-maturity-claim-gate.md",
+    "ADR-0124-own-merge-queue-webhook-driven.md",
+    "ADR-0128-hyperscaler-architecture-invariants.md",
+    "ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
+    "ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+    "ADR-0131-per-microservice-flat-layout.md",
+    "ADR-0132-product-platform-and-bundle-dissolution.md",
+    "ADR-0133-industry-best-practice-conformance-program.md",
+    "ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
+    "ADR-0135-aspirational-enforcement-gate.md",
+    "ADR-0136-intelligence-as-single-microservice.md",
+    "ADR-0137-intelligence-bounded-contexts.md",
+    "ADR-0138-intelligence-six-path-deprecation.md",
+    "ADR-0139-agentic-slo-gated-promotion.md",
+    "ADR-0140-cross-cutting-carriers-adapter-exemption.md",
+    "ADR-0141-workflow-ontology-read-path-direct.md",
+    "ADR-0142-crdt-portability-trait.md",
+    "ADR-0143-intelligence-per-bc-release-pointer.md",
+    "ADR-0144-eu-ai-act-graduated-risk-tier-model.md",
+    "ADR-0145-inter-microservice-communication-reform.md",
+    "ADR-0146-container-base-image-distroless-nonroot.md",
+    "ADR-0147-container-sandboxing-runtime-ladder.md",
+    "ADR-0148-service-mesh-cilium-ambient-layered.md",
+    "ADR-0149-idempotency-keys-canonical.md",
+    "ADR-0150-cursor-pagination-canonical.md",
+    "ADR-0151-request-id-propagation.md",
+    "ADR-0152-rpo-rto-canonical.md",
+    "ADR-0153-outbox-pattern.md",
+    "ADR-0154-event-schema-versioning.md",
+    "ADR-0155-per-tenant-resource-quotas.md",
+    "ADR-0156-pii-registry-canonical.md",
+    "ADR-0157-api-gateway-tier.md",
+    "ADR-0158-multi-region-active-active.md",
+    "ADR-0159-feature-flag-substrate.md",
+    "ADR-0160-progressive-delivery-flagger.md",
+    "ADR-0161-csi-storage-class-canonical.md",
+    "ADR-0162-per-tenant-audit-log-slicing.md",
+    "ADR-0163-tenant-environment-tiers.md",
+    "ADR-0164-sovereign-cloud-air-gapped.md",
+    "ADR-0165-chaos-engineering-substrate.md",
+    "ADR-0166-schema-registry.md",
+    "ADR-0167-tenant-cli.md",
+    "ADR-0168-public-status-page.md",
+    "ADR-0169-webhook-dlq-retry.md",
+    "ADR-0171-multi-cluster-federation.md",
+    "ADR-0172-cqrs-read-replicas.md",
+    "ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
+    "ADR-0174-finops-cost-attribution-chargeback.md",
+    "ADR-0175-tenant-lifecycle-workflow.md",
+    "ADR-0176-brownout-degradation-signal-api.md",
+    "ADR-0177-internal-external-api-surface-separation.md",
+    "ADR-0178-layered-throttling-tiers.md",
+    "ADR-0179-postgres-connection-pooling-pgcat.md",
+    "ADR-0180-slo-composition-inheritance-arithmetic.md",
+    "ADR-0181-container-image-promotion-pipeline.md",
+    "ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+    "ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+    "ADR-0184-storage-tier-layering.md",
+    "ADR-0185-workflow-studio-client-stack.md",
+    "ADR-0186-observability-backplane-layering.md",
+    "ADR-0187-canonical-oidc-idp-zitadel-primary.md",
+    "ADR-0188-passkey-webauthn-substrate.md",
+    "ADR-0189-step-up-authentication-acr-classes.md",
+    "ADR-0190-scim-2-provisioning-enterprise-tenants.md",
+    "ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md",
+    "ADR-0192-vector-database-canonical-milvus.md",
+    "ADR-0193-olap-analytics-warehouse-clickhouse.md",
+    "ADR-0194-tenant-facing-timeseries-timescaledb.md",
+    "ADR-0195-stream-processing-tier.md",
+    "ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md",
+    "ADR-0197-backup-substrate-velero-pgbackrest-restic.md",
+    "ADR-0198-k8s-node-autoscaling-karpenter.md",
+    "ADR-0199-per-tenant-cost-attribution-finops-substrate.md",
+    "ADR-0200-wasm-runtime-canonical-wasmtime.md",
+    "ADR-0201-email-transactional-comms-adapter-substrate.md",
+    "ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
+    "ADR-0203-documentation-engine-three-tier.md",
+    "ADR-0204-workflow-studio-canvas-library.md",
+    "ADR-0205-code-editor-canonical-codemirror.md",
+    "ADR-0206-i18n-substrate-fluent-icu.md",
+    "ADR-0207-accessibility-wcag-2-2-aa.md",
+    "ADR-0208-realtime-transport-tier.md",
+    "ADR-0209-compliance-evidence-automation.md",
+    "ADR-0210-otel-tail-sampling.md",
+    "ADR-0211-in-house-tech-stack-policy.md",
+    "ADR-0212-buildability-doctrine.md",
+    "ADR-0213-ecosystem-as-a-service-architecture.md",
+    "ADR-0214-cross-tenant-real-time-visibility.md",
+    "ADR-0215-multi-context-platform-architecture.md",
+    "ADR-0216-open-integration-and-migration-out-policy.md",
+    "ADR-0217-vertical-slice-rollout-order.md",
+    "ADR-0218-tenant-granular-control-surface.md",
+    "ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
+    "ADR-0220-consumer-intelligence-substrate.md",
+    "ADR-0221-agentic-development-pipeline-hardening.md",
+    "ADR-0222-saga-compensation-portfolio-policy.md",
+    "ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
+    "ADR-0234-connect-social-expansion-planning-contract.md",
+    "ADR-0235-connect-core-public-contracts.md",
+    "ADR-0236-op11-corpus-remediation-planning-contract.md",
+    "ADR-0237-connect-dissolution-strangler-migration.md",
+    "ADR-0238-connect-super-app-expansion.md",
+    "ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md",
+    "ADR-0240-sovereign-cloud-per-regional-pack.md",
+    "ADR-0241-dr-business-continuity-portfolio-policy.md",
+    "ADR-0242-oyatie-is-a-tenant-doctrine.md",
+    "ADR-0243-cedar-as-universal-gate.md",
+    "ADR-0244-tenant-as-universal-scoping-primitive.md",
+    "ADR-0245-substrate-vs-product-layering.md",
+    "ADR-0246-policy-engine-substrate-promotion.md",
+    "ADR-0248-amazon-shape-cellular-architecture.md",
+    "ADR-0249-multi-category-marketplace-doctrine.md",
+    "ADR-0250-build-ahead-of-certification-doctrine.md",
+    "ADR-0251-compliance-pack-cell-certification-levels.md",
+    "ADR-0252-time-coordination-distributed-consistency.md",
+    "ADR-0253-network-topology-edge-service-mesh.md",
+    "ADR-0254-deployment-model-spectrum.md",
+    "ADR-0255-intelligence-as-two-layer-ai-substrate.md",
+    "ADR-0257-ontology-object-type-versioning-deprecation-handshake.md",
+    "ADR-0258-api-versioning-model.md",
+    "ADR-0263-observability-emission-contract.md",
+    "ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md",
+    "ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md",
+    "ADR-0276-backup-portability-format-gdpr-article-20.md",
+    "ADR-0280-substrate-of-substrate-dependency-doctrine.md",
+    "ADR-0284-platform-owner-name-indirection.md",
+    "ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md",
+    "ADR-0293-governance-meta-trust-root.md",
+    "ADR-0294-cedar-fragment-soak-anomaly-rollback.md",
+    "ADR-0295-bootstrap-ci-spiffe-kill-switch.md",
+    "ADR-0296-library-first-credential-sidecar.md",
+    "ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md",
+    "ADR-0298-emergency-services-bypass-life-safety.md",
+    "ADR-0299-account-recovery-resilience.md",
+    "ADR-0300-whistleblower-press-freedom-anonymity.md",
+    "ADR-0301-survivor-safety-domestic-abuse-mode.md",
+    "ADR-0302-deceased-user-inheritance-doctrine.md",
+    "ADR-0303-cognitive-impairment-decision-resilience.md",
+    "ADR-0304-cross-jurisdiction-conflict-resolution.md",
+    "ADR-0305-delegated-agent-authority-chain.md",
+    "ADR-0306-disaster-mode-cell-resilience.md",
+    "ADR-0307-detection-substrate-streaming-batch.md",
+    "ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
+    "ADR-0309-detection-fairness-audit-civil-rights.md",
+    "ADR-0310-investigation-case-management.md",
+    "ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md",
+    "ADR-0312-court-warrant-scoped-piercing.md",
+    "ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md",
+    "ADR-0314-marketplace-as-universal-deal-settlement.md",
+    "ADR-0315-erp-coverage-doctrine-sap-parity.md",
+    "ADR-0316-capability-tier-over-product-fragmentation.md",
+    "ADR-0317-role-based-projection-unified-ux-shell.md",
+    "ADR-0318-collar-color-workspace-universality.md",
+    "ADR-0319-front-middle-back-office-information-barrier.md",
+    "ADR-0320-apprentice-intern-resident-fellow-transient-identity.md",
+    "ADR-0321-b2b-saas-industry-leader-coverage.md",
+    "ADR-0324-anti-script-anti-template-doctrine.md",
+    "ADR-0325-capability-tier-pricing-anchors-public.md",
+    "ADR-0326-per-tenant-data-residency-attestation.md",
+    "ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
+    "ADR-0329-tier-system-retired-replaced-by-tenant-class.md",
+    "ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md",
+    "ADR-0331-cross-microservice-tenant-class-adoption-template.md",
+    "ADR-0332-healthcare-domain-decomposition.md",
+    "ADR-0333-cell-microservice-retired-pattern-not-service.md",
+    "ADR-0334-shorts-microservice-merged-into-social.md",
+    "ADR-0335-intelligence-microservice-consolidation.md",
+    "ADR-0336-valkey-not-redis-substrate.md",
+    "ADR-0337-iceberg-canonical-olap-write-path.md",
+    "ADR-0338-pod-runtime-tier-0-to-3.md",
+    "ADR-0339-shared-iac-module-library.md",
+    "ADR-0340-capacity-model-per-microservice-manifest.md",
+    "ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md",
+    "ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md",
+    "ADR-0344-sustainability-finops-dimensional-model.md",
+    "ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+    "ADR-0347-governance-fitness-bulk-rename.md",
+    "ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+    "ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+    "ADR-0350-uuidv7-canonical-id-primitive.md",
+    "ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md",
+    "ADR-0352-oyatie-from-scratch-architecture-handoff.md",
+    "ADR-0353-amendment-library-first-network-opt-in-clarification.md",
+    "ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+    "ADR-0355-amendment-library-first-network-opt-in-clarification.md",
+    "ADR-0356-amendment-library-first-ontology-read-path.md",
+    "ADR-0357-vertical-slice-monorepo-nesting.md",
+    "ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+    "ADR-0359-jenkins-completely-replaces-github-actions.md",
+    "ADR-0360-ci-pipeline-optimization-program.md",
+    "ADR-0361-jenkins-native-cicd-revamp-execution.md",
+    "ADR-0362-full-grouping-retirement-flat-only-catalog.md",
+    "ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+    "ADR-0364-generative-adr-template-and-masterplan-generation.md",
+    "ADR-0365-automated-adr-lifecycle-and-propagation.md",
+    "ADR-0366-agentic-high-throughput-self-enforcing-pipeline.md",
+    "ADR-0367-trustless-pre-merge-verification-gateway.md",
+    "ADR-0368-self-governing-agentic-platform-north-star.md",
+    "ADR-0369-gated-stacked-trunk-change-flow.md",
+    "ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md",
+    "ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md",
+    "ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md",
+    "ADR-0373-llm-gateway-production-design.md",
+    "ADR-0374-ci-webhook-gateway-github-actions.md",
+    "ADR-0375-talos-capi-argocd-fleet-substrate.md",
+    "ADR-0376-managed-kubernetes-product-surface.md",
+    "ADR-0377-github-board-git-ref-cas-fallback.md",
+    "ADR-0378-canonical-local-substrate-vfkit-talos.md",
+    "ADR-0379-kubewarden-default-admission-substrate.md",
+    "ADR-0380-ci-loop-closure-on-talos-jenkins-farm-re-establishment.md",
+    "ADR-0381-kaniko-to-buildkit-and-multinode-talos-cell-topology.md",
+    "ADR-0382-bare-metal-talos-zero-day-sidero.md",
+    "ADR-0383-observability-stack-reconciliation-loki-tempo-mimir-grafana.md",
+    "ADR-0384-llm-gateway-oauth-subscription-pool-redesign.md",
+    "ADR-0387-ci-webhook-gateway-github-actions-commit-status.md",
+    "ADR-0388-doc-axis-convention.md",
+    "ADR-0389-cloud-intelligence-bedrock-pattern-cloud-primitive.md",
+    "ADR-0390-cloud-intelligence-v1-request-pipeline-and-proof-layer.md",
+    "ADR-0391-n-lane-parallel-safety-proof-and-devops-console.md",
+    "ADR-0392-buck2-canonical-build-graph.md",
+    "ADR-0393-leptos-canonical-app-shell-frontend.md",
+    "ADR-0394-bespoke-rust-idp-central-hub.md",
+    "ADR-0397-pulsar-oxia-canonical-event-bus.md",
+    "ADR-0476-oya-identity-bespoke-human-identity.md",
+    "ADR-0478-oya-billing-bespoke-billing-engine.md",
+    "ADR-0479-oya-meter-bespoke-usage-metering.md",
+    "ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md",
+    "ADR-0481-oya-flags-bespoke-feature-flag-server.md",
+    "ADR-0482-bespoke-substrate-roadmap.md",
+    "ADR-0506-aws-lc-rs-canonical-crypto-provider.md",
+    "ADR-0507-webauthn-rs-canonical-relying-party.md",
+    "ADR-0508-opensk-canonical-authenticator-reference.md",
+    "ADR-0509-hyperscaler-service-decomposition-pattern.md",
+    "ADR-0510-scm-bespoke-hyperscaler-destination-cutover-trigger.md",
+    "ADR-0511-ci-orchestration-argo-workflows-supersede-jenkins.md",
+    "ADR-0512-canonical-monorepo-pattern.md",
+    "ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md",
+    "ADR-0514-build-ci-cd-pipeline-target-architecture-hyperscaler-remediation.md",
+    "ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+    "ADR-0516-agentic-delivery-fabric-apex-vision.md",
+    "ADR-0517-one-owned-ast-substrate-content-addressed.md",
+    "ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md",
+    "ADR-0519-auto-advise-gate-safety-governor.md",
+    "ADR-0520-owned-substrate-stack-transitional-impl-behind-interface.md",
+    "ADR-0521-staged-w0-w6-fabric-roadmap.md",
+    "ADR-0522-lifecycle-wide-hermeticity-one-graph-four-runners.md",
+    "ADR-0523-zero-shell-posture-and-irreducible-glue-ledger.md",
+    "ADR-0524-kernel-buckification-additive-first-verify-parity.md",
+    "ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
+    "ADR-0526-oya-ci-scm-facts-boundary-vcs-agnostic.md",
+    "ADR-0527-oya-ci-conformance-floor-config-driven-engine.md",
+    "ADR-0528-remediation-first-class-on-gate-contract.md",
+    "ADR-0529-auto-advise-gate-governor-operational-at-gate-layer.md",
+    "ADR-0530-enforced-engineering-excellence-property-set.md",
+    "ADR-0531-auto-remediation-delivery-oya-bot-autofix.md",
+    "ADR-0532-platform-product-line-taxonomy-canonical-names.md",
+    "ADR-0533-config-driven-public-boundary.md",
+    "ADR-0534-gate-pipeline-step-sdk-and-marketplace.md",
+    "ADR-0535-cross-product-versioning-release-governance.md",
+    "ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
+    "ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md",
+    "ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
+    "ADR-0539-cloud-ci-freshness-gate.md",
+    "ADR-0540-cargo-buck2-target-parity-gate.md",
+    "ADR-0541-corpus-liveness-graph.md",
+    "ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md",
+    "ADR-0543-cloud-kms-operator-commissioning.md",
+    "ADR-0544-friction-ledger-closed-loop-accounting-gate.md",
+    "ADR-0545-embedded-asset-hermeticity-gate.md",
+    "ADR-0546-canonical-json-determinism-gate.md",
+    "ADR-0547-kernel-purity-dependency-gate.md",
+    "ADR-0548-pipeline-as-product-paved-road.md",
+    "ADR-0549-buck-syntax-kernel.md",
+    "ADR-0550-repository-layout-doctrine.md",
+    "ADR-0551-merge-base-frozen-baseline-ratchet.md",
+    "ADR-0552-stable-volatile-scm-facts-split.md",
+    "ADR-0553-oya-identity-workload-service-commissioning.md",
+    "ADR-0554-binding-buck2-workspace-coverage.md",
+    "ADR-0555-unaccounted-artifacts-unmergeable-structural-accounting.md",
+    "ADR-0556-build-cache-warmth-classification.md",
+    "ADR-0557-kafka-to-pulsar-via-kop.md",
+    "ADR-0558-friction-ledger-structural-merge-driver.md",
+    "ADR-0559-cloud-iam-cedar-pdp-service-commissioning.md",
+    "ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md",
+    "ADR-0561-commission-workload-x509-svid-issuance-and-pdp-mtls-caller-auth.md",
+    "ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+    "ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md",
+    "ADR-0564-tenancy-tenant-lifecycle-service-commissioning.md",
+    "ADR-0565-zero-graphql-in-the-owned-api-surface.md",
+    "ADR-0566-authz-coverage-gate.md",
+    "ADR-0567-auth-durable-store-postgres-rls-plans.md",
+    "ADR-0568-born-accounting-register-crate-registrar-kernel.md",
+    "ADR-0569-commission-oya-data-outbox-cdc-adapter-postgres.md",
+    "ADR-0570-port-placement-clean-arch-gate.md",
+    "ADR-0571-home-connect-address-book-into-comms-and-commission-the-contact-management-port-and-usecase.md",
+    "ADR-0572-fail-closed-authz-for-cedar-policy-publish-control-plane.md",
+    "ADR-0573-fail-closed-authz-for-cloud-kms-crypto-control-plane.md",
+    "ADR-0580-corpus-substrate-phase-minus-1-syn-extractor-spike.md",
+    "ADR-0581-fail-closed-authz-for-workload-principal-lifecycle-control-plane.md",
+    "ADR-0582-dto-authz-trust-gate.md",
+    "ADR-0586-fail-closed-verified-principal-and-server-side-pdp-authz-for-tenant-create-and-tenant-lifecycle.md",
+    "ADR-0587-fail-closed-authz-for-cloud-network-create-control-planes.md",
+    "ADR-0588-fail-closed-authz-for-audit-event-emit-boundary.md",
+    "ADR-0589-fail-closed-authz-for-dsr-erasure-cascade.md",
+    "ADR-0590-fail-closed-authz-cloud-observability-audit-read.md",
+    "ADR-0591-fail-closed-authz-for-cloud-finops-report-api.md",
+    "ADR-0592-tenant-scoped-body-fingerprinted-accounting-idempotency-key.md",
+    "ADR-0593-fail-closed-authz-for-accounting-payroll-money-mutation-control-plane.md",
+    "ADR-0595-de-commit-pure-derivation-cloud-ci-faces.md",
+    "ADR-0597-oya-ci-materializer-kernel-universal-generated-artifact-lifecycle-e1.md",
+    "ADR-0598-commission-comms-meet-capability-first-core-slice.md",
+    "ADR-0599-commission-comms-calendar-capability-first-core-slice.md",
+    "ADR-0600-root-workspace-hygiene-allowlist-gate.md",
+    "ADR-0603-fail-closed-authz-for-crm-revenue-control-plane.md",
+    "ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
+    "ADR-0605-supply-chain-audit-gate.md",
+    "ADR-0606-operator-secret-bootstrap-rbac-gate.md",
+    "ADR-0607-k8s-control-plane-fail-closed-cedar-authz.md",
+    "ADR-0608-cedar-deploy-parity-gate.md",
+    "ADR-0609-masterplan-v2-single-plan-authority-fabric-drive-loop-increment.md",
+    "ADR-0610-policy-ir-benchmark-stage0-preregistered-rubric-and-fixture-suite.md",
+    "ADR-0611-land-asterinas-real-boot-foundation-kernel.md",
+    "ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md",
+    "ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md",
+    "ADR-0614-de-commit-reorg-move-manifest-bijection.md",
+    "ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md",
+    "ADR-0616-de-commit-firewall-frozen-reference-baseline.md",
+    "ADR-0617-living-monorepo-governance-graph.md",
+    "ADR-0618-contract-slice-gate-scope-boundary.md",
+    "ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md",
+    "ADR-0620-pre-admission-inventory-provenance-for-history-only-retirement-observation-surfaces.md",
+    "ADR-0621-de-commit-active-artifact-contract-graph-projection.md",
+    "ADR-0622-fixuptask-v2-friction-ledger-successor-foundation.md",
+    "ADR-0623-mechanism-neutral-pre-roadmap-stage1-evidence-epoch.md",
+    "ADR-0624-stage-immutable-adr-census-epoch-transition.md",
+    "ADR-0625-commit-opentofu-provider-locks.md",
+    "ADR-0626-structural-merge-driver-for-the-fixup-ledger.md",
+    "ADR-0627-facade-core-layering-gate.md",
+    "ADR-0628-scan-root-liveness-gate.md",
+    "ADR-0629-crate-catalog-coverage-gate.md",
+    "ADR-0630-arc-owned-runner-fleet-interim-substrate.md",
+    "ADR-0631-capability-stratum-is-a-boundary-test-split-iam.md",
+    "ADR-0632-product-protocol-and-owned-fabric-posture.md",
+    "ADR-0633-enforcement-belongs-to-the-layer-that-owns-the-fact.md",
+    "ADR-0634-approval-attaches-to-the-producer-not-the-reader.md",
+    "ADR-0635-face-aware-substrate-dependency-graph-v2.md",
+    "ADR-0636-bounded-cross-run-affected-baseline-reuse.md",
+    "ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+    "ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+    "ADR-0639-path-event-optional-legs-under-oya-ci-required.md"
+  ],
+  "tip": "fd6154ecd6e05dc082bad618a493f927d7ec00b8"
+}

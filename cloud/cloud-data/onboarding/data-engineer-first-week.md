@@ -6,9 +6,9 @@ geo-partitioned table, take a PITR snapshot, and walk a multi-engine workload.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md` — per-cell data plane; blast radius.
-- `docs/decisions/ADR-0252-hlc-default-truetime-tier.md` — HLC vs TrueTime tradeoff.
-- `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` — tenant-id PK prefix.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — per-cell data plane; blast radius.
+- `docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md` — HLC vs TrueTime tradeoff.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md` — tenant-id PK prefix.
 - ADR-0329, ADR-0330, and ADR-0331 tenant_class model — the two tenant classes and engine availability.
 - CockroachDB v25 docs (multi-region patterns, geo-partitioning, follower reads).
 - Spanner TrueTime paper (OSDI 2012) — at minimum understand `commit_wait`.

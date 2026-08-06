@@ -8,15 +8,15 @@
   "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
   "claim": {
     "requested_symbols": [
-      "docs/decisions/ADR-0103-grit-cutover-inventory.md::InventoryTable"
+      "docs/decisions/ADR-0709-general-live-apex.md::InventoryTable"
     ],
-    "actual_path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+    "actual_path": "docs/decisions/ADR-0709-general-live-apex.md",
     "grit_claim": "blocked: FOREIGN KEY constraint failed",
     "fallback_lock": "icm scaffold-locks-oyatie id 01KRK3R6SRHV4FTAC0PMESC6CN"
   },
   "changed_files": [
     {
-      "path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+      "path": "docs/decisions/ADR-0709-general-live-apex.md",
       "summary": "Added Archived at column to inventory rows, recorded tools/oya-tooling-agent-read as planned REPLACE-WITH-HELPER target, removed stale oya-agent-read wording, and corrected phantom oyatie/.omx/ultragoal text to no action."
     }
   ],

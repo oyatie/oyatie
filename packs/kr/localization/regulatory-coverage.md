@@ -696,10 +696,10 @@ Data residency detail: `packs/kr-localization/data-residency.md`.
 Consent detail: `packs/kr-localization/consent-management.md`.
 RRN detail: `packs/kr-localization/resident-id-number-rrn-handling.md`.
 Incident detail: `packs/kr-localization/cybersecurity-and-incident-response.md`.
-Canonical base ADR: `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md`.
-Tenant scoping ADR: `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Compliance pack ADR: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
-Emission contract ADR: `docs/decisions/ADR-0263-observability-emission-contract.md`.
+Canonical base ADR: `docs/decisions/ADR-0709-general-live-apex.md`.
+Tenant scoping ADR: `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Compliance pack ADR: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
+Emission contract ADR: `docs/decisions/ADR-0706-observability-live-apex.md`.
 KR planning source: `docs/localization-packs/kr.md`.
 KR manifest source: `docs/localization-packs/kr/pack.yaml`.
 Official law source: `https://www.law.go.kr/`.

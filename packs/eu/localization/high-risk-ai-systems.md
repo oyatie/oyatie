@@ -419,9 +419,9 @@ Serious incident workflow includes fundamental-rights impact review.
 | `packs/eu-localization/data-residency-and-cross-border.md` | AI provider transfer assessment. |
 | `packs/eu-localization/dsr-and-portability.md` | GDPR Article 22 review workflow. |
 | `packs/eu-localization/dora-operational-resilience.md` | AI used in financial operational resilience contexts. |
-| `docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md` | Intelligence substrate. |
-| `docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md` | AI Act lifecycle doctrine. |
-| `docs/decisions/ADR-0263-observability-emission-contract.md` | Audit-event contract. |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | Intelligence substrate. |
+| `docs/decisions/ADR-0709-general-live-apex.md` | AI Act lifecycle doctrine. |
+| `docs/decisions/ADR-0706-observability-live-apex.md` | Audit-event contract. |
 
 ## Negative Fixtures
 

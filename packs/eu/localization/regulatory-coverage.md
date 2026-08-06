@@ -423,11 +423,11 @@ Audit-chain seals `CsrdMetricLineageSealed`.
 | `packs/eu-localization/dsr-and-portability.md` | GDPR Articles 15-22 workflow detail. |
 | `packs/eu-localization/high-risk-ai-systems.md` | AI Act Article 6, 13, 14, 16, 26, 43, 50, 72, 73, Annex III detail. |
 | `packs/eu-localization/dora-operational-resilience.md` | DORA Article 5, 6, 8, 17, 19 and TLPT detail. |
-| `docs/decisions/ADR-0243-cedar-as-universal-gate.md` | Cedar policy layering. |
-| `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md` | Compliance pack model. |
-| `docs/decisions/ADR-0263-observability-emission-contract.md` | Audit-event requirements. |
-| `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md` | Conflict handling. |
-| `docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md` | AI Act lifecycle. |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | Cedar policy layering. |
+| `docs/decisions/ADR-0708-platform-foundations-live-apex.md` | Compliance pack model. |
+| `docs/decisions/ADR-0706-observability-live-apex.md` | Audit-event requirements. |
+| `docs/decisions/ADR-0709-general-live-apex.md` | Conflict handling. |
+| `docs/decisions/ADR-0709-general-live-apex.md` | AI Act lifecycle. |
 
 ## Control Status Vocabulary
 

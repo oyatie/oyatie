@@ -7,13 +7,11 @@
   "frozen_violation_baseline": {
     "_comment": "FROZEN shrink-only per (lane, violation_kind) counts, MEASURED against the live corpus. An absent pair is born-blocking; growth is a regression; a count that FALLS makes this baseline stale and must shrink in the same reviewed PR, so a fixed violation cannot leave headroom for the next one. Only the two lanes that actually observe a corpus appear here \u2014 the other seven are in known_broken_lanes and are deliberately unbaselined, because a baseline over an unobservable corpus certifies nothing.",
     "adr-status-lifecycle": {
-      "_comment": "440 ADRs observed. stage_not_declared = the ADR carries no frontmatter `status:` scalar the kernel can read; unknown_stage = a `status:` value outside the config's proposed/accepted/superseded/archived enum (e.g. Rejected, which ADR-0382 legitimately uses and the config does not yet model).",
-      "stage_not_declared": 26,
-      "unknown_stage": 6
+      "_comment": "Live apex ADRs only (docs/decisions/ADR-*.md post-disposition). All carry readable status scalars; historical corpus is under docs/adr-archive/ outside this source glob. Zero-count pairs omitted (absent pair is already born-blocking). Measured 2026-08-06 PR #1574."
     },
     "doc-status-lifecycle": {
       "_comment": "2667 docs observed. This is the repo's largest single ungoverned-status corpus and the reason this lane must be a ratchet rather than a flag day: 72% of tracked docs declare no lifecycle stage at all.",
-      "stage_not_declared": 1920,
+      "stage_not_declared": 1921,
       "unknown_stage": 9
     }
   },

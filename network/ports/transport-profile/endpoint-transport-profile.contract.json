@@ -137,7 +137,7 @@
   "advanced_profiles": [
     {
       "profile_id": "adr-0354-ech-hybrid-pqc",
-      "authority": "docs/decisions/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
+      "authority": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "authority_status": "Proposed",
       "activation": "separate_accepted_profile_required",
       "runtime_activation_while_proposed": "forbidden",

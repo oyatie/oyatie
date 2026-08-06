@@ -11,7 +11,7 @@ top_3_counterparts:
   - TaxJar (Plus + SmartCalcs + AutoFile)
 target_basis: industry-leader (the most demanding counterpart number per metric becomes the Oyatie target)
 canonical_anchors:
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md §D-15..§D-20
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md §D-15..§D-20
   - /Users/jasonlee/oyatie/specs/master-plan-sequencing.json §deployment_contexts §oci_always_free
   - /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md
   - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md (sibling artifact, pre-tenant_class-retirement)

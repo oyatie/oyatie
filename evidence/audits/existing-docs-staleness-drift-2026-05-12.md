@@ -65,8 +65,8 @@
 | docs/RISK-REGISTER.md | RISK-REGISTER | unknown | MASTERPLAN §9 cites this for top-10 risks; not cited back (reciprocal link missing) | MED | Add H2 cite to MASTERPLAN; verify 10 rows align with MASTERPLAN §9 |
 | docs/standards/code-style.md | STANDARD | unknown | No hyperscaler Principle 9 cite; cargo-vet + workspace-lints adoption missing | MED | Add "Rust workspace practices" section; cite hyperscaler-best-practices-2026-05-12.md |
 | docs/standards/ci-lanes.md | STANDARD | unknown | References cargo-deny but no hyperscaler-best-practices Domain 4 cite; SBOM/Cosign/SLSA gates missing | MED | Add hyperscaler-practice compliance section; cite Domain 4 mandatory gates |
-| docs/decisions/ADR-0053-sanctioned-primitives.md | ADR | N/A | **MISSING:** Cited in MASTERPLAN Principle 12 but file does not exist | BLOCKER | Create ADR-0053 documenting grit/icm/oya-tooling-agent-read sanctioned set + documented exceptions |
-| docs/decisions/ADR-0054-scaffold-claim-grit-done.md | ADR | N/A | **MISSING:** Cited in MASTERPLAN Principle 12 but file does not exist | BLOCKER | Create ADR-0054 documenting grit-claim / grit-done protocol and icm-store payload |
+| docs/adr-archive/ADR-0053-grit-icm-as-sanctioned-primitives.md | ADR | N/A | **MISSING:** Cited in MASTERPLAN Principle 12 but file does not exist | BLOCKER | Create ADR-0053 documenting grit/icm/oya-tooling-agent-read sanctioned set + documented exceptions |
+| docs/adr-archive/ADR-0054-grit-scaffold-claim-pattern.md | ADR | N/A | **MISSING:** Cited in MASTERPLAN Principle 12 but file does not exist | BLOCKER | Create ADR-0054 documenting grit-claim / grit-done protocol and icm-store payload |
 
 (Continued: products/*, teams/*, standards/*, runbooks/ audit omitted for length; spot checks clean except Workspace orphans noted above.)
 

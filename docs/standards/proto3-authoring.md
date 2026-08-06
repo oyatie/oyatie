@@ -345,9 +345,9 @@ External authority: `https://protobuf.dev/programming-guides/proto3/`.
 
 `docs/standards/layer-enum-adr-0105.md` binds SDK and gRPC layers.
 
-`docs/decisions/ADR-0258-api-versioning-model.md` binds versioning.
+`docs/decisions/ADR-0705-product-protocol-live-apex.md` binds versioning.
 
-`docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` binds tier contracts.
+`docs/decisions/ADR-0709-general-live-apex.md` binds tier contracts.
 
 ## Substance Bar Compliance Checklist
 

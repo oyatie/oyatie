@@ -256,7 +256,7 @@ blocker_policy: queue/link dispatcher-ready resolution cards with source context
   and dependency/conflict notes unless explicitly assigned as that lane worker
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
-  adr: docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md
+  adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 <!-- agent-instructions:end -->
 
 ## PR shape

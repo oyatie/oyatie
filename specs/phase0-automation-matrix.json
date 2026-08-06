@@ -135,7 +135,7 @@
       "owner": "platform-governance",
       "requirement": "Prevent new oya CLI commands or legacy wrappers from becoming protected CI/merge authority; complete retirement of residual local surfaces remains tracked debt.",
       "retirement_phase": "P0.0/P1 cutover",
-      "source_artifact": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md",
+      "source_artifact": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "target_gate_or_controller": "cloud-ci-automation-ratchet blocking_invariant_mapped_to_oya_cli + oya-ci-required"
     },
     {
@@ -147,7 +147,7 @@
       "owner": "platform-toolchain",
       "requirement": "ADR-0515 retains GitHub protected-PR admission as current authority. Tide is a future/reference controller shape only; Phase 1 must prove projected-state, batching, and auto-rebase before any live ownership claim.",
       "retirement_phase": "Phase 1 projected-state Tide scale",
-      "source_artifact": "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md + historical ADR-0513",
+      "source_artifact": "docs/decisions/ADR-0700-ci-admission-live-apex.md + historical ADR-0513",
       "target_gate_or_controller": "future oya-ci Tide admission controller (not live)"
     },
     {
@@ -238,7 +238,7 @@
       "retirement_phase": "P0.0/P1 review-admission producer",
       "review_blocks_merge": false,
       "reviewer_identity_distinct_from_author": false,
-      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md",
+      "source_artifact": "docs/AGENTS.md#PR-shape + docs/standards/code-review.md#mandatory-pr-sections + docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "target_gate_or_controller": "cloud-ci/oya-ci review-admission packet producer (missing/not live)",
       "review_authority_live": false,
       "review_authority_source": "target_branch_protection_shadow_only"

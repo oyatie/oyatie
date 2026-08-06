@@ -2,7 +2,7 @@
 
 ## Citation anchor block
 
-1. Canonical service direction: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` D-15 through D-20, plus `docs/standards/brief-template.md` lines 746-758 requiring `cloud-iam` across all six contexts.
+1. Canonical service direction: `docs/decisions/ADR-0700-ci-admission-live-apex.md` D-15 through D-20, plus `docs/standards/brief-template.md` lines 746-758 requiring `cloud-iam` across all six contexts.
 2. Machine-readable direction: `specs/master-plan-sequencing.json` deployment contexts lines 704-745, OpenTofu substrate lines 747-775, supported OSes lines 777-815, language policy lines 817-855, and OCI Always Free lines 856-867.
 3. Service-local purpose: ADR-0329 + ADR-0330 + ADR-0331 lines 7-91, `microservices/cloud-iam/faqs/iam-engineer-faq.md` lines 7-182, and `microservices/cloud-iam/reference-implementations/issue-scoped-token-rust-sdk.md` lines 1-182.
 4. Product-level cloud contract: `docs/products/cloud/PRD.md` lines 117-120 and 172-204; historical coverage inventory at `docs/DOC-COVERAGE.md` lines 130-136 is provenance only and is not current product-state evidence.

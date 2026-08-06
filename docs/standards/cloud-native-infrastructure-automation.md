@@ -20,7 +20,7 @@ purpose: |
   Python scripts, shell scripts, and host-local workflows for core
   infrastructure behavior, and to steer work toward Rust, APIs, config,
   idempotency, observability, and deployment-compatible controllers/gates.
-canonical_authority: docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
+canonical_authority: docs/decisions/ADR-0700-ci-admission-live-apex.md
 enforced_by: oya-ci-required/gate-rust-first-automation-hygiene
 companion_docs:
   - docs/AGENTS.md

@@ -91,6 +91,6 @@
     "specs/decision-rights.json (DR-01-constitutional-amendment)",
     "specs/root-hub-pointers.json — migration source map",
     "docs/CHANGELOG.md — amendment row destination",
-    "docs/decisions/ADR-0003-audit-chain.md — audit-chain emission semantics (EVT-DOCTRINE-AMENDED)"
+    "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md — audit-chain emission semantics (EVT-DOCTRINE-AMENDED)"
   ]
 }

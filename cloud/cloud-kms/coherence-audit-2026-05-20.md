@@ -10,7 +10,7 @@ read_scope: canonical direction, cloud-kms artifacts, reverse references, chat h
 
 ## Citation Anchor Block
 
-1. Canonical deployment/IaC/OS/language/OCI audit rules: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2235`, `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2494`, `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3756-4153`.
+1. Canonical deployment/IaC/OS/language/OCI audit rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2235`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2494`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable canonical sequence: `specs/master-plan-sequencing.json:704-868`, including deployment contexts, OpenTofu substrate, OS matrix, Rust language policy, and OCI Always Free profile.
 3. Microservice-owned product purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `microservices/cloud-kms/faqs/kms-engineer-faq.md:7-12`, with the missing local `PRD.md` recorded as a finding.
 4. Architecture equivalent read: `crates/oya-cloud-kms-domain/src/lib.rs:1-7`, `contracts/openapi/cloud/cloud-kms-v1.yaml:1-12`, `docs/products/cloud/PRD.md:121-121`, because `microservices/cloud-kms/ARCHITECTURE.md` is absent.
@@ -153,7 +153,7 @@ Reverse reference 16: `microservices/cloud-data/faqs/data-engineer-faq.md:52-53`
 Reverse reference 17: `microservices/cloud-billing/runbooks/invoice-generation-timeout.md:255` depends on cloud-kms invoice signing keys.
 Reverse reference 18: `microservices/mail/PRD.md:927` depends on cloud-kms for mailbox-store/S3 encryption.
 Reverse reference 19: `microservices/audit-chain/packs/SOC2.md:195` depends on cloud-kms or OpenBao key rotation proof.
-Reverse reference 20: `docs/decisions/ADR-0328...md:2045-2046` explicitly assigns key lifecycle, rotation, custody, evidence, and policy to cloud-kms.
+Reverse reference 20: `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2045-2046` explicitly assigns key lifecycle, rotation, custody, evidence, and policy to cloud-kms.
 Orphan reference: local docs imply a `cross-microservice-handoffs.md` owner map, but that file is absent.
 Orphan reference: `docs/standards/brief-template.md:1657` expects `microservices/cloud-kms/slos/control-plane.openslo.yaml`; absent.
 Orphan reference: `docs/standards/brief-template.md:1659` expects `microservices/cloud-kms/runbooks/README.md`; absent.
@@ -469,7 +469,7 @@ Severity for Dimension 9: P1 for canonical workflow drift; no P0/P1 forbidden so
 | P1 | 1,3 | Local architecture doc is absent; closest architecture is outside path. | `crates/oya-cloud-kms-domain/src/lib.rs:1-7`; inventory in Section 2 | Add `ARCHITECTURE.md` mapping domain/API/adapters/HSM/audit/cloud-iac. |
 | P1 | 2,3 | Local contract folder absent despite stable repo contract bindings. | `docs/SPEC.md:155`; `registry/openapi/runtime-bindings.tsv:5-6` | Add local contract pointer or mirrored ownership manifest under `microservices/cloud-kms/contracts/`. |
 | P1 | 1,3 | SLO files absent despite four tenant_class SLO claims. | `retired tenant_class adoption artifact:24-25`; `:42-43`; `:60-61`; `:78-79` | Add OpenSLO specs per tenant_class and context. |
-| P1 | 4,6,7 | Six deployment contexts have no local manifest or IaC directories. | `specs/master-plan-sequencing.json:704-746`; `docs/decisions/ADR-0328...md:1730-2235` | Add context manifest and OpenTofu modules or explicit N/A records. |
+| P1 | 4,6,7 | Six deployment contexts have no local manifest or IaC directories. | `specs/master-plan-sequencing.json:704-746`; `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2235` | Add context manifest and OpenTofu modules or explicit N/A records. |
 | P1 | 7 | OpenTofu coverage absent for all required context paths. | `specs/master-plan-sequencing.json:747-776`; `feedback_zero_handroll_opentofu_only_2026_05_20.md:20-35` | Add `iac/<context>/` with pinned OpenTofu modules, state backend, signing, and README. |
 | P1 | 8 | OS support manifest absent. | `specs/master-plan-sequencing.json:777-815`; `feedback_os_support_matrix_2026_05_20.md:10-54` | Add `supported-oses.json` with Tier-1/Tier-2/out-of-scope and package/CI details. |
 | P1 | 4,6 | OCI demo_trial tenant_class does not reconcile with Always Free. | `specs/master-plan-sequencing.json:856-864`; `retired tenant_class adoption artifact:29` | Split generic demo_trial from OCI demo_trial tenant_class or make OCI demo_trial tenant_class explicitly Always Free. |

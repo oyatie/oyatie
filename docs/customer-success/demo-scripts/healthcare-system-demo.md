@@ -645,13 +645,13 @@ Best,
 - Internal: `docs/COMPLIANCE-MATRIX.md`.
 - Internal: `specs/pack-overlay-schema.json`.
 - Internal: `specs/capability-tier-schema.json`.
-- Internal: `docs/decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md`.
-- Internal: `docs/decisions/ADR-0243-*`.
-- Internal: `docs/decisions/ADR-0244-*`.
-- Internal: `docs/decisions/ADR-0251-*`.
-- Internal: `docs/decisions/ADR-0263-*`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
-- Internal: `docs/decisions/ADR-0319-*`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal: `docs/adr-archive/ADR-0243-cedar-as-universal-gate.md
+- Internal: `docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md
+- Internal: `docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- Internal: `docs/adr-archive/ADR-0263-observability-emission-contract.md
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal: `docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md
 - External: HHS HIPAA Privacy Rule, https://www.hhs.gov/hipaa/for-professionals/privacy/index.html.
 - External: HHS HIPAA Security Rule, https://www.hhs.gov/hipaa/for-professionals/security/index.html.
 - External: HHS HIPAA Breach Notification Rule, https://www.hhs.gov/hipaa/for-professionals/breach-notification/index.html.

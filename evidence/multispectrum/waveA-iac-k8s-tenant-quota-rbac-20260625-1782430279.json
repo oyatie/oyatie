@@ -132,7 +132,7 @@
     "files_touched": [
       "k8s/adapters/tenant-quota-adapter-cedar/src/lib.rs",
       "evidence/multispectrum/waveA-iac-k8s-tenant-quota-rbac-20260625-1782430279.json",
-      "docs/decisions/ADR-0243-cedar-as-universal-gate.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "evidence/audit-chain.jsonl"
     ],
     "summary": "Enforce tenant equality for tenant-scoped quota reads and writes while preserving platform-operator cross-tenant quota authority."

@@ -18,7 +18,7 @@ companion_docs:
   - packs/cn-pipl/breach-notification-workflow.yaml
   - packs/cn-pipl/dpia-template.md
   - packs/cn-pipl/regulator-references.yaml
-  - docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
 planned_enforcement_ref: oya-governance-doc-rigor
 ---
 

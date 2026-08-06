@@ -2,7 +2,7 @@
 
 ## Citation anchor block
 
-1. Canonical sequence: `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1815`, `:2241-2365`, `:3140-3235`, and `:4081-4151`.
+1. Canonical sequence: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, `:3140-3235`, and `:4081-4151`.
 2. Canonical machine plan: `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json:704-867` for deployment contexts, OpenTofu substrate, supported OSes, language policy, and OCI Always Free.
 3. Service tenant_class source: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/retired tenant_class adoption artifact:12-82`.
 4. Service operating guides: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/faqs/dns-engineer-faq.md:7-93` and `/Users/jasonlee/oyatie/microservices/cloud-network-dns/tutorials/provision-zone-dnssec-geo-routing-and-doq.md:12-87`.

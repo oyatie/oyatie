@@ -1,0 +1,74 @@
+{
+  "band": [150, 159],
+  "reviewed": [157, 158, 159],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "note": "Band all_nums 150–156 exist on disk but decade-bands review_count lists only 157–159 for Accepted|Proposed in this pass; Assigned numbers were [157, 158, 159] only"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0157",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0157. Accepted ADR-0632 lists amends including ADR-0157; reverse amended_by already present ([ADR-0632]). Higher Accepted peers (0177/0178/0182/0191/0203/0258) cite as related or refine north-south boundary without superseding the dedicated api-gateway µservice decision. Body already has ADR-0632 product-protocol reconciliation + last_reconciled 2026-08-01. Aligns with hyperscaler north-south edge, zero-trust edge auth, cells. Keep Accepted; do not invent supersession.",
+      "higher_adrs_cited": [
+        "ADR-0160",
+        "ADR-0162",
+        "ADR-0163",
+        "ADR-0165",
+        "ADR-0166",
+        "ADR-0177",
+        "ADR-0178",
+        "ADR-0182",
+        "ADR-0191",
+        "ADR-0203",
+        "ADR-0258",
+        "ADR-0565",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0158",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0158. Sole frontmatter amender ADR-0343 claims amends ADR-0158 but is status Proposed (not live implement authority; plan-lag reverse edge only — do not Accept 0343 here; do not clear amended_by without evidence). Higher Accepted peers (0161–0165, 0171, 0179, 0375) cite multi-region disposition as related authority; none replace per-µservice disposition / sovereign-pin / global control-plane mechanism. Aligns with cells, shared-nothing regional data plane, residency. Keep Accepted; leave amended_by [ADR-0343] as declared reverse link.",
+      "higher_adrs_cited": [
+        "ADR-0160",
+        "ADR-0161",
+        "ADR-0162",
+        "ADR-0163",
+        "ADR-0164",
+        "ADR-0165",
+        "ADR-0171",
+        "ADR-0179",
+        "ADR-0343",
+        "ADR-0348",
+        "ADR-0375"
+      ]
+    },
+    {
+      "adr": "ADR-0159",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0159. Accepted ADR-0632 lists amends including ADR-0159; reverse amended_by already present ([ADR-0632]). Body includes ADR-0632 product-protocol reconciliation and RELEASE-001 runtime-safety note. Higher citations (0163, 0173) are related/stack-ownership only; progressive-delivery ADR-0160 is Superseded but is a distinct traffic-shape tier, not a replacement for runtime feature-flags. OpenFeature + dedicated feature-flags µservice remains live runtime-gate authority. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0160",
+        "ADR-0163",
+        "ADR-0173",
+        "ADR-0632"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": ["ADR-0157", "ADR-0158", "ADR-0159"],
+  "notes": {
+    "live_resolution": "status=Accepted is insufficient alone; reverse-index supersedes + load Accepted amended_by peers. All three retain Accepted with correct Accepted amender (0632 for 0157/0159) or plan-lag Proposed amender only (0343 for 0158). No false Accepted vs later Accepted successor.",
+    "north_star": "Gateway tier, multi-region disposition, and feature-flag runtime gate remain hyperscaler-shaped and orthogonal to dual-CI retirement (0515) / VCS ratchet retirement (0363) / capability-first monorepo (0562+).",
+    "worktree": "/Users/jasonlee/Developer/oyatie-adr-disposition-20260806",
+    "branch": "agent/adr-disposition-mechanical-20260806"
+  }
+}

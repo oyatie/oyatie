@@ -43,7 +43,7 @@
       "$ref:specs/microservices/workflow.json",
       "$ref:specs/microservices/ontology.json",
       "$ref:specs/deployment-ops-contract.json",
-      "$ref:docs/decisions/ADR-0235-connect-core-public-contracts.md",
+      "$ref:docs/decisions/ADR-0709-general-live-apex.md",
       "$ref:specs/microservices/workflow.json",
       "$ref:specs/microservices/ontology.json"
     ],
@@ -230,7 +230,7 @@
       "mail.migration_audit.v1",
       "mail.alias.v1"
     ],
-    "public_contract_adr": "$ref:docs/decisions/ADR-0235-connect-core-public-contracts.md"
+    "public_contract_adr": "$ref:docs/decisions/ADR-0709-general-live-apex.md"
   },
   "data_model": {
     "entities_ref": [
@@ -418,7 +418,7 @@
         "retention": "domain lifetime"
       }
     ],
-    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+    "audit_chain_emission_rule_ref": "$ref:docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md + $ref:specs/agent-durable-goal.json#score_cards"
   },
   "optimization_practices": [
     {
@@ -439,7 +439,7 @@
     }
   ],
   "regional_packs": {
-    "region_policy_ref": "$ref:docs/decisions/ADR-0140 (retired per ADR-0145) + $ref:bominal/decisions/ADR-0140",
+    "region_policy_ref": "$ref:docs/adr-archive/ADR-0140-cross-cutting-carriers-adapter-exemption.md (retired per ADR-0145) + $ref:bominal/decisions/ADR-0140",
     "packs": [
       {
         "pack": "KR",

@@ -471,7 +471,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         evidence_refs: &[
             "evidence/multispectrum/cs-ent-procurement-source-to-pay-domain-1779545400.json",
             "evidence/multispectrum/cs-ent-warehouse-inventory-domain-1779546600.json",
-            "docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md",
+            "docs/decisions/ADR-0705-product-protocol-live-apex.md",
             "docs/architecture/tenant-rbac-software-coverage-matrix-2026-05-21.md#3.1",
         ],
         cloud_integration_ready: false,
@@ -684,7 +684,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         status: "procurement-supplier-foundation-plus-composition",
         evidence_refs: &[
             "evidence/multispectrum/cs-ent-procurement-source-to-pay-domain-1779545400.json",
-            "docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md",
+            "docs/decisions/ADR-0705-product-protocol-live-apex.md",
         ],
         cloud_integration_ready: false,
         production_runtime_claimed: false,
@@ -912,7 +912,7 @@ const ERP_PARITY_MODULES: &[ErpParityModuleCoverage] = &[
         first_write_owner: "marketplace",
         tier: ParityTier::ComposedCoverage,
         status: "covered-by-composition",
-        evidence_refs: &["docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md"],
+        evidence_refs: &["docs/decisions/ADR-0705-product-protocol-live-apex.md"],
         cloud_integration_ready: false,
         production_runtime_claimed: false,
     },

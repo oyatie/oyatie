@@ -227,73 +227,73 @@
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0065",
       "title": "Docs As Leptos Webapp With Machine Readable Coemit",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0103",
       "title": "Grit Cutover Inventory",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0103-grit-cutover-inventory.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13 Layer Enum And Check Family Patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0106",
       "title": "Rename Application To Usecase",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
     },
     {
       "id": "ADR-0110",
       "title": "Changeset State Machine",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0123",
       "title": "Hyperscaler Maturity Claim Gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0234",
       "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
       "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "id": "ADR-0236",
       "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0164",
       "title": "Sovereign Cloud Air Gapped",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0164-sovereign-cloud-air-gapped.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

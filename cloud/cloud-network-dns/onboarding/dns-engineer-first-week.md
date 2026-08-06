@@ -6,8 +6,8 @@ set up health-checks, and walk a DoH/DoQ query.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md` — anycast per cell.
-- `docs/decisions/ADR-0253-http3-quic-default-protocol.md` — DoH/3 + DoQ default.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — anycast per cell.
+- `docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md` — DoH/3 + DoQ default.
 - RFCs 4033/4034/4035 (DNSSEC), RFC 8484 (DoH), RFC 7858 (DoT), RFC 9250 (DoQ), RFC 9230 (ODoH).
 - `microservices/cloud-network-dns/retired tenant_class adoption artifact` — the tenant_class model.
 

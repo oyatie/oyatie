@@ -484,10 +484,10 @@ Post-incident deletion is blocked until legal hold is resolved.
 
 ## Cross-References
 
-Canonical base localization decision: `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md`.
-Tenant scoping decision: `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-Compliance pack and cell certification decision: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
-Observability emission contract: `docs/decisions/ADR-0263-observability-emission-contract.md`.
+Canonical base localization decision: `docs/decisions/ADR-0709-general-live-apex.md`.
+Tenant scoping decision: `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+Compliance pack and cell certification decision: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
+Observability emission contract: `docs/decisions/ADR-0706-observability-live-apex.md`.
 Existing KR planning source: `docs/localization-packs/kr.md`.
 Existing KR pack manifest source: `docs/localization-packs/kr/pack.yaml`.
 Regional pack precedent: `docs/regional-packs/oya-pack-kr/PACK.md`.

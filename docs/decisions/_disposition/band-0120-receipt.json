@@ -1,0 +1,89 @@
+{
+  "band": [120, 129],
+  "reviewed": [122, 123, 128, 129],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "adr": "ADR-0120",
+      "note": "Outside assigned review set [122, 123, 128, 129]; higher ADR-0375 supersedes 0120/0121 (out of scope for this pass)"
+    },
+    {
+      "adr": "ADR-0121",
+      "note": "Outside assigned review set; higher ADR-0375 supersedes 0120/0121 (out of scope for this pass)"
+    },
+    {
+      "adr": "ADR-0124",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0515"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0122",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes or amends ADR-0122. Higher citations are related/successor-context only (ADR-0130 deprecates knowledge-graph registry in favor of ontology product merge; ADR-0131/0132 reference rename precedent; ADR-0257/0356 cite ontology terminology). Core decision (retire object-graph crate naming → oya-ontology-*) remains live naming authority and aligns with capability-first / glossary north star. Do not invent supersession.",
+      "higher_adrs_cited": [
+        "ADR-0130",
+        "ADR-0131",
+        "ADR-0132",
+        "ADR-0257",
+        "ADR-0356"
+      ]
+    },
+    {
+      "adr": "ADR-0123",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher Accepted ADR supersedes or amends ADR-0123. Widely cited as live claim-governance authority for hyperscaler-gates.json / maturity claim language (e.g. 0128 complementary invariant content, 0133/0136/0139, 0213, 0237/0238). Body migration_note and rejected-alternative text still name Oya VCS claim/verify as post-grit forward authority (stale vs ADR-0363/0515), but that is historical coordination substrate narrative—not the ADR's decision object (evidence-gated maturity claims). Task forbids body rewrite; frontmatter Accepted is not false. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0128",
+        "ADR-0133",
+        "ADR-0134",
+        "ADR-0136",
+        "ADR-0139",
+        "ADR-0213",
+        "ADR-0237",
+        "ADR-0238",
+        "ADR-0363",
+        "ADR-0515"
+      ]
+    },
+    {
+      "adr": "ADR-0128",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher Accepted ADR supersedes ADR-0128. Frontmatter already lists amended_by: [ADR-0252]; ADR-0252 is Proposed (amends 0128 INV-IDEMPOTENCY formalization) so it is not live amend authority until Accepted—edge retained, no false Accepted. Portfolio continues to treat specs/hyperscaler-architecture-invariants.json as binding invariant catalog (cells, idempotency, SLSA, progressive delivery, residency); heavily related by later doctrine without replacement. Aligns with hyperscaler north-star lenses. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0157",
+        "ADR-0165",
+        "ADR-0176",
+        "ADR-0248",
+        "ADR-0252",
+        "ADR-0250",
+        "ADR-0341",
+        "ADR-0343"
+      ]
+    },
+    {
+      "adr": "ADR-0129",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes or amends ADR-0129. ADR-0135 is related (aspirational-enforcement companion gate), not a successor. ADR-0363 explicitly preserves honest-claims / claim-ceiling governance semantics while retiring VCS CLI authority; ADR-0347 renames fitness lane surface to oya-governance-honest-claims without replacing the gate doctrine. ChangeSet identity = ImplementationPlan frontmatter id + plan DAG validation remains the honest-claims contract under cloud-ci/oya-ci-required admission (0515). Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0135",
+        "ADR-0346",
+        "ADR-0347",
+        "ADR-0363",
+        "ADR-0374",
+        "ADR-0515"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": ["ADR-0122", "ADR-0123", "ADR-0128", "ADR-0129"]
+}

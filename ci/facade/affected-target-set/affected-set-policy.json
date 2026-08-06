@@ -199,10 +199,10 @@
     "docs/programs/k8s-port/**": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
-    "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md": [
+    "docs/decisions/ADR-0704-k8s-port-live-apex.md": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
-    "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md": [
+    "docs/decisions/ADR-0704-k8s-port-live-apex.md": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
     "specs/port-rules/**": [

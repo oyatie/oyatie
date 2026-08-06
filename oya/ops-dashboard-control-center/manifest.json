@@ -24,43 +24,43 @@
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture BNF",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0340",
       "title": "Capacity Model Per Microservice Manifest",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0343",
       "title": "DR RTO/RPO Matrix Per Microservice Per Compliance Pack",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0343-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0344",
       "title": "Sustainability FinOps Dimensional Model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0344-sustainability-finops-dimensional-model.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0348",
       "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0352",
       "title": "Oyatie From-Scratch Architecture Handoff",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0352-oyatie-from-scratch-architecture-handoff.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   ],
   "slos": [],

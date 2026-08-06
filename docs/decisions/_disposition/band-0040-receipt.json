@@ -1,0 +1,80 @@
+{
+  "band": [40, 49],
+  "reviewed": [40, 43, 44, 45, 47, 48, 49],
+  "findings": [
+    {
+      "adr": "ADR-0040",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). No higher Accepted ADR lists ADR-0040 in supersedes or amends. ADR-0160 (Flagger) is Superseded by ADR-0515 with note that Argo Rollouts is progressive-delivery controller; ADR-0040 also chose Argo Rollouts so no contradiction requiring supersession. ADR-0515 supersedes list is [0124,0349,0359,0361,0511,0513,0514] only — does not claim ADR-0040. Do not invent supersession; do not mass-Accept.",
+      "higher_adrs_cited": ["ADR-0114", "ADR-0160", "ADR-0515", "ADR-0511"]
+    },
+    {
+      "adr": "ADR-0043",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). No higher Accepted ADR supersedes or amends ADR-0043. Later ADRs (0194, 0197, 0371, etc.) reference OpenBao/secrets as related only. No high-confidence frontmatter fix.",
+      "higher_adrs_cited": ["ADR-0194", "ADR-0197", "ADR-0371", "ADR-0253"]
+    },
+    {
+      "adr": "ADR-0044",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). Live Accepted mesh authority is ADR-0148 (Cilium L3/L4 + Istio Ambient L7 layered) but ADR-0148 supersedes:[] and does not name ADR-0044; body rewrites a different prior framing (Cilium primary + Istio Tier-2), not an explicit supersession of ADR-0044. ADR-0341 amends list uses slug ADR-0044-inter-cell-mesh-tunnel and is itself Proposed — not Accepted amend authority. Insufficient evidence to force Superseded without inventing edges.",
+      "higher_adrs_cited": ["ADR-0148", "ADR-0253", "ADR-0341", "ADR-0121"]
+    },
+    {
+      "adr": "ADR-0045",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). No higher Accepted ADR supersedes or amends ADR-0045. ADR-0336 (Proposed) amends slug ADR-0045-secret-and-cache-substitutions (Valkey/Redis) — status Proposed and topical mismatch with this database-tier ADR; not Accepted amend authority. ADR-0337 Iceberg write path is also Proposed.",
+      "higher_adrs_cited": ["ADR-0179", "ADR-0336", "ADR-0337", "ADR-0193"]
+    },
+    {
+      "adr": "ADR-0047",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). Higher references are related-only (e.g. ADR-0048, ADR-0173). No Accepted supersedes/amends edges.",
+      "higher_adrs_cited": ["ADR-0048", "ADR-0173"]
+    },
+    {
+      "adr": "ADR-0048",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). Sparse higher citations (ADR-0052, ADR-0246 related-class). No Accepted supersedes/amends edges.",
+      "higher_adrs_cited": ["ADR-0052", "ADR-0246"]
+    },
+    {
+      "adr": "ADR-0049",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). Many higher ADRs list ADR-0049 as related (residency/cell topology) but none Accepted-supersede or Accepted-amend it (e.g. ADR-0158 Accepted related-only; amended_by ADR-0343 applies to 0158 not 0049). No high-confidence frontmatter fix.",
+      "higher_adrs_cited": ["ADR-0158", "ADR-0240", "ADR-0241", "ADR-0248", "ADR-0313", "ADR-0562"]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0040",
+    "ADR-0043",
+    "ADR-0044",
+    "ADR-0045",
+    "ADR-0047",
+    "ADR-0048",
+    "ADR-0049"
+  ],
+  "notes": {
+    "out_of_scope_in_band": {
+      "ADR-0041": "file absent",
+      "ADR-0042": "status Superseded (superseded_by ADR-0383) — not Accepted/Proposed",
+      "ADR-0046": "status Superseded — not Accepted/Proposed"
+    },
+    "policy": "smallest fix only at high confidence; Proposed is not implement authority; do not invent supersession; do not mass-Accept"
+  }
+}

@@ -1,27 +1,22 @@
----
-doc_status: published
-last_audited: 2026-05-20
----
-# ADR Navigation Guide
+# ADR live source of truth (clean)
 
-`docs/decisions/` is the portfolio-wide decision ledger. Open `docs/ADR-INDEX.md` first; it groups every live `ADR-*.md` file by decision cluster and lists the service-local `ADR-MS-*` files that live under `microservices/*/decisions/`.
+**Only Accepted topic-apex ADRs live here** (10 files). All historical ADRs (former Accepted members, Superseded, Rejected) are in [`docs/adr-archive/`](../adr-archive/).
 
-## How to Read the ADRs
+| ID | Topic |
+|----|--------|
+| [ADR-0700](ADR-0700-ci-admission-live-apex.md) | CI admission / build / runners |
+| [ADR-0701](ADR-0701-monorepo-capability-live-apex.md) | Monorepo capability / faces / reorg |
+| [ADR-0702](ADR-0702-identity-authz-live-apex.md) | Identity / authz / secrets |
+| [ADR-0703](ADR-0703-cas-cache-live-apex.md) | CAS / cache (RE activation fail-closed) |
+| [ADR-0704](ADR-0704-k8s-port-live-apex.md) | K8s port / owned kernel |
+| [ADR-0705](ADR-0705-product-protocol-live-apex.md) | Product protocols / APIs / comms |
+| [ADR-0706](ADR-0706-observability-live-apex.md) | Observability / progressive delivery |
+| [ADR-0707](ADR-0707-trust-safety-live-apex.md) | Trust / safety / resilience |
+| [ADR-0708](ADR-0708-platform-foundations-live-apex.md) | Cells, residency, workflow, plugins, search |
+| [ADR-0709](ADR-0709-general-live-apex.md) | General architecture remainder |
 
-1. Read `ADR-0001` through `ADR-0011` to understand the product thesis, tenant/identity/audit substrates, data boundary, cell shape, and contract registry.
-2. Read `ADR-0056`, `ADR-0062`, `ADR-0063`, `ADR-0069`, and `ADR-0212` before changing architecture, documentation, or buildability surfaces.
-3. Read `ADR-0242` through `ADR-0258` before touching tenant scope, Cedar, policy-engine, substrate/product layering, deployment topology, intelligence, ontology, or API versioning.
-4. Read `ADR-0297` through `ADR-0321` before changing abuse defence, emergency bypass, account recovery, vulnerable-user flows, investigation/detection, personal/work boundary, marketplace, ERP coverage, or B2B SaaS scope.
-5. If the change is service-specific, check `microservices/<service>/decisions/ADR-MS-*.md` after the portfolio ADRs.
+**Redirect map (old number → live apex):** [`_disposition/adr-redirect.v1.json`](_disposition/adr-redirect.v1.json)
 
-## Status Semantics
+**Agent rule:** read apex first; resolve old `ADR-NNNN` via redirect map; full text only in archive/git history when needed for provenance.
 
-`Proposed` means the decision is under review or advisory until its enforcement gates promote. `Accepted` means new work follows it. `Superseded`, `Amended`, and `Deprecated` preserve history; do not delete or rewrite them to make the ledger look clean. Amendments may share the same numeric ADR ID as their base decision; use the filename and title to distinguish them.
-
-## Authoring Rules
-
-Every new ADR needs `id`, `status`, `date`, `owners`, `related`, and a one-paragraph `purpose` in frontmatter. The body should explain context, decision, alternatives rejected, consequences, enforcement, observability, rollback, versioning, and related specs. Follow `docs/standards/documentation-rigor.md` section 1.1: name precedent, failure modes, capacity/performance implications, observability hooks, rollback, multi-region/sovereign-cell behavior, and versioning/deprecation where applicable.
-
-## Tooling Notes
-
-`./bin/oya doc adr-index --format json` is the canonical generator path, but as of this audit it halts on an ADR-0246 amendment H1/filename mismatch. Do not patch individual ADRs during index gardening unless that is the explicit task. Record the caveat in `docs/ADR-INDEX.md`, keep coverage complete, and repair source-shape defects in a separate ADR-maintenance change.
+**Census:** P3 selector includes only direct `docs/decisions/ADR-*.md` children — now the 10 apex files (plus this README is not selected).

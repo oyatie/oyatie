@@ -4,7 +4,7 @@ doc_status: published
 
 # Oyatie — Regional Packs
 
-> Per [ADR-0010 regional-pack architecture](../../../docs/decisions/ADR-0010-regional-pack-architecture.md), every per-locale concern lives in a swappable pack that plugs into canonical seams. Korea, Japan, US, EU, India, Brazil, KSA, UAE, AU, SG can all onboard in parallel.
+> Per [ADR-0010 regional-pack architecture](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md), every per-locale concern lives in a swappable pack that plugs into canonical seams. Korea, Japan, US, EU, India, Brazil, KSA, UAE, AU, SG can all onboard in parallel.
 
 ## 1. Active + planned packs
 
@@ -59,7 +59,7 @@ A tenant may bind to multiple packs (rare; e.g. EU subsidiary of KR HQ).
 
 ## 6. Sources
 
-- [ADR-0010 regional-pack architecture](../../../docs/decisions/ADR-0010-regional-pack-architecture.md)
+- [ADR-0010 regional-pack architecture](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)
 - [DESIGN.md §12 Regional Pack Architecture](../DESIGN.md)
 - [INTERNATIONALIZATION.md](../INTERNATIONALIZATION.md)
 - [COMPLIANCE-MATRIX.md](../COMPLIANCE-MATRIX.md)

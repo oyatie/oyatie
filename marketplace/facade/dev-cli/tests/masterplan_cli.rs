@@ -150,7 +150,7 @@ deliverables:
 
 fn repo_root() -> PathBuf {
     const ADR_0372: &str =
-        "docs/decisions/ADR-0372-frontend-stack-solidjs-ts-with-rust-wasm-compute-modules.md";
+        "docs/decisions/ADR-0709-general-live-apex.md";
     std::env::current_dir()
         .expect("current dir readable")
         .ancestors()

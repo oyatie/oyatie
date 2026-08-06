@@ -5,16 +5,16 @@ status: Published
 date: 2026-05-20
 owner: "ops-compliance + council-privacy + council-legal"
 related_oyatie_adrs:
-  - docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
-  - docs/decisions/ADR-0008-data-use-boundary.md
-  - docs/decisions/ADR-0010-regional-pack-architecture.md
-  - docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
-  - docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
-  - docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/DOC-CATALOG.md
@@ -109,9 +109,9 @@ Read these files in order. Do not browse randomly; the order teaches authority, 
 5. docs/standards/privacy-review.md
 6. specs/compliance-pack-schema.json
 7. specs/capabilities/eu-ai-act-risk-class-registry.json
-8. docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
-9. docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
-10. docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+8. docs/decisions/ADR-0709-general-live-apex.md
+9. docs/decisions/ADR-0709-general-live-apex.md
+10. docs/decisions/ADR-0709-general-live-apex.md
 11. docs/runbooks/regulator-evidence-pack-regen.md
 12. docs/runbooks/dsr-cascade-with-evidence.md
 13. docs/runbooks/breach-notification-council-escalation.md
@@ -444,7 +444,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-007 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-008: data residency exception
-- Read: docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: vendor and partner risk evidence cadence
 - Build or inspect: a minimal artifact that proves data residency exception without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for data residency exception.
@@ -454,7 +454,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-008 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-009: minor-user privacy flow
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: tenant onboarding privacy packet
 - Build or inspect: a minimal artifact that proves minor-user privacy flow without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for minor-user privacy flow.
@@ -464,7 +464,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-009 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-010: DPIA residual risk
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: audit-chain retention, legal hold, and regulator export
 - Build or inspect: a minimal artifact that proves DPIA residual risk without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for DPIA residual risk.
@@ -594,7 +594,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-022 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-023: breach notification clock
-- Read: docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: DSR intake, cascade, proof of erasure, and appeal
 - Build or inspect: a minimal artifact that proves breach notification clock without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for breach notification clock.
@@ -604,7 +604,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-023 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-024: vendor evidence refresh
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: breach notification severity and timing
 - Build or inspect: a minimal artifact that proves vendor evidence refresh without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for vendor evidence refresh.
@@ -614,7 +614,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-024 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-025: Trust portal claim boundary
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: EU AI Act risk tier mutation under deployment context
 - Build or inspect: a minimal artifact that proves Trust portal claim boundary without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Trust portal claim boundary.
@@ -744,7 +744,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-037 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-038: lawful basis mapping
-- Read: docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: vendor and partner risk evidence cadence
 - Build or inspect: a minimal artifact that proves lawful basis mapping without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for lawful basis mapping.
@@ -754,7 +754,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-038 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-039: regional pack overlay
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: tenant onboarding privacy packet
 - Build or inspect: a minimal artifact that proves regional pack overlay without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for regional pack overlay.
@@ -764,7 +764,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-039 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-040: AI Act high-risk review
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: audit-chain retention, legal hold, and regulator export
 - Build or inspect: a minimal artifact that proves AI Act high-risk review without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for AI Act high-risk review.
@@ -894,7 +894,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-052 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-053: tenant onboarding packet
-- Read: docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: DSR intake, cascade, proof of erasure, and appeal
 - Build or inspect: a minimal artifact that proves tenant onboarding packet without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for tenant onboarding packet.
@@ -904,7 +904,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-053 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-054: compliance dashboard evidence gap
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: breach notification severity and timing
 - Build or inspect: a minimal artifact that proves compliance dashboard evidence gap without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for compliance dashboard evidence gap.
@@ -914,7 +914,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-054 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-055: DSR erasure proof
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: EU AI Act risk tier mutation under deployment context
 - Build or inspect: a minimal artifact that proves DSR erasure proof without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for DSR erasure proof.
@@ -1044,7 +1044,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-067 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-068: evidence cadence miss
-- Read: docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: vendor and partner risk evidence cadence
 - Build or inspect: a minimal artifact that proves evidence cadence miss without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for evidence cadence miss.
@@ -1054,7 +1054,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-068 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-069: regulator packet regeneration
-- Read: docs/decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: tenant onboarding privacy packet
 - Build or inspect: a minimal artifact that proves regulator packet regeneration without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for regulator packet regeneration.
@@ -1064,7 +1064,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row COMP-069 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill COMP-070: privacy notice drift
-- Read: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: audit-chain retention, legal hold, and regulator export
 - Build or inspect: a minimal artifact that proves privacy notice drift without widening beyond compliance officer, data protection officer, or privacy counsel.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for privacy notice drift.

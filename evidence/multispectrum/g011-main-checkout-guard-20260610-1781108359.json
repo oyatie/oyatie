@@ -17,7 +17,7 @@
       "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/scm-facts.generated.json",
       "cloud/cloud-ci/gates/oya-cloud-ci-enforcement-liveness-app/tests/enforcement_liveness.rs",
       "docs/CHANGELOG.md",
-      "docs/decisions/ADR-0523-zero-shell-posture-and-irreducible-glue-ledger.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "evidence/audit-chain.jsonl",
       "registry/catalog/oya-checkout-guard-app.yaml",
       "registry/dependency-rationales.json",

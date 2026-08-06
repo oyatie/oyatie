@@ -8,7 +8,7 @@ SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
 
 ## Header citation anchors
 
-1. ADR-0328 §D-15..§D-20 supplies the required deployment-context, OpenTofu, OS, Rust, OCI, and benchmark disclosure constraints; read anchors include `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1815`, `:2241-2365`, `:3140-3235`, and `:3756-4151`.
+1. ADR-0328 §D-15..§D-20 supplies the required deployment-context, OpenTofu, OS, Rust, OCI, and benchmark disclosure constraints; read anchors include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, `:3140-3235`, and `:3756-4151`.
 2. `specs/master-plan-sequencing.json:704-867` supplies the six contexts, state backend map, Tier-1 OS list, Rust build invocation, and OCI Always Free resource envelope.
 3. Service-local performance claims read: `microservices/cloud-network-dns/retired tenant_class adoption artifact:24-25`, `:42-43`, `:60-61`, `:78-79`, and `microservices/cloud-network-dns/benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-19`.
 4. Service-local architecture-equivalent evidence read: `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:148-217` for example query latency logging and failover confirmation.

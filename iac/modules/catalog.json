@@ -4,7 +4,7 @@
   "catalog_id": "cloud-iac-adr-0339-module-library-fixtures",
   "authority": {
     "adr": "ADR-0339",
-    "source": "docs/decisions/ADR-0339-shared-iac-module-library.md",
+    "source": "docs/decisions/ADR-0709-general-live-apex.md",
     "task_id": "t_be53da65"
   },
   "source_path_root": "iac/modules",

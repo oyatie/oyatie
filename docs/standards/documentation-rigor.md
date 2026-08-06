@@ -395,7 +395,7 @@ The bar is: **security AND UX, not security OR UX**. Hyperscaler precedent: Stri
 - AU/NZ: Triple Zero (000), Emergency+ app integration
 - UK: 999 / 112, BT EHA (Emergency Handling Agreement)
 
-**New ADR required:** `docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md` is added to the Wave-3 backlog. It codifies the bypass mechanics + the `audience_type = EMERGENCY_SERVICES` extension to ADR-0244 + the trust-attestation chain + the new CI lanes + the regulatory anchors above.
+**New ADR required:** `docs/decisions/ADR-0709-general-live-apex.md` is added to the Wave-3 backlog. It codifies the bypass mechanics + the `audience_type = EMERGENCY_SERVICES` extension to ADR-0244 + the trust-attestation chain + the new CI lanes + the regulatory anchors above.
 
 **Cross-references that need updating when ADR-0298 lands:**
 - ADR-0244 `audience_type` ENUM: add `EMERGENCY_SERVICES` value (joins `FRIENDLY_CRAWLER_PARTNER`, `MINOR_TARGETED`, `INTERNAL_DEV_TOOLS` from ADR-0297 follow-ups)
@@ -725,7 +725,7 @@ forbid (principal == ?, action in [Action::Read, Action::Scrape], resource) when
 
 #### Canonical authority — ADR-0297
 
-`docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md` (3,112 lines, landed 2026-05-20) is the canonical authority codifying the three taxonomies above + the Cedar fragment shape + the CI lanes + per-cell-tier variants (Tier-0 edge cells carry richer bot-mgmt than Tier-3 data cells, which are not internet-facing) + per-tenant audience-type tuning + 8 compliance interactions (GDPR / CCPA / COPPA / KOSA / DSA / EU-AI-Act / regional packs / PCI-HIPAA) + 18 audit-event classes added to the ADR-0263 emission registry.
+`docs/decisions/ADR-0700-ci-admission-live-apex.md` (3,112 lines, landed 2026-05-20) is the canonical authority codifying the three taxonomies above + the Cedar fragment shape + the CI lanes + per-cell-tier variants (Tier-0 edge cells carry richer bot-mgmt than Tier-3 data cells, which are not internet-facing) + per-tenant audience-type tuning + 8 compliance interactions (GDPR / CCPA / COPPA / KOSA / DSA / EU-AI-Act / regional packs / PCI-HIPAA) + 18 audit-event classes added to the ADR-0263 emission registry.
 
 ### 3.2.4 Hyperscaler defense-in-depth — the full security baseline
 
@@ -994,7 +994,7 @@ Audit output: pass / pass-with-findings / revise / blocker. CI lane: `oya-govern
 
 | Doc class | Exemplar | Why |
 |---|---|---|
-| ADR | `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` (2125 lines) | Full DDL + Cedar entity types + hyperscaler precedents + migration plan + naming-justification table |
+| ADR | `docs/decisions/ADR-0702-identity-authz-live-apex.md` (2125 lines) | Full DDL + Cedar entity types + hyperscaler precedents + migration plan + naming-justification table |
 | PRD | `microservices/messenger/PRD.md` (1718 lines) | ≥140 stories across B2C + B2B; ≥6 UX flows; explicit personas; compliance mapping |
 | Spec | `specs/tenant-model.json` (post-2026-05-20 edits) | Every property has description + examples + binding ADR; `_meta` block populated; passes JSON Schema validation |
 | Runbook | `docs/runbooks/breach-notification-council-escalation.md` | §A–§G complete; every step has command + audit tag; explicit escalation chain |

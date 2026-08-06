@@ -167,6 +167,20 @@ kind = "path_prefix"
 value = ".grok/programs/delivery-fabric/evidence/"
 reason = "process dual-critic evidence pins quote remediated brand stems and gate code names as provenance only; not live product vocabulary"
 
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "docs/adr-archive/"
+reason = "historical ADR archive (non-authority) — provenance-only; forbidden-vocab terms are historical quotations retained for audit, not live product/governance vocabulary (ADR-0700..0709 are the live apex)"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "docs/decisions/_disposition/"
+reason = "ADR disposition audit receipts and redirect maps for PR #1574 — provenance-only working papers; forbidden stems appear only as quoted historical ADR text and path citations, not live brand vocabulary"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "docs/decisions/ADR-07"
+reason = "live apex ADRs ADR-0700..ADR-0709 restate archived member gists; forbidden stems appear only as historical quotations of retired brand/substrate names, not product vocabulary (same class as docs/audit/ and _legacy-foundry/ carve-outs)"
 
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]

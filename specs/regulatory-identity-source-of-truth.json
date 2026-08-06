@@ -914,7 +914,7 @@
       "jurisdiction": "global/internal",
       "baseline_scope": "Current Oyatie passkey/WebAuthn substrate posture and caveats used as secondary planning evidence for PQC/WebAuthn transition blockers",
       "source_type": "internal-architecture-decision-record",
-      "canonical_url": "/docs/decisions/ADR-0188-passkey-webauthn-substrate.md",
+      "canonical_url": "/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "effective_or_version": "ADR accepted state as of local snapshot",
       "retrieved_at_utc": "2026-07-01T00:42:00Z",
       "retrieval_status": "local-file-read",

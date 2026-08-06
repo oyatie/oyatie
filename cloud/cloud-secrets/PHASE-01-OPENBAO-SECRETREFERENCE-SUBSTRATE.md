@@ -128,6 +128,6 @@ kubectl --dry-run=client apply -k microservices/cloud-secrets/iac/kustomize/over
 - `microservices/cloud-secrets/threat-model.md`
 - `microservices/cloud-secrets/dpia.md`
 - `microservices/cloud-secrets/incident-response.md`
-- `docs/decisions/ADR-0131-cloud-microservice-split.md`
-- `docs/decisions/ADR-0133-cloud-secrets-openbao-canonical.md` (if registered)
+- `docs/adr-archive/ADR-0131-per-microservice-flat-layout.md`
+- `docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md` (if registered)
 - `microservices/cloud-secrets/IP-{001..015}-*.md`

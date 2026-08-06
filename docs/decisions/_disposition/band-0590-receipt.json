@@ -1,0 +1,81 @@
+{
+  "band": [590, 599],
+  "reviewed": [590, 591, 592, 593, 595, 597, 598, 599],
+  "findings": [
+    {
+      "adr": "ADR-0590",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed fail-closed authz for cloud observability audit-read. No higher ADR lists supersedes/amends ADR-0590; no Accepted successor replaces the mechanism. Leave Proposed (not implement authority; do not mass-Accept).",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0591",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed fail-closed authz for cloud FinOps report API. No higher supersedes/amends edge. ADR-0582 (lower) only references a split-decision allowlist involving this id; not a supersession claim. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0582"]
+    },
+    {
+      "adr": "ADR-0592",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed tenant-scoped body-fingerprinted accounting idempotency keys. No higher ADR supersedes, amends, or replaces this mechanism. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0593",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed fail-closed authz for accounting/payroll money-mutation control planes. No higher supersedes/amends edge. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0595",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed de-commit of pure-derivation cloud-ci faces. ADR-0596 (Superseded, not Accepted) frontmatter amends ADR-0595 — reverse amended_by not required under rule 'later Accepted amends'. ADR-0604/0613/0614/0621 explicitly complete or continue the pure-derivation strangler and state they do NOT supersede ADR-0595. ADR-0616 depends_on ADR-0595 and supersedes only ADR-0596. No Accepted supersedes/amends edge on 0595; leave Proposed.",
+      "higher_adrs_cited": ["ADR-0596", "ADR-0604", "ADR-0613", "ADR-0614", "ADR-0616", "ADR-0621"]
+    },
+    {
+      "adr": "ADR-0597",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed oya-ci-materializer-kernel E1. Higher Accepted ADRs 0613/0614 say they complete (do NOT supersede) the 0595→0597 strangler; 0637/0638 depend_on ADR-0597 as materializer relationship but do not supersede or amend it. No Accepted supersedes/amends edge; leave Proposed.",
+      "higher_adrs_cited": ["ADR-0613", "ADR-0614", "ADR-0624", "ADR-0637", "ADR-0638"]
+    },
+    {
+      "adr": "ADR-0598",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed commission of comms-meet capability-first core slice (aligns with 0562 cluster). No higher ADR supersedes, amends, or replaces this slice. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0599",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed commission of comms-calendar capability-first core slice (aligns with 0562 cluster). No higher ADR supersedes, amends, or replaces this slice. Leave Proposed.",
+      "higher_adrs_cited": []
+    }
+  ],
+  "files_changed": [],
+  "no_change": [590, 591, 592, 593, 595, 597, 598, 599],
+  "notes": {
+    "band_excluded_from_review": {
+      "594": "not in Assigned Accepted|Proposed review list for this pass",
+      "596": "status already Superseded with superseded_by [ADR-0616]; out of Assigned list"
+    },
+    "live_resolution": "All eight Assigned ADRs are Proposed (not implement authority). No higher Accepted ADR lists any of them in supersedes or amends. North-star false-Accepted fix does not apply. No frontmatter edits.",
+    "worktree": "/Users/jasonlee/Developer/oyatie-adr-disposition-20260806",
+    "branch": "agent/adr-disposition-mechanical-20260806"
+  }
+}

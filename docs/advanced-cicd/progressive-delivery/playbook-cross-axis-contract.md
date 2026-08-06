@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Cross-axis contract registry ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)) + axis admission protocol ([ADR-0012](../../../docs/decisions/ADR-0012-axis-admission-protocol.md)).
+Cross-axis contract registry ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)) + axis admission protocol ([ADR-0012](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 2. Default rail
 
@@ -29,7 +29,7 @@ Cross-axis contract registry ([ADR-0011](../../../docs/decisions/ADR-0011-cross-
 
 ## 3. Pre-rollout requirements
 
-Per [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md):
+Per [ADR-0037](../../../docs/decisions/ADR-0709-general-live-apex.md):
 
 1. Contract version bump declared (semver per tier).
 2. Backward-compatibility verified for all consumers OR a deprecation window opened (≥ 90 d for stable, ≥ 30 d for GA).
@@ -54,7 +54,7 @@ A consumer breach at any stage halts the producer. The producer cannot promote p
 Removing a contract field / version:
 
 1. Mark field deprecated in registry (≥ 90 d before removal for stable).
-2. Emit deprecation telemetry per [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md); track consumer usage decay.
+2. Emit deprecation telemetry per [ADR-0037](../../../docs/decisions/ADR-0709-general-live-apex.md); track consumer usage decay.
 3. Block removal if any consumer still calls the deprecated field with > 0 calls in last 7 d.
 4. After zero-call window, remove via separate release.
 

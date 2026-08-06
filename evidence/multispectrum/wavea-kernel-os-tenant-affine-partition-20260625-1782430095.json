@@ -10,7 +10,7 @@
     "summary": "Tighten provider-neutral stream shard admission so tenant-affine ordering cannot be admitted without an explicit tenant partition key.",
     "files_touched": [
       "data/core/cloud-kernel/src/streaming_partition.rs",
-      "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "evidence/multispectrum/wavea-kernel-os-tenant-affine-partition-20260625-1782430095.json"
     ],
     "explicit_non_claims": [

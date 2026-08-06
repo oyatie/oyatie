@@ -575,7 +575,7 @@ mod tests {
     fn affected_narrows_lanes_for_adr_only_diff() {
         // Simulate an ADR-only diff: only docs/decisions changed.
         // lanes_for_changed is pure (no I/O), so we call it directly.
-        let changed = ["docs/decisions/ADR-0360-affected-scope.md"];
+        let changed = ["docs/adr-archive/ADR-0360-ci-pipeline-optimization-program.md"];
         let selected = oya_governance_gate_catalog_domain::lanes_for_changed(&changed);
 
         // (1) The result must be strictly smaller than the full catalog because

@@ -8,7 +8,7 @@ counterpart_set: AWS KMS / Google Cloud KMS / HashiCorp Vault self-hosted
 
 ## Citation Anchor Block
 
-1. Canonical audit/tier/cross-context rules: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2235`, `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3756-4153`.
+1. Canonical audit/tier/cross-context rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2235`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable deployment, IaC, OS, language, and OCI constraints: `specs/master-plan-sequencing.json:704-868`.
 3. Local tenant_class source: `microservices/cloud-kms/retired tenant_class adoption artifact:13-83`.
 4. Runtime contract/source source: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-420`, `crates/oya-cloud-kms-domain/src/lib.rs:71-220`.

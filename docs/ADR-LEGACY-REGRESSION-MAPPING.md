@@ -27,7 +27,7 @@ doc_status: published
 ## Inputs scanned
 
 - 127 legacy ADRs at `/Users/jasonlee/oyatie/decisions/ADR-*.md` (titles + status verified against `docs/raw/adr-index.md`)
-- 50 new pack ADRs at `/Users/jasonlee/oyatie/docs/decisions/ADR-0001..0050-*.md`
+- 50 new pack ADRs at `/Users/jasonlee/oyatie/docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md`
 - New pack README: `docs/decisions/README.md`
 - Consolidation strategy: `docs/ADR-CONSOLIDATION-PLAN.md`
 - Deletion checklist: `docs/checklists/legacy-adr-deletion.md`

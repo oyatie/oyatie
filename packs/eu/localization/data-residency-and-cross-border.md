@@ -418,10 +418,10 @@ Audit-chain seals `EuObservabilityExportBlocked`.
 | `packs/eu-localization/dsr-and-portability.md` | Portability exports and identity assurance. |
 | `packs/eu-localization/high-risk-ai-systems.md` | AI provider transfer and prompt-log handling. |
 | `packs/eu-localization/dora-operational-resilience.md` | DORA ICT third-party location and provider register. |
-| `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md` | Cell placement model. |
-| `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md` | Compliance pack certification levels. |
-| `docs/decisions/ADR-0263-observability-emission-contract.md` | Audit event and observability evidence. |
-| `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md` | Cross-jurisdiction conflict handling. |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | Cell placement model. |
+| `docs/decisions/ADR-0708-platform-foundations-live-apex.md` | Compliance pack certification levels. |
+| `docs/decisions/ADR-0706-observability-live-apex.md` | Audit event and observability evidence. |
+| `docs/decisions/ADR-0709-general-live-apex.md` | Cross-jurisdiction conflict handling. |
 
 ## Transfer Approval States
 

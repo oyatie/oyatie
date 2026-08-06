@@ -110,7 +110,7 @@ Columns: **tot** = referencing files (excl. own file); **gen** = `.generated.jso
    may be `...github-<successor-ci>`).
 
 5. **ADR-0377 frozen gate-test fixture** — `specs/fixtures/cross-artifact-agreement/tc-XA-bad-dup-adr-number.json`
-   embeds the literal string `docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md` as a synthetic
+   embeds the literal string `docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md` as a synthetic
    duplicate-ID exhibit. It is a FROZEN test exhibit (not a real-path assertion), but a rename would desync the
    fixture string from the real filename. **Recommendation:** update the fixture string in lockstep, or confirm the
    gate matches by `id` not filename before renaming.

@@ -17,7 +17,7 @@
     "consumed_by": [
       "oya-dev-cli (gate: dependency-blessed-allowlist)"
     ],
-    "policy_source": "docs/standards/dependency-policy.md + docs/decisions/ADR-0092-workspace-dependency-seam-policy.md + registry/dependency-rationales.json [workspace.dependencies] join + approved-runtime-dependency-allowlist (Tokio/Axum/Tower/tower-http/Hyper/hyper-util/clap/serde/tracing/OpenTelemetry)",
+    "policy_source": "docs/standards/dependency-policy.md + docs/decisions/ADR-0709-general-live-apex.md + registry/dependency-rationales.json [workspace.dependencies] join + approved-runtime-dependency-allowlist (Tokio/Axum/Tower/tower-http/Hyper/hyper-util/clap/serde/tracing/OpenTelemetry)",
     "purpose": "Authoritative per-crate hyperscaler-blessed direct-dependency allowlist for the dependency-blessed-allowlist gate.",
     "exemptions": "Workspace-internal crates (name prefix oya-) and any dependency declared with an explicit `path = ...` are exempt: they are first-party code, not external supply-chain surface."
   },
@@ -25,12 +25,12 @@
     "anyhow": {
       "layer_seam": "tooling-and-application-error-boundaries",
       "rationale": "Error aggregation for CLI/tooling and application-edge orchestration. Governed by dependency-rationales.json.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "bytes": {
       "layer_seam": "adapter-only",
       "rationale": "Byte buffer type for hyper bodies; isolated in oya-http-runtime-hyper-adapter per ADR-0092 D2.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "clap": {
       "layer_seam": "cli",
@@ -40,17 +40,17 @@
     "http-body-util": {
       "layer_seam": "adapter-only",
       "rationale": "Hyper body utilities (Limited, collect); isolated in the hyper adapter per ADR-0092 D2.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "hyper": {
       "layer_seam": "adapter-only",
       "rationale": "Canonical HTTP backbone per ADR-0090; PREFERRED low-level default for the strategic hyper/axum split (ADR-0090 Amendment 2026-05-29 + specs/http-stack-policy.json). Isolated in oya-http-runtime-hyper-adapter.",
-      "policy_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md"
+      "policy_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     "hyper-util": {
       "layer_seam": "adapter-only",
       "rationale": "Hyper server/connection builders; isolated in the hyper adapter per ADR-0090/0092.",
-      "policy_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md"
+      "policy_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     "hyper-rustls": {
       "layer_seam": "adapter-only",
@@ -110,17 +110,17 @@
     "serde": {
       "layer_seam": "serialization",
       "rationale": "Canonical (de)serialization derive framework.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "serde_json": {
       "layer_seam": "serialization",
       "rationale": "JSON (de)serialization for DTOs, registries, and evidence.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "serde_yaml": {
       "layer_seam": "serialization-tooling",
       "rationale": "YAML parsing for tooling/gate manifests and Helm/IaC values.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "prost": {
       "layer_seam": "grpc",
@@ -165,47 +165,47 @@
     "kube": {
       "layer_seam": "adapter-only",
       "rationale": "Kubernetes client + controller-runtime for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Isolated to oya-managed-k8s-control-plane-host-adapter-capi ONLY; the live Kamaji TenantControlPlane / Talos control-plane CRD reconciliation is honest-deferred per registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "kube-runtime": {
       "layer_seam": "adapter-only",
       "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; live reconciliation honest-deferred.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "k8s-openapi": {
       "layer_seam": "adapter-only",
       "rationale": "Kubernetes API object types for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; isolated to oya-managed-k8s-control-plane-host-adapter-capi.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "regex": {
       "layer_seam": "tooling",
       "rationale": "Regular expressions for tooling/gate text scans.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "toml": {
       "layer_seam": "tooling",
       "rationale": "TOML parsing for Cargo manifests and tooling config.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "walkdir": {
       "layer_seam": "tooling",
       "rationale": "Recursive directory traversal for tooling/gate file scans.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "tempfile": {
       "layer_seam": "dev-tooling",
       "rationale": "Temporary directories/files for tests and tooling fixtures.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "cedar-policy": {
       "layer_seam": "adapter-only",
       "rationale": "AWS Cedar authorization engine (Apache-2.0, OSI-clean): formally-verified default-deny + forbid-overrides-permit policy evaluation. Isolated to the workload-authz adapter per ADR-0183; named in microservices/identity/manifest.json#consumes_upstream_oss.",
-      "policy_ref": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     "clickhouse": {
       "layer_seam": "adapter-only",
       "rationale": "ClickHouse 26.3 LTS HTTP client (Apache-2.0). Isolated exclusively to oya-shared-olap-clickhouse-adapter per ADR-0092 D2 and ADR-0193 OLAP analytics warehouse mandate. No kernel or domain crate may depend on this crate directly.",
-      "policy_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "policy_ref": "docs/decisions/ADR-0709-general-live-apex.md"
     }
   }
 }

@@ -1477,7 +1477,7 @@ mod tests {
     fn honest_claims_accept_contextual_versions_and_examples() {
         let result = validate_honest_claims([
             doc(
-                "docs/decisions/ADR-0129.md",
+                "docs/adr-archive/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
                 "ADR cites agent-durable-goal v1.5.0 as a historical artifact.\nThe active LTS is v3.0.6 and the required tool is installed.\nConcrete tech is deferred to the per-product PRD; each PRD must name its matrix.\n```text\nrequired gate lands in v2\n```\nExample: required gate lands in v2.",
             ),
             doc(

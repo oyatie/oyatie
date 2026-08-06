@@ -142,7 +142,7 @@ Returns FAIL with the specific failing sub-check otherwise.
 
 **Scope:** Foundry capability records on every branch.
 
-**Evaluation logic.** Walks the capability registry (per [ADR-0021](../../../docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md)). For each record, verifies `capability.stage` matches the source branch: `dev-draft` ⇔ agent-private; `dev` ⇔ `origin/dev`; `staging` ⇔ `staging`; `prod` ⇔ `prod`. Returns FAIL with the mismatched capability ids.
+**Evaluation logic.** Walks the capability registry (per [ADR-0021](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)). For each record, verifies `capability.stage` matches the source branch: `dev-draft` ⇔ agent-private; `dev` ⇔ `origin/dev`; `staging` ⇔ `staging`; `prod` ⇔ `prod`. Returns FAIL with the mismatched capability ids.
 
 **Output schema:** `{branch, capability_count, mismatches: [{capability_id, declared_stage, actual_branch}]}`.
 

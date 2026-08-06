@@ -320,7 +320,7 @@
         "retention": "jurisdiction bounded"
       }
     ],
-    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+    "audit_chain_emission_rule_ref": "$ref:docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md + $ref:specs/agent-durable-goal.json#score_cards"
   },
   "optimization_practices": [
     {
@@ -337,7 +337,7 @@
     }
   ],
   "regional_packs": {
-    "region_policy_ref": "$ref:docs/decisions/ADR-0140 (retired per ADR-0145) + $ref:bominal/decisions/ADR-0140",
+    "region_policy_ref": "$ref:docs/adr-archive/ADR-0140-cross-cutting-carriers-adapter-exemption.md (retired per ADR-0145) + $ref:bominal/decisions/ADR-0140",
     "packs": [
       {
         "pack": "KR",

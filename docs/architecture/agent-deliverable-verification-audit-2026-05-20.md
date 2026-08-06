@@ -157,7 +157,7 @@
 0150 | method | used "specific citations" only after named laws or article sections appeared.
 
 ## Workstream A - ADR-0321 Section D Corpus
-0151 | A_scope | file docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+0151 | A_scope | file docs/decisions/ADR-0709-general-live-apex.md.
 0152 | A_check | counted headings matching ^### Section D-.
 0153 | A_count_grep | 142.
 0154 | A_count_awk | 142.
@@ -1271,16 +1271,16 @@
 1242 | R02 | docs/user-journeys/j151-captain-olufemi-typhoon-evacuation-and-co-op-cash-flow/integration-test-plan.md | missing artifact | high leverage.
 1243 | R03 | docs/user-journeys/j151-captain-olufemi-typhoon-evacuation-and-co-op-cash-flow/handshake.md | missing artifact | high leverage.
 1244 | R04 | docs/user-journeys/j151-captain-olufemi-typhoon-evacuation-and-co-op-cash-flow/schemas/cedar-policy.cedar | missing artifact | high leverage.
-1245 | R05 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-123 | absent section | high leverage.
-1246 | R06 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-124 | absent section | high leverage.
-1247 | R07 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-125 | absent section | high leverage.
-1248 | R08 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-142 | absent section | high leverage.
-1249 | R09 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-143 | absent section | high leverage.
-1250 | R10 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-144 | absent section | high leverage.
-1251 | R11 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-145 | absent section | high leverage.
-1252 | R12 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-146 | absent section | high leverage.
-1253 | R13 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-147 | absent section | high leverage.
-1254 | R14 | docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md Section D-148 | absent section | high leverage.
+1245 | R05 | docs/decisions/ADR-0709-general-live-apex.md Section D-123 | absent section | high leverage.
+1246 | R06 | docs/decisions/ADR-0709-general-live-apex.md Section D-124 | absent section | high leverage.
+1247 | R07 | docs/decisions/ADR-0709-general-live-apex.md Section D-125 | absent section | high leverage.
+1248 | R08 | docs/decisions/ADR-0709-general-live-apex.md Section D-142 | absent section | high leverage.
+1249 | R09 | docs/decisions/ADR-0709-general-live-apex.md Section D-143 | absent section | high leverage.
+1250 | R10 | docs/decisions/ADR-0709-general-live-apex.md Section D-144 | absent section | high leverage.
+1251 | R11 | docs/decisions/ADR-0709-general-live-apex.md Section D-145 | absent section | high leverage.
+1252 | R12 | docs/decisions/ADR-0709-general-live-apex.md Section D-146 | absent section | high leverage.
+1253 | R13 | docs/decisions/ADR-0709-general-live-apex.md Section D-147 | absent section | high leverage.
+1254 | R14 | docs/decisions/ADR-0709-general-live-apex.md Section D-148 | absent section | high leverage.
 1255 | R15 | microservices/global-trade/IP-001-domain-layer-for-customs-declaration.md | 80-line boilerplate | high leverage.
 1256 | R16 | microservices/global-trade/IP-015-integration-tests-for-global-trade.md | 80-line boilerplate | high leverage.
 1257 | R17 | microservices/supply-chain-planning/IP-001-domain-layer-for-demand-plan.md | 80-line boilerplate | high leverage.
@@ -1954,9 +1954,9 @@
 1905 | cross_service | test plans should be broadened past six services.
 
 ## Evidence Commands Recorded
-1906 | command | grep -c '^### Section D-' docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+1906 | command | grep -c '^### Section D-' docs/decisions/ADR-0709-general-live-apex.md.
 1907 | command | awk section histogram over ADR-0321.
-1908 | command | wc -l docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+1908 | command | wc -l docs/decisions/ADR-0709-general-live-apex.md.
 1909 | command | find docs/user-journeys -maxdepth 1 -type d -name 'j15*'.
 1910 | command | find journey dirs and count files.
 1911 | command | wc -l story.md for journeys.

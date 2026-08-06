@@ -5,13 +5,13 @@ status: Proposed
 date: 2026-05-20
 microservice: workflow-engine
 related_oyatie_adrs:
-  - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-  - docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0704-k8s-port-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-workflow-engine
 ---
 
@@ -343,13 +343,13 @@ decision_owner: axis-workflow-engine
 
 ## References
 
-- ADR-0145, Inter Microservice Communication Reform, `docs/decisions/ADR-0145-inter-microservice-communication-reform.md`.
-- ADR-0222, Saga Compensation Portfolio Policy, `docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md`.
-- ADR-0243, Cedar as Universal Gate, `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-- ADR-0244, Tenant as Universal Scoping Primitive, `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-- ADR-0245, Substrate vs Product Layering, `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-- ADR-0251, Compliance Pack Cell Certification Levels, `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
-- ADR-0263, Observability Emission Contract, `docs/decisions/ADR-0263-observability-emission-contract.md`.
+- ADR-0145, Inter Microservice Communication Reform, `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- ADR-0222, Saga Compensation Portfolio Policy, `docs/decisions/ADR-0704-k8s-port-live-apex.md`.
+- ADR-0243, Cedar as Universal Gate, `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- ADR-0244, Tenant as Universal Scoping Primitive, `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- ADR-0245, Substrate vs Product Layering, `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- ADR-0251, Compliance Pack Cell Certification Levels, `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
+- ADR-0263, Observability Emission Contract, `docs/decisions/ADR-0706-observability-live-apex.md`.
 - Temporal documentation, Workflows, https://docs.temporal.io/workflows.
 - Temporal documentation, Durable Execution, https://docs.temporal.io/temporal.
 - Temporal documentation, Saga pattern, https://docs.temporal.io/develop/go/saga.

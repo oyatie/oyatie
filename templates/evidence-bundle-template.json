@@ -13,7 +13,7 @@
     "enforcing_fitness_lane": "oya-governance-audit-emission",
     "owner_team": "ops-compliance + axis-foundry",
     "related": [
-      "docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       ".omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md"
     ]
   },

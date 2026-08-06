@@ -308,7 +308,7 @@ The tonic/prost dependency additions in this slice do not touch the crypto path:
 tonic's TLS features are not enabled (no `tls` feature in the `tonic` dep entry),
 and prost has no crypto dependency.
 
-Source: `docs/decisions/ADR-0506-crypto-backend.md`; workspace `Cargo.toml`
+Source: `docs/adr-archive/ADR-0506-aws-lc-rs-canonical-crypto-provider.md`; workspace `Cargo.toml`
 (aws-lc-rs workspace dep, no default-features override)
 
 ---
@@ -380,7 +380,7 @@ ARE standalone service crates).  For the identity workload vertical the existing
 `-rest` crate is the single service crate under ADR-0509; the gRPC surface is
 a delivery module inside it, not a second service crate.
 
-Source: `docs/decisions/ADR-0509-single-crate-per-service.md`;
+Source: `docs/adr-archive/ADR-0509-hyperscaler-service-decomposition-pattern.md`;
 `tasks/id-workload-grpc-surface-plan.md` (ARCHITECTURE-DOCTRINE section)
 
 ---

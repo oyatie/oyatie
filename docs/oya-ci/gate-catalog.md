@@ -218,7 +218,7 @@ DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo 
   producer's `<cited-id>@<source-path>` citation edge — an `ADR-NNNN` cited from a governed
   surface (a decision body, the roadmap/sequencing artifact, or the masterplan `bound_adrs`)
   with NO decision file on disk (the phantom-0397 exhibit, audit register H-19, healed
-  2026-06-12 by minting `docs/decisions/ADR-0397-pulsar-oxia-canonical-event-bus.md`;
+  2026-06-12 by minting `docs/decisions/ADR-0709-general-live-apex.md`;
   FRIC-1781430000). Frozen-empty: the pre-existing phantom inventory is grandfathered
   shrink-only DATA in the producer (each id ledgered with its citation sites); remediation is
   mint-the-record-at-the-cited-number (reconstruction, status Proposed) or retarget the

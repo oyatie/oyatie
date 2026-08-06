@@ -28,7 +28,7 @@ pack_overlays_activated:
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
 planned_enforcement_ref: oya-governance-doc-rigor
 cross_product_compound: true
 primary_persona: Aiyana Brooks

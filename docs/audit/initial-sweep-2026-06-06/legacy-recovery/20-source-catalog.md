@@ -9,7 +9,7 @@ extracted_from:
   - source/cloud/                                # 25 service dirs
   - source/docs/products/                        # per-product PRDs
   - source/docs/machine-readable/products.json   # STALE axis/vertical mirror
-  - source/docs/decisions/ADR-0001..ADR-0514     # product-domain ADRs
+  - source/docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md     # product-domain ADRs
   - source/docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
 purpose: >
   LIVE product/capability inventory of the source ("oyatie") monorepo so it can be

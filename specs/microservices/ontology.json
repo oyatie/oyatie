@@ -251,7 +251,7 @@
       {
         "name": "cedar_policy.v1",
         "ref": "$ref:contracts/cedar_policy.v1",
-        "producer": "$ref:docs/decisions/ADR-0007 tenancy-identity kernel"
+        "producer": "$ref:docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md tenancy-identity kernel"
       },
       {
         "name": "otel_telemetry.v1",
@@ -270,7 +270,7 @@
     ],
     "persistence": {
       "semantic": "postgres + jsonb + RLS per-tenant",
-      "kinetic": "event-sourced via outbox per $ref:docs/decisions/ADR-0050",
+      "kinetic": "event-sourced via outbox per $ref:docs/decisions/ADR-0709-general-live-apex.md",
       "dynamic": "OTel + Kafka stream"
     },
     "events_emitted": [
@@ -335,12 +335,12 @@
       {
         "crate": "apache-kafka",
         "license": "Apache-2",
-        "ref": "$ref:docs/decisions/ADR-0050 outbox pattern"
+        "ref": "$ref:docs/decisions/ADR-0709-general-live-apex.md outbox pattern"
       },
       {
         "crate": "cedar",
         "license": "Apache-2",
-        "ref": "$ref:docs/decisions/ADR-0007"
+        "ref": "$ref:docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
       },
       {
         "crate": "opentelemetry-collector",
@@ -651,7 +651,7 @@
     },
     {
       "id": "BP-04",
-      "rule": "cryptographically signed audit chain per action (post-$ref:docs/decisions/ADR-0083 cryptographic chain)",
+      "rule": "cryptographically signed audit chain per action (post-$ref:docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md cryptographic chain)",
       "required_at": "GA"
     },
     {

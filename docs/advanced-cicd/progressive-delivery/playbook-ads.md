@@ -22,14 +22,14 @@ doc_status: published
 
 ## 1. Surface
 
-Ads + Analytics axis ([ADR-0031](../../../docs/decisions/ADR-0031-ads-and-analytics-architecture.md)) — auction, attribution, frequency-cap, audience builder, measurement, reporting.
+Ads + Analytics axis ([ADR-0031](../../../docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md)) — auction, attribution, frequency-cap, audience builder, measurement, reporting.
 
 ## 2. Default rail per sub-surface
 
 | Sub-surface | Rail |
 |---|---|
 | Auction logic | Dark-launch + canary + A/B |
-| Attribution model | **Blue/green** (per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) §axis cadence) |
+| Attribution model | **Blue/green** (per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) §axis cadence) |
 | Frequency-cap | Canary |
 | Audience builder | Canary |
 | Measurement / reporting | Canary + dark-launch on write side |
@@ -48,8 +48,8 @@ Planned advisory lane: `oya-governance-cohort-honor` as a planned blocker for Ad
 
 Every Ads change MUST declare:
 
-1. PII surface touched (typed; per [ADR-0008](../../../docs/decisions/ADR-0008-data-use-boundary.md)).
-2. Cross-axis data-flow ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)) — Ads cannot pull data from Workspace/SaaS without an explicit contract.
+1. PII surface touched (typed; per [ADR-0008](../../../docs/decisions/ADR-0709-general-live-apex.md)).
+2. Cross-axis data-flow ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)) — Ads cannot pull data from Workspace/SaaS without an explicit contract.
 3. Retention impact — does the change extend retention? If yes, DPA amendment required.
 4. Differential-privacy budget consumption (if applicable).
 5. Cohort exclusion list — at minimum `connect-no-ads`, `stable-regulated-healthcare`, `stable-regulated-fintech`.
@@ -71,7 +71,7 @@ Auction logic changes A/B'd on `canary-eligible` opted-in advertisers + non-no-a
 
 ## 7. Per-rollout disclosure
 
-Every Ads-axis rollout that changes user-visible behaviour triggers a trust-portal update ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)) within 24 h of canary completion. Material privacy changes additionally require pre-rollout disclosure 14 d ahead.
+Every Ads-axis rollout that changes user-visible behaviour triggers a trust-portal update ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)) within 24 h of canary completion. Material privacy changes additionally require pre-rollout disclosure 14 d ahead.
 
 ## 8. SLO targets (Ads-specific)
 

@@ -25,7 +25,7 @@ doc_status: published
 
 [OpenFeature](https://openfeature.dev/) is the CNCF-incubating vendor-neutral flag SDK. We adopt it as the **single in-tree flag API**. Per [Directive 4](../../plans/MASTERPLAN.md) (provider-agnostic), every flag-provider integration lives in an adapter crate behind the OpenFeature `Provider` interface. Application code never imports a provider SDK directly.
 
-This mirrors the existing Foundry adapter pattern ([ADR-0020](../../../docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md)).
+This mirrors the existing Foundry adapter pattern ([ADR-0020](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 2. Kernel + adapter layout
 
@@ -75,7 +75,7 @@ Every flag evaluation is intersected with the tenant's cohort (per [`stable-coho
 
 ## 7. Audit-chain emission
 
-Every flag flip emits a D14 audit-chain record ([ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md)): `who`, `which flag`, `what value`, `targeted cohort`, `timestamp`, `signed-commit-hash`. Flips during incident response are tagged `incident_id`. No anonymous flips.
+Every flag flip emits a D14 audit-chain record ([ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md)): `who`, `which flag`, `what value`, `targeted cohort`, `timestamp`, `signed-commit-hash`. Flips during incident response are tagged `incident_id`. No anonymous flips.
 
 ## 8. Hyperscaler equivalents
 

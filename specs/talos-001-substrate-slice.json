@@ -8,27 +8,27 @@
   "purpose": "Bind the first Talos/vfkit/CAPI/Kamaji substrate slice to an executable, non-mutating contract matrix so workers can validate local Talos smoke, Cloudflare Access posture, CAPI/Argo CD/Kamaji integration and the managed-Kubernetes product surface without implying live cluster or hardware provisioning.",
   "authority": {
     "ADR-0370": {
-      "path": "docs/decisions/ADR-0370-local-production-fidelity-substrate-talos-apple-silicon.md",
+      "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "status": "Accepted",
       "authority_use": "local production-fidelity Talos smoke and known Kata-on-Apple-Silicon gap"
     },
     "ADR-0371": {
-      "path": "docs/decisions/ADR-0371-secure-control-plane-access-cloudflare-tunnel-access.md",
+      "path": "docs/decisions/ADR-0709-general-live-apex.md",
       "status": "Accepted",
       "authority_use": "Cloudflare Tunnel L4 TCP plus Cloudflare Access control-plane posture"
     },
     "ADR-0375": {
-      "path": "docs/decisions/ADR-0375-talos-capi-argocd-fleet-substrate.md",
+      "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "status": "Accepted",
       "authority_use": "Talos installation media, Cluster API, ClusterResourceSet, and per-cell Argo CD fleet substrate"
     },
     "ADR-0376": {
-      "path": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md",
+      "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "status": "Accepted",
       "authority_use": "managed-Kubernetes two-tier product surface, Kamaji hosted default, and dogfood tenant-zero scope"
     },
     "ADR-0378": {
-      "path": "docs/decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md",
+      "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "status": "Accepted",
       "authority_use": "canonical local vfkit plus Talos substrate smoke and colima retirement posture"
     }

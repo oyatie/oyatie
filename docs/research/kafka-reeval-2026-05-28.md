@@ -44,12 +44,12 @@ No new ADR is needed for the doctrine check itself; this doc serves as the resea
 
 Next available ADR number as of 2026-05-28: **ADR-0377** (ADR-0376 is the last filed).
 
-Proposed: `docs/decisions/ADR-0377-migrate-event-backbone-kafka-to-pulsar.md`
+Proposed: `docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md`
 
 > **Renumber note (2026-06-12, FRIC-1781390000):** the "next available" claim above was wrong
 > when written — ADR-0377 had already been claimed on 2026-05-27 by
-> `docs/decisions/ADR-0377-github-board-git-ref-cas-fallback.md`. The amendment ADR proposed
+> `docs/decisions/ADR-0703-cas-cache-live-apex.md`. The amendment ADR proposed
 > here was filed as a second ADR-0377 and has been renumbered to **ADR-0557**
-> (`docs/decisions/ADR-0557-kafka-to-pulsar-via-kop.md`) via the accounting-registry
+> (`docs/decisions/ADR-0709-general-live-apex.md`) via the accounting-registry
 > allocator (`--next-adr`). All ADR-0377 references in this document mean the kafka-to-pulsar
 > decision now identified as ADR-0557.

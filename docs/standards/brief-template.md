@@ -121,7 +121,7 @@ Bare file paths are allowed only when the target file has no stable sections.
 Good anchor lines:
 
 - `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 hyperscaler-grade rigor sub-test`
-- `/Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md D-2 allowed vs forbidden tool uses`
+- `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md D-2 allowed vs forbidden tool uses`
 - `/Users/jasonlee/oyatie/microservices/messenger/PRD.md §E non-functional requirements`
 
 Weak anchor lines:
@@ -418,7 +418,7 @@ references, substance, canonical-direction alignment, and industry parity.
 
 Anchor 1: `/Users/jasonlee/oyatie/.omc/specs/deep-dive-realign-oyatie-corpus-to-canonical.md §Audit Wave Specification`.
 
-Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-4 through D-7`.
+Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-4 through D-7`.
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 hyperscaler-grade rigor sub-test and completeness invariants`.
 
@@ -453,13 +453,13 @@ platform-facing role.
 Purpose: author or repair one ADR-0321 vendor dossier without duplicating,
 reordering, or template-stamping other dossiers.
 
-Anchor 1: `/Users/jasonlee/oyatie/docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md §D dossier pattern`.
+Anchor 1: `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md §D dossier pattern`.
 
-Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-13 ADR-0321 in-scope universe`.
+Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-13 ADR-0321 in-scope universe`.
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 hyperscaler-grade rigor sub-test`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md D-1 and D-2`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md D-1 and D-2`.
 
 Anchor 5: vendor official documentation for the named version or API surface, plus the relevant Oyatie destination microservice PRD.
 
@@ -488,11 +488,11 @@ and strong enough for a future executor to build without invention.
 
 Anchor 1: `/Users/jasonlee/oyatie/.omc/specs/deep-dive-realign-oyatie-corpus-to-canonical.md §Canonical Build Sequence`.
 
-Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-1 through D-2`.
+Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-1 through D-2`.
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §2 Doc-class rigor matrix`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md AP-1 through AP-8`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md AP-1 through AP-8`.
 
 Anchor 5: the parent phase spec, parent PRD, or microservice manifest that owns the slice.
 
@@ -524,7 +524,7 @@ Anchor 2: `/Users/jasonlee/oyatie/microservices/<service>/ARCHITECTURE.md` or se
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 and §2 ADR row`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md Decision Summary S-1 through S-8`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md Decision Summary S-1 through S-8`.
 
 Anchor 5: the root ADR that owns the decision family, such as ADR-0244 for tenant scope, ADR-0243 for Cedar, ADR-0263 for audit emission, ADR-0316 for capability tiers, or ADR-0328 for sequencing.
 
@@ -550,11 +550,11 @@ failure, evidence, and rollback details.
 
 Anchor 1: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §2 User stories row`.
 
-Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md tenant scoping model`.
+Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0702-identity-authz-live-apex.md tenant scoping model`.
 
-Anchor 3: `/Users/jasonlee/oyatie/docs/decisions/ADR-0243-cedar-as-universal-gate.md policy gate model`.
+Anchor 3: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md policy gate model`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md audit emission contract`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md audit emission contract`.
 
 Anchor 5: the journey's owning product PRD, persona dossier, and involved microservice PRDs.
 
@@ -586,7 +586,7 @@ Anchor 2: `/Users/jasonlee/oyatie/docs/standards/on-call.md escalation and rotat
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/observability-slo.md or service SLO file`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md`.
 
 Anchor 5: the owning microservice runbook index, SLO, dashboard, or incident class.
 
@@ -617,9 +617,9 @@ Anchor 1: `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 so
 
 Anchor 2: `/Users/jasonlee/oyatie/specs/compliance-pack-schema.json`.
 
-Anchor 3: `/Users/jasonlee/oyatie/docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
+Anchor 3: `/Users/jasonlee/oyatie/docs/decisions/ADR-0702-identity-authz-live-apex.md`.
 
-Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-1 phase sequence`.
+Anchor 4: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-1 phase sequence`.
 
 Anchor 5: the specific pack directory, regulator source, or microservice overlay target.
 
@@ -644,9 +644,9 @@ sovereign-cell overlay.
 Purpose: author or repair a cross-microservice handoff matrix with clear
 producer, consumer, contract, policy, SLO, and failure semantics.
 
-Anchor 1: `/Users/jasonlee/oyatie/docs/decisions/ADR-0145-inter-microservice-communication-reform.md direct gRPC and boundary doctrine`.
+Anchor 1: `/Users/jasonlee/oyatie/docs/decisions/ADR-0701-monorepo-capability-live-apex.md direct gRPC and boundary doctrine`.
 
-Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md`.
+Anchor 2: `/Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md`.
 
 Anchor 3: `/Users/jasonlee/oyatie/docs/standards/cross-microservice-latency-budget.md`.
 
@@ -683,7 +683,7 @@ Required anchor 1:
 `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json#deployment_contexts`.
 
 Required anchor 2:
-`/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-15`.
+`/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-15`.
 
 Required anchor 3:
 `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_multi_context_provider_agnostic_2026_05_20.md`.
@@ -826,7 +826,7 @@ Required anchor 1:
 `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json#iac_substrate`.
 
 Required anchor 2:
-`/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-16`.
+`/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-16`.
 
 Required anchor 3:
 `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_zero_handroll_opentofu_only_2026_05_20.md`.
@@ -983,7 +983,7 @@ Required anchor 1:
 `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json#supported_oses`.
 
 Required anchor 2:
-`/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-17`.
+`/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-17`.
 
 Required anchor 3:
 `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_os_support_matrix_2026_05_20.md`.
@@ -1142,13 +1142,13 @@ Required anchor 1:
 `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json#language_policy`.
 
 Required anchor 2:
-`/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-18`.
+`/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-18`.
 
 Required anchor 3:
 `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_rust_strict_only_no_python_2026_05_20.md`.
 
 Required anchor 4:
-`/Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md`.
+`/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md`.
 
 Required anchor 5:
 the µservice Cargo manifest, workspace membership, frontend directory, or
@@ -1312,7 +1312,7 @@ to native bundle paths, and gives audit agents exact grep targets.
 
 #### §3.12 Amendment summary for Wave 1 Task 1.4
 
-`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md`
+`docs/decisions/ADR-0700-ci-admission-live-apex.md`
 was amended with §D-15 through §D-20.
 
 §D-15 adds the six-context deployment matrix, context seams, µservice surface
@@ -1374,7 +1374,7 @@ tree, audit evidence, severity cue, stop condition, and this summary.
 
 Measured line-count delta:
 
-- `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` -> `§D-15 through §D-20` -> `+2425 lines (1888 -> 4313)`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` -> `§D-15 through §D-20` -> `+2425 lines (1888 -> 4313)`.
 - `specs/master-plan-sequencing.json` -> `deployment_contexts`, `iac_substrate`, `supported_oses`, `language_policy`, `oci_always_free` -> `+164 lines (705 -> 869)`.
 - `docs/standards/brief-template.md` -> `§3.9 through §3.12` -> `+710 lines (1181 -> 1891)`.
 
@@ -1533,7 +1533,7 @@ BUNDLE: messenger-coherence-audit-2026-05-20
 
 CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/.omc/specs/deep-dive-realign-oyatie-corpus-to-canonical.md §Audit Wave Specification
-2. /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-4 through D-7
+2. /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-4 through D-7
 3. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 hyperscaler-grade rigor sub-test
 4. /Users/jasonlee/oyatie/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_microservice_ownership_coherence_2026_05_20.md
 5. /Users/jasonlee/oyatie/microservices/messenger/PRD.md + ARCHITECTURE.md
@@ -1557,10 +1557,10 @@ PARALLELISM: not safe against other ADR-0321 writers unless section range is pre
 BUNDLE: adr0321-servicenow-itsm-dossier-2026-05-20
 
 CANONICAL ANCHORS:
-1. /Users/jasonlee/oyatie/docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md §D dossier pattern
-2. /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-13 ADR-0321 in-scope universe
+1. /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md §D dossier pattern
+2. /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-13 ADR-0321 in-scope universe
 3. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 hyperscaler-grade rigor sub-test
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md D-1 through D-2
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md D-1 through D-2
 5. ServiceNow Washington DC release API docs + /Users/jasonlee/oyatie/microservices/itsm/PRD.md
 
 DELIVERABLE:
@@ -1583,10 +1583,10 @@ BUNDLE: mail-dkim-rotation-ip-2026-05-20
 
 CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/.omc/specs/deep-dive-realign-oyatie-corpus-to-canonical.md §Canonical Build Sequence
-2. /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-1 through D-2
+2. /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-1 through D-2
 3. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §2 Migration playbook and Spec rows where applicable
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md AP-1 through AP-8
-5. /Users/jasonlee/oyatie/microservices/mail/PRD.md + /Users/jasonlee/oyatie/docs/decisions/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md AP-1 through AP-8
+5. /Users/jasonlee/oyatie/microservices/mail/PRD.md + /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
 
 DELIVERABLE:
 /Users/jasonlee/oyatie/microservices/mail/IP-###-dkim-key-rotation.md
@@ -1610,8 +1610,8 @@ CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/microservices/observability/PRD.md
 2. /Users/jasonlee/oyatie/microservices/observability/ARCHITECTURE.md
 3. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 and §2 ADR row
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md S-1 through S-8
-5. /Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md S-1 through S-8
+5. /Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md
 
 DELIVERABLE:
 /Users/jasonlee/oyatie/microservices/observability/decisions/ADR-MS-###-cardinality-budget.md
@@ -1633,9 +1633,9 @@ BUNDLE: j38-contract-signing-journey-2026-05-20
 
 CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §2 User stories row
-2. /Users/jasonlee/oyatie/docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-3. /Users/jasonlee/oyatie/docs/decisions/ADR-0243-cedar-as-universal-gate.md
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md
+2. /Users/jasonlee/oyatie/docs/decisions/ADR-0702-identity-authz-live-apex.md
+3. /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md
 5. /Users/jasonlee/oyatie/docs/user-journeys/j38-b2b-e-signing-contract/README.md plus involved microservice PRDs
 
 DELIVERABLE:
@@ -1660,7 +1660,7 @@ CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §2 Runbook row
 2. /Users/jasonlee/oyatie/docs/standards/on-call.md escalation and rotation rules
 3. /Users/jasonlee/oyatie/microservices/cloud-kms/slos/control-plane.openslo.yaml
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md
 5. /Users/jasonlee/oyatie/microservices/cloud-kms/runbooks/README.md
 
 DELIVERABLE:
@@ -1684,8 +1684,8 @@ BUNDLE: kr-pipa-consent-overlay-2026-05-20
 CANONICAL ANCHORS:
 1. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1 sovereign-cell awareness
 2. /Users/jasonlee/oyatie/specs/compliance-pack-schema.json
-3. /Users/jasonlee/oyatie/docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-4. /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md D-1 phase sequence
+3. /Users/jasonlee/oyatie/docs/decisions/ADR-0702-identity-authz-live-apex.md
+4. /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md D-1 phase sequence
 5. Korea PIPA Article 29 and Article 30 plus /Users/jasonlee/oyatie/packs/kr/
 
 DELIVERABLE:
@@ -1707,8 +1707,8 @@ PARALLELISM: not safe if producer or consumer contracts are being edited
 BUNDLE: mail-comms-email-handoff-2026-05-20
 
 CANONICAL ANCHORS:
-1. /Users/jasonlee/oyatie/docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-2. /Users/jasonlee/oyatie/docs/decisions/ADR-0263-observability-emission-contract.md
+1. /Users/jasonlee/oyatie/docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+2. /Users/jasonlee/oyatie/docs/decisions/ADR-0706-observability-live-apex.md
 3. /Users/jasonlee/oyatie/docs/standards/cross-microservice-latency-budget.md
 4. /Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.2 engineering-rigor dimensions
 5. /Users/jasonlee/oyatie/microservices/mail/PRD.md + /Users/jasonlee/oyatie/microservices/comms-email/PRD.md
@@ -1863,15 +1863,15 @@ Review cue: VCS evidence must exist before a completion claim.
 Primary realignment backbone:
 
 - `/Users/jasonlee/oyatie/.omc/specs/deep-dive-realign-oyatie-corpus-to-canonical.md`
-- `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md`
+- `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md`
 - `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json`
 - `/Users/jasonlee/oyatie/.omc/plans/realign-oyatie-corpus-plan-2026-05-20.md`
 
 Substance and anti-pattern authority:
 
 - `/Users/jasonlee/oyatie/docs/standards/documentation-rigor.md §1.1`
-- `/Users/jasonlee/oyatie/docs/decisions/ADR-0322-substance-bar-as-doctrine-and-ci-enforcement.md`
-- `/Users/jasonlee/oyatie/docs/decisions/ADR-0324-anti-script-anti-template-doctrine.md`
+- `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
+- `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md`
 - `/Users/jasonlee/oyatie/docs/standards/anti-patterns.md`
 
 Feedback anchors required by future brief headers:
@@ -1884,7 +1884,7 @@ Root agent and VCS authority:
 
 - `/Users/jasonlee/oyatie/specs/root-hub-pointers.json`
 - `/Users/jasonlee/oyatie/docs/AGENTS.md`
-- `/Users/jasonlee/oyatie/docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`
+- `/Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md`
 
 Protocol reminder:
 

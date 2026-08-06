@@ -317,7 +317,7 @@ three failure modes, and one migration wrinkle.
 
 Anchor: docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md §6.1.
 
-Anchor: docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+Anchor: docs/decisions/ADR-0709-general-live-apex.md.
 
 ### AP-A02 Clause-Loop Padding
 
@@ -552,7 +552,7 @@ owned entities, policies, and failure modes.
 
 Anchor: docs/standards/documentation-rigor.md completeness invariants.
 
-Anchor: docs/decisions/ADR-0131-per-microservice-flat-layout.md.
+Anchor: docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 
 ### AP-A10 Halting Before Original Ambition Is Delivered
 
@@ -959,7 +959,7 @@ Safer replacement: direct mTLS service call for ordinary request/response;
 Workflow only for long-running orchestration; Ontology only for projection/read
 semantics.
 
-Anchor: docs/decisions/ADR-0145-inter-microservice-communication-reform.md.
+Anchor: docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 
 ### AP-R02 Cross-Product Coupling Without Current Adapter Contract
 
@@ -1034,7 +1034,7 @@ parameterize.
 Safer replacement: ADR-0064 canonical base, localization pack, compliance pack,
 and Cedar overlay.
 
-Anchor: docs/decisions/ADR-0064-canonical-base-and-localization-packs.md.
+Anchor: docs/decisions/ADR-0709-general-live-apex.md.
 
 ### AP-R05 Audit-Event Class Proliferation
 
@@ -1059,7 +1059,7 @@ registered.
 Safer replacement: define the class in the downstream ADR and registry before
 emission.
 
-Anchor: docs/decisions/ADR-0263-observability-emission-contract.md.
+Anchor: docs/decisions/ADR-0706-observability-live-apex.md.
 
 ### AP-R06 Synchronous Call Where Async Suffices
 
@@ -1106,7 +1106,7 @@ consistency.
 Safer replacement: HLC default for most operations; TrueTime-style tier only
 for Tier-4 external consistency.
 
-Anchor: docs/decisions/ADR-0252-time-coordination-distributed-consistency.md.
+Anchor: docs/decisions/ADR-0709-general-live-apex.md.
 
 ### AP-R08 Tenant-ID Propagation Gap
 
@@ -1131,7 +1131,7 @@ action.
 Safer replacement: tenant_id plus sub_scope_path in persistence, envelope,
 policy context, and telemetry.
 
-Anchor: docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md.
+Anchor: docs/decisions/ADR-0702-identity-authz-live-apex.md.
 
 ### AP-R09 BYOK Term Conflation
 
@@ -1154,9 +1154,9 @@ or a KMS/HSM encryption root.
 Safer replacement: provider-BYOK cites ADR-0255 §D-4; encryption-BYOK cites
 ADR-0251 §D-10.
 
-Anchor: docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md.
+Anchor: docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 
-Anchor: docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md.
+Anchor: docs/decisions/ADR-0708-platform-foundations-live-apex.md.
 
 ### AP-R10 Per-Service KMS Reinvention
 
@@ -1709,7 +1709,7 @@ read/provenance context.
 Safer replacement: oya vcs for claim/verify/done/promote; oya git for git
 drop-in surface.
 
-Anchor: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md.
+Anchor: docs/decisions/ADR-0709-general-live-apex.md.
 
 ### AP-C09 Evidence After Promotion
 
@@ -2518,7 +2518,7 @@ Incident class: AP-A01, AP-A08, AP-A12, AP-R24.
 
 Source: docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md §6.1.
 
-Source: docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md §D.
+Source: docs/decisions/ADR-0709-general-live-apex.md §D.
 
 The audit found 165 vendor dossiers.
 
@@ -2856,43 +2856,43 @@ retired from the live tree; see git history before removal if historical provena
 ### §9.3 ADRs
 
 ADR-0064 canonical base and localization packs:
-docs/decisions/ADR-0064-canonical-base-and-localization-packs.md.
+docs/decisions/ADR-0709-general-live-apex.md.
 
 ADR-0116 retired external coordination tooling:
-docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md.
+docs/decisions/ADR-0709-general-live-apex.md.
 
 ADR-0131 per-microservice flat layout:
-docs/decisions/ADR-0131-per-microservice-flat-layout.md.
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 
 ADR-0145 inter-microservice communication reform:
-docs/decisions/ADR-0145-inter-microservice-communication-reform.md.
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 
 ADR-0221 agentic development pipeline hardening:
-docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md.
+docs/decisions/ADR-0709-general-live-apex.md.
 
 ADR-0243 Cedar as universal gate:
-docs/decisions/ADR-0243-cedar-as-universal-gate.md.
+docs/decisions/ADR-0700-ci-admission-live-apex.md.
 
 ADR-0244 tenant as universal scoping primitive:
-docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md.
+docs/decisions/ADR-0702-identity-authz-live-apex.md.
 
 ADR-0251 compliance pack and encryption-BYOK:
-docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md.
+docs/decisions/ADR-0708-platform-foundations-live-apex.md.
 
 ADR-0252 time coordination:
-docs/decisions/ADR-0252-time-coordination-distributed-consistency.md.
+docs/decisions/ADR-0709-general-live-apex.md.
 
 ADR-0255 intelligence substrate and provider-BYOK:
-docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md.
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 
 ADR-0255 amendment library-first:
-docs/decisions/ADR-0355-amendment-library-first-network-opt-in-clarification.md.
+docs/decisions/ADR-0709-general-live-apex.md.
 
 ADR-0263 observability emission contract:
-docs/decisions/ADR-0263-observability-emission-contract.md.
+docs/decisions/ADR-0706-observability-live-apex.md.
 
 ADR-0321 B2B SaaS industry-leader coverage:
-docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+docs/decisions/ADR-0709-general-live-apex.md.
 
 ### §9.4 Machine-Readable Specs and Registries
 

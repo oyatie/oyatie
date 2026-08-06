@@ -8,7 +8,7 @@ counterpart_set: AWS KMS / Google Cloud KMS / HashiCorp Vault self-hosted
 
 ## Citation Anchor Block
 
-1. Canonical audit mandate: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3756-4153`.
+1. Canonical audit mandate: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Canonical machine-readable constraints: `specs/master-plan-sequencing.json:704-868`.
 3. Local microservice purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `microservices/cloud-kms/faqs/kms-engineer-faq.md:7-12`.
 4. Runtime/contract anchor: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `crates/oya-cloud-kms-domain/src/lib.rs:1-113`.

@@ -1,0 +1,151 @@
+{
+  "band": [370, 379],
+  "reviewed": [
+    "ADR-0370",
+    "ADR-0371",
+    "ADR-0373",
+    "ADR-0374",
+    "ADR-0375",
+    "ADR-0376",
+    "ADR-0377",
+    "ADR-0378",
+    "ADR-0379"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0370",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Local multi-node Talos-on-Parallels production-fidelity substrate. Higher ADRs 0371/0375 depend_on or related; 0511 cites substrate lineage; 0378 canonicalizes vfkit+Talos for day-to-day local and retires colima only — does not supersede 0370 (no supersedes edge, no body claim). Proposed 0381 would extend multi-node on vfkit but is not implement authority. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0371",
+        "ADR-0375",
+        "ADR-0378",
+        "ADR-0381",
+        "ADR-0511"
+      ]
+    },
+    {
+      "adr": "ADR-0371",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Cloudflare Tunnel L4 + Access for apiserver mTLS. Only higher cite is related from 0375. Zero-trust control-plane access remains north-star compatible. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0375"
+      ]
+    },
+    {
+      "adr": "ADR-0373",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "LLM gateway production design (OpenAI-compatible surface, key-pool, audit, OpenSLO). ADR-0384 body claims supersession of credential model only, but 0384 is Proposed (not implement authority) and frontmatter supersedes:[]. Accepted 0389/0390 do not supersede or amend 0373. Leave Accepted; partial redesign remains non-authoritative until 0384 Accepts.",
+      "higher_adrs_cited": [
+        "ADR-0384",
+        "ADR-0389",
+        "ADR-0390"
+      ]
+    },
+    {
+      "adr": "ADR-0374",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "CI webhook gateway (HMAC fail-closed GitHub → pipeline kick). Body destination Jenkins is historical under live ADR-0515 (Jenkins cluster 0349/0359/0361 superseded), but 0515 lists 0374 as related not supersedes; superseded 0513/0514 explicitly retain the gateway as hook. Proposed 0387 is redesign sibling not Accepted. No later Accepted supersedes or amends 0374 — do not invent supersession.",
+      "higher_adrs_cited": [
+        "ADR-0377",
+        "ADR-0380",
+        "ADR-0387",
+        "ADR-0513",
+        "ADR-0514",
+        "ADR-0515"
+      ]
+    },
+    {
+      "adr": "ADR-0375",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Talos + CAPI + Argo CD fleet substrate (supersedes 0120/0121). Higher 0376/0378/0381 depend_on or build on; 0382 Rejected (does not supersede Metal3 path). Transitional Talos vs owned stack is doctrine via 0482/0520 but neither amends 0375 in frontmatter. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0376",
+        "ADR-0378",
+        "ADR-0381",
+        "ADR-0382",
+        "ADR-0482",
+        "ADR-0520"
+      ]
+    },
+    {
+      "adr": "ADR-0376",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Managed-Kubernetes product surface (Kamaji hosted tier + Talos dedicated). Cited as related from 0378 and Accepted 0562/0607 without supersession or amendment. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0378",
+        "ADR-0562",
+        "ADR-0607"
+      ]
+    },
+    {
+      "adr": "ADR-0377",
+      "status_before": "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)",
+      "status_after": "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)",
+      "action": "none",
+      "reason": "Conditional Proposed board/CAS claim design. ADR-0515 explicitly states it does not accept 0377. Related-only cites from 0388; numbering notes from 0392/0393. Do not mass-Accept. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0388",
+        "ADR-0392",
+        "ADR-0393",
+        "ADR-0515"
+      ]
+    },
+    {
+      "adr": "ADR-0378",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Canonical local vfkit+Talos (retire colima). Foundation for 0380/0381/0382; 0482 aspirationally asks source-side Talos ADRs to note kubers destination but does not amends:[ADR-0378]. No later Accepted supersedes or amends. Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0379",
+        "ADR-0380",
+        "ADR-0381",
+        "ADR-0382",
+        "ADR-0482"
+      ]
+    },
+    {
+      "adr": "ADR-0379",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Kubewarden default admission (supersedes 0183; reverse edge present). Higher 0380 related; 0382 cites lineage. No later Accepted supersedes or amends Kubewarden default.",
+      "higher_adrs_cited": [
+        "ADR-0380",
+        "ADR-0382"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0370",
+    "ADR-0371",
+    "ADR-0373",
+    "ADR-0374",
+    "ADR-0375",
+    "ADR-0376",
+    "ADR-0377",
+    "ADR-0378",
+    "ADR-0379"
+  ],
+  "notes": {
+    "excluded_from_task_list": [
+      "ADR-0372"
+    ],
+    "exclusion_reason": "Task numbers list is [370, 371, 373, 374, 375, 376, 377, 378, 379]; ADR-0372 is out of scope here (already superseded by ADR-0393 per corpus).",
+    "live_resolution": "No later Accepted ADR lists any reviewed band id in supersedes or amends. Body-only partial supersession claim exists on Proposed ADR-0384 over ADR-0373 credential model — insufficient for frontmatter change."
+  }
+}

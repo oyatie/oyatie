@@ -60,7 +60,7 @@
     "rustfmt --check cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app/tests/cross_artifact_agreement.rs oya/developer-sdk/crates/oya-dev-cli/src/planning_closure_gate.rs",
     "python3 -m json.tool specs/planning-closure-contract.json",
     "git diff --check",
-    "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure --contract specs/planning-closure-contract.json --master-plan specs/masterplan.json --sequencing specs/master-plan-sequencing.json --root-hub specs/root-hub-pointers.json --vertical-adr docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+    "buck2 run //oya/developer-sdk/crates/oya-dev-cli:oya -- gate validate planning-closure --contract specs/planning-closure-contract.json --master-plan specs/masterplan.json --sequencing specs/master-plan-sequencing.json --root-hub specs/root-hub-pointers.json --vertical-adr docs/decisions/ADR-0709-general-live-apex.md",
     "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-cross-artifact-agreement-app:oya-cloud-ci-cross-artifact-agreement-app-gate",
     "buck2 test //cloud/cloud-ci/gates/registry-drift:registry-drift-gate",
     "buck2 test //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-app-gate-registration",

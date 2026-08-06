@@ -30,7 +30,7 @@ doc_status: published
 
 ## 2. Lane wiring
 
-Lanes run in the `pre-merge` and `pre-release` phases of `oya-governance-quality-lane-kernel` (existing). Per [ADR-0050](../../../docs/decisions/ADR-0050-automation-first-pipeline.md), lane runs are evidence-emitting and signed.
+Lanes run in the `pre-merge` and `pre-release` phases of `oya-governance-quality-lane-kernel` (existing). Per [ADR-0050](../../../docs/decisions/ADR-0709-general-live-apex.md), lane runs are evidence-emitting and signed.
 
 ```
 pre-merge:

@@ -5,7 +5,7 @@ Counterpart set: AWS Secrets Manager, Google Secret Manager, HashiCorp Vault Sec
 Parity standard: union coverage, not lowest-common-denominator coverage.
 Method: official counterpart docs, current service docs, local inventory, and canonical Oyatie constraints.
 
-Citation anchor 1: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2495` for multi-context and OpenTofu constraints.
+Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2495` for multi-context and OpenTofu constraints.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for deployment contexts, IaC substrate, OS, Rust, and OCI Always Free.
 Citation anchor 3: `microservices/cloud-secrets/PRD.md:20-331` for Oyatie product purpose and planned features.
 Citation anchor 4: `microservices/cloud-secrets/ARCHITECTURE.md:3-704` for architecture and component evidence.

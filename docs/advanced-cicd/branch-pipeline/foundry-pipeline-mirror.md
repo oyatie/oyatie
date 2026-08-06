@@ -23,7 +23,7 @@ doc_status: published
 
 ## 1. Thesis
 
-Foundry capabilities (per [ADR-0021](../../../docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md)) move through the **same four-layer lifecycle** as code, in **lockstep with the branch pipeline**. A capability defined on the agent's local-dev clone is `stage: dev-draft`; a capability published to the registry from `origin/dev` is `stage: dev`; promoted autonomously to `staging`, it is `stage: staging`; promoted via the 5-gate verification to `prod`, it is `stage: prod`. This makes the capability lifecycle a deployment-pipeline artifact, not a separate registry-only concept.
+Foundry capabilities (per [ADR-0021](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)) move through the **same four-layer lifecycle** as code, in **lockstep with the branch pipeline**. A capability defined on the agent's local-dev clone is `stage: dev-draft`; a capability published to the registry from `origin/dev` is `stage: dev`; promoted autonomously to `staging`, it is `stage: staging`; promoted via the 5-gate verification to `prod`, it is `stage: prod`. This makes the capability lifecycle a deployment-pipeline artifact, not a separate registry-only concept.
 
 ## 2. The four capability stages
 
@@ -31,8 +31,8 @@ Foundry capabilities (per [ADR-0021](../../../docs/decisions/ADR-0021-intelligen
 |---|---|---|---|---|
 | `dev-draft` | agent local dev clone (Layer 1) | only the originating agent | `evidence: not-required` (private) | the working agent |
 | `dev` | `origin/dev` (Layer 2) | dev-tier consumers + internal eval | `evidence: partial-acceptable` (smoke + replay sample) | `dev-promoter` agent (via PR merge that includes capability record) |
-| `staging` | `staging` (Layer 3) | dev-tier + staging-tier consumers + canary cohort | `evidence: pass` (full replay; eval-harness green per [ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md)) | `staging-promoter` agent (autonomous) |
-| `prod` | `prod` (Layer 4) | all consumers honouring autonomy ceiling ([ADR-0022](../../../docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md)) | `evidence: pass` + canary-100% + SLO-clean + comments-resolved + (per change class) reviewer re-affirm | `prod-promoter` agent |
+| `staging` | `staging` (Layer 3) | dev-tier + staging-tier consumers + canary cohort | `evidence: pass` (full replay; eval-harness green per [ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md)) | `staging-promoter` agent (autonomous) |
+| `prod` | `prod` (Layer 4) | all consumers honouring autonomy ceiling ([ADR-0022](../../../docs/decisions/ADR-0709-general-live-apex.md)) | `evidence: pass` + canary-100% + SLO-clean + comments-resolved + (per change class) reviewer re-affirm | `prod-promoter` agent |
 
 ## 3. Capability-record schema extension
 
@@ -108,7 +108,7 @@ flowchart LR
 
 ## 6. Eval-harness binding (extends ADR-0024)
 
-Per [ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md), every capability has an eval-set. The eval-harness runs:
+Per [ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md), every capability has an eval-set. The eval-harness runs:
 
 - At local-dev → origin/dev gate: eval-set must be `evidence: partial-acceptable` (smoke + ≥ 10 replay samples).
 - At origin/dev → staging boundary: eval-set runs in autonomous post-merge sweep; if `pass`, the capability is admitted to staging registry. If not, the capability is **demoted** (record removed from registry; capability rolls back to `stage: dev`).
@@ -118,7 +118,7 @@ Demotion semantics. A capability that fails its staging eval-harness sweep is **
 
 ## 7. Cross-axis lockstep
 
-When a capability change crosses an axis boundary (per [ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)), all affected axes must promote in lockstep:
+When a capability change crosses an axis boundary (per [ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)), all affected axes must promote in lockstep:
 
 - Local-dev → origin/dev gate runs the cross-axis contract diff (`oya-contract-diff`) as part of the CI lane; any consumer axis with a broken contract fails the lane.
 - Origin/dev → staging is autonomous; lockstep is preserved because origin/dev → staging is one mechanical fast-forward per axis.
@@ -139,9 +139,9 @@ The runtime enforcer (per ADR-0022) consults `capability.stage` at invocation ti
 
 This file does not own:
 
-- Capability registry implementation — owned by [ADR-0021](../../../docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md).
-- Eval-harness — owned by [ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md).
-- Autonomy-ceiling runtime — owned by [ADR-0022](../../../docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md).
+- Capability registry implementation — owned by [ADR-0021](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
+- Eval-harness — owned by [ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md).
+- Autonomy-ceiling runtime — owned by [ADR-0022](../../../docs/decisions/ADR-0709-general-live-apex.md).
 
 ## 10. Lift target
 

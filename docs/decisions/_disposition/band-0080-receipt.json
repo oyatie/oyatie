@@ -1,0 +1,25 @@
+{
+  "band": [80, 89],
+  "reviewed": ["ADR-0083"],
+  "findings": [
+    {
+      "adr": "ADR-0083",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live resolution: no higher-numbered ADR frontmatter lists ADR-0083 in supersedes/amends/superseded_by/amended_by; no body-level supersedes/replaces/obsoletes claim found. ADR-0329 (Accepted) explicitly preserves ADR-0083 Rust error-handling tier vocabulary. Many later ADRs (0540+, 0562 cluster, fail-closed authz series) still depend_on/related ADR-0083 for thiserror/anyhow/Tier-3 no-panic — consistent with live Accepted authority. Decision aligns with north-star Rust whole-stack and fail-closed/telemetry-first posture. Note (non-mutating): some later ADRs mis-cite ADR-0083 as Cedar authz authority; that is citation noise in those files, not supersession of error-handling.",
+      "higher_adrs_cited": [
+        "ADR-0329",
+        "ADR-0211",
+        "ADR-0540",
+        "ADR-0547",
+        "ADR-0562",
+        "ADR-0566",
+        "ADR-0569",
+        "ADR-0582"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": ["ADR-0083"]
+}

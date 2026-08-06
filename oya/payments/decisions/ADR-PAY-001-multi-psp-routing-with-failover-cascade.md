@@ -5,14 +5,14 @@ status: Proposed
 date: 2026-05-20
 microservice: payments
 related_oyatie_adrs:
-  - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-  - docs/decisions/ADR-0174-finops-cost-attribution-chargeback.md
-  - docs/decisions/ADR-0211-in-house-tech-stack-policy.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-payments
 ---
 

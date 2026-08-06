@@ -40,7 +40,7 @@ workspace; a kernel crate must stay dependency-free).
 
 ## Authority chain
 
-- **ADR-0360** (`docs/decisions/ADR-0360-ci-pipeline-optimization-program.md`) O1
+- **ADR-0360** (`docs/decisions/ADR-0700-ci-admission-live-apex.md`) O1
   affected-target selection — the canonical "presubmit selection can only ever
   NARROW work, never under-test trunk" doctrine. `lanes_for_changed` MUST obey
   the same never-under-select rule.

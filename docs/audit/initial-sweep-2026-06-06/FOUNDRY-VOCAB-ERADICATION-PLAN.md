@@ -9,9 +9,9 @@
 
 ## 0. Why this exists (governing doctrine, source-cited)
 
-- **ADR-0335** (`docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md`): foundry µservice RETIRED, absorbed by intelligence. **D-37**: existing `oya-foundry-*` crates retained as transition debt (precedent ADR-0333 D-59) to avoid a 122-crate cascade across 43 dependents. **D-39**: new code MUST NOT generate `oya-foundry-*`. **D-43**: *"future renaming of `oya-foundry-*` crates to `oya-intelligence-*`"* deferred to a separate cleanup wave. **This plan IS that wave.**
-- **ADR-0347** (`docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md`): doctrine-only declaration that foundry-*fitness* lanes → `oya-governance-*`; the actual file renames were deferred to "Wave 15-ZB". **This plan absorbs Wave 15-ZB.**
-- **ADR-0363** (`docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md`) + **ADR-0116**: foundry-as-VCS-substrate retired → **vcs sense routes to RETIRED.**
+- **ADR-0335** (`docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md`): foundry µservice RETIRED, absorbed by intelligence. **D-37**: existing `oya-foundry-*` crates retained as transition debt (precedent ADR-0333 D-59) to avoid a 122-crate cascade across 43 dependents. **D-39**: new code MUST NOT generate `oya-foundry-*`. **D-43**: *"future renaming of `oya-foundry-*` crates to `oya-intelligence-*`"* deferred to a separate cleanup wave. **This plan IS that wave.**
+- **ADR-0347** (`docs/adr-archive/ADR-0347-governance-fitness-bulk-rename.md`): doctrine-only declaration that foundry-*fitness* lanes → `oya-governance-*`; the actual file renames were deferred to "Wave 15-ZB". **This plan absorbs Wave 15-ZB.**
+- **ADR-0363** (`docs/adr-archive/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md`) + **ADR-0116**: foundry-as-VCS-substrate retired → **vcs sense routes to RETIRED.**
 - **ADR-0515 / ADR-0513**: one canonical bespoke-Rust CI/CD posture supersedes the **jenkins/forgejo** self-hostable substrate cluster (ADR-0349/0374/0387) — F-0008.
 - **D-FORGE / D-FOUNDRY-CLARIFY** (`registry/catalog/oya-check-brand-residue.yaml` + `libs/oya-check-brand-residue/src/lib.rs`): `forgejo` already executable in the deny-list; `foundry` is tracked but **`executable: false`** pending a cleared corpus. **The enforcement promotion at the end of this plan is what makes the eradication permanent.**
 
@@ -73,7 +73,7 @@ Signal-based line classification (lines may match >1 signal; resolution order is
 **Finding F-0004** (`FINDINGS-LEDGER.md:18`): ~945 oya + ~260 cloud `ARCH/README/PRD` (and runbooks) carry **identical jenkins boilerplate generated from a canonical template** — recommendation is *"fix the template source + regenerate; never hand-scrub 1200 files."*
 
 **Root cause located (evidence):**
-- The boilerplate originates from **ADR-0349** (`docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md`): *"Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates."* Its `enforced_by` lane list — **`oya-governance-jenkins-github-actions-parity`** (841 occurrences) and **`oya-governance-jenkins-jcasc-only`** (738 occurrences) — is the dominant jenkins residue, stamped into per-service docs.
+- The boilerplate originates from **ADR-0349** (`docs/decisions/ADR-0709-general-live-apex.md`): *"Jenkins (LTS) and ArgoCD are the two canonical self-hostable CI/CD substrates."* Its `enforced_by` lane list — **`oya-governance-jenkins-github-actions-parity`** (841 occurrences) and **`oya-governance-jenkins-jcasc-only`** (738 occurrences) — is the dominant jenkins residue, stamped into per-service docs.
 - The stamping vector: per-microservice doc-sets where the **same files repeat across ~80 services** — `IP-WAVE-15-ZD-sharding-automation.md` (80 copies), `hot-split.md`/`cold-merge.md`/`auto-rebalance.md` (82 each), `dpia.md` (87). md5 confirms each copy has per-service substitution but shares the jenkins lane/prose block (= templated injection, not hand-authored).
 - Distribution: jenkins is **318 lines in ADR source** (the SSOT), **225 lines in `*.generated.*`**, and **~4,000 lines in stamped per-service output**.
 

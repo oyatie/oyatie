@@ -308,5 +308,5 @@ Every suite asserts that audit-chain fails closed when evidence integrity is unc
 - Fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
 - Standard: `docs/standards/documentation-rigor.md`.
-- ADR: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- ADR: `docs/decisions/ADR-0263-observability-emission-contract.md`.
+- ADR: `docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR: `docs/decisions/ADR-0706-observability-live-apex.md`.

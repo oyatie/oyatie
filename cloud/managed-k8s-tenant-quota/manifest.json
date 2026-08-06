@@ -85,7 +85,7 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface",
       "acceptance_status": "accepted",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "IP-001-managed-k8s-tenant-quota",
@@ -114,37 +114,37 @@
       "id": "ADR-0376",
       "title": "Oyatie managed-Kubernetes product surface",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0376-managed-kubernetes-product-surface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0155",
       "title": "Port and Adapter Pattern",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0155-port-and-adapter-pattern.md"
+      "file": "docs/adr-archive/ADR-0155-per-tenant-resource-quotas.md"
     },
     {
       "id": "ADR-0092",
       "title": "Workspace dependency-seam policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0007",
       "title": "Cedar Default Deny",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0007-cedar-default-deny.md"
+      "file": "docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
     },
     {
       "id": "ADR-0083",
       "title": "Pod Runtime Tier Panic Policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0083-pod-runtime-tier-panic-policy.md"
+      "file": "docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md"
     },
     {
       "id": "ADR-0183",
       "title": "Cedar App Authz",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0183-cedar-app-authz.md"
+      "file": "docs/adr-archive/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
     }
   ],
   "audit_chain": {

@@ -878,10 +878,10 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Zylo, "2026 SaaS Management Index": 40M plus SaaS licenses, $75B plus SaaS and cloud spend, $55.7M average annual SaaS spend, 305 average portfolio size.
 - Zylo URL: https://zylo.com/2026-saas-management-index
 - Internal source: `specs/masterplan.json` for FD-001 Tenant RBAC view plus Tenant RBAC view scope.
-- Internal source: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` for capability-tier model.
-- Internal source: `docs/decisions/ADR-0243-cedar-as-universal-gate.md` for Cedar policy gate doctrine.
-- Internal source: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md` for pack and cell certification doctrine.
-- Internal source: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md` for evidence chain doctrine.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md` for capability-tier model.
+- Internal source: `docs/decisions/ADR-0700-ci-admission-live-apex.md` for Cedar policy gate doctrine.
+- Internal source: `docs/decisions/ADR-0708-platform-foundations-live-apex.md` for pack and cell certification doctrine.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md` for evidence chain doctrine.
 - Internal source: `specs/hyperscaler-architecture-invariants.json` for architecture gating context.
 - Internal source: local count of 78 microservice directories.
 - Internal source: local count of 61 capability-tier matrix directories.

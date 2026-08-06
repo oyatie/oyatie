@@ -71,7 +71,7 @@ Unit tests (no subprocess, no filesystem):
 3. `affected_flag_with_explicit_base` — parse `["--affected", "--base", "main"]`,
    assert `base == "main"`.
 4. `affected_narrows_lanes_for_sample_diff` — construct a sample changed-files
-   list (`["docs/decisions/ADR-0001.md"]`), call `lanes_for_changed` directly,
+   list (`["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]`), call `lanes_for_changed` directly,
    assert the result is smaller than the full set and contains only expected
    lanes (e.g. `adr-citation`, `adr-supersession-consistency`).
 5. `affected_flag_unknown_adjacent_flag_rejected` — verify unknown flags are

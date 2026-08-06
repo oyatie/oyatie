@@ -6,7 +6,7 @@ Measurement disclosure: no service-local benchmark evidence bundle was present u
 Build-phase disclosure: measured benchmarks must be added later in the build phase under ADR-0212-style evidence discipline before any production performance claim is made.
 Counterpart disclosure: AWS and Google public numbers below are primarily published quota numbers; HashiCorp numbers are official limits/advisory limits plus documented behavior, not a universal SaaS throughput promise.
 
-Citation anchor 1: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2495` for multi-context, OpenTofu, and deployment evidence constraints.
+Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2495` for multi-context, OpenTofu, and deployment evidence constraints.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for six contexts, OpenTofu substrate, supported OSes, Rust policy, and OCI Always Free.
 Citation anchor 3: `microservices/cloud-secrets/PRD.md:57-65` for current latency/throughput targets.
 Citation anchor 4: `microservices/cloud-secrets/capacity-model.md:60-105` for service capacity envelope and tenant_class drift.

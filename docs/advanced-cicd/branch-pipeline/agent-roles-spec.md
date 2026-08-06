@@ -25,7 +25,7 @@ doc_status: published
 
 ## 1. Scope
 
-Four new roles that operate the four-layer auto-promotion graph in [`branch-pipeline-architecture.md`](branch-pipeline-architecture.md) §3 + the reviewer-agent dispatch table that gates local-dev → origin/dev. Every role ships as a distroless container per [Directive 5](../../plans/MASTERPLAN.md) and emits D14 audit-chain evidence per [ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md).
+Four new roles that operate the four-layer auto-promotion graph in [`branch-pipeline-architecture.md`](branch-pipeline-architecture.md) §3 + the reviewer-agent dispatch table that gates local-dev → origin/dev. Every role ships as a distroless container per [Directive 5](../../plans/MASTERPLAN.md) and emits D14 audit-chain evidence per [ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md).
 
 ## 2. `dev-promoter` agent (NEW — gates entry to the shared world)
 
@@ -123,7 +123,7 @@ Reviewer agents render verdicts on PRs at the **local-dev → origin/dev** bound
 | `*.rs` | `rust-reviewer` | Approve / Request-Changes | no |
 | `*.ts`, `*.tsx`, `*.js`, `*.jsx` | `typescript-reviewer` | Approve / Request-Changes | no |
 | `*.py` | `python-reviewer` | Approve / Request-Changes | no |
-| Migrations / SQL (`migrations/**/*.sql`) | `database-reviewer` | Approve / Request-Changes (BLOCKER class — [ADR-0045](../../../docs/decisions/ADR-0045-database-tier-strategy.md)) | **yes** |
+| Migrations / SQL (`migrations/**/*.sql`) | `database-reviewer` | Approve / Request-Changes (BLOCKER class — [ADR-0045](../../../docs/decisions/ADR-0709-general-live-apex.md)) | **yes** |
 | Auth / secret / payment paths | `security-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
 | Privacy / consent / DSR | `privacy-reviewer` | Approve / Request-Changes (BLOCKER class) | **yes** |
 | New feature or bugfix | `tdd-guide` | Verifies test coverage | no |

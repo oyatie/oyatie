@@ -334,11 +334,11 @@ External authority: `https://www.rfc-editor.org/rfc/rfc9420.html`.
 
 `microservices/messenger/decisions/ADR-MSGR-0002-e2e-personal-dm-key-escrow.md` binds escrow posture.
 
-`docs/decisions/ADR-0188-passkey-webauthn-substrate.md` binds device identity.
+`docs/decisions/ADR-0701-monorepo-capability-live-apex.md` binds device identity.
 
-`docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md` binds sovereign cells.
+`docs/decisions/ADR-0708-platform-foundations-live-apex.md` binds sovereign cells.
 
-`docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md` binds compliance pack behavior.
+`docs/decisions/ADR-0708-platform-foundations-live-apex.md` binds compliance pack behavior.
 
 `docs/standards/cedar-policy-authoring.md` binds policy gates for professional surfaces.
 
@@ -514,9 +514,9 @@ without exposing plaintext message content to the server.
 transcript_id: messenger-mls-group-create-v1
 owning_microservice: messenger
 related_adrs:
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md
-  - docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
 rfc: RFC 9420
 group:
   group_id: mls-group-01HZZZZZZZZZZZZZZZZZZZZZZZ

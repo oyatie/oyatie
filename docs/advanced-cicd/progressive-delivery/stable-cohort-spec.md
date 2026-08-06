@@ -35,7 +35,7 @@ Co-located with `oya-platform-tenant-kernel` (existing). Cohort decisions are pe
 
 | Cohort | Membership criteria | Canary visibility | Experiment visibility | Default lag |
 |---|---|---|---|---|
-| `stable-regulated` | Healthcare / fintech / gov / EU-public-sector tenants ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)) | None | None | 28 days |
+| `stable-regulated` | Healthcare / fintech / gov / EU-public-sector tenants ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)) | None | None | 28 days |
 | `stable-enterprise` | Contractual SLA ≥ 99.99% or rolling-window-stability clause | None | Opt-in only | 14 days |
 | `canary-eligible` | All other paying tenants | Stage 3+ (25%+) | Yes | 0 days |
 | `canary-pioneer` | Opted-in early-adopter program | Stage 1+ (1%+) | Yes | 0 days |
@@ -55,11 +55,11 @@ Bypassing intersection = lane failure (`oya-governance-cohort-honor`).
 
 ## 5. Integration with autonomy ceiling
 
-Per [ADR-0022](../../../docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md), Foundry capabilities have a tenant-tier ceiling. Stable cohorts inherit a **lower autonomy ceiling** on newly-introduced capabilities until the capability soaks for 14+ days on `canary-eligible`. The ceiling lifts automatically on soak completion.
+Per [ADR-0022](../../../docs/decisions/ADR-0709-general-live-apex.md), Foundry capabilities have a tenant-tier ceiling. Stable cohorts inherit a **lower autonomy ceiling** on newly-introduced capabilities until the capability soaks for 14+ days on `canary-eligible`. The ceiling lifts automatically on soak completion.
 
 ## 6. Per-region overlay
 
-Per [ADR-0049](../../../docs/decisions/ADR-0049-cross-region-replication-and-residency.md), a cohort decision is regionalised. A tenant pinned to KR may be `stable-regulated` while the global default for the same tenant-id is `canary-eligible`. Conflict resolution: regional pin wins.
+Per [ADR-0049](../../../docs/decisions/ADR-0708-platform-foundations-live-apex.md), a cohort decision is regionalised. A tenant pinned to KR may be `stable-regulated` while the global default for the same tenant-id is `canary-eligible`. Conflict resolution: regional pin wins.
 
 ## 7. Cohort change semantics
 
@@ -70,7 +70,7 @@ A tenant's cohort can be changed by:
 3. **Tenant request** (opt-in / opt-out from canary-pioneer or experiment cohort).
 4. **Operator override** (Sev-1 mitigation; time-boxed; audited).
 
-All changes emit D14 audit-chain records ([ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md)).
+All changes emit D14 audit-chain records ([ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 8. Connect-no-ads cohort (LEDG-021 honour)
 
@@ -78,7 +78,7 @@ Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who
 
 ## 9. Visibility
 
-Per-tenant trust portal ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)) surfaces the tenant's current cohort + their lag-from-mainline window + the next scheduled cohort review. Tenants in `stable-regulated` see "your environment is N days behind mainline; next promotion review on YYYY-MM-DD".
+Per-tenant trust portal ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)) surfaces the tenant's current cohort + their lag-from-mainline window + the next scheduled cohort review. Tenants in `stable-regulated` see "your environment is N days behind mainline; next promotion review on YYYY-MM-DD".
 
 ## 10. Compliance gates
 

@@ -85,14 +85,14 @@
       "target_path_after_md_retirement": "same (already machine-readable)"
     },
     "adr_0217_vertical_rollout_order": {
-      "current_path": "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
       "kind": "decision",
       "migration_phase": "fd001-planning-closure",
       "purpose": "Accepted decision record for FD-001 vertical rollout order. Direct authority for Tenant/PBAC-packaged core microservices (PBAC = RBAC + ABAC) (FD-001) first, full-depth/no-MVP posture, Ops Dashboard / Control Center scope, canonical base plus Korea localization pack, clean architecture, API-first contracts, independent horizontal scaling, hyperscaler patterns, and false-green/silent-regression rejection.",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0346_oya_verify_ci_mirror": {
-      "current_path": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md",
+      "current_path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "purpose": "ADR-0346 legacy local-mirror verifier authority as amended by ADR-0513/platform-readiness: the retired `./bin/oya verify --ci-required` path is historical/provenance-only and must not be invoked or recreated; its mirror semantics are migration input only, never protected-branch merge/exit authority; destination enforcement is cloud-ci/oya-ci required contexts plus Rust gate packets.",
@@ -100,7 +100,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0347_foundry_fitness_governance_bulk_rename": {
-      "current_path": "docs/decisions/ADR-0347-governance-fitness-bulk-rename.md",
+      "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "purpose": "ADR-0347 authority for the single Wave 15-ZB bulk rename of `oya-governance-*` lane prefixes to `oya-governance-*` and the associated residue, vocabulary, and inventory-presence governance lanes.",
@@ -108,7 +108,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0348_autosharding_auto_rebalance_dynamic_sharding": {
-      "current_path": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+      "current_path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "purpose": "ADR-0348 authority for cellular autosharding, auto-rebalance, and dynamic sharding doctrine, including the per-µservice `sharding_automation` manifest block and audit-chain emission requirements.",
@@ -116,7 +116,7 @@
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
     "adr_0349_jenkins_argocd_ci_cd_substrate": {
-      "current_path": "docs/decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md",
+      "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
       "purpose": "Historical bridge ADR for self-hostable CI/CD substrate surfaces (superseded; current authority is /specs/bespoke-cloud-toolchain-services.json: bespoke Rust cloud-ci/cloud-cd services). Legacy CI/CD adapters may be used only as bridge/reference adapters with deletion criteria, tenant isolation, trusted status production, and no sole/canonical destination claim.",
@@ -1102,7 +1102,7 @@
       "target_path_after_md_retirement": "same audit artifact until a schema/owner/gate-backed reachability registry is explicitly promoted"
     },
     "reusable_building_blocks_registry": {
-      "current_path": "docs/decisions/ADR-0069-active-machine-readable-artifact-contract.md",
+      "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
       "current_path_status": "decision-authority-only",
       "do_not_treat_as_live_registry_authority": true,
       "kind": "decision",

@@ -2,7 +2,7 @@
   "agent_id": "omx-worker-5",
   "artifacts": [
     "evidence/quality-gate/g015-wave-a-m0-m4-g012-readiness-evidence-20260626.json",
-    "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md"
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md"
   ],
   "branch": "g015-worker-5-g012-readiness-evidence",
   "change_class_id": "CC-7_evidence_and_adr_registration",

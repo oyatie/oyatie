@@ -1,0 +1,196 @@
+{
+  "band": [550, 559],
+  "reviewed": [
+    "ADR-0550",
+    "ADR-0551",
+    "ADR-0552",
+    "ADR-0553",
+    "ADR-0554",
+    "ADR-0555",
+    "ADR-0556",
+    "ADR-0557",
+    "ADR-0558",
+    "ADR-0559"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0550",
+      "status_before": "Superseded",
+      "status_after": "Superseded",
+      "action": "none",
+      "reason": "Already correctly Superseded with superseded_by: [ADR-0562]. Later Accepted ADR-0562 lists supersedes: [ADR-0550] and body states layout doctrine superseded in full by capability-first; reverse edge present. Outside review scope for Accepted/Proposed mutations; edges verified live.",
+      "higher_adrs_cited": ["ADR-0562", "ADR-0615", "ADR-0631", "ADR-0635"]
+    },
+    {
+      "adr": "ADR-0551",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed merge-base frozen baseline ratchet (not implement authority). Higher ADRs (0552/0554/0555/0563/0595/0596/0597/0600/0604/0609/0614/0616) cite as depends_on/related or preserve anti-laundering property; Accepted ADR-0616 depends_on and states ADR-0551 properties remain. No later Accepted supersedes or amends. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0552",
+        "ADR-0554",
+        "ADR-0555",
+        "ADR-0556",
+        "ADR-0563",
+        "ADR-0595",
+        "ADR-0596",
+        "ADR-0597",
+        "ADR-0600",
+        "ADR-0604",
+        "ADR-0609",
+        "ADR-0614",
+        "ADR-0616",
+        "ADR-0627",
+        "ADR-0628"
+      ]
+    },
+    {
+      "adr": "ADR-0552",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed stable/volatile scm-facts split (amends Accepted ADR-0526; reverse amended_by already on 0526). Higher ADRs (0595/0596/0597/0600/0604/0616/0620) depend_on or related; Accepted ADR-0616/0624 cite without superseding. No later Accepted supersedes or amends 0552. Leave Proposed (do not mass-Accept).",
+      "higher_adrs_cited": [
+        "ADR-0556",
+        "ADR-0558",
+        "ADR-0595",
+        "ADR-0596",
+        "ADR-0597",
+        "ADR-0600",
+        "ADR-0604",
+        "ADR-0616",
+        "ADR-0620",
+        "ADR-0624"
+      ]
+    },
+    {
+      "adr": "ADR-0553",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed oya-identity workload-identity service commissioning (G005 slice 1). Higher ADRs (0559/0561/0564/0567/0569) treat as related/depends_on commissioning pattern without superseding or amending. No later Accepted supersedes or amends. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0559",
+        "ADR-0561",
+        "ADR-0564",
+        "ADR-0567",
+        "ADR-0569"
+      ]
+    },
+    {
+      "adr": "ADR-0554",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed buck2 workspace coverage / affected-set lane. Already correctly lists amended_by: [ADR-0636]; later Accepted ADR-0636 amends: [ADR-0554] (bounded interim cross-run reuse). No later Accepted supersedes. Do not mass-Accept Proposed; amendment edge already complete.",
+      "higher_adrs_cited": [
+        "ADR-0556",
+        "ADR-0560",
+        "ADR-0627",
+        "ADR-0628",
+        "ADR-0636"
+      ]
+    },
+    {
+      "adr": "ADR-0555",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed structural accounting (unaccounted artifacts unmergeable). Widely cited as depends_on/related by later commissioning and gate ADRs (0558/0559/0560/0563/0595/0598/0599/0600/0604/0609/0610/0612/0614/0620/0630); Accepted peers (0614/0630) treat as accounting doctrine without superseding. No later Accepted supersedes or amends. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0556",
+        "ADR-0558",
+        "ADR-0559",
+        "ADR-0560",
+        "ADR-0563",
+        "ADR-0564",
+        "ADR-0567",
+        "ADR-0569",
+        "ADR-0595",
+        "ADR-0598",
+        "ADR-0599",
+        "ADR-0600",
+        "ADR-0604",
+        "ADR-0609",
+        "ADR-0610",
+        "ADR-0612",
+        "ADR-0614",
+        "ADR-0620",
+        "ADR-0630"
+      ]
+    },
+    {
+      "adr": "ADR-0556",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed build cache-warmth classification (policy-as-data + cold integrity-canary). Higher Proposed ADR-0560/0612 consume classification; ADR-0612 body explicitly requires a separate ADR to supersede 0556 D1 cold floor before RE on cold classes. Accepted ADR-0630/0636 related/depends_on without superseding. Aligns with north star: no warm CAS/RE without Accepted authority (this ADR remains non-authority while Proposed). Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0560",
+        "ADR-0612",
+        "ADR-0630",
+        "ADR-0636"
+      ]
+    },
+    {
+      "adr": "ADR-0557",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted Kafka→Pulsar via KoP wire-compat; supersedes: [ADR-0005] (substrate clause; body supersedes-in-part). No higher-numbered ADR lists supersedes/amends ADR-0557. ADR-0397 is lower-numbered related peer confirming Pulsar+Oxia; does not supersede 0557. Aligns with owned-stack single event-bus substrate. Keep Accepted.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0558",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed friction-ledger structural merge driver (local tooling; two-way door; merge authority remains oya-ci-required per ADR-0515). Higher ADRs (0595/0596/0597/0604/0616/0622) related only; ADR-0622 body explicitly does not supersede 0558. No later Accepted supersedes or amends. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0560",
+        "ADR-0595",
+        "ADR-0596",
+        "ADR-0597",
+        "ADR-0604",
+        "ADR-0616",
+        "ADR-0622"
+      ]
+    },
+    {
+      "adr": "ADR-0559",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed cloud-iam Cedar PDP service commissioning (G004 slice 1). Higher ADRs (0561/0564/0566/0567/0569/0572/0573/0590/0591/0593/0603/0612) depend_on or related as canonical authz substrate without superseding. Accepted ADR-0572 cites 0559 as related only. Zero-trust / fail-closed authz cluster builds on this commissioning record. No later Accepted supersedes or amends. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0560",
+        "ADR-0561",
+        "ADR-0564",
+        "ADR-0566",
+        "ADR-0567",
+        "ADR-0569",
+        "ADR-0572",
+        "ADR-0573",
+        "ADR-0590",
+        "ADR-0591",
+        "ADR-0593",
+        "ADR-0603",
+        "ADR-0612"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0550",
+    "ADR-0551",
+    "ADR-0552",
+    "ADR-0553",
+    "ADR-0554",
+    "ADR-0555",
+    "ADR-0556",
+    "ADR-0557",
+    "ADR-0558",
+    "ADR-0559"
+  ]
+}

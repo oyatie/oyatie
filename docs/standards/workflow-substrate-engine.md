@@ -359,13 +359,13 @@ Using audit events as optional observability is an anti-pattern.
 
 ## Cross-References
 
-`docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md` binds hybrid workflow shape.
+`docs/decisions/ADR-0700-ci-admission-live-apex.md` binds hybrid workflow shape.
 
-`docs/decisions/ADR-0145-inter-microservice-communication-reform.md` binds workflow versus direct service calls.
+`docs/decisions/ADR-0701-monorepo-capability-live-apex.md` binds workflow versus direct service calls.
 
-`docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md` binds saga compensation.
+`docs/decisions/ADR-0704-k8s-port-live-apex.md` binds saga compensation.
 
-`docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md` binds capability tiers.
+`docs/decisions/ADR-0709-general-live-apex.md` binds capability tiers.
 
 `docs/standards/workflow-vs-direct-grpc-rubric.md` decides workflow versus direct call.
 
@@ -553,9 +553,9 @@ owning_microservice: workflow-engine
 business_authority: foundry
 trigger_event: foundry.auto_decision.blocked.v1
 related_adrs:
-  - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 states:
   - name: received
     invariant: source event validated and idempotency key stored

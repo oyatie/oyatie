@@ -31,7 +31,7 @@
       "/specs/hyperscaler-gates.json",
       "/specs/evidence-taxonomy.json",
       "docs/standards/prevention-doctrine.md",
-      "docs/decisions/ADR-0015-architectural-flattening-target.md"
+      "docs/decisions/ADR-0709-general-live-apex.md"
     ],
     "enforcing_fitness_lane": "lean-a-active-artifact-contract",
     "validator_crate": "governance/check/active-artifact-contract (planned)",

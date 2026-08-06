@@ -76,8 +76,8 @@ W0-A source and generated projections are implemented, reviewed, SSH-signed, pus
 
 Implemented source surfaces:
 
-- `docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md`.
-- `docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md`.
+- `docs/decisions/ADR-0704-k8s-port-live-apex.md`.
+- `docs/decisions/ADR-0704-k8s-port-live-apex.md`.
 - `specs/k8s-port/{upstream-pin,scope,divergence-ledger,licensing}.json`.
 - `docs/programs/k8s-port/` operating guide, OWNERS, required wave registry, and operations/prescriptions/doctrine indexes.
 - `ci/facade/k8s-program-docs/` fail-closed R-DOC library, CLI, Buck targets, unit tests, live-tree test, and OWNERS.

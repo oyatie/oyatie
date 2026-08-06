@@ -127,6 +127,6 @@
     "docs/standards/incident-management.md — DR-11 incident commander role detail",
     "specs/governance-amendment.json — DR-01 amendment procedure",
     "specs/root-hub-pointers.json — migration source map",
-    "docs/decisions/ADR-0011-cross-axis-contract-registry.md — DR-02 contract registry"
+    "docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md — DR-02 contract registry"
   ]
 }

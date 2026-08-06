@@ -20,4 +20,4 @@ No external managed cost service dependency.
 
 Scaffold only. Implementation tracks ADR-0480 D1-D5 delivery phases.
 
-See [ADR-0480](../../docs/decisions/ADR-0480-bespoke-rust-k8s-cost-allocation.md).
+See [ADR-0480](../../docs/adr-archive/ADR-0480-oya-cost-bespoke-k8s-cost-allocation.md).

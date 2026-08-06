@@ -1,0 +1,162 @@
+{
+  "band": [520, 529],
+  "reviewed": [
+    "ADR-0520",
+    "ADR-0521",
+    "ADR-0522",
+    "ADR-0523",
+    "ADR-0524",
+    "ADR-0525",
+    "ADR-0526",
+    "ADR-0527",
+    "ADR-0528",
+    "ADR-0529"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0520",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Owned-substrate stack remains live north-star law (transitional-impl-behind-stable-interface). Only reverse amends claim is ADR-0537 (Proposed; body says amends not supersedes; ladder extension). Frontmatter already lists amended_by: [ADR-0537]. No later Accepted lists supersedes/amends ADR-0520. Do not treat Proposed 0537 as live implement amender; do not invent Superseded.",
+      "higher_adrs_cited": [
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0562"
+      ]
+    },
+    {
+      "adr": "ADR-0521",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "W0–W6 fabric roadmap root remains Accepted sequencing authority. Higher citations are related/depends_on only (0533 references as founder roadmap context; 0536/0537 related). No later Accepted supersedes or amends ADR-0521.",
+      "higher_adrs_cited": [
+        "ADR-0533",
+        "ADR-0536",
+        "ADR-0537"
+      ]
+    },
+    {
+      "adr": "ADR-0522",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Lifecycle-wide hermeticity (one buck2 graph, four runners) remains live under ADR-0515 single-admission posture. No higher ADR lists supersedes or amends ADR-0522. Complements (not dual-authority to) live 0515/0624/0639.",
+      "higher_adrs_cited": [
+        "ADR-0536",
+        "ADR-0537"
+      ]
+    },
+    {
+      "adr": "ADR-0523",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Zero-shell + irreducible-glue ledger remains live refinement of ADR-0515 D3. ADR-0525 supplies ledger item (2) without amending/superseding. ADR-0618 (Proposed) depends_on only. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0525",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0618"
+      ]
+    },
+    {
+      "adr": "ADR-0524",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Kernel buckification + additive-first verify parity remains live owned-kernel path. No higher ADR lists supersedes or amends ADR-0524. Aligns with north-star Rust kernel→products ladder.",
+      "higher_adrs_cited": [
+        "ADR-0536",
+        "ADR-0537"
+      ]
+    },
+    {
+      "adr": "ADR-0525",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "oya-ci hermetic buck2 + git-facts boundary correctly remains Accepted as amended (not superseded) by Accepted ADR-0526 (scm-facts rename). Frontmatter already lists amended_by: [ADR-0526]. Later RBE/CAS ADRs (0556/0560/0612) are Proposed only — consistent with no warm CAS/RE without Accepted authority. No later Accepted supersedes.",
+      "higher_adrs_cited": [
+        "ADR-0526",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0556",
+        "ADR-0560",
+        "ADR-0612"
+      ]
+    },
+    {
+      "adr": "ADR-0526",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "scm-facts VCS-agnostic boundary remains live. Frontmatter already lists amended_by: [ADR-0552]; reverse amends claim is only Proposed ADR-0552 (not implement authority). No later Accepted supersedes or amends. Compatible with ADR-0363 git substrate + ADR-0510 cutover triggers.",
+      "higher_adrs_cited": [
+        "ADR-0535",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0552"
+      ]
+    },
+    {
+      "adr": "ADR-0527",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Config-driven conformance FLOOR remains live. Accepted ADR-0533 body/title says extends the floor with depends_on: [ADR-0527] and amends: [] — extension is not formal amendment; do not invent amended_by. Higher gates (0628/0629) related only. No later Accepted supersedes or amends.",
+      "higher_adrs_cited": [
+        "ADR-0530",
+        "ADR-0533",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0628",
+        "ADR-0629"
+      ]
+    },
+    {
+      "adr": "ADR-0528",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "remediate() first-class on oya-ci-gate-contract remains live amendment of ADR-0515 WS-D. Higher ADRs (0530/0531/0534) depend_on/related as delivery/SDK layers without superseding or amending 0528. No reverse Accepted supersedes/amends claim.",
+      "higher_adrs_cited": [
+        "ADR-0530",
+        "ADR-0531",
+        "ADR-0534",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0618"
+      ]
+    },
+    {
+      "adr": "ADR-0529",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "AUTO/ADVISE/GATE governor at gate layer remains live operationalization of ADR-0519 + amends ADR-0515. Higher ADRs (0530/0531/0534/0535) depend_on/related without superseding. No later Accepted supersedes or amends ADR-0529.",
+      "higher_adrs_cited": [
+        "ADR-0530",
+        "ADR-0531",
+        "ADR-0534",
+        "ADR-0535",
+        "ADR-0536",
+        "ADR-0537"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0520",
+    "ADR-0521",
+    "ADR-0522",
+    "ADR-0523",
+    "ADR-0524",
+    "ADR-0525",
+    "ADR-0526",
+    "ADR-0527",
+    "ADR-0528",
+    "ADR-0529"
+  ]
+}

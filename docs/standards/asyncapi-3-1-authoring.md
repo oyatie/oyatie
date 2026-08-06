@@ -349,9 +349,9 @@ External authority: `https://www.asyncapi.com/docs/reference/specification/v3.1.
 
 `docs/standards/proto3-authoring.md` binds gRPC contracts.
 
-`docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md` binds outbox eventing.
+`docs/decisions/ADR-0709-general-live-apex.md` binds outbox eventing.
 
-`docs/decisions/ADR-0263-observability-emission-contract.md` binds audit and telemetry events.
+`docs/decisions/ADR-0706-observability-live-apex.md` binds audit and telemetry events.
 
 ## Substance Bar Compliance Checklist
 

@@ -63,11 +63,11 @@
       "generated faces"
     ],
     "candidate_authority": [
-      "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-      "docs/decisions/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-      "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-      "docs/decisions/ADR-0539-cloud-ci-freshness-gate.md",
-      "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md"
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     ],
     "rationale": "Cloud-ci and ci-controller crates should cite the cloud-ci/oya-ci single-required-context authority and freshness/target-parity ADRs."
   },
@@ -120,11 +120,11 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0539-cloud-ci-freshness-gate.md",
-          "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -146,11 +146,11 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0539-cloud-ci-freshness-gate.md",
-          "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -171,11 +171,11 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0525-oya-ci-hermetic-buck2-execution-git-facts-boundary.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0539-cloud-ci-freshness-gate.md",
-          "docs/decisions/ADR-0540-cargo-buck2-target-parity-gate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }

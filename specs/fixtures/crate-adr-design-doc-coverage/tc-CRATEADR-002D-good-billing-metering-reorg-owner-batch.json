@@ -122,7 +122,7 @@
         "minimum_gate_rule": "row is green only when the source crate is explicitly carried as reorg-target debt with follow-up semantics instead of receiving an unconditional root-libs authority citation",
         "authority_refs": [
           "specs/reorg/billing-move-plan.json",
-          "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
           "specs/capability-registry.json",
           "registry/catalog/billing-metering-pipeline-kernel.yaml"
         ],
@@ -145,7 +145,7 @@
             "evidence": "successor live catalog row binds to billing/core/metering-pipeline-kernel/Cargo.toml without making runtime-readiness claims"
           },
           {
-            "path": "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md#REORG-003-metering-pipeline-straggler-addendum",
+            "path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md#REORG-003-metering-pipeline-straggler-addendum",
             "evidence": "accepted reorg authority records the metering-pipeline straggler addendum and its no-runtime-claim catalog semantics"
           }
         ],

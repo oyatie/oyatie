@@ -701,15 +701,15 @@ Best,
 - Internal: `specs/capability-tier-schema.json`.
 - Internal: `specs/pack-overlay-schema.json`.
 - Internal: `docs/COMPLIANCE-MATRIX.md`.
-- Internal: `docs/decisions/ADR-0242-*`.
-- Internal: `docs/decisions/ADR-0243-*`.
-- Internal: `docs/decisions/ADR-0244-*`.
-- Internal: `docs/decisions/ADR-0251-*`.
-- Internal: `docs/decisions/ADR-0263-*`.
-- Internal: `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md`.
-- Internal: `docs/decisions/ADR-0314-*`.
-- Internal: `docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
+- Internal: `docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md
+- Internal: `docs/adr-archive/ADR-0243-cedar-as-universal-gate.md
+- Internal: `docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md
+- Internal: `docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- Internal: `docs/adr-archive/ADR-0263-observability-emission-contract.md
+- Internal: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- Internal: `docs/adr-archive/ADR-0314-marketplace-as-universal-deal-settlement.md
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
 - External: GDPR Regulation (EU) 2016/679, https://eur-lex.europa.eu/eli/reg/2016/679/oj.
 - External: EU AI Act Regulation (EU) 2024/1689, https://eur-lex.europa.eu/eli/reg/2024/1689/oj.
 - External: Cedar policy language, https://www.cedarpolicy.com/.

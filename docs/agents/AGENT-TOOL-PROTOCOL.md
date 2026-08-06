@@ -17,7 +17,7 @@ related:
   - docs/standards/claude-code-harness.md  # retirement tombstone only (ADR-0619)
   - docs/standards/agent-instructions-discipline.md
   - docs/standards/git-workflow.md
-  - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
 doc_status: published
 ---
 

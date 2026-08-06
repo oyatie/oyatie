@@ -8,7 +8,7 @@
   "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
   "claim": {
     "requested_symbols": [
-      "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md::Decision",
+      "docs/decisions/ADR-0709-general-live-apex.md::Decision",
       "docs/RACI-OWNERSHIP.md::human-orchestrator-row"
     ],
     "grit_claim": "blocked: FOREIGN KEY constraint failed",
@@ -20,7 +20,7 @@
       "summary": "Added human-orchestrator-cutover RACI row with responsible/accountable/consulted/informed parties, the only three authorized cutover carve-outs, and mandatory icm pre-execution evidence."
     },
     {
-      "path": "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md",
+      "path": "docs/decisions/ADR-0709-general-live-apex.md",
       "summary": "Aligned scaffold-claim worked example with the canonical P01 helper path tools/oya-tooling-agent-read."
     }
   ],

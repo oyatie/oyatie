@@ -1,0 +1,58 @@
+{
+  "band": [570, 579],
+  "reviewed": [570, 571, 572, 573],
+  "findings": [
+    {
+      "adr": "ADR-0570",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed clean-arch port-placement gate (ports defined in core, not adapters). Higher ADRs cite as related/depends_on only: ADR-0582 (related + body), ADR-0598 (related + body ports-in-core), ADR-0634 (body references ci/facade/port-placement), ADR-0562 body cites doctrine (lower-numbered Accepted parent, not a supersession). No higher ADR lists supersedes or amends ADR-0570. Gate path under ci/facade/port-placement is compatible with live ADR-0515 single oya-ci-required admission; no dual-authority CI claim. Leave Proposed (not implement authority; do not mass-Accept).",
+      "higher_adrs_cited": ["ADR-0582", "ADR-0598", "ADR-0634"]
+    },
+    {
+      "adr": "ADR-0571",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed strangler MOVE of connect address-book into comms + contact-management port/usecase. No higher ADR references ADR-0571 by id. ADR-0615 (Accepted, amends ADR-0562) notes connect-address-book engines as-landed under comms/core but does not supersede or amends ADR-0571; it resolves 0562 flagged_boundaries only. Aligns with capability-first north star (0562+0615). Leave Proposed; do not invent supersession or Accept without evidence edge.",
+      "higher_adrs_cited": ["ADR-0615"]
+    },
+    {
+      "adr": "ADR-0572",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted AUTH-005 fail-closed authz for Cedar policy publish control plane. Reverse index empty: no higher ADR lists ADR-0572 in supersedes or amends. Higher ADRs (0573, 0581–0593, 0603, 0582) depend_on/related/body-mirror the PrincipalVerifier+PDP pattern as precedent — they extend the class to other surfaces, they do not replace this surface's decision. Aligns with zero-trust / defense-in-depth north star. No false Accepted; keep Accepted with empty amended_by.",
+      "higher_adrs_cited": [
+        "ADR-0573",
+        "ADR-0581",
+        "ADR-0582",
+        "ADR-0586",
+        "ADR-0587",
+        "ADR-0588",
+        "ADR-0589",
+        "ADR-0590",
+        "ADR-0591",
+        "ADR-0593",
+        "ADR-0603"
+      ]
+    },
+    {
+      "adr": "ADR-0573",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed AUTH-005/C5 fail-closed authz for Cloud KMS crypto control plane. Higher ADRs cite depends_on/related only (0589, 0593, 0607) as pattern precedent; none list supersedes or amends ADR-0573. No Accepted successor replaces the mechanism. Leave Proposed (not implement authority; do not mass-Accept).",
+      "higher_adrs_cited": ["ADR-0589", "ADR-0593", "ADR-0607"]
+    }
+  ],
+  "files_changed": [],
+  "no_change": ["ADR-0570", "ADR-0571", "ADR-0572", "ADR-0573"],
+  "notes": {
+    "band_population": "Only four ADRs exist in 0570–0579 (570–573); no 574–579 files.",
+    "live_resolution": "One Accepted (0572) remains live with no higher Accepted supersedes/amends edge. Three Proposed stay Proposed. No frontmatter edits; high-confidence supersession/amendment edges absent.",
+    "worktree": "/Users/jasonlee/Developer/oyatie-adr-disposition-20260806",
+    "branch": "agent/adr-disposition-mechanical-20260806"
+  }
+}

@@ -664,13 +664,13 @@ Best,
 - Internal: `docs/COMPLIANCE-MATRIX.md`.
 - Internal: `specs/pack-overlay-schema.json`.
 - Internal: `specs/capability-tier-schema.json`.
-- Internal: `docs/decisions/ADR-0243-*`.
-- Internal: `docs/decisions/ADR-0244-*`.
-- Internal: `docs/decisions/ADR-0251-*`.
-- Internal: `docs/decisions/ADR-0263-*`.
-- Internal: `docs/decisions/ADR-0304-*`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
-- Internal: `docs/decisions/ADR-0319-*`.
+- Internal: `docs/adr-archive/ADR-0243-cedar-as-universal-gate.md
+- Internal: `docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md
+- Internal: `docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- Internal: `docs/adr-archive/ADR-0263-observability-emission-contract.md
+- Internal: `docs/adr-archive/ADR-0304-cross-jurisdiction-conflict-resolution.md
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal: `docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md
 - External: DORA Regulation (EU) 2022/2554, https://eur-lex.europa.eu/eli/reg/2022/2554/oj.
 - External: EU AI Act Regulation (EU) 2024/1689, https://eur-lex.europa.eu/eli/reg/2024/1689/oj.
 - External: Basel III Framework, Bank for International Settlements, https://www.bis.org/basel_framework/.

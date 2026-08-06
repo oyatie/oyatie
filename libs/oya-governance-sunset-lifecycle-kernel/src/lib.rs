@@ -190,7 +190,7 @@ fn days_in_month(year: i32, month: u8) -> u8 {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SunsetClause {
     /// Repo-relative location for diagnostics (e.g.
-    /// `docs/decisions/ADR-0107.md#sunset` or
+    /// `docs/adr-archive/ADR-0107-tools-implicit-app-convention.md#sunset` or
     /// `crates/foo/Cargo.toml#package.metadata.oya.sunset`).
     /// data_class: INTERNAL_ONLY
     pub location: String, // data_class: INTERNAL_ONLY

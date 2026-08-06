@@ -225,7 +225,7 @@ The single driver of every 2x item below: **keep caches WARM and ensure only the
   Today the controller's gate sweep deliberately EXCLUDES the 4 gates (each Cargo.toml carries "no buck2 build-graph dep"). The owned `oya-ci` runner (the future runner of the ONE canonical pipeline) must run the SAME gate logic as the live GitHub Actions runner — this is readiness for the eventual runner-swap (the SAME pipeline across time), NOT a parallel shadow run. It is not wired to post any second context and does not gate merges; it only proves the owned runner can execute the canonical pipeline ahead of cutover (out-of-campaign-scope). *Anchor:* `oya-ci-controller-k8s-adapter/src/lib.rs:108-122` `gate_cmd`.
 
 - **4G — Author ADR-0518 oya-release + release/tagging seam.** `[with-infra]` — Phase-0 scope is OQ-6
-  ADR-0518 absent; no release/tagging seam; release-versioning specs live off-axis under `.omc/advanced-cicd/`. The automation-ratchet's `advisory_claiming_enforced` path (`lib.rs:228`) already polices a release surface that claims enforcement without a wired target. *Anchor:* `ls docs/decisions/ADR-0518*` → none.
+  ADR-0518 absent; no release/tagging seam; release-versioning specs live off-axis under `.omc/advanced-cicd/`. The automation-ratchet's `advisory_claiming_enforced` path (`lib.rs:228`) already polices a release surface that claims enforcement without a wired target. *Anchor:* `ls docs/adr-archive/ADR-0518-bespoke-scm-ast-work-area-change-pipeline.md → none.
 
 **Inherently-manual set (the irreducible `door:one-way` doors — DO NOT automate away):**
 - The fresh-root import (topology B landing — committed `phase0/producer` + uncommitted working-tree sources of the ONE canonical pipeline) `[inherently-manual]` `🚪`

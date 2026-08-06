@@ -1,0 +1,63 @@
+{
+  "band": [200, 209],
+  "reviewed": [204, 205, 206, 207, 208, 209],
+  "findings": [
+    {
+      "adr": "ADR-0204",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live canvas decision (svelte-flow Phase 1 + oya-canvas Phase 2) remains implement authority. Higher peers only related-cite (0205–0208). No higher Accepted lists supersedes/amends ADR-0204. Aligns with north-star Phase-2 in-house Leptos canvas path under ADR-0185 (amended_by ADR-0632 on 0185 only).",
+      "higher_adrs_cited": ["ADR-0205", "ADR-0206", "ADR-0207", "ADR-0208", "ADR-0185", "ADR-0632"]
+    },
+    {
+      "adr": "ADR-0205",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "CodeMirror 6 canonical code-editor decision still live. Higher cites are related only (0206, 0207). ADR-0211 body mislabels svelte-flow under ADR-0205 (typo; does not supersede). No higher Accepted supersedes/amends ADR-0205.",
+      "higher_adrs_cited": ["ADR-0206", "ADR-0207", "ADR-0211"]
+    },
+    {
+      "adr": "ADR-0206",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Fluent + ICU i18n substrate still live and inherited by higher Proposed ADR-0284 (i18n_authority). No higher Accepted supersedes/amends ADR-0206.",
+      "higher_adrs_cited": ["ADR-0207", "ADR-0284"]
+    },
+    {
+      "adr": "ADR-0207",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "WCAG 2.2 AA bar still live; higher Proposed ADR-0213 cites as plugin a11y gate. No higher Accepted supersedes/amends ADR-0207.",
+      "higher_adrs_cited": ["ADR-0213"]
+    },
+    {
+      "adr": "ADR-0208",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Three-tier realtime model (SSE one-way / WebSocket bidirectional / gRPC s2s) remains live and compatible with later Accepted ADR-0632 public transport posture (SSE default, WebSocket only when bidirectional, public gRPC forbidden). ADR-0632 amends list does not include ADR-0208 — do not invent amended_by. ADR-0273 'ADR-0208' references Bominal mail substrate (different id collision), not this file. No supersession evidence.",
+      "higher_adrs_cited": ["ADR-0273", "ADR-0632"]
+    },
+    {
+      "adr": "ADR-0209",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "In-house compliance evidence pipeline still live. Reinforced by Accepted ADR-0211 and related-cited by Accepted ADR-0394 auditor portal surface. No higher Accepted supersedes/amends ADR-0209.",
+      "higher_adrs_cited": ["ADR-0211", "ADR-0394"]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0204",
+    "ADR-0205",
+    "ADR-0206",
+    "ADR-0207",
+    "ADR-0208",
+    "ADR-0209"
+  ]
+}

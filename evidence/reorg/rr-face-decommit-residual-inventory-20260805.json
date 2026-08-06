@@ -6,10 +6,10 @@
   "branch": "agent/rr-face-decommit-20260805",
   "scope": {
     "adrs_read": [
-      "docs/decisions/ADR-0613-de-commit-remaining-controller-materialized-projection-faces.md",
-      "docs/decisions/ADR-0614-de-commit-reorg-move-manifest-bijection.md",
-      "docs/decisions/ADR-0615-capability-boundary-rulings-resolving-adr-0562-flagged-boundaries.md",
-      "docs/decisions/ADR-0616-de-commit-firewall-frozen-reference-baseline.md"
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     ],
     "constraints_honored": [
       "no second move-plan (billing sole plan already spent/closed via #1107)",

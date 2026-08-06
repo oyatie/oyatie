@@ -97,7 +97,7 @@ Per `…/initial-sweep-2026-06-06/AMENDMENT-PLAN.md` (`:36, :151 CC-3, :227, :25
 - Live `dev` today still requires `github-lane-unlocker-required` (gh api, above) → the file is ahead of live; flip pending controller go-live.
 - `oya-pr-review` intentionally **absent** from required (producer returns HTTP 501; would deadlock) — `:51-54`.
 - staging/production: no PR/CI gate at those layers (gates fire on `dev`); signed-commits + linear-history + no-force-push only.
-- ADR-0513 (`/Users/jasonlee/Developer/source/docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md`, Accepted/founder-locked 2026-05-30) is the authority for the flip: phased replacement of ADR-0380 Jenkins+Groovy by bespoke-Rust oya-ci; Jenkins stays a hardened BRIDGE until Phase-1 cutover.
+- ADR-0513 (`/Users/jasonlee/Developer/source/docs/decisions/ADR-0709-general-live-apex.md`, Accepted/founder-locked 2026-05-30) is the authority for the flip: phased replacement of ADR-0380 Jenkins+Groovy by bespoke-Rust oya-ci; Jenkins stays a hardened BRIDGE until Phase-1 cutover.
 
 ---
 
@@ -107,5 +107,5 @@ Per `…/initial-sweep-2026-06-06/AMENDMENT-PLAN.md` (`:36, :151 CC-3, :227, :25
 - Live gate: `gh api repos/jason931225/oyatie/branches/dev/protection/required_status_checks/contexts` → `["github-lane-unlocker-required"]`.
 - Branch protection: `source/.github/branch-protection.yaml:55-56` (target `oya-ci-required`), preamble `:1-5,46-54`.
 - Catalog/Changelog: `source/docs/DOC-CATALOG.md` (rows `:175,177`), `source/docs/CHANGELOG.md`; fitness specs `source/docs/governance-lanes/{doc-catalog,changelog-row}.md`.
-- Authority: `source/docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md`.
+- Authority: `source/docs/decisions/ADR-0709-general-live-apex.md`.
 - Amendment row-placement: `…/initial-sweep-2026-06-06/AMENDMENT-PLAN.md:36,151,227,255`.

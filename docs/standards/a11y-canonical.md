@@ -9,7 +9,7 @@ purpose: |
   Canonical accessibility standard. WCAG 2.2 AA mandated; AAA on regulated surfaces. Per-stack
   enforcement runners + keyboard-navigation rules + screen-reader rules + color-contrast rules
   + motion-reduce rules.
-canonical_authority: docs/decisions/ADR-0207-accessibility-wcag-2-2-aa.md
+canonical_authority: docs/decisions/ADR-0709-general-live-apex.md
 related_adrs:
   - ADR-0064
   - ADR-0185

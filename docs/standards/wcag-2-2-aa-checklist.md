@@ -8,7 +8,7 @@ date: 2026-05-18
 purpose: |
   Closed checklist of WCAG 2.2 AA success criteria. Per-criterion automated runner mapping +
   manual-audit notes. Driven by ADR-0207.
-canonical_authority: docs/decisions/ADR-0207-accessibility-wcag-2-2-aa.md
+canonical_authority: docs/decisions/ADR-0709-general-live-apex.md
 related_adrs:
   - ADR-0207
 enforced_by: oya-check-a11y-discipline

@@ -5,11 +5,11 @@ status: Accepted
 date: 2026-05-20
 microservice: tenancy
 related_oyatie_adrs:
-  - docs/decisions/ADR-0002-tenant-and-identity-kernel.md
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
-  - docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md
-  - docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
 decision_owner: axis-tenancy
 ---
 

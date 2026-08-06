@@ -5,14 +5,14 @@ status: Proposed
 date: 2026-05-20
 microservice: workplace-integration
 related_oyatie_adrs:
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
-  - docs/decisions/ADR-0034-per-microservice-data-class-overrides.md
-  - docs/decisions/ADR-0049-cross-region-replication-and-residency.md
-  - docs/decisions/ADR-0149-idempotency-keys-canonical.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-workplace-integration
 ---
 
@@ -233,9 +233,9 @@ decision_owner: axis-workplace-integration
 
 - Internal: oya/workplace-integration/IP-journey-j37-clock-in-geofence.md
 - Internal: oya/workplace-integration/policies/clock-attest.cedar
-- Internal: docs/decisions/ADR-0243-cedar-as-universal-gate.md
-- Internal: docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- Internal: docs/decisions/ADR-0263-observability-emission-contract.md
+- Internal: docs/decisions/ADR-0700-ci-admission-live-apex.md
+- Internal: docs/decisions/ADR-0702-identity-authz-live-apex.md
+- Internal: docs/decisions/ADR-0706-observability-live-apex.md
 - U.S. DOL FLSA hours worked Fact Sheet 22: https://www.dol.gov/agencies/whd/fact-sheets/22-flsa-hours-worked
 - U.S. DOL recordkeeping and reporting: https://www.dol.gov/general/topic/workhours/hoursrecordkeeping
 - U.S. DOL Handy Reference Guide to the FLSA: https://www.dol.gov/agencies/whd/compliance-assistance/handy-reference-guide-flsa

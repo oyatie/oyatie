@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/adr-redirect.v1.json",
+  "title": "ADR historical → live redirect map",
+  "type": "object",
+  "required": ["schema", "tip", "entries"],
+  "properties": {
+    "schema": { "const": "adr-redirect.v1" },
+    "tip": { "type": "string", "description": "git tip when map was generated" },
+    "entries": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["disposition"],
+        "properties": {
+          "disposition": {
+            "type": "string",
+            "enum": ["live", "superseded", "rejected", "consolidated"]
+          },
+          "live_id": {
+            "type": ["string", "null"],
+            "description": "ADR-NNNN live successor or consolidated apex; null if rejected"
+          },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}

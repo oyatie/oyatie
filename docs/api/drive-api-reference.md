@@ -490,4 +490,4 @@ Contract file: [`microservices/drive/contracts/proto/drive.proto`](../../microse
 - Runbooks: [`microservices/drive/runbooks/`](../../microservices/drive/runbooks/).
 - API standard: [`docs/standards/api-design.md`](../standards/api-design.md).
 - Throttling standard: [`docs/standards/throttling-tiers.md`](../standards/throttling-tiers.md).
-- ADR-0316: [`docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`](../decisions/ADR-0316-capability-tier-over-product-fragmentation.md).
+- ADR-0316: [`docs/decisions/ADR-0709-general-live-apex.md`](../decisions/ADR-0316-capability-tier-over-product-fragmentation.md).

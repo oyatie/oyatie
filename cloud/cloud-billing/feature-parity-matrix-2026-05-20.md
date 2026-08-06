@@ -19,7 +19,7 @@ audit_only: true
 
 ## Canonical Anchors
 
-1. `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` §D-5 UNION coverage parity bar.
+1. `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md` §D-5 UNION coverage parity bar.
 2. `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json` keys `canonical_build_sequence.phases[0]`, `deployment_contexts`.
 3. `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md` for the binary tenant_class + billing_components contract.
 4. Stripe Billing public docs (`docs.stripe.com/billing`, `docs.stripe.com/products-prices`, `docs.stripe.com/invoicing`, `docs.stripe.com/tax`, `docs.stripe.com/connect`, `docs.stripe.com/revenue-recognition`), Stripe API v2026-05-12+; treated as primary subscription-billing counterpart.

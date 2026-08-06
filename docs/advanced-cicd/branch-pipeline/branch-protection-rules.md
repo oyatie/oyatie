@@ -141,7 +141,7 @@ branches:
         fast_forward: true
 ```
 
-**Constraints encoded.** No force-push (NEVER); commits come only from `prod-promoter`; fast-forward only; Cosign-signed commits + SLSA L2+ provenance + SBOM 2.3 attestations all mandatory per [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md); the 5-gate verification lanes are required status checks.
+**Constraints encoded.** No force-push (NEVER); commits come only from `prod-promoter`; fast-forward only; Cosign-signed commits + SLSA L2+ provenance + SBOM 2.3 attestations all mandatory per [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md); the 5-gate verification lanes are required status checks.
 
 ## 5. Per-PR branch protection (the local-dev → origin/dev PR)
 
@@ -149,7 +149,7 @@ PR branches (the agent's local-dev clone tip) have no protection — they are pr
 
 ## 6. Mutator allowlist provenance
 
-Each promoter agent ships with a Cosign-keyless identity (per [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md)). The git-server's `restrictions.apps` allowlist accepts only commits signed by those identities. The identity binding is itself audit-chain-emitted at agent boot; rotation requires a Cosign-signed rotation record + a council-architecture approval.
+Each promoter agent ships with a Cosign-keyless identity (per [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md)). The git-server's `restrictions.apps` allowlist accepts only commits signed by those identities. The identity binding is itself audit-chain-emitted at agent boot; rotation requires a Cosign-signed rotation record + a council-architecture approval.
 
 ## 7. CODEOWNERS — minimized
 
@@ -179,7 +179,7 @@ Per [`rollback-mechanics-per-stage.md`](rollback-mechanics-per-stage.md), the ho
 
 This file does not own:
 
-- Cosign identity rotation — owned by [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md).
+- Cosign identity rotation — owned by [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md).
 - Per-axis fitness-lane logic — owned per ADR.
 - Git-server provider choice — agnostic via adapter pattern.
 

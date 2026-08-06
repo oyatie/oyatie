@@ -5,7 +5,7 @@
   "description": "Age alone is NOT stale: an ADR aged 400 days but still reachable from the masterplan passes. The doc class carries no budget (budget_days null) and is reachable, so no archive-candidate fires.",
   "rows": [
     {
-      "path": "docs/decisions/ADR-0001-record-architecture-decisions.md",
+      "path": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
       "age_days": 400,
       "reachable_from": ["masterplan", "doc-catalog"],
       "ttl": {"ttl_class": "doc", "budget_days": null, "protected": false, "action": "report"}

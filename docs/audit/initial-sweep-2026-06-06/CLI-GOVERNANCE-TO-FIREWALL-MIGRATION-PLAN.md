@@ -88,7 +88,7 @@ GOAL: migrate the CANONICAL subset INTO the firewall's `evaluate_keyed` + shrink
 
 ### §2.5 ↔ ADR-0056 anchors (VERIFIED)
 - **§2.5** (`MIGRATION-PLAN-RESYNC.md:136-156`): 13 conformance requirements each migration PR must pass. The governance-relevant ones (#4 BNF layer-suffix, #5 hexagonal import-matrix, #6 slot2 registration, #7 manifest hygiene, #8 dependency-rationale, #9 vendor A/B/C, #10 colocation+buildability, #11 rebrand/retired scan, #12 data_class) are the migration targets; #1-3/#13 are build/CI/merge mechanics already owned by Buck2 + the firewall + squash policy.
-- **ADR-0056** (`docs/decisions/ADR-0056-rust-clean-architecture-bnf.md:79-82,169-195`): the closed 13-value layer enum `kernel | domain | usecase | app | adapter | infrastructure | cli | rest | grpc | graphql | worker | sdk | api`, PLUS the governance-only `check` carve-out (`oya-check-*` is EXEMPT from the layer-suffix rule, line 46). Mirrored in `oya-governance-predictable-naming-kernel::ALLOWED_ROLES` (`[&str; 13]`, VERIFIED line 32 + test asserting `len()==13` line 406).
+- **ADR-0056** (`docs/decisions/ADR-0700-ci-admission-live-apex.md:79-82,169-195`): the closed 13-value layer enum `kernel | domain | usecase | app | adapter | infrastructure | cli | rest | grpc | graphql | worker | sdk | api`, PLUS the governance-only `check` carve-out (`oya-check-*` is EXEMPT from the layer-suffix rule, line 46). Mirrored in `oya-governance-predictable-naming-kernel::ALLOWED_ROLES` (`[&str; 13]`, VERIFIED line 32 + test asserting `len()==13` line 406).
 
 ---
 

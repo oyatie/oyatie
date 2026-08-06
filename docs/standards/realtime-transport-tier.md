@@ -8,7 +8,7 @@ date: 2026-05-18
 purpose: |
   Canonical realtime transport tier: SSE for one-way; WebSocket for bidirectional product surfaces;
   gRPC streaming for service-to-service only. Reconnect + resume rules.
-canonical_authority: docs/decisions/ADR-0208-realtime-transport-tier.md
+canonical_authority: docs/decisions/ADR-0704-k8s-port-live-apex.md
 related_adrs:
   - ADR-0145
   - ADR-0153

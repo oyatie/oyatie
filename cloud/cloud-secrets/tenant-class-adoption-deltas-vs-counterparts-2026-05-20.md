@@ -5,7 +5,7 @@ Tier model under audit: demo_trial and paid tenant_class.
 Counterpart set: AWS Secrets Manager, Google Secret Manager, HashiCorp Vault Secrets.
 Delta rule: compare Oyatie tenant_class intent against closest counterpart tier/usage mode, then mark ahead, parity, catch-up, incoherent, or not-applicable.
 
-Citation anchor 1: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2495` for deployment and OpenTofu constraints.
+Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2495` for deployment and OpenTofu constraints.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for contexts, OpenTofu, OS, Rust, and OCI Always Free.
 Citation anchor 3: `microservices/cloud-secrets/retired tenant_class adoption artifact:1-98` for current Oyatie tenant_class matrix.
 Citation anchor 4: `microservices/cloud-secrets/PRD.md:20-331` for product purpose and acceptance criteria.

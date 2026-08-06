@@ -15,10 +15,10 @@ related_adrs:
   - ADR-0131-per-microservice-flat-layout
 companion_docs:
   - docs/standards/documentation-rigor.md
-  - docs/decisions/ADR-0307-detection-substrate-streaming-batch.md
-  - docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
-  - docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md
-  - docs/decisions/ADR-0310-investigation-case-management.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0703-cas-cache-live-apex.md
 planned_enforcement_ref: oya-governance-detection-baseline
 bnf_version: v4.1
 layer_enum: layer_5_shared_substrate

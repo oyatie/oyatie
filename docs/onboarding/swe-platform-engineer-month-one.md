@@ -5,15 +5,15 @@ status: Published
 date: 2026-05-20
 owner: "axis-platform-substrate + council-architecture"
 related_oyatie_adrs:
-  - docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
-  - docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0006-ontology-typed-entity-layer.md
-  - docs/decisions/ADR-0356-amendment-library-first-ontology-read-path.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/DOC-CATALOG.md

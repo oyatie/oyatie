@@ -1,0 +1,344 @@
+{
+  "schema": "adr-mechanical-status-case-normalize.v1",
+  "date": "2026-08-06T07:31:40Z",
+  "base": "origin/dev",
+  "changed_count": 67,
+  "changed": [
+    {
+      "file": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0002-tenant-and-identity-kernel.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0004-plane-separation-control-data-analytics.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0005-eventing-backbone-outbox-pattern.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0006-ontology-typed-entity-layer.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0007-cedar-authorization-policy-and-persona-tier.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0008-data-use-boundary.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0010-regional-pack-architecture.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0013-product-license-policy.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0014-build-vs-buy-policy.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0016-wave-and-plane-integration-framework.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0017-brand-naming-and-repo-layout.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0018-glossary-and-terminology-canon.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0019-doc-catalog-and-update-protocol.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0020-intelligence-multi-provider-adapter-model.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0022-autonomy-ceiling-runtime-enforcement.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0024-intelligence-eval-harness-and-replay.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0026-in-house-ai-model-substrate-roadmap.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0027-robotics-vision-speech-sub-substrates.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0028-cloud-microservice-architecture.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0029-connect-dual-context-architecture.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0030-search-microservice-architecture.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0032-dcim-software-for-own-dc-ops.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0036-plugin-substrate-wasm-and-trust.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0042-observability-stack-otel-and-in-house-ui.md",
+      "from": "superseded",
+      "to": "Superseded"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0045-database-tier-strategy.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0047-search-backend-strategy.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0048-korean-morphology-and-multilingual-tokenization.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0049-cross-region-replication-and-residency.md",
+      "from": "proposed",
+      "to": "Proposed"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0051-mobile-and-native-client-strategy.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0054-grit-scaffold-claim-pattern.md",
+      "from": "deprecated",
+      "to": "Deprecated"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0055-object-graph-renamed-to-ontology.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0058-flat-microservice-catalog.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0060-bominal-inheritance-precedence.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0061-application-b2b-unified-shell.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0062-quality-performance-scalability-bar.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0063-documentation-set-coverage.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0064-canonical-base-and-localization-packs.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0066-live-code-introspection-docs-portal.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0069-active-machine-readable-artifact-contract.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0090-hyper-canonical-http-backbone.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0091-governance-write-gate-foundations.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0092-workspace-dependency-seam-policy.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0093-latency-budget-reporter-rename.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0094-handler-trait-with-associated-error.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0095-tenant-slug-in-tenancy-kernel.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0096-supervisor-language-rust-not-node.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0099-cedar-policy-extend-supervisor-capabilities.md",
+      "from": "accepted",
+      "to": "Accepted"
+    },
+    {
+      "file": "docs/adr-archive/ADR-0116-retire-external-agent-coordination-tooling.md",
+      "from": "accepted",
+      "to": "Accepted"
+    }
+  ],
+  "policy": "Only normalize status token case; does not Accept/Supersede/Amend substance."
+}

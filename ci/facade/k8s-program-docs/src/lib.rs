@@ -315,8 +315,8 @@ fn load_markdown_documents(
         }
     }
     for relative in [
-        "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
-        "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+        "docs/adr-archive/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
+        "docs/adr-archive/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
     ] {
         let path = repo_root.join(relative);
         documents.push(MarkdownDocument {

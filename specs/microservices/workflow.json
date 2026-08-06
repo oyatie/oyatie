@@ -493,7 +493,7 @@
       "store": "postgres",
       "isolation": "per-tenant RLS",
       "sharding": "tenant_id within region",
-      "replication_ref": "$ref:docs/decisions/ADR-0043"
+      "replication_ref": "$ref:docs/adr-archive/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md"
     },
     "events_emitted": [
       "workflow_deployed",
@@ -634,7 +634,7 @@
         "GA": 30
       },
       "verification_ref": "oya gate validate canary-observability-rollback --window 7d",
-      "lane_ref": "canary-observability-rollback ($ref:docs/decisions/ADR-0114)"
+      "lane_ref": "canary-observability-rollback"
     }
   ],
   "risks": [
@@ -1013,7 +1013,7 @@
       "verification_ref": "bench + canary load-test pre-GA"
     },
     "security": {
-      "target": "per-tenant RLS + Cedar at every entry + signed audit-chain (post-$ref:docs/decisions/ADR-0083 cryptographic chain) + LLM input as data",
+      "target": "per-tenant RLS + Cedar at every entry + signed audit-chain (post-$ref:docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md cryptographic chain) + LLM input as data",
       "verification_lane_ref": "oya-governance-tenancy-isolation + oya-governance-cedar-coverage"
     },
     "performance": {
@@ -1026,7 +1026,7 @@
     },
     "reliability": {
       "target": "MTTR 30s (auto-rollback) + error budget 0.05%/quarter + durable state survives restart with zero duplicate side-effects",
-      "verification_lane_ref": "canary-observability-rollback per $ref:docs/decisions/ADR-0114"
+      "verification_lane_ref": "canary-observability-rollback per $ref:docs/adr-archive/ADR-0114-canary-observability-rollback.md"
     }
   },
   "user_experience": {

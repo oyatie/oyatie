@@ -600,10 +600,10 @@ Event accepted without regulatory pack context when required.
 
 ### Cross-References
 
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
-- `docs/decisions/ADR-0186-observability-backplane-layering.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0706-observability-live-apex.md`.
 - `docs/SLO-CATALOG.md`.
 - Service-owned `microservices/audit-chain/benchmarks/` directories are intentionally not touched by this corpus.
 
@@ -991,10 +991,10 @@ Cross-tenant permit leakage.
 - `specs/cedar-policy-schema.json`.
 - `specs/cedar-fragment-schema.json`.
 - `docs/standards/autonomy-ceiling.md`.
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - Service-owned `microservices/*/benchmarks/` directories are intentionally outside this root corpus change.
 
 ---
@@ -1209,12 +1209,12 @@ OTel collector backpressure drops trace spans.
 
 ### Cross-References
 
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`.
-- `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`.
-- `docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md`.
-- `docs/decisions/ADR-0186-observability-backplane-layering.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0706-observability-live-apex.md`.
 - `docs/SLO-CATALOG.md`.
 - Service-owned per-microservice benchmark directories remain untouched by this root corpus.
 
@@ -1423,11 +1423,11 @@ Object-storage adapter backpressure is not surfaced as retryable.
 ### Cross-References
 
 - `docs/SLO-CATALOG.md`.
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`.
-- `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - `microservices/drive/` remains service-owned and is intentionally not modified by this corpus.
 
 ---
@@ -1609,11 +1609,11 @@ Channel read returning messages from a neighboring tenant.
 
 - `specs/microservices/messenger.json`.
 - `docs/SLO-CATALOG.md`.
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`.
-- `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - `microservices/messenger/` remains the service-owned doc set and is intentionally not modified by this corpus.
 
 ---
@@ -1825,10 +1825,10 @@ RFC 9420 epoch metadata missing from response.
 ### Cross-References
 
 - `specs/microservices/messenger.json`.
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - RFC 9420 protocol behavior is represented by synthetic compatible fixtures in this benchmark, not by external service measurements.
 - Service-owned `microservices/messenger/benchmarks/` remains untouched by this root corpus.
 
@@ -2043,10 +2043,10 @@ Large-volume tenant exhausts shared pool.
 - `specs/microservices/ontology.json`.
 - `registry/knowledge-graph-kinetic.json`.
 - `registry/knowledge-graph-dynamic.json`.
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
-- `docs/decisions/ADR-0142-crdt-portability-trait.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0704-k8s-port-live-apex.md`.
 - Service-owned `microservices/ontology/benchmarks/` remains untouched by this root corpus.
 
 ---
@@ -2225,8 +2225,8 @@ Retry eligibility returns unsafe retry for non-idempotent step.
 - `specs/microservices/workflow.json`.
 - `specs/microservices/ontology.json`.
 - `docs/standards/saga-compensation-policy.md`.
-- `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md`.
-- `docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md`.
-- `docs/decisions/ADR-0139-agentic-slo-gated-promotion.md`.
+- `docs/decisions/ADR-0709-general-live-apex.md`.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - Service-owned `microservices/workflow-engine/benchmarks/` remains untouched by this root corpus.

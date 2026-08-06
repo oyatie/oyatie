@@ -1697,29 +1697,29 @@ The walkthrough cites the following artifacts. This is the intern's
 required-reading list, in approximate order of importance for understanding
 the walkthrough:
 
-1. `docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md` (uniform
+1. `docs/decisions/ADR-0702-identity-authz-live-apex.md` (uniform
    machinery; reserved namespace; bootstrap sequence)
-2. `docs/decisions/ADR-0243-cedar-as-universal-gate.md` (every gate is
+2. `docs/decisions/ADR-0700-ci-admission-live-apex.md` (every gate is
    Cedar; coverage CI lane)
-3. `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md`
+3. `docs/decisions/ADR-0700-ci-admission-live-apex.md`
    (Tier 0–3; shuffle sharding; static stability; constant work)
-4. `docs/decisions/ADR-0253-network-topology-edge-service-mesh.md`
+4. `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
    (Anycast + edge POPs + Cilium ambient + SPIFFE + HTTP/3 + PQ hybrid)
-5. `docs/decisions/ADR-0252-time-coordination-distributed-consistency.md`
+5. `docs/decisions/ADR-0709-general-live-apex.md`
    (HLC; idempotency keys; no distributed locks)
-6. `docs/decisions/ADR-0246-policy-engine-substrate-promotion.md`
+6. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
    (per-cell evaluator; bundle pull cadence)
-7. `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`
-8. `docs/decisions/ADR-0245-substrate-vs-product-layering.md`
-9. `docs/decisions/ADR-0241-dr-business-continuity-portfolio-policy.md`
+7. `docs/decisions/ADR-0702-identity-authz-live-apex.md`
+8. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
+9. `docs/decisions/ADR-0704-k8s-port-live-apex.md`
    (DR tiers; drill cadence)
-10. `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`
-11. `docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md`
-12. `docs/decisions/ADR-0148-service-mesh-cilium-ambient-layered.md`
-13. `docs/decisions/ADR-0188-passkey-webauthn-substrate.md`
-14. `docs/decisions/ADR-0211-in-house-tech-stack-preference.md`
-15. `docs/decisions/ADR-0238-dual-context-isolation-invariant.md`
-16. `docs/decisions/ADR-0028-audit-chain-merkle-sealed.md`
+10. `docs/decisions/ADR-0708-platform-foundations-live-apex.md`
+11. `docs/decisions/ADR-0709-general-live-apex.md
+12. `docs/decisions/ADR-0700-ci-admission-live-apex.md`
+13. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`
+14. `docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md`
+15. `docs/adr-archive/ADR-0238-connect-super-app-expansion.md`
+16. `docs/adr-archive/ADR-0028-cloud-microservice-architecture.md`
 17. `microservices/messenger/PRD.md` (especially §1, §2, §4.2, §6, §10,
     §11, §13)
 18. `docs/standards/messenger-e2e-encryption-mls.md` (especially §3–§8,

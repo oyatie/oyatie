@@ -41,7 +41,7 @@
       "per_syscall_gate": "Each syscall lands via the established bounded implement -> INDEPENDENT adversarial-verify cycle, gated on: build-both (aarch64 + x86_64) + boot-both + golden byte-identical trace + check-tcb (safe-kernel 0-unsafe). Coverage grows WITHOUT TCB regression: syscalls dispatch into the #![forbid(unsafe_code)] safe kernel; arch glue stays in the audited Frame.",
       "conformance_bar": "Pass the Linux Test Project (LTP) syscall suite AND run arbitrary unmodified musl/glibc static binaries. 'We support Linux' is never claimed before the LTP suite actually passes (ADR-0009).",
       "differential_verified_semantics": "differential_verified=true ONLY where a golden / diff-oracle trace currently covers the syscall on that arch; default false. It is a coverage fact, not an aspiration.",
-      "reference_adr": "docs/decisions/ADR-0009-kernel-complete-linux-syscall-abi.md"
+      "reference_adr": "docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md"
     },
     "status_legend": {
       "implemented": "Real Linux semantics (struct layouts, flags, errno) implemented and dispatched.",
@@ -76,7 +76,7 @@
       "note": "Counts are over every numbered syscall on each arch. implemented+stub is the current demand-driven boot set (talos-init 7-phase sequencer + svc to clean power-off, M1/M2 verified); the remainder are enosys (the full-ABI target). riscv64 is not yet enumerated (later backend)."
     },
     "related": [
-      "docs/decisions/ADR-0009-kernel-complete-linux-syscall-abi.md",
+      "docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md",
       "cloud/cloud-kernel/ROADMAP.md",
       "cloud/cloud-kernel/KERNEL_REPORT.md",
       "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs",

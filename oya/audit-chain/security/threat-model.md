@@ -412,11 +412,11 @@ resource, decision, and denied reason.
 - Tenant scope policy: `../policy/tenant-scope.cedar`.
 - Public read policy: `../policy/public-read.cedar`.
 - Verification failure dashboard: `../dashboards/verification-failure-rate.json`.
-- ADR-0263 observability emission contract: `../../../docs/decisions/ADR-0263-observability-emission-contract.md`.
-- ADR-0003 audit-chain and evidence emission: `../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- ADR-0243 Cedar as universal gate: `../../../docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-- ADR-0244 tenant as universal scoping primitive: `../../../docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-- ADR-0297 abuse defence baseline: `../../../docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md`.
+- ADR-0263 observability emission contract: `../../../docs/decisions/ADR-0706-observability-live-apex.md`.
+- ADR-0003 audit-chain and evidence emission: `../../../docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR-0243 Cedar as universal gate: `../../../docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- ADR-0244 tenant as universal scoping primitive: `../../../docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- ADR-0297 abuse defence baseline: `../../../docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 
 ## Checkpoint Notes
 

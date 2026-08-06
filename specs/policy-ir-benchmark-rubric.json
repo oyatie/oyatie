@@ -15,7 +15,7 @@
     "updated_at": "2026-07-02T16:10:39Z",
     "frozen_at": "2026-07-02T00:00:00Z",
     "doctrine_refs": [
-      "docs/decisions/ADR-0211-in-house-tech-stack-policy.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       "docs/ideas/policy-pack-substrate.md"
     ],
     "downstream_consumers": [

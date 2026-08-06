@@ -3154,8 +3154,12 @@ status: Accepted
         assert_eq!(entries.len(), 2);
         // dir prefixes cover the subtree; the trailing '/' prevents sibling-dir bleed.
         assert!(registration_matches(
-            "docs/decisions/ADR-0001-x.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
             "docs/decisions/"
+        ));
+        assert!(registration_matches(
+            "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
+            "docs/adr-archive/"
         ));
         assert!(!registration_matches(
             "docs/decisions-evil/x.md",
@@ -3668,7 +3672,7 @@ const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441",
     "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
     "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472", "ADR-0473",
-    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
+    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488"
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
@@ -3701,7 +3705,7 @@ fn adr_citation_tokens(text: &str) -> BTreeSet<String> {
 /// on-disk decision id, excluding the grandfathered historical inventory. Governed
 /// surfaces: every decision file body, the roadmap/sequencing artifact, and the
 /// masterplan's `bound_adrs` arrays. Edge key shape: `<cited-id>@<source-path>`
-/// (e.g. `ADR-0397@docs/decisions/ADR-0478-oya-billing-bespoke-billing-engine.md`),
+/// (e.g. `ADR-0397@docs/decisions/ADR-0709-general-live-apex.md`),
 /// matching the GATE-1 `phantom_decision_citation` finding key.
 fn collect_phantom_citations(
     known_ids: &BTreeSet<String>,
@@ -3836,23 +3840,34 @@ fn collect_crosswalk_inputs(
     let mut known_ids: BTreeSet<String> = BTreeSet::new();
     // The governed decision bodies, kept for the citation scan (one read per file).
     let mut decision_bodies: Vec<(String, String)> = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
-        for entry in entries.flatten() {
-            let name = entry.file_name().to_string_lossy().to_string();
-            if let Some(filename_id) = adr_id_from_filename(&name) {
-                let path = entry.path();
-                let body = read_text(&path);
-                let front_id = front_matter_field(&body, "id");
-                decision_bodies.push((format!("{}/{name}", cfg.justification.adr_dir), body));
-                known_ids.insert(filename_id.clone());
-                if let Some(front_id) = &front_id {
-                    known_ids.insert(front_id.clone());
-                    if front_id != &filename_id {
-                        id_mismatches.push(format!("{name}:{filename_id}!={front_id}"));
+    // Live decisions only contribute crosswalk decision rows; the historical archive
+    // still contributes known_ids + citation bodies so apex supersedes edges resolve.
+    for corpus_dir in adr_corpus_dirs(repo_root, cfg) {
+        let rel = corpus_dir
+            .strip_prefix(repo_root)
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_else(|_| corpus_dir.display().to_string());
+        let is_live = corpus_dir == decisions_dir;
+        if let Ok(entries) = std::fs::read_dir(&corpus_dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().to_string();
+                if let Some(filename_id) = adr_id_from_filename(&name) {
+                    let path = entry.path();
+                    let body = read_text(&path);
+                    let front_id = front_matter_field(&body, "id");
+                    decision_bodies.push((format!("{rel}/{name}"), body));
+                    known_ids.insert(filename_id.clone());
+                    if let Some(front_id) = &front_id {
+                        known_ids.insert(front_id.clone());
+                        if is_live && front_id != &filename_id {
+                            id_mismatches.push(format!("{name}:{filename_id}!={front_id}"));
+                        }
+                    }
+                    if is_live {
+                        let id = front_id.unwrap_or(filename_id);
+                        files_by_id.entry(id).or_default().push(path);
                     }
                 }
-                let id = front_id.unwrap_or(filename_id);
-                files_by_id.entry(id).or_default().push(path);
             }
         }
     }
@@ -4561,21 +4576,34 @@ fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError>
 /// Built as a single pass over the ADR corpus (NOT O(paths x ADRs)): each ADR body is
 /// tokenized once into the repo-relative path-like tokens it references, populating a
 /// `token -> first ADR id` index. Per-path lookup is then an O(1) map hit.
+
+/// Live decisions dir plus the historical ADR archive (when present).
+/// Archive is outside the P3 direct-child census root but still supplies
+/// path-justification tokens and known decision ids for phantom resolution.
+fn adr_corpus_dirs(repo_root: &Path, cfg: &oya_ci_config_kernel::OyaCiConfig) -> Vec<PathBuf> {
+    let mut dirs = vec![repo_root.join(&cfg.justification.adr_dir)];
+    let archive = repo_root.join("docs/adr-archive");
+    if archive.is_dir() {
+        dirs.push(archive);
+    }
+    dirs
+}
+
 fn resolve_justifications(
     repo_root: &Path,
     paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
 ) -> BTreeMap<String, String> {
     let tracked: BTreeSet<&str> = paths.iter().map(String::as_str).collect();
-    let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
-
     // token (a tracked path mentioned in an ADR) -> first ADR id mentioning it.
     let mut mentioned: BTreeMap<String, String> = BTreeMap::new();
     let mut adr_files: Vec<PathBuf> = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
-        for entry in entries.flatten() {
-            if adr_id_from_filename(&entry.file_name().to_string_lossy()).is_some() {
-                adr_files.push(entry.path());
+    for decisions_dir in adr_corpus_dirs(repo_root, cfg) {
+        if let Ok(entries) = std::fs::read_dir(&decisions_dir) {
+            for entry in entries.flatten() {
+                if adr_id_from_filename(&entry.file_name().to_string_lossy()).is_some() {
+                    adr_files.push(entry.path());
+                }
             }
         }
     }

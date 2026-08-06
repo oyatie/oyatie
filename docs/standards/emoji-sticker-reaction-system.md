@@ -2091,9 +2091,9 @@ These are versioned (semver) per the event-schema-versioning canonical doc. Brea
 24. `microservices/community/` PRD + contracts.
 25. `microservices/marketplace/` (forthcoming) PRD + ADRs.
 26. `microservices/plugin-app-store/` PRD + packs.
-27. `docs/decisions/ADR-0145-inter-microservice-communication-reform.md` — communication patterns.
-28. `docs/decisions/ADR-0243-cedar-as-universal-gate.md` — Cedar policy gating.
-29. `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md` — compliance pack tiers.
+27. `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` — communication patterns.
+28. `docs/decisions/ADR-0700-ci-admission-live-apex.md` — Cedar policy gating.
+29. `docs/decisions/ADR-0708-platform-foundations-live-apex.md` — compliance pack tiers.
 30. `docs/standards/crate-naming-convention.md` — `oya-shared-expression-*` naming.
 31. `docs/standards/api-design.md` — REST + gRPC + AsyncAPI canonical conventions.
 32. `docs/standards/i18n-canonical.md` — internationalization.

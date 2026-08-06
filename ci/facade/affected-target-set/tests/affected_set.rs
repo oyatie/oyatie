@@ -222,7 +222,7 @@ fn docs_only_diff_keeps_its_licence_to_select_nothing_in_the_shipped_pack() {
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
     for path in [
-        "docs/decisions/ADR-0554-binding-buck2-workspace-coverage.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         "README.md",
         "docs/guide/x.mdx",
     ] {
@@ -777,8 +777,8 @@ fn k8s_program_records_and_rules_seed_the_live_r_doc_gate() {
 
     for path in [
         "docs/programs/k8s-port/README.md",
-        "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
-        "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md",
+        "docs/decisions/ADR-0704-k8s-port-live-apex.md",
+        "docs/decisions/ADR-0704-k8s-port-live-apex.md",
         "specs/port-rules/lang/go-rust/example.md",
         "specs/k8s-port/rules/example.md",
     ] {

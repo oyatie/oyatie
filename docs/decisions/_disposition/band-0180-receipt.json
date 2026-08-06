@@ -1,0 +1,150 @@
+{
+  "band": [180, 189],
+  "reviewed": [
+    "ADR-0180",
+    "ADR-0181",
+    "ADR-0182",
+    "ADR-0184",
+    "ADR-0185",
+    "ADR-0186",
+    "ADR-0188",
+    "ADR-0189"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0180",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "SLO composition + inheritance arithmetic. No higher ADR supersedes or amends ADR-0180. Citations (0186 related, 0176/0240 composition consumers, 0280 Markov-chain substrate DAG composition) extend or compose with the arithmetic; none replace it. Renumber collisions (stale ADR-0180-stateful-disaster-recovery slugs in other files) are DATA noise, not supersession. Live Accepted authority stands.",
+      "higher_adrs_cited": [
+        "ADR-0186",
+        "ADR-0197",
+        "ADR-0209",
+        "ADR-0240",
+        "ADR-0254",
+        "ADR-0276",
+        "ADR-0280"
+      ]
+    },
+    {
+      "adr": "ADR-0181",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Cosign-signed dev→staging→prod image promotion ladder. Reverse amends edge from ADR-0349 already mirrored (amended_by: [ADR-0349]). ADR-0349 itself is Superseded by Accepted ADR-0515; 0515 lists 0181 as related only and does not supersede/amends the ladder. Higher CI ADRs (0511 Superseded→0515, 0514 Superseded→0515) re-home orchestration while keeping 0181 promotion semantics. No dual-authority CI claim in 0181 itself; no false Accepted. Leave Accepted with existing amended_by.",
+      "higher_adrs_cited": [
+        "ADR-0349",
+        "ADR-0511",
+        "ADR-0514",
+        "ADR-0515",
+        "ADR-0379"
+      ]
+    },
+    {
+      "adr": "ADR-0182",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "N/S gateway vs E/W mesh separation. Accepted ADR-0632 amends ADR-0182; reverse edge already present (amended_by: [ADR-0632]) with last_reconciled/reconciled_with. No higher Accepted supersedes. Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0191",
+        "ADR-0203",
+        "ADR-0258",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0184",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Four-tier storage layering (OLTP / read-replica / cache / search). Higher ADRs 0192–0197 specialize backends within tiers; none supersede or amends 0184. No reverse supersedes/amends claims. Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0192",
+        "ADR-0193",
+        "ADR-0194",
+        "ADR-0195",
+        "ADR-0196",
+        "ADR-0197"
+      ]
+    },
+    {
+      "adr": "ADR-0185",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Workflow Studio client stack (per-surface native + OpenAPI unifier). Accepted ADR-0632 amends ADR-0185; reverse edge already present (amended_by: [ADR-0632]) with body reconciliation note. Higher 0204–0208 specialize canvas/editor/i18n/a11y/realtime without superseding. Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0204",
+        "ADR-0205",
+        "ADR-0206",
+        "ADR-0207",
+        "ADR-0208",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0186",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Observability backplane layering. Reverse amends from Proposed ADR-0263 (emission contract) and Proposed ADR-0341 (cell promotion gates; slug mislabel canary-cohort but number 0186) already listed in amended_by. Accepted ADR-0383 supersedes ADR-0042 and explicitly affirms 0186 as canonical LGTM architecture — does not supersede or amends 0186. No later Accepted supersedes. Leave Accepted (must-read with Proposed amends when they Accept; do not invent Accepted amender).",
+      "higher_adrs_cited": [
+        "ADR-0210",
+        "ADR-0263",
+        "ADR-0341",
+        "ADR-0383"
+      ]
+    },
+    {
+      "adr": "ADR-0188",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Passkey/WebAuthn L3 substrate + TOTP-only fallback + SMS reject. Sibling IdP ADR-0187 is Superseded by Accepted ADR-0476 (oya-identity); 0476/0507 reaffirm webauthn-rs as Phase-1 RP and carry Passkey first-factor without superseding or amends 0188 credential ladder. No reverse supersedes/amends on 0188. Body Zitadel RP host is host-plane drift only — frontmatter status remains correctly Accepted (do not rewrite body). Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0299",
+        "ADR-0476",
+        "ADR-0507"
+      ]
+    },
+    {
+      "adr": "ADR-0189",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "ACR classes routine/elevated/sensitive/critical + Cedar acr_required. Higher Accepted ADR-0191 consumes ACR at origin tier (related) without superseding or amends. No reverse supersedes/amends claims. Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0191"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/_disposition/band-0180-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0180",
+    "ADR-0181",
+    "ADR-0182",
+    "ADR-0184",
+    "ADR-0185",
+    "ADR-0186",
+    "ADR-0188",
+    "ADR-0189"
+  ],
+  "skipped_already_terminal": [
+    {
+      "adr": "ADR-0183",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0379"],
+      "note": "Not in Accepted/Proposed review set; frontmatter already terminal."
+    },
+    {
+      "adr": "ADR-0187",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0476"],
+      "note": "Not in Accepted/Proposed review set; frontmatter already terminal."
+    }
+  ]
+}

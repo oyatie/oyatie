@@ -10,7 +10,7 @@
   "authority_reviewed": [
     "HANDOFF.md",
     "docs/AGENTS.md",
-    "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "specs/root-hub-pointers.json"
   ],
   "change_class_id": "CC-3_manifest_preflight_consolidation",

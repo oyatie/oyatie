@@ -18,7 +18,7 @@
     ]
   },
   "changed_files": [
-    "docs/decisions/ADR-0008-data-use-boundary.md",
+    "docs/decisions/ADR-0709-general-live-apex.md",
     "docs/PRIVACY-PROGRAM.md",
     "docs/ADR-INDEX.md",
     "docs/machine-readable/decisions.json",
@@ -61,9 +61,9 @@
       "status": "pass"
     },
     {
-      "command": "node scripts/validate-adr-shape.mjs docs/decisions/ADR-0008-data-use-boundary.md",
+      "command": "node scripts/validate-adr-shape.mjs docs/decisions/ADR-0709-general-live-apex.md",
       "status": "pass",
-      "summary": "adr-shape ok: file=docs/decisions/ADR-0008-data-use-boundary.md status=Accepted sections=3"
+      "summary": "adr-shape ok: file=docs/decisions/ADR-0709-general-live-apex.md status=Accepted sections=3"
     },
     {
       "command": "node --check scripts/validate-adr-shape.mjs",

@@ -9,7 +9,7 @@ purpose: |
   Canonical i18n authoring + locale-routing standard. Sources of truth, grammar, plural/select rules,
   per-stack catalog generators, and required test recipes. Companion: a11y-canonical.md, rtl-rendering.md,
   locale-routing.md, wcag-2.2-aa-checklist.md.
-canonical_authority: docs/decisions/ADR-0206-i18n-substrate-fluent-icu.md
+canonical_authority: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 related_adrs:
   - ADR-0064
   - ADR-0185

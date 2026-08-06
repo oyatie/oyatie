@@ -135,79 +135,79 @@ The source architecture audit set includes the keystone synthesis, baseline corp
 
 ADR-0297 through ADR-0321 contains 25 files.
 ADR-0297 through ADR-0321 totals 62,493 lines in the live tree.
-ADR-0297 is docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md.
+ADR-0297 is docs/decisions/ADR-0700-ci-admission-live-apex.md.
 ADR-0297 has 3,114 lines.
 ADR-0297 matters because abuse defense became a baseline platform doctrine rather than a later operational add-on.
-ADR-0298 is docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md.
+ADR-0298 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0298 has 1,668 lines.
 ADR-0298 matters because life-safety bypass is the sharpest exception case for ordinary policy flows.
-ADR-0299 is docs/decisions/ADR-0299-account-recovery-resilience.md.
+ADR-0299 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0299 has 1,556 lines.
 ADR-0299 matters because account recovery is both a consumer trust surface and an enterprise security control.
-ADR-0300 is docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md.
+ADR-0300 is docs/decisions/ADR-0707-trust-safety-live-apex.md.
 ADR-0300 has 1,649 lines.
 ADR-0300 matters because anonymity cannot be retrofitted safely after audit and identity rules exist.
-ADR-0301 is docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md.
+ADR-0301 is docs/decisions/ADR-0707-trust-safety-live-apex.md.
 ADR-0301 has 1,533 lines.
 ADR-0301 matters because survivor-safety mode tests whether the platform handles adversarial insiders inside personal and family contexts.
-ADR-0302 is docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md.
+ADR-0302 is docs/decisions/ADR-0707-trust-safety-live-apex.md.
 ADR-0302 has 1,595 lines.
 ADR-0302 matters because inheritance and legacy contact flows cross identity, privacy, family, marketplace, and legal records.
-ADR-0303 is docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md.
+ADR-0303 is docs/decisions/ADR-0700-ci-admission-live-apex.md.
 ADR-0303 has 1,828 lines.
 ADR-0303 matters because decision resilience must support diminished capacity without silently transferring control to bad actors.
-ADR-0304 is docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md.
+ADR-0304 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0304 has 1,526 lines.
 ADR-0304 matters because regional packs collide unless conflict-resolution is explicit.
-ADR-0305 is docs/decisions/ADR-0305-delegated-agent-authority-chain.md.
+ADR-0305 is docs/decisions/ADR-0700-ci-admission-live-apex.md.
 ADR-0305 has 1,559 lines.
 ADR-0305 matters because agent authority must be bounded before AI workflows touch money, identity, regulated evidence, or safety.
-ADR-0306 is docs/decisions/ADR-0306-disaster-mode-cell-resilience.md.
+ADR-0306 is docs/decisions/ADR-0707-trust-safety-live-apex.md.
 ADR-0306 has 1,639 lines.
 ADR-0306 matters because disaster mode decides what survives when normal cells, networks, or approvals fail.
-ADR-0307 is docs/decisions/ADR-0307-detection-substrate-streaming-batch.md.
+ADR-0307 is docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 ADR-0307 has 1,865 lines.
 ADR-0307 matters because detection must serve both streaming prevention and batch audit.
-ADR-0308 is docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md.
+ADR-0308 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0308 has 1,903 lines.
 ADR-0308 matters because AI Act posture, model cards, dataset cards, drift detection, and rollback become first-class platform controls.
-ADR-0309 is docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md.
+ADR-0309 is docs/decisions/ADR-0700-ci-admission-live-apex.md.
 ADR-0309 has 1,782 lines.
 ADR-0309 matters because detection without fairness audit can become a civil-rights exposure.
-ADR-0310 is docs/decisions/ADR-0310-investigation-case-management.md.
+ADR-0310 is docs/decisions/ADR-0703-cas-cache-live-apex.md.
 ADR-0310 has 2,012 lines.
 ADR-0310 matters because investigations are durable evidence workflows, not ad hoc ticket folders.
-ADR-0311 is docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md.
+ADR-0311 is docs/decisions/ADR-0702-identity-authz-live-apex.md.
 ADR-0311 has 1,802 lines.
 ADR-0311 matters because the unified ecosystem cannot merge personal and work identity without hard tenant boundaries.
-ADR-0312 is docs/decisions/ADR-0312-court-warrant-scoped-piercing.md.
+ADR-0312 is docs/decisions/ADR-0700-ci-admission-live-apex.md.
 ADR-0312 has 1,509 lines.
 ADR-0312 matters because scoped piercing is the accountable alternative to broad administrative access.
-ADR-0313 is docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md.
+ADR-0313 is docs/decisions/ADR-0700-ci-admission-live-apex.md.
 ADR-0313 has 2,986 lines.
 ADR-0313 matters because real enterprises include subsidiaries, sovereign children, acquisitions, and delegated operating companies.
-ADR-0314 is docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md.
+ADR-0314 is docs/decisions/ADR-0705-product-protocol-live-apex.md.
 ADR-0314 has 1,800 lines.
 ADR-0314 matters because DealSet makes marketplace settlement broader than payment processing.
-ADR-0315 is docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md.
+ADR-0315 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0315 has 2,000 lines.
 ADR-0315 matters because SAP parity became a coverage doctrine rather than a vague ambition.
-ADR-0316 is docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md.
+ADR-0316 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0316 has 2,144 lines.
 ADR-0316 matters because capability tiers are the mechanism that prevents product-fragmentation from returning under a new name.
-ADR-0317 is docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md.
+ADR-0317 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0317 has 2,151 lines.
 ADR-0317 matters because role projection lets a single substrate feel native to very different jobs.
-ADR-0318 is docs/decisions/ADR-0318-collar-color-workspace-universality.md.
+ADR-0318 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0318 has 2,950 lines.
 ADR-0318 matters because the workplace model explicitly includes blue-collar, pink-collar, gray-collar, white-collar, field, deskless, executive, contractor, and mixed roles.
-ADR-0319 is docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md.
+ADR-0319 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0319 has 2,267 lines.
 ADR-0319 matters because the enterprise cannot collapse surfaces without maintaining regulated information barriers.
-ADR-0320 is docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md.
+ADR-0320 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0320 has 1,558 lines.
 ADR-0320 matters because transient identity roles are common and easy to mishandle.
-ADR-0321 is docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+ADR-0321 is docs/decisions/ADR-0709-general-live-apex.md.
 ADR-0321 has 16,097 lines.
 ADR-0321 matters because it maps B2B SaaS incumbent surfaces into the capability-tier and microservice coverage model.
 ADR-0321 is also the strongest example of why substance checks must follow volume.
@@ -1519,79 +1519,79 @@ Important retrospective lesson: renames and lifecycle transitions must be mechan
 
 ### §8.2 Root ADR cross-reference set
 
-ADR source: docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md.
+ADR source: docs/decisions/ADR-0700-ci-admission-live-apex.md.
 Retrospective use: abuse defense baseline; 3,114 lines; operational-edge doctrine.
 Wave-4 follow-up: ensure abuse-defense gates bind to code, policy, and detection.
-ADR source: docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: life-safety bypass; 1,668 lines; exception handling doctrine.
 Wave-4 follow-up: implement policy tests for emergency bypass and after-action evidence.
-ADR source: docs/decisions/ADR-0299-account-recovery-resilience.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: recovery resilience; 1,556 lines; trust and security workflow.
 Wave-4 follow-up: add account recovery test fixtures and adversarial scenarios.
-ADR source: docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md.
+ADR source: docs/decisions/ADR-0707-trust-safety-live-apex.md.
 Retrospective use: anonymity doctrine; 1,649 lines; protected disclosure model.
 Wave-4 follow-up: bind anonymity to policy, audit redaction, and legal hold exceptions.
-ADR source: docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md.
+ADR source: docs/decisions/ADR-0707-trust-safety-live-apex.md.
 Retrospective use: survivor safety; 1,533 lines; adversarial insider scenario.
 Wave-4 follow-up: implement survivor-mode UX and data-access denial tests.
-ADR source: docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md.
+ADR source: docs/decisions/ADR-0707-trust-safety-live-apex.md.
 Retrospective use: inheritance doctrine; 1,595 lines; legacy contact and legal access.
 Wave-4 follow-up: connect j07 and estate schemas to identity and tenancy code.
-ADR source: docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md.
+ADR source: docs/decisions/ADR-0700-ci-admission-live-apex.md.
 Retrospective use: diminished-capacity decision resilience; 1,828 lines.
 Wave-4 follow-up: add delegated decision guardrails and abuse prevention tests.
-ADR source: docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: conflict resolution; 1,526 lines; regional pack collision handling.
 Wave-4 follow-up: implement pack precedence validator.
-ADR source: docs/decisions/ADR-0305-delegated-agent-authority-chain.md.
+ADR source: docs/decisions/ADR-0700-ci-admission-live-apex.md.
 Retrospective use: delegated AI authority; 1,559 lines.
 Wave-4 follow-up: implement authority-chain proof objects and denial tests.
-ADR source: docs/decisions/ADR-0306-disaster-mode-cell-resilience.md.
+ADR source: docs/decisions/ADR-0707-trust-safety-live-apex.md.
 Retrospective use: disaster mode; 1,639 lines.
 Wave-4 follow-up: add disaster-mode state machine and cell drill tests.
-ADR source: docs/decisions/ADR-0307-detection-substrate-streaming-batch.md.
+ADR source: docs/decisions/ADR-0701-monorepo-capability-live-apex.md.
 Retrospective use: detection substrate; 1,865 lines.
 Wave-4 follow-up: implement streaming/batch split scaffolds and fairness hooks.
-ADR source: docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: AI Act model lifecycle; 1,903 lines.
 Wave-4 follow-up: implement model card and dataset card schemas.
-ADR source: docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md.
+ADR source: docs/decisions/ADR-0700-ci-admission-live-apex.md.
 Retrospective use: fairness audit; 1,782 lines.
 Wave-4 follow-up: add fairness audit evidence fixtures.
-ADR source: docs/decisions/ADR-0310-investigation-case-management.md.
+ADR source: docs/decisions/ADR-0703-cas-cache-live-apex.md.
 Retrospective use: investigation case management; 2,012 lines.
 Wave-4 follow-up: implement investigation case domain skeleton.
-ADR source: docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md.
+ADR source: docs/decisions/ADR-0702-identity-authz-live-apex.md.
 Retrospective use: personal/work identity boundary; 1,802 lines.
 Wave-4 follow-up: add dual-tenant identity policy tests.
-ADR source: docs/decisions/ADR-0312-court-warrant-scoped-piercing.md.
+ADR source: docs/decisions/ADR-0700-ci-admission-live-apex.md.
 Retrospective use: scoped lawful access; 1,509 lines.
 Wave-4 follow-up: implement warrant scope proof and audit event classes.
-ADR source: docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md.
+ADR source: docs/decisions/ADR-0700-ci-admission-live-apex.md.
 Retrospective use: conglomerate hierarchy; 2,986 lines.
 Wave-4 follow-up: implement tenant hierarchy fixtures for acquisitions and sovereign children.
-ADR source: docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md.
+ADR source: docs/decisions/ADR-0705-product-protocol-live-apex.md.
 Retrospective use: DealSet settlement; 1,800 lines.
 Wave-4 follow-up: implement minimal DealSet domain and workflow template validation.
-ADR source: docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: ERP parity; 2,000 lines.
 Wave-4 follow-up: scaffold ERP services and SAP migration journeys.
-ADR source: docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: capability-tier doctrine; 2,144 lines.
 Wave-4 follow-up: enforce registry/capability-tiers in CI.
-ADR source: docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: role-based UX shell; 2,151 lines.
 Wave-4 follow-up: bind UX shell projections to persona and service fixtures.
-ADR source: docs/decisions/ADR-0318-collar-color-workspace-universality.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: collar-color workspace universality; 2,950 lines.
 Wave-4 follow-up: test deskless, field, executive, and contractor journeys.
-ADR source: docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: information barrier doctrine; 2,267 lines.
 Wave-4 follow-up: normalize status if not already done and add barrier tests.
-ADR source: docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: transient identity; 1,558 lines.
 Wave-4 follow-up: normalize status casing if not already done and add lifecycle fixtures.
-ADR source: docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md.
+ADR source: docs/decisions/ADR-0709-general-live-apex.md.
 Retrospective use: B2B SaaS coverage; 16,097 lines.
 Wave-4 follow-up: reconcile 85 dossier count, 165 target, and 295 vendor registry rows.
 

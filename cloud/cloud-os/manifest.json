@@ -94,25 +94,25 @@
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0245",
       "title": "Substrate Vs Product Layering",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0254",
       "title": "Deployment Model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0254-deployment-model.md"
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0363",
       "title": "Retire Agentic VCS Platform To Intelligence On GitHub Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

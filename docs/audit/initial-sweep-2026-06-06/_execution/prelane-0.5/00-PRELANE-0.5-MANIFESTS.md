@@ -181,7 +181,7 @@ WIP gates per `UNIFIED-EXECUTION-PLAN.md §11`: **G2** = tools/ standing-excepti
 - `/Users/jasonlee/Developer/source/oya/ci-controller/crates/oya-ci-controller-kernel/src/lib.rs:171,471,484,982`
 - `/Users/jasonlee/Developer/source/.github/branch-protection.yaml:55-56`
 - `/Users/jasonlee/Developer/source/docs/DOC-CATALOG.md`, `/Users/jasonlee/Developer/source/docs/CHANGELOG.md`
-- `/Users/jasonlee/Developer/source/docs/decisions/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md`
+- `/Users/jasonlee/Developer/source/docs/decisions/ADR-0709-general-live-apex.md`
 - `/Users/jasonlee/Developer/linux/stack/kubernetes/Cargo.toml` (139 members)
 - `/Users/jasonlee/Developer/source/cloud/cloud-k8s/manifest.json` (bounded_context `cloud-compute`, 0 crates)
 - `libs/oya-governance-gate-catalog-domain/src/lib.rs:256-265` (gate command roster)

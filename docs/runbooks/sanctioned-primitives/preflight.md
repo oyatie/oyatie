@@ -7,7 +7,7 @@ status: active
 control_id: MISTAKES-LEDGER-CONTROL-1
 memory_ref: feedback_repeat_mistake_prevention
 audit_ref: evidence/audits/pipeline-maturity-audit-2026-05-15.md
-adr_ref: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
+adr_ref: docs/decisions/ADR-0709-general-live-apex.md
 ---
 
 # Foundry pipeline preflight

@@ -11,7 +11,7 @@ top_3_counterparts:
 coverage_bar: UNION (per ADR-0328 §D-5.4..§D-5.10)
 states_used: covered | partial | missing | out-of-scope-intentional
 canonical_anchors:
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md §D-5
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md §D-5
   - /Users/jasonlee/oyatie/docs/standards/brief-template.md §3.1
   - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/coherence-audit-2026-05-20.md (sibling audit)
   - /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md

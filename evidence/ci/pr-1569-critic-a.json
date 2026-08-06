@@ -18,7 +18,7 @@
     {
       "severity": "info",
       "claim": "ADR-0639 preserves singleton oya-ci-required and refuses second required context",
-      "evidence": "docs/decisions/ADR-0639 status + non-goals; amends ADR-0515 only for classified optional legs"
+      "evidence": "docs/adr-archive/ADR-0639-path-event-optional-legs-under-oya-ci-required.md status + non-goals; amends ADR-0515 only for classified optional legs"
     },
     {
       "severity": "info",

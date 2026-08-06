@@ -15,7 +15,7 @@
       "/specs/stop-conditions.json",
       "/specs/root-hub-pointers.json",
       "docs/AGENTS.md",
-      "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md"
+      "docs/decisions/ADR-0709-general-live-apex.md"
     ],
     "claim_stage": "plan-stage (NOT operational-stage). Stronger claims require IP-X10/X11/X12 dispatch + §11 lifecycle promotion of V-rows to verified-by-existing-CI."
   },

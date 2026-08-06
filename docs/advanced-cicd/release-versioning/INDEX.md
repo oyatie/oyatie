@@ -17,7 +17,7 @@ doc_status: published
 # Release-Versioning Policy — Index
 
 > **Status:** Accepted. **Owner:** `axis-foundry`. **Date:** 2026-05-12.
-> **Extends:** [ADR-0041](../../../docs/decisions/ADR-0041-branch-pipeline.md).
+> **Extends:** [ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md).
 
 ## Strategy + specs (lift to `oyatie/docs/release/`)
 

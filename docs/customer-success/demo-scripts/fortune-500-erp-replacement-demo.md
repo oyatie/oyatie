@@ -553,13 +553,13 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 
 ## References
 - Internal: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
-- Internal: `docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md`.
-- Internal: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
-- Internal: `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md`.
-- Internal: `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-- Internal: `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-- Internal: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
-- Internal: `docs/decisions/ADR-0263-observability-emission-contract.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- Internal: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- Internal: `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- Internal: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
+- Internal: `docs/decisions/ADR-0706-observability-live-apex.md`.
 - Internal: `specs/capability-tier-schema.json`.
 - Internal: `specs/pack-overlay-schema.json`.
 - Internal: `registry/capability-tiers/vendor-tier-mapping.yaml`.

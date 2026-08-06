@@ -1,0 +1,47 @@
+{
+  "band": [
+    210,
+    219
+  ],
+  "reviewed": [
+    "ADR-0210",
+    "ADR-0213"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0210",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "OTel tail-sampling (1% head + 100% error/p99/new-endpoint tail) remains live implement authority. Reverse-index: no higher Accepted ADR lists supersedes or amends ADR-0210. Higher peers only related/mention (ADR-0211 recipe cite; Rejected ADR-0263 emission contract related+D-8 honors 0210 without amends edge; Rejected ADR-0341 does not amends 0210). Aligns telemetry-first + FinOps north star; not obsolete vs 0515/0363/0562. Leave Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0211",
+        "ADR-0263",
+        "ADR-0273",
+        "ADR-0341",
+        "ADR-0186"
+      ]
+    },
+    {
+      "adr": "ADR-0213",
+      "status_before": "Rejected",
+      "status_after": "Accepted",
+      "action": "status Rejected\u2192Accepted; add amended_by: [ADR-0249]",
+      "reason": "End-state freeze bulk-Rejected Proposed 0213 with default note (not substance supersession). Later Accepted ADR-0249 frontmatter amends ADR-0213 (marketplace name reservation + plugin-app-store onto shared marketplace substrates) and body checklist requires reverse amended_by. No higher Accepted lists supersedes 0213 (0394/0562/0632 related or layout only). EaaS plugin-app-store + developer-sdk doctrine still-true design, sibling PR#143 substrate ADRs 0211\u20130212/0214\u20130219 Accepted, aligns in-house ecosystem north star. Rejected parent + Accepted amender is false live graph; re-Accept and mirror amended_by. Do not invent supersession by 0249 (amends, not supersedes).",
+      "higher_adrs_cited": [
+        "ADR-0249",
+        "ADR-0242",
+        "ADR-0394",
+        "ADR-0562",
+        "ADR-0632",
+        "ADR-0216"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/adr-archive/ADR-0213-ecosystem-as-a-service-architecture.md"
+  ],
+  "no_change": [
+    "ADR-0210"
+  ]
+}

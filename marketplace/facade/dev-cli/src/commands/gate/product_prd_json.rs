@@ -630,6 +630,7 @@ fn is_current_prd_reference_shape(reference: &str) -> bool {
         || lower.contains("load-test")
         || lower.contains("future oya-")
         || lower.contains("$ref:docs/decisions/")
+        || lower.contains("$ref:docs/adr-archive/")
         || [
             "crates/",
             "microservices/",
@@ -638,6 +639,7 @@ fn is_current_prd_reference_shape(reference: &str) -> bool {
             "specs/",
             "registry/",
             "docs/decisions/",
+            "docs/adr-archive/",
         ]
         .iter()
         .any(|prefix| trimmed.starts_with(prefix))

@@ -338,5 +338,5 @@ The SPF alignment verdict and DKIM signing-input material are domain aggregates,
 - RFC 6376 §5.4 — Last-occurrence rule for signed headers
 - `crates/oya-mail-domain/src/sending_domain_authentication.rs` — `DkimSigningAlgorithm`, `NON_CLAIM`, `normalized_domain()`
 - `crates/oya-mail-domain/src/governance.rs` — `organizational_domain()`, `int()` helper pattern
-- `docs/decisions/ADR-0506-aws-lc-rs-crypto.md` — cryptographic signing library (out of scope for this task; referenced for adapter contract)
-- `docs/decisions/ADR-0130-agentic-slo-gated-promotion.md` — SLO gate (no SLO change this task)
+- `docs/adr-archive/ADR-0506-aws-lc-rs-canonical-crypto-provider.md` — cryptographic signing library (out of scope for this task; referenced for adapter contract)
+- `docs/adr-archive/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md` — SLO gate (no SLO change this task)

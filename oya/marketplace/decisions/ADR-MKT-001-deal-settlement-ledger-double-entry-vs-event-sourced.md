@@ -5,16 +5,16 @@ status: Proposed
 date: 2026-05-20
 microservice: marketplace
 related_oyatie_adrs:
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0149-idempotency-keys-canonical.md
-  - docs/decisions/ADR-0153-outbox-pattern.md
-  - docs/decisions/ADR-0154-event-schema-versioning.md
-  - docs/decisions/ADR-0174-finops-cost-attribution-chargeback.md
-  - docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-  - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0704-k8s-port-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
 decision_owner: axis-marketplace
 ---
 
@@ -240,11 +240,11 @@ decision_owner: axis-marketplace
 
 ## References
 
-- Internal: docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-- Internal: docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-- Internal: docs/decisions/ADR-0149-idempotency-keys-canonical.md
-- Internal: docs/decisions/ADR-0153-outbox-pattern.md
-- Internal: docs/decisions/ADR-0222-saga-compensation-portfolio-policy.md
+- Internal: docs/decisions/ADR-0705-product-protocol-live-apex.md
+- Internal: docs/decisions/ADR-0705-product-protocol-live-apex.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0704-k8s-port-live-apex.md
 - Internal: microservices/marketplace/IP-journey-j103-deal-settlement-ledger.md
 - Stripe documentation: https://docs.stripe.com/connect/how-connect-works
 - Stripe platform and marketplace payments: https://stripe.com/connect

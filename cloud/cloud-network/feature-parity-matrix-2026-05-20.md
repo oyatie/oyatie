@@ -2,7 +2,7 @@
 
 ## Header anchor block
 
-1. Canonical sequence anchor: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-4146`.
+1. Canonical sequence anchor: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-4146`.
 2. Machine control anchor: `specs/master-plan-sequencing.json:704-868`.
 3. µservice PRD anchor: local `PRD.md` absent; purpose inferred from `microservices/cloud-network/retired tenant_class adoption artifact:7-10` and `docs/products/cloud/PRD.md:138-176`.
 4. µservice architecture anchor: local `ARCHITECTURE.md` absent; implementation shape inferred from `crates/oya-cloud-network-domain/src/lib.rs:1-7` and the VPC/LB/DNS API crates.

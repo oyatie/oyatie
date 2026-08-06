@@ -22,7 +22,7 @@ doc_status: published
 
 ## 1. Surface
 
-Search-axis ([ADR-0030](../../../docs/decisions/ADR-0030-search-engine-architecture.md)) — index pipeline, ranker, query planner, vector store ([ADR-0046](../../../docs/decisions/ADR-0046-vector-store-strategy.md)), backend ([ADR-0047](../../../docs/decisions/ADR-0047-search-backend-strategy.md)), Korean morphology ([ADR-0048](../../../docs/decisions/ADR-0048-korean-morphology-and-multilingual-tokenization.md)).
+Search-axis ([ADR-0030](../../../docs/adr-archive/ADR-0030-search-microservice-architecture.md)) — index pipeline, ranker, query planner, vector store ([ADR-0046](../../../docs/decisions/ADR-0709-general-live-apex.md)), backend ([ADR-0047](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)), Korean morphology ([ADR-0048](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 
 ## 2. Default rail per sub-surface
 
@@ -30,7 +30,7 @@ Search-axis ([ADR-0030](../../../docs/decisions/ADR-0030-search-engine-architect
 |---|---|
 | **Ranker (model swap)** | Dark-launch + canary + A/B cohort |
 | **Ranker (feature additions)** | Canary + A/B cohort |
-| **Index pipeline (schema change)** | Blue/green per index shard ([ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md)) |
+| **Index pipeline (schema change)** | Blue/green per index shard ([ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)) |
 | **Index pipeline (extraction)** | Canary with re-extract verification |
 | **Query planner** | Canary + dark-launch |
 | **Tokenizer (morphology)** | Blue/green per index |
@@ -50,7 +50,7 @@ Search-axis ([ADR-0030](../../../docs/decisions/ADR-0030-search-engine-architect
 | Query p95 latency | < 200 ms | 30 d |
 | Query availability | 99.95% | 30 d |
 | Ranker quality (nDCG@10) | ≥ baseline − 0.5% | per release |
-| Korean morphology accuracy ([ADR-0048](../../../docs/decisions/ADR-0048-korean-morphology-and-multilingual-tokenization.md)) | ≥ baseline | per release |
+| Korean morphology accuracy ([ADR-0048](../../../docs/decisions/ADR-0709-general-live-apex.md)) | ≥ baseline | per release |
 
 ## 5. Index migration
 

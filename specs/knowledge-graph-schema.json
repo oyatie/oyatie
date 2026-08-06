@@ -21,7 +21,7 @@
       "/registry/reusable-building-blocks-registry.json",
       "/specs/master-plan-sequencing.json",
       "/specs/hyperscaler-gates.json",
-      "docs/decisions/ADR-0015-architectural-flattening-target.md"
+      "docs/decisions/ADR-0709-general-live-apex.md"
     ],
     "enforcing_fitness_lane": "lean-a-knowledge-graph-integrity",
     "validator_crate": "crates/oya-check-knowledge-graph (planned)",

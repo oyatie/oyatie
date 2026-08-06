@@ -130,7 +130,7 @@ Real `json.load` over the live baseline searching for `office` in the floor gate
 - `cloud-ci-bnf-layer-suffix`: office keys = **[]**
 - `cloud-ci-manifest-hygiene`: office keys = **[]**
 - `cloud-ci-cargo-prefix`: office keys = **[]**
-- `cloud-ci-brand-residue`: 9 hits — but ALL are pre-existing docs/personas (`docs/decisions/ADR-0319-front-middle-back-office-…`, `docs/personas/office-manager-…`, etc.), NONE are the imported `oya-office-*` crate files.
+- `cloud-ci-brand-residue`: 9 hits — but ALL are pre-existing docs/personas (`docs/adr-archive/ADR-0319-front-middle-back-office-information-barrier.md `docs/personas/office-manager-…`, etc.), NONE are the imported `oya-office-*` crate files.
 
 **Conclusion:** because the crates were renamed + hygiene-fixed BEFORE import, they added ZERO floor-gate violation keys → the import did not RED any floor gate → no floor signoff was required (§1.4). The import DID add `oya/office/**` file paths to the *accounting* gate's RED-but-baselined codes (regen of `gate-baseline.generated.json`, 80 lines + `accounting-registry.generated.json`, 901 lines in `03e2a25e8`), then the faces-only settle (`18121e6ad`) converged registry-drift.
 

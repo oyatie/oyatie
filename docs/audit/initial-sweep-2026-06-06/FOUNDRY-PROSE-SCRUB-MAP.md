@@ -75,9 +75,9 @@ KEEP unchanged — editing these would erase the retirement record.
 
 | Family | Files / lines | Why KEEP |
 |---|---|---|
-| `docs/decisions/ADR-0335-foundry-microservice-retired-absorbed-by-intelligence.md` | body | the retirement decision itself; **slug = DEFER (0335)** |
-| `docs/decisions/ADR-0347-foundry-fitness-to-governance-bulk-rename.md` | body | bulk-rename decision; **slug = DEFER (0347)** |
-| `docs/decisions/ADR-0363-retire-agentic-vcs-foundry-to-intelligence-forgejo-substrate.md` | body | vcs retirement; **slug = DEFER (0363)** |
+| `docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md` | body | the retirement decision itself; **slug = DEFER (0335)** |
+| `docs/adr-archive/ADR-0347-governance-fitness-bulk-rename.md` | body | bulk-rename decision; **slug = DEFER (0347)** |
+| `docs/adr-archive/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md` | body | vcs retirement; **slug = DEFER (0363)** |
 | `docs/decisions/**` other ADR bodies citing foundry | 1,875 lines / 212 files | historical cross-refs documenting retirement chain |
 | `evidence/**`, `registry/check-empirical-evidence/**` | 343 lines | acceptance/empirical evidence of the retirement (`2026-05-16-m02-exit-on-prem-foundry-live.json`, `score-card-…-foundry-pr126.json`) |
 | `oya/intelligence/_legacy-foundry/` (3 files: README.md, manifest.json, scorecards/overrides.json) | KEEP (class B by design) | `_legacy-` prefix already marks it as a retirement archive; 0 content refs; dated 2026-05-21. The foundry name IS the archived subject. (Path is NOT a class-C rename target.) |
@@ -106,7 +106,7 @@ Path families. "Repoint" = files containing the family path string in CONTENT (e
 | C11 | `specs/microservices/foundry.json`, `specs/design-system/foundry-agent-run-timeline.json` | 2 | `intelligence.json`, `intelligence-agent-run-timeline.json` | 6 files | **WARN:** check if `.json` here regenerates (NOT *.generated.json, so likely hand-tracked) |
 | C12 | `oya/**/tests/foundry_*.rs`, `oya/developer-sdk/.../src/foundry_*.rs`, `libs/.../foundry_eval_run_api.rs` | ~16 test/src files | `intelligence_*.rs` test names | low external repoint (test fns) | rename test/src files (pairs with A) |
 | C13 | `docs/policies/foundry-supervisor.cedar`, `docs/decisions/templates/foundry-phase00-template.md`, `scripts/validate-foundry-phase00-evidence.mjs`, `docs/checklists/foundry-capability-publishing.md`, `docs/governance-lanes/foundry-corpus-citation.md` | ~5 | `intelligence-*` equivalents | per-file | rename + repoint (live policy/template/script) |
-| C14 | `docs/decisions/ADR-0335…md`, `ADR-0347…md`, `ADR-0363…md` (filenames carry foundry) | 3 | **DO NOT RENAME** | — | **DEFER** — these are 3 of the 6 founder-deferred slugs; filename rename = slug rename = founder gate |
+| C14 | `docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md `ADR-0347…md`, `ADR-0363…md` (filenames carry foundry) | 3 | **DO NOT RENAME** | — | **DEFER** — these are 3 of the 6 founder-deferred slugs; filename rename = slug rename = founder gate |
 | C15 | HISTORICAL path families (KEEP): `oya/intelligence/_legacy-foundry/` (3), `.omc/archive/**/ralplan-foundry-*` (7), `docs/raw/agentic-delivery-foundry-critical-challenge.md`, `docs/localization-packs/kr/evidence/foundry.md` | — | KEEP | — | class B-by-design (legacy/archive/raw/evidence) |
 
 **Class C live-rename paths (excl DEFER C14 + KEEP C15) ≈ 141 paths** across families C0–C13.

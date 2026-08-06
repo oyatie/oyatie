@@ -16,7 +16,7 @@ ADR-0523 edit) does NOT match the current dev HEAD:
 - `cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/` does NOT exist. Closest
   meta-gate accounting apps are `oya-cloud-ci-accounting-registry-app` and
   `oya-cloud-ci-total-accounting-app`.
-- `docs/decisions/ADR-0542/0543/0544/0523*` do NOT exist.
+- `docs/adr-archive/ADR-0542-cloud-intelligence-xproxy-parity-commissioning.md do NOT exist.
 
 Decision: the G013 metric (zero production stub/mock/TODO) is a property of current file
 contents, so I ran the static slop-hunt over the named directories that genuinely exist:

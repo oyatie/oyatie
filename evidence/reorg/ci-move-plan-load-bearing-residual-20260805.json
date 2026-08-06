@@ -83,8 +83,8 @@
     {
       "kind": "docs_history",
       "examples": [
-        "docs/decisions/ADR-0562-*.md narrative of load-bearing ci plan",
-        "docs/decisions/ADR-0563-*.md keystone plan citation"
+        "docs/adr-archive/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md narrative of load-bearing ci plan",
+        "docs/adr-archive/ADR-0563-rename-aware-path-keyed-ci-baseline-relabel.md keystone plan citation"
       ],
       "policy": "history citations OK after delete; do not treat as live SSOT"
     }

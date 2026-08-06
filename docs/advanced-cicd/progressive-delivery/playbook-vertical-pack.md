@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-Vertical regulatory packs ([ADR-0033](../../../docs/decisions/ADR-0033-vertical-industry-cloud-pack-architecture.md), [ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)): healthcare (HIPAA / KR-HIPAA-equivalent), fintech (KR-FSC / PCI-DSS), legal (privilege / hold), public-sector (KISA / FedRAMP-equivalent), education (FERPA-equivalent).
+Vertical regulatory packs ([ADR-0033](../../../docs/decisions/ADR-0709-general-live-apex.md), [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)): healthcare (HIPAA / KR-HIPAA-equivalent), fintech (KR-FSC / PCI-DSS), legal (privilege / hold), public-sector (KISA / FedRAMP-equivalent), education (FERPA-equivalent).
 
 ## 2. Default rail
 
@@ -29,9 +29,9 @@ Vertical regulatory packs ([ADR-0033](../../../docs/decisions/ADR-0033-vertical-
 
 - Data classification overrides.
 - Retention rules.
-- Cross-region residency rules ([ADR-0049](../../../docs/decisions/ADR-0049-cross-region-replication-and-residency.md)).
-- DSR / proof-of-erasure cascade ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
-- Cedar policy overlays ([ADR-0007](../../../docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md)).
+- Cross-region residency rules ([ADR-0049](../../../docs/decisions/ADR-0708-platform-foundations-live-apex.md)).
+- DSR / proof-of-erasure cascade ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)).
+- Cedar policy overlays ([ADR-0007](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)).
 
 **Canary** acceptable for pack additions that are purely *additive* (new audit fields, new DPA wording with no data-flow change).
 
@@ -43,7 +43,7 @@ Every regulated-pack update triggers a DPIA refresh:
 2. Re-evaluate purpose / proportionality / minimisation.
 3. Per-vertical regulator alignment check (KR-PIPC for healthcare; KR-FSC for fintech; etc.).
 4. Tenant DPA amendment (or notice-only update for non-material changes).
-5. DPIA artefact stored as D14 evidence; trust portal updated ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
+5. DPIA artefact stored as D14 evidence; trust portal updated ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)).
 
 `oya-governance-data-class` (existing) verifies DPIA presence.
 
@@ -71,7 +71,7 @@ Per-tenant rollback (default for regulated; per-tenant in [`blue-green-spec.md`]
 
 ## 7. DSR cascade verification
 
-Per [ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md), every pack update must re-verify the DSR cascade still completes within the per-vertical SLA (e.g. 30 d for healthcare). Re-verification = run a synthetic DSR end-to-end and capture proof-of-erasure.
+Per [ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md), every pack update must re-verify the DSR cascade still completes within the per-vertical SLA (e.g. 30 d for healthcare). Re-verification = run a synthetic DSR end-to-end and capture proof-of-erasure.
 
 ## 8. Audit-chain artefacts
 

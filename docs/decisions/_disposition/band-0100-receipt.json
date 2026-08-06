@@ -1,0 +1,78 @@
+{
+  "band": [100, 109],
+  "reviewed": [
+    "ADR-0100",
+    "ADR-0104",
+    "ADR-0105",
+    "ADR-0106",
+    "ADR-0108",
+    "ADR-0109"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0100",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Foundry Supervisor lean-a10 public-contract decision remains Accepted. No higher ADR lists supersedes:ADR-0100. Sibling ADR-0101/0102 are Superseded (foundry mountpoint/settings archive) but do not reverse-claim 0100. Live cites remain (e.g. ADR-0166 treats lean-A10 silent-regression invariant as closed by registry, not as supersession of 0100). Do not invent supersession without Accepted successor evidence.",
+      "higher_adrs_cited": ["ADR-0101", "ADR-0102", "ADR-0136", "ADR-0138", "ADR-0166", "ADR-0258", "ADR-0363"]
+    },
+    {
+      "adr": "ADR-0104",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Ecosystem-expansion principle (crate exists when ecosystem trigger exists; no premature shells) is still live doctrine. No higher ADR supersedes or amends ADR-0104. Later layer/layout ADRs (0105+) relate_to it only.",
+      "higher_adrs_cited": ["ADR-0105", "ADR-0107", "ADR-0108", "ADR-0109", "ADR-0173"]
+    },
+    {
+      "adr": "ADR-0105",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "13-value layer enum remains live Accepted authority with complete amended_by already listing Accepted peers ADR-0106, ADR-0565, ADR-0632 (plus historical ADR-0107 which this ADR supersedes). No later Accepted supersedes ADR-0105. Live resolution requires reading parent with amended_by peers — frontmatter already encodes that.",
+      "higher_adrs_cited": ["ADR-0106", "ADR-0107", "ADR-0550", "ADR-0565", "ADR-0632"]
+    },
+    {
+      "adr": "ADR-0106",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "application→usecase rename remains terminal Accepted SSOT of the layer-enum amendment chain (0056→0105→0106). No higher Accepted ADR supersedes or amends ADR-0106 (ADR-0257 amends a differently-named ontology ADR-0106 id collision in Proposed draft only — not this file). Parent ADR-0105 already records amended_by:ADR-0106.",
+      "higher_adrs_cited": ["ADR-0107", "ADR-0122", "ADR-0257", "ADR-0562"]
+    },
+    {
+      "adr": "ADR-0108",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Sunset→deprecation→removal machine-readable schema remains load-bearing Pattern-B lifecycle authority. ADR-0109 is complementary framework (not supersession); both ADRs document co-existence. Heavily cited as live by later Accepted ADRs (0329–0349 cluster). No reverse supersedes/amends edges missing.",
+      "higher_adrs_cited": ["ADR-0109", "ADR-0118", "ADR-0257", "ADR-0329", "ADR-0330", "ADR-0340", "ADR-0346", "ADR-0349"]
+    },
+    {
+      "adr": "ADR-0109",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Generic lifecycle-automation framework remains Accepted; complementary to ADR-0108 (Pattern A vs Pattern B), not a replacement. ADR-0634 still cites ADR-0109 for declared doc lifecycle transitions. No higher Accepted supersedes or amends ADR-0109.",
+      "higher_adrs_cited": ["ADR-0257", "ADR-0634"]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0100",
+    "ADR-0104",
+    "ADR-0105",
+    "ADR-0106",
+    "ADR-0108",
+    "ADR-0109"
+  ],
+  "band_notes": {
+    "skipped_not_accepted_or_proposed": [
+      {"adr": "ADR-0101", "status": "Superseded", "note": "superseded_by empty; Wave D3 queue outside this task"},
+      {"adr": "ADR-0102", "status": "Superseded", "note": "superseded_by empty; Wave D3 queue outside this task"},
+      {"adr": "ADR-0103", "status": "Superseded", "note": "superseded_by [ADR-0116, ADR-0363] already set"},
+      {"adr": "ADR-0107", "status": "Superseded", "note": "superseded_by ADR-0105 already set"}
+    ]
+  }
+}

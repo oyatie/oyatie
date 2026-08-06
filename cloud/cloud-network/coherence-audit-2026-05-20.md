@@ -2,7 +2,7 @@
 
 ## Header anchor block
 
-1. Canonical sequence anchor: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-4146`, especially §D-15 multi-context, §D-16 OpenTofu, §D-17 OS matrix, §D-18 Rust-strict, §D-19 OCI Always Free, and §D-20 audit decision tree.
+1. Canonical sequence anchor: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-4146`, especially §D-15 multi-context, §D-16 OpenTofu, §D-17 OS matrix, §D-18 Rust-strict, §D-19 OCI Always Free, and §D-20 audit decision tree.
 2. Machine control anchor: `specs/master-plan-sequencing.json:704-868` for `deployment_contexts`, `iac_substrate`, `supported_oses`, `language_policy`, and `oci_always_free`.
 3. µservice PRD anchor: `microservices/cloud-network/PRD.md` is absent from the complete path inventory; equivalent product-purpose evidence was read from `microservices/cloud-network/retired tenant_class adoption artifact:7-10` and `docs/products/cloud/PRD.md:138-176`.
 4. µservice architecture anchor: `microservices/cloud-network/ARCHITECTURE.md` is absent from the complete path inventory; equivalent implementation-shape evidence was read from `crates/oya-cloud-network-domain/src/lib.rs:1-7`, `crates/oya-cloud-network-vpc-api/src/lib.rs:1-17`, `crates/oya-cloud-network-lb-api/src/lib.rs:1-16`, and `crates/oya-cloud-network-dns-api/src/lib.rs:1-16`.
@@ -126,12 +126,12 @@
 - D1-12 Broken internal reference not found: no target-path doc links to `PRD.md`; the absence is a missing anchor rather than a broken link.
 - D1-13 Broken internal reference not found: no target-path doc links to `ARCHITECTURE.md`; the absence is a missing anchor rather than a broken link.
 - D1-14 Wrong-direction reference: docs explain APIs and runbooks before the ownership folder has a product PRD, forcing readers to infer product boundaries from downstream artifacts.
-- D1-15 Contradiction probe 1: tenant_class matrix demo_trial says shared region VPC on AWS/GCP (`retired tenant_class adoption artifact:12-27`), while ADR-0328 D-19 says OCI demo_trial tenant_class for guest-on-oci must mean Always Free, not just a shared AWS/GCP network profile (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3418-3438`).
-- D1-16 Contradiction probe 2: FAQ says cloud-network wraps and unifies AWS/GCP/Azure network constructs through Crossplane/cloud-iac (`faqs/network-engineer-faq.md:7-11`), while D-15 says cloud-network owns portable VPC-equivalent semantics, not provider route-table vocabulary (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2058-2059`).
-- D1-17 Contradiction probe 3: migration playbook says provisioning creates the underlying AWS VPC through cloud-iac + Crossplane (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`), while D-16 mandates OpenTofu and forbids substituting other IaC engines (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2243-2249`).
-- D1-18 Contradiction probe 4: benchmark reproducibility says `make benchmarks.cloud-network.run` (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`), while D-18 canonical backend invocation is Cargo over Rust crates, not Make as a release/build control surface (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3247`).
-- D1-19 Contradiction probe 5: onboarding uses `make dev-cell.up` and `make dev-tenant.create` (`onboarding/network-engineer-first-week.md:21-26`), which is not aligned with D-18 canonical build and release invocation (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3247`).
-- D1-20 Contradiction probe 6: tutorial uses `make dev-cell.up` and `kubectl` as the first setup lane (`tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`), but D-16 requires deployment plan/apply to be mediated through OpenTofu and cloud-iac (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2436-2456`).
+- D1-15 Contradiction probe 1: tenant_class matrix demo_trial says shared region VPC on AWS/GCP (`retired tenant_class adoption artifact:12-27`), while ADR-0328 D-19 says OCI demo_trial tenant_class for guest-on-oci must mean Always Free, not just a shared AWS/GCP network profile (`docs/decisions/ADR-0700-ci-admission-live-apex.md:3418-3438`).
+- D1-16 Contradiction probe 2: FAQ says cloud-network wraps and unifies AWS/GCP/Azure network constructs through Crossplane/cloud-iac (`faqs/network-engineer-faq.md:7-11`), while D-15 says cloud-network owns portable VPC-equivalent semantics, not provider route-table vocabulary (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2058-2059`).
+- D1-17 Contradiction probe 3: migration playbook says provisioning creates the underlying AWS VPC through cloud-iac + Crossplane (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`), while D-16 mandates OpenTofu and forbids substituting other IaC engines (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2243-2249`).
+- D1-18 Contradiction probe 4: benchmark reproducibility says `make benchmarks.cloud-network.run` (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`), while D-18 canonical backend invocation is Cargo over Rust crates, not Make as a release/build control surface (`docs/decisions/ADR-0700-ci-admission-live-apex.md:3215-3247`).
+- D1-19 Contradiction probe 5: onboarding uses `make dev-cell.up` and `make dev-tenant.create` (`onboarding/network-engineer-first-week.md:21-26`), which is not aligned with D-18 canonical build and release invocation (`docs/decisions/ADR-0700-ci-admission-live-apex.md:3215-3247`).
+- D1-20 Contradiction probe 6: tutorial uses `make dev-cell.up` and `kubectl` as the first setup lane (`tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`), but D-16 requires deployment plan/apply to be mediated through OpenTofu and cloud-iac (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2436-2456`).
 - D1-21 Contradiction probe 7: FAQ promises VPC Flow Log style visibility and audit projections (`faqs/network-engineer-faq.md:96-105`), but the target path has no SLO, event contract, dashboard, or observability schema file.
 - D1-22 Contradiction probe 8: FAQ gives p99 tenant_class latency values (`faqs/network-engineer-faq.md:117-120`), but the target path has no `slos/*.openslo.yaml`.
 - D1-23 Contradiction probe 9: tenant_class matrix says every flow is illegitimate unless it traverses cloud-network (`retired tenant_class adoption artifact:7-10`), but there is no `failure-modes.md` defining bypass detection or enforcement response.
@@ -271,7 +271,7 @@
 
 ### §3.4 Dimension 4 — canonical-direction alignment
 
-- D4-01 Multi-context constraint source: ADR-0328 D-15 requires all six contexts for every µservice unless N/A is explicit (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1736`).
+- D4-01 Multi-context constraint source: ADR-0328 D-15 requires all six contexts for every µservice unless N/A is explicit (`docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1736`).
 - D4-02 Multi-context status: drifted-fixable because no local context matrix or `iac/<context>/` directory exists.
 - D4-03 Public-cloud context: missing local IaC and missing support declaration.
 - D4-04 Guest-on-AWS context: missing local IaC and missing support declaration.
@@ -279,25 +279,25 @@
 - D4-06 On-prem context: missing local IaC and missing support declaration.
 - D4-07 Colo context: missing local IaC and missing support declaration.
 - D4-08 Oyatie-as-cloud-provider context: missing local IaC and missing support declaration.
-- D4-09 OpenTofu constraint source: ADR-0328 D-16 says OpenTofu, not Terraform, Pulumi, or CloudFormation (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2243-2249`).
+- D4-09 OpenTofu constraint source: ADR-0328 D-16 says OpenTofu, not Terraform, Pulumi, or CloudFormation (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2243-2249`).
 - D4-10 OpenTofu status: drifted-fixable because the folder contains no OpenTofu modules and uses Crossplane language in FAQ/migration.
 - D4-11 OpenTofu positive: no Terraform/Pulumi/CloudFormation files or forbidden patterns were found in the target path.
 - D4-12 OpenTofu negative: absence of forbidden files does not satisfy required per-context modules.
 - D4-13 OpenTofu negative: FAQ says Crossplane/cloud-iac wrapper (`faqs/network-engineer-faq.md:7-11`).
 - D4-14 OpenTofu negative: migration says underlying AWS VPC via cloud-iac + Crossplane (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`).
-- D4-15 OS support source: ADR-0328 D-17 requires supported OS manifests for binaries, daemons, controllers, and native bundles (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2646-3044`).
+- D4-15 OS support source: ADR-0328 D-17 requires supported OS manifests for binaries, daemons, controllers, and native bundles (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2646-3044`).
 - D4-16 OS support status: drifted-fixable because no `supported-oses.json` or equivalent manifest exists.
 - D4-17 OS positive: no out-of-scope OS claims were found in the target path.
 - D4-18 OS negative: no Tier-1 OS package/test/CI coverage is declared.
-- D4-19 Rust-strict source: ADR-0328 D-18 requires Rust backend/runtime/CLI/validation/codegen/scripting/CI, with narrow non-Rust exceptions (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3045-3247`).
+- D4-19 Rust-strict source: ADR-0328 D-18 requires Rust backend/runtime/CLI/validation/codegen/scripting/CI, with narrow non-Rust exceptions (`docs/decisions/ADR-0700-ci-admission-live-apex.md:3045-3247`).
 - D4-20 Rust-strict status: aligned for files present in target path because only Markdown exists.
 - D4-21 Rust-strict positive: Rust SDK reference uses Rust and Cargo (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`; `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-191`).
 - D4-22 Rust-strict concern: durable docs still use Make as primary setup/benchmark commands.
-- D4-23 OCI Always Free source: ADR-0328 D-19 says guest-on-oci demo_trial means Always Free, not a generic free-trial abstraction (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3418-3438`).
+- D4-23 OCI Always Free source: ADR-0328 D-19 says guest-on-oci demo_trial means Always Free, not a generic free-trial abstraction (`docs/decisions/ADR-0700-ci-admission-live-apex.md:3418-3438`).
 - D4-24 OCI Always Free status: drifted-fixable because no `iac/guest-on-oci/always-free/` exists and demo_trial tenant_class does not mention OCI Always Free.
 - D4-25 OCI positive: no incompatible parallel "free tier" naming was found.
 - D4-26 OCI negative: demo_trial is described as shared AWS/GCP region VPC with 100 Mbps and 5 GB/day, not as an OCI Always Free constrained deployment (`retired tenant_class adoption artifact:12-27`).
-- D4-27 D-20 audit decision tree source: ADR-0328 D-20 requires language scan, OpenTofu module evidence, OS manifest evidence, tenant onboarding evidence, and context support (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:4120-4146`).
+- D4-27 D-20 audit decision tree source: ADR-0328 D-20 requires language scan, OpenTofu module evidence, OS manifest evidence, tenant onboarding evidence, and context support (`docs/decisions/ADR-0700-ci-admission-live-apex.md:4120-4146`).
 - D4-28 D-20 status: current ownership folder can supply tenant onboarding evidence but not language build, OpenTofu, or OS manifest evidence.
 - D4-29 Documentation-rigor source: every µservice must answer ADR-adherence checklist questions in `ARCHITECTURE.md` or `compliance.md` (`docs/standards/documentation-rigor.md:222-260`).
 - D4-30 Documentation-rigor status: incoherent inside ownership path because neither file exists.
@@ -377,7 +377,7 @@
 
 ### §3.6 Dimension 6 — multi-context deployment support
 
-- D6-01 ADR-0328 D-15 requires the six context IDs `oyatie-public-cloud`, `guest-on-aws`, `guest-on-oci`, `on-prem`, `colo`, and `oyatie-as-cloud-provider` (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1736`).
+- D6-01 ADR-0328 D-15 requires the six context IDs `oyatie-public-cloud`, `guest-on-aws`, `guest-on-oci`, `on-prem`, `colo`, and `oyatie-as-cloud-provider` (`docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1736`).
 - D6-02 Master plan repeats those six context IDs in machine-readable form (`specs/master-plan-sequencing.json:704-745`).
 - D6-03 `oyatie-public-cloud`: not documented in target path.
 - D6-04 `oyatie-public-cloud`: missing `iac/oyatie-public-cloud/`.
@@ -410,7 +410,7 @@
 - D6-31 Forbidden pattern: cloud vendor APIs in docs are mostly migration/operator examples, not business logic code.
 - D6-32 Forbidden pattern risk: FAQ frames cloud-network as wrapping AWS/GCP/Azure network constructs, which encourages provider vocabulary leakage (`faqs/network-engineer-faq.md:7-11`).
 - D6-33 Forbidden pattern risk: migration playbook provisions underlying AWS VPC through Crossplane (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`).
-- D6-34 D-15 specifically says cloud-network should own portable VPC-equivalent semantics, not provider route-table vocabulary (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2058-2059`).
+- D6-34 D-15 specifically says cloud-network should own portable VPC-equivalent semantics, not provider route-table vocabulary (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2058-2059`).
 - D6-35 Current artifacts do not prove multi-context deployability.
 - D6-36 Current artifacts prove only provider-adjacent training and operations substance.
 - D6-37 The runbooks are operationally context-light: they use cells, tenants, dashboards, and Kubernetes namespace, but not the six canonical contexts.
@@ -430,8 +430,8 @@
 
 ### §3.7 Dimension 7 — OpenTofu IaC coverage
 
-- D7-01 ADR-0328 D-16 mandates OpenTofu as the only IaC substrate for in-scope cloud deployment modules (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2241-2249`).
-- D7-02 ADR-0328 D-16 requires per-service/per-context directories and required files such as `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, and README (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2309`).
+- D7-01 ADR-0328 D-16 mandates OpenTofu as the only IaC substrate for in-scope cloud deployment modules (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2249`).
+- D7-02 ADR-0328 D-16 requires per-service/per-context directories and required files such as `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, and README (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2275-2309`).
 - D7-03 Directory inventory: no `iac/` directory exists under `microservices/cloud-network/`.
 - D7-04 `iac/oyatie-public-cloud/`: absent.
 - D7-05 `iac/guest-on-aws/`: absent.
@@ -477,13 +477,13 @@
 - D7-45 No provisioner pattern was found.
 - D7-46 No `tfstate` pattern was found.
 - D7-47 Crossplane appears in FAQ and migration docs and should be removed or reframed (`faqs/network-engineer-faq.md:7-11`; `migration-playbooks/from-aws-vpc-and-istio.md:44-60`).
-- D7-48 D-16 classifies missing OpenTofu modules as P1/P2 depending scope; for this infrastructure substrate it is P1 (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2577-2581`).
+- D7-48 D-16 classifies missing OpenTofu modules as P1/P2 depending scope; for this infrastructure substrate it is P1 (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2577-2581`).
 - D7-49 Remediation: create per-context OpenTofu modules and make cloud-iac own orchestration while cloud-network owns portable inputs/outputs.
 - D7-50 Dimension verdict: P1 missing OpenTofu coverage.
 
 ### §3.8 Dimension 8 — OS support matrix
 
-- D8-01 ADR-0328 D-17 requires Tier-1/Tier-2 OS support declarations and test/package lanes (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2646-3044`).
+- D8-01 ADR-0328 D-17 requires Tier-1/Tier-2 OS support declarations and test/package lanes (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2646-3044`).
 - D8-02 `supported-oses.json`: absent.
 - D8-03 Equivalent `supported_oses` manifest field: absent in target path.
 - D8-04 Manifest format: absent.
@@ -536,7 +536,7 @@
 
 ### §3.9 Dimension 9 — Rust-strict language coverage
 
-- D9-01 ADR-0328 D-18 requires Rust for backend, runtime, CLI, validation, codegen, scripting, and CI control surfaces (`docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3045-3247`).
+- D9-01 ADR-0328 D-18 requires Rust for backend, runtime, CLI, validation, codegen, scripting, and CI control surfaces (`docs/decisions/ADR-0700-ci-admission-live-apex.md:3045-3247`).
 - D9-02 Target-path forbidden language scan found no `*.py`.
 - D9-03 Target-path forbidden language scan found no `*.js`.
 - D9-04 Target-path forbidden language scan found no `*.ts`.
@@ -593,21 +593,21 @@
 |---|---|---|---|---|
 | P1 | D1/D3 | Ownership path lacks `PRD.md`, so product requirements cannot be built from the target folder. | `docs/standards/documentation-rigor.md:183-183`; §2 inventory | Add a 1,500+ line cloud-network PRD or equivalent machine-owned product artifact with target users, requirements, metrics, compliance, and scope. |
 | P1 | D1/D3 | Ownership path lacks `ARCHITECTURE.md`, so module boundaries, Cedar gates, tenant scoping, deployment shape, and observability are not locally answered. | `docs/standards/documentation-rigor.md:189-189`; `docs/standards/documentation-rigor.md:222-260`; §2 inventory | Add architecture deep dive linking domain crate, VPC/LB/DNS API crates, OpenAPI contracts, IaC, and runbooks. |
-| P1 | D6/D7 | No `iac/<context>/` directories exist for any of six required contexts. | `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-1736`; `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2309`; §2 inventory | Add OpenTofu modules for all supported contexts or explicit N/A records with D-15-compliant reasons. |
-| P1 | D7 | Crossplane language conflicts with OpenTofu-only doctrine. | `faqs/network-engineer-faq.md:7-11`; `migration-playbooks/from-aws-vpc-and-istio.md:44-60`; `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2243-2249` | Rewrite provider-wrapper sections as portable cloud-network semantics plus OpenTofu context adapters. |
-| P1 | D8 | No supported OS manifest exists. | `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2646-3044`; §2 inventory | Add `supported-oses.json` with Tier-1/Tier-2 rows, package formats, arch, CI lanes, and exclusions. |
-| P1 | D4/D6 | OCI demo_trial tenant_class does not reconcile to Always Free and no `iac/guest-on-oci/always-free/` exists. | `retired tenant_class adoption artifact:12-27`; `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3418-3438`; §2 inventory | Define OCI demo_trial tenant_class as Always Free and split paid OCI capacity into paid tenant_class. |
+| P1 | D6/D7 | No `iac/<context>/` directories exist for any of six required contexts. | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1736`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:2275-2309`; §2 inventory | Add OpenTofu modules for all supported contexts or explicit N/A records with D-15-compliant reasons. |
+| P1 | D7 | Crossplane language conflicts with OpenTofu-only doctrine. | `faqs/network-engineer-faq.md:7-11`; `migration-playbooks/from-aws-vpc-and-istio.md:44-60`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:2243-2249` | Rewrite provider-wrapper sections as portable cloud-network semantics plus OpenTofu context adapters. |
+| P1 | D8 | No supported OS manifest exists. | `docs/decisions/ADR-0700-ci-admission-live-apex.md:2646-3044`; §2 inventory | Add `supported-oses.json` with Tier-1/Tier-2 rows, package formats, arch, CI lanes, and exclusions. |
+| P1 | D4/D6 | OCI demo_trial tenant_class does not reconcile to Always Free and no `iac/guest-on-oci/always-free/` exists. | `retired tenant_class adoption artifact:12-27`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:3418-3438`; §2 inventory | Define OCI demo_trial tenant_class as Always Free and split paid OCI capacity into paid tenant_class. |
 | P1 | D5 | Counterpart union coverage is partial; IPAM, private endpoint, transit hub, diagnostics, traffic mirroring, firewall hierarchy, and quota models are missing locally. | AWS/GCP/Azure official sources listed in header; `crates/oya-cloud-network-domain/src/lib.rs:1-7`; §3.5 | Create a parity backlog and map each missing capability to Rust API, OpenTofu, SLO, and runbook owners. |
 | P1 | D2 | External contracts and runtime crates exist, but the ownership folder does not link them through README/PRD/ARCH. | `docs/machine-readable/contracts.json:659-692`; `registry/openapi/runtime-bindings.tsv:15-17`; §2 inventory | Add a local artifact map with canonical inbound/outbound edges. |
 | P2 | D1/D3 | Benchmark claims measured results but named evidence path was not present during audit. | `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:3-17`; `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-101` | Reclassify as target/projection or add signed benchmark evidence with OS/arch/context/tenant disclosure. |
-| P2 | D9 | Make-first setup and benchmark commands drift from Rust-strict canonical invocation. | `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`; `onboarding/network-engineer-first-week.md:21-26`; `tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`; `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3215-3247` | Replace or subordinate Make commands behind Cargo/OpenTofu/Oya command surfaces. |
+| P2 | D9 | Make-first setup and benchmark commands drift from Rust-strict canonical invocation. | `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`; `onboarding/network-engineer-first-week.md:21-26`; `tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:3215-3247` | Replace or subordinate Make commands behind Cargo/OpenTofu/Oya command surfaces. |
 | P2 | D3 | No local SLO artifact exists despite p99 claims. | `faqs/network-engineer-faq.md:117-120`; §2 inventory | Add `slos/cloud-network.openslo.yaml` or equivalent governed SLO artifact. |
 | P2 | D3 | No capacity model exists despite throughput and BGP claims. | `retired tenant_class adoption artifact:23-80`; §2 inventory | Add capacity model with bandwidth, route scale, flow scale, tenant limits, and context overlays. |
 | P2 | D3 | No cost budget exists despite benchmark TCO claims. | `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:60-71`; §2 inventory | Add per-context cost budget and OCI Always Free budget guardrails. |
 | P2 | D2/D3 | Cross-service handoffs are operationally referenced but not governed in `cross-microservice-handoffs.md`. | `runbooks/ddos-mitigation-engagement.md:249-262`; `runbooks/mtls-handshake-failure-cascade.md:252-264`; §2 inventory | Add handoff doc for cloud-kms, cloud-iam, cloud-network-dns, cloud-iac, observability, and audit-chain. |
 | P2 | D6 | On-prem and colo are hinted but not buildable. | `faqs/network-engineer-faq.md:89-93`; `retired tenant_class adoption artifact:55-80`; §2 inventory | Add per-context deployment matrix and IaC modules. |
-| P2 | D1 | FAQ frames product as provider wrapper, which conflicts with portable semantics. | `faqs/network-engineer-faq.md:7-11`; `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2058-2059` | Rewrite as portable VPC-equivalent API with context-specific adapters. |
-| P3 | D9 | No forbidden source-language files were present in target path. | §2 inventory; `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3085-3107` | Keep the path Markdown/Rust/OpenTofu-only and add a scan lane. |
+| P2 | D1 | FAQ frames product as provider wrapper, which conflicts with portable semantics. | `faqs/network-engineer-faq.md:7-11`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:2058-2059` | Rewrite as portable VPC-equivalent API with context-specific adapters. |
+| P3 | D9 | No forbidden source-language files were present in target path. | §2 inventory; `docs/decisions/ADR-0700-ci-admission-live-apex.md:3085-3107` | Keep the path Markdown/Rust/OpenTofu-only and add a scan lane. |
 | P3 | D3 | Runbooks are substantive and exceed line floor. | `runbooks/cross-cell-routing-stall.md:1-270`; `runbooks/ddos-mitigation-engagement.md:1-268`; `runbooks/mtls-handshake-failure-cascade.md:1-271`; `docs/standards/documentation-rigor.md:185-185` | Preserve runbook quality while wiring them to PRD/ARCH/SLO artifacts. |
 | P3 | D3/D9 | Rust SDK reference aligns with Rust-strict direction. | `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:6-24`; `reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-191` | Link it from architecture as an example, not the canonical contract. |
 

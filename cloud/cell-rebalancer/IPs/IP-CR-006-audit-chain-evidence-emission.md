@@ -20,20 +20,20 @@ source_adr: ADR-0276
 - The plan is accepted only when it preserves ADR-0276 D-2 bounded context and does not leak cell identity or first-time placement into this service.
 
 ## Authority
-- ADR-0276: docs/decisions/ADR-0276-cell-rebalancer-and-cell-lifecycle-microservices.md
-- ADR-0273: docs/decisions/ADR-0273-autosharding-auto-rebalance-dynamic-sharding.md
-- ADR-0266: docs/decisions/ADR-0266-cellular-promotion-gates-explicit-tier-criteria.md
-- ADR-0333: docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md
-- ADR-0099: docs/decisions/ADR-0099-per-microservice-flat-layout.md
-- ADR-0207: docs/decisions/ADR-0207-compliance-pack-cell-certification-levels.md
-- ADR-0203: docs/decisions/ADR-0203-self-hosting-self-modification-doctrine.md
-- ADR-0217: docs/decisions/ADR-0217-observability-emission-contract.md
-- ADR-0265: docs/decisions/ADR-0265-capacity-model-per-microservice-manifest.md
-- ADR-0268: docs/decisions/ADR-0268-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md
-- ADR-0267: docs/decisions/ADR-0267-api-versioning-hybrid-date-public-semver-sdk.md
-- ADR-0209: docs/decisions/ADR-0209-network-topology-edge-service-mesh.md
-- ADR-0079: docs/decisions/ADR-0079-13-layer-enum-and-check-family-patterns.md
-- ADR-0269: docs/decisions/ADR-0269-sustainability-finops-dimensional-model.md
+- ADR-0276: docs/adr-archive/ADR-0276-backup-portability-format-gdpr-article-20.md
+- ADR-0273: docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md
+- ADR-0266: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0333: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- ADR-0099: docs/adr-archive/ADR-0099-cedar-policy-extend-supervisor-capabilities.md
+- ADR-0207: docs/adr-archive/ADR-0207-accessibility-wcag-2-2-aa.md
+- ADR-0203: docs/adr-archive/ADR-0203-documentation-engine-three-tier.md
+- ADR-0217: docs/adr-archive/ADR-0217-vertical-slice-rollout-order.md
+- ADR-0265: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0268: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0267: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0209: docs/adr-archive/ADR-0209-compliance-evidence-automation.md
+- ADR-0079: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0269: docs/decisions/ADR-0709-general-live-apex.md
 
 ## Decisions
 - D-001: Create, validate, start, transition, abort, rollback, partial success, failure, and completion are separate event classes.

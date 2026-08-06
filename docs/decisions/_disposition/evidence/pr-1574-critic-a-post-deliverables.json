@@ -1,0 +1,117 @@
+{
+  "pr": 1574,
+  "critic": "A",
+  "pass": "post-deliverables",
+  "verdict": "APPROVE",
+  "real": true,
+  "lenses": [
+    "cartesian",
+    "red_team",
+    "essentialism"
+  ],
+  "head": "ab7aeb0d4187f151dc6b5b062f0e4dbe970f92af",
+  "compared_to": "origin/dev",
+  "scope_note": "Re-verify after board-sync deliverables fix (4718c6613) + MASTERPLAN rematerialize (17ad2138e) + follow-on tip CI remediations (fd98f788b, ab7aeb0d4). User expected ~17ad2138e; tip advanced.",
+  "summary": "Live SoT is exactly 10 Accepted apex ADRs under docs/decisions; each has planning_impact:true, milestone W0, and one complete D1 deliverable. planning_authority.bound_adrs equals ADR-0700..0709. No *.generated.json in the PR diff. Prior board-sync failure mode (empty deliverables) is fixed. Residual risks are non-blocking for content merge once oya-ci-required is green on this tip.",
+  "findings": [
+    {
+      "severity": "pass",
+      "id": "A-P1",
+      "summary": "Live SoT cardinality and status correct",
+      "evidence": [
+        "docs/decisions/ADR-0700..0709 only (10 files); no other ADR-*.md direct children",
+        "docs/adr-archive/ holds 448 historical members",
+        "docs/ADR-INDEX.md Total live ADRs: 10; docs/machine-readable/decisions.json total_adrs=10"
+      ]
+    },
+    {
+      "severity": "pass",
+      "id": "A-P2",
+      "summary": "planning_impact + deliverables + bound_adrs consistent",
+      "evidence": [
+        "All 10 apex: status Accepted, planning_impact true, milestone W0",
+        "Each has deliverables[0].id == ADR-070x-D1 with description, exit_criteria, verified_by=oya-ci-required",
+        "specs/masterplan.json planning_authority.bound_adrs == [ADR-0700..ADR-0709] with rebase note",
+        "Local preflight claimed: gen masterplan 10/10/W0; adr-planning-completeness 10 complete; planning-ssot-coverage 0 findings; masterplan-drift pass"
+      ]
+    },
+    {
+      "severity": "pass",
+      "id": "A-P3",
+      "summary": "No hand-edited generated faces in PR surface",
+      "evidence": [
+        "git diff --name-only origin/dev...HEAD has zero *.generated.json paths",
+        "docs/machine-readable/masterplan.generated.json is gitignored (**/*.generated.json) and shows adr_count=10 deliverable_count=10 when materialized locally",
+        "generated-output-diff-policy / registry-drift were green on prior tip run constituents"
+      ]
+    },
+    {
+      "severity": "pass",
+      "id": "A-P4",
+      "summary": "Board-sync root cause addressed",
+      "evidence": [
+        "4718c6613 adds D1 to each apex and rebinds bound_adrs off archived 81-set onto apex",
+        "17ad2138e rematerializes docs/MASTERPLAN.md after bound_adrs rebase (projection drift closed)",
+        "Failure text was masterplan contains no deliverables \u2014 empty deliverables on planning_impact:true ADRs"
+      ]
+    },
+    {
+      "severity": "pass",
+      "id": "A-P5",
+      "summary": "Hard norms for CI admission / RE fail-closed still present on live apex",
+      "evidence": [
+        "ADR-0700 Decision: single oya-ci-required; cloud-native gates; no dual-authority CI; warm CAS/RE fail-closed; no hand-edit of *.generated.json; census OWNERS + P2 active / P3 dormant language",
+        "ADR-0703 title and Decision restates activation-sensitive RE fail-closed"
+      ]
+    },
+    {
+      "severity": "suggestion",
+      "id": "A-S1",
+      "summary": "D1 deliverables are mechanical SoT declarations, not product work items",
+      "evidence": [
+        "Each D1 exit_criteria only asserts apex Accepted + members archived \u2014 sufficient to unblock board-sync, not a substantive delivery program"
+      ]
+    },
+    {
+      "severity": "suggestion",
+      "id": "A-S2",
+      "summary": "CLAUDE.md historical_substrate lists still collapse distinct history onto ADR-0709",
+      "evidence": [
+        "historical_substrate_adrs and historical_vcs_ratchet_adrs point at ADR-0709-general-live-apex.md with comments that still narrate ADR-0515/VCS history",
+        "current_substrate_adrs partially corrected (0700/0701/0705 present) but first rows still 0709 with folded-into-0515 comment noise"
+      ]
+    },
+    {
+      "severity": "important",
+      "id": "A-I1",
+      "summary": "Prior tip 17ad2138e binding CI reds were content-adjacent; tip ab7aeb0d4 attempts fix \u2014 not yet proven green",
+      "evidence": [
+        "Run on 17ad2138e: scm-facts integration failed (stale ADR-0515 amended_by assert; OWNERS surface; unicode P3 selector); firewall failed forbidden_foundry/jenkins, unpropagated_decision ADR-0700..0709, unowned/unjustified growth on archive move",
+        "fd98f788b retargets scm-facts tests to ADR-0700, restates census OWNERS on 0700, zero-pads supersession ids, seeds docs/adr-archive/OWNERS, expands inventory known_ids for archive",
+        "ab7aeb0d4 carves brand residue for archive/_disposition/(and ADR-07 prefix), retargets cloud-iac ADR-0349\u21920700, adds apex rows to master-plan-sequencing",
+        "oya-ci-required on ab7aeb0d4 was still pending at review time \u2014 content APPROVE is conditional on that green"
+      ]
+    }
+  ],
+  "residual_risks": [
+    "oya-ci-required must complete green on head ab7aeb0d4 (prior 17ad reds not automatically proven fixed until run finishes)",
+    "master-plan-sequencing still lists planning_impact:true for archived ADR-0394/0565/0635/0637/0638/0639 outside bound_adrs \u2014 local ssot green but dual-ledger residual",
+    "oya-ci.toml vocab carve-out path_prefix docs/decisions/ADR-07 masks brand-residue on live apex files (defense-in-depth weakening if future gists reintroduce forbidden stems)",
+    "Topic miscluster / truncated member gists remain quality residual from earlier dual-critic (not re-opened as merge-blocker for this pass)",
+    "CLAUDE.md historical path collapse still misleads agents about provenance discrimination"
+  ],
+  "checked_surfaces": [
+    "docs/decisions/ADR-0700..0709 frontmatter deliverables",
+    "specs/masterplan.json planning_authority.bound_adrs",
+    "docs/MASTERPLAN.md rematerialize delta",
+    "docs/ADR-INDEX.md + docs/machine-readable/decisions.json",
+    "docs/adr-archive count + OWNERS",
+    "specs/reachability-registry.json adr-archive registration",
+    "ci/facade/policy-deploy-parity baseline.adr=ADR-0700",
+    "ci/facade/scm-facts-snapshot tests (post-fd98)",
+    "oya-ci.toml vocab carve_outs (ab7aeb0d4)",
+    "specs/master-plan-sequencing.json apex bindings",
+    "git diff origin/dev...HEAD for *.generated.json",
+    "gh pr head + checks rollup"
+  ]
+}
