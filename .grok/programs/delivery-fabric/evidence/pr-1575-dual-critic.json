@@ -3,9 +3,9 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "1bfcedaa3d3245e212e2c218630231a77d8822d8",
+  "head": "385d2b523963a7143b5fed526572c42203afa7fa",
   "prefer_cross_model": true,
-  "independence_note": "cross_model preferred; only xAI/grok available in this W3 babysit session \u2014 same_family recorded honestly (policy admit_independence includes same_family)",
+  "independence_note": "cross_model preferred; W2 implement session has xAI/grok only \u2014 same_family recorded honestly; policy admit_independence includes same_family",
   "critics": [
     {
       "id": "A",
@@ -17,14 +17,14 @@
         "red_team",
         "blast_radius"
       ],
-      "focus": "kit process-only land + soft_red windows fix shared with 1574",
+      "focus": "soft_red windows platform-smoke root cause + regression lock",
       "findings": [
-        "PR lands .grok multi-model kit as process tooling; not merge authority (oya-ci-required remains)",
-        "mm-runs/ and memory/ gitignored; no secrets",
-        "Windows soft_red root cause is install-buck2 RUSTUP_HOME POSIX form; cygpath -m fix mirrors 1574"
+        "Authoritative log job 92600127656: rustup clippy component fail under D:/c/Users/runneradmin/.rustup path mangling from Git Bash RUSTUP_HOME=/c/Users/...",
+        "Fix 1bfcedaa3: install-buck2 cygpath -m before GITHUB_ENV; matches 1574 6070cdcbc",
+        "Regression test install_buck2_exports_native_windows_rustup_home locks ordering + MINGW/MSYS gate (fd45b0eba)"
       ],
       "residual": [
-        "Must re-verify oya-ci-required + windows soft smoke on post-push head"
+        "Re-verify windows soft smoke green on post-push tip before soft_red lane clear"
       ]
     },
     {
@@ -36,26 +36,27 @@
         "chesterton_fence",
         "systems_thinking",
         "operability",
-        "opportunity_cost"
+        "essentialism"
       ],
-      "focus": "fabric board soft_red drain + dual-critic independence honesty",
+      "focus": "fabric soft_red drain scope + one-concern PR hygiene",
       "findings": [
-        "soft reds must be fixed not waived (mm-queue-ingest never_silent)",
-        "Prior cancelled run had firewall green; binding risk is windows soft + pending buck2",
-        "Local ahead commit adds origin/dev awareness tooling appropriate to kit land scope"
+        "Scope is process CI installer + gate_registration test only; no product behavior change",
+        "soft reds never silent (mm-queue-ingest); continue-on-error does not excuse board queue",
+        "Dual-critic same_family honest; babysit merges on APPROVE + oya-ci-required only"
       ],
       "residual": [
-        "preflight receipt required after push if install-buck2 in path set"
+        "cloud-ci-firewall pending on tip; babysit must confirm binding green"
       ]
     }
   ],
-  "summary": "APPROVE mm-kit land + Windows RUSTUP_HOME soft-red fix. independence same_family honest. Merge only after oya-ci-required green + preflight.",
+  "summary": "APPROVE #1575 soft windows RUSTUP_HOME fix + regression test. independence same_family honest. Merge only after oya-ci-required green.",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:18Z",
-  "reviewer": "w3-babysit-pr-1575",
+  "reviewed_at": "2026-08-06T11:22:48Z",
+  "reviewer": "implement-claimed-lane-w2",
   "soft_red_addressed": {
     "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
     "lane": "Q-PR1575-soft_red-gate-platform-smoke-windows-amd64-soft",
-    "fix": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
-  }
+    "fix": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME + gate_registration regression"
+  },
+  "mm_run_id": "20260806T112011Z-cfea0a90"
 }
