@@ -1,0 +1,38 @@
+{
+  "id": "REORG-DUAL-TENANCY-RESIDUAL-20260806",
+  "lane": "REORG-DUAL-TENANCY-BURNDOWN",
+  "class": "delete",
+  "date": "2026-08-06T17:23:23Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate cloud/tenancy surface into registered tenancy/ capability home; retarget registry/gitops/facade consumers; delete dual-home under cloud/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/tenancy; zero-crate residual rehome not crate move-plan",
+  "durable_home": "tenancy/",
+  "debt_paths": [
+    "cloud/tenancy/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/tenancy/{ARCH,PRD,README,manifest,IPs,contracts,cedar,iac,runbooks,dpia,capabilities,catalog,policy,dashboards,decisions,migration-playbooks,threat-models,tutorials,...}",
+      "to": "tenancy/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/slo-coverage/tests/slo_coverage.rs",
+    "specs/capability-registry.json",
+    "specs/cloud-enforceability-facets.json",
+    "specs/microservice-tier-classification.json",
+    "specs/regulatory-identity-kyc-policy-evidence-architecture.json",
+    "tenancy/manifest.json"
+  ],
+  "net_path_debt": "negative under cloud/tenancy (deleted); tenancy/ gains residual zero-crate product artifacts at capability home; absorbs_current_dirs reduced to [tenancy]",
+  "crate_count_debt_paths": 0,
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates)",
+    "no CAS/nativelink changes",
+    "historical docs/audit and evidence path strings left as historical inventory",
+    "registry restack expected after parallel dual residual PRs #1580-#1589"
+  ],
+  "clobber_avoidance": "tenancy/ already held core/adapters/facade/ports/observability crates; residual paths were product-disjoint (no basename collisions); git mv without overwrite"
+}

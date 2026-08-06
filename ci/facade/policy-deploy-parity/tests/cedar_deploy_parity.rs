@@ -94,7 +94,7 @@ const GH_987_CLOUD_PATHS: [&str; 14] = [
     "cloud/cloud-network/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-secrets/iac/k8s/helm/templates/cedar.yaml",
     "cloud/cloud-storage/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/tenancy/iac/k8s/helm/templates/cedar.yaml",
+    "tenancy/iac/k8s/helm/templates/cedar.yaml",
 ];
 
 const AUTHZ_004_DEAD_CONFIGMAP_PATHS: [&str; 1] =

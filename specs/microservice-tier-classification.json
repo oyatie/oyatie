@@ -361,9 +361,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/tenancy/manifest.json": {
-      "service": "cloud/tenancy",
-      "manifest": "cloud/tenancy/manifest.json",
+    "tenancy/manifest.json": {
+      "service": "tenancy",
+      "manifest": "tenancy/manifest.json",
       "capability": "tenancy",
       "tier": "substrate",
       "tier_subtype": "substrate-tenancy",

@@ -17,7 +17,7 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
     "cloud/managed-k8s-control-plane-host/manifest.json",
     "cloud/managed-k8s-sla-observability/manifest.json",
     "cloud/managed-k8s-tenant-quota/manifest.json",
-    "cloud/tenancy/manifest.json",
+    "tenancy/manifest.json",
 ];
 
 /// FALSE-GREEN FLOOR: the producer must be shown to have actually enumerated the
