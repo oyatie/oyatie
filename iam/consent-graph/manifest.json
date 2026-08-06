@@ -70,7 +70,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/consent-graph/contracts/proto/consent-graph.proto"
+        "iam/consent-graph/contracts/proto/consent-graph.proto"
       ]
     }
   },
@@ -101,55 +101,55 @@
       "name": "oya-consent-graph-consent-grant-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_consent_graph_grant_duration_seconds_bucket{le=\"2.0\"}[5m]))",
-      "file": "oya/consent-graph/slos/consent-grant-latency.openslo.yaml"
+      "file": "iam/consent-graph/slos/consent-grant-latency.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-cross-tenant-projection-freshness",
       "target": "0.95",
       "sli": "sum(rate(oya_consent_graph_projection_lag_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "oya/consent-graph/slos/cross-tenant-projection-freshness.openslo.yaml"
+      "file": "iam/consent-graph/slos/cross-tenant-projection-freshness.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-revocation-propagation-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_consent_graph_revocation_propagation_seconds_bucket{le=\"1.0\"}[5m]))",
-      "file": "oya/consent-graph/slos/revocation-propagation-latency.openslo.yaml"
+      "file": "iam/consent-graph/slos/revocation-propagation-latency.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-cedar-evaluation-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_consent_graph_cedar_eval_duration_seconds_bucket{le=\"0.01\"}[5m]))",
-      "file": "oya/consent-graph/slos/cedar-evaluation-latency.openslo.yaml"
+      "file": "iam/consent-graph/slos/cedar-evaluation-latency.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-audit-chain-coverage-completeness",
       "target": "1.0",
       "sli": "sum(rate(oya_consent_graph_audit_emit_total{outcome=\"sealed\"}[5m])) / sum(rate(oya_consent_graph_audit_emit_total[5m]))",
-      "file": "oya/consent-graph/slos/audit-chain-coverage-completeness.openslo.yaml"
+      "file": "iam/consent-graph/slos/audit-chain-coverage-completeness.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-agreement-state-divergence-zero",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_consent_graph_state_divergence_total[5m])) / sum(rate(oya_consent_graph_state_check_total[5m])))",
-      "file": "oya/consent-graph/slos/agreement-state-divergence-zero.openslo.yaml"
+      "file": "iam/consent-graph/slos/agreement-state-divergence-zero.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-sovereignty-violation-zero",
       "target": "1.0",
       "sli": "1 - (sum(rate(oya_consent_graph_sovereignty_violation_total[5m])) / sum(rate(oya_consent_graph_projection_emit_total[5m])))",
-      "file": "oya/consent-graph/slos/sovereignty-violation-zero.openslo.yaml"
+      "file": "iam/consent-graph/slos/sovereignty-violation-zero.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-bilateral-chain-link-integrity",
       "target": "1.0",
       "sli": "sum(rate(oya_consent_graph_bilateral_link_total{outcome=\"paired\"}[5m])) / sum(rate(oya_consent_graph_bilateral_link_total[5m]))",
-      "file": "oya/consent-graph/slos/bilateral-chain-link-integrity.openslo.yaml"
+      "file": "iam/consent-graph/slos/bilateral-chain-link-integrity.openslo.yaml"
     },
     {
       "name": "oya-consent-graph-partner-handshake-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_consent_graph_handshake_duration_seconds_bucket{le=\"30.0\"}[5m]))",
-      "file": "oya/consent-graph/slos/partner-handshake-latency.openslo.yaml"
+      "file": "iam/consent-graph/slos/partner-handshake-latency.openslo.yaml"
     }
   ],
   "ips": [

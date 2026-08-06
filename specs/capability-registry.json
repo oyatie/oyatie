@@ -114,13 +114,7 @@
         "identity"
       ],
       "absorbs_current_dirs": [
-        "iam",
-        "cloud/cloud-iam",
-        "oya/identity",
-        "oya/oya-identity",
-        "oya/consent-graph",
-        "oya/tenant-rbac",
-        "oya/oya-authn-device-firmware"
+        "iam"
       ],
       "dag_node": "identity",
       "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 §7 split — OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 §D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption."

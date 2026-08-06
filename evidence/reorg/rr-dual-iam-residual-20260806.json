@@ -1,0 +1,106 @@
+{
+  "id": "REORG-DUAL-IAM-RESIDUAL-20260806",
+  "lane": "REORG-DUAL-IAM-BURNDOWN",
+  "class": "delete",
+  "date": "2026-08-06T17:38:38Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate cloud/cloud-iam + oya/identity + oya/oya-identity + oya/consent-graph + oya/tenant-rbac + oya/oya-authn-device-firmware surfaces into registered iam/ capability home as path-disjoint subdirs (avoid OWNERS/basename collision with live iam/{core,adapters,facade,ports,observability} crate layout); retarget consumers; delete dual-home debt under cloud/ and oya/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under cloud/cloud-iam and oya/{identity,oya-identity,consent-graph,tenant-rbac,oya-authn-device-firmware}; zero-crate residual rehome not crate move-plan",
+  "durable_home": "iam/",
+  "debt": [
+    "cloud/cloud-iam/",
+    "oya/identity/",
+    "oya/oya-identity/",
+    "oya/consent-graph/",
+    "oya/tenant-rbac/",
+    "oya/oya-authn-device-firmware/"
+  ],
+  "moves": [
+    {
+      "from": "cloud/cloud-iam/{ARCH,PRD,README,manifest,contracts,iac,cedar,runbooks,capabilities,...}",
+      "to": "iam/cloud-iam/<same>"
+    },
+    {
+      "from": "cloud/cloud-iam/OWNERS",
+      "to": "deleted (identical to iam/OWNERS)"
+    },
+    {
+      "from": "oya/identity/{PRD,README,manifest,contracts,iac,cedar,IPs,catalog,...}",
+      "to": "iam/identity/<same>"
+    },
+    {
+      "from": "oya/oya-identity/{BUCK,README,catalog.yaml,slos}",
+      "to": "iam/oya-identity/<same>"
+    },
+    {
+      "from": "oya/consent-graph/{manifest,contracts,iac,cedar,slos,...}",
+      "to": "iam/consent-graph/<same>"
+    },
+    {
+      "from": "oya/tenant-rbac/{catalog,contracts}",
+      "to": "iam/tenant-rbac/<same>"
+    },
+    {
+      "from": "oya/oya-authn-device-firmware/{BUCK,README,catalog.yaml}",
+      "to": "iam/authn-device-firmware/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/cloud-observability-slo-evidence-contract.json",
+    "specs/cloud-hyperscaler-parity-taxonomy.json",
+    "specs/reachability-registry.json",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/policy-deploy-parity/src/lib.rs",
+    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "iam/facade/identity-workload-rest/build.rs",
+    "iam/facade/identity-workload-rest/BUCK",
+    "iam/facade/identity-workload-rest/src/lib.rs",
+    "iam/cloud-iam/manifest.json",
+    "iam/identity/manifest.json",
+    "iam/consent-graph/manifest.json",
+    "infra/external-secrets/RUNBOOK.md"
+  ],
+  "net_path_debt": "negative under cloud/cloud-iam and oya/{identity,oya-identity,consent-graph,tenant-rbac,oya-authn-device-firmware} (deleted); iam/ gains residual product artifacts under named subdirs; absorbs_current_dirs reduced to [iam]",
+  "crate_count_debt_paths": 0,
+  "clobber_avoidance": "iam/ already held core/adapters/facade/ports/observability crates + OWNERS; residual rehomed into iam/{cloud-iam,identity,oya-identity,consent-graph,tenant-rbac,authn-device-firmware}/ subdirs (not flat) so zero basename collisions with live crates; identical cloud-iam OWNERS deleted",
+  "non_goals": [
+    "no crate renames (crates already at iam/{core,adapters,facade,ports})",
+    "no move-plan (not path bijection of crates)",
+    "no mega cloud/* or oya/* PR",
+    "no historical docs/audit / design-spec-maturity / ADR archive rewrites",
+    "no retarget of root contracts/openapi/cloud/cloud-iam-v1.yaml registry bindings (root contract home, not debt path)",
+    "codemod unit-test fixtures retain historical path strings as rewrite examples",
+    "registry restack expected after parallel dual residual PRs"
+  ],
+  "consumer_proof": {
+    "debt_path_prefix_live_refs": "zero outside historical docs/evidence/codemod-fixtures/test-fixtures after retarget",
+    "cedar_gh987_path": "iam/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
+    "cedar_oya_paths": [
+      "iam/identity/iac/k8s/helm/templates/cedar.yaml",
+      "iam/consent-graph/iac/k8s/helm/templates/cedar.yaml"
+    ],
+    "absorbs_current_dirs": [
+      "iam"
+    ],
+    "tier_manifests": [
+      "iam/cloud-iam/manifest.json",
+      "iam/identity/manifest.json",
+      "iam/consent-graph/manifest.json"
+    ],
+    "slo_artifact_patterns": [
+      "iam/observability/slos/cloud-iam/*.openslo.yaml"
+    ],
+    "proto_contract_path": "iam/identity/contracts/proto/workload.proto"
+  },
+  "path_disjoint_from": [
+    "agent/reorg-dual-secrets-20260806",
+    "agent/reorg-dual-tenancy-20260806",
+    "agent/reorg-dual-marketplace-residual-20260806",
+    "agent/reorg-dual-network-20260806",
+    "agent/reorg-dual-cell-20260806"
+  ]
+}

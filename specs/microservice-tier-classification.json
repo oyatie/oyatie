@@ -132,29 +132,6 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-iam/manifest.json": {
-      "service": "cloud/cloud-iam",
-      "manifest": "cloud/cloud-iam/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-identity",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [
-          "cell"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
-          "intelligence",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy",
-          "workflow-engine"
-        ]
-      }
-    },
     "cloud/cloud-intelligence/manifest.json": {
       "service": "cloud/cloud-intelligence",
       "manifest": "cloud/cloud-intelligence/manifest.json",
@@ -526,20 +503,6 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/consent-graph/manifest.json": {
-      "service": "oya/consent-graph",
-      "manifest": "oya/consent-graph/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-consent",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
     "oya/contact-center/manifest.json": {
       "service": "oya/contact-center",
       "manifest": "oya/contact-center/manifest.json",
@@ -854,29 +817,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
-    },
-    "oya/identity/manifest.json": {
-      "service": "oya/identity",
-      "manifest": "oya/identity/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-identity",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [
-          "cell"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
-          "intelligence",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy",
-          "workflow-engine"
-        ]
-      }
     },
     "oya/imaging/manifest.json": {
       "service": "oya/imaging",
@@ -1372,6 +1312,66 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
+    },
+    "iam/cloud-iam/manifest.json": {
+      "service": "iam/cloud-iam",
+      "manifest": "iam/cloud-iam/manifest.json",
+      "capability": "iam",
+      "tier": "substrate",
+      "tier_subtype": "substrate-identity",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [
+          "cell"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy",
+          "workflow-engine"
+        ]
+      }
+    },
+    "iam/identity/manifest.json": {
+      "service": "iam/identity",
+      "manifest": "iam/identity/manifest.json",
+      "capability": "iam",
+      "tier": "substrate",
+      "tier_subtype": "substrate-identity",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [
+          "cell"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy",
+          "workflow-engine"
+        ]
+      }
+    },
+    "iam/consent-graph/manifest.json": {
+      "service": "iam/consent-graph",
+      "manifest": "iam/consent-graph/manifest.json",
+      "capability": "iam",
+      "tier": "substrate",
+      "tier_subtype": "substrate-consent",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S3",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
     }
   }
 }

@@ -2,8 +2,8 @@
 //!
 //! The I/O-bearing axum app for the workload-identity service. It mounts the
 //! inward use-case core ([`iam_identity_workload_app`]) behind the HTTP
-//! contract promised by `oya/identity/workload-identity/PRD.md` §1.2
-//! and serialized in `oya/identity/contracts/openapi/workload.yaml`:
+//! contract promised by `iam/identity/workload-identity/PRD.md` §1.2
+//! and serialized in `iam/identity/contracts/openapi/workload.yaml`:
 //!
 //! | Method + path                       | Use-case                                  |
 //! |-------------------------------------|-------------------------------------------|
