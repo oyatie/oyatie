@@ -130,6 +130,34 @@ kind = "path_exact"
 value = "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json"
 reason = "CI-011 faithful point-in-time inventory of retiring CLI subcommands; forbidden stems occur only as quoted legacy command names targeted for retirement, not live product/governance vocabulary."
 
+# mm-kit program evidence snapshots (PR #1575): historical disposition/census/ledger
+# text that quotes retired brand stems and path tokens as provenance, not live product
+# vocabulary. Core kit surfaces under .grok/{bin,harness,hooks,workflows} remain scanned.
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/cas-fabric/evidence/ultragoal-ledger.snapshot.jsonl"
+reason = "append-only historical ultragoal ledger snapshot embedded in mm-kit program evidence; quotes retired path/package tokens (foundry, oya-vcs) as provenance only"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/ADR-FULL-DISPOSITION-AUDIT.md"
+reason = "historical ADR disposition audit markdown; forbidden stems appear only inside historical ADR titles/slugs, not live product vocabulary"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-full-disposition-audit.json"
+reason = "machine-readable historical ADR disposition census; titles/slugs faithfully quote retired brand stems as provenance"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-lt-600-census.json"
+reason = "historical ADR <600 census snapshot; titles/slugs/file paths quote retired brand stems as provenance only"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-decade-bands.json"
+reason = "historical ADR decade-band inventory; file/title strings quote retired brand stems as provenance only"
+
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
 
