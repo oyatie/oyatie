@@ -101,7 +101,7 @@
       "oya/emergency/manifest.json",
       "oya/financial-planning/manifest.json",
       "oya/global-trade/manifest.json",
-      "oya/imaging/manifest.json",
+      "storage/imaging/manifest.json",
       "oya/incident-management/manifest.json",
       "oya/itsm/manifest.json",
       "oya/learning-management/manifest.json",
