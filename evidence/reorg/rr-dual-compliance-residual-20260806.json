@@ -1,0 +1,38 @@
+{
+  "id": "REORG-DUAL-COMPLIANCE-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T16:30:00Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-COMPLIANCE-BURNDOWN",
+  "summary": "Rehome residual zero-crate oya/compliance surface into registered compliance/ home; retarget consumers; delete oya/compliance dual-home. oya/governance deferred (multi-cap decompose per ADR-0615 §2 Q13).",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/ for compliance residual",
+  "moves": [
+    {
+      "from": "oya/compliance/{contracts,iac,catalog,capabilities,cedar,dashboards,dpia,IPs,policy,runbooks,scorecards,manifest.json,...}",
+      "to": "compliance/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "compliance/catalog/api-asyncapi.yaml",
+    "compliance/catalog/api-rest.yaml",
+    "compliance/catalog/component-info.yaml"
+  ],
+  "deferred": [
+    {
+      "path": "oya/governance",
+      "reason": "multi-cap residue: decomposes to governance/ + ci/gateway/cell SLOs + iac/ per ADR-0615 §2 Q13; retained in compliance.absorbs_current_dirs until atomic Batch-5 move; not rehomed this PR"
+    }
+  ],
+  "net_path_debt": "negative under oya/compliance (deleted); compliance/ gains residual product artifacts that belong at capability home; oya/governance debt deferred",
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates)",
+    "no oya/governance rehome this PR",
+    "no hand-edit of generated faces"
+  ]
+}

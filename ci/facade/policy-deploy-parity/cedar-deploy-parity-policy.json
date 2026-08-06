@@ -21,7 +21,7 @@
       "oya/calendar/iac/k8s/helm/templates/cedar.yaml",
       "oya/comms-email/iac/k8s/helm/templates/cedar.yaml",
       "oya/community/iac/k8s/helm/templates/cedar.yaml",
-      "oya/compliance/iac/k8s/helm/templates/cedar.yaml",
+      "compliance/iac/k8s/helm/templates/cedar.yaml",
       "oya/connector/iac/k8s/helm/templates/cedar.yaml",
       "oya/consent-graph/iac/k8s/helm/templates/cedar.yaml",
       "oya/contact-center/iac/k8s/helm/templates/cedar.yaml",
