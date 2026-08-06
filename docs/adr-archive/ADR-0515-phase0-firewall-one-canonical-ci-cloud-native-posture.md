@@ -80,7 +80,7 @@ purpose: >
 
 **Accepted — 2026-06-07 (founder-ruled; door: one-way).**
 
-This is the single current-truth CI/CD enforcement ADR. It re-authors the earlier 2026-06-06
+~~This is the single current-truth CI/CD enforcement ADR~~ **HISTORICAL CLAIM ONLY** — live law is `docs/decisions/ADR-0700-ci-admission-live-apex.md` (ADR-0700). It re-authors the earlier 2026-06-06
 CI/CD consolidation off the superseded ADR-0513 "Prow-native authority, GitHub = shadow" worldview
 onto the 2026-06-07 posture: GitHub Actions is the sole live CI authority, `oya-ci-required` is the
 one canonical blocking context, gates are Rust binaries the pipeline runs automatically, and there is
