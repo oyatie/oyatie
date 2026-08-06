@@ -228,9 +228,9 @@
         ]
       }
     },
-    "cloud/cloud-network-dns/manifest.json": {
-      "service": "cloud/cloud-network-dns",
-      "manifest": "cloud/cloud-network-dns/manifest.json",
+    "network/dns/manifest.json": {
+      "service": "network/dns",
+      "manifest": "network/dns/manifest.json",
       "capability": "network",
       "tier": "substrate",
       "tier_subtype": "substrate-network",
@@ -242,9 +242,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-network/manifest.json": {
-      "service": "cloud/cloud-network",
-      "manifest": "cloud/cloud-network/manifest.json",
+    "network/manifest.json": {
+      "service": "network",
+      "manifest": "network/manifest.json",
       "capability": "network",
       "tier": "substrate",
       "tier_subtype": "substrate-network",

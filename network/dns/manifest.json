@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "microservice": "cloud-network-dns",
+  "microservice": "network-dns",
   "tier": "substrate",
   "tier_subtype": "substrate-network",
   "dr_tier": "T1",
@@ -38,7 +38,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-network-dns/contracts/proto/cloud-network-dns-design.proto"
+        "network/dns/contracts/proto/cloud-network-dns-design.proto"
       ]
     }
   },
