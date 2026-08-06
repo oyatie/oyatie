@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "2d6d13446f02bceb905c2f9886e3ee0f3619fa26",
+  "head": "7faf183a62576fbe8de24f0cfc2c328561263228",
   "prefer_cross_model": true,
   "independence_note": "A/B xai same_family honest; require_cross_model_critics=false",
   "critics": [
@@ -44,28 +44,31 @@
       "residual": []
     }
   ],
-  "summary": "APPROVE #1574 after hermetic ADR-0354 D-7 fixture (package-local include_str) fixing FULL build-health regression",
-  "reviewed_at": "2026-08-06T12:46:28Z",
+  "summary": "APPROVE #1574 tip 7faf183a6257 package-local ADR-0354 fixture (Buck hermetic); soft reds green",
+  "reviewed_at": "2026-08-06T12:46Z",
   "reviewer": "w3-pr-babysit-lanes",
   "pr": 1574,
-  "code_tip": "2d6d13446f02bceb905c2f9886e3ee0f3619fa26",
+  "code_tip": "7faf183a62576fbe8de24f0cfc2c328561263228",
   "blockers": [],
   "ci_binding_fix": {
     "check": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
-    "failure": "REGRESSION network-transport-profile-unittest include_str docs/adr-archive not in Buck sandbox",
-    "fix": "fixtures/adr-0354-d7-external-example.txt + include_str package-local",
-    "local_verify": "buck2 test //network/ports/transport-profile:network-transport-profile-unittest \u2014 Pass 1 (27 tests)"
+    "failure": "REGRESSION root//network/ports/transport-profile:network-transport-profile-unittest include_str docs/adr-archive",
+    "fix_commit": "7faf183a62576fbe8de24f0cfc2c328561263228",
+    "local_verify": "cargo test proposed_adr_d7 \u2014 ok"
   },
   "soft_red_addressed": {
     "checks": [
       "gate \u00b7 platform smoke (windows-amd64 soft)"
     ],
-    "status": "SUCCESS prior tip"
+    "status": "SUCCESS tip 7faf183a6257"
   },
   "babysit_cycle": {
-    "at": "2026-08-06T12:46:28Z",
-    "action": "fix_and_push",
-    "note": "hermetic D-7 fixture for Buck sandbox"
+    "at": "2026-08-06T12:46Z",
+    "action": "push_hermetic_fixture_fix",
+    "head": "7faf183a62576fbe8de24f0cfc2c328561263228",
+    "note": "binding red: network-transport-profile-unittest missing docs path in Buck sandbox; fixed package-local fixture",
+    "soft_reds": "0 live FAILURE"
   },
-  "tip_note": "dual-critic head=code fix tip; evidence commits may advance tip"
+  "tip_note": "W3 fix: docs/adr-archive include_str \u2192 fixtures/adr-0354-d7-external-example.txt",
+  "head_pinned_at": "2026-08-06T12:46Z"
 }
