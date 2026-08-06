@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "385d2b523963a7143b5fed526572c42203afa7fa",
+  "head": "c45136ee57631e40b319494c7d702030564cb5e5",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; W2 implement session has xAI/grok only \u2014 same_family recorded honestly; policy admit_independence includes same_family",
   "critics": [
@@ -49,14 +49,15 @@
       ]
     }
   ],
-  "summary": "APPROVE #1575 soft windows RUSTUP_HOME fix + regression test. independence same_family honest. Merge only after oya-ci-required green.",
+  "summary": "APPROVE #1575 soft windows RUSTUP_HOME fix + regression test (fd45b0eba) + dual-critic pin. independence same_family honest. Merge only after oya-ci-required green.",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:22:48Z",
-  "reviewer": "implement-claimed-lane-w2",
+  "reviewed_at": "2026-08-06T11:23:05Z",
+  "reviewer": "w3-babysit-pr-1575-heartbeat",
   "soft_red_addressed": {
     "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
     "lane": "Q-PR1575-soft_red-gate-platform-smoke-windows-amd64-soft",
     "fix": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME + gate_registration regression"
   },
-  "mm_run_id": "20260806T112011Z-cfea0a90"
+  "mm_run_id": "20260806T112011Z-cfea0a90",
+  "code_fix_head": "fd45b0ebabd4417b64c91f3dda8f736b452b7b37"
 }
