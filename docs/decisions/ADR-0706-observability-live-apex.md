@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0706-D1
+    description: "Live apex source-of-truth for topic observability: Live observability, SLO, and progressive-delivery telemetry."
+    exit_criteria: "docs/decisions/ADR-0706-observability-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-706: Live observability, SLO, and progressive-delivery telemetry
 

@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0708-D1
+    description: "Live apex source-of-truth for topic platform_foundations: Live platform foundations: cells, residency, workflow, plugins, search."
+    exit_criteria: "docs/decisions/ADR-0708-platform-foundations-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-708: Live platform foundations: cells, residency, workflow, plugins, search
 

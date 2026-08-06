@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0704-D1
+    description: "Live apex source-of-truth for topic k8s_port: Live Kubernetes Go→Rust port engine and owned-kernel interfaces."
+    exit_criteria: "docs/decisions/ADR-0704-k8s-port-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-704: Live Kubernetes Go→Rust port engine and owned-kernel interfaces
 

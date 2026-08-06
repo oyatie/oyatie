@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0702-D1
+    description: "Live apex source-of-truth for topic identity_authz: Live identity, tenancy, authz, secrets, and control-plane fail-closed posture."
+    exit_criteria: "docs/decisions/ADR-0702-identity-authz-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-702: Live identity, tenancy, authz, secrets, and control-plane fail-closed posture
 

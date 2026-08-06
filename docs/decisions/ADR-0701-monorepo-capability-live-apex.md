@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0701-D1
+    description: "Live apex source-of-truth for topic monorepo_capability: Live monorepo capability layout, faces, and reorg doctrine."
+    exit_criteria: "docs/decisions/ADR-0701-monorepo-capability-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-701: Live monorepo capability layout, faces, and reorg doctrine
 

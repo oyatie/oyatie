@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0705-D1
+    description: "Live apex source-of-truth for topic product_protocol: Live product protocols, APIs, and communications plane."
+    exit_criteria: "docs/decisions/ADR-0705-product-protocol-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-705: Live product protocols, APIs, and communications plane
 

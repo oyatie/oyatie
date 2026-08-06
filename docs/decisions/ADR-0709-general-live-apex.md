@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0709-D1
+    description: "Live apex source-of-truth for topic general: Live general architecture and remaining accepted doctrine."
+    exit_criteria: "docs/decisions/ADR-0709-general-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-709: Live general architecture and remaining accepted doctrine
 

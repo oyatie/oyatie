@@ -14,6 +14,11 @@ amended_by: []
 depends_on: []
 related: []
 milestone: W0
+deliverables:
+  - id: ADR-0700-D1
+    description: "Live apex source-of-truth for topic ci_admission: Live CI admission, build hermeticity, and runner substrate."
+    exit_criteria: "docs/decisions/ADR-0700-ci-admission-live-apex.md is Accepted with planning_impact true; member ADRs listed in supersedes are archived under docs/adr-archive/."
+    verified_by: "oya-ci-required"
 ---
 # ADR-700: Live CI admission, build hermeticity, and runner substrate
 
