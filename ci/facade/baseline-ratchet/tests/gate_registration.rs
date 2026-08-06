@@ -139,13 +139,13 @@ fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
 
 /// Resolve the NEW de-branded `ci/facade/<dir>` directory a moved gate crate now lives in,
 /// keyed on its OLD cargo/crate name (`oya-<gate_id>-app`). The committed move-plan
-/// (`specs/reorg/ci-move-plan.json`, ADR-0562/0563) is the SSOT for the ci keystone rename;
+/// (`specs/reorg/ci-keystone-rename-map.json`, ADR-0562/0563) is the SSOT for the ci keystone rename;
 /// the required-workflow matrix `crate:` value is this NEW dir. The de-brand renamed
 /// SEMANTICALLY (e.g. cloud-ci-total-accounting -> artifact-accountability), so there is no
 /// textual prefix-strip from the gate id to the lane — the move-plan is the only authority.
 fn ci_move_new_dir(root: &Path, old_cargo_name: &str) -> Option<String> {
     let plan: Value =
-        serde_json::from_str(&read_to_string(&root.join("specs/reorg/ci-move-plan.json"))).ok()?;
+        serde_json::from_str(&read_to_string(&root.join("specs/reorg/ci-keystone-rename-map.json"))).ok()?;
     if let Some(moves) = plan.get("moves").and_then(Value::as_array) {
         for m in moves {
             if m.get("old_cargo_name").and_then(Value::as_str) == Some(old_cargo_name) {

@@ -1,0 +1,30 @@
+{
+  "id": "RR-MOVEPLAN-CI-RENAME-MAP",
+  "date": "2026-08-06",
+  "class": "refactor",
+  "origin_dev": "940899863",
+  "summary": "Retire residual live ci-move-plan.json by renaming to ci-keystone-rename-map.json so it no longer occupies the RR-MOVEPLAN-SINGLETON executable slot. Content bijection unchanged; gate_registration + gate-disposition references retargeted.",
+  "net_path_debt": 0,
+  "moves": [
+    {
+      "old": "specs/reorg/ci-move-plan.json",
+      "new": "specs/reorg/ci-keystone-rename-map.json",
+      "note": "not a *-move-plan.json; residual rename SSOT only"
+    }
+  ],
+  "consumers_updated": [
+    "ci/facade/baseline-ratchet/tests/gate_registration.rs",
+    "libs/oya-ci-config/src/bundled/gate-disposition.json",
+    "specs/reorg/ci-graph-additions.json",
+    "specs/reorg/README.md"
+  ],
+  "singleton_after": {
+    "live_executable_move_plans": 0,
+    "free_for": ["intelligence-remainder", "nativelink-storage after G039"]
+  },
+  "non_goals": [
+    "Do not unpark intelligence or nativelink in this PR",
+    "Do not delete rename bijection content",
+    "No cloud/ oya/ product path moves"
+  ]
+}
