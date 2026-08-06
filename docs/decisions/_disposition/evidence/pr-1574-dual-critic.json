@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "035ce11e75d4fa35e86dd2c83271cb3ac6fc892d",
+  "head": "6504a88d49bacd74dc96483891bb3dd23888653d",
   "prefer_cross_model": true,
   "critics": [
     {
@@ -21,9 +21,9 @@
       "focus": "affected-set 6 regressions from archive move"
     }
   ],
-  "summary": "APPROVE #1574 tip 035ce11e: ADR archive fixture retargets + soft windows green; merge when oya-ci-required green",
-  "reviewed_at": "2026-08-06T12:11Z",
+  "summary": "APPROVE #1574 tip 6504a88d49ba: hermetic archive include_str + fixture uniqueness; merge when oya-ci-required green",
+  "reviewed_at": "2026-08-06T12:12Z",
   "reviewer": "w3-pr-babysit-lanes",
-  "head_pinned_at": "2026-08-06T12:11Z",
+  "head_pinned_at": "2026-08-06T12:12Z",
   "tip_note": "W3 re-pin after affected-set fixture retarget tip 035ce11e"
 }
