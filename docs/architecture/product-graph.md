@@ -654,7 +654,7 @@ cargo run -p oya-check-documentation -- --workspace --report-only      # exit 0;
 cargo test -p oya-check-documentation                                  # 2/2 pass
 grep -c "^name = \"oya-" Cargo.toml                                    # workspace member count
 rg -nP '^- \{ microservice:' docs/localization-packs/kr/pack.yaml | wc -l  # 27 KR pack µservices
-rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0064-canonical-base-and-localization-packs.md | head -5
+rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0709-general-live-apex.md | head -5
 ```
 
 ---
@@ -663,11 +663,11 @@ rg -nP '## .{1,80}\b(seam|adapter|pack)\b' docs/decisions/ADR-0064-canonical-bas
 
 - `docs/MASTERPLAN.md` (iteration 5+; canonical narrative scope)
 - `docs/DOC-COVERAGE.md` (per-µservice doc status snapshot)
-- `docs/decisions/ADR-0056-rust-clean-architecture-bnf.md` (BNF v4.1 + 12-layer enum)
-- `docs/decisions/ADR-0058-flat-microservice-catalog.md` (catalog flatness)
-- `docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md` (Workflow + Ontology load-bearing rule)
-- `docs/decisions/ADR-0063-documentation-set-coverage.md` (LEAN-A5 lane spec)
-- `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md` (seam / adapter / pack trichotomy)
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` (BNF v4.1 + 12-layer enum)
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` (catalog flatness)
+- `docs/decisions/ADR-0709-general-live-apex.md` (Workflow + Ontology load-bearing rule)
+- `docs/decisions/ADR-0709-general-live-apex.md` (LEAN-A5 lane spec)
+- `docs/decisions/ADR-0709-general-live-apex.md` (seam / adapter / pack trichotomy)
 - `docs/localization-packs/INDEX.md` + `docs/localization-packs/kr/pack.yaml`
 - `.omc/plans/M01-M03-parallelization-manifest.md` (dispatch DAG)
 - `.omc/plans/consensus-masterplan-2026-05-13.md` (accepted consensus)

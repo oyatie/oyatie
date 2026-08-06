@@ -539,7 +539,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-12 — ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives
 
-- Authored `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md` (Accepted).
+- Authored `docs/decisions/ADR-0709-general-live-apex.md` (Accepted).
 - Fixes the agent-callable coordination/state-transition primitive set at `{grit, icm, oya-tooling-agent-read}`; direct `git`/`gh` permitted only with documented rationale per Directive 12.
 - Historical planned enforcement: `oya-governance-banned-primitives` lane was defined for P4/P5 merge-boundary work.
 - Consensus reached iter-2 via Planner+Architect+Critic; operational driver: `.omc/plans/ralplan-oyatie-sst-consolidation.md`.
@@ -547,7 +547,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 ## 2026-05-12 — ADR-0054: grit scaffold-claim pattern (icm-coordination-lock fallback)
 
-- Authored `docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md` (Accepted).
+- Authored `docs/decisions/ADR-0709-general-live-apex.md` (Accepted).
 - Formalises the icm-coordination-lock fallback (`scaffold-locks-oyatie` topic) as the canonical scaffold-claim path for new-crate creation at grit v0.3.0, following Lane 3 deep-dive trace confirmation that `Cargo.toml::workspace_members` is not indexed by grit (zero matches, 2026-05-12).
 - Documents the verbatim 7-step sequence, two rejected alternatives (workspace_members grit claim; per-file-path lock), worked example with icm store rows, and two upstream follow-up issues.
 - Updated `ADR-INDEX.md`: total ADRs 52, next number 0055, ADR-0052/0053 placeholders noted, ADR-0054 row appended.

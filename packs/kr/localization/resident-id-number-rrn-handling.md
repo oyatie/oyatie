@@ -495,10 +495,10 @@ Regulatory coverage: `packs/kr-localization/regulatory-coverage.md`.
 Data residency: `packs/kr-localization/data-residency.md`.
 Consent management: `packs/kr-localization/consent-management.md`.
 Incident response: `packs/kr-localization/cybersecurity-and-incident-response.md`.
-ADR-0064 localization pack architecture: `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md`.
-ADR-0244 tenant scoping: `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-ADR-0251 compliance pack mechanics: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
-ADR-0263 audit event emission contract: `docs/decisions/ADR-0263-observability-emission-contract.md`.
+ADR-0064 localization pack architecture: `docs/decisions/ADR-0709-general-live-apex.md`.
+ADR-0244 tenant scoping: `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+ADR-0251 compliance pack mechanics: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
+ADR-0263 audit event emission contract: `docs/decisions/ADR-0706-observability-live-apex.md`.
 KR pack manifest seed: `docs/localization-packs/kr/pack.yaml`.
 Official law source: `https://www.law.go.kr/`.
 Official PIPC source: `https://www.pipc.go.kr/`.

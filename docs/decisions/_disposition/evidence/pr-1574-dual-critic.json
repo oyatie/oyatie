@@ -1,0 +1,76 @@
+{
+  "schema": "dual-critic.v1",
+  "verdict": "APPROVE",
+  "independence": "same_family",
+  "real": true,
+  "head": "807d08a0254203a933ce5b0c2f037dadca276b7f",
+  "prefer_cross_model": true,
+  "independence_note": "A/B xai same_family honest; require_cross_model_critics=false",
+  "critics": [
+    {
+      "id": "A",
+      "provider": "xai",
+      "model": "grok-code",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "essentialism",
+        "blast_radius"
+      ],
+      "findings": [
+        "FULL build-health: include_str to docs/adr-archive fails in Buck sandbox (path not in package srcs)",
+        "Package-local fixtures/*.txt matches BUCK **/*.txt glob; 27/27 unittest green",
+        "Scope limited to transport-profile hermeticity; no mass ADR Accept",
+        "Post-#1575 rebase: retained mm-kit vocab carve-outs + ADR archive carve-outs; dual-critic re-pin only"
+      ],
+      "residual": [
+        "await oya-ci-required on new tip"
+      ]
+    },
+    {
+      "id": "B",
+      "provider": "xai",
+      "model": "grok-code",
+      "verdict": "APPROVE",
+      "lenses": [
+        "red_team",
+        "operability",
+        "chesterton_fence"
+      ],
+      "findings": [
+        "Prior fs::read_to_string(repo_root) and cross-tree include_str both non-hermetic under Buck",
+        "Fixture retains \u00a7D-7 markers only \u2014 sufficient for extract_json_between contract",
+        "No generated.json hand edits",
+        "Post-#1575 rebase: retained mm-kit vocab carve-outs + ADR archive carve-outs; dual-critic re-pin only"
+      ],
+      "residual": []
+    }
+  ],
+  "summary": "APPROVE #1574 tip 807d08a02542 after rebase onto #1575; mechanical disposition + hermetic fixtures",
+  "reviewed_at": "2026-08-06T13:00Z",
+  "reviewer": "w3-pr-babysit-lanes",
+  "pr": 1574,
+  "code_tip": "807d08a0254203a933ce5b0c2f037dadca276b7f",
+  "blockers": [],
+  "ci_binding_fix": {
+    "check": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
+    "failure": "REGRESSION root//network/ports/transport-profile:network-transport-profile-unittest include_str docs/adr-archive",
+    "fix_commit": "7faf183a62576fbe8de24f0cfc2c328561263228",
+    "local_verify": "cargo test proposed_adr_d7 \u2014 ok"
+  },
+  "soft_red_addressed": {
+    "checks": [
+      "gate \u00b7 platform smoke (windows-amd64 soft)"
+    ],
+    "status": "SUCCESS tip 7faf183a6257"
+  },
+  "babysit_cycle": {
+    "at": "2026-08-06T13:00:39Z",
+    "action": "rebase_onto_dev_after_1575",
+    "head": "807d08a0254203a933ce5b0c2f037dadca276b7f",
+    "note": "resolved oya-ci.toml union carve-outs, reachability .grok keep, census docs/decisions selector; soft reds were green pre-rebase",
+    "soft_reds": "0 live FAILURE pre-rebase; re-verify post-push"
+  },
+  "tip_note": "W3 rebase onto origin/dev after #1575 land; re-pin dual-critic to tip",
+  "head_pinned_at": "2026-08-06T12:46Z"
+}

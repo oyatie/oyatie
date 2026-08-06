@@ -7,7 +7,7 @@ date: 2026-05-20
 
 ## Citation Anchor Block
 
-1. Canonical audit and benchmark disclosure rules: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:3756-4153`.
+1. Canonical audit and benchmark disclosure rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable deployment/context constraints: `specs/master-plan-sequencing.json:704-868`.
 3. Local microservice benchmark source: `microservices/cloud-kms/benchmarks/cloud-kms-vs-aws-kms-vs-azure-key-vault-vs-vault-enterprise.md:1-100`.
 4. Local tenant_class target source: `microservices/cloud-kms/retired tenant_class adoption artifact:13-83`.

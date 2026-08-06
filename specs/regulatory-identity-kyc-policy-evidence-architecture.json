@@ -55,7 +55,7 @@
     },
     {
       "id": "ADR-0188",
-      "source_path": "docs/decisions/ADR-0188-passkey-webauthn-substrate.md",
+      "source_path": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "usable_findings": [
         "WebAuthn Level 3/passkeys are the primary strong-auth credential.",
         "TOTP is recovery/fallback only; SMS OTP, email-only auth, security questions, and weak push are forbidden.",
@@ -75,7 +75,7 @@
     },
     {
       "id": "ADR-0189",
-      "source_path": "docs/decisions/ADR-0189-step-up-authentication-acr-classes.md",
+      "source_path": "docs/decisions/ADR-0709-general-live-apex.md",
       "usable_findings": [
         "ACR classes are routine, elevated, sensitive, and critical.",
         "Mutating and regulated operations declare acr_required in policy/API metadata.",

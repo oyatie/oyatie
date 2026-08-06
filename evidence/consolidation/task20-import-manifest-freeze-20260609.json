@@ -422,7 +422,7 @@
   "sources": [
     "HANDOFF.md",
     "docs/AGENTS.md",
-    "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "sidecar audits Halley/Descartes/Pascal/Kierkegaard/Hilbert/Laplace"
   ],
   "verification_plan": {

@@ -98,18 +98,18 @@ canonical_authority: docs/standards/documentation-rigor.md
 - P0 artifact count 15/70 floor (marketplace; evidence `microservices/marketplace:1`)
 - six-hop invariant cannot be deterministically verified; no tools/doc-graph-walker found (six-hop graph; evidence `docs/standards/documentation-rigor.md:205`)
 - P0 artifact count 16/70 floor (workplace-integration; evidence `microservices/workplace-integration:1`)
-- brief says 30+ new ADRs but live 0297-0321 range has 25 files (ADR target range; evidence `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1`)
-- section coverage weak (5/7 A-G markers) (ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md; evidence `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1`)
-- section coverage weak (0/7 A-G markers) (ADR-0298-emergency-services-bypass-life-safety.md; evidence `docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md:1`)
-- section coverage weak (0/7 A-G markers) (ADR-0299-account-recovery-resilience.md; evidence `docs/decisions/ADR-0299-account-recovery-resilience.md:1`)
-- section coverage weak (0/7 A-G markers) (ADR-0300-whistleblower-press-freedom-anonymity.md; evidence `docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md:1`)
-- section coverage weak (0/7 A-G markers) (ADR-0301-survivor-safety-domestic-abuse-mode.md; evidence `docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md:1`)
-- section coverage weak (0/7 A-G markers) (ADR-0302-deceased-user-inheritance-doctrine.md; evidence `docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md:1`)
-- placeholder marker/placeholder marker residue 1 (ADR-0303-cognitive-impairment-decision-resilience.md; evidence `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md:1`)
-- section coverage weak (5/7 A-G markers) (ADR-0303-cognitive-impairment-decision-resilience.md; evidence `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md:1`)
-- section coverage weak (5/7 A-G markers) (ADR-0304-cross-jurisdiction-conflict-resolution.md; evidence `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md:1`)
-- section coverage weak (5/7 A-G markers) (ADR-0305-delegated-agent-authority-chain.md; evidence `docs/decisions/ADR-0305-delegated-agent-authority-chain.md:1`)
-- section coverage weak (5/7 A-G markers) (ADR-0306-disaster-mode-cell-resilience.md; evidence `docs/decisions/ADR-0306-disaster-mode-cell-resilience.md:1`)
+- brief says 30+ new ADRs but live 0297-0321 range has 25 files (ADR target range; evidence `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`)
+- section coverage weak (5/7 A-G markers) (ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md; evidence `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`)
+- section coverage weak (0/7 A-G markers) (ADR-0298-emergency-services-bypass-life-safety.md; evidence `docs/decisions/ADR-0709-general-live-apex.md:1`)
+- section coverage weak (0/7 A-G markers) (ADR-0299-account-recovery-resilience.md; evidence `docs/decisions/ADR-0709-general-live-apex.md:1`)
+- section coverage weak (0/7 A-G markers) (ADR-0300-whistleblower-press-freedom-anonymity.md; evidence `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`)
+- section coverage weak (0/7 A-G markers) (ADR-0301-survivor-safety-domestic-abuse-mode.md; evidence `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`)
+- section coverage weak (0/7 A-G markers) (ADR-0302-deceased-user-inheritance-doctrine.md; evidence `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`)
+- placeholder marker/placeholder marker residue 1 (ADR-0303-cognitive-impairment-decision-resilience.md; evidence `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`)
+- section coverage weak (5/7 A-G markers) (ADR-0303-cognitive-impairment-decision-resilience.md; evidence `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`)
+- section coverage weak (5/7 A-G markers) (ADR-0304-cross-jurisdiction-conflict-resolution.md; evidence `docs/decisions/ADR-0709-general-live-apex.md:1`)
+- section coverage weak (5/7 A-G markers) (ADR-0305-delegated-agent-authority-chain.md; evidence `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`)
+- section coverage weak (5/7 A-G markers) (ADR-0306-disaster-mode-cell-resilience.md; evidence `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`)
 
 ## §3 Per-Microservice Tier Rating
 
@@ -231,7 +231,7 @@ The six axes are A artifact set, B ADR/52-row proxy, C engineering, D six-hop pr
 
 ### §3.6 `cell`
 
-- Evidence anchors: `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md:1`, successor sections in tenancy, cloud-iac, observability, api-gateway, and audit-chain architecture docs.
+- Evidence anchors: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1`, successor sections in tenancy, cloud-iac, observability, api-gateway, and audit-chain architecture docs.
 - Artifact tier: **EXEMPLAR-130+** with 138 files, 138 doc files, 41 IP files, 26 IP-journey files.
 - PRD signal: 425 lines, 0 US stories, 0/10 A-J sections.
 - Architecture/compliance signal: ARCH 846 lines with 13 § anchors; compliance 1258 lines with 17 § anchors.
@@ -1728,151 +1728,151 @@ The six axes are A artifact set, B ADR/52-row proxy, C engineering, D six-hop pr
 
 Live high-number target range contains 25 ADR files from ADR-0297 through ADR-0321. ADR floor evidence: `docs/standards/documentation-rigor.md:181`.
 ### §4.1 `ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md`
-- Evidence: `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1`.
+- Evidence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`.
 - Status: Proposed; lines: 3112; section markers: 5; hyperscaler hits: 14; refs: 4; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 93/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.2 `ADR-0298-emergency-services-bypass-life-safety.md`
-- Evidence: `docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 1668; section markers: 0; hyperscaler hits: 7; refs: 9; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 80/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.3 `ADR-0299-account-recovery-resilience.md`
-- Evidence: `docs/decisions/ADR-0299-account-recovery-resilience.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 1556; section markers: 0; hyperscaler hits: 6; refs: 9; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 80/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.4 `ADR-0300-whistleblower-press-freedom-anonymity.md`
-- Evidence: `docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md:1`.
+- Evidence: `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`.
 - Status: Proposed; lines: 1649; section markers: 0; hyperscaler hits: 6; refs: 10; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 80/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.5 `ADR-0301-survivor-safety-domestic-abuse-mode.md`
-- Evidence: `docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md:1`.
+- Evidence: `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`.
 - Status: Proposed; lines: 1533; section markers: 0; hyperscaler hits: 4; refs: 16; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 80/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.6 `ADR-0302-deceased-user-inheritance-doctrine.md`
-- Evidence: `docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md:1`.
+- Evidence: `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`.
 - Status: Proposed; lines: 1595; section markers: 0; hyperscaler hits: 5; refs: 10; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 80/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.7 `ADR-0303-cognitive-impairment-decision-resilience.md`
-- Evidence: `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md:1`.
+- Evidence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`.
 - Status: Proposed; lines: 1828; section markers: 5; hyperscaler hits: 4; refs: 0; naming justification: yes; placeholder marker residue: 1.
 - Score/verdict: 80/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (5/7 A-G markers); placeholder marker/placeholder marker residue 1
 
 ### §4.8 `ADR-0304-cross-jurisdiction-conflict-resolution.md`
-- Evidence: `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 1526; section markers: 5; hyperscaler hits: 8; refs: 0; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 85/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.9 `ADR-0305-delegated-agent-authority-chain.md`
-- Evidence: `docs/decisions/ADR-0305-delegated-agent-authority-chain.md:1`.
+- Evidence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`.
 - Status: Proposed; lines: 1559; section markers: 5; hyperscaler hits: 4; refs: 0; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 85/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.10 `ADR-0306-disaster-mode-cell-resilience.md`
-- Evidence: `docs/decisions/ADR-0306-disaster-mode-cell-resilience.md:1`.
+- Evidence: `docs/decisions/ADR-0707-trust-safety-live-apex.md:1`.
 - Status: Proposed; lines: 1639; section markers: 5; hyperscaler hits: 8; refs: 0; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 85/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.11 `ADR-0307-detection-substrate-streaming-batch.md`
-- Evidence: `docs/decisions/ADR-0307-detection-substrate-streaming-batch.md:1`.
+- Evidence: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1`.
 - Status: Proposed; lines: 1865; section markers: 5; hyperscaler hits: 7; refs: 7; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 95/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.12 `ADR-0308-ml-model-lifecycle-ai-act-compliance.md`
-- Evidence: `docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 1903; section markers: 5; hyperscaler hits: 6; refs: 4; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 93/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.13 `ADR-0309-detection-fairness-audit-civil-rights.md`
-- Evidence: `docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md:1`.
+- Evidence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`.
 - Status: Proposed; lines: 1782; section markers: 5; hyperscaler hits: 6; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 89/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.14 `ADR-0310-investigation-case-management.md`
-- Evidence: `docs/decisions/ADR-0310-investigation-case-management.md:1`.
+- Evidence: `docs/decisions/ADR-0703-cas-cache-live-apex.md:1`.
 - Status: Proposed; lines: 2012; section markers: 5; hyperscaler hits: 7; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 89/100 — **PASS**.
 - Gaps: section coverage weak (5/7 A-G markers)
 
 ### §4.15 `ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md`
-- Evidence: `docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md:1`.
+- Evidence: `docs/decisions/ADR-0702-identity-authz-live-apex.md:1`.
 - Status: Proposed; lines: 1802; section markers: 7; hyperscaler hits: 5; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 94/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.16 `ADR-0312-court-warrant-scoped-piercing.md`
-- Evidence: `docs/decisions/ADR-0312-court-warrant-scoped-piercing.md:1`.
+- Evidence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`.
 - Status: Proposed; lines: 1509; section markers: 7; hyperscaler hits: 6; refs: 1; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 92/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.17 `ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md`
-- Evidence: `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md:1`.
+- Evidence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1`.
 - Status: Proposed; lines: 2985; section markers: 7; hyperscaler hits: 11; refs: 22; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 100/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.18 `ADR-0314-marketplace-as-universal-deal-settlement.md`
-- Evidence: `docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md:1`.
+- Evidence: `docs/decisions/ADR-0705-product-protocol-live-apex.md:1`.
 - Status: Proposed; lines: 1800; section markers: 7; hyperscaler hits: 6; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 94/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.19 `ADR-0315-erp-coverage-doctrine-sap-parity.md`
-- Evidence: `docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 2000; section markers: 7; hyperscaler hits: 5; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 94/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.20 `ADR-0316-capability-tier-over-product-fragmentation.md`
-- Evidence: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 2144; section markers: 0; hyperscaler hits: 6; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 74/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.21 `ADR-0317-role-based-projection-unified-ux-shell.md`
-- Evidence: `docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 2151; section markers: 7; hyperscaler hits: 3; refs: 1; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 92/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.22 `ADR-0318-collar-color-workspace-universality.md`
-- Evidence: `docs/decisions/ADR-0318-collar-color-workspace-universality.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 2950; section markers: 7; hyperscaler hits: 2; refs: 1; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 92/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.23 `ADR-0319-front-middle-back-office-information-barrier.md`
-- Evidence: `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Accepted; lines: 2258; section markers: 0; hyperscaler hits: 3; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 74/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
 
 ### §4.24 `ADR-0320-apprentice-intern-resident-fellow-transient-identity.md`
-- Evidence: `docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: proposed; lines: 1558; section markers: 7; hyperscaler hits: 2; refs: 1; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 92/100 — **PASS**.
 - Gaps: none by heuristic scan
 
 ### §4.25 `ADR-0321-b2b-saas-industry-leader-coverage.md`
-- Evidence: `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:1`.
+- Evidence: `docs/decisions/ADR-0709-general-live-apex.md:1`.
 - Status: Proposed; lines: 2606; section markers: 0; hyperscaler hits: 14; refs: 2; naming justification: yes; placeholder marker residue: 0.
 - Score/verdict: 74/100 — **APPROVE-WITH-FINDINGS**.
 - Gaps: section coverage weak (0/7 A-G markers)
@@ -3042,32 +3042,32 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | 1 | P0 | marketplace | P0 artifact count 15/70 floor | `microservices/marketplace:1` | 3-H |
 | 2 | P0 | six-hop graph | six-hop invariant cannot be deterministically verified; no tools/doc-graph-walker found | `docs/standards/documentation-rigor.md:205` | 3-H |
 | 3 | P0 | workplace-integration | P0 artifact count 16/70 floor | `microservices/workplace-integration:1` | 3-H |
-| 4 | P1 | ADR target range | brief says 30+ new ADRs but live 0297-0321 range has 25 files | `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1` | 3-I |
-| 5 | P1 | ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1` | 3-I |
-| 6 | P1 | ADR-0298-emergency-services-bypass-life-safety.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md:1` | 3-I |
-| 7 | P1 | ADR-0299-account-recovery-resilience.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0299-account-recovery-resilience.md:1` | 3-I |
-| 8 | P1 | ADR-0300-whistleblower-press-freedom-anonymity.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md:1` | 3-I |
-| 9 | P1 | ADR-0301-survivor-safety-domestic-abuse-mode.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md:1` | 3-I |
-| 10 | P1 | ADR-0302-deceased-user-inheritance-doctrine.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md:1` | 3-I |
-| 11 | P1 | ADR-0303-cognitive-impairment-decision-resilience.md | placeholder marker/placeholder marker residue 1 | `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md:1` | 3-I |
-| 12 | P1 | ADR-0303-cognitive-impairment-decision-resilience.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md:1` | 3-I |
-| 13 | P1 | ADR-0304-cross-jurisdiction-conflict-resolution.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md:1` | 3-I |
-| 14 | P1 | ADR-0305-delegated-agent-authority-chain.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0305-delegated-agent-authority-chain.md:1` | 3-I |
-| 15 | P1 | ADR-0306-disaster-mode-cell-resilience.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0306-disaster-mode-cell-resilience.md:1` | 3-I |
-| 16 | P1 | ADR-0307-detection-substrate-streaming-batch.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0307-detection-substrate-streaming-batch.md:1` | 3-I |
-| 17 | P1 | ADR-0308-ml-model-lifecycle-ai-act-compliance.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md:1` | 3-I |
-| 18 | P1 | ADR-0309-detection-fairness-audit-civil-rights.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md:1` | 3-I |
-| 19 | P1 | ADR-0310-investigation-case-management.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0310-investigation-case-management.md:1` | 3-I |
-| 20 | P1 | ADR-0316-capability-tier-over-product-fragmentation.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md:1` | 3-I |
-| 21 | P1 | ADR-0319-front-middle-back-office-information-barrier.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md:1` | 3-I |
-| 22 | P1 | ADR-0321-b2b-saas-industry-leader-coverage.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0321-b2b-saas-industry-leader-coverage.md:1` | 3-I |
+| 4 | P1 | ADR target range | brief says 30+ new ADRs but live 0297-0321 range has 25 files | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1` | 3-I |
+| 5 | P1 | ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1` | 3-I |
+| 6 | P1 | ADR-0298-emergency-services-bypass-life-safety.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
+| 7 | P1 | ADR-0299-account-recovery-resilience.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
+| 8 | P1 | ADR-0300-whistleblower-press-freedom-anonymity.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0707-trust-safety-live-apex.md:1` | 3-I |
+| 9 | P1 | ADR-0301-survivor-safety-domestic-abuse-mode.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0707-trust-safety-live-apex.md:1` | 3-I |
+| 10 | P1 | ADR-0302-deceased-user-inheritance-doctrine.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0707-trust-safety-live-apex.md:1` | 3-I |
+| 11 | P1 | ADR-0303-cognitive-impairment-decision-resilience.md | placeholder marker/placeholder marker residue 1 | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1` | 3-I |
+| 12 | P1 | ADR-0303-cognitive-impairment-decision-resilience.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1` | 3-I |
+| 13 | P1 | ADR-0304-cross-jurisdiction-conflict-resolution.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
+| 14 | P1 | ADR-0305-delegated-agent-authority-chain.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1` | 3-I |
+| 15 | P1 | ADR-0306-disaster-mode-cell-resilience.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0707-trust-safety-live-apex.md:1` | 3-I |
+| 16 | P1 | ADR-0307-detection-substrate-streaming-batch.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1` | 3-I |
+| 17 | P1 | ADR-0308-ml-model-lifecycle-ai-act-compliance.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
+| 18 | P1 | ADR-0309-detection-fairness-audit-civil-rights.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0700-ci-admission-live-apex.md:1` | 3-I |
+| 19 | P1 | ADR-0310-investigation-case-management.md | section coverage weak (5/7 A-G markers) | `docs/decisions/ADR-0703-cas-cache-live-apex.md:1` | 3-I |
+| 20 | P1 | ADR-0316-capability-tier-over-product-fragmentation.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
+| 21 | P1 | ADR-0319-front-middle-back-office-information-barrier.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
+| 22 | P1 | ADR-0321-b2b-saas-industry-leader-coverage.md | section coverage weak (0/7 A-G markers) | `docs/decisions/ADR-0709-general-live-apex.md:1` | 3-I |
 | 23 | P1 | analytics | P1 PRD below rigor floor: 113 lines, 0 US stories, 0/10 A-J sections | `microservices/analytics/manifest.json:1` | 3-H |
 | 24 | P1 | analytics | P1 retired/stale terminology refs 5 | `microservices/analytics/manifest.json:1` | 3-J |
 | 25 | P1 | anti-pattern corpus | 12-layer drift: 120 hits | `docs/DOC-CATALOG.md:81` | 3-J |
-| 26 | P1 | anti-pattern corpus | AsyncAPI below 3.1.0 prose/config: 49 hits | `docs/decisions/ADR-0011-cross-microservice-contract-registry.md:102` | 3-J |
+| 26 | P1 | anti-pattern corpus | AsyncAPI below 3.1.0 prose/config: 49 hits | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102` | 3-J |
 | 27 | P1 | anti-pattern corpus | Object Graph retired term: 327 hits | `docs/PRD.md:65` | 3-J |
 | 28 | P1 | anti-pattern corpus | OpenAPI below 3.2.0 prose/config: 22 hits | `docs/architecture/ip-corpus-line-audit-2026-05-21.md:220` | 3-J |
-| 29 | P1 | anti-pattern corpus | React client-stack drift: 131 hits | `docs/decisions/ADR-0205-code-editor-canonical-codemirror.md:39` | 3-J |
+| 29 | P1 | anti-pattern corpus | React client-stack drift: 131 hits | `docs/decisions/ADR-0709-general-live-apex.md:39` | 3-J |
 | 30 | P1 | anti-pattern corpus | foundry-fitness stale lane: 856 hits | `docs/MISTAKES-LEDGER.md:45` | 3-J |
 | 31 | P1 | anti-pattern corpus | retired external tooling (grit/rtk/icm/oya vcs): 2369 hits | `docs/CHANGELOG.md:238` | 3-J |
 | 32 | P1 | api-gateway | P1 PRD below rigor floor: 117 lines, 0 US stories, 0/10 A-J sections | `microservices/api-gateway/README.md:1` | 3-H |
@@ -3083,9 +3083,9 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | 42 | P1 | audit-chain | P1 retired/stale terminology refs 5 | `microservices/audit-chain/manifest.json:1` | 3-J |
 | 43 | P1 | calendar | P1 PRD below rigor floor: 326 lines, 0 US stories, 0/10 A-J sections | `microservices/calendar/manifest.json:1` | 3-H |
 | 44 | P1 | calendar | P1 retired/stale terminology refs 4 | `microservices/calendar/manifest.json:1` | 3-J |
-| 45 | P1 | cell pattern successors | P1 ARCHITECTURE anchors retargeted by ADR-0333 | `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md:1` | 3-J |
-| 46 | P1 | cell pattern successors | Retired standalone PRD replaced by successor architecture sections | `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md:1` | 3-H |
-| 47 | P1 | cell pattern successors | Stale terminology refs routed through ADR-0333 | `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md:1` | 3-J |
+| 45 | P1 | cell pattern successors | P1 ARCHITECTURE anchors retargeted by ADR-0333 | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1` | 3-J |
+| 46 | P1 | cell pattern successors | Retired standalone PRD replaced by successor architecture sections | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1` | 3-H |
+| 47 | P1 | cell pattern successors | Stale terminology refs routed through ADR-0333 | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1` | 3-J |
 | 48 | P1 | cloud-iac | P1 ARCHITECTURE anchors 12/14 | `microservices/cloud-iac/manifest.json:1` | 3-J |
 | 49 | P1 | cloud-iac | P1 PRD below rigor floor: 443 lines, 0 US stories, 0/10 A-J sections | `microservices/cloud-iac/manifest.json:1` | 3-H |
 | 50 | P1 | cloud-iac | P1 compliance anchors 14/15 | `microservices/cloud-iac/manifest.json:1` | 3-J |
@@ -3114,9 +3114,9 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | Object Graph retired term | 327 | docs/PRD.md:65; docs/DOC-CATALOG.md:134; docs/ADR-CONSOLIDATION-PLAN.md:59; docs/CHANGELOG.md:85; docs/GLOSSARY.md:230 |
 | foundry-fitness stale lane | 856 | docs/MISTAKES-LEDGER.md:45; docs/ADR-CONSOLIDATION-PLAN.md:34; docs/CHANGELOG.md:44; docs/VENDOR-PARTNER-LEDGER.md:97; docs/ADR-LEGACY-REGRESSION-MAPPING.md:143 |
 | OpenAPI below 3.2.0 prose/config | 22 | docs/architecture/ip-corpus-line-audit-2026-05-21.md:220; docs/architecture/adr-corpus-line-audit-2026-05-21.md:323; docs/architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md:3117; docs/automation/openapi-pipeline.md:58; microservices/calendar/IP-011-contracts-openapi-asyncapi-proto.md:22 |
-| AsyncAPI below 3.1.0 prose/config | 49 | docs/decisions/ADR-0011-cross-microservice-contract-registry.md:102; docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md:75; docs/user-stories/b2c-consumer-surfaces.md:2240; docs/architecture/ip-corpus-line-audit-2026-05-21.md:111; docs/architecture/adr-corpus-line-audit-2026-05-21.md:334 |
-| 12-layer drift | 120 | docs/DOC-CATALOG.md:81; docs/ADR-INDEX.md:77; docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22; docs/machine-readable/decisions.json:665; docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:3089 |
-| React client-stack drift | 131 | docs/decisions/ADR-0205-code-editor-canonical-codemirror.md:39; docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1987; docs/decisions/ADR-0203-documentation-engine-three-tier.md:104; docs/decisions/ADR-0185-workflow-studio-client-stack.md:43; docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md:35 |
+| AsyncAPI below 3.1.0 prose/config | 49 | docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102; docs/decisions/ADR-0709-general-live-apex.md docs/user-stories/b2c-consumer-surfaces.md:2240; docs/architecture/ip-corpus-line-audit-2026-05-21.md:111; docs/architecture/adr-corpus-line-audit-2026-05-21.md:334 |
+| 12-layer drift | 120 | docs/DOC-CATALOG.md:81; docs/ADR-INDEX.md:77; docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22; docs/machine-readable/decisions.json:665; docs/decisions/ADR-0700-ci-admission-live-apex.md:3089 |
+| React client-stack drift | 131 | docs/decisions/ADR-0709-general-live-apex.md:39; docs/decisions/ADR-0700-ci-admission-live-apex.md:1987; docs/decisions/ADR-0709-general-live-apex.md:104; docs/decisions/ADR-0700-ci-admission-live-apex.md:43; docs/decisions/ADR-0709-general-live-apex.md:35 |
 
 ### §11.1 placeholder marker and code-only deferral
 - `docs/COMPLIANCE-MATRIX.md:178` — `> **placeholder marker v0.2** — full A.5 ... A.18 mapping per ISO 27001:2022 Annex A; cross-reference to existing controls. Same pattern for 27017 (cloud), 27018 (PII in cloud), 27701 (PIMS).`
@@ -3153,10 +3153,10 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/ADR-INDEX.md:77` — `| ADR-0056 | Accepted | Rust Clean Architecture BNF v4.1 — Flat Microservice Grammar + 12-Layer Enum | council-architecture | [`ADR-0056-rust-clean-architecture-bnf.md`](decisions/`
 - `docs/plans/rename-plan-v4-clean-arch-2026-05-13.md:22` — `fold_state: 12-layer-canonical + 4-lean-check-codification + 3-slot-BNF `oya-<shared|vertical>-<bc>-<layer>` (single-token verticals, Option A per ADR-0056 §"Vertical naming policy`
 - `docs/machine-readable/decisions.json:665` — `"title": "Rust Clean Architecture BNF v4.1 — Flat Microservice Grammar + 12-Layer Enum",`
-- `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:3089` — `- `feedback_clean_architecture_requirements` — 12-layer enum +`
-- `docs/decisions/ADR-0115-registry-consolidation-flat-singular.md:50` — `## Naming justification (BNF + 12-layer-enum conformance)`
-- `docs/decisions/ADR-0083-rust-error-handling-tier-decision.md:167` — `- ADR-0056 (rust-clean-architecture-bnf) — defines the 12-layer enum`
-- `docs/decisions/ADR-0307-detection-substrate-streaming-batch.md:1861` — `- `feedback_naming_justification` — every primitive justified per v4 BNF + 12-layer-enum`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md:3089` — `- `feedback_clean_architecture_requirements` — 12-layer enum +`
+- `docs/decisions/ADR-0709-general-live-apex.md:50` — `## Naming justification (BNF + 12-layer-enum conformance)`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md:167` — `- ADR-0056 (rust-clean-architecture-bnf) — defines the 12-layer enum`
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:1861` — `- `feedback_naming_justification` — every primitive justified per v4 BNF + 12-layer-enum`
 
 ### §11.5 retired external tooling (grit/rtk/icm/oya vcs)
 - `docs/CHANGELOG.md:238` — `- Lifted all 11 files from `.omc/agent-kickoff/` to `docs/agents/`: INDEX, AGENT-ENTRY-POINT, AGENT-DECISION-TREE, AGENT-TOOL-PROTOCOL, AGENT-COMPLETION-PROTOCOL, AGENT-FAILURE-REC`
@@ -3169,18 +3169,18 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 - `docs/AGENTS.md:58` — `Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-rev`
 
 ### §11.6 React client-stack drift
-- `docs/decisions/ADR-0205-code-editor-canonical-codemirror.md:39` — `1. Bundling Monaco for every code surface — Monaco is React-coupled (event loop assumptions, web-worker contract), > 1MB initial, and inherits VS Code's accessibility-after-the-fac`
-- `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md:1987` — `- React/SSR per-session: CSS class names are post-build randomised`
-- `docs/decisions/ADR-0203-documentation-engine-three-tier.md:104` — `- **Docusaurus** — React-based, mature, but breaks the`
-- `docs/decisions/ADR-0185-workflow-studio-client-stack.md:43` — `1. **One UI framework everywhere** (Flutter, React Native, Compose Multiplatform UI) — produces non-idiomatic UX per platform; lowest-common-denominator UI quality.`
-- `docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md:35` — `- React to per-commit events (e.g., "agent pushed a fix to PR-B's`
-- `docs/decisions/ADR-0253-network-topology-edge-service-mesh.md:1687` — `compression); React/Solid SSR-hydrated canvas renders within ~50ms`
-- `docs/decisions/ADR-0204-workflow-studio-canvas-library.md:84` — `### (a) React Flow (`@xyflow/react`) — REJECTED`
-- `docs/decisions/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md:1751` — `parallel ADR will address React Native / iOS / Android`
+- `docs/decisions/ADR-0709-general-live-apex.md:39` — `1. Bundling Monaco for every code surface — Monaco is React-coupled (event loop assumptions, web-worker contract), > 1MB initial, and inherits VS Code's accessibility-after-the-fac`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md:1987` — `- React/SSR per-session: CSS class names are post-build randomised`
+- `docs/decisions/ADR-0709-general-live-apex.md:104` — `- **Docusaurus** — React-based, mature, but breaks the`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md:43` — `1. **One UI framework everywhere** (Flutter, React Native, Compose Multiplatform UI) — produces non-idiomatic UX per platform; lowest-common-denominator UI quality.`
+- `docs/decisions/ADR-0709-general-live-apex.md:35` — `- React to per-commit events (e.g., "agent pushed a fix to PR-B's`
+- `docs/decisions/ADR-0708-platform-foundations-live-apex.md:1687` — `compression); React/Solid SSR-hydrated canvas renders within ~50ms`
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md:84` — `### (a) React Flow (`@xyflow/react`) — REJECTED`
+- `docs/decisions/ADR-0709-general-live-apex.md:1751` — `parallel ADR will address React Native / iOS / Android`
 
 ### §11.7 AsyncAPI below 3.1.0 prose/config
-- `docs/decisions/ADR-0011-cross-microservice-contract-registry.md:102` — `2. Validates every spec path exists and is syntactically valid (OpenAPI 3 / Protobuf / AsyncAPI 2.6 / Cedar / JSON Schema).`
-- `docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md:75` — `asyncapi/               # Event APIs (AsyncAPI 3.0)`
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:102` — `2. Validates every spec path exists and is syntactically valid (OpenAPI 3 / Protobuf / AsyncAPI 2.6 / Cedar / JSON Schema).`
+- `docs/decisions/ADR-0709-general-live-apex.md — `asyncapi/               # Event APIs (AsyncAPI 3.0)`
 - `docs/user-stories/b2c-consumer-surfaces.md:2240` — `- **AsyncAPI 3.0 (event contracts).**`
 - `docs/architecture/ip-corpus-line-audit-2026-05-21.md:111` — `1. **Pre-keystone staleness probe** — grep for retired identifiers (ADR-0136, oya-vcs, oya-governance-*, OpenAPI 3.0/3.1/3.3, AsyncAPI 2.x/3.0, proto2, Object Graph, 12-layer,`
 - `docs/architecture/adr-corpus-line-audit-2026-05-21.md:334` — `#### AsyncAPI 2.x / 3.0.0 (canonical: 3.1.0)`
@@ -3333,7 +3333,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/data-pipeline/contracts/openapi-v1.yaml | OpenAPI | PASS |
 | microservices/social/contracts/openapi/social.yaml | OpenAPI | PASS |
 | microservices/sites/contracts/openapi/sites.yaml | OpenAPI | PASS |
-| docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md | OpenAPI authority retired into successor contracts | PASS |
+| docs/decisions/ADR-0701-monorepo-capability-live-apex.md | OpenAPI authority retired into successor contracts | PASS |
 | microservices/contract-lifecycle-management/contracts/openapi-v1.yaml | OpenAPI | PASS |
 | microservices/slides/contracts/openapi/slides.yaml | OpenAPI | PASS |
 | microservices/compliance/contracts/openapi.yaml | OpenAPI | PASS |
@@ -3422,7 +3422,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/data-pipeline/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
 | microservices/social/contracts/asyncapi/social-events.yaml | AsyncAPI | PASS |
 | microservices/sites/contracts/asyncapi/sites-events.yaml | AsyncAPI | PASS |
-| docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md | AsyncAPI authority retired into successor events | PASS |
+| docs/decisions/ADR-0701-monorepo-capability-live-apex.md | AsyncAPI authority retired into successor events | PASS |
 | microservices/contract-lifecycle-management/contracts/asyncapi-v1.yaml | AsyncAPI | PASS |
 | microservices/slides/contracts/asyncapi/slides-events.yaml | AsyncAPI | PASS |
 | microservices/compliance/contracts/asyncapi.yaml | AsyncAPI | PASS |
@@ -3510,7 +3510,7 @@ DRMP governing evidence: `docs/standards/documentation-rigor.md:483`-513.
 | microservices/data-pipeline/contracts/data-pipeline-v1.proto | proto | PASS |
 | microservices/social/contracts/proto/social.proto | proto | PASS |
 | microservices/sites/contracts/proto/sites.proto | proto | PASS |
-| docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md | proto authority retired into successor contracts | PASS |
+| docs/decisions/ADR-0701-monorepo-capability-live-apex.md | proto authority retired into successor contracts | PASS |
 | microservices/contract-lifecycle-management/contracts/contract-lifecycle-management-v1.proto | proto | PASS |
 | microservices/slides/contracts/proto/slides.proto | proto | PASS |
 | microservices/compliance/contracts/compliance.proto | proto | PASS |

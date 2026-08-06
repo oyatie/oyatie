@@ -409,15 +409,15 @@ CRA vulnerability reports open security update and notification workflows.
 | `packs/eu-localization/dsr-and-portability.md` | GDPR Article 15-22 workflows. |
 | `packs/eu-localization/high-risk-ai-systems.md` | AI Act Annex III and high-risk operation. |
 | `packs/eu-localization/dora-operational-resilience.md` | DORA ICT risk, incident, third-party, and TLPT duties. |
-| `docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md` | Tenant substrate. |
-| `docs/decisions/ADR-0243-cedar-as-universal-gate.md` | Policy substrate. |
-| `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` | Tenant sub-scope. |
-| `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md` | Cell placement and certification. |
-| `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md` | Compliance-pack primitive. |
-| `docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md` | AI substrate and EU AI Act tier UI. |
-| `docs/decisions/ADR-0263-observability-emission-contract.md` | Audit-event emission contract. |
-| `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md` | Jurisdiction conflict handling. |
-| `docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md` | AI Act model lifecycle. |
+| `docs/decisions/ADR-0702-identity-authz-live-apex.md` | Tenant substrate. |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | Policy substrate. |
+| `docs/decisions/ADR-0702-identity-authz-live-apex.md` | Tenant sub-scope. |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | Cell placement and certification. |
+| `docs/decisions/ADR-0708-platform-foundations-live-apex.md` | Compliance-pack primitive. |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | AI substrate and EU AI Act tier UI. |
+| `docs/decisions/ADR-0706-observability-live-apex.md` | Audit-event emission contract. |
+| `docs/decisions/ADR-0709-general-live-apex.md` | Jurisdiction conflict handling. |
+| `docs/decisions/ADR-0709-general-live-apex.md` | AI Act model lifecycle. |
 | `specs/audit-event-class-registry.json` | Event class registry shape. |
 | `specs/capability-tier-schema.json` | Capability-tier compliance overlay shape. |
 

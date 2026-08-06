@@ -60,7 +60,7 @@ Two velocity-biased transitions sandwich two quality-biased transitions. The pat
 
 ## 5. The accepted failure mode and its budget
 
-The model **does not** tolerate brokenness on `origin/dev` — the 3-gate refuses red. The model **does** accept that **canary regressions can happen on staging**, because canaries are real-traffic experiments and regression is the data the experiment is designed to detect. The `staging-fixer` agent has a **4-hour SLA** on canary-regression events; the regression is bounded in time + blast radius (canary cohort only, not all-tenant) via the progressive-delivery rails ([ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md)).
+The model **does not** tolerate brokenness on `origin/dev` — the 3-gate refuses red. The model **does** accept that **canary regressions can happen on staging**, because canaries are real-traffic experiments and regression is the data the experiment is designed to detect. The `staging-fixer` agent has a **4-hour SLA** on canary-regression events; the regression is bounded in time + blast radius (canary cohort only, not all-tenant) via the progressive-delivery rails ([ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md)).
 
 We do **not** treat canary regression as a defect to be eliminated. We treat it as a **resource budget** — the canary cohort spends a small amount of regression for the data that prevents prod regression, and the fixer redeems it within the SLA.
 

@@ -16,8 +16,8 @@ Audience: a new tenancy engineer, IAM engineer, or platform engineer joining the
 1. Read `PRD.md` (∼ 40 min). Note the five-vendor displacement + per-tenant doctrine.
 2. Read `ARCHITECTURE.md` § lifecycle-state-machine + § parent-child-relationship + § scoped-permits + § DSR-cascade + § cell-residency (∼ 60 min).
 3. Read `decisions/ADR-TEN-001-tenant-lifecycle-parent-child-cedar-permit.md` end-to-end (∼ 50 min). The binding architecture.
-4. Read `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md` (∼ 30 min). Conglomerate doctrine.
-5. Read `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md` + `feedback_oyatie_is_a_tenant_doctrine` (∼ 30 min).
+4. Read `docs/decisions/ADR-0700-ci-admission-live-apex.md` (∼ 30 min). Conglomerate doctrine.
+5. Read `docs/decisions/ADR-0700-ci-admission-live-apex.md` + `feedback_oyatie_is_a_tenant_doctrine` (∼ 30 min).
 6. Open the Grafana folder `tenancy`. Primary boards: `tenancy-lifecycle-transition-latency`, `tenancy-relationship-permit-count`, `tenancy-lifecycle-lock-active-total`, `tenancy-offboarding-cascade-lag-seconds`, `tenancy-cross-pack-conflict-total`.
 7. Walk `runbooks/README.md`. The on-call runbooks: `lifecycle-lock-stuck.md`, `offboarding-cascade-lag.md`, `sovereign-child-veto.md`, `permit-grant-revocation-cancellation.md`, `relationship-cycle-detected.md`, `kyb-pending-stuck.md`, `cryptoshred-blocked-by-legal-hold.md`, `tenant-migration-rollback.md`.
 8. Sit in on the Wednesday tenancy-substrate handoff.

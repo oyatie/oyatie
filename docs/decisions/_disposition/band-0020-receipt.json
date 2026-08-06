@@ -1,0 +1,115 @@
+{
+  "band": [20, 29],
+  "reviewed": [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+  "findings": [
+    {
+      "adr": "ADR-0020",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes/amends ADR-0020; no body-level supersession claim. Multi-provider adapter remains a Proposed design input (related from 0173/0174). Later intelligence consolidation (0255 Proposed; 0335 Accepted) absorbs foundry service boundary without claiming this ADR. Do not mass-Accept; do not invent supersession.",
+      "higher_adrs_cited": ["ADR-0173", "ADR-0174", "ADR-0255", "ADR-0335"]
+    },
+    {
+      "adr": "ADR-0021",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0021. Capability-registry/MCP gateway remains Proposed; peer-band related only. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0022",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0022. Autonomy-ceiling Cedar gate remains Proposed design; not implement authority. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0023",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0023. Wasmtime+Firecracker sandbox remains Proposed; later frontend/runtime ADRs (0372/0379/0393) only related. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0372", "ADR-0379", "ADR-0393"]
+    },
+    {
+      "adr": "ADR-0024",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0024. Eval harness/replay remains Proposed peer of 0020–0026 cluster. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0025",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0025. Foundry-as-engineering-platform naming is historical relative to 0335 foundry absorption, but no Accepted successor lists supersedes ADR-0025. Leave Proposed (not invent supersession).",
+      "higher_adrs_cited": ["ADR-0335"]
+    },
+    {
+      "adr": "ADR-0026",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0026. In-house model substrate roadmap remains Proposed; 0173/0192 related only. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0173", "ADR-0192"]
+    },
+    {
+      "adr": "ADR-0027",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher ADR supersedes or amends ADR-0027. Vision/speech/robotics sub-substrates remain Proposed. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0028",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0028. Amenders claiming amends ADR-0028 are not live Accepted: ADR-0343 Proposed, ADR-0344 Proposed, ADR-0349 Superseded (by ADR-0515). Per live-resolution, only Accepted amenders require amended_by; do not reverse-link Proposed/Superseded. Three-phase phase-invariant product surface remains live cloud-µservice architecture authority; 0515 supersedes CI substrate (0349) not this ADR. Keep Accepted; no false Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0131",
+        "ADR-0343",
+        "ADR-0344",
+        "ADR-0349",
+        "ADR-0515",
+        "ADR-0163",
+        "ADR-0174"
+      ]
+    },
+    {
+      "adr": "ADR-0029",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes or amends ADR-0029. ADR-0132 dissolves grouping wrappers without superseding dual-context Professional+Personal doctrine; later connect/comms slices (0571/0598/0599) depend_on/related and treat 0029 as live design parent. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0131",
+        "ADR-0132",
+        "ADR-0166",
+        "ADR-0234",
+        "ADR-0571",
+        "ADR-0598",
+        "ADR-0599"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0020",
+    "ADR-0021",
+    "ADR-0022",
+    "ADR-0023",
+    "ADR-0024",
+    "ADR-0025",
+    "ADR-0026",
+    "ADR-0027",
+    "ADR-0028",
+    "ADR-0029"
+  ]
+}

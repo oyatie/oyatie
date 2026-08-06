@@ -1,6 +1,6 @@
 # Standard — GitOps + IaC + cluster lifecycle: tier boundaries
 
-> ADR anchor: `docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md`.
+> ADR anchor: `docs/decisions/ADR-0709-general-live-apex.md`.
 > Gate anchor: `crates/oya-check-iac-tier-discipline/`.
 > Authored 2026-05-18.
 

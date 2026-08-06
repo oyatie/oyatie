@@ -19,7 +19,7 @@ doc_status: published
 
 # ADR-DRAFT: Four-Layer Branch Pipeline with Reviewer-Agent-Gated Auto-Promotion (Supersedes ADR-0041)
 
-> **Status:** Draft (pending approval). **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Supersedes:** [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md).
+> **Status:** Draft (pending approval). **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Supersedes:** [ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md).
 
 ---
 
@@ -32,7 +32,7 @@ Three forces require revisiting:
 
 2. **Per-change-class reviewer roster.** `docs/AGENTS.md` defines 12 reviewer agents (rust / typescript / python / database / security / privacy / tdd / silent-failure / doc / capability / perf / doc-style). Their verdicts have to bind to a specific transition; trunk-based has only one transition (merge to main) and forces all verdicts to converge there.
 
-3. **Progressive-delivery binding.** [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) requires canary stages that take 24h+ to soak. Trunk-based pushes this work to feature flags; we have feature flags ([`feature-flag-architecture.md`](../progressive-delivery/feature-flag-architecture.md)) but use them for **cohort intersection**, not **release-stage surrogates**.
+3. **Progressive-delivery binding.** [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) requires canary stages that take 24h+ to soak. Trunk-based pushes this work to feature flags; we have feature flags ([`feature-flag-architecture.md`](../progressive-delivery/feature-flag-architecture.md)) but use them for **cohort intersection**, not **release-stage surrogates**.
 
 We need a model where the **reviewer-agent verdict gates entry to the shared world**, **canary observation gates entry to production**, and **everything in between is autonomous**.
 
@@ -146,7 +146,7 @@ Each gate sits where its input data is available; no gate is invoked before its 
 ## Follow-ups
 
 1. Lift this draft to `oyatie/docs/decisions/registry/placeholder-debt/adr-follow-ups.yaml#four-layer-branch-pipeline (drafting)` (number assigned at lift time).
-2. Update `oyatie/docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md` status to `Superseded-by: ADR-####`.
+2. Update `oyatie/docs/decisions/ADR-0709-general-live-apex.md status to `Superseded-by: ADR-####`.
 3. Implement the three promoter agents + the fixer per [`agent-roles-spec.md`](agent-roles-spec.md). Distroless images per [Directive 5](../../plans/MASTERPLAN.md).
 4. Implement the six new fitness lanes per [`governance-lanes-for-branch-pipeline.md`](governance-lanes-for-branch-pipeline.md).
 5. Apply branch-protection rules per [`branch-protection-rules.md`](branch-protection-rules.md) — nightly drift-check enforces.
@@ -159,8 +159,8 @@ Each gate sits where its input data is available; no gate is invoked before its 
 ## References
 
 - `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy (the trunk-based default we deviate from)
-- [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) (canary + SLO mechanics inherited)
-- [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md) (superseded)
-- [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) (Cosign + SLSA inherited)
+- [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) (canary + SLO mechanics inherited)
+- [ADR-0041](../../../docs/decisions/ADR-0709-general-live-apex.md) (superseded)
+- [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md) (Cosign + SLSA inherited)
 - `docs/AGENTS.md` (reviewer-agent roster)
 - `.omc/advanced-cicd/progressive-delivery/` (sister composer; runtime mechanics)

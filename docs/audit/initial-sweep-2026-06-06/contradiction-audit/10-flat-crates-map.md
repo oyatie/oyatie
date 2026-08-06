@@ -27,16 +27,16 @@ ADR-0512 (Accepted, founder-locked, 2026-05-29) — CANONICAL
 
 Source frontmatter:
 
-- ADR-0015: `docs/decisions/ADR-0015-architectural-flattening-target.md:3` — `status: accepted`;
+- ADR-0015: `docs/decisions/ADR-0709-general-live-apex.md:3` — `status: accepted`;
   `:5` — `superseded_by: [ADR-0131]`;
   `:6` — `supersession_note: "Partial — ADR-0131 supersedes only the docs-vs-crates top-level split..."`
-- ADR-0131: `docs/decisions/ADR-0131-per-microservice-flat-layout.md:8-10` — `supersedes:` ADR-0015 (partial) + ADR-0119 (partial);
+- ADR-0131: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:8-10` — `supersedes:` ADR-0015 (partial) + ADR-0119 (partial);
   `:24-28` — **"Amended — 2026-06-02 (pure split):** ADR-0512/platform-readiness updates the top-level service root from `microservices/<ms>/` to `{oya,cloud}/<service>/`."`
-- ADR-0512: `docs/decisions/ADR-0512-canonical-monorepo-pattern.md:9-13` — `supersedes: [ADR-0357, ADR-0509]`, `amends: [ADR-0131]`;
+- ADR-0512: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md:9-13` — `supersedes: [ADR-0357, ADR-0509]`, `amends: [ADR-0131]`;
   `:53-57` — `"Service code lives at {oya,cloud}/<service>/crates/<crate>/ ... A flat top-level crates/ directory is **forbidden**. microservices/ is legacy/removal-candidate"`;
   `:62` — `"The architecture-boundaries gate requires service code under {oya,cloud}/<service>/crates/ or shared code under libs/<lib>/ (flat crates/ rejected ...). Workspace-topology validation fails on: a flat crates/ directory; ..."`
 
-ADR-0357 is **Proposed**, not Accepted (`docs/decisions/ADR-0357-vertical-slice-monorepo-nesting.md:3` `status: Proposed`) —
+ADR-0357 is **Proposed**, not Accepted (`docs/decisions/ADR-0709-general-live-apex.md:3` `status: Proposed`) —
 ADR-0512 superseded a never-ratified proposal. ADR-0509 is `status: Accepted` (`ADR-0509-...:4`).
 
 ---
@@ -109,7 +109,7 @@ Other live gate-doc references to the flat-crates lane (each repeats the superse
 
 - `docs/MISTAKES-LEDGER.md:56` — MFL-0012, `oya-governance-flat-crates` "active gate" guarding against
   reintroducing `modules/services/platform` — framed around top-level `crates/` as the canonical destination.
-- `docs/PRIVACY-PROGRAM.md:178` and `docs/decisions/ADR-0008-data-use-boundary.md:126` — the
+- `docs/PRIVACY-PROGRAM.md:178` and `docs/decisions/ADR-0709-general-live-apex.md:126` — the
   `oya-governance-flat-crates` **GATE** "rejects any new flat crate whose dep graph imports an ads/analytics
   adapter" (naming-survives wording, but the gate name binds the superseded lane).
 - `docs/quality/ai-slop-defense/impossible-to-fail-environment-spec.md:69` — `MFL-0012 ... oya-governance-flat-crates | shipped`.
@@ -126,11 +126,11 @@ Seed refs (confirmed) — the four-corners "Flat-crates binding" GATE/topology w
 
 | path:line | verbatim snippet | type |
 |---|---|---|
-| `docs/decisions/ADR-0001-...:106` | `Applies to: every crate under \`crates/oya-*\`, every catalog record...` | (a) LOCATION |
-| `docs/decisions/ADR-0008-...:126` | `Architecture fitness gate — \`oya-governance-flat-crates\` rejects any new flat crate...` | GATE name binds superseded lane |
-| `docs/decisions/ADR-0013-...:109` | `Applies to: every crate under \`crates/oya-*\`, every npm package...` | (a) LOCATION |
-| `docs/decisions/ADR-0020-...:175` | `Flat-crates binding: the sealed provider-adapter contract lives in \`crates/oya-foundry-adapter-kernel\`; ... land under \`crates/oya-foundry-*\`` | (a) LOCATION |
-| `docs/decisions/ADR-0022-...:175` | `Flat-crates binding: autonomy-ceiling enforcement lives in \`crates/oya-foundry-policy-kernel\` and ... through flat \`oya-foundry-*\` crates` | (a) LOCATION |
+| `docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md | `Applies to: every crate under \`crates/oya-*\`, every catalog record...` | (a) LOCATION |
+| `docs/adr-archive/ADR-0008-data-use-boundary.md | `Architecture fitness gate — \`oya-governance-flat-crates\` rejects any new flat crate...` | GATE name binds superseded lane |
+| `docs/adr-archive/ADR-0013-product-license-policy.md | `Applies to: every crate under \`crates/oya-*\`, every npm package...` | (a) LOCATION |
+| `docs/adr-archive/ADR-0020-intelligence-multi-provider-adapter-model.md | `Flat-crates binding: the sealed provider-adapter contract lives in \`crates/oya-foundry-adapter-kernel\`; ... land under \`crates/oya-foundry-*\`` | (a) LOCATION |
+| `docs/adr-archive/ADR-0022-autonomy-ceiling-runtime-enforcement.md | `Flat-crates binding: autonomy-ceiling enforcement lives in \`crates/oya-foundry-policy-kernel\` and ... through flat \`oya-foundry-*\` crates` | (a) LOCATION |
 
 ADR-0015 self-assertions (the authoritative source of the superseded topology — survives as accepted for
 BC/layer rules but its top-level-`crates/` location clauses are superseded by ADR-0131/0512):
@@ -214,9 +214,9 @@ crate NAME, not that top-level `crates/` is the canonical root; under ADR-0512 t
 
 ## 6. Back-pointer / index integrity gaps (supersession not fully recorded)
 
-- `docs/decisions/ADR-0509-...:10` — `superseded_by: []` (EMPTY) and `:4` `status: Accepted`, despite
+- `docs/adr-archive/ADR-0509-hyperscaler-service-decomposition-pattern.md — `superseded_by: []` (EMPTY) and `:4` `status: Accepted`, despite
   ADR-0512:9-11,22 declaring it superseded. No back-pointer; status not flipped to Superseded.
-- `docs/decisions/ADR-0357-...` — has **no** `superseded_by` field at all (`grep -c superseded_by` → 0);
+- `docs/adr-archive/ADR-0357-vertical-slice-monorepo-nesting.md — has **no** `superseded_by` field at all (`grep -c superseded_by` → 0);
   still `status: Proposed`. ADR-0512:22 supersedes it but the file is unmarked.
 - `docs/ADR-INDEX.md` — has **no row** for ADR-0509 or ADR-0512 (`grep -c 'ADR-0509|ADR-0512'` → 0).
   The canonical, founder-locked governing ADR (0512) is absent from the index; 0357 is still listed

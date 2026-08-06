@@ -12,7 +12,7 @@
       "/specs/root-hub-pointers.json#entry_points.masterplan",
       "/specs/masterplan.json#planning_closure.first_deliverable",
       "/specs/planning-closure-contract.json#no_placeholder_policy",
-      "docs/decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "docs/decisions/ADR-0709-general-live-apex.md",
       "docs/LEGAL-IP-LEDGER.md",
       "evidence/fd001/fd001-completion-blocker-audit-2026-05-19T1124Z.json"
     ],

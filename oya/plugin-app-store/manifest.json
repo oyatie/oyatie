@@ -293,85 +293,85 @@
       "id": "ADR-0001",
       "title": "Cohesion thesis — one product, seven axes",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md"
+      "file": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"
     },
     {
       "id": "ADR-0007",
       "title": "Cedar authorization policy + persona tier",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md"
+      "file": "docs/decisions/ADR-0702-identity-authz-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "BNF v4.1",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13-layer enum + check family patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0123",
       "title": "Hyperscaler maturity claim gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0131",
       "title": "Per-microservice flat layout",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0132",
       "title": "Product platform and bundle dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic SLO-gated promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0147",
       "title": "Wasmtime sandbox baseline",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0147-wasmtime-sandbox-baseline.md"
+      "file": "docs/adr-archive/ADR-0147-container-sandboxing-runtime-ladder.md"
     },
     {
       "id": "ADR-0181",
       "title": "Cosign signing",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0181-cosign-signing.md"
+      "file": "docs/adr-archive/ADR-0181-container-image-promotion-pipeline.md"
     },
     {
       "id": "ADR-0200",
       "title": "Wasmtime canonical",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0211",
       "title": "In-house tech policy",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0211-in-house-tech-policy.md"
+      "file": "docs/adr-archive/ADR-0211-in-house-tech-stack-policy.md"
     },
     {
       "id": "ADR-0212",
       "title": "Buildability bar",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0212-buildability-bar.md"
+      "file": "docs/adr-archive/ADR-0212-buildability-doctrine.md"
     },
     {
       "id": "ADR-0213",
       "title": "Ecosystem-as-a-Service architecture — Plugin/App Store substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0213-ecosystem-as-a-service-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

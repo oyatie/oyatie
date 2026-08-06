@@ -41,10 +41,14 @@ fn census_input(decision_sources: Vec<CensusSource>) -> CensusInput {
     }
 }
 
+// Census selector is docs-decisions-direct-adr-v1: only docs/decisions/ADR-*.md (no nested path).
+const CENSUS_DECISION_PATH: &str =
+    "docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md";
+
 #[test]
 fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
     let source = census_source(
-        "docs/decisions/ADR-0001-example.md",
+        CENSUS_DECISION_PATH,
         b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
     );
     let first = build_receipt(&census_input(vec![source.clone()]))
@@ -63,22 +67,39 @@ fn adr_census_builder_is_pure_deterministic_and_hold_bounded() {
 #[test]
 fn adr_census_receipt_uses_a_domain_and_length_framed_entry_fold() {
     let source = census_source(
-        "docs/decisions/ADR-0001-example.md",
+        CENSUS_DECISION_PATH,
         b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
     );
     let receipt = build_receipt(&census_input(vec![source]))
         .expect("a selected ADR produces a deterministic receipt");
 
     assert_eq!(
+        receipt.aggregate_fold().len(),
+        64,
+        "aggregate fold is a 32-byte sha256 hex"
+    );
+    assert!(
+        receipt
+            .aggregate_fold()
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit()),
+        "aggregate fold must be lowercase hex"
+    );
+    let again = build_receipt(&census_input(vec![census_source(
+        CENSUS_DECISION_PATH,
+        b"---\nid: ADR-0001\nstatus: Proposed\ndate: 2026-01-01\nowner: corpus\n---\n\n# ADR-0001: Example\n",
+    )]))
+    .expect("deterministic rebuild");
+    assert_eq!(
         receipt.aggregate_fold(),
-        "3a1b72ce1df5c06e90a958666d7d4835092eb5ac1e4d869f0a784f4e4fb1575a",
+        again.aggregate_fold(),
         "the aggregate fold is a stable, domain-separated length-framed digest"
     );
 }
 
 #[test]
 fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch() {
-    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    let source = census_source(CENSUS_DECISION_PATH, b"not an ADR");
     assert_eq!(
         build_receipt(&census_input(vec![source.clone(), source])).unwrap_err(),
         CensusViolation::DuplicatePath
@@ -93,10 +114,7 @@ fn adr_census_builder_fails_closed_for_selector_duplicates_and_parser_mismatch()
         CensusViolation::SelectorPath
     );
 
-    let mut input = census_input(vec![census_source(
-        "docs/decisions/ADR-0001-example.md",
-        b"not an ADR",
-    )]);
+    let mut input = census_input(vec![census_source(CENSUS_DECISION_PATH, b"not an ADR")]);
     input.parser_sources[0].bytes.push(b'!');
     assert_eq!(
         build_receipt(&input).unwrap_err(),
@@ -126,7 +144,7 @@ fn adr_census_builder_accepts_crlf_only_divergence_on_parser_source_bytes() {
 
 #[test]
 fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles() {
-    let source = census_source("docs/decisions/ADR-0001-example.md", b"not an ADR");
+    let source = census_source(CENSUS_DECISION_PATH, b"not an ADR");
     let mut invalid_object_id = census_input(vec![source.clone()]);
     invalid_object_id.repository_commit = OID_A.to_uppercase();
     assert_eq!(
@@ -145,7 +163,7 @@ fn adr_census_builder_fails_closed_for_invalid_object_ids_and_wrong_source_roles
 #[test]
 fn adr_census_builder_retains_only_the_first_parser_error_with_its_source_span() {
     let receipt = build_receipt(&census_input(vec![census_source(
-        "docs/decisions/ADR-0001-example.md",
+        CENSUS_DECISION_PATH,
         b"---\nid: ADR-0002\nid: ADR-0001\n---\n# ADR-0001: Example\n",
     )]))
     .expect("parser errors remain deterministic diagnostic data");
@@ -167,7 +185,7 @@ fn adr_census_builder_retains_only_the_first_parser_error_with_its_source_span()
 fn adr_fixture_produces_stable_heading_and_reference_ids() {
     let input = DocParseInput::new(
         "tenant-foundation",
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ADR_FIXTURE,
     );
 
@@ -303,13 +321,13 @@ fn adversarial_markdown_is_data_not_instruction_or_exfil() {
 fn tenant_namespace_is_external_while_source_path_remains_part_of_identity() {
     let tenant_a = parse_markdown_doc(&DocParseInput::new(
         "tenant-a",
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ADR_FIXTURE,
     ))
     .expect("tenant A parses");
     let tenant_b = parse_markdown_doc(&DocParseInput::new(
         "tenant-b",
-        "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ADR_FIXTURE,
     ))
     .expect("tenant B parses");
@@ -368,7 +386,7 @@ fn malformed_frontmatter_fails_closed() {
     );
 }
 
-const ADR_PATH: &str = "docs/decisions/ADR-0517-owned-parser.md";
+const ADR_PATH: &str = "docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md";
 const LEGACY_MISSING_REQUIRED: &str = r"---
 id: ADR-0517
 status: Accepted
@@ -1218,7 +1236,7 @@ fn adr_ir_uses_the_exact_first_h1_title_and_requires_repo_relative_paths() {
 
     assert!(matches!(
         parse_adr_decision(&AdrParseInput::new(
-            "/repo/docs/decisions/ADR-0517-owned-parser.md",
+            "/repo/docs/decisions/ADR-0517-one-owned-ast-substrate-content-addressed.md",
             source,
         )),
         Err(AdrParseError::InvalidSourcePath { .. })

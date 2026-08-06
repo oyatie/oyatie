@@ -17,7 +17,7 @@
     ],
     "referenced_by": [
       "specs/hyperscaler-gates.json",
-      "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     ]
   },
   "pillars": {

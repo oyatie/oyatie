@@ -4,7 +4,7 @@
   "status": "production-portal-shell",
   "surface": "application-shell-control-center",
   "owner_microservice": "application",
-  "authority": "docs/decisions/ADR-0393-leptos-canonical-app-shell-frontend.md",
+  "authority": "docs/decisions/ADR-0709-general-live-apex.md",
   "stack": {
     "framework": "Leptos",
     "framework_version": "0.8.19",

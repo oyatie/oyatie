@@ -2,7 +2,7 @@
 
 Status: audit-only checkpoint
 Agent: `codex-audit-event-coverage-sweep`
-Source ADR: `docs/decisions/ADR-0263-observability-emission-contract.md`
+Source ADR: `docs/decisions/ADR-0706-observability-live-apex.md`
 Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 
 ## §1 — Methodology
@@ -1911,11 +1911,11 @@ Output path: `docs/architecture/audit-event-coverage-sweep-2026-05-20.md`
 
 ### §5.1 Global ADR and registry cross-references
 
-- `docs/decisions/ADR-0263-observability-emission-contract.md` — registry contract and mandatory audit envelope; update it or point it at the successor registry when new service-specific classes land.
+- `docs/decisions/ADR-0706-observability-live-apex.md` — registry contract and mandatory audit envelope; update it or point it at the successor registry when new service-specific classes land.
 - `microservices/audit-chain/policy/event-class-registry/` — referenced by ADR-0263 but absent in this checkout; create it or replace it with the canonical successor registry before claiming registered-class compliance.
-- `docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md` — current source for abuse-defence registered classes.
-- `docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md` — current source for conglomerate registered classes.
-- `docs/decisions/ADR-0319-front-middle-back-office-information-barrier.md` — current source for office/information-barrier registered classes.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — current source for abuse-defence registered classes.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — current source for conglomerate registered classes.
+- `docs/decisions/ADR-0709-general-live-apex.md` — current source for office/information-barrier registered classes.
 
 ### §5.2 Service-level fix ledger
 

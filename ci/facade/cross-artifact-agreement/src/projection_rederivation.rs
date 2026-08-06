@@ -200,7 +200,7 @@ read_contract:\n\
 companion_docs:\n\
 - /specs/root-hub-pointers.json\n\
 {companion_specs}\
-- docs/decisions/ADR-0217-vertical-slice-rollout-order.md\n\
+- docs/decisions/ADR-0709-general-live-apex.md\n\
 authority_chain_declaration: |\n\
 \x20 system / developer / user instructions\n\
 \x20   > /specs/root-hub-pointers.json\n\

@@ -389,6 +389,6 @@ The bar is deterministic, mutation-resistant, property-rich unit coverage for ev
 - Contract: `microservices/identity/contracts/proto/identity.proto`.
 - Sample tenant fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Sample tenant fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
-- ADR: `docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md`.
-- ADR: `docs/decisions/ADR-0188-passkey-webauthn-substrate.md`.
-- ADR: `docs/decisions/ADR-0190-scim-2-provisioning-enterprise-tenants.md`.
+- ADR: `docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- ADR: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.

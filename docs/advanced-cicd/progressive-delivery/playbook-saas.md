@@ -21,7 +21,7 @@ doc_status: published
 
 ## 1. Surface
 
-SaaS-axis surfaces (CRM, ITSM, project management, knowledge base) — the cohesion-thesis user-facing axes ([ADR-0001](../../../docs/decisions/ADR-0001-cohesion-thesis-one-product-seven-axes.md)).
+SaaS-axis surfaces (CRM, ITSM, project management, knowledge base) — the cohesion-thesis user-facing axes ([ADR-0001](../../../docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md)).
 
 ## 2. Default rail
 
@@ -29,7 +29,7 @@ SaaS-axis surfaces (CRM, ITSM, project management, knowledge base) — the cohes
 
 ## 3. Per-vertical regulatory awareness
 
-SaaS surfaces are tenant-vertical-aware ([ADR-0033](../../../docs/decisions/ADR-0033-vertical-industry-cloud-pack-architecture.md), [ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)). A SaaS change MUST:
+SaaS surfaces are tenant-vertical-aware ([ADR-0033](../../../docs/decisions/ADR-0709-general-live-apex.md), [ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)). A SaaS change MUST:
 
 1. Declare which verticals it affects (healthcare / fintech / legal / public-sector / general).
 2. Trigger DPIA refresh on regulated verticals (per [`playbook-vertical-pack.md`](playbook-vertical-pack.md)).
@@ -39,7 +39,7 @@ A change that affects only `general` skips DPIA; one touching `healthcare` trigg
 
 ## 4. Per-tier semver discipline
 
-Per [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md):
+Per [ADR-0037](../../../docs/decisions/ADR-0709-general-live-apex.md):
 
 | API tier | SLO target | Canary requirement | Dark-launch requirement |
 |---|---|---|---|
@@ -51,7 +51,7 @@ Per [ADR-0037](../../../docs/decisions/ADR-0037-public-api-stability-tiers-and-d
 
 ## 5. Cross-axis contract changes
 
-Any SaaS change that crosses an axis boundary ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)) requires lockstep canary across all consumer axes (per [`playbook-cross-axis-contract.md`](playbook-cross-axis-contract.md)).
+Any SaaS change that crosses an axis boundary ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)) requires lockstep canary across all consumer axes (per [`playbook-cross-axis-contract.md`](playbook-cross-axis-contract.md)).
 
 ## 6. Cohort-gated experiments
 

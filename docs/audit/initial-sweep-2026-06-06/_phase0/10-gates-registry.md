@@ -23,7 +23,7 @@ This artifact takes the prior DESIGN lane (`justify-account-robustness/10-enforc
 - `source/specs/fixtures/phase0-claim-ceiling/` (5 fixtures) + `phase0-ci-enforcement-baseline/` + `phase0-exit-gate/` — the on-disk fixture convention template (`expected_verdict` + `expected_violations` + `rows[]` + `source_test`). (confirmed)
 - **Live drift exhibits (RED-fixture seeds), each re-read this session:**
   - `docs/machine-readable/catalog.json:12` = `"axes_count": 6,` **vs** `docs/machine-readable/contracts.json:9` = `"axes_count": 7,` (generated-face drift — verbatim, both files).
-  - `docs/decisions/ADR-0377-forgejo-board-git-ref-cas-fallback.md` **and** `docs/decisions/ADR-0377-kafka-to-pulsar-via-kop.md` — TWO files, one number 0377 (dual-decision collision).
+  - `docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md` **and** `docs/adr-archive/ADR-0377-github-board-git-ref-cas-fallback.md` — TWO files, one number 0377 (dual-decision collision).
   - `ADR-0511-...md:11` `supersedes: [ADR-0359]`, `:12` `superseded_by: []` (supersession recorded one-directionally; reciprocal flip on ADR-0359 is a *pending* line, `:105`).
   - `ADR-0365-...md` `verified_by: "oya gen propagate --check"` (`:26`), `"oya gate validate propagation-drift"` (`:30`), ×5 more `oya gate`/`oya gen` — oya-CLI-authority defect, the exact thing register #20 forbids.
   - `find -name OWNERS` (excl target/.git) = **0** tree-wide (the O-1 systemic owner gap → Gate-2 `unowned` is born blocking).

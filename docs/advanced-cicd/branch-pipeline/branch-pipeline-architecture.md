@@ -85,13 +85,13 @@ Target promotion fires automatically when **all five** are green on `staging` HE
 
 1. **All reviewer-agent comments resolved.** Every comment from the local-dev → origin/dev review thread carries `resolved: true` annotation OR a follow-up commit referencing the comment id (the follow-up went through the standard local-dev → origin/dev → staging path). Planned advisory lane: `oya-governance-pr-comment-resolution`.
 2. **All CI fixed and green.** Every fitness lane GREEN on `staging` HEAD for ≥ **N consecutive runs** (default N=3; configurable per change class). Planned advisory lane: `oya-governance-promotion-gate-staging-to-prod`.
-3. **Progressive-delivery canary at 100% on staging deployment for ≥ M hours.** Default M=24h non-regulated, 7d regulated (per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) + `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md`).
+3. **Progressive-delivery canary at 100% on staging deployment for ≥ M hours.** Default M=24h non-regulated, 7d regulated (per [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) + `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md`).
 4. **Zero open `slo-burn-rate-fast` alerts.** SLO catalog freshness ≤ 5 min; planned verification lane: `oya-governance-slo-burn-rate-fast`.
 5. **(Optional, per change class) Reviewer-agent re-affirms verdict after canary observations.** Triggered for: `database-reviewer`, `security-reviewer`, `privacy-reviewer`, `capability-reviewer`, `perf-reviewer` classes. Re-affirmation uses post-canary SLO + audit-chain evidence as input.
 
-Promotion mechanic: `prod-promoter` agent fast-forwards `prod` to `staging` HEAD. Linear history preserved; Cosign-signed commit per [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md); SLSA L2+ provenance bundle attached.
+Promotion mechanic: `prod-promoter` agent fast-forwards `prod` to `staging` HEAD. Linear history preserved; Cosign-signed commit per [ADR-0039](../../../docs/decisions/ADR-0709-general-live-apex.md); SLSA L2+ provenance bundle attached.
 
-**Exception path (Directive 12 carve-out).** Compliance-pack updates ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)) and KMS root rotation ([ADR-0043](../../../docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md)) add `requires_human_signoff: true`. Those classes only: `prod-promoter` requires a Cosign-signed approval commit from a `@council-architecture` member. No other class requires a human button.
+**Exception path (Directive 12 carve-out).** Compliance-pack updates ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)) and KMS root rotation ([ADR-0043](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)) add `requires_human_signoff: true`. Those classes only: `prod-promoter` requires a Cosign-signed approval commit from a `@council-architecture` member. No other class requires a human button.
 
 ## 6. Why this model, in one paragraph
 
@@ -101,7 +101,7 @@ The **review-and-CI gate lives at the first shared-world boundary** (local-dev �
 
 This file does not own:
 
-- Progressive-delivery mechanics inside `staging`/`prod` — owned by [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) + `.omc/advanced-cicd/progressive-delivery/`.
+- Progressive-delivery mechanics inside `staging`/`prod` — owned by [ADR-0040](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md) + `.omc/advanced-cicd/progressive-delivery/`.
 - Per-axis fitness-lane definitions beyond the promotion-related lanes — owned by per-axis ADRs.
 - Reviewer-agent implementations — owned by `docs/AGENTS.md`.
 - Branch-server / CI-server choice — encoded provider-agnostically in [`branch-protection-rules.md`](branch-protection-rules.md).

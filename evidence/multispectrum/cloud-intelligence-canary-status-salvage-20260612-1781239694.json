@@ -24,9 +24,9 @@
     "specs/root-hub-pointers.json",
     "docs/AGENTS.md",
     "PR #663 disposition assessment comment (SALVAGE-SUBSET recommendation)",
-    "docs/decisions/ADR-0550-repository-layout-doctrine.md",
-    "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md",
-    "docs/decisions/ADR-0551 merge-base frozen baseline ratchet (gate-catalog statement)"
+    "docs/decisions/ADR-0709-general-live-apex.md",
+    "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+    "docs/adr-archive/ADR-0551-merge-base-frozen-baseline-ratchet.md merge-base frozen baseline ratchet (gate-catalog statement)"
   ],
   "capability_parity": {
     "namespace": "XPROXY-CANARY-STATUS-SALVAGE",

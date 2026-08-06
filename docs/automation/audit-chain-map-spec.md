@@ -18,7 +18,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
-  - ../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
+  - ../../docs/decisions/ADR-0709-general-live-apex.md
 doc_status: published
 ---
 
@@ -124,7 +124,7 @@ The pipeline statically inspects every consumer's event-handler signature: a con
 
 - `architecture-map-kernel-spec.md` consumes the event graph as one of its sources.
 - `oya-intelligence-evidence-kernel` consumes the topic list at runtime to wire emitters.
-- `docs/decisions/ADR-0003-*` is the constitutional authority.
+- `docs/adr-archive/ADR-0003-audit-chain-and-evidence-emission.md is the constitutional authority.
 
 ## 9. Out-of-scope
 

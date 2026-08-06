@@ -13,8 +13,8 @@
   "ratification_authority": {
     "basis": "Founder approval of the consensus Kubernetes Go-to-Rust rewrite plan through the structured ralplan execution gate on 2026-08-05, durably expressed by ADR-0637 and ADR-0638.",
     "decision_refs": [
-      "docs/decisions/ADR-0637-owned-deterministic-go-to-rust-port-engine.md",
-      "docs/decisions/ADR-0638-mechanically-maintained-kubernetes-rust-port.md"
+      "docs/decisions/ADR-0704-k8s-port-live-apex.md",
+      "docs/decisions/ADR-0704-k8s-port-live-apex.md"
     ],
     "scope_limit": "This ratification binds only to the exact sequencing content identified by ratified_sequencing_digest. Mutation of a dependency endpoint pair, work-item order, or execution-wave membership requires fresh re-derivation and fresh founder ratification before dispatch. Relationship labels remain outside the digest."
   },

@@ -662,12 +662,12 @@ Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging com
 - Forrester URL: https://www.forrester.com/press-newsroom/forrester-global-tech-forecast-2025-to-2030/
 - Zylo, 2026 SaaS Management Index: $75B plus SaaS and cloud spend, $55.7M average annual SaaS spend, 305 average portfolio size.
 - Zylo URL: https://zylo.com/2026-saas-management-index
-- Internal source: `docs/decisions/ADR-0001-cohesion-thesis-one-product-flat-catalog.md`.
-- Internal source: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- Internal source: `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-- Internal source: `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-- Internal source: `docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md`.
-- Internal source: `docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md`.
+- Internal source: `docs/decisions/ADR-0705-product-protocol-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0708-platform-foundations-live-apex.md`.
+- Internal source: `docs/decisions/ADR-0709-general-live-apex.md`.
 - Internal source: `specs/capability-tier-schema.json`.
 - Internal source: `specs/pack-overlay-schema.json`.
 - Internal source: `specs/ontology-projection-schema.json`.

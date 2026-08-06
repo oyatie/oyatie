@@ -183,7 +183,7 @@
       "fixuptasks": "/registry/fixuptasks.jsonl",
       "audit_chain": "/evidence/audit-chain.jsonl",
       "dependency_rationales": "/registry/dependency-rationales.json",
-      "12_layer_enum_BNF": "docs/decisions/ADR-0056",
+      "12_layer_enum_BNF": "docs/adr-archive/ADR-0056-rust-clean-architecture-bnf.md",
       "active_artifact_contract": "/specs/active-machine-readable-artifact-contract.json (ADR-0069)",
       "hyperscaler_gates": "/specs/hyperscaler-gates.json"
     },

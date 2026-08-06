@@ -27,7 +27,7 @@
       "layer_seam": "tooling-and-application-error-boundaries",
       "owner_team": "council-architecture",
       "rationale": "Error aggregation for CLI/tooling and application-edge orchestration where typed domain errors have already crossed the boundary. Domain/kernel crates should prefer explicit error enums.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "tooling and application-edge crates; kernel/domain usage report-only",
       "allowed_crates": [
         "oya-codeview-cli",
@@ -43,7 +43,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
       "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
         "gateway-slack-connector",
@@ -160,7 +160,7 @@
       "layer_seam": "cli-only",
       "owner_team": "axis-foundry",
       "rationale": "Command-line parsing for developer/operator tooling. Product runtime libraries must not depend on CLI argument parsing.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "CLI binaries and tooling apps",
       "allowed_crates": [
         "oya-analytics-app",
@@ -178,7 +178,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
       "rationale": "Full<Bytes> body collector + Limited<B> bounded-collector. Limited is the load-bearing primitive for S3 unbounded-body DoS defense (ADR-0092 Phase 8).",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
         "oya-http-runtime-hyper-adapter",
@@ -194,7 +194,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
       "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
         "oya-check-dependency-seam",
@@ -222,7 +222,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
       "rationale": "Outbound TLS connector for the hyper-util legacy Client on the pooling-gateway upstream path (.omc/pooling-convergence.json slice 1). aws-lc-rs backend per ADR-0506 (ring is FORBIDDEN — default-features pull ring, so this is declared default-features=false with aws-lc-rs explicit); webpki-tokio trust anchors (webpki-roots) keep the trust store self-hostable with no OS native-certs dependency. h1+h2. The real provider-pool transport adapter consuming this lands in a LATER campaign slice; declared at the workspace seam now so the dep-seam + Cargo.lock land in one reviewed PR.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "isolated_in_crate": "oya-intelligence-provider-pool-app",
       "allowed_crates": [
         "oya-intelligence-provider-pool-app"
@@ -233,7 +233,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
       "rationale": "Tokio + auto-builder helpers for hyper. Adapter-local; no kernel exposure. Provides ConnBuilder used for slowloris-defense timeouts (ADR-0092 Phase 8 S4).",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter",
       "allowed_crates": [
         "oya-http-runtime-hyper-adapter",
@@ -246,7 +246,7 @@
       "layer_seam": "tooling-and-validation-only",
       "owner_team": "axis-foundry",
       "rationale": "Pattern validation in gates and developer tooling. Product hot paths should prefer parsers or bounded string checks unless an ADR names the regex boundary.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "validation gates and tooling crates",
       "allowed_crates": [
         "check-shardability",
@@ -260,7 +260,7 @@
       "layer_seam": "adapter-and-application",
       "owner_team": "council-architecture",
       "rationale": "Serialization framework. Used by adapters (DTOs), application orchestrators (event emission), and the application-shell frontend prototype's mock-only render-envelope DTO boundary. Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.) Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "adapter and application layer crates; kernel violations report-only",
       "allowed_crates": [
         "oya-accounting-journal-api",
@@ -335,7 +335,7 @@
       "layer_seam": "adapter-only + mock frontend render-envelope boundary",
       "owner_team": "council-architecture",
       "rationale": "JSON ser/de. Strictly adapter-layer except for the app-shell frontend prototype's local dev-server-to-WASM render-envelope boundary; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime). The app-shell exception is mock-only, carries no PHI/PII/production tenant data, and does not establish a production backend/API readiness claim. Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "adapter-layer crates",
       "allowed_crates": [
         "marketplace-dev-cli",
@@ -400,7 +400,7 @@
       "layer_seam": "tooling-and-contract-parser-only",
       "owner_team": "council-architecture",
       "rationale": "YAML parsing for repository manifests, policies, and contract gates. Domain/kernel crates should not parse YAML directly.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-check-* lane crates and manifest tooling",
       "allowed_crates": [
         "oya-check-step-up-auth-coverage",
@@ -412,7 +412,7 @@
       "layer_seam": "tests-and-tooling-only",
       "owner_team": "axis-foundry",
       "rationale": "Temporary filesystem fixtures for tests and local tooling. Production kernels/domains should accept explicit paths or in-memory adapters.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "tests and tooling crates",
       "allowed_crates": [
         "oya-check-doc-axis",
@@ -431,7 +431,7 @@
       "layer_seam": "adapter-only (current) + future async chain when ADR-0094 cancellation lands",
       "owner_team": "council-architecture",
       "rationale": "Async runtime (rt-multi-thread + net). No realistic alternative for async HTTP server in Rust today. Adapter declares; ops-runtime indirectly via the adapter and #[tokio::main]. Managed-k8s SLA observability uses this dependency only for deterministic DTO serde/tests or async port tests; no live Prometheus/Kubernetes runtime is introduced.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary); cell-runtime main.rs entry",
       "allowed_crates": [
         "oya-ci-webhook-gateway-app",
@@ -477,7 +477,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
       "rationale": "TOML reader (Cargo manifest parsing in lane crates). Tooling/lane only. Domain code must not consume TOML directly.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-check-* lane crates + tooling binaries",
       "allowed_crates": [
         "marketplace-dev-cli",
@@ -501,7 +501,7 @@
       "layer_seam": "infrastructure-only",
       "owner_team": "council-architecture",
       "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates",
       "allowed_crates": [
         "oya-analytics-app",
@@ -531,7 +531,7 @@
       "layer_seam": "app-only",
       "owner_team": "council-architecture",
       "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "app-layer binaries (composition roots)",
       "allowed_crates": [
         "oya-analytics-app",
@@ -551,7 +551,7 @@
       "layer_seam": "tooling-only",
       "owner_team": "axis-foundry",
       "rationale": "Repository filesystem traversal for gates/generators. Product runtime code should use explicit adapters and bounded traversals.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-check-* lane crates and tooling binaries",
       "allowed_crates": [
         "oya-codeview-cli"
@@ -562,7 +562,7 @@
       "layer_seam": "adapter-only-generated-protobuf-bindings",
       "owner_team": "council-architecture",
       "rationale": "Protocol Buffers message encode/decode traits used only by the generated backbone gRPC adapter crate. Domain/API/usecase kernels keep framework-free request/receipt types and explicit conversion seams.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
       "allowed_crates": [
         "oya-identity-workload-rest",
@@ -575,7 +575,7 @@
       "layer_seam": "build-script-only-protobuf-codegen",
       "owner_team": "council-architecture",
       "rationale": "Pins a vendored protoc binary for reproducible compile-time descriptor/stub generation without relying on mutable CI host tool installation. Used only by the generated gRPC adapter build script.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
       "allowed_crates": [
         "oya-identity-workload-rest",
@@ -587,7 +587,7 @@
       "layer_seam": "adapter-only-postgres-runtime",
       "owner_team": "council-architecture + axis-data",
       "rationale": "Async PostgreSQL client used only by SQLx adapter crates, the bounded transactional outbox worker composition root, and the env-gated foundry live workload harness app that proves tenant-scoped SQLx adapter behavior against disposable Postgres/Citus. Kernel/domain/usecase crates remain SQLx-free and expose typed command/outbox plans only.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, oya-shared-transactional-outbox-worker-app, env-gated foundry live workload harness apps, and future *-adapter-postgres runtime crates only",
       "allowed_crates": [
         "check-olap-tier-discipline",
@@ -608,7 +608,7 @@
       "layer_seam": "adapter-only-grpc-generated-bindings-and-local-transport",
       "owner_team": "council-architecture",
       "rationale": "Tonic codegen traits/types compile generated gRPC client/server bindings, and the isolated transport adapter enables local TCP server/client loopback tests over those generated bindings. Domain/kernel/usecase crates remain tonic-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter and oya-shared-backbone-grpc-transport-adapter",
       "allowed_crates": [
         "oya-identity-workload-rest",
@@ -622,7 +622,7 @@
       "layer_seam": "adapter-only-grpc-prost-codec",
       "owner_team": "council-architecture",
       "rationale": "Prost codec type referenced by tonic 0.14 generated service bindings. Kept inside the generated adapter crate and not exposed to domain/usecase logic.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
       "allowed_crates": [
         "oya-identity-workload-rest",
@@ -634,7 +634,7 @@
       "layer_seam": "build-script-only-grpc-codegen",
       "owner_team": "council-architecture",
       "rationale": "Compile-time generator that bridges tonic service stub generation with prost message generation for source-controlled proto contracts. Used only in the generated adapter build script.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
       "allowed_crates": [
         "oya-identity-workload-rest",
@@ -646,7 +646,7 @@
       "layer_seam": "adapter-only-observability-api",
       "owner_team": "council-architecture + observability",
       "rationale": "Rust OpenTelemetry metrics API used only by the OTLP metrics adapter to construct canonical counters/gauges from the shared HyperscalerMetrics port. Domain/kernel/usecase crates remain OpenTelemetry-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0706-observability-live-apex.md",
       "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
         "check-otel-trace-propagation",
@@ -667,7 +667,7 @@
       "layer_seam": "adapter-only-otlp-exporter",
       "owner_team": "council-architecture + observability",
       "rationale": "OTLP HTTP/protobuf metric exporter used behind an explicit environment gate for collector integration harnesses. It does not leak into microservice domain/API/usecase crates and no live export is claimed unless the operator enables the harness with a reachable collector.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0706-observability-live-apex.md",
       "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
         "oya-shared-hyperscaler-metrics-adapter-otlp"
@@ -678,7 +678,7 @@
       "layer_seam": "adapter-only-observability-sdk",
       "owner_team": "council-architecture + observability",
       "rationale": "OpenTelemetry SDK MeterProvider used only by the OTLP metrics adapter to host instruments and periodic metric export. Composition roots opt in explicitly; pure layers remain SDK-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0263-observability-emission-contract.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0706-observability-live-apex.md",
       "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
         "oya-shared-hyperscaler-metrics-adapter-otlp"
@@ -689,7 +689,7 @@
       "layer_seam": "adapter-only-authorization-engine",
       "owner_team": "axis-identity + ops-security",
       "rationale": "AWS Cedar (Apache-2.0, OSI-clean) is the formally-verified authorization engine — default-deny, forbid-overrides-permit, order-independent (arXiv 2403.04651). ADR-0536 D-2 names Cedar the TERMINAL engine decision: the PDP is embedded in-process in every service via iam-pdp-cedar at iam/adapters/pdp-cedar (the shared embedded-PDP adapter behind the vendor-neutral oya-shared-pdp-kernel port), retiring the hand-rolled oya-policy-cedar evaluator (ADR-0243: two decision algorithms must never coexist). Domain/kernel crates stay Cedar-free and pass typed AuthorizationRequest/AuthorizationResponse across the boundary. Service-local authz-gate adapters (workload-identity, ci-webhook-gateway, cloud-intelligence, managed-k8s-tenant-quota) remain sanctioned until each migrates to the shared adapter. One sanctioned dev-only exception: oya-shared-platform-contracts-kernel declares cedar-policy strictly under [dev-dependencies] so its tests validate the checked-in FD-001 cedar/ schema + structural tenant-isolation seed against the real engine; its production surface stays Cedar-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "isolated_in_crate": "iam-pdp-cedar",
       "allowed_crates": [
         "oya-ci-webhook-gateway-authz-cedar-adapter",
@@ -705,7 +705,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture + ops-platform",
       "rationale": "Kubernetes client (Client + dynamic Api) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Used only to talk to the management cluster's CAPI control-plane providers (Kamaji TenantControlPlane on controlplane.cluster.x-k8s.io; the dedicated Talos control-plane reference). The LIVE CRD reconciliation is honest-deferred per registry/placeholder-debt/adr-follow-ups.yaml#kamaji-provider-live-integration, so the adapter references kube-rs's dynamic surface and returns Unimplemented::KamajiProviderLiveIntegration instead of faking success. Kernel/api/inmemory crates stay kube-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
       "allowed_crates": [
         "oya-managed-k8s-control-plane-host-adapter-capi"
@@ -716,7 +716,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture + ops-platform",
       "rationale": "Kube controller-runtime primitives (watcher/reflector/Controller) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; the live control-plane reconcile loop is honest-deferred (kamaji-provider-live-integration), so the dependency is the declared seam the follow-on ADR's controller will consume without a caller change.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
       "allowed_crates": [
         "oya-managed-k8s-control-plane-host-adapter-capi"
@@ -727,7 +727,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture + ops-platform",
       "rationale": "Kubernetes API object types (ObjectMeta and core types referenced by the dynamic CAPI objects) for the managed-k8s control-plane-host CAPI adapter (ADR-0376). Adapter-only seam alongside kube; isolated to the -adapter-capi crate. Kernel/api/inmemory crates stay k8s-openapi-free.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-managed-k8s-control-plane-host-adapter-capi",
       "allowed_crates": [
         "oya-managed-k8s-control-plane-host-adapter-capi"
@@ -738,7 +738,7 @@
       "layer_seam": "adapter-only",
       "owner_team": "council-analytics",
       "rationale": "ClickHouse 26.3 LTS HTTP client (Apache-2.0, OSI-clean). Provides async query execution and LZ4 compression for the OLAP analytics warehouse mandated by ADR-0193. Isolated exclusively to oya-shared-olap-clickhouse-adapter; no kernel, domain, usecase, or api crate may take this as a direct dependency. Matches manifest.json lts_pins.clickhouse=26.3.10.60-lts.",
-      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-shared-olap-clickhouse-adapter",
       "allowed_crates": [
         "oya-shared-olap-clickhouse-adapter"

@@ -9,9 +9,9 @@
     "branch_at_scan": "retired-source-branch-redacted",
     "scope": "Executable source surfaces and runner operations in the current worktree. Prose-only documentation mentions and generated JSON faces are counted as references but are not executable operations; nested .worktrees, .git, target, and buck-out are excluded.",
     "authorities": [
-      "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-      "docs/decisions/ADR-0522-lifecycle-wide-hermeticity-one-graph-four-runners.md",
-      "docs/decisions/ADR-0523-zero-shell-posture-and-irreducible-glue-ledger.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "HANDOFF.md §6.2 and §6.4",
       "Kanban DRIFT-001 comment on t_43080012"
     ],

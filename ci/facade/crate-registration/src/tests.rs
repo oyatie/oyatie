@@ -162,7 +162,7 @@ fn fixture_tagged(tag: &str) -> TmpRepo {
     };
     repo.write("specs/capability-registry.json", capability_registry());
     repo.write("Cargo.toml", root_cargo_toml());
-    repo.write("docs/decisions/ADR-0568-born-accounting.md", stub_adr());
+    repo.write("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md", stub_adr());
     repo.write("specs/reachability-registry.json", reachability_registry());
 
     // The new crate's intrinsic source (Cargo.toml + lib.rs) so it is a real dir + git-tracked.
@@ -245,7 +245,7 @@ fn happy_path_applies_all_edits_and_requires_settle() {
     );
 
     // The ADR now enumerates the crate's conventional governed paths verbatim.
-    let adr = repo.read("docs/decisions/ADR-0568-born-accounting.md");
+    let adr = repo.read("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md");
     assert!(adr.contains(&format!("{NEW_DIR}/Cargo.toml")), "{adr}");
     assert!(adr.contains(&format!("{NEW_DIR}/BUCK")), "{adr}");
     assert!(adr.contains(&format!("{NEW_DIR}/OWNERS")), "{adr}");
@@ -408,7 +408,7 @@ fn uncovered_member_glob_fails_closed() {
 #[test]
 fn missing_adr_file_fails_closed() {
     let repo = fixture_tagged("no-adr");
-    fs::remove_file(repo.root.join("docs/decisions/ADR-0568-born-accounting.md")).unwrap();
+    fs::remove_file(repo.root.join("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md")).unwrap();
     run_git(&repo.root, &["add", "-A"]);
 
     let req = base_request();
@@ -430,7 +430,7 @@ fn detailed_reports_partial_application_on_dispatch_failure() {
     // AdrGovernedPathAppend edit. The plan order (with the members glob already covering the dir)
     // is OwnersWrite → AdrGovernedPathAppend → FacesSettle, so OwnersWrite applies first, then the
     // ADR step fails closed in resolve_adr_path (the file is gone).
-    fs::remove_file(repo.root.join("docs/decisions/ADR-0568-born-accounting.md")).unwrap();
+    fs::remove_file(repo.root.join("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md")).unwrap();
     run_git(&repo.root, &["add", "-A"]);
 
     let req = base_request();

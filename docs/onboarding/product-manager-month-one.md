@@ -5,15 +5,15 @@ status: Published
 date: 2026-05-20
 owner: "council-product + axis-product-ops"
 related_oyatie_adrs:
-  - docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
-  - docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-  - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-  - docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md
-  - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/DOC-CATALOG.md
@@ -103,7 +103,7 @@ Day-one artifact checklist:
 Read these files in order. Do not browse randomly; the order teaches authority, doctrine, contract, implementation, test, and operational evidence.
 1. docs/architecture/persona-journey-microservice-cross-coverage-matrix-2026-05-21.md
 2. docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md
-3. docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+3. docs/decisions/ADR-0709-general-live-apex.md
 4. registry/capability-tiers/index.json
 5. registry/capability-tiers/gold.json
 6. registry/capability-tiers/platinum.json
@@ -363,7 +363,7 @@ Handoff rules:
 - registry/capability-tiers/index.json
 - docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/README.md
 - microservices/workflow-studio/migration-playbooks/from-n8n.md
-- docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+- docs/decisions/ADR-0709-general-live-apex.md
 
 Reference-reading protocol: open the resource, identify the authority section, write the one-sentence claim it supports, and record whether the resource is doctrine, spec, implementation, test, runbook, dashboard, or evidence.
 
@@ -392,7 +392,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-002 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-003: migration acceptance criteria
-- Read: docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: migration playbook shape and rollback expectations
 - Build or inspect: a minimal artifact that proves migration acceptance criteria without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for migration acceptance criteria.
@@ -542,7 +542,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-017 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-018: roadmap dependency ordering
-- Read: docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: compliance overlay and claim boundary
 - Build or inspect: a minimal artifact that proves roadmap dependency ordering without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for roadmap dependency ordering.
@@ -692,7 +692,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-032 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-033: journey success metric
-- Read: docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: migration playbook shape and rollback expectations
 - Build or inspect: a minimal artifact that proves journey success metric without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for journey success metric.
@@ -842,7 +842,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-047 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-048: pricing package guardrail
-- Read: docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: compliance overlay and claim boundary
 - Build or inspect: a minimal artifact that proves pricing package guardrail without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for pricing package guardrail.
@@ -992,7 +992,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row PM-062 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill PM-063: first-action activation
-- Read: docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
+- Read: docs/decisions/ADR-0709-general-live-apex.md
 - Connects to: migration playbook shape and rollback expectations
 - Build or inspect: a minimal artifact that proves first-action activation without widening beyond product manager, capability and migration product lane.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for first-action activation.

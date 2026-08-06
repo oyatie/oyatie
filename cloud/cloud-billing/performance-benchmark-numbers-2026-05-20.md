@@ -22,7 +22,7 @@ audit_only: true
 
 ## Canonical Anchors
 
-1. `/Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` §C.4 hyperscaler-grade rigor + §D-6.10..§D-6.13 benchmark doc requirements.
+1. `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md` §C.4 hyperscaler-grade rigor + §D-6.10..§D-6.13 benchmark doc requirements.
 2. `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json` keys `deployment_contexts`, `oci_always_free`; `unified-quality-bar` from `feedback_quality_performance_scalability_bar.md`.
 3. `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_no_tenant_class_2026_05_20.md` (no per-tenant_class segmentation) + `feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md` (binary tenant_class + cap-overlay for demo_trial).
 4. Stripe public reliability + latency posture (Stripe status page, "Stripe Billing API" SLA + published p99 latency posture from Stripe engineering blog 2024-2025), AWS Billing & Cost Management published SLO surface (AWS Service Health Dashboard + CUR delivery guarantees + Cost Explorer query latency from AWS docs), Recurly published API SLA (`docs.recurly.com/docs/api-rate-limits-and-monitoring`).

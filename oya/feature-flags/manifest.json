@@ -27,167 +27,167 @@
     {
       "id": "ADR-0105",
       "title": "13-layer BNF naming",
-      "file": "docs/decisions/ADR-0105-layer-enum-13-canonical.md"
+      "file": "docs/adr-archive/ADR-0105-13-layer-enum-and-check-family-patterns.md"
     },
     {
       "id": "ADR-0131",
       "title": "Per-microservice flat layout",
-      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0159",
       "title": "Feature flag substrate",
-      "file": "docs/decisions/ADR-0159-feature-flag-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0160",
       "title": "Progressive delivery Flagger",
-      "file": "docs/decisions/ADR-0160-progressive-delivery-flagger.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0183",
       "title": "Policy engine separation",
-      "file": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0242",
       "title": "oyatie-is-a-tenant",
-      "file": "docs/decisions/ADR-0242-oyatie-is-a-tenant.md"
+      "file": "docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md"
     },
     {
       "id": "ADR-0243",
       "title": "Cedar universal gate",
-      "file": "docs/decisions/ADR-0243-cedar-universal-gate.md"
+      "file": "docs/adr-archive/ADR-0243-cedar-as-universal-gate.md"
     },
     {
       "id": "ADR-0244",
       "title": "Tenant scoping primitive",
-      "file": "docs/decisions/ADR-0244-tenant-scoping-primitive.md"
+      "file": "docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md"
     },
     {
       "id": "ADR-0245",
       "title": "Substrate vs product",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0246",
       "title": "Library-first policy evaluation",
-      "file": "docs/decisions/ADR-0246-library-first-policy-eval.md"
+      "file": "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md"
     },
     {
       "id": "ADR-0247",
       "title": "Self-modification doctrine",
-      "file": "docs/decisions/ADR-0247-self-modification-doctrine.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0248",
       "title": "Cellular architecture",
-      "file": "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0250",
       "title": "Build ahead of certification",
-      "file": "docs/decisions/ADR-0250-build-ahead-of-certification.md"
+      "file": "docs/adr-archive/ADR-0250-build-ahead-of-certification-doctrine.md"
     },
     {
       "id": "ADR-0251",
       "title": "Compliance packs",
-      "file": "docs/decisions/ADR-0251-compliance-pack-primitive.md"
+      "file": "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md"
     },
     {
       "id": "ADR-0252",
       "title": "HLC + TrueTime",
-      "file": "docs/decisions/ADR-0252-hlc-default-truetime-tier.md"
+      "file": "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md"
     },
     {
       "id": "ADR-0253",
       "title": "HTTP/3 + ECH + PQC",
-      "file": "docs/decisions/ADR-0253-http3-quic-default-protocol.md"
+      "file": "docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md"
     },
     {
       "id": "ADR-0254",
       "title": "K8s + Cloud Hypervisor",
-      "file": "docs/decisions/ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md"
+      "file": "docs/adr-archive/ADR-0254-deployment-model-spectrum.md"
     },
     {
       "id": "ADR-0255",
       "title": "Intelligence two-layer",
-      "file": "docs/decisions/ADR-0255-intelligence-two-layer-substrate.md"
+      "file": "docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md"
     },
     {
       "id": "ADR-0258",
       "title": "API versioning",
-      "file": "docs/decisions/ADR-0258-api-versioning.md"
+      "file": "docs/adr-archive/ADR-0258-api-versioning-model.md"
     },
     {
       "id": "ADR-0263",
       "title": "Observability emission contract",
-      "file": "docs/decisions/ADR-0263-observability-emission-contract.md"
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
     },
     {
       "id": "ADR-0276",
       "title": "GDPR Art. 20 backup portability",
-      "file": "docs/decisions/ADR-0276-gdpr-art20-backup-portability.md"
+      "file": "docs/adr-archive/ADR-0276-backup-portability-format-gdpr-article-20.md"
     },
     {
       "id": "ADR-0280",
       "title": "Substrate-of-substrate dependency DAG",
-      "file": "docs/decisions/ADR-0280-substrate-of-substrate-dependency-dag.md"
+      "file": "docs/adr-archive/ADR-0280-substrate-of-substrate-dependency-doctrine.md"
     },
     {
       "id": "ADR-0284",
       "title": "Platform-owner name indirection",
-      "file": "docs/decisions/ADR-0284-platform-owner-name-indirection.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0292",
       "title": "Minor user doctrine",
-      "file": "docs/decisions/ADR-0292-minor-user-doctrine.md"
+      "file": "docs/adr-archive/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md"
     },
     {
       "id": "ADR-0293",
       "title": "Meta-trust-root attestation",
-      "file": "docs/decisions/ADR-0293-meta-trust-root-attestation.md"
+      "file": "docs/adr-archive/ADR-0293-governance-meta-trust-root.md"
     },
     {
       "id": "ADR-0294",
       "title": "Cedar fragment soak window",
-      "file": "docs/decisions/ADR-0294-cedar-fragment-soak-window.md"
+      "file": "docs/adr-archive/ADR-0294-cedar-fragment-soak-anomaly-rollback.md"
     },
     {
       "id": "ADR-0295",
       "title": "SPIFFE workload identity",
-      "file": "docs/decisions/ADR-0295-bootstrap-ci-spiffe-killswitch.md"
+      "file": "docs/adr-archive/ADR-0295-bootstrap-ci-spiffe-kill-switch.md"
     },
     {
       "id": "ADR-0296",
       "title": "Library-first credential sidecar",
-      "file": "docs/decisions/ADR-0296-library-first-credential-sidecar.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0297",
       "title": "Abuse-defence",
-      "file": "docs/decisions/ADR-0297-abuse-defence.md"
+      "file": "docs/adr-archive/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md"
     },
     {
       "id": "ADR-0298",
       "title": "Emergency-services bypass",
-      "file": "docs/decisions/ADR-0298-emergency-services-bypass.md"
+      "file": "docs/adr-archive/ADR-0298-emergency-services-bypass-life-safety.md"
     },
     {
       "id": "ADR-0307",
       "title": "Detection substrate",
-      "file": "docs/decisions/ADR-0307-detection-substrate.md"
+      "file": "docs/adr-archive/ADR-0307-detection-substrate-streaming-batch.md"
     },
     {
       "id": "ADR-0308",
       "title": "ML model lifecycle",
-      "file": "docs/decisions/ADR-0308-ml-model-lifecycle.md"
+      "file": "docs/adr-archive/ADR-0308-ml-model-lifecycle-ai-act-compliance.md"
     },
     {
       "id": "ADR-0309",
       "title": "Detection fairness audit",
-      "file": "docs/decisions/ADR-0309-detection-fairness-audit.md"
+      "file": "docs/adr-archive/ADR-0309-detection-fairness-audit-civil-rights.md"
     }
   ],
   "business_contexts": [

@@ -61,10 +61,10 @@
       "generated faces"
     ],
     "candidate_authority": [
-      "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-      "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-      "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-      "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     ],
     "rationale": "Gate/tooling crates should carry direct lifecycle/authority metadata rather than relying on corpus mentions; one crate is also reorg-sensitive."
   },
@@ -115,10 +115,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -140,10 +140,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -165,10 +165,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -190,10 +190,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -215,10 +215,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -240,10 +240,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -265,10 +265,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -290,10 +290,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -315,10 +315,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -340,10 +340,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -365,10 +365,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -390,10 +390,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -415,10 +415,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -440,10 +440,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -465,10 +465,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -490,10 +490,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -515,10 +515,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -540,10 +540,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -565,10 +565,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -590,10 +590,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -615,10 +615,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -640,10 +640,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -665,10 +665,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -690,10 +690,10 @@
         "kind": "cite-existing-ADR",
         "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "existing-authority-citation"
       }
@@ -716,10 +716,10 @@
         "kind": "reorg-target",
         "minimum_gate_rule": "row is green only when the crate is explicitly carried as reorg-target debt with a follow-up move/retire/cite decision instead of receiving an unconditional authority citation",
         "authority_refs": [
-          "docs/decisions/ADR-0135-aspirational-enforcement-gate.md",
-          "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
-          "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
-          "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
         ],
         "resolution_mode": "follow-up-required",
         "follow_up_required": true,

@@ -178,7 +178,7 @@ mod tests {
         assert_eq!(
             validate_adr_citations(
                 [doc(
-                    "docs/decisions/ADR-0122.md",
+                    "docs/adr-archive/ADR-0122-ontology-crate-rename-from-object-graph.md",
                     "related: [ADR-0056, Bominal-ADR-0133]",
                     false,
                 )],
@@ -196,7 +196,7 @@ mod tests {
         assert_eq!(
             validate_adr_citations(
                 [doc(
-                    "docs/decisions/ADR-0122.md",
+                    "docs/adr-archive/ADR-0122-ontology-crate-rename-from-object-graph.md",
                     "Cited ADR-0056 alongside Bominal-ADR-0056.",
                     false,
                 )],

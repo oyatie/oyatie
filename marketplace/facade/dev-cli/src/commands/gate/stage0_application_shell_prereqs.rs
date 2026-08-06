@@ -16,7 +16,7 @@ const REQUIRED_PATHS: &[&str] = &[
     "Cargo.toml",
     "crates/oya-application-app/Cargo.toml",
     "crates/oya-application-app/src/lib.rs",
-    "docs/decisions/ADR-0061-application-b2b-unified-shell.md",
+    "docs/decisions/ADR-0709-general-live-apex.md",
 ];
 
 const EXPECTED_APP_EDITION: &str = "2024";

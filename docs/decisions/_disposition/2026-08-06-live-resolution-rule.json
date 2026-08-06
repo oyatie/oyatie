@@ -1,0 +1,14 @@
+{
+  "schema": "adr-live-resolution.v1",
+  "rule": "status=Accepted is insufficient; resolve supersession + amended_by",
+  "stale_accepted_reverse_claim": [],
+  "accepted_supersedes_still_accepted": [],
+  "algorithm": [
+    "Load ADR on tip",
+    "If any later Accepted lists this id in supersedes \u2192 treat as superseded; follow that successor (even if status still Accepted)",
+    "If status Superseded \u2192 follow superseded_by (or reverse claimers)",
+    "If status Proposed/Deprecated/Rejected \u2192 not implement authority",
+    "If status Accepted \u2192 also load all amended_by Accepted peers; never apply bare parent when amends exist",
+    "If conflict among live peers \u2192 stop and amend/supersede edges"
+  ]
+}

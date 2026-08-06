@@ -108,4 +108,4 @@ Capacity is tracked outside this repository in the staffing system and is not a 
 | Marketplace fraudulent plugin listed | Medium | Plugin signing + review pipeline; automated static analysis |
 
 ## Sources scanned
-docs/products/README.md SaaS Platform entry, docs/products/saas-platform/PRD.md, specs/masterplan.json M03-P04/M03-P08 references, docs/decisions/ADR-0035, ADR-0036, ADR-0249, ADR-0314, registry/stores/* product inputs, specs/root-hub-pointers.json, the HANDOFF.md thin redirect, and DOC-CATALOG.md §2.5 (legacy projection pending PHASE-5 machine-catalog promotion).
+docs/products/README.md SaaS Platform entry, docs/products/saas-platform/PRD.md, specs/masterplan.json M03-P04/M03-P08 references, docs/adr-archive/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md ADR-0036, ADR-0249, ADR-0314, registry/stores/* product inputs, specs/root-hub-pointers.json, the HANDOFF.md thin redirect, and DOC-CATALOG.md §2.5 (legacy projection pending PHASE-5 machine-catalog promotion).

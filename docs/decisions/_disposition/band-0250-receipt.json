@@ -1,0 +1,77 @@
+{
+  "band": [250, 259],
+  "reviewed": [250, 251, 252, 253, 254, 255, 257, 258],
+  "findings": [
+    {
+      "adr": "ADR-0250",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "No higher Accepted ADR supersedes or amends; widely cited as live companion doctrine. Remain Proposed (not mass-Accept).",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0251",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add amended_by: [ADR-0329]",
+      "reason": "Accepted ADR-0329 frontmatter amends ADR-0251 (compliance-pack activation tenant_class-gated); reverse-link was missing. Other body/frontmatter amenders (0272, 0292, 0326, 0341, 0343) are Proposed — not reverse-linked.",
+      "higher_adrs_cited": ["ADR-0329"]
+    },
+    {
+      "adr": "ADR-0252",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add amended_by: [ADR-0350]",
+      "reason": "Accepted ADR-0350 frontmatter and body amends ADR-0252 (UUIDv7 canonical ID; HLC/idempotency semantics retained); reverse-link was missing.",
+      "higher_adrs_cited": ["ADR-0350"]
+    },
+    {
+      "adr": "ADR-0253",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "amended_by already lists Accepted ADR-0565. Proposed ADR-0354 also amends but is not Accepted authority. No supersession.",
+      "higher_adrs_cited": ["ADR-0565", "ADR-0354"]
+    },
+    {
+      "adr": "ADR-0254",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Only Proposed amenders (0338, 0339) and Superseded 0349; no Accepted higher supersedes/amends. Remain Proposed.",
+      "higher_adrs_cited": ["ADR-0338", "ADR-0339", "ADR-0349"]
+    },
+    {
+      "adr": "ADR-0255",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add amended_by: [ADR-0329, ADR-0335]",
+      "reason": "Accepted ADR-0329 amends BYOK/tenant_class gating of ADR-0255; Accepted ADR-0335 amends ADR-0255 (foundry consolidation into intelligence). Reverse-links were missing. Proposed 0355 not reverse-linked.",
+      "higher_adrs_cited": ["ADR-0329", "ADR-0335"]
+    },
+    {
+      "adr": "ADR-0257",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Only Superseded 0316 and Proposed 0356 claim amends; no Accepted higher supersedes/amends. Remain Proposed.",
+      "higher_adrs_cited": ["ADR-0316", "ADR-0356"]
+    },
+    {
+      "adr": "ADR-0258",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live Accepted; amended_by already [ADR-0565, ADR-0632] matching Accepted reverse claims. No higher Accepted supersedes. GraphQL surface list amended (not retired) by 0565; versioning model remains live under 0632 product-protocol posture.",
+      "higher_adrs_cited": ["ADR-0565", "ADR-0632"]
+    }
+  ],
+  "files_changed": [
+    "docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md",
+    "docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md",
+    "docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md",
+    "docs/decisions/_disposition/band-0250-receipt.json"
+  ],
+  "no_change": ["ADR-0250", "ADR-0253", "ADR-0254", "ADR-0257", "ADR-0258"]
+}

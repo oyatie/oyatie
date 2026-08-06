@@ -276,13 +276,13 @@ fn write_root_manifest(root: &Path, body: &str) {
 }
 
 /// Write a real Accepted ADR that reverses the forbidding ADR into the temp tree's `docs/decisions`,
-/// so the gate's defense-in-depth validation resolves the cited id. The id `ADR-0700` is the test-only
+/// so the gate's defense-in-depth validation resolves the cited id. The id `ADR-0800` is the test-only
 /// authorizing decision.
 fn write_authorizing_adr(root: &Path) {
     write_file(
         root,
-        "docs/decisions/ADR-0700-reintroduce-graphql.md",
-        "---\nid: ADR-0700\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\n\n# ADR-0700: Reintroduce GraphQL\n\nThis decision reverses ADR-0565 and readmits a single generated GraphQL surface.\n",
+        "docs/decisions/ADR-0800-reintroduce-graphql.md",
+        "---\nid: ADR-0800\nstatus: Accepted\nsupersedes:\n  - ADR-0565\n---\n\n# ADR-0800: Reintroduce GraphQL\n\nThis decision reverses ADR-0565 and readmits a single generated GraphQL surface.\n",
     );
 }
 
@@ -290,7 +290,7 @@ fn write_authorizing_adr(root: &Path) {
 /// (the committed policy's 100 floor is a live-tree guard, not a fixture constraint). The policy is
 /// loaded from the REAL repo root (the committed file lives there, not in the temp fixture tree);
 /// everything else mirrors the committed policy. `authorizing_adrs` stays EMPTY by default (matching
-/// the committed policy) — the GREEN escape-hatch fixture allowlists `ADR-0700` explicitly.
+/// the committed policy) — the GREEN escape-hatch fixture allowlists `ADR-0800` explicitly.
 fn fixture_policy() -> Value {
     let mut p = committed_policy(&repo_root());
     p["min_expected_workspace_members"] = Value::from(1u64);
@@ -407,7 +407,7 @@ fn red_fixture_buck_graphql_schema_glob() {
 #[test]
 fn green_fixture_allowlisted_and_validated_adr() {
     // GREEN, hermetic: the SAME forbidden artifacts (async-graphql dep + a .graphql file) citing an
-    // authorizing id (ADR-0700) that is BOTH (1) in the policy `authorizing_adrs` allowlist AND
+    // authorizing id (ADR-0800) that is BOTH (1) in the policy `authorizing_adrs` allowlist AND
     // (2) backed by a real Accepted ADR in the temp tree's docs/decisions that reverses ADR-0565. The
     // escape-hatch admits them; the gate PASSES. Proves the escape is live AND requires REAL
     // authorization — not a no-op, and not a bare-token backdoor.
@@ -416,11 +416,11 @@ fn green_fixture_allowlisted_and_validated_adr() {
     write_member(
         &root,
         "studio-graphql",
-        "# Reintroduced per ADR-0700 (reverses ADR-0565).\n[package]\nname = \"studio-graphql\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
-        Some("# Authorized by ADR-0700 (reverses ADR-0565).\ntype Query { ok: Boolean }\n"),
+        "# Reintroduced per ADR-0800 (reverses ADR-0565).\n[package]\nname = \"studio-graphql\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
+        Some("# Authorized by ADR-0800 (reverses ADR-0565).\ntype Query { ok: Boolean }\n"),
     );
 
-    let policy = fixture_policy_allowing(&["ADR-0700"]);
+    let policy = fixture_policy_allowing(&["ADR-0800"]);
     let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
     let findings = evaluate_keyed(&policy, &observed);
 
@@ -730,18 +730,18 @@ fn red_fixture_adr_only_in_related_field_does_not_reverse() {
     // containing "has not been superseded" — the structural supersedes check must reject this.
     write_file(
         &root,
-        "docs/decisions/ADR-0700-not-a-reversal.md",
-        "---\nid: ADR-0700\nstatus: Accepted\nrelated:\n  - ADR-0565\n---\n\n# ADR-0700\n\nADR-0565 has not been superseded by this decision.\n",
+        "docs/decisions/ADR-0800-not-a-reversal.md",
+        "---\nid: ADR-0800\nstatus: Accepted\nrelated:\n  - ADR-0565\n---\n\n# ADR-0800\n\nADR-0565 has not been superseded by this decision.\n",
     );
     write_member(
         &root,
         "studio-graphql",
-        "# Reintroduced per ADR-0700 (cites ADR-0565).\n[package]\nname = \"studio-graphql\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
+        "# Reintroduced per ADR-0800 (cites ADR-0565).\n[package]\nname = \"studio-graphql\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\nasync-graphql = \"7\"\n",
         None,
     );
 
-    // Even with ADR-0700 in the allowlist, it does not validate as a reversal.
-    let policy = fixture_policy_allowing(&["ADR-0700"]);
+    // Even with ADR-0800 in the allowlist, it does not validate as a reversal.
+    let policy = fixture_policy_allowing(&["ADR-0800"]);
     let observed = collect_graphql_artifacts(&root, &policy).expect("collect on temp tree");
     let findings = evaluate_keyed(&policy, &observed);
 

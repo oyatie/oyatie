@@ -774,7 +774,7 @@
     },
     {
       "artifact_id": "adr-0090-hyper-canonical-http-backbone",
-      "artifact_path": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "artifact_path": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
       "artifact_format": "markdown",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",

@@ -8,7 +8,7 @@ date: 2026-05-18
 purpose: |
   Canonical compliance-evidence pipeline standard. SOC 2 Type II + GDPR DSAR + HIPAA + PCI-DSS
   artifact kinds + emission cadence + auditor-portal access.
-canonical_authority: docs/decisions/ADR-0209-compliance-evidence-automation.md
+canonical_authority: docs/decisions/ADR-0709-general-live-apex.md
 related_adrs:
   - ADR-0145
   - ADR-0394

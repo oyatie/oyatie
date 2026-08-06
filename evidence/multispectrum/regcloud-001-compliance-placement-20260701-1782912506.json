@@ -11,7 +11,7 @@
     "files_touched": [
       "plan/compliance-selective-cell-placement-architecture.md",
       "plan/OWNERS",
-      "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "specs/reachability-registry.json",
       "evidence/multispectrum/regcloud-001-compliance-placement-20260701-1782912506.json"
     ],

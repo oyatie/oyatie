@@ -21,25 +21,25 @@ The product boundary is intentionally narrow: receive a migration intent, valida
 No Rust implementation is authored in this wave; this document is the doctrine, product contract, and downstream implementation substrate for Wave 15-ZD-impl.
 
 ## Authority Chain
-- ADR-0276: docs/decisions/ADR-0276-cell-rebalancer-and-cell-lifecycle-microservices.md
-- ADR-0273: docs/decisions/ADR-0273-autosharding-auto-rebalance-dynamic-sharding.md
-- ADR-0333: docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md
-- ADR-0099: docs/decisions/ADR-0099-per-microservice-flat-layout.md
-- ADR-0266: docs/decisions/ADR-0266-cellular-promotion-gates-explicit-tier-criteria.md
-- ADR-0207: docs/decisions/ADR-0207-compliance-pack-cell-certification-levels.md
-- ADR-0203: docs/decisions/ADR-0203-self-hosting-self-modification-doctrine.md
-- ADR-0217: docs/decisions/ADR-0217-observability-emission-contract.md
-- ADR-0265: docs/decisions/ADR-0265-capacity-model-per-microservice-manifest.md
-- ADR-0268: docs/decisions/ADR-0268-dr-rto-rpo-matrix-per-microservice-per-compliance-pack.md
-- ADR-0267: docs/decisions/ADR-0267-api-versioning-hybrid-date-public-semver-sdk.md
-- ADR-0209: docs/decisions/ADR-0209-network-topology-edge-service-mesh.md
-- ADR-0079: docs/decisions/ADR-0079-13-layer-enum-and-check-family-patterns.md
-- ADR-0269: docs/decisions/ADR-0269-sustainability-finops-dimensional-model.md
-- ADR-0263: docs/decisions/ADR-0263-pod-runtime-tier-0-to-3.md
-- ADR-0204: docs/decisions/ADR-0204-amazon-shape-cellular-architecture.md
-- ADR-0198: docs/decisions/ADR-0198-cedar-as-universal-gate.md
-- ADR-0199: docs/decisions/ADR-0199-tenant-as-universal-scoping-primitive.md
-- ADR-0208: docs/decisions/ADR-0208-hlc-default-truetime-tier.md
+- ADR-0276: docs/adr-archive/ADR-0276-backup-portability-format-gdpr-article-20.md
+- ADR-0273: docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md
+- ADR-0333: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- ADR-0099: docs/adr-archive/ADR-0099-cedar-policy-extend-supervisor-capabilities.md
+- ADR-0266: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0207: docs/adr-archive/ADR-0207-accessibility-wcag-2-2-aa.md
+- ADR-0203: docs/adr-archive/ADR-0203-documentation-engine-three-tier.md
+- ADR-0217: docs/adr-archive/ADR-0217-vertical-slice-rollout-order.md
+- ADR-0265: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0268: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0267: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0209: docs/adr-archive/ADR-0209-compliance-evidence-automation.md
+- ADR-0079: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0269: docs/decisions/ADR-0709-general-live-apex.md
+- ADR-0263: docs/adr-archive/ADR-0263-observability-emission-contract.md
+- ADR-0204: docs/adr-archive/ADR-0204-workflow-studio-canvas-library.md
+- ADR-0198: docs/adr-archive/ADR-0198-k8s-node-autoscaling-karpenter.md
+- ADR-0199: docs/adr-archive/ADR-0199-per-tenant-cost-attribution-finops-substrate.md
+- ADR-0208: docs/adr-archive/ADR-0208-realtime-transport-tier.md
 
 ## Bounded Context
 - Single concern: tenant migration across cells.

@@ -1,0 +1,176 @@
+{
+  "band": [560, 569],
+  "reviewed": [
+    "ADR-0560",
+    "ADR-0561",
+    "ADR-0562",
+    "ADR-0563",
+    "ADR-0564",
+    "ADR-0565",
+    "ADR-0566",
+    "ADR-0567",
+    "ADR-0568",
+    "ADR-0569"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0560",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed (not implement authority). NativeLink CAS slice-1 / warm-cache cold-canary. Higher ADRs depend_on or extend (0612 RE phase Proposed; 0630 Accepted runner fleet depends_on; 0636 Accepted baseline-reuse depends_on) without superseding or amending. No reverse supersedes:/amends: claims. North-star 'no warm CAS/RE without Accepted authority' requires keeping Proposed — do not invent Accept. Plan-lag (Accepted 0630/0636 depend_on still-Proposed 0560) is a separate admission defect, not a frontmatter supersession fix.",
+      "higher_adrs_cited": [
+        "ADR-0612",
+        "ADR-0630",
+        "ADR-0636"
+      ]
+    },
+    {
+      "adr": "ADR-0561",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed workload X.509-SVID + PDP mTLS caller-auth substrate. Widely cited as depends_on/related by fail-closed authz ADRs (0572/0573/0582/0587–0593/0603, 0612) as design-input/precedent; none supersede or amend frontmatter. amended_by already []. Correctly not implement authority until Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0566",
+        "ADR-0572",
+        "ADR-0573",
+        "ADR-0582",
+        "ADR-0587",
+        "ADR-0588",
+        "ADR-0589",
+        "ADR-0590",
+        "ADR-0591",
+        "ADR-0593",
+        "ADR-0603",
+        "ADR-0612",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0562",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted capability-first monorepo + closed capability registry — live north-star layout authority. No higher ADR lists supersedes: ADR-0562. amended_by already complete for all claimers: ADR-0615 (Accepted), ADR-0631 (Proposed), ADR-0635 (Accepted). Live resolution = 0562 + Accepted peers 0615/0635 (not bare 0562). Aligns with hyperscaler capability-first posture; no false Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0615",
+        "ADR-0617",
+        "ADR-0631",
+        "ADR-0632",
+        "ADR-0635"
+      ]
+    },
+    {
+      "adr": "ADR-0563",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed rename-aware path-keyed CI baseline relabel. Accepted ADR-0614 amends committed-vs-materialized move-manifest stance only; 0563 already lists amended_by: [ADR-0614]. Body and 0614/0613 explicitly keep lifecycle status Proposed and do not supersede relabel machinery. Plan-lag (Accepted 0614 amends still-Proposed 0563) noted in corpus audit; do not mass-Accept. No superseder.",
+      "higher_adrs_cited": [
+        "ADR-0571",
+        "ADR-0598",
+        "ADR-0599",
+        "ADR-0613",
+        "ADR-0614",
+        "ADR-0616",
+        "ADR-0617"
+      ]
+    },
+    {
+      "adr": "ADR-0564",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed tenancy tenant-lifecycle commissioning (G006 slice 1). Sole amender is same-band Proposed ADR-0567 (amends: [ADR-0564]); no later Accepted amends, so amended_by edge not required under disposition rule (only fill when later Accepted amends and field missing). Related/depends_on citations from 0566/0572/0582/0586 do not supersede. Status correctly Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0566",
+        "ADR-0567",
+        "ADR-0572",
+        "ADR-0582",
+        "ADR-0586"
+      ]
+    },
+    {
+      "adr": "ADR-0565",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted zero-GraphQL owned API surface. Accepted ADR-0632 amends exposure-aware non-GraphQL product protocol and is already listed in amended_by: [ADR-0632]. 0632 reaffirms GraphQL remains forbidden by 0565; does not supersede. No reverse supersedes claim. Live resolution = 0565 + 0632. North-star API-first surface set intact; no false Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0598",
+        "ADR-0623",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0566",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed authz-coverage gate (unauthenticated HTTP control-plane backstop). Later gates (0572/0582/0590/0591/0593/0603/0605–0608) depend_on or cite as gate-family precedent without superseding or amending. amended_by already []. Aligns with zero-trust/fail-closed north star as design-input; remains Proposed until Accept admission.",
+      "higher_adrs_cited": [
+        "ADR-0572",
+        "ADR-0573",
+        "ADR-0582",
+        "ADR-0586",
+        "ADR-0590",
+        "ADR-0591",
+        "ADR-0593",
+        "ADR-0603",
+        "ADR-0605",
+        "ADR-0606",
+        "ADR-0607",
+        "ADR-0608"
+      ]
+    },
+    {
+      "adr": "ADR-0567",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed auth durable Postgres+RLS stores (amends Proposed 0564 only). Higher ADRs (0569 related, 0571 related) cite commissioning pattern without superseding or amending. No later Accepted supersedes/amends. Correctly Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0569",
+        "ADR-0571"
+      ]
+    },
+    {
+      "adr": "ADR-0568",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed born-accounting pure registrar kernel. Higher ADRs (0580 related; 0606–0608 path-list citing; 0629 related prefers long-term automation) do not supersede or amend. No reverse edge claims. Correctly Proposed; not implement authority.",
+      "higher_adrs_cited": [
+        "ADR-0580",
+        "ADR-0606",
+        "ADR-0607",
+        "ADR-0608",
+        "ADR-0629"
+      ]
+    },
+    {
+      "adr": "ADR-0569",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed oya-data outbox CDC Postgres adapter commissioning. Only higher cite found is ADR-0571 related (commissioning pattern); no supersedes/amends. Correctly Proposed transitional ADR-0510-shaped adapter; no contradiction with live 0515/0562 requiring frontmatter change.",
+      "higher_adrs_cited": [
+        "ADR-0571"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0560",
+    "ADR-0561",
+    "ADR-0562",
+    "ADR-0563",
+    "ADR-0564",
+    "ADR-0565",
+    "ADR-0566",
+    "ADR-0567",
+    "ADR-0568",
+    "ADR-0569"
+  ]
+}

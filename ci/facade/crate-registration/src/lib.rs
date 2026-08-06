@@ -1691,16 +1691,24 @@ fn resolve_adr_path(
     })
 }
 
-/// The repo-relative `docs/decisions/<id>-*.md` path whose filename encodes `adr` (via the
-/// producer's `adr_id_from_filename`), or `None` if the ADR corpus has no such file.
+/// The repo-relative `<corpus>/<id>-*.md` path whose filename encodes `adr` (via the
+/// producer's `adr_id_from_filename`), or `None` if neither the live ADR dir nor the
+/// historical archive has such a file. Live decisions win over archive on id collision.
 fn find_adr_path(repo_root: &Path, cfg: &OyaCiConfig, adr: &str) -> Option<String> {
-    let adr_dir = cfg.justification.adr_dir.as_str();
-    let abs_dir = repo_root.join(adr_dir);
-    let entries = std::fs::read_dir(&abs_dir).ok()?;
-    for entry in entries.flatten() {
-        let name = entry.file_name().to_string_lossy().to_string();
-        if adr_id_from_filename(&name).as_deref() == Some(adr) {
-            return Some(format!("{adr_dir}/{name}"));
+    let mut dirs = vec![cfg.justification.adr_dir.as_str()];
+    if cfg.justification.adr_dir != "docs/adr-archive" {
+        dirs.push("docs/adr-archive");
+    }
+    for adr_dir in dirs {
+        let abs_dir = repo_root.join(adr_dir);
+        let Ok(entries) = std::fs::read_dir(&abs_dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if adr_id_from_filename(&name).as_deref() == Some(adr) {
+                return Some(format!("{adr_dir}/{name}"));
+            }
         }
     }
     None

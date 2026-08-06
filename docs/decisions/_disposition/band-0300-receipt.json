@@ -1,0 +1,106 @@
+{
+  "band": [300, 309],
+  "reviewed": [300, 301, 302, 303, 304, 305, 306, 307, 308, 309],
+  "findings": [
+    {
+      "adr": "ADR-0300",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (clear false supersession; empty superseded_by; no reverse Accepted supersedes)",
+      "reason": "Pre-freeze was Proposed. Residual close set Superseded with note 'had superseded_by' but frontmatter superseded_by remains [] and no higher ADR lists ADR-0300 under supersedes:. END-STATE-POLICY: Superseded only when later Accepted replaces; else Rejected for never-admitted design. e2-endstate-freeze-decide.json already decided Rejected for 300. Related cites (0301–0306, 0311, 0312, 0299) are not succession. Do not invent superseded_by.",
+      "higher_adrs_cited": ["ADR-0301", "ADR-0302", "ADR-0303", "ADR-0304", "ADR-0305", "ADR-0306", "ADR-0311", "ADR-0312", "ADR-0299"]
+    },
+    {
+      "adr": "ADR-0301",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "No higher frontmatter supersedes/amends of ADR-0301. Cross-links from 0302/0303/0306 are companion only. Freeze-decide Rejected; residual 'had superseded_by' false.",
+      "higher_adrs_cited": ["ADR-0302", "ADR-0303", "ADR-0306"]
+    },
+    {
+      "adr": "ADR-0302",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "No higher Accepted supersedes/amends. Related/cross-link only (0303/0306). Freeze-decide Rejected.",
+      "higher_adrs_cited": ["ADR-0303", "ADR-0306"]
+    },
+    {
+      "adr": "ADR-0303",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "No higher Accepted supersedes/amends. Related cites 0306/0318 only. Freeze-decide Rejected.",
+      "higher_adrs_cited": ["ADR-0306", "ADR-0318"]
+    },
+    {
+      "adr": "ADR-0304",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "ADR-0326 frontmatter amends ADR-0304 but 0326 is Rejected (not Accepted authority)—no amended_by reverse-link. No higher Accepted supersedes. Freeze-decide Rejected.",
+      "higher_adrs_cited": ["ADR-0326", "ADR-0311", "ADR-0312", "ADR-0313"]
+    },
+    {
+      "adr": "ADR-0305",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "No higher Accepted supersedes/amends. ADR-0320 explicitly non-scopes replacement. Freeze-decide Rejected. Reopen as new ADR if delegated-agent authority still required under fabric cluster.",
+      "higher_adrs_cited": ["ADR-0320", "ADR-0306"]
+    },
+    {
+      "adr": "ADR-0306",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "Accepted ADR-0375/0376 related-cite disaster-mode survival as companion to cell isolation but do not supersede/amend ADR-0306 (0375 supersedes only 0120/0121). No reverse Accepted supersedes. Freeze-decide Rejected. Cell resilience remains under live 0009/0375 lineage if re-admitted.",
+      "higher_adrs_cited": ["ADR-0375", "ADR-0376", "ADR-0318", "ADR-0324"]
+    },
+    {
+      "adr": "ADR-0307",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "drmp-detection-cluster peer (0308–0310); no higher Accepted supersedes/amends of ADR-0307. Freeze-decide Rejected.",
+      "higher_adrs_cited": ["ADR-0308", "ADR-0309", "ADR-0310"]
+    },
+    {
+      "adr": "ADR-0308",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "No higher Accepted supersedes/amends. Cluster companions 0307/0309/0310 and related 0325 only. Freeze-decide Rejected.",
+      "higher_adrs_cited": ["ADR-0307", "ADR-0309", "ADR-0310", "ADR-0325"]
+    },
+    {
+      "adr": "ADR-0309",
+      "status_before": "Superseded",
+      "status_after": "Rejected",
+      "action": "status: Superseded → Rejected (false supersession; empty superseded_by)",
+      "reason": "No higher Accepted supersedes/amends. Cluster companions 0307/0308/0310 only. Freeze-decide Rejected.",
+      "higher_adrs_cited": ["ADR-0307", "ADR-0308", "ADR-0310"]
+    }
+  ],
+  "files_changed": [
+    "docs/adr-archive/ADR-0300-whistleblower-press-freedom-anonymity.md",
+    "docs/adr-archive/ADR-0301-survivor-safety-domestic-abuse-mode.md",
+    "docs/adr-archive/ADR-0302-deceased-user-inheritance-doctrine.md",
+    "docs/adr-archive/ADR-0303-cognitive-impairment-decision-resilience.md",
+    "docs/adr-archive/ADR-0304-cross-jurisdiction-conflict-resolution.md",
+    "docs/adr-archive/ADR-0305-delegated-agent-authority-chain.md",
+    "docs/adr-archive/ADR-0306-disaster-mode-cell-resilience.md",
+    "docs/adr-archive/ADR-0307-detection-substrate-streaming-batch.md",
+    "docs/adr-archive/ADR-0308-ml-model-lifecycle-ai-act-compliance.md",
+    "docs/adr-archive/ADR-0309-detection-fairness-audit-civil-rights.md",
+    "docs/decisions/_disposition/band-0300-receipt.json"
+  ],
+  "no_change": [],
+  "notes": [
+    "Live resolution: reverse-index of all higher ADR frontmatter supersedes:/amends: found zero Accepted claimers targeting this band.",
+    "e2-endstate-freeze-decide.json decided Rejected for 300–309; e2-residual-proposed-closed.json incorrectly set Superseded with false 'had superseded_by' while leaving superseded_by: [].",
+    "Smallest high-confidence fix: Superseded→Rejected (not invent successors; not mass-Accept; not re-open Proposed under END-STATE-POLICY).",
+    "Did not rewrite decision bodies."
+  ]
+}

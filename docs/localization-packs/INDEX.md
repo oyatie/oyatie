@@ -7,8 +7,8 @@ owners: ["council-architecture"]
 authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → this file → docs/localization-packs/<pack>.md
 companion_docs:
   - docs/MASTERPLAN.md
-  - docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
-  - docs/decisions/ADR-0063-documentation-set-coverage.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 doc_status: published
 ---
 

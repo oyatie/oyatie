@@ -421,37 +421,37 @@
       "id": "ADR-0187",
       "title": "Canonical OIDC IdP: Zitadel primary",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0188",
       "title": "Passkey / WebAuthn Level-3 substrate",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0188-passkey-webauthn-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0189",
       "title": "Step-up authentication ACR classes",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0189-step-up-authentication-acr-classes.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0190",
       "title": "SCIM 2.0 inbound provisioning",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0190-scim-2-provisioning-enterprise-tenants.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0191",
       "title": "Edge authz tenant_class vs origin Cedar PDP",
       "scope": "microservice",
-      "file": "docs/decisions/ADR-0191-edge-authz-tenant_class-vs-origin-cedar-pdp.md"
+      "file": "docs/adr-archive/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md"
     },
     {
       "id": "ADR-0215",
       "title": "Multi-context platform architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0215-multi-context-platform-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0117",
@@ -494,19 +494,19 @@
       "id": "ADR-0329",
       "title": "tenant_class system retired; replaced by tenant_class model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0329-tenant_class-system-retired-replaced-by-tenant-class.md"
+      "file": "docs/adr-archive/ADR-0329-tier-system-retired-replaced-by-tenant-class.md"
     },
     {
       "id": "ADR-0330",
       "title": "Tenant Class — demo_trial vs paid with Composable Billing Components",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0330-tenant-class-demo-trial-vs-paid-composable-billing-components.md"
+      "file": "docs/decisions/ADR-0702-identity-authz-live-apex.md"
     },
     {
       "id": "ADR-0331",
       "title": "Cross-µservice tenant_class Adoption Template",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0331-cross-microservice-tenant-class-adoption-template.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0248",
@@ -833,7 +833,7 @@
         "version": "2025-11-21",
         "deprecated_at": "2026-05-21",
         "sunset_at": "2026-11-21",
-        "breaking_change_adr": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md",
+        "breaking_change_adr": "docs/decisions/ADR-0709-general-live-apex.md",
         "migration_doc": "microservices/identity/MIGRATION-2026-05-21.md"
       }
     ],

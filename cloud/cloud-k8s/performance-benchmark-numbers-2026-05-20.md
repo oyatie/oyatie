@@ -14,12 +14,12 @@ deployment_contexts:
 substance_floor: 300-lines
 tier_segmentation_used: false
 source_anchors:
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
   - /Users/jasonlee/oyatie/microservices/cloud-k8s/PRD.md
   - /Users/jasonlee/oyatie/microservices/cloud-k8s/benchmarks/kubeadm-vs-managed-vs-rancher.md
   - /Users/jasonlee/oyatie/microservices/cloud-k8s/capacity-model.md
   - /Users/jasonlee/oyatie/microservices/cloud-k8s/competitor-parity-matrix.md
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0254-deployment-model-spectrum.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
 ---
 
 # cloud-k8s — Performance Benchmark Numbers vs Industry Leader Target (2026-05-21)

@@ -19,4 +19,4 @@ entirely within this µservice. No external managed billing service dependency.
 
 Scaffold only. Implementation tracks ADR-0478 D1-D5 delivery phases.
 
-See [ADR-0478](../../docs/decisions/ADR-0478-bespoke-rust-billing-engine.md).
+See [ADR-0478](../../docs/adr-archive/ADR-0478-oya-billing-bespoke-billing-engine.md).

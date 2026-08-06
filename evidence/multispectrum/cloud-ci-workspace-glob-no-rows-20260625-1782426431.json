@@ -9,7 +9,7 @@
     "summary": "Make the cloud-ci workspace-glob-coverage gate fail closed when the producer emits missing or empty rows.",
     "files_touched": [
       "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app/src/lib.rs",
-      "docs/decisions/ADR-0538-globbed-root-workspace-membership-and-coverage-gate.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "evidence/multispectrum/cloud-ci-workspace-glob-no-rows-20260625-1782426431.json"
     ],
     "explicit_non_claims": [

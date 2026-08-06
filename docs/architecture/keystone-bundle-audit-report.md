@@ -1088,7 +1088,7 @@ ADR-0245 frontmatter `related:` line 61:
 ```
 Real filename on disk:
 ```
-docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 ```
 One-token drift: `-ai-` missing.
 
@@ -1103,10 +1103,10 @@ ADR-0247 frontmatter `related:` lines 60-63:
 ```
 Real filenames on disk:
 ```
-docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
-docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
-docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0708-platform-foundations-live-apex.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 ```
 Three of four references are mis-named (the ADR-0251 reference matches).
 
@@ -1123,12 +1123,12 @@ ADR-0250 frontmatter `related:` lines 48-53:
 ```
 Real filenames on disk:
 ```
-docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
-docs/decisions/ADR-0252-time-coordination-distributed-consistency.md
-docs/decisions/ADR-0253-network-topology-edge-service-mesh.md
-docs/decisions/ADR-0254-deployment-model-spectrum.md
-docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0708-platform-foundations-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0708-platform-foundations-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 ```
 Five of six references are mis-named.
 
@@ -1141,8 +1141,8 @@ ADR-0251 frontmatter `related:` lines 55-56:
 ```
 Real filenames:
 ```
-docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
 ```
 Two of two references are mis-named.
 
@@ -1154,7 +1154,7 @@ ADR-0253 frontmatter `related:` line 47:
 ```
 Real filename:
 ```
-docs/decisions/ADR-0252-time-coordination-distributed-consistency.md
+docs/decisions/ADR-0709-general-live-apex.md
 ```
 (ADR-0252 covers idempotency keys as a sub-section but the canonical
 filename is the broader title.)
@@ -1172,12 +1172,12 @@ ADR-0254 frontmatter `related:` lines 54-59:
 ```
 Real filenames:
 ```
-docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-docs/decisions/ADR-0250-build-ahead-of-certification-doctrine.md
-docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
-docs/decisions/ADR-0252-time-coordination-distributed-consistency.md
-docs/decisions/ADR-0253-network-topology-edge-service-mesh.md
-docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0708-platform-foundations-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0708-platform-foundations-live-apex.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 ```
 Six of six references are mis-named.
 
@@ -1189,7 +1189,7 @@ ADR-0255 frontmatter `related:` line 56:
 ```
 Real filename:
 ```
-docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
 ```
 (Foundry dissolution is the topic of ADR-0247, not ADR-0249.)
 

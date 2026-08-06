@@ -361,9 +361,9 @@ External authority: `https://github.com/OpenSLO/OpenSLO`.
 
 `docs/standards/observability-slo.md` is the broader observability standard.
 
-`docs/decisions/ADR-0139-agentic-slo-gated-promotion.md` binds SLO-gated promotion.
+`docs/decisions/ADR-0700-ci-admission-live-apex.md` binds SLO-gated promotion.
 
-`docs/decisions/ADR-0263-observability-emission-contract.md` binds telemetry emission.
+`docs/decisions/ADR-0706-observability-live-apex.md` binds telemetry emission.
 
 `docs/standards/trace-sampling-tier.md` binds trace sampling.
 

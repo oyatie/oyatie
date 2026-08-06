@@ -37,8 +37,8 @@
     }
   ],
   "adr_references_current": [
-    "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md",
-    "docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md"
+    "docs/decisions/ADR-0709-general-live-apex.md",
+    "docs/decisions/ADR-0704-k8s-port-live-apex.md"
   ],
   "quality_bar": {
     "production_bar": "hyperscaler production bar only; no demo/sample carve-out; every done claim requires fresh evidence",
@@ -3309,7 +3309,7 @@
       "summary": "registry/knowledge-graph-semantic.json deleted; 36 node_types + 27 edge_types + 19 invariants + 11 read_side_query_examples migrated into specs/products/ontology.json#type_system. Single source of truth for semantic type definitions. Per ADR-0139 + OP-11 no compat seams.",
       "deprecated_artifact": "registry/knowledge-graph-semantic.json",
       "canonical_home": "specs/products/ontology.json#type_system",
-      "adr_ref": "docs/decisions/ADR-0139-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md"
+      "adr_ref": "docs/adr-archive/ADR-0139-agentic-slo-gated-promotion.md"
     }
   ]
 }

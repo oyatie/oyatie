@@ -6,9 +6,9 @@ an Okta SAML inbound federation cycle end-to-end.
 
 ## Day 1 — read before touching
 
-- `docs/decisions/ADR-0243-cedar-as-universal-gate.md` — every gate is a Cedar eval; no policy in code.
-- `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` — every principal carries `tenant_id`.
-- `docs/decisions/ADR-0247-self-modification.md` — Foundry runs as `oyatie.foundry.*` principals; understand the recursion.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` — every gate is a Cedar eval; no policy in code.
+- `docs/decisions/ADR-0702-identity-authz-live-apex.md` — every principal carries `tenant_id`.
+- `docs/decisions/ADR-0709-general-live-apex.md — Foundry runs as `oyatie.foundry.*` principals; understand the recursion.
 - ADR-0329 + ADR-0330 + ADR-0331 — the ADR-0329/0330/0331 tenant_class model.
 - The Cedar 4.3 language reference (vendored at `vendor/cedar-4.3.0/CHANGELOG.md`).
 

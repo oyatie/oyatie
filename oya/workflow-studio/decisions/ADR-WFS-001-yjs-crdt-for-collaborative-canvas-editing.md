@@ -5,13 +5,13 @@ status: Proposed
 date: 2026-05-20
 microservice: workflow-studio
 related_oyatie_adrs:
-  - docs/decisions/ADR-0145-inter-microservice-communication-reform.md
-  - docs/decisions/ADR-0211-in-house-tech-stack-policy.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-workflow-studio
 ---
 
@@ -353,13 +353,13 @@ decision_owner: axis-workflow-studio
 
 ## References
 
-- ADR-0145, Inter Microservice Communication Reform, `docs/decisions/ADR-0145-inter-microservice-communication-reform.md`.
-- ADR-0211, In House Tech Stack Policy, `docs/decisions/ADR-0211-in-house-tech-stack-policy.md`.
-- ADR-0243, Cedar as Universal Gate, `docs/decisions/ADR-0243-cedar-as-universal-gate.md`.
-- ADR-0244, Tenant as Universal Scoping Primitive, `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md`.
-- ADR-0245, Substrate vs Product Layering, `docs/decisions/ADR-0245-substrate-vs-product-layering.md`.
-- ADR-0257, Ontology Object Type Versioning Deprecation Handshake, `docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md`.
-- ADR-0263, Observability Emission Contract, `docs/decisions/ADR-0263-observability-emission-contract.md`.
+- ADR-0145, Inter Microservice Communication Reform, `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- ADR-0211, In House Tech Stack Policy, `docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR-0243, Cedar as Universal Gate, `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- ADR-0244, Tenant as Universal Scoping Primitive, `docs/decisions/ADR-0702-identity-authz-live-apex.md`.
+- ADR-0245, Substrate vs Product Layering, `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- ADR-0257, Ontology Object Type Versioning Deprecation Handshake, `docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR-0263, Observability Emission Contract, `docs/decisions/ADR-0706-observability-live-apex.md`.
 - Yjs documentation, https://docs.yjs.dev/.
 - Yjs API documentation, https://docs.yjs.dev/api/shared-types/y.doc.
 - y-websocket documentation, https://docs.yjs.dev/ecosystem/connection-provider/y-websocket.

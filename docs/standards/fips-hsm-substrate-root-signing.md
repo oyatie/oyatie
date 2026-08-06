@@ -7,10 +7,10 @@ authority_tier: 1
 status: Accepted
 date: 2026-05-20
 canonical_authority:
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0247-self-hosting-self-modification-doctrine.md
-  - docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md
-  - docs/decisions/ADR-0254-deployment-model-spectrum.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - ADR-NNNN-foundry-meta-trust-root
 planned_enforcement_ref: oya-governance-fips-hsm-substrate-root
 companion_docs:

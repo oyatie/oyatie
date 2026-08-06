@@ -466,55 +466,55 @@
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0218",
       "title": "OpenTofu Not Terraform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0218-opentofu-not-terraform.md"
+      "file": "docs/adr-archive/ADR-0218-tenant-granular-control-surface.md"
     },
     {
       "id": "ADR-0339",
       "title": "Shared IaC Module Library",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0339-shared-iac-module-library.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0340",
       "title": "Capacity Model Per Microservice Manifest",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0340-capacity-model-per-microservice-manifest.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0342",
       "title": "Api Versioning Hybrid Date Public Semver Sdk",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0342-api-versioning-hybrid-date-public-semver-sdk.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0346",
       "title": "Protected Oya-Ci Required Context Must Remain Canonical",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0348",
       "title": "Autosharding Auto Rebalance Dynamic Sharding",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0349",
       "title": "GitHub Actions oya-ci Argocd Self Hostable Ci Cd Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0349-github-actions-oya-ci-argocd-self-hostable-ci-cd-substrate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

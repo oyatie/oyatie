@@ -17,9 +17,9 @@ canonical_authority: docs/AGENTS.md + ADR-0515 + ADR-0619
 companion_docs:
   - docs/AGENTS.md
   - docs/MASTERPLAN.md
-  - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-  - docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md
-  - docs/decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 related_adrs:
   - ADR-0116
   - ADR-0363

@@ -83,4 +83,4 @@ Classify exactly one primary branch before recovery:
 - Reference the M03-P04/M03-P08 implementation-plan IDs when the fix changes workflow runtime or cross-axis contract behavior.
 
 ## Sources
-`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.
+`docs/products/saas-platform/PRD.md`, `docs/teams/axis-saas/CHARTER.md`, `specs/masterplan.json` M03-P04/M03-P08 entries, `docs/decisions/ADR-0700-ci-admission-live-apex.md`, `docs/INCIDENT-MANAGEMENT.md`, `docs/SLO-CATALOG.md`, `docs/standards/prevention-doctrine.md`.

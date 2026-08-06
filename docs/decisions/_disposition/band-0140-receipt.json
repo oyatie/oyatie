@@ -1,0 +1,133 @@
+{
+  "band": [140, 149],
+  "reviewed": [142, 144, 145, 148],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "adr": "ADR-0140",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0145"],
+      "note": "Already live-resolved; outside Assigned review set [142, 144, 145, 148]"
+    },
+    {
+      "adr": "ADR-0141",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0145"],
+      "note": "Already live-resolved; outside Assigned review set"
+    },
+    {
+      "adr": "ADR-0143",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0389"],
+      "note": "Already live-resolved; outside Assigned review set"
+    },
+    {
+      "adr": "ADR-0146",
+      "status": "Accepted",
+      "note": "Outside explicit review set [142, 144, 145, 148]; not opened for frontmatter mutation this pass"
+    },
+    {
+      "adr": "ADR-0147",
+      "status": "Accepted",
+      "note": "Outside explicit review set; not opened this pass"
+    },
+    {
+      "adr": "ADR-0149",
+      "status": "Accepted",
+      "note": "Outside explicit review set; not opened this pass"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0142",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists ADR-0142 in supersedes or amends. Corpus cites CRDT portability trait as live related authority (e.g. ADR-0158 related; ADR-0173 stack-ownership; ADR-0253 collaborative-editing note). No Accepted successor replaces the owned CRDT trait kernel + INV-PORTABILITY-CI-COMPILE alternate-adapter gate. Aligns with portability / no-silent-regression / hyperscaler bus-factor discipline. Keep Accepted; do not invent supersession.",
+      "higher_adrs_cited": [
+        "ADR-0158",
+        "ADR-0173",
+        "ADR-0253"
+      ]
+    },
+    {
+      "adr": "ADR-0144",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0144. Sole reverse amender ADR-0251 (compliance-pack cell certification) has frontmatter amends ADR-0144 and is status Proposed — plan-lag reverse edge only; not live implement authority. amended_by already lists [ADR-0251]; do not Accept 0251 here; do not clear edge without evidence. Higher Accepted/Proposed peers (0240/0244/0246/0250/0254/0255/0257/0292/0293/0356) cite graduated EU AI Act tiers as related live doctrine without replacement. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0240",
+        "ADR-0244",
+        "ADR-0246",
+        "ADR-0250",
+        "ADR-0251",
+        "ADR-0254",
+        "ADR-0255",
+        "ADR-0257",
+        "ADR-0292",
+        "ADR-0293",
+        "ADR-0356"
+      ]
+    },
+    {
+      "adr": "ADR-0145",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0145 (0145 itself supersedes 0140/0141; reverse edges already correct on those files). Live Accepted amender ADR-0280 (substrate-of-substrate DAG) has amends ADR-0145 and reverse amended_by already includes ADR-0280. Proposed reverse claimers ADR-0245/0252/0257 remain non-authority plan-lag edges already listed in amended_by — leave as declared; do not mass-Accept. Higher citations (0151, 0183, 0191, 0243, 0353/0355/0356 library-first amendments) preserve the universal-mediator retirement + three weaker invariants; they do not replace 0145. Body still narrates pre-0148 mesh framing (Cilium primary + Istio Ambient Tier-2); ADR-0148 rewrites that mesh detail but does not list amends: ADR-0145 in frontmatter — do not invent amended_by from body narrative; task forbids body rewrite. Aligns with hyperscaler direct s2s + audit/tracing/ontology projection. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0151",
+        "ADR-0148",
+        "ADR-0183",
+        "ADR-0191",
+        "ADR-0243",
+        "ADR-0245",
+        "ADR-0252",
+        "ADR-0257",
+        "ADR-0258",
+        "ADR-0280",
+        "ADR-0353",
+        "ADR-0355",
+        "ADR-0356",
+        "ADR-0565"
+      ]
+    },
+    {
+      "adr": "ADR-0148",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher ADR lists supersedes ADR-0148. Sole reverse amender ADR-0341 is status Proposed and its amends target is mis-titled ADR-0148-cell-orchestrator-control-plane.md (cell promotion machinery, not Cilium/Istio mesh) — plan-lag / ID-title collision, not live mesh amendment authority; leave amended_by [ADR-0341] as declared reverse link (removing false edges is outside the allowed smallest-fix set). No Accepted amender reverse-link missing. Higher Accepted peers continue to treat Cilium L3/L4 + Istio Ambient L7 zero-overlap as live mesh law (e.g. ADR-0182/0183/0191/0375/0561). ADR-0482 (Proposed) only notes future kuberos destination amend for 0148/0433 — not Accepted, do not invent Superseded. Aligns with zero-trust mTLS, cells, telemetry-first Hubble+waypoint. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0044",
+        "ADR-0171",
+        "ADR-0182",
+        "ADR-0183",
+        "ADR-0191",
+        "ADR-0211",
+        "ADR-0253",
+        "ADR-0341",
+        "ADR-0355",
+        "ADR-0375",
+        "ADR-0376",
+        "ADR-0482",
+        "ADR-0561"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/_disposition/band-0140-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0142",
+    "ADR-0144",
+    "ADR-0145",
+    "ADR-0148"
+  ],
+  "notes": {
+    "live_resolution": "status=Accepted is insufficient alone; reverse-index supersedes + load Accepted amended_by peers. No later Accepted lists supersedes for 0142/0144/0145/0148. Only live Accepted amender found: ADR-0280 → ADR-0145 (already reverse-linked). Proposed amenders 0251→0144, 0245/0252/0257→0145, 0341→0148 retained as plan-lag reverse edges.",
+    "north_star": "CRDT portability trait, EU AI Act graduated tiers, hyperscaler inter-µservice invariants, and Cilium+Istio Ambient layered mesh remain consistent with cells/zero-trust/telemetry-first and orthogonal to dual-CI retirement (0515), VCS ratchet retirement (0363), and capability-first monorepo (0562+0615+0635).",
+    "worktree": "/Users/jasonlee/Developer/oyatie-adr-disposition-20260806",
+    "branch": "agent/adr-disposition-mechanical-20260806"
+  }
+}

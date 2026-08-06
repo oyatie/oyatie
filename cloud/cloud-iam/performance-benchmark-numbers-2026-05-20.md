@@ -2,7 +2,7 @@
 
 ## Citation anchor block
 
-1. Canonical sequence: `docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md` D-15 through D-20, especially D-20.152 requiring benchmark disclosure by OS, architecture, deployment context, and tenant class.
+1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md` D-15 through D-20, especially D-20.152 requiring benchmark disclosure by OS, architecture, deployment context, and tenant class.
 2. Machine-readable direction: `specs/master-plan-sequencing.json` lines 704-867 for all six deployment contexts, OpenTofu, OS support, Rust-only build policy, and OCI Always Free.
 3. Service-local tenant_class policy targets: ADR-0329 + ADR-0330 + ADR-0331 lines 12-78 and `microservices/cloud-iam/benchmarks/cloud-iam-vs-aws-iam-vs-gcp-iam-vs-okta-vs-entra.md` lines 1-88.
 4. Product-level SLO: `docs/products/cloud/PRD.md` line 172 states IAM plus STS p99 <= 100 ms and 99.99% availability.

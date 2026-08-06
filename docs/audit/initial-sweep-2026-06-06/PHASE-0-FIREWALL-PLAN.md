@@ -73,7 +73,7 @@ language only** (`baseline.json:37-47` forbids "Phase 0 complete" / "P0.0 green"
 ### 2.1 Triage the 79 by class (separate verifier pass — NO blind `git add -A`)
 | Class | Live examples | Disposition |
 |---|---|---|
-| Decision/spec canon | `docs/decisions/ADR-0363/0512/0513/0514` (M), `specs/masterplan.json` (MM), `specs/master-plan-sequencing.json` (MM), `registry/quality/lanes.yaml` (MM) | **STAGE as base canon** — the corpus the gates will police; verify each diff is intended first. |
+| Decision/spec canon | `docs/adr-archive/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md (M), `specs/masterplan.json` (MM), `specs/master-plan-sequencing.json` (MM), `registry/quality/lanes.yaml` (MM) | **STAGE as base canon** — the corpus the gates will police; verify each diff is intended first. |
 | WIP execution authority | `.omc/plans/monorepo-consolidation-migration.md` (??), `.omc/plans/open-questions.md` (??) | **COMMIT** — D-MERGE made this the execution authority; highest-value untracked file. |
 | Phase-0 net-new seeds | `specs/cloud-*.json` (??), `scripts/tests/cloud_*_check.py` (??), `docs/ideas/buck2-native-ci-gate.md` (??), `docs/ideas/agent-execution-controller.md` (??) | **STAGE selectively** — commit the decision-grounded ones, leave runner junk. |
 | Tooling/harness churn | `.claude/`, `.codex/`, `.gemini/`, `.omc/state/*.jsonl`, `.omc/sessions/*`, `evidence/multispectrum/*` | **GITIGNORE / leave** — never commit session jsonl (the `git ls-files` accounting discipline). |

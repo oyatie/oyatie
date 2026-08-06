@@ -12,7 +12,7 @@ ADR decisions: `docs/decisions/`
 Authoritative inputs:
 
 1. `specs/microservices/hr.json`, `specs/microservices/payroll.json`, and `specs/microservices/accounting.json`.
-2. `docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md`.
+2. `docs/decisions/ADR-0709-general-live-apex.md`.
 3. `docs/architecture/enterprise-software-coverage-matrix-2026-05-21.md`.
 4. `docs/AGENTS.md` done-definition, Oya VCS, and CI mirror requirements.
 

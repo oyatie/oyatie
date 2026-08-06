@@ -598,7 +598,7 @@ mod tests {
 
     fn valid_doc() -> AdrDocument {
         AdrDocument {
-            path: "docs/decisions/ADR-0008-data-use-boundary.md".to_string(),
+            path: "docs/decisions/ADR-0709-general-live-apex.md".to_string(),
             text: "# ADR-0008: Data Use Boundary\n\n> **Status:** Accepted\n\n## Context\nA\n\n## Decision\nB\n\n## Consequences\nC\n".to_string(),
         }
     }

@@ -11,7 +11,7 @@
             ".github/workflows/oya-ci-required.yml",
             "Cargo.lock",
             "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app/",
-            "docs/decisions/ADR-0544-friction-ledger-closed-loop-accounting-gate.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
             "docs/oya-ci/gate-catalog.md",
             "docs/CHANGELOG.md",
             "evidence/audit-chain.jsonl"

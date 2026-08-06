@@ -57,67 +57,67 @@
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0245",
       "title": "Substrate Vs Product Layering",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0245-substrate-vs-product-layering.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0254",
       "title": "Deployment model spectrum",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0254-deployment-model-spectrum.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0363",
       "title": "Retire Agentic VCS Platform To Intelligence On GitHub Substrate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0363-retire-agentic-vcs-platform-to-intelligence-on-github-substrate.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0378",
       "title": "Canonical local substrate: vfkit + Talos Linux",
       "scope": "talos-compatibility-context",
-      "file": "docs/decisions/ADR-0378-canonical-local-substrate-vfkit-talos.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0382",
       "title": "Bare-metal Talos zero-day bring-up via Sidero Metal",
       "scope": "talos-compatibility-context",
-      "file": "docs/decisions/ADR-0382-bare-metal-talos-zero-day-sidero.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0512",
       "title": "Canonical monorepo pattern",
       "scope": "cloud-kernel-nested-workspace-carve-out",
-      "file": "docs/decisions/ADR-0512-canonical-monorepo-pattern.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0520",
       "title": "Owned substrate stack",
       "scope": "kuberos-kernel-stack-rung",
-      "file": "docs/decisions/ADR-0520-owned-substrate-stack-transitional-impl-behind-interface.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0536",
       "title": "Hyperscaler-grounded substrate decision matrix",
       "scope": "kuberos-cloud-os-owned-stack-context",
-      "file": "docs/decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0547",
       "title": "Kernel-purity dependency gate",
       "scope": "kernel-crate-purity-coverage-note",
-      "file": "docs/decisions/ADR-0547-kernel-purity-dependency-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0562",
       "title": "Capability-first repo organization + closed capability registry",
       "scope": "future-kernel-directory-and-nested-workspace-authority",
-      "file": "docs/decisions/ADR-0562-capability-first-repo-organization-and-closed-capability-registry.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
   "crate_adr_coverage": {

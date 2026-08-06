@@ -8,11 +8,11 @@ top_3_counterparts: [AWS EKS, GCP GKE, Azure AKS]
 parity_bar: UNION-coverage
 substance_floor: 400-lines
 source_anchors:
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
   - /Users/jasonlee/oyatie/microservices/cloud-k8s/PRD.md
   - /Users/jasonlee/oyatie/microservices/cloud-k8s/competitor-parity-matrix.md
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0254-deployment-model-spectrum.md
-  - /Users/jasonlee/oyatie/docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
+  - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
 ---
 
 # cloud-k8s — Feature Parity Matrix vs Top-3 Counterparts (2026-05-21)

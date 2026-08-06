@@ -495,7 +495,7 @@ fn adr_legacy_suffix_heading_is_not_canonical_block() {
 #[test]
 fn adr_apply_roundtrip_and_idempotent() {
     let tmp = TmpDir::new("adr");
-    let rel = "docs/decisions/ADR-0568-scaffold.md";
+    let rel = "docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md";
     tmp.write(rel, ADR_NO_BLOCK);
 
     let paths = vec![

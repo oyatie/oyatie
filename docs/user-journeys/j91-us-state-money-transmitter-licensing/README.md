@@ -125,7 +125,7 @@ Yejin runs a vintage-clothing business whose marketplace payments cross five sta
 ## Cross-references
 
 - Documentation rigor: docs/standards/documentation-rigor.md.
-- Pack doctrine: docs/decisions/ADR-0251-compliance-pack-cell-certification-levels.md.
+- Pack doctrine: docs/decisions/ADR-0708-platform-foundations-live-apex.md.
 - Exemplar pack roster: packs/cn-pipl/.
 - Ecosystem catalog style anchor: docs/user-journeys/CATALOG-j126-j150-ecosystem.md.
 

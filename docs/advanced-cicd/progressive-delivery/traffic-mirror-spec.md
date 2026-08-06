@@ -17,7 +17,7 @@ doc_status: published
 
 # Traffic-Mirror Specification
 
-> **Status:** pending approval. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Source:** [ADR-0044 service-mesh strategy](../../../docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md).
+> **Status:** pending approval. **Owner:** `axis-foundry`. **Date:** 2026-05-12. **Source:** [ADR-0044 service-mesh strategy](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
 
 ## 1. Primitive
 
@@ -29,7 +29,7 @@ Used as the transport for [`dark-launch-spec.md`](dark-launch-spec.md). Also use
 
 Per [Directive 4](../../plans/MASTERPLAN.md), mirror is exposed by `oya-platform-traffic-mirror-kernel` (NEW) with provider adapters:
 
-- `oya-platform-traffic-mirror-adapter-istio` (NEW) — Istio `VirtualService.mirror` + `mirrorPercentage`. Default per [ADR-0044](../../../docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md).
+- `oya-platform-traffic-mirror-adapter-istio` (NEW) — Istio `VirtualService.mirror` + `mirrorPercentage`. Default per [ADR-0044](../../../docs/decisions/ADR-0700-ci-admission-live-apex.md).
 - `oya-platform-traffic-mirror-adapter-envoy-gateway` (NEW) — Envoy Gateway native `RequestMirror` filter.
 - `oya-platform-traffic-mirror-adapter-aws-app-mesh` (NEW) — AWS App Mesh shadow (where AWS-native customers run).
 - `oya-platform-traffic-mirror-adapter-linkerd` (NEW; future) — Linkerd traffic-split + tap.
@@ -77,7 +77,7 @@ Mirrored traffic is sampled **only** from cohorts that consent to participate. S
 
 ## 7. Auditability
 
-Every mirror activation emits a D14 audit-chain entry: which surface, which percentage, which cohort sample, start/stop timestamps, correlation IDs. Mirror activation requires named approver for surfaces tagged `regulated` ([ADR-0034](../../../docs/decisions/ADR-0034-per-vertical-data-class-overrides.md)).
+Every mirror activation emits a D14 audit-chain entry: which surface, which percentage, which cohort sample, start/stop timestamps, correlation IDs. Mirror activation requires named approver for surfaces tagged `regulated` ([ADR-0034](../../../docs/adr-archive/ADR-0034-per-microservice-data-class-overrides.md)).
 
 ## 8. Per-cell scope
 

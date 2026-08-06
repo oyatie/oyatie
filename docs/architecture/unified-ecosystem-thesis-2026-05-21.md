@@ -11,20 +11,20 @@ planned_enforcement_ref: 'oya-governance-doc-rigor'
 purpose: >
   Master architecture narrative for the unified-ecosystem thesis: one platform, one identity, one policy engine, one workflow engine, one ontology, one audit chain, one marketplace settlement, and one UX shell vocabulary. Products are role and capability projections of the unified substrate, not separate adoption islands.
 related_adrs:
-  - docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-  - docs/decisions/ADR-0251-compliance-pack-primitive.md
-  - docs/decisions/ADR-0255-intelligence-two-layer-substrate.md
-  - docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-  - docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-  - docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-  - docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-  - docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-  - docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md
-  - docs/decisions/ADR-0318-collar-color-workspace-universality.md
-  - docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+  - docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0705-product-protocol-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
 in_flight_related_adrs:
   - ADR-0319 front-middle-back-office-scope-taxonomy (in flight; no local file present in checkout at authoring time)
 companion_docs:
@@ -2446,27 +2446,27 @@ Each section is self-contained for spot-reading. Cross-references are explicit. 
 - docs/architecture/training-cost-doctrine-2026-05-21.md
 - docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
-- docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md
-- docs/decisions/ADR-0242-oyatie-is-a-tenant.md
-- docs/decisions/ADR-0243-cedar-as-universal-gate.md
-- docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-- docs/decisions/ADR-0245-substrate-vs-product-layering.md
-- docs/decisions/ADR-0247-self-modification-doctrine.md
-- docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md
-- docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md
-- docs/decisions/ADR-0251-compliance-pack-primitive.md
-- docs/decisions/ADR-0252-hlc-default-truetime-tier.md
-- docs/decisions/ADR-0253-http3-quic-default-protocol.md
-- docs/decisions/ADR-0254-kubernetes-everywhere-pods-cloud-hypervisor.md
-- docs/decisions/ADR-0255-intelligence-two-layer-substrate.md
-- docs/decisions/ADR-0311-dual-tenant-identity-personal-vs-work-boundary.md
-- docs/decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md
-- docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md
-- docs/decisions/ADR-0315-erp-coverage-doctrine-sap-parity.md
-- docs/decisions/ADR-0316-capability-tier-over-product-fragmentation.md
-- docs/decisions/ADR-0317-role-based-projection-unified-ux-shell.md
-- docs/decisions/ADR-0318-collar-color-workspace-universality.md
-- docs/decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
+- docs/adr-archive/ADR-0252-time-coordination-distributed-consistency.md
+- docs/adr-archive/ADR-0253-network-topology-edge-service-mesh.md
+- docs/adr-archive/ADR-0254-deployment-model-spectrum.md
+- docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md
+- docs/decisions/ADR-0702-identity-authz-live-apex.md
+- docs/decisions/ADR-0700-ci-admission-live-apex.md
+- docs/decisions/ADR-0705-product-protocol-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
+- docs/decisions/ADR-0709-general-live-apex.md
 
 ### Implementation microservices
 - oya-shared-identity, oya-shared-identity-domain (ONE-IDENTITY)

@@ -32,13 +32,13 @@ Two flavours:
 
 Write-side dark-launch is REQUIRED for:
 
-- **Foundry capability publish** with replay-affecting changes ([ADR-0024](../../../docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md)).
-- **Cross-axis contract** changes ([ADR-0011](../../../docs/decisions/ADR-0011-cross-axis-contract-registry.md)).
-- **Cedar policy** changes ([ADR-0007](../../../docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md)).
-- **Audit-chain** schema changes ([ADR-0003](../../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md)).
-- **Billing / metering** logic ([ADR-0031](../../../docs/decisions/ADR-0031-ads-and-analytics-architecture.md)).
+- **Foundry capability publish** with replay-affecting changes ([ADR-0024](../../../docs/decisions/ADR-0709-general-live-apex.md)).
+- **Cross-axis contract** changes ([ADR-0011](../../../docs/adr-archive/ADR-0011-cross-microservice-contract-registry.md)).
+- **Cedar policy** changes ([ADR-0007](../../../docs/decisions/ADR-0702-identity-authz-live-apex.md)).
+- **Audit-chain** schema changes ([ADR-0003](../../../docs/decisions/ADR-0709-general-live-apex.md)).
+- **Billing / metering** logic ([ADR-0031](../../../docs/adr-archive/ADR-0031-ads-and-analytics-microservice-architecture.md)).
 - **Search ranking** changes (per [`playbook-search.md`](playbook-search.md)).
-- **DSR / proof-of-erasure** logic ([ADR-0038](../../../docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md)).
+- **DSR / proof-of-erasure** logic ([ADR-0038](../../../docs/decisions/ADR-0703-cas-cache-live-apex.md)).
 
 ## 3. The diff kernel: `oya-intelligence-shadow-diff-kernel` (NEW)
 
@@ -69,7 +69,7 @@ The Foundry RAG retrieval gate ([commit 498b3ce](../../../docs/decisions/)) is t
 
 - `oya-intelligence-shadow-diff-adapter-http` (NEW) — HTTP request/response pair capture.
 - `oya-intelligence-shadow-diff-adapter-grpc` (NEW) — gRPC unary/streaming pair capture.
-- `oya-intelligence-shadow-diff-adapter-event` (NEW) — outbox-pattern event pair capture ([ADR-0005](../../../docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md)).
+- `oya-intelligence-shadow-diff-adapter-event` (NEW) — outbox-pattern event pair capture ([ADR-0005](../../../docs/decisions/ADR-0709-general-live-apex.md)).
 - `oya-intelligence-shadow-diff-adapter-cedar` (NEW) — Cedar evaluation pair capture (decision-only).
 
 ## 6. Write-side safety

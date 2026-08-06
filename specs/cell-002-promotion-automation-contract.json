@@ -9,9 +9,9 @@
     "ADR-0351"
   ],
   "source_paths": {
-    "ADR-0341": "docs/decisions/ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md",
-    "ADR-0348": "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
-    "ADR-0351": "docs/decisions/ADR-0351-cell-rebalancer-and-cell-lifecycle-microservices.md",
+    "ADR-0341": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+    "ADR-0348": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+    "ADR-0351": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
     "cell_lifecycle_prd": "cloud/cell-lifecycle/PRD.md",
     "cell_rebalancer_prd": "cloud/cell-rebalancer/PRD.md",
     "cell_lifecycle_manifest": "cloud/cell-lifecycle/manifest.json",

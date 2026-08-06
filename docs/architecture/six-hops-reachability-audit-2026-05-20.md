@@ -59,7 +59,7 @@ Graph construction was computed with an ephemeral Python traversal over the live
 | `external-scheme` | `docs/AGENTS.md` | `https://docs.anthropic.com/en/docs/claude-code/memory` |
 | `external-scheme` | `docs/AGENTS.md` | `https://agents.md` |
 | `external-scheme` | `docs/TOOLCHAIN.md` | `https://modelcontextprotocol.io` |
-| `self-dir` | `docs/decisions/ADR-0083-rust-error-handling-tier-decision.md` | `../../` |
+| `self-dir` | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | `../../` |
 | `self-link` | `docs/README.md` | `README.md` |
 | `self-link` | `docs/agents/CROSS-REFERENCE-INDEX.md` | `CROSS-REFERENCE-INDEX.md` |
 | `self-link` | `docs/products/foundry/PHASE-00-SPEC.md` | `./PHASE-00-SPEC.md` |
@@ -321,22 +321,22 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `docs/checklists/pr-review-checklist.md` | C55 | 1 | 0 | 0 | weak component C55 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/checklists/pre-flight-checklist.md` | C56 | 1 | 0 | 0 | weak component C56 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/checklists/release-readiness-checklist.md` | C57 | 1 | 0 | 0 | weak component C57 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0246-policy-engine-substrate-promotion.md` | C58 | 1 | 0 | 0 | weak component C58 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0253-network-topology-edge-service-mesh.md` | C59 | 1 | 0 | 0 | weak component C59 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0255-intelligence-as-two-layer-ai-substrate.md` | C60 | 1 | 0 | 0 | weak component C60 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0257-ontology-object-type-versioning-deprecation-handshake.md` | C61 | 1 | 0 | 0 | weak component C61 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0272-cookie-consent-per-purpose-analytics-opt-in.md` | C62 | 1 | 0 | 0 | weak component C62 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md` | C63 | 1 | 0 | 0 | weak component C63 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md` | C64 | 1 | 0 | 0 | weak component C64 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md` | C65 | 1 | 0 | 0 | weak component C65 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md` | C66 | 1 | 0 | 0 | weak component C66 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md` | C67 | 1 | 0 | 0 | weak component C67 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0305-delegated-agent-authority-chain.md` | C68 | 1 | 0 | 0 | weak component C68 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0306-disaster-mode-cell-resilience.md` | C69 | 1 | 0 | 0 | weak component C69 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0307-detection-substrate-streaming-batch.md` | C70 | 1 | 0 | 0 | weak component C70 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md` | C71 | 1 | 0 | 0 | weak component C71 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0310-investigation-case-management.md` | C72 | 1 | 0 | 0 | weak component C72 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0312-court-warrant-scoped-piercing.md` | C73 | 1 | 0 | 0 | weak component C73 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | C58 | 1 | 0 | 0 | weak component C58 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0708-platform-foundations-live-apex.md` | C59 | 1 | 0 | 0 | weak component C59 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | C60 | 1 | 0 | 0 | weak component C60 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0709-general-live-apex.md` | C61 | 1 | 0 | 0 | weak component C61 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0709-general-live-apex.md` | C62 | 1 | 0 | 0 | weak component C62 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0707-trust-safety-live-apex.md` | C63 | 1 | 0 | 0 | weak component C63 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0707-trust-safety-live-apex.md` | C64 | 1 | 0 | 0 | weak component C64 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0707-trust-safety-live-apex.md` | C65 | 1 | 0 | 0 | weak component C65 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | C66 | 1 | 0 | 0 | weak component C66 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0709-general-live-apex.md` | C67 | 1 | 0 | 0 | weak component C67 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | C68 | 1 | 0 | 0 | weak component C68 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0707-trust-safety-live-apex.md` | C69 | 1 | 0 | 0 | weak component C69 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | C70 | 1 | 0 | 0 | weak component C70 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | C71 | 1 | 0 | 0 | weak component C71 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0703-cas-cache-live-apex.md` | C72 | 1 | 0 | 0 | weak component C72 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | C73 | 1 | 0 | 0 | weak component C73 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md` | C74 | 1 | 0 | 0 | weak component C74 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md` | C75 | 1 | 0 | 0 | weak component C75 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `docs/decisions/templates/foundry-phase00-template.md` | C76 | 1 | 0 | 0 | weak component C76 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
@@ -2145,7 +2145,7 @@ Rows below list every file unreachable from `docs/README.md`, with weak-componen
 | `microservices/calendar/runbooks/tzdb-rollback.md` | C1398 | 1 | 0 | 0 | weak component C1398 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/calendar/sdk-plan.md` | C1399 | 1 | 0 | 0 | weak component C1399 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/calendar/threat-model.md` | C1400 | 1 | 0 | 0 | weak component C1400 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
-| `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md` | C1401 | 1 | 0 | 0 | retired cell microservice rows collapsed; reachability now belongs to tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/oya-shuffle-sharding` |
+| `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | C1401 | 1 | 0 | 0 | retired cell microservice rows collapsed; reachability now belongs to tenancy, cloud-iac, observability, api-gateway, audit-chain, and `crates/oya-shuffle-sharding` |
 | `microservices/cloud-iac/ARCHITECTURE.md` | C1454 | 1 | 0 | 0 | weak component C1454 has no directed path from docs/README.md; file has zero resolved inbound corpus links |
 | `microservices/cloud-iac/IP-001-layer-a-argocd-flux-iac.md` | C1455 | 16 | 1 | 1 | weak component C1455 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
 | `microservices/cloud-iac/IP-002-layer-a-opentofu-iac.md` | C1455 | 16 | 2 | 1 | weak component C1455 is disconnected from the docs/README.md component; inbound links come only from unreachable corpus nodes |
@@ -7361,7 +7361,7 @@ Ranking method: for each currently unreachable file, the audit simulated adding 
 | 41 | `docs/advanced-cicd/branch-pipeline/ADR-0055-branch-pipeline.md` | `docs/README.md`, `docs/AGENTS.md`, or nearest docs index | 17 | 1 | 10 | Docs-tree file is currently unreachable despite living in the documentation corpus; add it to the closest canonical index. |
 | 42 | `microservices/application/PHASE-01-APPLICATION-SHELL-LANDING.md` | `microservices/application/README.md` or nearest service index | 16 | 0 | 15 | Leaf or secondary service file under `application`; link from a service-local index after root service reachability is repaired. |
 | 43 | `microservices/audit-chain/PHASE-01-AUDIT-CHAIN-SUBSTRATE.md` | `microservices/audit-chain/README.md` or nearest service index | 16 | 0 | 15 | Leaf or secondary service file under `audit-chain`; link from a service-local index after root service reachability is repaired. |
-| 44 | `docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md` | successor architecture indexes | 16 | 0 | 15 | Retired cell substrate row; reachability now routes through tenancy, cloud-iac, observability, api-gateway, audit-chain, and the shuffle-sharding crate. |
+| 44 | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | successor architecture indexes | 16 | 0 | 15 | Retired cell substrate row; reachability now routes through tenancy, cloud-iac, observability, api-gateway, audit-chain, and the shuffle-sharding crate. |
 | 45 | `microservices/cloud-iac/PHASE-01-META-IAC-PIPELINE-SUBSTRATE.md` | `microservices/cloud-iac/README.md` or nearest service index | 16 | 0 | 15 | Leaf or secondary service file under `cloud-iac`; link from a service-local index after root service reachability is repaired. |
 | 46 | `microservices/cloud-k8s/PHASE-01-ONPREM-K8S-SUBSTRATE.md` | `microservices/cloud-k8s/README.md` or nearest service index | 16 | 0 | 15 | Leaf or secondary service file under `cloud-k8s`; link from a service-local index after root service reachability is repaired. |
 | 47 | `microservices/governance/PHASE-01-CI-FITNESS-CONSOLIDATION.md` | `microservices/governance/README.md` or nearest service index | 16 | 0 | 15 | Leaf or secondary service file under `governance`; link from a service-local index after root service reachability is repaired. |
@@ -7437,33 +7437,33 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 8 | `docs/DOC-CATALOG.md` | 36 | 0 | 1 | reachable |
 | 9 | `docs/PRIVACY-PROGRAM.md` | 32 | 4 | 1 | reachable |
 | 10 | `docs/COMPLIANCE-MATRIX.md` | 29 | 6 | 1 | reachable |
-| 12 | `docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md` | 28 | 0 | 2 | reachable |
+| 12 | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 28 | 0 | 2 | reachable |
 | 13 | `docs/PRD.md` | 24 | 6 | 1 | reachable |
 | 14 | `docs/STANDARDS-AND-TEMPLATES.md` | 21 | 62 | 1 | reachable |
-| 15 | `docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md` | 19 | 0 | 2 | reachable |
+| 15 | `docs/decisions/ADR-0709-general-live-apex.md` | 19 | 0 | 2 | reachable |
 | 16 | `docs/TOOLCHAIN.md` | 17 | 5 | 1 | reachable |
 | 17 | `docs/MASTERPLAN.md` | 17 | 0 | 1 | reachable |
 | 18 | `docs/GLOSSARY.md` | 16 | 54 | 1 | reachable |
 | 19 | `docs/AGENTS.md` | 16 | 35 | 1 | reachable |
-| 20 | `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md` | 14 | 0 | 2 | reachable |
+| 20 | `docs/decisions/ADR-0709-general-live-apex.md` | 14 | 0 | 2 | reachable |
 | 21 | `docs/SECURITY-PROGRAM.md` | 13 | 4 | 1 | reachable |
-| 22 | `docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md` | 12 | 0 | 2 | reachable |
+| 22 | `docs/decisions/ADR-0709-general-live-apex.md | 12 | 0 | 2 | reachable |
 | 23 | `docs/release/progressive-delivery/canary-rail-spec.md` | 11 | 7 | n/a | unreachable |
 | 24 | `docs/RELEASE-MANAGEMENT.md` | 11 | 3 | 1 | reachable |
-| 25 | `docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md` | 11 | 0 | 2 | reachable |
+| 25 | `docs/decisions/ADR-0703-cas-cache-live-apex.md` | 11 | 0 | 2 | reachable |
 | 26 | `docs/teams/README.md` | 10 | 37 | 1 | reachable |
 | 27 | `docs/release/progressive-delivery/blue-green-spec.md` | 10 | 8 | n/a | unreachable |
 | 28 | `microservices/payments/ARCHITECTURE.md` | 10 | 8 | n/a | unreachable |
 | 29 | `docs/DOCUMENTATION.md` | 10 | 7 | 1 | reachable |
-| 30 | `docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md` | 10 | 0 | 2 | reachable |
+| 30 | `docs/decisions/ADR-0709-general-live-apex.md` | 10 | 0 | 2 | reachable |
 | 31 | `docs/ADR-INDEX.md` | 9 | 210 | 1 | reachable |
 | 32 | `docs/release/progressive-delivery/stable-cohort-spec.md` | 9 | 9 | n/a | unreachable |
 | 33 | `docs/advanced-cicd/progressive-delivery/stable-cohort-spec.md` | 9 | 8 | n/a | unreachable |
 | 34 | `microservices/payments/compliance.md` | 9 | 8 | n/a | unreachable |
 | 35 | `docs/agents/ESCALATION-MATRIX.md` | 9 | 1 | n/a | unreachable |
-| 36 | `docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md` | 9 | 0 | 2 | reachable |
-| 37 | `docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md` | 9 | 0 | 2 | reachable |
-| 38 | `docs/decisions/ADR-0263-observability-emission-contract.md` | 9 | 0 | 2 | reachable |
+| 36 | `docs/decisions/ADR-0702-identity-authz-live-apex.md` | 9 | 0 | 2 | reachable |
+| 37 | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 9 | 0 | 2 | reachable |
+| 38 | `docs/decisions/ADR-0706-observability-live-apex.md` | 9 | 0 | 2 | reachable |
 | 39 | `docs/products/README.md` | 8 | 10 | 1 | reachable |
 | 40 | `docs/advanced-cicd/progressive-delivery/blue-green-spec.md` | 8 | 7 | n/a | unreachable |
 | 41 | `docs/ROADMAP.md` | 8 | 3 | 1 | reachable |
@@ -7471,20 +7471,20 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 43 | `docs/decisions/README.md` | 8 | 3 | 2 | reachable |
 | 44 | `docs/standards/doc-style.md` | 8 | 3 | 1 | reachable |
 | 45 | `docs/standards/observability.md` | 8 | 3 | 2 | reachable |
-| 46 | `docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md` | 8 | 0 | 2 | reachable |
+| 46 | `docs/decisions/ADR-0702-identity-authz-live-apex.md` | 8 | 0 | 2 | reachable |
 | 47 | `docs/SPEC.md` | 7 | 7 | 1 | reachable |
 | 48 | `docs/advanced-cicd/progressive-delivery/canary-rail-spec.md` | 7 | 6 | n/a | unreachable |
 | 49 | `docs/ADR-CONSOLIDATION-PLAN.md` | 7 | 5 | 1 | reachable |
 | 50 | `docs/standards/testing.md` | 7 | 5 | 2 | reachable |
 | 51 | `docs/ADR-LEGACY-REGRESSION-MAPPING.md` | 7 | 4 | 1 | reachable |
 | 52 | `docs/standards/dependency-policy.md` | 7 | 2 | 2 | reachable |
-| 53 | `docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md` | 7 | 0 | 2 | reachable |
-| 54 | `docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md` | 7 | 0 | 2 | reachable |
-| 55 | `docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md` | 7 | 0 | 2 | reachable |
-| 56 | `docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md` | 7 | 0 | 2 | reachable |
-| 57 | `docs/decisions/ADR-0042-observability-stack-otel-and-in-house-ui.md` | 7 | 0 | 2 | reachable |
-| 58 | `docs/decisions/ADR-0049-cross-region-replication-and-residency.md` | 7 | 0 | 2 | reachable |
-| 59 | `docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md` | 7 | 0 | 2 | reachable |
+| 53 | `docs/decisions/ADR-0702-identity-authz-live-apex.md` | 7 | 0 | 2 | reachable |
+| 54 | `docs/decisions/ADR-0709-general-live-apex.md` | 7 | 0 | 2 | reachable |
+| 55 | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 7 | 0 | 2 | reachable |
+| 56 | `docs/decisions/ADR-0709-general-live-apex.md` | 7 | 0 | 2 | reachable |
+| 57 | `docs/decisions/ADR-0709-general-live-apex.md` | 7 | 0 | 2 | reachable |
+| 58 | `docs/decisions/ADR-0708-platform-foundations-live-apex.md` | 7 | 0 | 2 | reachable |
+| 59 | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 7 | 0 | 2 | reachable |
 | 60 | `docs/standards/security-review.md` | 6 | 10 | 2 | reachable |
 | 61 | `docs/agents/AGENT-ENTRY-POINT.md` | 6 | 8 | n/a | unreachable |
 | 62 | `docs/regional-packs/README.md` | 6 | 7 | 1 | reachable |
@@ -7493,9 +7493,9 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 65 | `docs/INTERNATIONALIZATION.md` | 6 | 4 | 1 | reachable |
 | 66 | `docs/standards/error-handling.md` | 6 | 3 | 2 | reachable |
 | 67 | `docs/templates/incident-postmortem-template.md` | 6 | 3 | 2 | reachable |
-| 68 | `docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md` | 6 | 0 | 2 | reachable |
-| 69 | `docs/decisions/ADR-0050-automation-first-pipeline.md` | 6 | 0 | 2 | reachable |
-| 70 | `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md` | 6 | 0 | 2 | reachable |
+| 68 | `docs/decisions/ADR-0709-general-live-apex.md | 6 | 0 | 2 | reachable |
+| 69 | `docs/decisions/ADR-0709-general-live-apex.md | 6 | 0 | 2 | reachable |
+| 70 | `docs/decisions/ADR-0705-product-protocol-live-apex.md` | 6 | 0 | 2 | reachable |
 | 71 | `docs/user-journeys/j126-government-auditor-3pao-conducts-fedramp-audit/README.md` | 5 | 19 | n/a | unreachable |
 | 72 | `docs/user-journeys/j129-court-warrant-pierces-personal-tenant-with-judicial-oversight/README.md` | 5 | 17 | n/a | unreachable |
 | 73 | `docs/agents/AGENT-DECISION-TREE.md` | 5 | 12 | n/a | unreachable |
@@ -7513,15 +7513,15 @@ These files receive the most resolved incoming links from other corpus nodes and
 | 85 | `docs/standards/image-discipline.md` | 5 | 3 | 2 | reachable |
 | 86 | `docs/templates/dpia-template.md` | 5 | 3 | 2 | reachable |
 | 87 | `docs/GTM-PLAN.md` | 5 | 2 | 1 | reachable |
-| 88 | `docs/decisions/ADR-0008-data-use-boundary.md` | 5 | 1 | 2 | reachable |
-| 89 | `docs/decisions/ADR-0015-architectural-flattening-target.md` | 5 | 1 | 2 | reachable |
-| 91 | `docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md` | 5 | 0 | 2 | reachable |
-| 92 | `docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md` | 5 | 0 | 2 | reachable |
-| 93 | `docs/decisions/ADR-0013-product-license-policy.md` | 5 | 0 | 2 | reachable |
-| 94 | `docs/decisions/ADR-0045-database-tier-strategy.md` | 5 | 0 | 2 | reachable |
-| 95 | `docs/decisions/ADR-0145-inter-microservice-communication-reform.md` | 5 | 0 | 2 | reachable |
-| 96 | `docs/decisions/ADR-0245-substrate-vs-product-layering.md` | 5 | 0 | 2 | reachable |
-| 97 | `docs/decisions/ADR-0296-library-first-credential-sidecar.md` | 5 | 0 | 2 | reachable |
+| 88 | `docs/decisions/ADR-0709-general-live-apex.md` | 5 | 1 | 2 | reachable |
+| 89 | `docs/decisions/ADR-0709-general-live-apex.md` | 5 | 1 | 2 | reachable |
+| 91 | `docs/decisions/ADR-0709-general-live-apex.md` | 5 | 0 | 2 | reachable |
+| 92 | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 5 | 0 | 2 | reachable |
+| 93 | `docs/decisions/ADR-0705-product-protocol-live-apex.md` | 5 | 0 | 2 | reachable |
+| 94 | `docs/decisions/ADR-0709-general-live-apex.md` | 5 | 0 | 2 | reachable |
+| 95 | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | 5 | 0 | 2 | reachable |
+| 96 | `docs/decisions/ADR-0701-monorepo-capability-live-apex.md` | 5 | 0 | 2 | reachable |
+| 97 | `docs/decisions/ADR-0709-general-live-apex.md` | 5 | 0 | 2 | reachable |
 | 98 | `docs/templates/INDEX.md` | 5 | 0 | 1 | reachable |
 | 99 | `microservices/payments/PRD.md` | 5 | 0 | n/a | unreachable |
 | 100 | `docs/release/progressive-delivery/INDEX.md` | 4 | 20 | n/a | unreachable |

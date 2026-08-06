@@ -5,15 +5,15 @@ status: Published
 date: 2026-05-20
 owner: "axis-frontend + axis-workflow-studio + council-design-system"
 related_oyatie_adrs:
-  - docs/decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0245-substrate-vs-product-layering.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
-  - docs/decisions/ADR-0185-workflow-studio-client-stack.md
-  - docs/decisions/ADR-0204-workflow-studio-canvas-library.md
-  - docs/decisions/ADR-0142-crdt-portability-trait.md
-  - docs/decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0704-k8s-port-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
   - microservices/workflow-studio/decisions/ADR-WFS-001-yjs-crdt-for-collaborative-canvas-editing.md
 companion_docs:
   - docs/standards/documentation-rigor.md
@@ -102,9 +102,9 @@ Day-one artifact checklist:
 ## Week 1: Code Walkthrough
 
 Read these files in order. Do not browse randomly; the order teaches authority, doctrine, contract, implementation, test, and operational evidence.
-1. docs/decisions/ADR-0185-workflow-studio-client-stack.md
-2. docs/decisions/ADR-0204-workflow-studio-canvas-library.md
-3. docs/decisions/ADR-0142-crdt-portability-trait.md
+1. docs/decisions/ADR-0700-ci-admission-live-apex.md
+2. docs/decisions/ADR-0700-ci-admission-live-apex.md
+3. docs/decisions/ADR-0704-k8s-port-live-apex.md
 4. docs/standards/wcag-2-2-aa-checklist.md
 5. docs/standards/locale-routing.md
 6. docs/standards/i18n-canonical.md
@@ -371,7 +371,7 @@ Reference-reading protocol: open the resource, identify the authority section, w
 Use this ledger when you need extra practice or when a mentor asks for stronger evidence. Each drill is intentionally small but must end with a verifiable artifact.
 
 ### Drill FE-001: keyboard-only node creation
-- Read: docs/decisions/ADR-0185-workflow-studio-client-stack.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: SvelteKit web phase and Leptos phase-two trigger
 - Build or inspect: a minimal artifact that proves keyboard-only node creation without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for keyboard-only node creation.
@@ -381,7 +381,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-001 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-002: Yjs merge replay
-- Read: docs/decisions/ADR-0204-workflow-studio-canvas-library.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: svelte-flow adapter boundary and oya-canvas future
 - Build or inspect: a minimal artifact that proves Yjs merge replay without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Yjs merge replay.
@@ -391,7 +391,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-002 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-003: Fluent key fallback
-- Read: docs/decisions/ADR-0142-crdt-portability-trait.md
+- Read: docs/decisions/ADR-0704-k8s-port-live-apex.md
 - Connects to: Yjs collaborative editing semantics and CRDT conflict resolution
 - Build or inspect: a minimal artifact that proves Fluent key fallback without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Fluent key fallback.
@@ -521,7 +521,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-015 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-016: visual regression screenshot
-- Read: docs/decisions/ADR-0185-workflow-studio-client-stack.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: Fluent locale overlays and tenant regional packs
 - Build or inspect: a minimal artifact that proves visual regression screenshot without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for visual regression screenshot.
@@ -531,7 +531,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-016 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-017: mobile-portrait toolbar wrap
-- Read: docs/decisions/ADR-0204-workflow-studio-canvas-library.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: canvas p99 frame-time budget at 1000 nodes
 - Build or inspect: a minimal artifact that proves mobile-portrait toolbar wrap without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for mobile-portrait toolbar wrap.
@@ -541,7 +541,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-017 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-018: wide-desktop minimap layout
-- Read: docs/decisions/ADR-0142-crdt-portability-trait.md
+- Read: docs/decisions/ADR-0704-k8s-port-live-apex.md
 - Connects to: presence awareness and selection halo semantics
 - Build or inspect: a minimal artifact that proves wide-desktop minimap layout without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for wide-desktop minimap layout.
@@ -671,7 +671,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-030 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-031: collab conflict runbook
-- Read: docs/decisions/ADR-0185-workflow-studio-client-stack.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: SvelteKit web phase and Leptos phase-two trigger
 - Build or inspect: a minimal artifact that proves collab conflict runbook without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for collab conflict runbook.
@@ -681,7 +681,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-031 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-032: svelte-flow adapter boundary
-- Read: docs/decisions/ADR-0204-workflow-studio-canvas-library.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: svelte-flow adapter boundary and oya-canvas future
 - Build or inspect: a minimal artifact that proves svelte-flow adapter boundary without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for svelte-flow adapter boundary.
@@ -691,7 +691,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-032 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-033: OpenAPI contract DTO mismatch
-- Read: docs/decisions/ADR-0142-crdt-portability-trait.md
+- Read: docs/decisions/ADR-0704-k8s-port-live-apex.md
 - Connects to: Yjs collaborative editing semantics and CRDT conflict resolution
 - Build or inspect: a minimal artifact that proves OpenAPI contract DTO mismatch without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for OpenAPI contract DTO mismatch.
@@ -821,7 +821,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-045 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-046: focus ring visible state
-- Read: docs/decisions/ADR-0185-workflow-studio-client-stack.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: Fluent locale overlays and tenant regional packs
 - Build or inspect: a minimal artifact that proves focus ring visible state without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for focus ring visible state.
@@ -831,7 +831,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-046 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-047: screen reader node label
-- Read: docs/decisions/ADR-0204-workflow-studio-canvas-library.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: canvas p99 frame-time budget at 1000 nodes
 - Build or inspect: a minimal artifact that proves screen reader node label without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for screen reader node label.
@@ -841,7 +841,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-047 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-048: template catalog load state
-- Read: docs/decisions/ADR-0142-crdt-portability-trait.md
+- Read: docs/decisions/ADR-0704-k8s-port-live-apex.md
 - Connects to: presence awareness and selection halo semantics
 - Build or inspect: a minimal artifact that proves template catalog load state without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for template catalog load state.
@@ -971,7 +971,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-060 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-061: presence disconnect recovery
-- Read: docs/decisions/ADR-0185-workflow-studio-client-stack.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: SvelteKit web phase and Leptos phase-two trigger
 - Build or inspect: a minimal artifact that proves presence disconnect recovery without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for presence disconnect recovery.
@@ -981,7 +981,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-061 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-062: Cedar-denied UI state
-- Read: docs/decisions/ADR-0204-workflow-studio-canvas-library.md
+- Read: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Connects to: svelte-flow adapter boundary and oya-canvas future
 - Build or inspect: a minimal artifact that proves Cedar-denied UI state without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for Cedar-denied UI state.
@@ -991,7 +991,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row FE-062 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill FE-063: minor-user restricted template
-- Read: docs/decisions/ADR-0142-crdt-portability-trait.md
+- Read: docs/decisions/ADR-0704-k8s-port-live-apex.md
 - Connects to: Yjs collaborative editing semantics and CRDT conflict resolution
 - Build or inspect: a minimal artifact that proves minor-user restricted template without widening beyond SPA and web engineer, Workflow Studio and web surfaces.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for minor-user restricted template.

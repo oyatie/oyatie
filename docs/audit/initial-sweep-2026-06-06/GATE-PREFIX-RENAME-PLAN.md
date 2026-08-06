@@ -118,7 +118,7 @@ test fails at runtime:
   gate id (`cloud-ci-*`), which is out of scope. **Confirm with founder that Layer B stays.**
 
 ### 2.7 Doc/comment + soft references (LABEL-only; update for honesty, not correctness)
-- `docs/decisions/ADR-0515-…md` — the §"crates carried" list (lines 36–42) names the crates by their
+- `docs/adr-archive/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md — the §"crates carried" list (lines 36–42) names the crates by their
   build-identity in prose; update the 7 list items to the new package names. (The `cloud-ci-*` GATE references
   elsewhere in 0515 are Layer B — leave.)
 - `ADR-INVENTORY.tsv:290` (the ADR-0515 row's crate list) — same label refresh.
@@ -212,5 +212,5 @@ must run GREEN end-to-end before commit. Do it as ONE atomic, founder-go'd, sour
 - `cargo run -p` runtime call sites: registry_drift.rs:61, firewall.rs:52, total_accounting.rs:206, cross_artifact_agreement.rs:180, staleness_reaper.rs:189, automation_ratchet.rs:194
 - Generated faces (regen targets, registry-drift-protected): `accounting-registry-producer/*.generated.json` (5 files; producer_target string 17,627× in the registry face)
 - F-0025: `docs/audit/initial-sweep-2026-06-06/FINDINGS-LEDGER.md:48`
-- Naming authority: ADR-0056 (`docs/decisions/ADR-0056-rust-clean-architecture-bnf.md:11,79-101`)
+- Naming authority: ADR-0056 (`docs/decisions/ADR-0700-ci-admission-live-apex.md:11,79-101`)
 - Collision check: 0 existing `oya-cloud-ci-*` members tree-wide; 719 of ~726 members already carry `oya-` (the 7 gates are the only exceptions)

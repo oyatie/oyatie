@@ -30,7 +30,7 @@ The directive to rename comes from `CLAUDE.md` field:
 new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-governance-fitness-* lanes retained until each is renamed in its own migration IP
 ```
 
-ADR-0132 (`docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md`) establishes `oya-governance-no-grouping` as the canonical CI lane name using the new prefix, confirming `oya-governance-*` as the forward prefix for all governance lanes.
+ADR-0132 (`docs/decisions/ADR-0705-product-protocol-live-apex.md`) establishes `oya-governance-no-grouping` as the canonical CI lane name using the new prefix, confirming `oya-governance-*` as the forward prefix for all governance lanes.
 
 ---
 
@@ -137,74 +137,74 @@ docs/checklists/pre-merge.md
 docs/checklists/regional-pack-onboarding.md
 docs/checklists/release-readiness-checklist.md
 docs/checklists/wave-gate.md
-docs/decisions/ADR-0002-tenant-and-identity-kernel.md
-docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-docs/decisions/ADR-0004-plane-separation-control-data-analytics.md
-docs/decisions/ADR-0005-eventing-backbone-outbox-pattern.md
-docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
-docs/decisions/ADR-0008-data-use-boundary.md
-docs/decisions/ADR-0009-cell-architecture-per-tenant-per-region.md
-docs/decisions/ADR-0010-regional-pack-architecture.md
-docs/decisions/ADR-0013-product-license-policy.md
-docs/decisions/ADR-0014-build-vs-buy-policy.md
-docs/decisions/ADR-0015-architectural-flattening-target.md
-docs/decisions/ADR-0016-wave-and-plane-integration-framework.md
-docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md
-docs/decisions/ADR-0025-intelligence-as-engineering-platform.md
-docs/decisions/ADR-0032-dcim-software-for-own-dc-ops.md
-docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md
-docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
-docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md
-docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
-docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md
-docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md
-docs/decisions/ADR-0050-automation-first-pipeline.md
-docs/decisions/ADR-0051-mobile-and-native-client-strategy.md
-docs/decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md
-docs/decisions/ADR-0083-rust-error-handling-tier-decision.md
-docs/decisions/ADR-0090-hyper-canonical-http-backbone.md
-docs/decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
-docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md
-docs/decisions/ADR-0106-rename-application-to-usecase.md
-docs/decisions/ADR-0107-tools-implicit-app-convention.md
-docs/decisions/ADR-0108-sunset-lifecycle-automation.md
-docs/decisions/ADR-0109-lifecycle-automation-framework.md
-docs/decisions/ADR-0110-changeset-state-machine.md
-docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md
-docs/decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md
-docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md
-docs/decisions/ADR-0114-canary-observability-rollback.md
-docs/decisions/ADR-0115-registry-consolidation-flat-singular.md
-docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md
-docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md
-docs/decisions/ADR-0124-own-merge-queue-webhook-driven.md
-docs/decisions/ADR-0128-hyperscaler-architecture-invariants.md
-docs/decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md
-docs/decisions/ADR-0131-per-microservice-flat-layout.md
-docs/decisions/ADR-0133-industry-best-practice-conformance-program.md
-docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md
-docs/decisions/ADR-0135-aspirational-enforcement-gate.md
-docs/decisions/ADR-0139-agentic-slo-gated-promotion.md
-docs/decisions/ADR-0142-crdt-portability-trait.md
-docs/decisions/ADR-0186-observability-backplane-layering.md
-docs/decisions/ADR-0221-agentic-development-pipeline-hardening.md
-docs/decisions/ADR-0243-cedar-as-universal-gate.md
-docs/decisions/ADR-0246-policy-engine-substrate-promotion.md
-docs/decisions/ADR-0258-api-versioning-model.md
-docs/decisions/ADR-0297-abuse-defence-baseline-anti-bot-spoof-scrape.md
-docs/decisions/ADR-0298-emergency-services-bypass-life-safety.md
-docs/decisions/ADR-0299-account-recovery-resilience.md
-docs/decisions/ADR-0300-whistleblower-press-freedom-anonymity.md
-docs/decisions/ADR-0301-survivor-safety-domestic-abuse-mode.md
-docs/decisions/ADR-0302-deceased-user-inheritance-doctrine.md
-docs/decisions/ADR-0303-cognitive-impairment-decision-resilience.md
-docs/decisions/ADR-0304-cross-jurisdiction-conflict-resolution.md
-docs/decisions/ADR-0305-delegated-agent-authority-chain.md
-docs/decisions/ADR-0306-disaster-mode-cell-resilience.md
-docs/decisions/ADR-0307-detection-substrate-streaming-batch.md
-docs/decisions/ADR-0308-ml-model-lifecycle-ai-act-compliance.md
-docs/decisions/ADR-0309-detection-fairness-audit-civil-rights.md
-docs/decisions/ADR-0310-investigation-case-management.md
+docs/decisions/ADR-0702-identity-authz-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0702-identity-authz-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0703-cas-cache-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0706-observability-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0704-k8s-port-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0704-k8s-port-live-apex.md
+docs/decisions/ADR-0706-observability-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+docs/decisions/ADR-0705-product-protocol-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0707-trust-safety-live-apex.md
+docs/decisions/ADR-0707-trust-safety-live-apex.md
+docs/decisions/ADR-0707-trust-safety-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0707-trust-safety-live-apex.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+docs/decisions/ADR-0709-general-live-apex.md
+docs/decisions/ADR-0700-ci-admission-live-apex.md
+docs/decisions/ADR-0703-cas-cache-live-apex.md
 docs/decisions/README.md
 docs/decisions/RETIRED.md
 docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md
@@ -656,9 +656,9 @@ All 10 showed `old_hits=0` (no remaining `oya-governance-fitness-`) and `new_hit
 | `docs/standards/security-review.md` | 0 | 6 |
 | `docs/automation/openapi-pipeline.md` | 0 | 2 |
 | `docs/advanced-cicd/progressive-delivery/canary-rail-spec.md` | 0 | 5 |
-| `docs/decisions/ADR-0258-api-versioning-model.md` | 0 | 10 |
-| `docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md` | 0 | 2 |
-| `docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md` | 0 | 6 |
+| `docs/decisions/ADR-0705-product-protocol-live-apex.md` | 0 | 10 |
+| `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 0 | 2 |
+| `docs/decisions/ADR-0709-general-live-apex.md` | 0 | 6 |
 | `docs/checklists/done-definition-checklist.md` | 0 | 29 |
 | `docs/automation/dependency-graph-spec.md` | 0 | 2 |
 | `docs/templates/impl-plan-template.md` | 0 | 1 |
@@ -746,7 +746,7 @@ microservices/application/competitor-parity-matrix.md
 microservices/audit-chain/competitor-parity-matrix.md
 microservices/audit-chain/threat-model.md
 microservices/calendar/threat-model.md
-docs/decisions/ADR-0333-cell-microservice-retired-pattern-not-service.md
+docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 microservices/cloud-iac/ARCHITECTURE.md#cell-provisioning
 microservices/observability/ARCHITECTURE.md#cell-health
 microservices/cloud-iac/competitor-parity-matrix.md

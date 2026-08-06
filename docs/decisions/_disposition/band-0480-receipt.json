@@ -1,0 +1,51 @@
+{
+  "band": [480, 489],
+  "reviewed": ["ADR-0480", "ADR-0481", "ADR-0482"],
+  "findings": [
+    {
+      "adr": "ADR-0480",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live bespoke Rust K8s cost-allocation substrate (oya-cost); supersedes ADR-0443 OpenCost. Reverse-index of higher ADRs: no supersedes: ADR-0480. ADR-0632 Accepted amends ADR-0480 and frontmatter already has amended_by: [ADR-0632]. ADR-0509 is related-only and itself Superseded by ADR-0512. ADR-0562 relocates oya-cost into billing/cost-service capability tree without superseding the bespoke cost-allocation decision. Body path microservices/oya-cost/ is layout drift only; task forbids body rewrite; no high-confidence frontmatter supersession/amend edge to add. Aligns FinOps/north-star (owned Rust cost plane).",
+      "higher_adrs_cited": [
+        "ADR-0509",
+        "ADR-0512",
+        "ADR-0562",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0481",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live bespoke Rust feature-flag server (oya-flags) superseding flagd server while retaining OpenFeature SDK (amends ADR-0428 server provider only). Reverse-index: no higher supersedes: ADR-0481. ADR-0632 Accepted amends ADR-0481 and frontmatter already has amended_by: [ADR-0632]. ADR-0509 related-only / Superseded by 0512. ADR-0562 rehomes flags into flags/core/server capability without superseding the bespoke flag-server decision. Note (out of band): ACCEPTED_AMENDS_MISSING on ADR-0428 amended_by is a lower-ADR graph fix, not actionable in 0480-band. Body microservices/ + Buck2 gate prose is layout/CI-carrier drift only.",
+      "higher_adrs_cited": [
+        "ADR-0509",
+        "ADR-0512",
+        "ADR-0562",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0482",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Live multi-decade bespoke-substrate roadmap + bridge discipline (doctrine_meta). Reverse-index higher: ADR-0520 Accepted amends ADR-0482 (already in amended_by); no higher ADR lists supersedes: ADR-0482. ADR-0516 depends_on ADR-0482 and states the roadmap is force-not-superseded; fabric sits above tiers via ADR-0520 amendment. ADR-0394 Accepted amends portal bridge (listed; lower id, still live peer). ADR-0521 is listed in amended_by from in-body WAVE-1 sequencing note; 0521 frontmatter has amends: [] (asymmetric edge) — do not invent remove/add without dual claim; not high-confidence fix. Non-ADR token kubers-anchor-2026-05-28 retained (body points at ADR-0484 which has no file on tip); do not invent successor. Keep Accepted; read with amended_by peers.",
+      "higher_adrs_cited": [
+        "ADR-0506",
+        "ADR-0507",
+        "ADR-0508",
+        "ADR-0515",
+        "ADR-0516",
+        "ADR-0520",
+        "ADR-0521",
+        "ADR-0562"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": ["ADR-0480", "ADR-0481", "ADR-0482"]
+}

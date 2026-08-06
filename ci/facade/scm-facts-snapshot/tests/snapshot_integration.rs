@@ -492,9 +492,9 @@ fn p3_identity_fixture(label: &str) -> PathBuf {
     }
     write_fixture_file(
         &root,
-        "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         &std::fs::read(source_root.join(
-            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ))
         .expect("read selected ADR fixture"),
     );
@@ -1824,7 +1824,7 @@ fn root_commit_p3_control_reaches_named_bootstrap_shape_failure() {
 fn dormant_p3_identity_rejects_a_unicode_direct_adr_path_after_raw_tree_parsing() {
     let root = p3_identity_fixture("unicode-direct-adr");
     let source = root
-        .join("docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md");
+        .join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
     let unicode_path = "docs/decisions/ADR-0002-résumé.md";
     write_fixture_file(
         &root,
@@ -1956,12 +1956,12 @@ fn census_epoch_owners_is_adr_justified_and_not_hand_registered() {
     let repo_root = discover_repo_root().expect("discover repository root");
     let owners_path = "registry/adr-census-epoch/OWNERS";
     let adr = std::fs::read_to_string(
-        repo_root.join("docs/decisions/ADR-0624-stage-immutable-adr-census-epoch-transition.md"),
+        repo_root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
     )
-    .expect("read ADR-0624");
+    .expect("read ADR-0700 live apex");
     assert!(
         adr.contains(owners_path),
-        "ADR-0624 must name the census epoch ownership marker as an implementation surface"
+        "ADR-0700 must name the census epoch ownership marker as an implementation surface"
     );
 
     let reachability: serde_json::Value = serde_json::from_slice(
@@ -2031,7 +2031,7 @@ fn dormant_p3_identity_is_bounded_to_selected_inputs() {
     for (label, path) in [
         (
             "direct-adr",
-            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ),
         ("producer-gate", "ci/facade/scm-facts-snapshot/src/main.rs"),
         (
@@ -2072,15 +2072,21 @@ fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary
     let repo_root = discover_repo_root().expect("discover repository root");
     let adr =
         std::fs::read_to_string(repo_root.join(
-            "docs/decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md",
+            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         ))
-        .expect("read ADR-0515");
-    assert!(adr.contains(
-        "amended_by: [ADR-0516, ADR-0519, ADR-0526, ADR-0527, ADR-0528, ADR-0529, ADR-0530, ADR-0624, ADR-0639]"
-    ));
+        .expect("read ADR-0700 live apex");
+    // Apex consolidates the ADR-0515 lineage; chronology is via supersedes, not amended_by.
+    assert!(
+        adr.contains("id: ADR-0700"),
+        "live CI admission apex must carry canonical four-digit id ADR-0700"
+    );
+    assert!(
+        adr.contains("ADR-0515") && adr.contains("ADR-0624") && adr.contains("ADR-0639"),
+        "apex must retain the 0515/0624/0639 epoch-gate lineage in supersedes or body"
+    );
     assert!(
         !adr.contains("adr-census-parent-receipt-gate.rs"),
-        "ADR-0515 must not name the retired parent-only gate as live"
+        "ADR-0700 must not name the retired parent-only gate as live"
     );
     let normalized_adr = adr.split_whitespace().collect::<Vec<_>>().join(" ");
     for required_statement in [
@@ -2089,10 +2095,11 @@ fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary
         "P3 remains dormant",
         "sole protected `oya-ci-required` context",
         "does not authorize planning dispatch",
+        "registry/adr-census-epoch/OWNERS",
     ] {
         assert!(
             normalized_adr.contains(required_statement),
-            "ADR-0515 must retain the live epoch-gate boundary: {required_statement}"
+            "ADR-0700 must retain the live epoch-gate boundary: {required_statement}"
         );
     }
 }

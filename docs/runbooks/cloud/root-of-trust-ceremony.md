@@ -214,8 +214,8 @@ If abort occurs before root publication: destroy transient material, mark packet
 
 ## Sources
 
-- `docs/decisions/ADR-0537-dogfood-bootstrap-order-rust-owned-stack-doctrine.md` §1 Step 0 and §4.
-- `docs/decisions/ADR-0536-hyperscaler-grounded-substrate-decision-matrix.md` D-1, D-8, D-9, D-16, OQ-5.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` §1 Step 0 and §4.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md` D-1, D-8, D-9, D-16, OQ-5.
 - OQ-005 parent handoff: Hybrid/HSM-backed destination custody with bounded Shamir/software/OpenBao-adjacent bootstrap only for Tier 1/internal dogfood or break-glass pending HSM evidence.
 - `docs/runbooks/shamir-share-loss-or-coercion.md`.
 - `docs/runbooks/meta-trust-root-recovery.md`.

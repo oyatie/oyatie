@@ -1,0 +1,87 @@
+{
+  "band": [160, 169],
+  "reviewed": [161, 162, 163, 164, 165, 166, 167, 168, 169],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "adr": 160,
+      "status": "Superseded",
+      "note": "Already Superseded by ADR-0515; outside Accepted/Proposed review set"
+    }
+  ],
+  "findings": [
+    {
+      "adr": 161,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "CSI StorageClass naming remains live. Higher ADRs (0184, 0196, 0193, 0194, 0198) cite ADR-0161 as related/substrate; none list supersedes or amends. No reverse supersedes edge; no amended_by gap.",
+      "higher_adrs_cited": [184, 193, 194, 196, 198]
+    },
+    {
+      "adr": 162,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Per-tenant audit-chain slicing remains live. Higher ADRs (0164, 0189, 0197, 0218) build on or reference it; none supersede or amend frontmatter. No reverse supersedes edge.",
+      "higher_adrs_cited": [164, 189, 197, 218]
+    },
+    {
+      "adr": 163,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Tenant environment tiers (test/staging/prod) remain live. Higher ADR-0182 and ADR-0218 reference the pattern; neither supersedes nor amends. No reverse supersedes edge.",
+      "higher_adrs_cited": [182, 218]
+    },
+    {
+      "adr": 164,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Air-gapped/sovereign deployment model remains live. ADR-0240 (sovereign pack overlay) is complementary related law, not a supersession. ADR-0349 cites air-gap for CI/CD contexts but is itself Superseded by ADR-0515 for CI substrate; air-gap posture of 0164 is not replaced. No reverse supersedes/amends edge on 0164.",
+      "higher_adrs_cited": [209, 210, 240, 263, 349, 515]
+    },
+    {
+      "adr": 165,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Chaos Mesh substrate remains live. Higher ADRs (0176, 0197, 0370) consume chaos catalog/drills; none supersede or amend. No reverse supersedes edge.",
+      "higher_adrs_cited": [176, 197, 370]
+    },
+    {
+      "adr": 166,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Apicurio schema-registry decision remains live. Higher ADRs (0185, 0188, 0201, 0273) depend on schema-registry versioning; Pulsar ADRs (0397/0557) mention Pulsar schema features without superseding Apicurio. No reverse supersedes/amends edge.",
+      "higher_adrs_cited": [185, 188, 201, 273, 397, 557]
+    },
+    {
+      "adr": 167,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Tenant-facing CLI remains Accepted under live resolution with existing amended_by. ADR-0632 Accepted lists amends ADR-0167; reverse link amended_by:[ADR-0632] already present. Internal CLI retirement (cli_surface_policy / ADR-0515 oya-dev-cli bridge) does not supersede the separate tenant public CLI authorized here; ADR-0562 still cites ADR-0167 for external artifact channels. Do not invent supersession without evidence.",
+      "higher_adrs_cited": [203, 258, 515, 562, 632]
+    },
+    {
+      "adr": 168,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Public status page remains live. Only same-band/related citations (0169); no higher ADR supersedes or amends. No reverse supersedes edge.",
+      "higher_adrs_cited": [169]
+    },
+    {
+      "adr": 169,
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Webhook DLQ/retry remains Accepted under live resolution with existing amended_by. ADR-0632 Accepted lists amends ADR-0169; reverse link amended_by:[ADR-0632] already present. No later supersedes edge.",
+      "higher_adrs_cited": [632]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [161, 162, 163, 164, 165, 166, 167, 168, 169]
+}

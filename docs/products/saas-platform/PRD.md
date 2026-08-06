@@ -210,11 +210,11 @@ No product-scope question blocks this PRD surface. Implementation readiness rema
 - `docs/PRD.md` — W-SaaS-Preview scope, cohesion thesis, and cross-axis integration table.
 - `docs/products/README.md` — required per-product PRD sections and SaaS Platform index entry.
 - `docs/teams/axis-saas/CHARTER.md` — team scope, dependencies, metrics, and risk register.
-- `docs/decisions/ADR-0035-workflow-engine-state-machine-and-dag-hybrid.md`.
-- `docs/decisions/ADR-0036-plugin-substrate-wasm-and-trust.md`.
-- `docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md`.
-- `docs/decisions/ADR-0314-marketplace-as-universal-deal-settlement.md`.
-- `docs/decisions/ADR-0534-gate-pipeline-step-sdk-and-marketplace.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
+- `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
+- `docs/decisions/ADR-0705-product-protocol-live-apex.md`.
+- `docs/decisions/ADR-0705-product-protocol-live-apex.md`.
+- `docs/decisions/ADR-0700-ci-admission-live-apex.md`.
 - `docs/runbooks/saas/workflow-engine-deadlock.md`, `docs/runbooks/saas/plugin-runtime-sandbox-escape.md`, and `docs/runbooks/saas/marketplace-listing-takedown.md`.
 
 ## 2a. Acceptance criteria traceability (required)

@@ -992,121 +992,121 @@
       "id": "ADR-0020",
       "title": "Foundry Multi Provider Adapter Model",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0020-intelligence-multi-provider-adapter-model.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0022",
       "title": "Autonomy Ceiling Runtime Enforcement",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0023",
       "title": "Foundry Sandbox Wasmtime Firecracker",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0023-intelligence-sandbox-wasmtime-firecracker.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0024",
       "title": "Foundry Eval Harness And Replay",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0024-intelligence-eval-harness-and-replay.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0025",
       "title": "Foundry As Engineering Platform",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0025-intelligence-as-engineering-platform.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0026",
       "title": "In House Ai Model Substrate Roadmap",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0026-in-house-ai-model-substrate-roadmap.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0028",
       "title": "Cloud Microservice Architecture",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0105",
       "title": "13 Layer Enum And Check Family Patterns",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0106",
       "title": "Rename Application To Usecase",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
     },
     {
       "id": "ADR-0110",
       "title": "Changeset State Machine",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0117",
       "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0123",
       "title": "Hyperscaler Maturity Claim Gate",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
       "id": "ADR-0234",
       "title": "Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0234-community-social-expansion-planning-contract.md"
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0132",
       "title": "Product Platform And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-product-platform-and-bundle-dissolution.md"
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
     },
     {
       "id": "ADR-0236",
       "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0136",
       "title": "Foundry As Single Microservice",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0136-intelligence-as-single-microservice.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0137",
       "title": "Foundry Bounded Contexts",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0137-intelligence-bounded-contexts.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0138",
       "title": "Foundry Six Path Deprecation",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0138-intelligence-six-path-deprecation.md"
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     }
   ],
   "hyperscaler_inv_coverage": {

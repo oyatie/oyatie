@@ -342,5 +342,5 @@ The plan is written against the `microservices/audit-chain/manifest.json` layer 
 - Contract: `microservices/audit-chain/contracts/proto/audit-chain.proto`.
 - Fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
-- ADR: `docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md`.
-- ADR: `docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md`.
+- ADR: `docs/decisions/ADR-0709-general-live-apex.md`.
+- ADR: `docs/decisions/ADR-0709-general-live-apex.md`.

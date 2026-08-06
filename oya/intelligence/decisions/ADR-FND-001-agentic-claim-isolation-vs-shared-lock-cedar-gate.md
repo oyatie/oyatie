@@ -5,16 +5,16 @@ status: Proposed
 date: 2026-05-20
 microservice: foundry
 related_oyatie_adrs:
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0007-cedar-authorization-policy-and-persona-tier.md
-  - docs/decisions/ADR-0021-intelligence-capability-registry-and-mcp-gateway.md
-  - docs/decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md
-  - docs/decisions/ADR-0110-changeset-state-machine.md
-  - docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-  - docs/decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md
-  - docs/decisions/ADR-0136-intelligence-as-single-microservice.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0305-delegated-agent-authority-chain.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
 decision_owner: axis-foundry-runtime + ops-security
 ---
 
@@ -238,11 +238,11 @@ decision_owner: axis-foundry-runtime + ops-security
 ## References
 
 - Internal: docs/AGENTS.md agent-instructions block
-- Internal: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
-- Internal: docs/decisions/ADR-0110-changeset-state-machine.md
-- Internal: docs/decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md
-- Internal: docs/decisions/ADR-0136-intelligence-as-single-microservice.md
-- Internal: docs/decisions/ADR-0305-delegated-agent-authority-chain.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0700-ci-admission-live-apex.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - Internal: microservices/intelligence/IP-012-runtime-autonomy-ceiling-gate.md
 - Internal: microservices/intelligence/policy/runtime-tenant-scope.cedar
 - Cedar policy language syntax: https://docs.cedarpolicy.com/policies/syntax-policy.html

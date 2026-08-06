@@ -230,7 +230,7 @@ mod tests {
         // Age alone is NOT stale: an old ADR that is still reachable passes.
         let fixture = json!({
             "rows": [{
-                "path": "docs/decisions/ADR-0001.md",
+                "path": "docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md",
                 "age_days": 400,
                 "reachable_from": ["masterplan"],
                 "ttl": {"ttl_class": "doc", "budget_days": null, "protected": false, "action": "report"}

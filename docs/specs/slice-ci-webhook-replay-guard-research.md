@@ -278,5 +278,5 @@ acks SHOULD be counted under a distinct `outcome="replay"` label, not
 | Hookdeck — Implement Webhook Idempotency | https://hookdeck.com/webhooks/guides/implement-webhook-idempotency | Key derivation, record-before-dispatch, TTL rules |
 | Svix — Idempotency and Deduplication | https://www.svix.com/resources/webhook-university/reliability/idempotency-and-deduplication/ | Record-before-dispatch pattern, TTL guidance |
 | codelit.io — Webhook Delivery Guarantees | https://codelit.io/blog/api-webhooks-delivery-guarantee | At-least-once guarantee, delivery-ID stability across retries |
-| ADR-0367 (local) | /docs/decisions/ADR-0367-trustless-pre-merge-verification-gateway.md | Verify-before-guard ordering invariant |
+| ADR-0367 (local) | /docs/decisions/ADR-0700-ci-admission-live-apex.md | Verify-before-guard ordering invariant |
 | `microservices/ci-webhook-gateway/slos/ci-webhook-gateway.openslo.yaml` (local) | — | SLO compatibility check |

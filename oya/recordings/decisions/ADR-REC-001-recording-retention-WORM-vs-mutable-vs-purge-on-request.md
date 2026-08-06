@@ -5,15 +5,15 @@ status: Proposed
 date: 2026-05-20
 microservice: recordings
 related_oyatie_adrs:
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md
-  - docs/decisions/ADR-0034-per-microservice-data-class-overrides.md
-  - docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
-  - docs/decisions/ADR-0049-cross-region-replication-and-residency.md
-  - docs/decisions/ADR-0131-per-microservice-flat-layout.md
-  - docs/decisions/ADR-0152-rpo-rto-canonical.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0703-cas-cache-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0708-platform-foundations-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-recordings
 ---
 
@@ -246,8 +246,8 @@ decision_owner: axis-recordings
 - Internal: microservices/recordings/PRD.md
 - Internal: microservices/recordings/decisions/ADR-RECORDINGS-0002-retention-and-legal-hold-policy.md
 - Internal: microservices/recordings/decisions/ADR-RECORDINGS-0003-redaction-and-pii-policy.md
-- Internal: docs/decisions/ADR-0038-trust-framework-and-dsr-cascade-and-proof-of-erasure.md
-- Internal: docs/decisions/ADR-0243-cedar-as-universal-gate.md
+- Internal: docs/decisions/ADR-0703-cas-cache-live-apex.md
+- Internal: docs/decisions/ADR-0700-ci-admission-live-apex.md
 - SEC amendments to electronic recordkeeping requirements: https://www.sec.gov/investment/amendments-electronic-recordkeeping-requirements-broker-dealers
 - SEC Rule 17a-4(f) electronic storage guidance: https://www.sec.gov/rules-regulations/2001/05/commission-guidance-broker-dealers-use-electronic-storage-media-under-electronic-signatures-global
 - HHS HIPAA Security Rule: https://www.hhs.gov/hipaa/for-professionals/security/index.html

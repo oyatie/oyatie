@@ -5,11 +5,11 @@ status: Draft
 date: 2026-05-20
 owner: GoToMarket / Solutions Engineering / Customer Success
 related_oyatie_adrs:
-  - docs/decisions/ADR-0009-tenant-isolation-and-cell-placement.md
-  - docs/decisions/ADR-0010-tenant-data-residency-and-jurisdiction.md
-  - docs/decisions/ADR-0242-capability-tier-registry.md
-  - docs/decisions/ADR-0244-business-continuity-dr-tier-registry.md
-  - docs/decisions/ADR-0251-trust-score-and-eligibility-gates.md
+  - docs/adr-archive/ADR-0009-cell-architecture-per-tenant-per-region.md
+  - docs/adr-archive/ADR-0010-regional-pack-architecture.md
+  - docs/adr-archive/ADR-0242-oyatie-is-a-tenant-doctrine.md
+  - docs/adr-archive/ADR-0244-tenant-as-universal-scoping-primitive.md
+  - docs/adr-archive/ADR-0251-compliance-pack-cell-certification-levels.md
 related_personas:
   - Customer Success Manager Sofia Rezende
   - CS-IC Lin Chen

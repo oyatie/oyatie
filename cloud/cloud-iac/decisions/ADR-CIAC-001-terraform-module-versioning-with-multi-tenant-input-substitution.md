@@ -5,16 +5,16 @@ status: Proposed
 date: 2026-05-20
 microservice: cloud-iac
 related_oyatie_adrs:
-  - docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
-  - docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md
-  - docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
-  - docs/decisions/ADR-0131-per-microservice-flat-layout.md
-  - docs/decisions/ADR-0171-multi-cluster-federation.md
-  - docs/decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md
-  - docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md
-  - docs/decisions/ADR-0243-cedar-as-universal-gate.md
-  - docs/decisions/ADR-0244-tenant-as-universal-scoping-primitive.md
-  - docs/decisions/ADR-0263-observability-emission-contract.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0701-monorepo-capability-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/decisions/ADR-0700-ci-admission-live-apex.md
+  - docs/decisions/ADR-0702-identity-authz-live-apex.md
+  - docs/decisions/ADR-0706-observability-live-apex.md
 decision_owner: axis-cloud-iac
 ---
 
@@ -244,8 +244,8 @@ decision_owner: axis-cloud-iac
 - Internal: microservices/cloud-iac/PRD.md
 - Internal: microservices/cloud-iac/tofu/modules/kms/README.md
 - Internal: microservices/cloud-iac/tofu/modules/vpc/README.md
-- Internal: docs/decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md
-- Internal: docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
+- Internal: docs/decisions/ADR-0709-general-live-apex.md
+- Internal: docs/decisions/ADR-0702-identity-authz-live-apex.md
 - OpenTofu module block syntax: https://opentofu.org/docs/language/modules/syntax/
 - OpenTofu version constraints: https://opentofu.org/docs/language/expressions/version-constraints/
 - OpenTofu provider requirements: https://opentofu.org/docs/language/providers/requirements/
