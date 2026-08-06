@@ -101,9 +101,7 @@
         "cells"
       ],
       "absorbs_current_dirs": [
-        "cell",
-        "cloud/cell-lifecycle",
-        "cloud/cell-rebalancer"
+        "cell"
       ],
       "dag_node": "cell"
     },
