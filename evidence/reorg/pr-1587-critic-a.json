@@ -1,0 +1,19 @@
+{
+  "pr": 1587,
+  "head": "f94f70898d9d22bcd23eb699f4dcdd77332321c5",
+  "critic": "A",
+  "verdict": "APPROVE",
+  "lenses": ["cartesian_doubt", "red_team", "essentialism"],
+  "findings": [],
+  "checked": [
+    "flags/BUCK declares corpus_yaml_facts_shards for residual YAML",
+    "corpus-index-coverage ceilings match live unpackaged=426 and oya census=4068",
+    "product-protocol expected_total=100 live_count=59 after feature-flags left oya/",
+    "no *.generated.json hand-edits; packaging re-anchor is shrink-only measured DATA"
+  ],
+  "commands": [
+    "buck2 test //ci/facade/corpus-index-coverage:ci-corpus-index-coverage-gate -> 19/19",
+    "buck2 test //ci/facade/product-protocol-policy:ci-product-protocol-policy-gate -> 12/12"
+  ],
+  "reviewed_at": "2026-08-06T18:54Z"
+}
