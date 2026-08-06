@@ -155,9 +155,9 @@
         ]
       }
     },
-    "cloud/cloud-intelligence/manifest.json": {
-      "service": "cloud/cloud-intelligence",
-      "manifest": "cloud/cloud-intelligence/manifest.json",
+    "intelligence/manifest.json": {
+      "service": "intelligence",
+      "manifest": "intelligence/manifest.json",
       "capability": "intelligence",
       "tier": "substrate",
       "tier_subtype": "substrate-ai",
