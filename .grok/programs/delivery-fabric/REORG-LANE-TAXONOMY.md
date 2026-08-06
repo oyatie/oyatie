@@ -1,6 +1,8 @@
 # Reorg lane taxonomy (AREA × CLASS × SLICE)
 
-**Not merge authority.** Complements `REORG-DOCTRINE.md` + `REORG-REBRAND-BACKLOG.md`.
+**Not merge authority.** Complements `REORG-DOCTRINE.md`, `NORTH-STAR-SHAPE.md` (first principles), `REORG-REBRAND-BACKLOG.md`.
+
+**Do not accept multi-absorb registry rows as the architecture.** They are burn-down inventory. Lanes exist to **remove** dual-homes and legacy zones, not to stabilize them.
 
 ## Naming
 

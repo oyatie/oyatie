@@ -10,19 +10,21 @@ let meta = #{
 };
 
 // W5 North-star portfolio audit — SEPARATE from W4 productivity-watch.
-// W4 = are fabric classes alive?  W5 = what work exists vs north-star + backlog?
-// Does NOT babysit PRs (W3) and does NOT implement (W2) — only discovers/enqueues.
+// W4 = are fabric classes alive?  W5 = adversarial gap vs first-principles north-star.
+// Does NOT babysit (W3) or implement (W2). Does NOT accept tree/board/registry multi-absorb as destiny.
 
 phase("Audit");
 let audit = agent(
-    "Repo /Users/jasonlee/Developer/oyatie. Fabric W5 NORTH-STAR portfolio audit.\n"
-    + "Law: .grok/programs/delivery-fabric/NORTH-STAR-SHAPE.md + REORG-LANE-TAXONOMY.md + BABYSIT-SINGLE-FLIGHT.md\n"
+    "Repo /Users/jasonlee/Developer/oyatie. Fabric W5 ADVERSARIAL north-star audit.\n"
+    + "Law: NORTH-STAR-SHAPE.md §0 first principles — do NOT rubber-stamp current layout.\n"
+    + "  Registry absorbs_current_dirs = migration inventory DEBT, not multi-home design.\n"
+    + "  Empty board with dual-homes = false green. W4 heartbeat ≠ north-star progress.\n"
     + "1) python3 .grok/bin/mm-dev-status --cwd /Users/jasonlee/Developer/oyatie --fetch 2>/dev/null || true\n"
     + "2) python3 .grok/bin/mm-northstar-audit --cwd /Users/jasonlee/Developer/oyatie --json\n"
-    + "   Read findings: dual_home, move_plan_singleton, generated_faces, backlog_not_on_board, work_exists_but_board_empty\n"
-    + "3) python3 .grok/bin/mm-queue-ingest --cwd /Users/jasonlee/Developer/oyatie --base dev\n"
-    + "4) Optionally: python3 .grok/bin/mm-reorg-enqueue --cwd /Users/jasonlee/Developer/oyatie\n"
-    + "Return JSON summary of critical/high findings and reorg_ready lane ids.",
+    + "   Prioritize: split_brain_crates (critical), residual_scaffold_plus_live (high), process theater, singleton.\n"
+    + "3) Challenge: any ready lane that spans 3+ debt zones → flag mega-lane; demand slice.\n"
+    + "4) python3 .grok/bin/mm-queue-ingest --cwd /Users/jasonlee/Developer/oyatie --base dev\n"
+    + "Return: critical/high counts, top burn-down capabilities, reorg_ready ids, rejected assumptions[].",
     #{ label: "w5-audit", capability_mode: "execute", agent_type: "general-purpose" }
 );
 
