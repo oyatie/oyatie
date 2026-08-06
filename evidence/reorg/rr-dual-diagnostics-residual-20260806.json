@@ -1,0 +1,58 @@
+{
+  "id": "REORG-DUAL-DIAGNOSTICS-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T00:00:00Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate oya/diagnostics (clinical lab scaffold, name-collision absorb under observability) into observability/diagnostics/; retarget consumers; drop oya/diagnostics from observability absorbs; package observability/ YAML via observability/BUCK.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/",
+  "moves": [
+    {
+      "from": "oya/diagnostics/{contracts,iac,cedar,policies,runbooks,IPs,dpia,manifest.json,...}",
+      "to": "observability/diagnostics/<same>"
+    }
+  ],
+  "destination_shape": "observability/diagnostics/ (nested, not flat) — flat would collide with open #1583 oya/observability residual rehome into observability/*",
+  "consumers_retargeted": [
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "observability/diagnostics/README.md"
+  ],
+  "absorbs": {
+    "dropped": "observability.absorbs_current_dirs[oya/diagnostics]",
+    "retained_until_1583": "oya/observability",
+    "pending_relocation": "observability/diagnostics → app/health-diagnostics (ADR-0615 Q8 Batch-5)"
+  },
+  "packaging": {
+    "file": "observability/BUCK",
+    "pattern": "corpus packaging pattern #1583",
+    "effect": "packages pre-existing observability/** YAML + rehomed diagnostics YAML; shrink unpackaged ceiling"
+  },
+  "corpus_reanchor": {
+    "baseline_unpackaged_yaml_files": "433→415",
+    "oya_corpus.expected_yaml_files": "4103→4095",
+    "product_protocol.expected_total": "101→100",
+    "note": "measured fields frozen from arithmetic; re-measure in CI if gate reports drift"
+  },
+  "parallel_conflict": {
+    "open_pr": 1583,
+    "title": "refactor(reorg): burn-down oya/observability residual into observability/",
+    "shared_surfaces": [
+      "observability/BUCK",
+      "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+      "ci/facade/product-protocol-policy/product-protocol-policy.json",
+      "specs/capability-registry.json"
+    ],
+    "strategy": "base origin/dev only; path-nested under observability/diagnostics/ for tree content; restack required on shared BUCK/corpus/registry after either lands"
+  },
+  "net_path_debt": "negative under oya/diagnostics (deleted); observability/diagnostics gains clinical residual scaffold until Batch-5 app/health-diagnostics",
+  "non_goals": [
+    "no crate renames (zero crates)",
+    "no move-plan / Batch-5 app/health-diagnostics relocate",
+    "no oya/observability residual (owned by #1583)",
+    "no clinical product behavior change"
+  ]
+}

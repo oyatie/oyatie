@@ -12,7 +12,7 @@ It owns:
 - result authorization, interpretation, and delivery;
 - turn-around-time and quality-control evidence.
 
-It does not own imaging. Imaging orders, PACS/VNA, DICOM, radiologist workflow, FHIR `ImagingStudy`, and imaging reports are owned by `../imaging/`.
+It does not own imaging. Imaging orders, PACS/VNA, DICOM, radiologist workflow, FHIR `ImagingStudy`, and imaging reports are owned by `../../oya/imaging/`.
 
 ## Canonical Files
 

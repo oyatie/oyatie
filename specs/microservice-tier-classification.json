@@ -698,9 +698,9 @@
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "oya/diagnostics/manifest.json": {
-      "service": "oya/diagnostics",
-      "manifest": "oya/diagnostics/manifest.json",
+    "observability/diagnostics/manifest.json": {
+      "service": "observability/diagnostics",
+      "manifest": "observability/diagnostics/manifest.json",
       "capability": "observability",
       "tier": "substrate",
       "tier_subtype": "substrate-observability",

@@ -199,8 +199,7 @@
       ],
       "absorbs_current_dirs": [
         "observability",
-        "oya/observability",
-        "oya/diagnostics"
+        "oya/observability"
       ],
       "dag_node": "observability"
     },
@@ -516,11 +515,12 @@
       "pending_relocation": true
     },
     {
-      "from": "observability.absorbs_current_dirs[oya/diagnostics]",
+      "from": "observability/diagnostics (parked under observability root; clinical lab name-collision)",
       "to": "app/health-diagnostics (clinical lab)",
       "executes_in": "specs/reorg/observability-move-plan.json (Batch-5)",
       "ruled_by": "ADR-0615 §2 Q8",
-      "pending_relocation": true
+      "pending_relocation": true,
+      "_comment": "Zero-crate clinical scaffold rehomed oya/diagnostics → observability/diagnostics in residual burn-down; Batch-5 still relocates to app/health-diagnostics per ADR-0615 Q8."
     },
     {
       "from": "compliance.absorbs_current_dirs[oya/governance]",
