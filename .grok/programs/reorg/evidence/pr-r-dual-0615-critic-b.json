@@ -1,0 +1,43 @@
+{
+  "pr": 1568,
+  "head": "648398895655f75c71527aaf0089f4e579d2a631",
+  "critic_id": "B",
+  "verdict": "APPROVE",
+  "lenses": [
+    "contrarian",
+    "systems_thinking",
+    "blast_radius",
+    "chesterton_fence"
+  ],
+  "summary": "Multi-cap dual-home is correctly treated as program epic inventory, not one mega-move. Contrarian check: delete-all-scaffolds would break cedar-deploy-parity + product-protocol + tier-classification and discard clinical design SLOs/policies \u2014 rejected. Systems check: pending_relocations already encode Batch-5 atomicity; parking matches ADR-0615 \u00a73 absorb-retention until move-plans. Follow-on cards split emergency/imaging/diagnostics/drive-recordings so each PR stays one concern.",
+  "checks": [
+    {
+      "name": "one concern per PR",
+      "result": "pass",
+      "evidence": "inventory/docs only; moves deferred to named follow-on cards"
+    },
+    {
+      "name": "diagnostics not folded into healthcare",
+      "result": "pass",
+      "evidence": "disposition to app/health-diagnostics per Q8/\u00a76"
+    },
+    {
+      "name": "registry dual-home honesty",
+      "result": "pass",
+      "evidence": "absorbs vs live storage/facade vs pending_relocations documented"
+    },
+    {
+      "name": "OWNERS absence recorded",
+      "result": "pass",
+      "evidence": "owners_file null for all five; manifest owners recorded"
+    }
+  ],
+  "blockers": [],
+  "severity_max": "low",
+  "nits": [
+    "When Batch-5 lands, co-edit microservice-tier-classification capability labels (still say comms/storage/observability).",
+    "Catalog stubs under oya/drive and oya/recordings name non-existent oya-drive-* / oya-recordings-* crates \u2014 future cleanup card, not this PR."
+  ],
+  "reviewed_at": "2026-08-05T12:20:00Z",
+  "reviewer": "dual-critic-B"
+}

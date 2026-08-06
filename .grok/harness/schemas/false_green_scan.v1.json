@@ -1,0 +1,44 @@
+{
+  "$id": "false_green_scan.v1",
+  "type": "object",
+  "required": ["schema", "clean", "checks"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "false_green_scan.v1" },
+    "clean": { "type": "boolean" },
+    "checks": {
+      "type": "object",
+      "required": [
+        "no_skipped_tests",
+        "no_deleted_red_tests",
+        "no_weakened_asserts",
+        "no_generated_face_hand_edit",
+        "red_proof_present",
+        "green_same_suite",
+        "verify_commands_nonempty"
+      ],
+      "properties": {
+        "no_skipped_tests": { "type": "boolean" },
+        "no_deleted_red_tests": { "type": "boolean" },
+        "no_weakened_asserts": { "type": "boolean" },
+        "no_generated_face_hand_edit": { "type": "boolean" },
+        "red_proof_present": { "type": "boolean" },
+        "green_same_suite": { "type": "boolean" },
+        "verify_commands_nonempty": { "type": "boolean" },
+        "no_ignore_attribute_added_to_hide_fail": { "type": "boolean" }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "path", "summary"],
+        "properties": {
+          "code": { "type": "string" },
+          "path": { "type": "string" },
+          "summary": { "type": "string" }
+        }
+      }
+    }
+  }
+}

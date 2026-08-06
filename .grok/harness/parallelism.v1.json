@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "description": "Concurrent throughput policy. Fine-tune caps; overlap always fail-closed for execute shards.",
+  "critics": {
+    "default_instances": 2,
+    "max_instances": 4,
+    "parallel": true
+  },
+  "executors": {
+    "default_shards": 1,
+    "max_shards": 4,
+    "require_disjoint_paths": true,
+    "parallel_when_shards_gt_1": true
+  },
+  "path_overlap": {
+    "fail_closed": true,
+    "notes": "Two globs overlap if either is a prefix of the other after normalization, or they are equal."
+  },
+  "metrics": {
+    "record_parallel_panels": true,
+    "record_serial_fraction": true
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "_note": "Grok-native governance hooks. Scripts are multi-runtime (Claude/Codex/Grok) under tools/hooks/. Matchers use Grok tool names; Claude aliases still work if this file is also loaded elsewhere. OMC/OMX injectors are intentionally not registered here.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bd prime --hook-json",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "run_terminal_command|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/local-authority-enforcer.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "tools/hooks/no-cargo-enforcer.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "tools/hooks/stale-tool-suggester.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "spawn_subagent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/pre-dispatch-guide.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "search_replace|write|Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/spec-version-pin-suggester.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "tools/hooks/adr-orphan-detect.sh",
+            "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "tools/hooks/vacuous-green-gate-detect.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "run_terminal_command|Bash|web_search|WebSearch|open_page|open_page_with_find|web_fetch|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/injection-content-scanner.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tools/hooks/stop-did-you-forget-suggester.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
