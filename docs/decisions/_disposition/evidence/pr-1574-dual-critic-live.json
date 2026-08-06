@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "de8c19f2ad426033d6068be6b909f39d436cb323",
+  "head": "c19d2cb7c6d62823b26b7e93e94a659c27757c07",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; only xAI/grok in this babysit session \u2014 same_family recorded honestly (policy admit_independence includes same_family)",
   "critics": [
@@ -52,12 +52,13 @@
   ],
   "summary": "APPROVE: disposition end-state + Windows RUSTUP_HOME path fix for soft platform-smoke. independence same_family honest. Merge only after oya-ci-required green + preflight receipt.",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:15Z",
+  "reviewed_at": "2026-08-06T11:23Z",
   "reviewer": "w3-babysit-pr-1574",
   "soft_red_addressed": {
     "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
-    "lane": "Q-PR1574-soft_red-gate-platform-smoke-windows-amd64-soft",
-    "fix": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
+    "fix": "CRLF-tolerant parser source identity + eol=lf gitattributes",
+    "prior_rustup": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
   },
-  "head_note": "exact tip SHA of this dual-critic commit tree (may drift by amend; re-read branch tip)"
+  "head_note": "exact tip SHA of this dual-critic commit tree (may drift by amend; re-read branch tip)",
+  "tip_note": "Includes 6070cdcbc Windows RUSTUP_HOME + ce1cd00ee ADR index/public-RPC Accepted-only"
 }
