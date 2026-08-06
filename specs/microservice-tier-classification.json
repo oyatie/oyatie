@@ -256,20 +256,6 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-os/manifest.json": {
-      "service": "cloud/cloud-os",
-      "manifest": "cloud/cloud-os/manifest.json",
-      "capability": null,
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
     "cloud/cloud-secrets/manifest.json": {
       "service": "cloud/cloud-secrets",
       "manifest": "cloud/cloud-secrets/manifest.json",
@@ -1372,6 +1358,20 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
+    },
+    "os/manifest.json": {
+      "service": "os",
+      "manifest": "os/manifest.json",
+      "capability": null,
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
     }
   }
 }
