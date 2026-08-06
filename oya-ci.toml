@@ -158,6 +158,16 @@ kind = "path_exact"
 value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-decade-bands.json"
 reason = "historical ADR decade-band inventory; file/title strings quote retired brand stems as provenance only"
 
+# mm-kit delivery-fabric dual-critic / process evidence (PR #1575): gate code names
+# (forbidden_foundry/jenkins/oya-vcs) and quoted remediation before/after strings are
+# provenance for the brand-residue fix, not live product vocabulary. Core kit under
+# .grok/{bin,harness,hooks,workflows} and non-evidence program surfaces remain scanned.
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = ".grok/programs/delivery-fabric/evidence/"
+reason = "process dual-critic evidence pins quote remediated brand stems and gate code names as provenance only; not live product vocabulary"
+
+
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
 
