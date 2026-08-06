@@ -3,9 +3,9 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "c45136ee57631e40b319494c7d702030564cb5e5",
+  "head": "d9578d61d7bfb8891e67bc27e6140a3ef24c517e",
   "prefer_cross_model": true,
-  "independence_note": "cross_model preferred; W2 implement session has xAI/grok only \u2014 same_family recorded honestly; policy admit_independence includes same_family",
+  "independence_note": "cross_model preferred; same_family honest for W3 babysit",
   "critics": [
     {
       "id": "A",
@@ -49,14 +49,18 @@
       ]
     }
   ],
-  "summary": "APPROVE #1575 soft windows RUSTUP_HOME fix + regression test (fd45b0eba) + dual-critic pin. independence same_family honest. Merge only after oya-ci-required green.",
+  "summary": "APPROVE kit land + Windows RUSTUP_HOME + CRLF-tolerant parser source identity for soft platform-smoke",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:23:05Z",
-  "reviewer": "w3-babysit-pr-1575-heartbeat",
+  "reviewed_at": "2026-08-06T11:31Z",
+  "reviewer": "w3-babysit-pr-1575",
   "soft_red_addressed": {
-    "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
-    "lane": "Q-PR1575-soft_red-gate-platform-smoke-windows-amd64-soft",
-    "fix": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME + gate_registration regression"
+    "checks": [
+      "gate \u00b7 platform smoke (windows-amd64 soft)"
+    ],
+    "fixes": [
+      "install-buck2 cygpath -m RUSTUP_HOME",
+      "doc-parser line_ending_normalized + *.rs eol=lf"
+    ]
   },
   "mm_run_id": "20260806T112011Z-cfea0a90",
   "code_fix_head": "fd45b0ebabd4417b64c91f3dda8f736b452b7b37"
