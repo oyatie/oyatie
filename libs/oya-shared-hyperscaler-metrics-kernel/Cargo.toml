@@ -11,7 +11,7 @@ license = "Apache-2.0"
 # this to the prometheus client library. Per ADR-0064 canonical-base-and-
 # localization-packs: this kernel is the canonical base every µservice
 # integrates against to satisfy
-# oya/observability/contracts/metric-naming-convention.md.
+# observability/contracts/metric-naming-convention.md.
 
 [dependencies]
 
