@@ -652,7 +652,7 @@ fn public_protocol_guard_rejects_known_public_grpc_mutations() {
 #[test]
 fn developer_sdk_ip_file_bindings_are_exact_implementation_plans() {
     let root = repo_root();
-    let manifest = load_json(&root.join("oya/developer-sdk/manifest.json"));
+    let manifest = load_json(&root.join("marketplace/developer-sdk/manifest.json"));
     let ips = manifest["ips"].as_array().expect("developer-sdk ips array");
     let mut ids = BTreeSet::new();
 
@@ -666,7 +666,7 @@ fn developer_sdk_ip_file_bindings_are_exact_implementation_plans() {
         let file = file
             .as_str()
             .unwrap_or_else(|| panic!("developer-sdk IP {id} file must be a string"));
-        let expected_path = format!("oya/developer-sdk/implementation-plans/{id}.md");
+        let expected_path = format!("marketplace/developer-sdk/implementation-plans/{id}.md");
         assert_eq!(
             file, expected_path,
             "developer-sdk IP {id} may bind only its exact implementation-plan artifact"

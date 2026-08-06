@@ -1,0 +1,73 @@
+{
+  "id": "REORG-MARKETPLACE-PLUGIN-SDK-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T20:10:48Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate oya/plugin-app-store and oya/developer-sdk surfaces into registered marketplace capability home as marketplace/plugin-app-store and marketplace/developer-sdk; retarget consumers; package marketplace residual YAML; burn dual-home under oya/.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/ for these residuals",
+  "parallel_to": "PR #1580 burns oya/marketplace dual-home only; does not touch plugin-app-store or developer-sdk",
+  "moves": [
+    {
+      "from": "oya/plugin-app-store",
+      "to": "marketplace/plugin-app-store"
+    },
+    {
+      "from": "oya/developer-sdk",
+      "to": "marketplace/developer-sdk"
+    }
+  ],
+  "consumers_retargeted": [
+    "marketplace/plugin-app-store/manifest.json",
+    "marketplace/developer-sdk/manifest.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/reachability-registry.json",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+    "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs",
+    "ci/facade/service-tier-metadata/src/tests.rs",
+    "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "marketplace/BUCK",
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json",
+    "ci/facade/service-tier-metadata/tests/tier_field_coverage.rs"
+  ],
+  "net_path_debt": "negative under oya/{plugin-app-store,developer-sdk} (deleted); marketplace/ gains residual product artifacts under capability home",
+  "packaging": "marketplace/BUCK corpus_yaml_facts_shards mirrors oya/BUCK so residual YAML remains build-graph packaged",
+  "census": {
+    "oya_yaml_files": {
+      "before": 4103,
+      "after": 4008,
+      "delta": -95
+    },
+    "product_protocol_expected_total": {
+      "before": 101,
+      "after": 89,
+      "delta": -12
+    },
+    "product_protocol_live_count": {
+      "before": 60,
+      "after": 58,
+      "delta": -2
+    },
+    "reviewed_overlay_manifests": "cleared (10 pack overlays left oya/ inventory with residual rehome; not under governed_roots oya+cloud)",
+    "unpackaged_yaml_files": {
+      "before": 433,
+      "after": 399,
+      "delta": -34,
+      "note": "marketplace/BUCK packages residual + previously unpackaged marketplace YAML"
+    },
+    "service_tier_min_expected_manifests": {
+      "before": 95,
+      "after": 89,
+      "delta": -6
+    }
+  },
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates; crates already live under marketplace/{core,facade,observability})",
+    "no merge into flat marketplace/ root (would collide with #1580 oya/marketplace residual layout)",
+    "no product behavior change"
+  ]
+}

@@ -97,7 +97,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/developer-sdk/contracts/proto/developer-sdk.proto"
+        "marketplace/developer-sdk/contracts/proto/developer-sdk.proto"
       ]
     }
   },

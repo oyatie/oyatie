@@ -84,7 +84,7 @@
       "oya",
       "cloud"
     ],
-    "expected_total": 101,
+    "expected_total": 89,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
       "oya/analytics/manifest.json",
@@ -119,18 +119,7 @@
       "oya/warehouse/manifest.json",
       "oya/whiteboard/manifest.json"
     ],
-    "reviewed_overlay_manifests": [
-      "oya/developer-sdk/packs/eu/manifest.json",
-      "oya/developer-sdk/packs/kr/manifest.json",
-      "oya/developer-sdk/packs/us-financial/manifest.json",
-      "oya/developer-sdk/packs/us-healthcare/manifest.json",
-      "oya/developer-sdk/packs/us-public-sector/manifest.json",
-      "oya/plugin-app-store/packs/eu/manifest.json",
-      "oya/plugin-app-store/packs/kr/manifest.json",
-      "oya/plugin-app-store/packs/us-financial/manifest.json",
-      "oya/plugin-app-store/packs/us-healthcare/manifest.json",
-      "oya/plugin-app-store/packs/us-public-sector/manifest.json"
-    ],
+    "reviewed_overlay_manifests": [],
     "legacy_review_rule": "Named legacy manifests remain migration inventory only. They receive no protocol exemption: shape-independent checks still reject internal gRPC outside HTTP/2 and FlatBuffers without the benchmark-gated derived-adapter posture.",
     "public_proto_posture": "No public_surface_files.proto carrier is permitted, including in legacy manifests. Every Buck-corpus Proto is internal-only and marker-classified; live Proto service contracts must also be declared through contracts.internal_grpc. Named reviewed-legacy service contracts remain migration inventory, receive no content exemption, and do not imply runtime readiness."
   },

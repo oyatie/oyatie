@@ -109,7 +109,7 @@ fn legacy_external_facing_tier_fails() {
     let m = json!({ "microservice": "developer-sdk", "tier": "external-facing", "tier_subtype": "product-developer-sdk", "dr_tier": "T1" });
     let c = codes(&evaluate_keyed(
         &policy(),
-        &observed(vec![("oya/developer-sdk/manifest.json", m)]),
+        &observed(vec![("marketplace/developer-sdk/manifest.json", m)]),
     ));
     assert!(c.contains("TFC-TIER-TYPE-OVERLOAD"), "{c:?}");
 }
