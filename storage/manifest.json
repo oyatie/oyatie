@@ -8,7 +8,7 @@
     "stratum": "forward-declared",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
   },
   "version": "0.1.0",
   "owner": "axis-cloud-storage",
@@ -32,8 +32,8 @@
   ],
   "contracts": {
     "openapi": [
-      "contracts/openapi/storage-object-v1.yaml",
-      "contracts/openapi/storage-block-v1.yaml"
+      "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
+      "contracts/openapi/cloud/cloud-storage-block-v1.yaml"
     ],
     "asyncapi": [
       "storage/contracts/asyncapi/cloud-storage-design-events.yaml"
@@ -298,8 +298,8 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": [
-        "contracts/openapi/storage-object-v1.yaml",
-        "contracts/openapi/storage-block-v1.yaml"
+        "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
+        "contracts/openapi/cloud/cloud-storage-block-v1.yaml"
       ]
     },
     "non_claim": "Root OpenAPI contracts are code-tested for current object/block boundary behavior, but no per-tenant API version pinning runtime is implemented by CS-CLOUD-STORAGE-001."
