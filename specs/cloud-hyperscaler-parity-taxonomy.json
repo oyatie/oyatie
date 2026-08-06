@@ -1050,7 +1050,7 @@
         "specs/cloud-control-plane-canonical.json",
         "specs/cloud-resource-catalog-target.json",
         "specs/hyperscaler-gates.json",
-        "cloud/cloud-iam/feature-parity-matrix-2026-05-20.md"
+        "iam/cloud-iam/feature-parity-matrix-2026-05-20.md"
       ],
       "cannot_claim_yet": [
         "feature parity with AWS/GCP/Azure/OCI",

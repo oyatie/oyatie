@@ -483,7 +483,7 @@ bao kv put secret/cloud-k8s/csi/file \
     export_root="<FILE_EXPORT_ROOT>" \
     key_id="<FILE_KEY_ID>"
 
-# cloud-iam SVID operator join token consumed by cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml
+# cloud-iam SVID operator join token consumed by iam/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml
 bao kv put secret/cloud-iam/pdp-svid-operator/join-token \
     join-token="<SVID_OPERATOR_JOIN_TOKEN>"
 ```

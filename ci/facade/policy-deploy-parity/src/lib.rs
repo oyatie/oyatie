@@ -242,7 +242,7 @@ fn walk_for_suffix(
 }
 
 /// The capability prefix of a deployed ConfigMap path: the path with the `suffix` (and the joining
-/// `/`) removed (`oya/identity/iac/k8s/helm/templates/cedar.yaml` -> `oya/identity`).
+/// `/`) removed (`iam/identity/iac/k8s/helm/templates/cedar.yaml` -> `iam/identity`).
 fn capability_of(rel: &str, suffix: &str) -> String {
     rel.strip_suffix(suffix)
         .map(|head| head.trim_end_matches('/').to_owned())

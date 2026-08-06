@@ -17,12 +17,10 @@ use ci_corpus_index_coverage::{
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
 const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
-const NESTED_REPAIR_PACKAGES: [&str; 6] = [
-    "oya/oya-authn-device-firmware",
+const NESTED_REPAIR_PACKAGES: [&str; 4] = [
     "oya/oya-billing",
     "oya/oya-cost",
     "oya/oya-flags",
-    "oya/oya-identity",
     "oya/oya-meter",
 ];
 
