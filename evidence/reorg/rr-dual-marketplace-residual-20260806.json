@@ -1,0 +1,28 @@
+{
+  "id": "REORG-DUAL-MARKETPLACE-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T15:46:01Z",
+  "origin_dev": "1ff54ddc5",
+  "summary": "Rehome residual zero-crate oya/marketplace surface into registered marketplace/ home; retarget consumers; delete oya/marketplace dual-home.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/",
+  "moves": [
+    {
+      "from": "oya/marketplace/{contracts,iac,catalog,capabilities,cedar,dashboards,decisions,dpia,IPs,policies,runbooks,scorecards,manifest.json,...}",
+      "to": "marketplace/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "cloud/cloud-billing/manifest.json",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/graphql-usage-policy/tests/no_graphql_without_adr.rs",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "marketplace/manifest.json"
+  ],
+  "net_path_debt": "negative under oya/marketplace (deleted); marketplace/ gains residual product artifacts that belong at capability home",
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates)",
+    "no billing behavior change"
+  ]
+}

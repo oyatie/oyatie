@@ -52,7 +52,7 @@
       "oya/learning-management/iac/k8s/helm/templates/cedar.yaml",
       "oya/mail/iac/k8s/helm/templates/cedar.yaml",
       "oya/marketing-automation/iac/k8s/helm/templates/cedar.yaml",
-      "oya/marketplace/iac/k8s/helm/templates/cedar.yaml",
+      "marketplace/iac/k8s/helm/templates/cedar.yaml",
       "oya/meet/iac/k8s/helm/templates/cedar.yaml",
       "oya/messenger/iac/k8s/helm/templates/cedar.yaml",
       "oya/notes/iac/k8s/helm/templates/cedar.yaml",

@@ -986,9 +986,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
     },
-    "oya/marketplace/manifest.json": {
-      "service": "oya/marketplace",
-      "manifest": "oya/marketplace/manifest.json",
+    "marketplace/manifest.json": {
+      "service": "marketplace",
+      "manifest": "marketplace/manifest.json",
       "capability": "marketplace",
       "tier": "substrate",
       "tier_subtype": "substrate-marketplace-data",
