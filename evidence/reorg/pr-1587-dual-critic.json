@@ -1,0 +1,51 @@
+{
+  "pr": 1587,
+  "head": "f94f70898d9d22bcd23eb699f4dcdd77332321c5",
+  "title": "refactor(reorg): burn-down oya/feature-flags residual into flags/",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "independence": "same_family",
+  "real": true,
+  "critics": [
+    {
+      "id": "A",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": ["cartesian_doubt", "red_team", "essentialism"],
+      "path": "evidence/reorg/pr-1587-critic-a.json"
+    },
+    {
+      "id": "B",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": ["contrarian", "systems_thinking", "blast_radius", "chesterton_fence"],
+      "path": "evidence/reorg/pr-1587-critic-b.json"
+    }
+  ],
+  "summary": "Dual-critic APPROVE after packaging re-anchor: flags/BUCK corpus_yaml_facts_shards green; corpus-index-coverage (unpackaged 426, oya 4068) and product-protocol (expected_total 100, live 59) pass.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "flags product crate implementation",
+    "cross-model critic independence",
+    "oya-ci-required green at review time"
+  ],
+  "evidence": [
+    "evidence/reorg/rr-dual-flags-residual-20260806.json",
+    "flags/BUCK"
+  ],
+  "verify": {
+    "corpus_index_coverage": "19/19",
+    "product_protocol": "12/12",
+    "unpackaged_yaml_files": 426,
+    "oya_yaml_files": 4068,
+    "manifest_expected_total": 100,
+    "live_v1_manifests": 59
+  },
+  "reviewed_at": "2026-08-06T18:54Z",
+  "reviewer": "w2-packaging-dual-critic",
+  "subject_head": "f94f70898d9d22bcd23eb699f4dcdd77332321c5",
+  "note": "dual-critic.head is packaging re-anchor subject; PR tip may include this evidence package"
+}

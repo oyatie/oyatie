@@ -1,0 +1,19 @@
+{
+  "pr": 1587,
+  "head": "f94f70898d9d22bcd23eb699f4dcdd77332321c5",
+  "critic": "B",
+  "verdict": "APPROVE",
+  "lenses": ["contrarian", "systems_thinking", "blast_radius", "chesterton_fence"],
+  "findings": [],
+  "checked": [
+    "nested-repair package list dropped oya/oya-flags only; face counts [1,2,2,2,2] for five remaining",
+    "uncovered package ceiling unchanged at 18 (no false progress on package indexing)",
+    "manifest inventory shrink is intentional rehome out of governed oya/cloud roots into flags/",
+    "blast radius limited to measured packaging ratchets + residual rehome paths"
+  ],
+  "commands": [
+    "buck2 test //ci/facade/corpus-index-coverage:ci-corpus-index-coverage-gate -> 19/19",
+    "buck2 test //ci/facade/product-protocol-policy:ci-product-protocol-policy-gate -> 12/12"
+  ],
+  "reviewed_at": "2026-08-06T18:54Z"
+}
