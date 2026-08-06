@@ -492,7 +492,6 @@ fn is_valid_dns_label(label: &str) -> bool {
 mod tests {
     use super::*;
     use serde::Deserialize;
-    use std::{env, fs, path::PathBuf};
 
     const CONTRACT_SPEC: &str = include_str!("../endpoint-transport-profile.contract.json");
 
@@ -1128,23 +1127,12 @@ mod tests {
     fn adr_0354() -> String {
         // Historical §D-7 JSON example markers remain on the archived 0354 body;
         // live apex 0705 consolidates doctrine without those HTML comment anchors.
-        fs::read_to_string(
-            repo_root().join(
-                "docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md",
-            ),
+        // include_str keeps the example hermetic under Buck sandboxes that may not
+        // materialize the full docs tree at runtime.
+        include_str!(
+            "../../../../docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md"
         )
-        .expect("archived ADR-0354 example readable")
+        .to_string()
     }
 
-    fn repo_root() -> PathBuf {
-        env::current_dir()
-            .expect("current dir")
-            .ancestors()
-            .find(|candidate| {
-                candidate.join("specs/masterplan.json").is_file()
-                    && candidate.join("HANDOFF.md").is_file()
-            })
-            .expect("repo root")
-            .to_path_buf()
-    }
 }
