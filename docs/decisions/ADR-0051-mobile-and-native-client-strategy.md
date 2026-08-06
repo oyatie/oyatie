@@ -1,6 +1,6 @@
 ---
 id: ADR-0051
-status: accepted
+status: Accepted
 doc_status: published
 amended_by: [ADR-0632]
 ---

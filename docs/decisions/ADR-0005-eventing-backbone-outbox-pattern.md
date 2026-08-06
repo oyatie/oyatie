@@ -1,6 +1,6 @@
 ---
 id: ADR-0005
-status: proposed
+status: Proposed
 doc_status: published
 superseded_by: [ADR-0557]
 ---

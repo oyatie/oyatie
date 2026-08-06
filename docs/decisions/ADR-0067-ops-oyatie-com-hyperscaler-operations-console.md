@@ -1,6 +1,6 @@
 ---
 id: ADR-0067
-status: accepted
+status: Accepted
 doc_status: published
 sunset_topic: adr-0067-ops-console-protected-contracts
 sunset_milestone: doctrine-not-time-bounded
