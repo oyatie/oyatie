@@ -1,0 +1,72 @@
+{
+  "id": "REORG-DUAL-DATA-BURNDOWN",
+  "class": "delete",
+  "date": "2026-08-06T17:40:16Z",
+  "origin_dev": "1ff54ddc5",
+  "branch": "agent/reorg-dual-data-20260806",
+  "durable_home": "data/",
+  "summary": "Rehome residual zero-crate dual-home surfaces (cloud/cloud-data, oya/ontology, oya/data-pipeline, oya/data-warehouse, oya/analytics) into data/ with collision-safe subdirs; preserve existing data/{core,facade,ports,ops,observability} crates; retarget consumers; delete dual-home debt paths.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/ and cloud/ for data residual",
+  "moves": [
+    {
+      "from": "cloud/cloud-data/{manifest,contracts,iac,capabilities,IPs,runbooks,...}",
+      "to": "data/cloud-data/<same>"
+    },
+    {
+      "from": "oya/ontology/{manifest,contracts,iac,catalog,capabilities,...}",
+      "to": "data/ontology/<same>"
+    },
+    {
+      "from": "oya/data-pipeline/{manifest,contracts,iac,catalog,capabilities,...}",
+      "to": "data/data-pipeline/<same>"
+    },
+    {
+      "from": "oya/data-warehouse/{manifest,contracts,iac,catalog,capabilities,...}",
+      "to": "data/data-warehouse/<same>"
+    },
+    {
+      "from": "oya/analytics/{manifest,contracts,iac,catalog,capabilities,...}",
+      "to": "data/analytics/<same>"
+    }
+  ],
+  "collision_policy": "reshape into data/<source-leaf>/ subdirs so residual tops (manifest.json, README, capabilities/, iac/, …) do not collide with each other or with existing data/{core,facade,ports,ops,observability}",
+  "preserved": [
+    "data/core/* (23 data crates remain)",
+    "data/facade/*",
+    "data/ports/*",
+    "data/ops/*",
+    "data/observability/slos/*"
+  ],
+  "consumers_retargeted": [
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "specs/cloud-observability-slo-evidence-contract.json",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+    "ci/facade/graphql-usage-policy/tests/no_graphql_without_adr.rs",
+    "data/ports/analytics-api/Cargo.toml",
+    "data/cloud-data/manifest.json",
+    "data/ontology/manifest.json"
+  ],
+  "net_path_debt": "negative under oya/{ontology,data-pipeline,data-warehouse,analytics} and cloud/cloud-data (deleted); data/ gains residual product artifacts under collision-safe subdirs",
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates; crates already homed by MOVE-16)",
+    "no synthetic unit-test fixture path rewrites (module-membership/workspace-members/graphql unit fixtures invent temp trees)",
+    "AUTHZ-004 historical dead path oya/analytics cedar remains documented-as-deleted"
+  ],
+  "verification": {
+    "debt_paths_absent": [
+      "cloud/cloud-data",
+      "oya/ontology",
+      "oya/data-pipeline",
+      "oya/data-warehouse",
+      "oya/analytics"
+    ],
+    "data_crate_count": 23,
+    "product_protocol_expected_total": 96,
+    "product_protocol_live_v1": 58
+  }
+}

@@ -38,19 +38,19 @@
   ],
   "contracts": {
     "openapi": [
-      "cloud/cloud-data/contracts/openapi/cloud-data.yaml"
+      "data/cloud-data/contracts/openapi/cloud-data.yaml"
     ],
     "asyncapi": [
-      "cloud/cloud-data/contracts/asyncapi/cloud-data-design-events.yaml"
+      "data/cloud-data/contracts/asyncapi/cloud-data-design-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-data/contracts/proto/cloud-data-design.proto"
+        "data/cloud-data/contracts/proto/cloud-data-design.proto"
       ]
     },
-    "contract_status": "cloud/cloud-data OpenAPI scaffold has intentionally empty paths; design AsyncAPI/proto contracts are metadata-only review evidence and do not prove runtime broker/gRPC service readiness"
+    "contract_status": "data/cloud-data OpenAPI scaffold has intentionally empty paths; design AsyncAPI/proto contracts are metadata-only review evidence and do not prove runtime broker/gRPC service readiness"
   },
   "capabilities": [
     {
@@ -325,7 +325,7 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": [
-        "cloud/cloud-data/contracts/openapi/cloud-data.yaml"
+        "data/cloud-data/contracts/openapi/cloud-data.yaml"
       ]
     },
     "non_claim": "The OpenAPI file has no paths; no tenant-facing API version pinning is implemented by CS-CLOUD-DATA-001."
@@ -347,6 +347,6 @@
   "explicit_non_claims": [
     "No live Postgres, Citus, pgvector, Valkey, Kafka, ClickHouse, Iceberg, Cassandra, Milvus, or Temporal service is provisioned.",
     "No database schemas, roles, RLS policies, Citus distributed tables, shards, pgbouncer pools, migrations, WAL archives, backups, restores, DR drills, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, or audit-chain persistence is implemented.",
-    "Legacy Markdown benchmark/parity/runbook files under cloud/cloud-data remain planning/prose and are not readiness evidence for CS-CLOUD-DATA-001."
+    "Legacy Markdown benchmark/parity/runbook files under data/cloud-data remain planning/prose and are not readiness evidence for CS-CLOUD-DATA-001."
   ]
 }

@@ -2567,7 +2567,7 @@
       },
       "slo_profile": {
         "openslo_required": true,
-        "artifact_pattern": "cloud/cloud-data/slos/*.openslo.yaml",
+        "artifact_pattern": "data/observability/slos/cloud-data/*.openslo.yaml",
         "runtime_status": "evidence_required",
         "required_sli_types": [
           "availability",
@@ -2726,7 +2726,7 @@
       },
       "slo_profile": {
         "openslo_required": true,
-        "artifact_pattern": "cloud/cloud-data/slos/*.openslo.yaml",
+        "artifact_pattern": "data/observability/slos/cloud-data/*.openslo.yaml",
         "runtime_status": "evidence_required",
         "required_sli_types": [
           "availability",
@@ -2885,7 +2885,7 @@
       },
       "slo_profile": {
         "openslo_required": true,
-        "artifact_pattern": "cloud/cloud-data/slos/*.openslo.yaml",
+        "artifact_pattern": "data/observability/slos/cloud-data/*.openslo.yaml",
         "runtime_status": "evidence_required",
         "required_sli_types": [
           "availability",
