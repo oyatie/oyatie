@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "b72d344c2861875d284779811ab741ad39736edf",
+  "head": "69ed3f2fcb0b9f2c510a33edf40faa8b114bcc45",
   "prefer_cross_model": true,
   "independence_note": "cross_model preferred; same_family recorded honestly for this W2 session",
   "critics": [
@@ -50,11 +50,12 @@
   ],
   "summary": "APPROVE soft_red fix chain: RUSTUP_HOME cygpath -m, CRLF-tolerant parser identity, census contract path alignment. same_family honest.",
   "blockers": [],
-  "reviewed_at": "2026-08-06T11:36Z",
+  "reviewed_at": "2026-08-06T11:37Z",
   "reviewer": "implement-claimed-lane-w2",
   "soft_red_addressed": {
     "check": "gate \u00b7 platform smoke (windows-amd64 soft)",
     "fix": "CRLF-tolerant parser source identity + eol=lf + CENSUS_DECISION_PATH contract",
     "prior_rustup": "infra/ci/install-buck2.sh cygpath -m RUSTUP_HOME"
-  }
+  },
+  "tip_note": "exact tip after pin commit"
 }
