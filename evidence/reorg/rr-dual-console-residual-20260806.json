@@ -1,0 +1,42 @@
+{
+  "id": "REORG-DUAL-CONSOLE-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:12:51Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-CONSOLE-BURNDOWN",
+  "summary": "Rehome residual zero-crate oya/ops-dashboard-control-center surface into registered console/ home; retarget consumers; delete oya/ops-dashboard-control-center dual-home.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/",
+  "durable_home": "console/",
+  "debt": "oya/ops-dashboard-control-center/",
+  "moves": [
+    {
+      "from": "oya/ops-dashboard-control-center/{contracts,iac,catalog,capabilities,cedar,dashboards,dpia,IPs,policy,runbooks,scorecards,slos,manifest.json,...}",
+      "to": "console/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "console/manifest.json"
+  ],
+  "file_counts": {
+    "debt_files_moved": 100,
+    "console_files_before": 29,
+    "console_files_after": 129
+  },
+  "net_path_debt": "negative under oya/ops-dashboard-control-center (deleted); console/ gains residual product artifacts that belong at capability home",
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates)",
+    "no app/ops-console Batch-5 vertical composition (ADR-0615 pending_relocations)",
+    "no ops-dashboard runtime behavior change"
+  ],
+  "path_disjoint_from": [
+    "marketplace/",
+    "observability/",
+    "intelligence/",
+    "tools/"
+  ]
+}
