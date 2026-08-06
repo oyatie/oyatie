@@ -120,6 +120,7 @@ pub const ALLOWED_ADR_STATUSES: &[&str] = &[
 /// Top-level subdirectory names that are canonical under `docs/` (ADR-0388).
 pub const CANONICAL_DOCS_SUBDIRS: &[&str] = &[
     "decisions",
+    "adr-archive",
     "ideas",
     "conventions",
     "machine-readable",
