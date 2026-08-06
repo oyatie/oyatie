@@ -3,7 +3,7 @@
   "verdict": "APPROVE",
   "independence": "same_family",
   "real": true,
-  "head": "6504a88d49bacd74dc96483891bb3dd23888653d",
+  "head": "2d6d13446f02bceb905c2f9886e3ee0f3619fa26",
   "prefer_cross_model": true,
   "independence_note": "A/B xai same_family honest; require_cross_model_critics=false",
   "critics": [
