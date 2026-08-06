@@ -1,0 +1,92 @@
+{
+  "band": [600, 609],
+  "reviewed": [
+    "ADR-0600",
+    "ADR-0603",
+    "ADR-0604",
+    "ADR-0605",
+    "ADR-0606",
+    "ADR-0607",
+    "ADR-0608",
+    "ADR-0609"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0600",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed; not implement authority. Higher ADR-0611 (Proposed) depends_on and references allowlist DATA only; no Accepted supersedes/amends. Leave Proposed (do not mass-Accept).",
+      "higher_adrs_cited": ["ADR-0611"]
+    },
+    {
+      "adr": "ADR-0603",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed AUTH-005 CRM fail-closed authz remediation. No higher ADR supersedes, amends, or replaces this mechanism. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0604",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Accepted ADR-0616 frontmatter amends [ADR-0604, ADR-0614]; reverse edge missing on 0604 (0614 already has amended_by [ADR-0616]). Status remains Proposed — 0616 amends, does not supersede. Do not Accept.",
+      "higher_adrs_cited": ["ADR-0616"]
+    },
+    {
+      "adr": "ADR-0605",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed supply-chain audit gate. Cited in Accepted ADR-0638 depends_on (plan-lag on 0638 side) and related peers; no supersedes/amends of 0605. Leave Proposed (admission queue D4).",
+      "higher_adrs_cited": ["ADR-0637", "ADR-0638"]
+    },
+    {
+      "adr": "ADR-0606",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed operator secret-bootstrap RBAC gate. Same class as 0605: depends_on from Accepted 0638 only; no supersedes/amends. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0637", "ADR-0638"]
+    },
+    {
+      "adr": "ADR-0607",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed K8s control-plane fail-closed Cedar authz. Only related from Accepted 0638; no supersedes/amends. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0638"]
+    },
+    {
+      "adr": "ADR-0608",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed Cedar deploy-parity gate. depends_on from Accepted 0638 (plan-lag); no supersedes/amends of 0608. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0637", "ADR-0638"]
+    },
+    {
+      "adr": "ADR-0609",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed masterplan v2 + fabric drive-loop. Already correctly lists amended_by [ADR-0619] matching Accepted ADR-0619 amends. No supersession. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0610", "ADR-0619", "ADR-0637", "ADR-0638"]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0604-de-commit-scm-facts-boundary-snapshot.md",
+    "docs/decisions/_disposition/band-0600-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0600",
+    "ADR-0603",
+    "ADR-0605",
+    "ADR-0606",
+    "ADR-0607",
+    "ADR-0608",
+    "ADR-0609"
+  ]
+}

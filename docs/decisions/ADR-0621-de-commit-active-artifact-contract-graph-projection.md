@@ -1,7 +1,7 @@
 ---
 id: ADR-0621
 title: "De-commit the active-artifact-contract graph projection"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: pending-qualified-authority
 date: 2026-07-24

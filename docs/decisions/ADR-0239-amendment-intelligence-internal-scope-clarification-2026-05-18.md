@@ -1,3 +1,8 @@
+---
+id: ADR-0239
+status: Accepted
+---
+
 # ADR-0239: Foundry Scope Clarification (Internal-Only Amendment)
 
 - **Status:** Accepted (amendment)

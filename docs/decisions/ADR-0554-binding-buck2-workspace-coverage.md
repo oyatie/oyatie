@@ -1,7 +1,7 @@
 ---
 id: ADR-0554
 title: "Binding buck2 coverage for the full workspace: affected-set lane with fail-closed full-run escalation"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-12

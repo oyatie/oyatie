@@ -1,7 +1,7 @@
 ---
 id: ADR-0605
 title: "Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-28

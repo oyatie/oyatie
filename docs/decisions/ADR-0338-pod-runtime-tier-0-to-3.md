@@ -1,7 +1,7 @@
 ---
 id: ADR-0338
 title: Pod runtime tier 0..3 (Kata + Cloud Hypervisor for tenant-untrusted + tenant-data substrate; runc for first-party + edge)
-status: Proposed
+status: Rejected
 planning_impact: true
 date: 2026-05-21
 owner_team:

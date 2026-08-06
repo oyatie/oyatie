@@ -1,7 +1,7 @@
 ---
 id: ADR-0606
 title: "Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-28

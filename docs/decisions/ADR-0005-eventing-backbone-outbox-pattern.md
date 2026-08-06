@@ -2,7 +2,8 @@
 id: ADR-0005
 status: Superseded
 doc_status: published
-superseded_by: [ADR-557]
+superseded_by: [ADR-0557]
+amended_by: [ADR-0350]
 ---
 
 # ADR-0005: Eventing backbone on Apache Kafka with outbox pattern, CloudEvents envelope, and per-tenant per-cell partitioning

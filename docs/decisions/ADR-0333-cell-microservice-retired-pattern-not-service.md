@@ -25,6 +25,8 @@ amends:
   - ADR-0248
   - ADR-0138
   - ADR-0131
+amended_by:
+  - ADR-0351
 related:
   - ADR-0248-amazon-shape-cellular-architecture.md
   - ADR-0138-intelligence-six-path-deprecation.md

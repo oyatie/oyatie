@@ -1,3 +1,8 @@
+---
+id: ADR-0155
+status: Accepted
+---
+
 # ADR-0155: Per-Tenant Resource Quotas
 
 - Status: Accepted

@@ -1,0 +1,128 @@
+{
+  "band": [110, 119],
+  "reviewed": [
+    "ADR-0111",
+    "ADR-0114",
+    "ADR-0115",
+    "ADR-0116",
+    "ADR-0117",
+    "ADR-0118",
+    "ADR-0119"
+  ],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "adr": "ADR-0110",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0363"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    },
+    {
+      "adr": "ADR-0112",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0363"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    },
+    {
+      "adr": "ADR-0113",
+      "status": "Superseded",
+      "superseded_by": ["ADR-0363"],
+      "note": "Already live-resolved; outside Accepted/Proposed review set"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0111",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed; not implement authority. Accepted ADR-0363 relates (does not supersede). Accepted ADR-0513 (now Superseded by 0515) prose-folds projected-merge into oya-ci-tide; Accepted ADR-0515 lists ADR-0111 as related and does not list it in supersedes (supersedes 0124/0513 instead). Do not invent supersession; do not mass-Accept. Leave Proposed (PROPOSED_REVIEW_QUEUE).",
+      "higher_adrs_cited": [
+        "ADR-0124",
+        "ADR-0363",
+        "ADR-0511",
+        "ADR-0513",
+        "ADR-0515"
+      ]
+    },
+    {
+      "adr": "ADR-0114",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed canary observability gate + rollback. Accepted ADR-0139 cites it as precedent/concrete implementation path without supersedes/amends edge. ADR-0186/0341 cover related canary/cohort and promotion gates without superseding 0114. Leave Proposed (do not invent supersession; do not Accept).",
+      "higher_adrs_cited": [
+        "ADR-0139",
+        "ADR-0186",
+        "ADR-0341"
+      ]
+    },
+    {
+      "adr": "ADR-0115",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Flat singular registry/ remains live machine-readable home (still used by Accepted ADR-0562 cluster catalog re-keys). ADR-0131 body 'extends' registry aggregation model but frontmatter amends only ADR-0119, not 0115. No higher Accepted lists supersedes/amends ADR-0115. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0131",
+        "ADR-0132",
+        "ADR-0562"
+      ]
+    },
+    {
+      "adr": "ADR-0116",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "normalize_amended_by_id + add_supersedes",
+      "reason": "Accepted ADR-0363 frontmatter amends [ADR-0116] (manual-bootstrap seam removed). Reverse edge existed as non-canonical ADR-363 from deterministic hygiene; normalize to ADR-0363. Body/block claim Supersedes ADR-0054 was missing from YAML frontmatter; add supersedes: [ADR-0054] (0054 already points superseded_by ADR-0116). Status stays Accepted with amended_by (KEEP_ACCEPTED_READ_WITH_AMENDS); external-tooling retirement still live under 0363/0515 chain. Do not mark Superseded.",
+      "higher_adrs_cited": [
+        "ADR-0054",
+        "ADR-0363",
+        "ADR-0513",
+        "ADR-0515"
+      ]
+    },
+    {
+      "adr": "ADR-0117",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "One-time hygiene decision (.audit/ gitignore + kyverno admission consolidation). No higher ADR supersedes or amends ADR-0117 (higher false-positive cites are different historical ADR-0117 numbers in other lineages). Keep Accepted.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0118",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Retirement of archive-orphan fitness lane remains terminal fact (crates/tools removed; ADR-0052 superseded_by 0118). Context mentions Foundry pipeline historical framing but decision body is the retirement, not the VCS substrate. No higher ADR supersedes/amends 0118. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0052",
+        "ADR-0107"
+      ]
+    },
+    {
+      "adr": "ADR-0119",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Flat specs/ root remains binding for cross-cutting specs. Already correctly lists amended_by ADR-0131 matching Accepted ADR-0131 amends (partial product-owned-spec colocation only). No higher Accepted supersedes 0119. Keep Accepted (read with 0131 amends).",
+      "higher_adrs_cited": [
+        "ADR-0131",
+        "ADR-0512",
+        "ADR-0562"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
+    "docs/decisions/_disposition/band-0110-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0111",
+    "ADR-0114",
+    "ADR-0115",
+    "ADR-0117",
+    "ADR-0118",
+    "ADR-0119"
+  ]
+}

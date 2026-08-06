@@ -1,7 +1,7 @@
 ---
 id: ADR-0627
 title: "Enforce ADR-0562's facade→core layering rule, keyed to survive the remaining capability migration"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-07-26

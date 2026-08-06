@@ -1,6 +1,6 @@
 ---
 id: ADR-0134
-status: Proposed
+status: Rejected
 deciders: council-architecture, ops-sre-reliability, workflow-studio-product-council
 date: 2026-05-17
 owner: ops-sre-reliability

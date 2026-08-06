@@ -1,7 +1,7 @@
 ---
 adr: ADR-0543
 title: Commission the cloud-kms K8s operator (G002 slice 2)
-status: Proposed
+status: Rejected
 date: 2026-06-10
 deciders: founder (in-session sanction 2026-06-10), agent-leader
 related:

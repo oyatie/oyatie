@@ -1,6 +1,6 @@
 ---
 id: ADR-0009
-status: Proposed
+status: Rejected
 doc_status: published
 ---
 

@@ -1,3 +1,8 @@
+---
+id: ADR-0151
+status: Accepted
+---
+
 # ADR-0151: X-Request-Id Propagation
 
 - Status: Accepted

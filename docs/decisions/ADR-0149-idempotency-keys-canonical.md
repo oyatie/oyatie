@@ -1,3 +1,8 @@
+---
+id: ADR-0149
+status: Accepted
+---
+
 # ADR-0149: Idempotency Keys Canonical
 
 - Status: Accepted

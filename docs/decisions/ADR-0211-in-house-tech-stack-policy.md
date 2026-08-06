@@ -1,3 +1,8 @@
+---
+id: ADR-0211
+status: Accepted
+---
+
 # ADR-0211 — In-House Tech Stack Policy
 
 - **Status:** Accepted

@@ -1,7 +1,7 @@
 ---
 id: ADR-0580
 title: "corpus substrate Phase -1: the conservative-v1 syn-over-source AST extractor spike"
-status: Proposed
+status: Rejected
 planning_impact: true
 deciders: founder
 date: 2026-06-22

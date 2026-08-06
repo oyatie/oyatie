@@ -1,7 +1,7 @@
 ---
 id: ADR-0597
 title: "oya-ci-materializer-kernel (E1): universal generated-artifact lifecycle — pure planner kernel"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

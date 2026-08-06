@@ -1,7 +1,7 @@
 ---
 id: ADR-0339
 title: Shared IaC module library (`microservices/cloud-iac/modules/<context>/<primitive>/` is canonical; per-µservice `iac/<context>/main.tf` is a thin wrapper)
-status: Proposed
+status: Rejected
 planning_impact: true
 date: 2026-05-21
 owner_team:

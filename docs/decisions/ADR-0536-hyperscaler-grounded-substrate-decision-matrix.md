@@ -1,7 +1,7 @@
 ---
 id: ADR-0536
 title: "Hyperscaler-grounded substrate decision matrix (FD-001 + cloud substrate) — sixteen normative domain decisions, each with cited hyperscaler precedent and rejected anti-patterns"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-09

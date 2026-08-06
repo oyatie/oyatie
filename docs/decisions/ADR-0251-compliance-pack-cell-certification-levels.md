@@ -1,6 +1,6 @@
 ---
 id: ADR-0251
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -22,6 +22,7 @@ amends:
   - ADR-0144-eu-ai-act-graduated-risk-tier-model.md (positions EU AI Act tiers inside the EU-AI-Act compliance pack)
   - ADR-0150-cedar-policy-engine.md (introduces signed-fragment-bundle scope `pack/<pack-id>/`)
 superseded_by: []
+amended_by: [ADR-0329]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md

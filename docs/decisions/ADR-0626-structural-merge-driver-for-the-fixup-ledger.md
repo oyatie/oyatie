@@ -1,7 +1,7 @@
 ---
 id: ADR-0626
 title: "Resolve fixup-ledger merges structurally instead of by hand"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-07-27

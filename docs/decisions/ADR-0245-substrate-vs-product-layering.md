@@ -1,6 +1,6 @@
 ---
 id: ADR-0245
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -22,7 +22,7 @@ amends:
   - ADR-0132-product-platform-and-bundle-dissolution.md (adds tier classification to the flat-microservice forward-policy)
   - ADR-0145-inter-microservice-communication-reform.md (tightens the three invariants with cross-tier direction rules)
 superseded_by: []
-amended_by: [ADR-0635]
+amended_by: [ADR-0280, ADR-0635]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0028-cloud-microservice-architecture.md

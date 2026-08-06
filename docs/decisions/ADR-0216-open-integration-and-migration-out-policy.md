@@ -1,3 +1,8 @@
+---
+id: ADR-0216
+status: Accepted
+---
+
 # ADR-0216: Open Integration and Migration-Out Policy
 
 - **Status:** Accepted

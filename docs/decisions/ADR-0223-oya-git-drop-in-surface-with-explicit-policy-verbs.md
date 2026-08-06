@@ -1,6 +1,6 @@
 ---
 id: ADR-0223
-status: Accepted
+status: Superseded
 date: 2026-05-18
 deciders:
   - council-architecture
@@ -10,6 +10,8 @@ doc_class: Architecture-Decision-Record
 purpose: >
   Make `oya git <git-subcommand>` a true drop-in git surface with
   audit-ledger emission while keeping policy lifecycle verbs explicit.
+supersedes: []
+superseded_by: [ADR-0363]
 related:
   - ADR-0111-merge-queue-projected-merge-state.md
   - ADR-0116-retire-external-agent-coordination-tooling.md

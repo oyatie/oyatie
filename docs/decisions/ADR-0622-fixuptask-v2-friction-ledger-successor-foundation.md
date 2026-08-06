@@ -1,7 +1,7 @@
 ---
 id: ADR-0622
 title: "Define a nonbinding FixupTask v2 successor foundation"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: []
 date: 2026-07-24

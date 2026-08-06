@@ -1,7 +1,7 @@
 ---
 id: ADR-0573
 title: "Fail-closed authz for the Cloud KMS crypto control plane (AUTH-005 / C5 remediation)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-23

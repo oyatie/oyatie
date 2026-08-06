@@ -1,3 +1,8 @@
+---
+id: ADR-0200
+status: Accepted
+---
+
 # ADR-0200 — WASM runtime canonical: Wasmtime
 
 - Status: Accepted

@@ -1,6 +1,6 @@
 ---
 id: ADR-0243
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:

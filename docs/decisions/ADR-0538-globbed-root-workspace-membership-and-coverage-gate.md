@@ -1,7 +1,7 @@
 ---
 id: ADR-0538
 title: "Globbed root workspace membership and coverage gate"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-10
@@ -9,6 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0637]
 depends_on: [ADR-0017, ADR-0132, ADR-0515, ADR-0525, ADR-0527]
 amends: []
 related: [ADR-0017, ADR-0083, ADR-0131, ADR-0132, ADR-0363, ADR-0515, ADR-0525, ADR-0526, ADR-0527]

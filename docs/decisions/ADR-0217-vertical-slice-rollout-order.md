@@ -1,3 +1,8 @@
+---
+id: ADR-0217
+status: Accepted
+---
+
 # ADR-0217: Service Packaging Rollout Order
 
 - **Status:** Accepted

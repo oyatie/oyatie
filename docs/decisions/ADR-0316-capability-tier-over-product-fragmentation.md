@@ -25,8 +25,9 @@ amends:
   - ADR-0249-multi-category-marketplace-doctrine.md (declares marketplace categories as tiers and overlays, not fragmented services)
   - ADR-0257-ontology-object-type-versioning-deprecation-handshake.md (requires tier projections to pin object-type schema revisions)
   - ADR-0315-erp-coverage-doctrine-sap-parity.md (reframes ERP parity modules as capability tiers where a distinct operational concern is absent)
-superseded_by: [ADR-329]
-supersession_note: "ADR-0329 (Accepted) retires the capability-tier doctrine; the cross-microservice retirement migration is scheduled for Wave 15J, so status remains Proposed until the migration lands."
+superseded_by: [ADR-0329]
+amended_by: [ADR-0329, ADR-0330]
+supersession_note: "ADR-0329 (Accepted) supersedes this ADR and retires the capability-tier doctrine; ADR-0330 (Accepted) amends with the tenant-class + composable billing-component replacement model. Cross-microservice retirement migration remains scheduled for Wave 15J; implement authority is ADR-0329/0330/0331, not this file."
 related:
   - ADR-0132
   - ADR-0242

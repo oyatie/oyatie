@@ -1,3 +1,8 @@
+---
+id: ADR-0202
+status: Accepted
+---
+
 # ADR-0202 — GitOps + IaC + Cluster lifecycle: three-tier separation
 
 - Status: Accepted

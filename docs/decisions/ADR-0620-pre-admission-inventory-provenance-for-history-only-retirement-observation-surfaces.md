@@ -1,7 +1,7 @@
 ---
 id: ADR-0620
 title: "Pre-admission inventory provenance for history-only retirement observation surfaces"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: pending-qualified-authority
 date: 2026-07-24

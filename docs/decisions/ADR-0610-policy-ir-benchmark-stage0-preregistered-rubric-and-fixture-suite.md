@@ -1,7 +1,7 @@
 ---
 id: ADR-0610
 title: "Policy-IR benchmark stage-0: pre-registered frozen rubric + fixture suite as governed data"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-07-03

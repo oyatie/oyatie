@@ -1,7 +1,7 @@
 ---
 id: ADR-0344
 title: Sustainability + finops dimensional model (per-call CO2-grams + watt-hours + USD-cost emitted alongside every audit row; finops-portal dimensional rollup per tenant/product/capability/provider/cell/compliance-pack)
-status: Proposed
+status: Rejected
 planning_impact: true
 date: 2026-05-21
 owner_team:

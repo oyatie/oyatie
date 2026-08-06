@@ -1,7 +1,7 @@
 ---
 id: ADR-0567
 title: "Commission auth durable stores with Postgres + RLS (tenant-lifecycle-store-postgres and identity-scim-store-postgres)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-21

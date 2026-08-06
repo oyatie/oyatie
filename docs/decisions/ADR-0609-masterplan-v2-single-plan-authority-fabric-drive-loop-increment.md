@@ -1,7 +1,7 @@
 ---
 id: ADR-0609
 title: "Masterplan v2 single plan authority + fabric drive-loop increment (four plan gates wired into oya-ci-required)"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-07-02

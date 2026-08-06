@@ -1,3 +1,8 @@
+---
+id: ADR-0218
+status: Accepted
+---
+
 # ADR-0218: Tenant Granular Control Surface
 
 - **Status:** Accepted

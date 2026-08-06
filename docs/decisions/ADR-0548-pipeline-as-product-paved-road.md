@@ -1,7 +1,7 @@
 ---
 id: ADR-0548
 title: "Pipeline as product: neutral ratchet engine + policy packs on the paved road"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-11

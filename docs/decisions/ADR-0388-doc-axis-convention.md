@@ -1,7 +1,7 @@
 ---
 id: ADR-0388
 title: Doc-axis convention to prevent doc sprawl
-status: Amended
+status: Accepted
 date: 2026-05-28
 amended_date: 2026-07-22
 authority: founder

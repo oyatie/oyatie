@@ -1,7 +1,7 @@
 ---
 id: ADR-0566
 title: "Authz-coverage gate (unauthenticated HTTP control-plane backstop)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-21

@@ -1,6 +1,6 @@
 ---
 id: ADR-0321
-status: Proposed
+status: Rejected
 date: 2026-05-20
 doc_class: Architecture-Decision-Record
 shape: Decision

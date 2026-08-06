@@ -1,3 +1,8 @@
+---
+id: ADR-0215
+status: Accepted
+---
+
 # ADR-0215: Multi-Context Platform Architecture
 
 - **Status:** Accepted

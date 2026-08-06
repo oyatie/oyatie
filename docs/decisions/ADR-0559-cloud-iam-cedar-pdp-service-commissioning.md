@@ -1,7 +1,7 @@
 ---
 id: ADR-0559
 title: "Commission the cloud-iam Cedar PDP service (G004 slice 1): a runnable authorization-decision service over the shared embedded engine"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-12

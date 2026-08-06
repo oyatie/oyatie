@@ -1,3 +1,8 @@
+---
+id: ADR-0212
+status: Accepted
+---
+
 # ADR-0212 — Buildability Doctrine
 
 - **Status:** Accepted

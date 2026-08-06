@@ -1,0 +1,82 @@
+{
+  "band": [340, 349],
+  "reviewed": [
+    "ADR-0340",
+    "ADR-0341",
+    "ADR-0343",
+    "ADR-0344",
+    "ADR-0346",
+    "ADR-0347",
+    "ADR-0348"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0340",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed capacity_model per-µservice manifest. Higher ADR-0348 (Proposed) amends/consumes capacity_model; no Accepted ADR supersedes or amends 0340. Leave Proposed (do not mass-Accept).",
+      "higher_adrs_cited": ["ADR-0348"]
+    },
+    {
+      "adr": "ADR-0341",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed cellular promotion gates Tier 0..4. Higher ADR-0348 (Proposed) layers tenant/shard automation underneath; Accepted ADR-0351 consumes promotion gates via cell-lifecycle but does not claim supersedes/amends of 0341. No Accepted supersession. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0348", "ADR-0351", "ADR-0536", "ADR-0537"]
+    },
+    {
+      "adr": "ADR-0343",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed DR+RTO/RPO matrix per-µservice + compliance-pack floors. Sibling realignment-wave citations only in higher Proposed ADRs; no Accepted supersedes/amends. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0347", "ADR-0348"]
+    },
+    {
+      "adr": "ADR-0344",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed sustainability + finops dimensional model. Sibling citations in higher Proposed ADRs only; no Accepted supersedes/amends. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0347"]
+    },
+    {
+      "adr": "ADR-0346",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed local oya verify --ci-required full CI mirror. Body already marks historical/local-bridge-only (never merge authority; oya-ci-required + cloud-ci live). Accepted ADR-0515 supersedes CI substrate cluster (0349/0359/0361/…) but does NOT list 0346 in supersedes; higher ADR-0360 (Proposed) amends not supersedes. Do not invent supersession; leave Proposed.",
+      "higher_adrs_cited": ["ADR-0360", "ADR-0392", "ADR-0515", "ADR-0539"]
+    },
+    {
+      "adr": "ADR-0347",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed foundry-fitness→governance bulk rename doctrine. No higher Accepted ADR supersedes or amends 0347; reverse amends edges target lower ADRs only. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0348",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Accepted ADR-0351 authority_chain and §D-6 explicitly amend ADR-0348 (rebalance ownership moves to cell-rebalancer; 0348 body already records Amendment 2026-05-21 per ADR-0351). Reverse amended_by edge was missing. Status remains Proposed — 0351 amends, does not supersede the autosharding/dynamic-sharding doctrine. Do not Accept.",
+      "higher_adrs_cited": ["ADR-0351"]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md",
+    "docs/decisions/_disposition/band-0340-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0340",
+    "ADR-0341",
+    "ADR-0343",
+    "ADR-0344",
+    "ADR-0346",
+    "ADR-0347"
+  ]
+}

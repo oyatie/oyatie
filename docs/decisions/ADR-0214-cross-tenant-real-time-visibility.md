@@ -1,3 +1,8 @@
+---
+id: ADR-0214
+status: Accepted
+---
+
 # ADR-0214: Cross-Tenant Real-Time Visibility (Consent-Graph + Ontology Projection Extension)
 
 - Status: Proposed (target: Accepted upon PR #143 merge to `dev`)

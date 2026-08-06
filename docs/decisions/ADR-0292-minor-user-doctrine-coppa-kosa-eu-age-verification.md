@@ -1,6 +1,6 @@
 ---
 id: ADR-0292
-status: Proposed
+status: Rejected
 date: 2026-05-20
 owners:
   - council-architecture
@@ -23,6 +23,7 @@ amends:
   - ADR-0218-tenant-granular-control-surface.md (introduces tenant-level minor-user policy override surface)
   - ADR-0251-compliance-pack-cell-certification-levels.md (registers MINOR-USER-2024 as the umbrella minor-user pack)
 superseded_by: []
+amended_by: [ADR-0350]
 related:
   - ADR-0002-tenant-and-identity-kernel.md
   - ADR-0003-audit-chain-and-evidence-emission.md

@@ -1,7 +1,7 @@
 ---
 id: ADR-0319
 title: Front Office / Middle Office / Back Office Information-Barrier Doctrine
-status: Proposed
+status: Rejected
 date: 2026-05-20
 decision_type: architecture-doctrine
 scope: tenant-office-information-barriers

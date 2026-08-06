@@ -1,7 +1,7 @@
 ---
 id: ADR-0552
 title: "Stable/volatile SCM-facts split: history-derived facts leave the merged surface"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-12

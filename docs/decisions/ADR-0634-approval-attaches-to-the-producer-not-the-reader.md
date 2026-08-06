@@ -1,7 +1,7 @@
 ---
 id: ADR-0634
 title: "Approval attaches to the PRODUCER of a change, not to a reader of its diff: a mechanical auto-approval predicate over declared change classes, an anomalous-residue definition that is the predicate's complement, a digest-pinned expiring approval policy that replaces the second human this repo does not have, and fan-in to the single oya-ci-required context rather than a second bypassable one"
-status: Proposed
+status: Accepted
 doc_status: drafted
 planning_impact: true
 deciders: founder

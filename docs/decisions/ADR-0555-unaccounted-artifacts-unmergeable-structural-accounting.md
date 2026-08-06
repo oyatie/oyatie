@@ -1,7 +1,7 @@
 ---
 id: ADR-0555
 title: "Unaccounted artifacts are unmergeable: advisory→blocking accounting conversion + the structural accounting model"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-12

@@ -1,7 +1,7 @@
 ---
 id: ADR-0318
 title: "Adopt collar-color and workspace universality doctrine"
-status: Proposed
+status: Rejected
 date: 2026-05-20
 owner_team: council-architecture
 co_owners:

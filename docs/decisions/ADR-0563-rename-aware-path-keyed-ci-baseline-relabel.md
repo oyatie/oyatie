@@ -1,7 +1,7 @@
 ---
 id: ADR-0563
 title: "Rename-aware path-keyed CI baseline relabel at the scm-facts emitter — the systemic productization that unblocks strangler moves of already-accepted residue files"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-14

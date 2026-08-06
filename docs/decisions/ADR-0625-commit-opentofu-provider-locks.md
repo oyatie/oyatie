@@ -1,7 +1,7 @@
 ---
 id: ADR-0625
 title: "Commit OpenTofu provider dependency locks for every deployable root"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-07-26

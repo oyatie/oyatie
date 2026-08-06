@@ -1,6 +1,6 @@
 ---
 id: ADR-0252
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -19,6 +19,7 @@ amends:
   - ADR-0145-inter-microservice-communication-reform.md (clarifies deadline propagation)
   - ADR-0128-hyperscaler-architecture-invariants.md (formalises INV-IDEMPOTENCY as caller-supplied key)
 superseded_by: []
+amended_by: [ADR-0350]
 related:
   - ADR-0005-eventing-backbone-outbox-pattern.md
   - ADR-0009-cell-architecture-per-tenant-per-region.md

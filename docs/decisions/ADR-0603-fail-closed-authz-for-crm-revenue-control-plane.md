@@ -1,7 +1,7 @@
 ---
 id: ADR-0603
 title: "Fail-closed authz for the CRM revenue control plane (AUTH-005 remediation)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-24

@@ -1,3 +1,8 @@
+---
+id: ADR-0156
+status: Accepted
+---
+
 # ADR-0156: PII Registry Canonical (Cross-Cutting Data Classification)
 
 - Status: Accepted

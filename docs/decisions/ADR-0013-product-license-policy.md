@@ -1,6 +1,6 @@
 ---
 id: ADR-0013
-status: Proposed
+status: Accepted
 doc_status: published
 ---
 

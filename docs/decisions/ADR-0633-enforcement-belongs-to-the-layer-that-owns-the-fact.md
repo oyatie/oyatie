@@ -1,7 +1,7 @@
 ---
 id: ADR-0633
 title: "Enforcement belongs to the layer that OWNS the fact: T1 mutation coupling, T2 non-emptiability, a promotion gate that keeps false-positive checks out of gates, and a naming rule with a rename test"
-status: Proposed
+status: Accepted
 doc_status: published
 planning_impact: true
 deciders: founder

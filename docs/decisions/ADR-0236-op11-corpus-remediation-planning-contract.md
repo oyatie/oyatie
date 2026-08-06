@@ -1,6 +1,6 @@
 ---
 id: ADR-0236
-status: Proposed
+status: Rejected
 deciders: council-architecture, ops-quality
 date: 2026-05-17
 owner: council-architecture

@@ -1,3 +1,8 @@
+---
+id: ADR-0219
+status: Accepted
+---
+
 # ADR-0219: No-Code-First UX with Optional AI-Assist
 
 - **Status:** Accepted

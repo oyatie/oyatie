@@ -1,3 +1,8 @@
+---
+id: ADR-0203
+status: Accepted
+---
+
 # ADR-0203 — Documentation engine: three-tier separation
 
 - Status: Accepted

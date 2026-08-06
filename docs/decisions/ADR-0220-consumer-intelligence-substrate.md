@@ -1,3 +1,8 @@
+---
+id: ADR-0220
+status: Accepted
+---
+
 # ADR-0220: Consumer Intelligence Substrate
 
 - **Status:** Accepted

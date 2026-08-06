@@ -1,3 +1,8 @@
+---
+id: ADR-0150
+status: Accepted
+---
+
 # ADR-0150: Cursor Pagination Canonical
 
 - Status: Accepted

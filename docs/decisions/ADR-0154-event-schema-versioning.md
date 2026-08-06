@@ -1,3 +1,8 @@
+---
+id: ADR-0154
+status: Accepted
+---
+
 # ADR-0154: Event Schema Versioning
 
 - Status: Accepted

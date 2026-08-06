@@ -1,7 +1,7 @@
 ---
 id: ADR-0352
 title: Oyatie from-scratch architecture handoff
-status: Proposed
+status: Rejected
 date: 2026-05-22
 owner: council-architecture
 doc_class: Architecture-Decision-Record

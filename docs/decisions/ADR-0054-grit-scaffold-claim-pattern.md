@@ -1,6 +1,6 @@
 ---
 id: ADR-0054
-status: Deprecated
+status: Rejected
 doc_status: published
 ---
 

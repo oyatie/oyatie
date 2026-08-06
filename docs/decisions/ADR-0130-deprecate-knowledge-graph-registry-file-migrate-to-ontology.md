@@ -1,3 +1,9 @@
+---
+id: ADR-0130
+status: Superseded
+superseded_by: [ADR-335, ADR-562]
+---
+
 # ADR-0130: Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System
 
 **Status:** Accepted

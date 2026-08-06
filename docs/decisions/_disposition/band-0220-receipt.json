@@ -1,0 +1,39 @@
+{
+  "band": [220, 229],
+  "reviewed": ["ADR-0222", "ADR-0223"],
+  "skipped_not_accepted_or_proposed": [
+    {
+      "adr": "ADR-0220",
+      "status": "not_in_review_set",
+      "note": "decade-bands review set for 220–229 is Accepted/Proposed only: [222, 223]"
+    },
+    {
+      "adr": "ADR-0221",
+      "status": "not_in_review_set",
+      "note": "decade-bands review set for 220–229 is Accepted/Proposed only: [222, 223]"
+    }
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0222",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Saga + compensating-transaction portfolio policy remains live. Higher ADRs (0252, 0257 Proposed; 0175 lower) cite as related/foundation for saga shape; none list supersedes or amends ADR-0222. No later Accepted replaces the saga-mandatory cross-µservice write mechanism. Aligns with hyperscaler saga/compensation patterns and north-star shared-nothing coordination. enforced_by CLI spelling is retirement-marked surface but decision body is saga portfolio policy, not CLI authority — do not invent supersession or amendment without later Accepted edge.",
+      "higher_adrs_cited": ["ADR-0252", "ADR-0257"]
+    },
+    {
+      "adr": "ADR-0223",
+      "status_before": "Accepted",
+      "status_after": "Superseded",
+      "action": "status_to_superseded_add_superseded_by",
+      "reason": "False Accepted: entire decision adopts oya git as drop-in git wrapper with audit ledger and keeps oya vcs policy verbs. Later Accepted ADR-0363 replaces that mechanism — retires oya git wrapper (plain git as-is, no drop-in), retires oya vcs ratchet, and rejects keeping oya git. Live agent contract and CLI retirement posture follow 0363 (+ 0515 admission). Higher cites (0253 related/signed-config narrative; 0060 proof-ladder table) do not supersede or keep 0223 as implement authority. 0363 supersedes frontmatter lists 0110/0112/0113 only (does not name 0223); still mechanism-replace supersession is high-confidence — set superseded_by ADR-0363 without inventing 0363 supersedes edge (body does not claim supersession of ADR-0223 by id).",
+      "higher_adrs_cited": ["ADR-0253", "ADR-0363", "ADR-0515"]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
+    "docs/decisions/_disposition/band-0220-receipt.json"
+  ],
+  "no_change": ["ADR-0222"]
+}

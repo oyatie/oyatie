@@ -1,7 +1,7 @@
 ---
 id: ADR-0545
 title: "Embedded-asset hermeticity gate"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-11

@@ -1,3 +1,8 @@
+---
+id: ADR-0146
+status: Accepted
+---
+
 # ADR-0146 — Container base image: distroless `static-debian12:nonroot`
 
 | Field | Value |

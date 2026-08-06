@@ -1,0 +1,2258 @@
+{
+  "schema": "adr-redirect.v1",
+  "generated_at": "2026-08-06T07:44:45Z",
+  "counts": {
+    "Accepted": 256,
+    "Superseded": 43,
+    "Rejected": 146,
+    "total": 448
+  },
+  "entries": {
+    "1": {
+      "disposition": "live",
+      "live_id": "ADR-1",
+      "note": "accepted in tree"
+    },
+    "2": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "3": {
+      "disposition": "live",
+      "live_id": "ADR-3",
+      "note": "accepted in tree"
+    },
+    "4": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "5": {
+      "disposition": "superseded",
+      "live_id": "ADR-557",
+      "note": "await content-fold then delete"
+    },
+    "6": {
+      "disposition": "live",
+      "live_id": "ADR-6",
+      "note": "accepted in tree"
+    },
+    "7": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "8": {
+      "disposition": "live",
+      "live_id": "ADR-8",
+      "note": "accepted in tree"
+    },
+    "9": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "10": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "11": {
+      "disposition": "live",
+      "live_id": "ADR-11",
+      "note": "accepted in tree"
+    },
+    "13": {
+      "disposition": "live",
+      "live_id": "ADR-13",
+      "note": "accepted in tree"
+    },
+    "14": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "15": {
+      "disposition": "superseded",
+      "live_id": "ADR-512",
+      "note": "await content-fold then delete"
+    },
+    "16": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "17": {
+      "disposition": "live",
+      "live_id": "ADR-17",
+      "note": "accepted in tree"
+    },
+    "18": {
+      "disposition": "live",
+      "live_id": "ADR-18",
+      "note": "accepted in tree"
+    },
+    "19": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "20": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "21": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "22": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "23": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "24": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "25": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "26": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "27": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "28": {
+      "disposition": "live",
+      "live_id": "ADR-28",
+      "note": "accepted in tree"
+    },
+    "29": {
+      "disposition": "live",
+      "live_id": "ADR-29",
+      "note": "accepted in tree"
+    },
+    "30": {
+      "disposition": "live",
+      "live_id": "ADR-30",
+      "note": "accepted in tree"
+    },
+    "31": {
+      "disposition": "live",
+      "live_id": "ADR-31",
+      "note": "accepted in tree"
+    },
+    "32": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "34": {
+      "disposition": "live",
+      "live_id": "ADR-34",
+      "note": "accepted in tree"
+    },
+    "35": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "36": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "38": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "39": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "40": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "42": {
+      "disposition": "superseded",
+      "live_id": "ADR-383",
+      "note": "await content-fold then delete"
+    },
+    "43": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "44": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "45": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "46": {
+      "disposition": "superseded",
+      "live_id": "ADR-192",
+      "note": "await content-fold then delete"
+    },
+    "47": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "48": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "49": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "51": {
+      "disposition": "live",
+      "live_id": "ADR-51",
+      "note": "accepted in tree"
+    },
+    "52": {
+      "disposition": "superseded",
+      "live_id": "ADR-118",
+      "note": "await content-fold then delete"
+    },
+    "53": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "54": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "55": {
+      "disposition": "live",
+      "live_id": "ADR-55",
+      "note": "accepted in tree"
+    },
+    "56": {
+      "disposition": "live",
+      "live_id": "ADR-56",
+      "note": "accepted in tree"
+    },
+    "57": {
+      "disposition": "superseded",
+      "live_id": null,
+      "note": "await content-fold then delete"
+    },
+    "58": {
+      "disposition": "live",
+      "live_id": "ADR-58",
+      "note": "accepted in tree"
+    },
+    "59": {
+      "disposition": "superseded",
+      "live_id": "ADR-145",
+      "note": "await content-fold then delete"
+    },
+    "60": {
+      "disposition": "live",
+      "live_id": "ADR-60",
+      "note": "accepted in tree"
+    },
+    "61": {
+      "disposition": "live",
+      "live_id": "ADR-61",
+      "note": "accepted in tree"
+    },
+    "62": {
+      "disposition": "live",
+      "live_id": "ADR-62",
+      "note": "accepted in tree"
+    },
+    "63": {
+      "disposition": "live",
+      "live_id": "ADR-63",
+      "note": "accepted in tree"
+    },
+    "64": {
+      "disposition": "live",
+      "live_id": "ADR-64",
+      "note": "accepted in tree"
+    },
+    "65": {
+      "disposition": "live",
+      "live_id": "ADR-65",
+      "note": "accepted in tree"
+    },
+    "66": {
+      "disposition": "live",
+      "live_id": "ADR-66",
+      "note": "accepted in tree"
+    },
+    "67": {
+      "disposition": "live",
+      "live_id": "ADR-67",
+      "note": "accepted in tree"
+    },
+    "69": {
+      "disposition": "live",
+      "live_id": "ADR-69",
+      "note": "accepted in tree"
+    },
+    "83": {
+      "disposition": "live",
+      "live_id": "ADR-83",
+      "note": "accepted in tree"
+    },
+    "90": {
+      "disposition": "live",
+      "live_id": "ADR-90",
+      "note": "accepted in tree"
+    },
+    "91": {
+      "disposition": "live",
+      "live_id": "ADR-91",
+      "note": "accepted in tree"
+    },
+    "92": {
+      "disposition": "live",
+      "live_id": "ADR-92",
+      "note": "accepted in tree"
+    },
+    "93": {
+      "disposition": "live",
+      "live_id": "ADR-93",
+      "note": "accepted in tree"
+    },
+    "94": {
+      "disposition": "live",
+      "live_id": "ADR-94",
+      "note": "accepted in tree"
+    },
+    "95": {
+      "disposition": "live",
+      "live_id": "ADR-95",
+      "note": "accepted in tree"
+    },
+    "96": {
+      "disposition": "live",
+      "live_id": "ADR-96",
+      "note": "accepted in tree"
+    },
+    "97": {
+      "disposition": "superseded",
+      "live_id": null,
+      "note": "await content-fold then delete"
+    },
+    "98": {
+      "disposition": "live",
+      "live_id": "ADR-98",
+      "note": "accepted in tree"
+    },
+    "99": {
+      "disposition": "live",
+      "live_id": "ADR-99",
+      "note": "accepted in tree"
+    },
+    "100": {
+      "disposition": "live",
+      "live_id": "ADR-100",
+      "note": "accepted in tree"
+    },
+    "101": {
+      "disposition": "superseded",
+      "live_id": null,
+      "note": "await content-fold then delete"
+    },
+    "102": {
+      "disposition": "superseded",
+      "live_id": null,
+      "note": "await content-fold then delete"
+    },
+    "103": {
+      "disposition": "superseded",
+      "live_id": "ADR-363",
+      "note": "await content-fold then delete"
+    },
+    "104": {
+      "disposition": "live",
+      "live_id": "ADR-104",
+      "note": "accepted in tree"
+    },
+    "105": {
+      "disposition": "live",
+      "live_id": "ADR-105",
+      "note": "accepted in tree"
+    },
+    "106": {
+      "disposition": "live",
+      "live_id": "ADR-106",
+      "note": "accepted in tree"
+    },
+    "107": {
+      "disposition": "superseded",
+      "live_id": "ADR-105",
+      "note": "await content-fold then delete"
+    },
+    "108": {
+      "disposition": "live",
+      "live_id": "ADR-108",
+      "note": "accepted in tree"
+    },
+    "109": {
+      "disposition": "live",
+      "live_id": "ADR-109",
+      "note": "accepted in tree"
+    },
+    "110": {
+      "disposition": "superseded",
+      "live_id": "ADR-363",
+      "note": "await content-fold then delete"
+    },
+    "111": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "112": {
+      "disposition": "superseded",
+      "live_id": "ADR-363",
+      "note": "await content-fold then delete"
+    },
+    "113": {
+      "disposition": "superseded",
+      "live_id": "ADR-363",
+      "note": "await content-fold then delete"
+    },
+    "114": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "115": {
+      "disposition": "live",
+      "live_id": "ADR-115",
+      "note": "accepted in tree"
+    },
+    "116": {
+      "disposition": "live",
+      "live_id": "ADR-116",
+      "note": "accepted in tree"
+    },
+    "117": {
+      "disposition": "live",
+      "live_id": "ADR-117",
+      "note": "accepted in tree"
+    },
+    "118": {
+      "disposition": "live",
+      "live_id": "ADR-118",
+      "note": "accepted in tree"
+    },
+    "119": {
+      "disposition": "live",
+      "live_id": "ADR-119",
+      "note": "accepted in tree"
+    },
+    "120": {
+      "disposition": "superseded",
+      "live_id": "ADR-375",
+      "note": "await content-fold then delete"
+    },
+    "121": {
+      "disposition": "superseded",
+      "live_id": "ADR-375",
+      "note": "await content-fold then delete"
+    },
+    "122": {
+      "disposition": "live",
+      "live_id": "ADR-122",
+      "note": "accepted in tree"
+    },
+    "123": {
+      "disposition": "live",
+      "live_id": "ADR-123",
+      "note": "accepted in tree"
+    },
+    "124": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "128": {
+      "disposition": "live",
+      "live_id": "ADR-128",
+      "note": "accepted in tree"
+    },
+    "129": {
+      "disposition": "live",
+      "live_id": "ADR-129",
+      "note": "accepted in tree"
+    },
+    "130": {
+      "disposition": "superseded",
+      "live_id": "ADR-562",
+      "note": "await content-fold then delete"
+    },
+    "131": {
+      "disposition": "live",
+      "live_id": "ADR-131",
+      "note": "accepted in tree"
+    },
+    "132": {
+      "disposition": "live",
+      "live_id": "ADR-132",
+      "note": "accepted in tree"
+    },
+    "133": {
+      "disposition": "live",
+      "live_id": "ADR-133",
+      "note": "accepted in tree"
+    },
+    "134": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "135": {
+      "disposition": "live",
+      "live_id": "ADR-135",
+      "note": "accepted in tree"
+    },
+    "136": {
+      "disposition": "superseded",
+      "live_id": "ADR-389",
+      "note": "await content-fold then delete"
+    },
+    "137": {
+      "disposition": "superseded",
+      "live_id": "ADR-389",
+      "note": "await content-fold then delete"
+    },
+    "138": {
+      "disposition": "superseded",
+      "live_id": null,
+      "note": "await content-fold then delete"
+    },
+    "139": {
+      "disposition": "live",
+      "live_id": "ADR-139",
+      "note": "accepted in tree"
+    },
+    "140": {
+      "disposition": "superseded",
+      "live_id": "ADR-145",
+      "note": "await content-fold then delete"
+    },
+    "141": {
+      "disposition": "superseded",
+      "live_id": "ADR-145",
+      "note": "await content-fold then delete"
+    },
+    "142": {
+      "disposition": "live",
+      "live_id": "ADR-142",
+      "note": "accepted in tree"
+    },
+    "143": {
+      "disposition": "superseded",
+      "live_id": "ADR-389",
+      "note": "await content-fold then delete"
+    },
+    "144": {
+      "disposition": "live",
+      "live_id": "ADR-144",
+      "note": "accepted in tree"
+    },
+    "145": {
+      "disposition": "live",
+      "live_id": "ADR-145",
+      "note": "accepted in tree"
+    },
+    "146": {
+      "disposition": "live",
+      "live_id": "ADR-146",
+      "note": "accepted in tree"
+    },
+    "147": {
+      "disposition": "live",
+      "live_id": "ADR-147",
+      "note": "accepted in tree"
+    },
+    "148": {
+      "disposition": "live",
+      "live_id": "ADR-148",
+      "note": "accepted in tree"
+    },
+    "149": {
+      "disposition": "live",
+      "live_id": "ADR-149",
+      "note": "accepted in tree"
+    },
+    "150": {
+      "disposition": "live",
+      "live_id": "ADR-150",
+      "note": "accepted in tree"
+    },
+    "151": {
+      "disposition": "live",
+      "live_id": "ADR-151",
+      "note": "accepted in tree"
+    },
+    "152": {
+      "disposition": "live",
+      "live_id": "ADR-152",
+      "note": "accepted in tree"
+    },
+    "153": {
+      "disposition": "live",
+      "live_id": "ADR-153",
+      "note": "accepted in tree"
+    },
+    "154": {
+      "disposition": "live",
+      "live_id": "ADR-154",
+      "note": "accepted in tree"
+    },
+    "155": {
+      "disposition": "live",
+      "live_id": "ADR-155",
+      "note": "accepted in tree"
+    },
+    "156": {
+      "disposition": "live",
+      "live_id": "ADR-156",
+      "note": "accepted in tree"
+    },
+    "157": {
+      "disposition": "live",
+      "live_id": "ADR-157",
+      "note": "accepted in tree"
+    },
+    "158": {
+      "disposition": "live",
+      "live_id": "ADR-158",
+      "note": "accepted in tree"
+    },
+    "159": {
+      "disposition": "live",
+      "live_id": "ADR-159",
+      "note": "accepted in tree"
+    },
+    "160": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "161": {
+      "disposition": "live",
+      "live_id": "ADR-161",
+      "note": "accepted in tree"
+    },
+    "162": {
+      "disposition": "live",
+      "live_id": "ADR-162",
+      "note": "accepted in tree"
+    },
+    "163": {
+      "disposition": "live",
+      "live_id": "ADR-163",
+      "note": "accepted in tree"
+    },
+    "164": {
+      "disposition": "live",
+      "live_id": "ADR-164",
+      "note": "accepted in tree"
+    },
+    "165": {
+      "disposition": "live",
+      "live_id": "ADR-165",
+      "note": "accepted in tree"
+    },
+    "166": {
+      "disposition": "live",
+      "live_id": "ADR-166",
+      "note": "accepted in tree"
+    },
+    "167": {
+      "disposition": "live",
+      "live_id": "ADR-167",
+      "note": "accepted in tree"
+    },
+    "168": {
+      "disposition": "live",
+      "live_id": "ADR-168",
+      "note": "accepted in tree"
+    },
+    "169": {
+      "disposition": "live",
+      "live_id": "ADR-169",
+      "note": "accepted in tree"
+    },
+    "171": {
+      "disposition": "live",
+      "live_id": "ADR-171",
+      "note": "accepted in tree"
+    },
+    "172": {
+      "disposition": "live",
+      "live_id": "ADR-172",
+      "note": "accepted in tree"
+    },
+    "173": {
+      "disposition": "live",
+      "live_id": "ADR-173",
+      "note": "accepted in tree"
+    },
+    "174": {
+      "disposition": "live",
+      "live_id": "ADR-174",
+      "note": "accepted in tree"
+    },
+    "175": {
+      "disposition": "live",
+      "live_id": "ADR-175",
+      "note": "accepted in tree"
+    },
+    "176": {
+      "disposition": "live",
+      "live_id": "ADR-176",
+      "note": "accepted in tree"
+    },
+    "177": {
+      "disposition": "live",
+      "live_id": "ADR-177",
+      "note": "accepted in tree"
+    },
+    "178": {
+      "disposition": "live",
+      "live_id": "ADR-178",
+      "note": "accepted in tree"
+    },
+    "179": {
+      "disposition": "live",
+      "live_id": "ADR-179",
+      "note": "accepted in tree"
+    },
+    "180": {
+      "disposition": "live",
+      "live_id": "ADR-180",
+      "note": "accepted in tree"
+    },
+    "181": {
+      "disposition": "live",
+      "live_id": "ADR-181",
+      "note": "accepted in tree"
+    },
+    "182": {
+      "disposition": "live",
+      "live_id": "ADR-182",
+      "note": "accepted in tree"
+    },
+    "183": {
+      "disposition": "superseded",
+      "live_id": "ADR-379",
+      "note": "await content-fold then delete"
+    },
+    "184": {
+      "disposition": "live",
+      "live_id": "ADR-184",
+      "note": "accepted in tree"
+    },
+    "185": {
+      "disposition": "live",
+      "live_id": "ADR-185",
+      "note": "accepted in tree"
+    },
+    "186": {
+      "disposition": "live",
+      "live_id": "ADR-186",
+      "note": "accepted in tree"
+    },
+    "187": {
+      "disposition": "superseded",
+      "live_id": "ADR-476",
+      "note": "await content-fold then delete"
+    },
+    "188": {
+      "disposition": "live",
+      "live_id": "ADR-188",
+      "note": "accepted in tree"
+    },
+    "189": {
+      "disposition": "live",
+      "live_id": "ADR-189",
+      "note": "accepted in tree"
+    },
+    "190": {
+      "disposition": "live",
+      "live_id": "ADR-190",
+      "note": "accepted in tree"
+    },
+    "191": {
+      "disposition": "live",
+      "live_id": "ADR-191",
+      "note": "accepted in tree"
+    },
+    "192": {
+      "disposition": "live",
+      "live_id": "ADR-192",
+      "note": "accepted in tree"
+    },
+    "193": {
+      "disposition": "live",
+      "live_id": "ADR-193",
+      "note": "accepted in tree"
+    },
+    "194": {
+      "disposition": "live",
+      "live_id": "ADR-194",
+      "note": "accepted in tree"
+    },
+    "195": {
+      "disposition": "live",
+      "live_id": "ADR-195",
+      "note": "accepted in tree"
+    },
+    "196": {
+      "disposition": "live",
+      "live_id": "ADR-196",
+      "note": "accepted in tree"
+    },
+    "197": {
+      "disposition": "live",
+      "live_id": "ADR-197",
+      "note": "accepted in tree"
+    },
+    "198": {
+      "disposition": "live",
+      "live_id": "ADR-198",
+      "note": "accepted in tree"
+    },
+    "199": {
+      "disposition": "live",
+      "live_id": "ADR-199",
+      "note": "accepted in tree"
+    },
+    "200": {
+      "disposition": "live",
+      "live_id": "ADR-200",
+      "note": "accepted in tree"
+    },
+    "201": {
+      "disposition": "live",
+      "live_id": "ADR-201",
+      "note": "accepted in tree"
+    },
+    "202": {
+      "disposition": "live",
+      "live_id": "ADR-202",
+      "note": "accepted in tree"
+    },
+    "203": {
+      "disposition": "live",
+      "live_id": "ADR-203",
+      "note": "accepted in tree"
+    },
+    "204": {
+      "disposition": "live",
+      "live_id": "ADR-204",
+      "note": "accepted in tree"
+    },
+    "205": {
+      "disposition": "live",
+      "live_id": "ADR-205",
+      "note": "accepted in tree"
+    },
+    "206": {
+      "disposition": "live",
+      "live_id": "ADR-206",
+      "note": "accepted in tree"
+    },
+    "207": {
+      "disposition": "live",
+      "live_id": "ADR-207",
+      "note": "accepted in tree"
+    },
+    "208": {
+      "disposition": "live",
+      "live_id": "ADR-208",
+      "note": "accepted in tree"
+    },
+    "209": {
+      "disposition": "live",
+      "live_id": "ADR-209",
+      "note": "accepted in tree"
+    },
+    "210": {
+      "disposition": "live",
+      "live_id": "ADR-210",
+      "note": "accepted in tree"
+    },
+    "211": {
+      "disposition": "live",
+      "live_id": "ADR-211",
+      "note": "accepted in tree"
+    },
+    "212": {
+      "disposition": "live",
+      "live_id": "ADR-212",
+      "note": "accepted in tree"
+    },
+    "213": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "214": {
+      "disposition": "live",
+      "live_id": "ADR-214",
+      "note": "accepted in tree"
+    },
+    "215": {
+      "disposition": "live",
+      "live_id": "ADR-215",
+      "note": "accepted in tree"
+    },
+    "216": {
+      "disposition": "live",
+      "live_id": "ADR-216",
+      "note": "accepted in tree"
+    },
+    "217": {
+      "disposition": "live",
+      "live_id": "ADR-217",
+      "note": "accepted in tree"
+    },
+    "218": {
+      "disposition": "live",
+      "live_id": "ADR-218",
+      "note": "accepted in tree"
+    },
+    "219": {
+      "disposition": "live",
+      "live_id": "ADR-219",
+      "note": "accepted in tree"
+    },
+    "220": {
+      "disposition": "live",
+      "live_id": "ADR-220",
+      "note": "accepted in tree"
+    },
+    "221": {
+      "disposition": "live",
+      "live_id": "ADR-221",
+      "note": "accepted in tree"
+    },
+    "222": {
+      "disposition": "live",
+      "live_id": "ADR-222",
+      "note": "accepted in tree"
+    },
+    "223": {
+      "disposition": "superseded",
+      "live_id": "ADR-363",
+      "note": "await content-fold then delete"
+    },
+    "234": {
+      "disposition": "live",
+      "live_id": "ADR-234",
+      "note": "accepted in tree"
+    },
+    "235": {
+      "disposition": "live",
+      "live_id": "ADR-235",
+      "note": "accepted in tree"
+    },
+    "236": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "237": {
+      "disposition": "live",
+      "live_id": "ADR-237",
+      "note": "accepted in tree"
+    },
+    "238": {
+      "disposition": "live",
+      "live_id": "ADR-238",
+      "note": "accepted in tree"
+    },
+    "239": {
+      "disposition": "live",
+      "live_id": "ADR-239",
+      "note": "accepted in tree"
+    },
+    "240": {
+      "disposition": "live",
+      "live_id": "ADR-240",
+      "note": "accepted in tree"
+    },
+    "241": {
+      "disposition": "live",
+      "live_id": "ADR-241",
+      "note": "accepted in tree"
+    },
+    "242": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "243": {
+      "disposition": "live",
+      "live_id": "ADR-243",
+      "note": "accepted in tree"
+    },
+    "244": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "245": {
+      "disposition": "live",
+      "live_id": "ADR-245",
+      "note": "accepted in tree"
+    },
+    "246": {
+      "disposition": "live",
+      "live_id": "ADR-246",
+      "note": "accepted in tree"
+    },
+    "248": {
+      "disposition": "live",
+      "live_id": "ADR-248",
+      "note": "accepted in tree"
+    },
+    "249": {
+      "disposition": "live",
+      "live_id": "ADR-249",
+      "note": "accepted in tree"
+    },
+    "250": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "251": {
+      "disposition": "live",
+      "live_id": "ADR-251",
+      "note": "accepted in tree"
+    },
+    "252": {
+      "disposition": "live",
+      "live_id": "ADR-252",
+      "note": "accepted in tree"
+    },
+    "253": {
+      "disposition": "live",
+      "live_id": "ADR-253",
+      "note": "accepted in tree"
+    },
+    "254": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "255": {
+      "disposition": "live",
+      "live_id": "ADR-255",
+      "note": "accepted in tree"
+    },
+    "257": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "258": {
+      "disposition": "live",
+      "live_id": "ADR-258",
+      "note": "accepted in tree"
+    },
+    "263": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "272": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "273": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "276": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "280": {
+      "disposition": "live",
+      "live_id": "ADR-280",
+      "note": "accepted in tree"
+    },
+    "284": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "292": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "293": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "294": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "295": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "296": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "297": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "298": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "299": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "300": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "301": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "302": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "303": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "304": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "305": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "306": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "307": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "308": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "309": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "310": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "311": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "312": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "313": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "314": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "315": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "316": {
+      "disposition": "superseded",
+      "live_id": "ADR-329",
+      "note": "await content-fold then delete"
+    },
+    "317": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "318": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "319": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "320": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "321": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "324": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "325": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "326": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "328": {
+      "disposition": "live",
+      "live_id": "ADR-328",
+      "note": "accepted in tree"
+    },
+    "329": {
+      "disposition": "live",
+      "live_id": "ADR-329",
+      "note": "accepted in tree"
+    },
+    "330": {
+      "disposition": "live",
+      "live_id": "ADR-330",
+      "note": "accepted in tree"
+    },
+    "331": {
+      "disposition": "live",
+      "live_id": "ADR-331",
+      "note": "accepted in tree"
+    },
+    "332": {
+      "disposition": "live",
+      "live_id": "ADR-332",
+      "note": "accepted in tree"
+    },
+    "333": {
+      "disposition": "live",
+      "live_id": "ADR-333",
+      "note": "accepted in tree"
+    },
+    "334": {
+      "disposition": "live",
+      "live_id": "ADR-334",
+      "note": "accepted in tree"
+    },
+    "335": {
+      "disposition": "live",
+      "live_id": "ADR-335",
+      "note": "accepted in tree"
+    },
+    "336": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "337": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "338": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "339": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "340": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "341": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "343": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "344": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "346": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "347": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "348": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "349": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "350": {
+      "disposition": "live",
+      "live_id": "ADR-350",
+      "note": "accepted in tree"
+    },
+    "351": {
+      "disposition": "live",
+      "live_id": "ADR-351",
+      "note": "accepted in tree"
+    },
+    "352": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "353": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "354": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "355": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "356": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "357": {
+      "disposition": "superseded",
+      "live_id": "ADR-512",
+      "note": "await content-fold then delete"
+    },
+    "358": {
+      "disposition": "superseded",
+      "live_id": "ADR-408",
+      "note": "await content-fold then delete"
+    },
+    "359": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "360": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "361": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "362": {
+      "disposition": "live",
+      "live_id": "ADR-362",
+      "note": "accepted in tree"
+    },
+    "363": {
+      "disposition": "live",
+      "live_id": "ADR-363",
+      "note": "accepted in tree"
+    },
+    "364": {
+      "disposition": "live",
+      "live_id": "ADR-364",
+      "note": "accepted in tree"
+    },
+    "365": {
+      "disposition": "live",
+      "live_id": "ADR-365",
+      "note": "accepted in tree"
+    },
+    "366": {
+      "disposition": "live",
+      "live_id": "ADR-366",
+      "note": "accepted in tree"
+    },
+    "367": {
+      "disposition": "live",
+      "live_id": "ADR-367",
+      "note": "accepted in tree"
+    },
+    "368": {
+      "disposition": "live",
+      "live_id": "ADR-368",
+      "note": "accepted in tree"
+    },
+    "369": {
+      "disposition": "live",
+      "live_id": "ADR-369",
+      "note": "accepted in tree"
+    },
+    "370": {
+      "disposition": "live",
+      "live_id": "ADR-370",
+      "note": "accepted in tree"
+    },
+    "371": {
+      "disposition": "live",
+      "live_id": "ADR-371",
+      "note": "accepted in tree"
+    },
+    "372": {
+      "disposition": "superseded",
+      "live_id": "ADR-393",
+      "note": "await content-fold then delete"
+    },
+    "373": {
+      "disposition": "live",
+      "live_id": "ADR-373",
+      "note": "accepted in tree"
+    },
+    "374": {
+      "disposition": "live",
+      "live_id": "ADR-374",
+      "note": "accepted in tree"
+    },
+    "375": {
+      "disposition": "live",
+      "live_id": "ADR-375",
+      "note": "accepted in tree"
+    },
+    "376": {
+      "disposition": "live",
+      "live_id": "ADR-376",
+      "note": "accepted in tree"
+    },
+    "377": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "378": {
+      "disposition": "live",
+      "live_id": "ADR-378",
+      "note": "accepted in tree"
+    },
+    "379": {
+      "disposition": "live",
+      "live_id": "ADR-379",
+      "note": "accepted in tree"
+    },
+    "380": {
+      "disposition": "live",
+      "live_id": "ADR-380",
+      "note": "accepted in tree"
+    },
+    "381": {
+      "disposition": "unknown",
+      "live_id": null,
+      "note": "Proposed"
+    },
+    "382": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "383": {
+      "disposition": "live",
+      "live_id": "ADR-383",
+      "note": "accepted in tree"
+    },
+    "384": {
+      "disposition": "unknown",
+      "live_id": null,
+      "note": "Proposed"
+    },
+    "387": {
+      "disposition": "unknown",
+      "live_id": null,
+      "note": "Proposed"
+    },
+    "388": {
+      "disposition": "live",
+      "live_id": "ADR-388",
+      "note": "accepted in tree"
+    },
+    "389": {
+      "disposition": "live",
+      "live_id": "ADR-389",
+      "note": "accepted in tree"
+    },
+    "390": {
+      "disposition": "live",
+      "live_id": "ADR-390",
+      "note": "accepted in tree"
+    },
+    "391": {
+      "disposition": "live",
+      "live_id": "ADR-391",
+      "note": "accepted in tree"
+    },
+    "392": {
+      "disposition": "live",
+      "live_id": "ADR-392",
+      "note": "accepted in tree"
+    },
+    "393": {
+      "disposition": "live",
+      "live_id": "ADR-393",
+      "note": "accepted in tree"
+    },
+    "394": {
+      "disposition": "live",
+      "live_id": "ADR-394",
+      "note": "accepted in tree"
+    },
+    "397": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "476": {
+      "disposition": "live",
+      "live_id": "ADR-476",
+      "note": "accepted in tree"
+    },
+    "478": {
+      "disposition": "live",
+      "live_id": "ADR-478",
+      "note": "accepted in tree"
+    },
+    "479": {
+      "disposition": "live",
+      "live_id": "ADR-479",
+      "note": "accepted in tree"
+    },
+    "480": {
+      "disposition": "live",
+      "live_id": "ADR-480",
+      "note": "accepted in tree"
+    },
+    "481": {
+      "disposition": "live",
+      "live_id": "ADR-481",
+      "note": "accepted in tree"
+    },
+    "482": {
+      "disposition": "live",
+      "live_id": "ADR-482",
+      "note": "accepted in tree"
+    },
+    "506": {
+      "disposition": "live",
+      "live_id": "ADR-506",
+      "note": "accepted in tree"
+    },
+    "507": {
+      "disposition": "live",
+      "live_id": "ADR-507",
+      "note": "accepted in tree"
+    },
+    "508": {
+      "disposition": "live",
+      "live_id": "ADR-508",
+      "note": "accepted in tree"
+    },
+    "509": {
+      "disposition": "superseded",
+      "live_id": "ADR-512",
+      "note": "await content-fold then delete"
+    },
+    "510": {
+      "disposition": "live",
+      "live_id": "ADR-510",
+      "note": "accepted in tree"
+    },
+    "511": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "512": {
+      "disposition": "live",
+      "live_id": "ADR-512",
+      "note": "accepted in tree"
+    },
+    "513": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "514": {
+      "disposition": "superseded",
+      "live_id": "ADR-515",
+      "note": "await content-fold then delete"
+    },
+    "515": {
+      "disposition": "live",
+      "live_id": "ADR-515",
+      "note": "accepted in tree"
+    },
+    "516": {
+      "disposition": "live",
+      "live_id": "ADR-516",
+      "note": "accepted in tree"
+    },
+    "517": {
+      "disposition": "live",
+      "live_id": "ADR-517",
+      "note": "accepted in tree"
+    },
+    "518": {
+      "disposition": "live",
+      "live_id": "ADR-518",
+      "note": "accepted in tree"
+    },
+    "519": {
+      "disposition": "live",
+      "live_id": "ADR-519",
+      "note": "accepted in tree"
+    },
+    "520": {
+      "disposition": "live",
+      "live_id": "ADR-520",
+      "note": "accepted in tree"
+    },
+    "521": {
+      "disposition": "live",
+      "live_id": "ADR-521",
+      "note": "accepted in tree"
+    },
+    "522": {
+      "disposition": "live",
+      "live_id": "ADR-522",
+      "note": "accepted in tree"
+    },
+    "523": {
+      "disposition": "live",
+      "live_id": "ADR-523",
+      "note": "accepted in tree"
+    },
+    "524": {
+      "disposition": "live",
+      "live_id": "ADR-524",
+      "note": "accepted in tree"
+    },
+    "525": {
+      "disposition": "live",
+      "live_id": "ADR-525",
+      "note": "accepted in tree"
+    },
+    "526": {
+      "disposition": "live",
+      "live_id": "ADR-526",
+      "note": "accepted in tree"
+    },
+    "527": {
+      "disposition": "live",
+      "live_id": "ADR-527",
+      "note": "accepted in tree"
+    },
+    "528": {
+      "disposition": "live",
+      "live_id": "ADR-528",
+      "note": "accepted in tree"
+    },
+    "529": {
+      "disposition": "live",
+      "live_id": "ADR-529",
+      "note": "accepted in tree"
+    },
+    "530": {
+      "disposition": "live",
+      "live_id": "ADR-530",
+      "note": "accepted in tree"
+    },
+    "531": {
+      "disposition": "live",
+      "live_id": "ADR-531",
+      "note": "accepted in tree"
+    },
+    "532": {
+      "disposition": "live",
+      "live_id": "ADR-532",
+      "note": "accepted in tree"
+    },
+    "533": {
+      "disposition": "live",
+      "live_id": "ADR-533",
+      "note": "accepted in tree"
+    },
+    "534": {
+      "disposition": "live",
+      "live_id": "ADR-534",
+      "note": "accepted in tree"
+    },
+    "535": {
+      "disposition": "live",
+      "live_id": "ADR-535",
+      "note": "accepted in tree"
+    },
+    "536": {
+      "disposition": "live",
+      "live_id": "ADR-536",
+      "note": "accepted in tree"
+    },
+    "537": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "538": {
+      "disposition": "live",
+      "live_id": "ADR-538",
+      "note": "accepted in tree"
+    },
+    "539": {
+      "disposition": "live",
+      "live_id": "ADR-539",
+      "note": "accepted in tree"
+    },
+    "540": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "541": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "542": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "543": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "544": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "545": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "546": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "547": {
+      "disposition": "live",
+      "live_id": "ADR-547",
+      "note": "accepted in tree"
+    },
+    "548": {
+      "disposition": "live",
+      "live_id": "ADR-548",
+      "note": "accepted in tree"
+    },
+    "549": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "550": {
+      "disposition": "superseded",
+      "live_id": "ADR-562",
+      "note": "await content-fold then delete"
+    },
+    "551": {
+      "disposition": "live",
+      "live_id": "ADR-551",
+      "note": "accepted in tree"
+    },
+    "552": {
+      "disposition": "live",
+      "live_id": "ADR-552",
+      "note": "accepted in tree"
+    },
+    "553": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "554": {
+      "disposition": "live",
+      "live_id": "ADR-554",
+      "note": "accepted in tree"
+    },
+    "555": {
+      "disposition": "live",
+      "live_id": "ADR-555",
+      "note": "accepted in tree"
+    },
+    "556": {
+      "disposition": "live",
+      "live_id": "ADR-556",
+      "note": "accepted in tree"
+    },
+    "557": {
+      "disposition": "live",
+      "live_id": "ADR-557",
+      "note": "accepted in tree"
+    },
+    "558": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "559": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "560": {
+      "disposition": "live",
+      "live_id": "ADR-560",
+      "note": "accepted in tree"
+    },
+    "561": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "562": {
+      "disposition": "live",
+      "live_id": "ADR-562",
+      "note": "accepted in tree"
+    },
+    "563": {
+      "disposition": "live",
+      "live_id": "ADR-563",
+      "note": "accepted in tree"
+    },
+    "564": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "565": {
+      "disposition": "live",
+      "live_id": "ADR-565",
+      "note": "accepted in tree"
+    },
+    "566": {
+      "disposition": "live",
+      "live_id": "ADR-566",
+      "note": "accepted in tree"
+    },
+    "567": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "568": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "569": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "570": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "571": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "572": {
+      "disposition": "live",
+      "live_id": "ADR-572",
+      "note": "accepted in tree"
+    },
+    "573": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "580": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "581": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "582": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "586": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "587": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "588": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "589": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "590": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "591": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "592": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "593": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "595": {
+      "disposition": "live",
+      "live_id": "ADR-595",
+      "note": "accepted in tree"
+    },
+    "596": {
+      "disposition": "superseded",
+      "live_id": "ADR-616",
+      "note": "await content-fold then delete"
+    },
+    "597": {
+      "disposition": "live",
+      "live_id": "ADR-597",
+      "note": "accepted in tree"
+    },
+    "598": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "599": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "600": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "603": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "604": {
+      "disposition": "live",
+      "live_id": "ADR-604",
+      "note": "accepted in tree"
+    },
+    "605": {
+      "disposition": "live",
+      "live_id": "ADR-605",
+      "note": "accepted in tree"
+    },
+    "606": {
+      "disposition": "live",
+      "live_id": "ADR-606",
+      "note": "accepted in tree"
+    },
+    "607": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "608": {
+      "disposition": "live",
+      "live_id": "ADR-608",
+      "note": "accepted in tree"
+    },
+    "609": {
+      "disposition": "live",
+      "live_id": "ADR-609",
+      "note": "accepted in tree"
+    },
+    "610": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "611": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "612": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "613": {
+      "disposition": "live",
+      "live_id": "ADR-613",
+      "note": "accepted in tree"
+    },
+    "614": {
+      "disposition": "live",
+      "live_id": "ADR-614",
+      "note": "accepted in tree"
+    },
+    "615": {
+      "disposition": "live",
+      "live_id": "ADR-615",
+      "note": "accepted in tree"
+    },
+    "616": {
+      "disposition": "live",
+      "live_id": "ADR-616",
+      "note": "accepted in tree"
+    },
+    "617": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "618": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "619": {
+      "disposition": "live",
+      "live_id": "ADR-619",
+      "note": "accepted in tree"
+    },
+    "620": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "621": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "622": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "623": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "624": {
+      "disposition": "live",
+      "live_id": "ADR-624",
+      "note": "accepted in tree"
+    },
+    "625": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "626": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "627": {
+      "disposition": "live",
+      "live_id": "ADR-627",
+      "note": "accepted in tree"
+    },
+    "628": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "629": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "630": {
+      "disposition": "live",
+      "live_id": "ADR-630",
+      "note": "accepted in tree"
+    },
+    "631": {
+      "disposition": "rejected",
+      "live_id": null,
+      "note": "await delete after census epoch allows"
+    },
+    "632": {
+      "disposition": "live",
+      "live_id": "ADR-632",
+      "note": "accepted in tree"
+    },
+    "633": {
+      "disposition": "live",
+      "live_id": "ADR-633",
+      "note": "accepted in tree"
+    },
+    "634": {
+      "disposition": "live",
+      "live_id": "ADR-634",
+      "note": "accepted in tree"
+    },
+    "635": {
+      "disposition": "live",
+      "live_id": "ADR-635",
+      "note": "accepted in tree"
+    },
+    "636": {
+      "disposition": "live",
+      "live_id": "ADR-636",
+      "note": "accepted in tree"
+    },
+    "637": {
+      "disposition": "live",
+      "live_id": "ADR-637",
+      "note": "accepted in tree"
+    },
+    "638": {
+      "disposition": "live",
+      "live_id": "ADR-638",
+      "note": "accepted in tree"
+    },
+    "639": {
+      "disposition": "live",
+      "live_id": "ADR-639",
+      "note": "accepted in tree"
+    }
+  },
+  "e4_delete_blocked_by": [
+    "ADR-0624 adr-census-epoch P2 binds docs/decisions ADR corpus",
+    "scm-facts-snapshot adr-census-epoch-receipt-gate",
+    "Must advance census epoch or exclude _historical/ before delete"
+  ],
+  "e5_consolidation": "Topic-cluster Accepted ADRs after E4; renumber only with full citation rewrite"
+}

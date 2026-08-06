@@ -1,7 +1,7 @@
 ---
 id: ADR-0347
 title: Foundry-fitness to governance bulk rename (doctrine-only; all oya-governance-fitness-* CI lanes + crates + catalog + ADR cross-references collapse to oya-governance-* per ADR-0132 + ADR-0335; per-lane migration IPs collapsed into one bulk rename)
-status: Proposed
+status: Rejected
 planning_impact: true
 date: 2026-05-21
 owner_team:

@@ -1,7 +1,7 @@
 ---
 id: ADR-0539
 title: "Cloud CI freshness gate for Cargo.lock member parity and generated-face byte parity"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-10

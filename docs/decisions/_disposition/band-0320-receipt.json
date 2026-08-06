@@ -1,0 +1,94 @@
+{
+  "band": [320, 329],
+  "reviewed": [320, 321, 324, 325, 326, 328, 329],
+  "findings": [
+    {
+      "adr": "ADR-0320",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed transient program-identity doctrine. Zero higher-ADR citations (num>320). No Accepted supersedes/amends. Leave Proposed (do not mass-Accept).",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0321",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed B2B SaaS industry-leader coverage. Higher refs are related/cleanup only (0324/0325/0328 Proposed; 0332 Accepted related healthcare anchors). No Accepted supersedes/amends. Leave Proposed.",
+      "higher_adrs_cited": ["ADR-0324", "ADR-0325", "ADR-0328", "ADR-0332"]
+    },
+    {
+      "adr": "ADR-0324",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed anti-script/anti-template doctrine. Widely cited as live authoring authority by higher ADRs (including Accepted 0329/0331 related; Proposed 0336/0337/0346). ADR-0346 (Proposed) lists amends ADR-0324 — not Accepted, so no amended_by edge. No Accepted supersedes. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0328",
+        "ADR-0329",
+        "ADR-0331",
+        "ADR-0336",
+        "ADR-0337",
+        "ADR-0346"
+      ]
+    },
+    {
+      "adr": "ADR-0325",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed public Bronze/Silver/Gold/Platinum pricing anchors on ADR-0316 tier shape. ADR-0316 is Superseded by Accepted ADR-0329 (capability-tier retirement), so the pricing-anchor mechanism is effectively obsolete, but ADR-0329 supersedes list and body name only ADR-0316 — not ADR-0325. No higher Accepted lists supersedes/amends ADR-0325. Do not invent supersession without explicit edge; leave Proposed.",
+      "higher_adrs_cited": ["ADR-0316", "ADR-0329", "ADR-0330"]
+    },
+    {
+      "adr": "ADR-0326",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed per-tenant residency attestation. No higher ADR lists supersedes or amends ADR-0326. Related from 0325 only within-band. Leave Proposed.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0328",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Accepted ADR-0329 frontmatter amends ADR-0328 (§D-19 OCI Always Free → tenant-class demo_trial reword). Accepted ADR-0619 frontmatter amends [..., ADR-0328, ...] (zero-live-context external harness brand retirement). Reverse amended_by edge was missing. Status remains Proposed — amends do not Accept; do not mass-Accept. Many higher Proposed peers also claim amends (0336/0337/0339/0341/0344) but only Accepted reverse-links are mechanical.",
+      "higher_adrs_cited": [
+        "ADR-0329",
+        "ADR-0335",
+        "ADR-0336",
+        "ADR-0337",
+        "ADR-0619"
+      ]
+    },
+    {
+      "adr": "ADR-0329",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted tier-system retirement / tenant-class replacement. Supersedes ADR-0316 (already live-resolved to Superseded). Siblings ADR-0330/0331 Accepted are related replacement/adoption, not supersedes/amends of 0329. No higher Accepted lists supersedes or amends ADR-0329. Keep Accepted; no false Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0330",
+        "ADR-0331",
+        "ADR-0334",
+        "ADR-0336",
+        "ADR-0337",
+        "ADR-0338"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md",
+    "docs/decisions/_disposition/band-0320-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0320",
+    "ADR-0321",
+    "ADR-0324",
+    "ADR-0325",
+    "ADR-0326",
+    "ADR-0329"
+  ]
+}

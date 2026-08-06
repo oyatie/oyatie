@@ -1,7 +1,7 @@
 ---
 id: ADR-0553
 title: "Commission the oya-identity runnable workload-identity service (G005 slice 1)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder (identity-layering directive 2026-06-10), agent-lane g05
 date: 2026-06-11

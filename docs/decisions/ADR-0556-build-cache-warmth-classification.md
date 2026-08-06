@@ -1,7 +1,7 @@
 ---
 id: ADR-0556
 title: "Build cache-warmth classification: deliberate cold/warm policy-as-data + the cold integrity-canary trust anchor"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-06-12

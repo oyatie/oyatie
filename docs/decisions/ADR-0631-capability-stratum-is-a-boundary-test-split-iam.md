@@ -1,7 +1,7 @@
 ---
 id: ADR-0631
 title: "A capability that spans strata has a wrong boundary, not a tier problem: split iam into iam (S1 PDP) and identity (S3 product), consolidate the Cedar+ReBAC decision plane into policy, and re-derive the burn-down record"
-status: Proposed
+status: Rejected
 doc_status: published
 planning_impact: true
 deciders: founder

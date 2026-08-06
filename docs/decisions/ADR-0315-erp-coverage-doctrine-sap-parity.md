@@ -1,6 +1,6 @@
 ---
 id: ADR-0315
-status: Proposed
+status: Rejected
 date: 2026-05-20
 owner: council-product + axis-erp
 doc_class: Architecture-Decision-Record

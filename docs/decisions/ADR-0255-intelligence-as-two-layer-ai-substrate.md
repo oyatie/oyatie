@@ -1,6 +1,6 @@
 ---
 id: ADR-0255
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -20,6 +20,7 @@ supersedes: []
 amends:
   - ADR-0220-consumer-intelligence-substrate.md
 superseded_by: []
+amended_by: [ADR-0329, ADR-0335]
 related:
   - ADR-0028-cloud-microservice-architecture.md
   - ADR-0050-event-bus-kafka.md

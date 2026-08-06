@@ -1,7 +1,7 @@
 ---
 id: ADR-0571
 title: "Home the connect address-book domain into the comms capability and commission the contact-management port + usecase (wave1 strangler MOVE + cloud-agnostic core slice)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-22

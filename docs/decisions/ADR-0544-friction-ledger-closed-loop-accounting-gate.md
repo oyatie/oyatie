@@ -1,7 +1,7 @@
 ---
 id: ADR-0544
 title: "Friction-ledger closed-loop accounting meta-gate"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-10

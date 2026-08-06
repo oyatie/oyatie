@@ -1,7 +1,7 @@
 ---
 id: ADR-0595
 title: "De-commit the pure-derivation cloud-ci accounting faces — derive-on-demand + gate teaching"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-23

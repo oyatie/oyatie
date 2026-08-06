@@ -1,6 +1,6 @@
 ---
 id: ADR-0248
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -25,6 +25,7 @@ supersedes: []
 amends:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
 superseded_by: []
+amended_by: [ADR-0333]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0010-regional-pack-architecture.md

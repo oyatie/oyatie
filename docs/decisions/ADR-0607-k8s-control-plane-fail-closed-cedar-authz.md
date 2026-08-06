@@ -1,7 +1,7 @@
 ---
 id: ADR-0607
 title: "Fail-closed Cedar authz on the managed-K8s control-plane facades (cluster-lifecycle / control-plane-host / tenant-quota)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-28

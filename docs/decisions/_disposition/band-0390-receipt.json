@@ -1,0 +1,116 @@
+{
+  "band": [390, 399],
+  "reviewed": [
+    "ADR-0390",
+    "ADR-0391",
+    "ADR-0392",
+    "ADR-0393",
+    "ADR-0394",
+    "ADR-0397"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0390",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "cloud-intelligence v1 request pipeline + proof layer. Reverse-index: no higher ADR lists supersedes or amends ADR-0390. Higher cites are related/dependent only (0391 safety proof + DevOps console panels over Lane A admin API; 0542 Proposed XPROXY parity commissioning with related to 0384 not 0390; 0559 Proposed cedar PDP; 0562 intelligence capability placement preserves OAuth-pool/pipeline kernels). Body remains live architecture for intelligence request path; no false-Accepted supersession. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0391",
+        "ADR-0542",
+        "ADR-0545",
+        "ADR-0559",
+        "ADR-0562"
+      ]
+    },
+    {
+      "adr": "ADR-0391",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "N-lane parallel safety proof + DevOps console v0. Reverse-index: no higher ADR lists supersedes or amends ADR-0391. ADR-0511 (Superseded by 0515) cites N-lane swarm for agentic feedback only — not a supersession of lane-overlap gate or console. Body Jenkins aggregator endpoints are historical under live ADR-0515 (jenkins=drop-now), but 0515 supersedes list is [0124,0349,0359,0361,0511,0513,0514] and does not claim 0391; same pattern as band-0370 treatment of 0374 (body substrate drift without Accepted supersedes edge). ADR-0394 IDP portal is a distinct product surface, not a claimed successor of the operator console. Do not invent supersession. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0394",
+        "ADR-0511",
+        "ADR-0515"
+      ]
+    },
+    {
+      "adr": "ADR-0392",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Buck2 canonical build graph (reverses 0358 §2). Reverse-index Accepted amenders ADR-0522 and ADR-0524 already present in amended_by. ADR-0515 table explicitly: 'ADR-0392 Buck2 build substrate | NOT superseded — depends_on'. Higher 0509/0512/0514/0515/0525/0556/0560 cite or compose without superseding. No later Accepted lists supersedes ADR-0392. Aligns with north star hermetic build graph. Keep Accepted (read with 0522/0524).",
+      "higher_adrs_cited": [
+        "ADR-0509",
+        "ADR-0511",
+        "ADR-0512",
+        "ADR-0514",
+        "ADR-0515",
+        "ADR-0522",
+        "ADR-0524",
+        "ADR-0525",
+        "ADR-0556",
+        "ADR-0560"
+      ]
+    },
+    {
+      "adr": "ADR-0393",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Leptos canonical app-shell frontend; supersedes 0372 (reciprocal superseded_by present). Reverse-index: no higher ADR lists supersedes or amends ADR-0393. Higher 0394 depends_on; 0513 (Superseded) deck follows Leptos; Proposed 0536/0537 related and restate one platform-owned Leptos shell without replacing 0393. Aligns with owned Rust/WASM stack. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0394",
+        "ADR-0509",
+        "ADR-0513",
+        "ADR-0536",
+        "ADR-0537"
+      ]
+    },
+    {
+      "adr": "ADR-0394",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "First-party Rust IDP/portal (Leptos + ops BFF); amends 0482 portal bridge (0482 amended_by includes ADR-0394). Reverse-index: no higher ADR lists supersedes or amends ADR-0394. Higher 0476/0482/0632 related or amendment-target only. Depends_on live 0393/0515/0615. Aligns with owned Rust console + single CI posture. Keep Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0476",
+        "ADR-0482",
+        "ADR-0632"
+      ]
+    },
+    {
+      "adr": "ADR-0397",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Reconstructed Pulsar 4.x + Oxia canonical event-bus. Status explicitly Proposed pending founder ratification (door one-way). Reverse-index: no higher ADR lists supersedes or amends ADR-0397. Accepted citers (0476/0478/0479/0481/0482/0557) treat substance as operative-in-fact and 0557 supersedes 0005 Kafka substrate while citing 0397 as confirmation — plan-lag / ratification debt, not a mechanical supersession of 0397. Do not mass-Accept Proposed. No later Accepted replaces Oxia+Pulsar choice with a different Accepted event-bus ADR (0482/0536 aspirational owned oya-events remain transitional/Proposed matrix). Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0476",
+        "ADR-0478",
+        "ADR-0479",
+        "ADR-0481",
+        "ADR-0482",
+        "ADR-0536",
+        "ADR-0537",
+        "ADR-0557"
+      ]
+    }
+  ],
+  "files_changed": [],
+  "no_change": [
+    "ADR-0390",
+    "ADR-0391",
+    "ADR-0392",
+    "ADR-0393",
+    "ADR-0394",
+    "ADR-0397"
+  ],
+  "notes": {
+    "excluded_from_task_list": [],
+    "band_on_disk_nums": [390, 391, 392, 393, 394, 397],
+    "live_resolution": "No later Accepted ADR lists any reviewed band id in supersedes. Only Accepted amender pair for the band is 0522+0524→0392, already recorded in 0392.amended_by. Jenkins mentions in 0391 body are historical under 0515 without an Accepted supersedes edge — do not invent. 0397 stays Proposed (founder ratification / do-not-mass-Accept).",
+    "north_star_alignment": "0390/0392/0393/0394 remain live Accepted and compatible with owned Rust stack, single oya-ci-required (0515), Buck2 graph (0522/0524 amends), Leptos shell, first-party IDP. 0397 Proposed transitional Pulsar+Oxia matches 0510 transitional-behind-interface doctrine when ratified."
+  }
+}

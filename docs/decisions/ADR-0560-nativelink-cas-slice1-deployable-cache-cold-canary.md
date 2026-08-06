@@ -1,7 +1,7 @@
 ---
 id: ADR-0560
 title: "NativeLink CAS slice 1: deployable cache-only substrate + opt-in buck2 wiring + cold integrity-canary"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-12

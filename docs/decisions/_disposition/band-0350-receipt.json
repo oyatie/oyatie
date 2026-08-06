@@ -1,0 +1,112 @@
+{
+  "band": [350, 359],
+  "reviewed": [
+    "ADR-0350",
+    "ADR-0351",
+    "ADR-0352",
+    "ADR-0353",
+    "ADR-0354",
+    "ADR-0355",
+    "ADR-0356",
+    "ADR-0357",
+    "ADR-0358",
+    "ADR-0359"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0350",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher Accepted ADR lists supersedes/amends ADR-0350. UUIDv7 remains the canonical ID primitive; later handoff/synthesis ADRs restate rather than replace it.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0351",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "No higher Accepted ADR supersedes the cell-rebalancer + cell-lifecycle single-concern split. ADR-0562 still retains cloud/cell-lifecycle and cloud/cell-rebalancer as capability homes (layout path changed by capability-first cluster; decision domain remains live).",
+      "higher_adrs_cited": ["ADR-0562"]
+    },
+    {
+      "adr": "ADR-0352",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Handoff synthesis remains Proposed; no higher Accepted ADR supersedes it. Do not mass-Accept.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0353",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Library-first / network opt-in clarification remains Proposed; higher peers (e.g. ADR-0356 related) do not Accepted-supersede it.",
+      "higher_adrs_cited": ["ADR-0356"]
+    },
+    {
+      "adr": "ADR-0354",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "HTTP/3 fallback + strict TLS/ECH/PQC amendment of ADR-0253 remains Proposed; no higher Accepted supersession edge found.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0355",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Intelligence substrate library-first clarification remains Proposed; no higher Accepted supersession edge found.",
+      "higher_adrs_cited": ["ADR-0356"]
+    },
+    {
+      "adr": "ADR-0356",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Ontology read-path library-first clarification remains Proposed; no higher Accepted supersession edge found.",
+      "higher_adrs_cited": []
+    },
+    {
+      "adr": "ADR-0357",
+      "status_before": "Superseded",
+      "status_after": "Superseded",
+      "action": "fix superseded_by zero-padding ADR-512 → ADR-0512",
+      "reason": "ADR-0512 Accepted frontmatter supersedes: [ADR-0357, …] and body explicitly supersedes vertical-slice nesting. Prior deterministic hygiene set status Superseded but wrote unpadded ADR-512; live successor id is ADR-0512.",
+      "higher_adrs_cited": ["ADR-0512", "ADR-0550", "ADR-0562"]
+    },
+    {
+      "adr": "ADR-0358",
+      "status_before": "Superseded",
+      "status_after": "Superseded",
+      "action": "fix superseded_by zero-padding and malformed YAML [ADR-392, ADR-408] + dangling - ADR-0408 → [ADR-0392, ADR-0408]",
+      "reason": "ADR-0392 Accepted lists supersedes: [ADR-0358] (Bazel §2 → Buck2). Amendment note also names ADR-0408 for CI half. Prior hygiene set status Superseded with unpadded ids and invalid YAML; keep both cited successors with correct ADR-0NNN form. §1/§3/§4 remain historical non-toolchain roadmap text; status Superseded follows reverse supersedes claim.",
+      "higher_adrs_cited": ["ADR-0392", "ADR-0408", "ADR-0511", "ADR-0525"]
+    },
+    {
+      "adr": "ADR-0359",
+      "status_before": "Superseded",
+      "status_after": "Superseded",
+      "action": "none",
+      "reason": "Already correctly Superseded with superseded_by: [ADR-0515]. ADR-0515 Accepted supersedes list includes ADR-0359; chain skips historical ADR-0511.",
+      "higher_adrs_cited": ["ADR-0515", "ADR-0511"]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0357-vertical-slice-monorepo-nesting.md",
+    "docs/decisions/ADR-0358-ideal-production-roadmap-strangler-bazel-oya-overlay.md",
+    "docs/decisions/_disposition/band-0350-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0350",
+    "ADR-0351",
+    "ADR-0352",
+    "ADR-0353",
+    "ADR-0354",
+    "ADR-0355",
+    "ADR-0356",
+    "ADR-0359"
+  ]
+}

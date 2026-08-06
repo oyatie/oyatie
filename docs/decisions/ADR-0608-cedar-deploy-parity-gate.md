@@ -1,7 +1,7 @@
 ---
 id: ADR-0608
 title: "Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-28

@@ -1,6 +1,6 @@
 ---
 id: ADR-0296
-status: Proposed
+status: Rejected
 date: 2026-05-20
 owners:
   - council-architecture

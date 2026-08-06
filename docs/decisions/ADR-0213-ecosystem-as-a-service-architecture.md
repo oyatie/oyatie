@@ -1,7 +1,7 @@
 ---
 adr_id: ADR-0213
 title: Ecosystem-as-a-Service architecture — Plugin/App Store substrate (third-party developer plugins/apps) + Developer SDK
-status: Proposed
+status: Rejected
 date: 2026-05-18
 owner_team: council-architecture + axis-ecosystem
 deciders: [founder, council-architecture, council-security, council-privacy, council-design-system]

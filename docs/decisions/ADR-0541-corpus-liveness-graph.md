@@ -1,7 +1,7 @@
 ---
 id: ADR-0541
 title: "Corpus Liveness Graph: one content-addressed corpus graph with per-class decay invariants"
-status: Proposed
+status: Rejected
 planning_impact: true
 deciders: founder
 date: 2026-06-10

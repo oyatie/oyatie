@@ -7,7 +7,7 @@ deciders: founder
 date: 2026-06-08
 door: one-way
 owner: founder
-supersedes: []
+supersedes: [ADR-0037, ADR-0041, ADR-0342, ADR-0345, ADR-0050]
 superseded_by: []
 depends_on: [ADR-0516, ADR-0532]
 amends: []

@@ -1,6 +1,6 @@
 ---
 id: ADR-0325
-status: Proposed
+status: Rejected
 date: 2026-05-20
 owner: council-product
 owners:

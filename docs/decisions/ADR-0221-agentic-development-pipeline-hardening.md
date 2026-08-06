@@ -1,3 +1,8 @@
+---
+id: ADR-0221
+status: Accepted
+---
+
 # ADR-0221 — Agentic Development Pipeline Hardening
 
 - **Status:** Accepted

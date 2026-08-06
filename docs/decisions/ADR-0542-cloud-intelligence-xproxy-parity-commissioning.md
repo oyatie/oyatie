@@ -1,7 +1,7 @@
 ---
 id: ADR-0542
 title: "Cloud-Intelligence XPROXY External-Proxy Parity Lane: commissioning and governance path"
-status: Proposed
+status: Rejected
 planning_impact: true
 deciders: founder
 date: 2026-06-10

@@ -1,5 +1,5 @@
 ---
-status: Proposed
+status: Rejected
 planning_impact: true
 deciders: council-foundry-vcs, council-architecture
 date: 2026-05-16

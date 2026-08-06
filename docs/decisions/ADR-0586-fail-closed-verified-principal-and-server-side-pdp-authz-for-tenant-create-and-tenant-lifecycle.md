@@ -1,7 +1,7 @@
 ---
 id: ADR-0586
 title: "Fail-closed verified-principal + server-side PDP authorization for tenant.create and the tenant-lifecycle operator scope (C7/C8)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-23

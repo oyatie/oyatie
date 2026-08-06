@@ -1,7 +1,7 @@
 ---
 id: ADR-0540
 title: "Cargo workspace to Buck2 target parity gate"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-10

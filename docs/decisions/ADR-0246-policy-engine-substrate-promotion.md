@@ -1,6 +1,6 @@
 ---
 id: ADR-0246
-status: Proposed
+status: Accepted
 planning_impact: true
 date: 2026-05-20
 owners:
@@ -19,6 +19,7 @@ amends:
   - ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md
   - microservices/ontology/PRD.md (drops cedar-fragment-coverage BC; rewrites §"universal mediator" framing; renames agent-gateway BC to tool-call-ingress)
 superseded_by: []
+amended_by: [ADR-0280]
 related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0028-cloud-microservice-architecture.md

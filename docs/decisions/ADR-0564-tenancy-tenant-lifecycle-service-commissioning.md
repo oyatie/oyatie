@@ -1,7 +1,7 @@
 ---
 id: ADR-0564
 title: "Commission the tenancy tenant-lifecycle registration service (G006 slice 1): a runnable tenant register/provision/read delivery surface over the locked lifecycle core"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-20

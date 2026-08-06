@@ -1,7 +1,8 @@
 ---
 id: ADR-0116
 status: Accepted
-amended_by: [ADR-363]
+supersedes: [ADR-0054]
+amended_by: [ADR-0363]
 planning_impact: true
 doc_status: published
 ---

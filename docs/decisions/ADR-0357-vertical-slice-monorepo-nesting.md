@@ -1,7 +1,7 @@
 ---
 id: ADR-0357
 status: Superseded
-superseded_by: [ADR-512]
+superseded_by: [ADR-0512]
 planning_impact: true
 date: 2026-05-25
 owners:

@@ -1,0 +1,165 @@
+{
+  "band": [240, 249],
+  "reviewed": [
+    "ADR-0240",
+    "ADR-0241",
+    "ADR-0242",
+    "ADR-0243",
+    "ADR-0244",
+    "ADR-0245",
+    "ADR-0246",
+    "ADR-0248",
+    "ADR-0249"
+  ],
+  "findings": [
+    {
+      "adr": "ADR-0240",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted sovereign-cloud-per-regional-pack doctrine. Reverse index of higher ADR supersedes: empty. No later Accepted amends edge. Widely related-cited (0241–0246, 0248–0255, 0292–0313, 0338–0348, etc.) without replacement. Compatible with north-star cell/residency/zero-trust posture; not a dual-authority CI or warm-CAS claim; no conflict with live ADR-0515/0363/0562-cluster.",
+      "higher_adrs_cited": [
+        "ADR-0241",
+        "ADR-0242",
+        "ADR-0243",
+        "ADR-0244",
+        "ADR-0245",
+        "ADR-0246",
+        "ADR-0248",
+        "ADR-0249",
+        "ADR-0251",
+        "ADR-0253",
+        "ADR-0254",
+        "ADR-0340",
+        "ADR-0343",
+        "ADR-0344"
+      ]
+    },
+    {
+      "adr": "ADR-0241",
+      "status_before": "Accepted",
+      "status_after": "Accepted",
+      "action": "none",
+      "reason": "Accepted DR/BC portfolio policy. Already lists amended_by: [ADR-0343]; ADR-0343 is Proposed (amends 0241 with per-compliance-pack RTO/RPO floors) so not implement authority yet—edge already recorded. No later Accepted supersedes. Keep Accepted; live resolution must read with ADR-0343 when that amender is Accepted.",
+      "higher_adrs_cited": [
+        "ADR-0255",
+        "ADR-0273",
+        "ADR-0343",
+        "ADR-0348"
+      ]
+    },
+    {
+      "adr": "ADR-0242",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed oyatie-is-a-tenant doctrine (not implement authority). Higher ADR-0284 (Proposed) amends reserved slug constant; no later Accepted supersedes or amends. Do not mass-Accept.",
+      "higher_adrs_cited": [
+        "ADR-0255",
+        "ADR-0284"
+      ]
+    },
+    {
+      "adr": "ADR-0243",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed Cedar-as-universal-gate (not implement authority). Higher ADRs cite related (e.g. 0350 related_adrs) without Accepted amends/supersedes of 0243. No later Accepted supersedes. Leave Proposed; do not invent supersession vs 0150/0183/0515.",
+      "higher_adrs_cited": [
+        "ADR-0280",
+        "ADR-0333",
+        "ADR-0350"
+      ]
+    },
+    {
+      "adr": "ADR-0244",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "none",
+      "reason": "Proposed tenant-as-universal-scoping-primitive (not implement authority). Multiple higher Proposed amends (0311/0313/0317/0320/0326/0339/0340/0341); no later Accepted supersedes or amends edge. ADR-0350 treats as keystone in authority_chain prose but formal amends: list does not include 0244. Leave Proposed.",
+      "higher_adrs_cited": [
+        "ADR-0311",
+        "ADR-0313",
+        "ADR-0317",
+        "ADR-0320",
+        "ADR-0326",
+        "ADR-0339",
+        "ADR-0340",
+        "ADR-0341",
+        "ADR-0350"
+      ]
+    },
+    {
+      "adr": "ADR-0245",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Proposed substrate-vs-product layering. Already had amended_by: [ADR-0635]. Later Accepted ADR-0280 amends 0245 (DAG hardening) but was missing from amended_by; added ADR-0280. No later Accepted supersedes (0635 amends/depends_on, does not supersede). Status remains Proposed (plan-lag: Accepted peers amends Proposed parent—out of scope to mass-Accept).",
+      "higher_adrs_cited": [
+        "ADR-0280",
+        "ADR-0316",
+        "ADR-0340",
+        "ADR-0347",
+        "ADR-0635"
+      ]
+    },
+    {
+      "adr": "ADR-0246",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Proposed policy-engine substrate promotion. Later Accepted ADR-0280 amends 0246 (locks policy-engine DAG position) with no amended_by field; added amended_by: [ADR-0280]. Higher Proposed 0326/0353 also amends but only Accepted edges required. No later Accepted supersedes.",
+      "higher_adrs_cited": [
+        "ADR-0280",
+        "ADR-0326",
+        "ADR-0353"
+      ]
+    },
+    {
+      "adr": "ADR-0248",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Proposed Amazon-shape cellular architecture (hyperscaler cells). Later Accepted ADR-0333 amends 0248 (retires standalone cell µservice; cellular architecture remains a pattern) with no amended_by; added amended_by: [ADR-0333]. ADR-0351 keystones 0248 via 0333 but does not supersede 0248. Higher Proposed 0339/0340/0341/0348 amends only. No later Accepted supersedes of cellular doctrine.",
+      "higher_adrs_cited": [
+        "ADR-0333",
+        "ADR-0339",
+        "ADR-0340",
+        "ADR-0341",
+        "ADR-0348",
+        "ADR-0350",
+        "ADR-0351",
+        "ADR-0510"
+      ]
+    },
+    {
+      "adr": "ADR-0249",
+      "status_before": "Proposed",
+      "status_after": "Proposed",
+      "action": "add_amended_by",
+      "reason": "Proposed multi-category marketplace doctrine. Later Accepted ADR-0329 amends 0249 (marketplace offers tenant_class-gated, not tier-segmented) with no amended_by; added amended_by: [ADR-0329]. ADR-0316 (Superseded by 0329) also amends 0249 historically—do not list superseded amender as live peer. No later Accepted supersedes 0249 itself.",
+      "higher_adrs_cited": [
+        "ADR-0314",
+        "ADR-0316",
+        "ADR-0325",
+        "ADR-0329",
+        "ADR-0330",
+        "ADR-0331"
+      ]
+    }
+  ],
+  "files_changed": [
+    "docs/decisions/ADR-0245-substrate-vs-product-layering.md",
+    "docs/decisions/ADR-0246-policy-engine-substrate-promotion.md",
+    "docs/decisions/ADR-0248-amazon-shape-cellular-architecture.md",
+    "docs/decisions/ADR-0249-multi-category-marketplace-doctrine.md",
+    "docs/decisions/_disposition/band-0240-receipt.json"
+  ],
+  "no_change": [
+    "ADR-0240",
+    "ADR-0241",
+    "ADR-0242",
+    "ADR-0243",
+    "ADR-0244"
+  ]
+}

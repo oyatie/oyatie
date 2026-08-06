@@ -1,7 +1,7 @@
 ---
 id: ADR-0604
 title: "De-commit the scm-facts boundary snapshot — the last committed pure-derivation face (completes ADR-0595)"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-24
@@ -9,6 +9,7 @@ door: one-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0616]
 amends: []
 depends_on: [ADR-0515, ADR-0539, ADR-0551, ADR-0552, ADR-0555, ADR-0595]
 related: [ADR-0111, ADR-0363, ADR-0541, ADR-0558, ADR-0596]

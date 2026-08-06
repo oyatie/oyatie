@@ -1,3 +1,8 @@
+---
+id: ADR-0153
+status: Accepted
+---
+
 # ADR-0153: Outbox Pattern
 
 - Status: Accepted

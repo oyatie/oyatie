@@ -1,7 +1,7 @@
 ---
 id: ADR-0547
 title: "Kernel-purity dependency gate"
-status: Proposed
+status: Accepted
 planning_impact: false
 deciders: founder
 date: 2026-06-11

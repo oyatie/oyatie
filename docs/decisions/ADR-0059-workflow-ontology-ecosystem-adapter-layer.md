@@ -1,7 +1,8 @@
 ---
 id: ADR-0059
-status: Accepted
+status: Superseded
 doc_status: published
+superseded_by: [ADR-0145]
 ---
 
 # ADR-0059: Workflow + Ontology = ecosystem adapter layer

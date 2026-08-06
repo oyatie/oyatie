@@ -1,7 +1,7 @@
 ---
 id: ADR-0587
 title: "Fail-closed verified-principal + PDP authorization for the Cloud Network LB/VPC/DNS create control planes"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-23

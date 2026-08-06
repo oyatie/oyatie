@@ -1,7 +1,7 @@
 ---
 id: ADR-0598
 title: "Commission the comms meet capability-first core slice (comms-meet-api port + comms-meet-usecase)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-22

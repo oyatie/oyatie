@@ -1,7 +1,7 @@
 ---
 id: ADR-0348
 title: Autosharding + auto-rebalance + dynamic sharding (cellular topology MUST support three control-plane-driven automation modes for tenant→cell/shard placement, hot-cell rebalancing, and within-cell hot-split + cold-merge shard count adjustment; manifest-declared per-µservice; cell-orchestrator (within tenancy + observability) executes; honors residency + compliance packs; emits audit-chain per ADR-0263; reversible)
-status: Proposed
+status: Rejected
 planning_impact: true
 date: 2026-05-21
 owner_team:
@@ -18,6 +18,7 @@ owners:
   - axis-cloud-iac
 supersedes: []
 superseded_by: []
+amended_by: [ADR-0351]
 amends:
   - ADR-0248-amazon-shape-cellular-architecture.md (the cellular topology baseline from ADR-0248 declared Tier 0..4 + shuffle sharding as the cell-shape primitive; this ADR fills the within-cell + across-cell TENANT-LEVEL automation contract that ADR-0248 deferred to a follow-on doctrine — specifically: tenant→cell/shard placement is now CONTROL-PLANE-DRIVEN by default rather than operator-driven; hot-cell rebalancing is now automatic by default rather than manual; shard count within a cell is now dynamic by default rather than static)
   - ADR-0341-cellular-promotion-gates-explicit-tier-criteria.md (ADR-0341 specified CELL-LEVEL promotion-gate automation — promotion of a cell between Tier 0..4 based on declared criteria; this ADR layers TENANT-LEVEL + SHARD-LEVEL automation underneath the cell-level promotion gates; auto-rebalance triggers when a cell's promotion criteria are breached due to load skew rather than capacity declaration drift; dynamic sharding executes within the cell that fails the load-skew threshold)

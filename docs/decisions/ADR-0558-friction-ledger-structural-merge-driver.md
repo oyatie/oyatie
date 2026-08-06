@@ -1,7 +1,7 @@
 ---
 id: ADR-0558
 title: "Friction-ledger structural merge driver: id-aware union + second-author conversion"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-12

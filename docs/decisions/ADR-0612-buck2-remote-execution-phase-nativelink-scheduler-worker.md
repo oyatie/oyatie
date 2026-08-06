@@ -1,7 +1,7 @@
 ---
 id: ADR-0612
 title: "buck2 Remote-Execution phase: deploy nativelink-scheduler + nativelink-worker, flip remote_enabled=true behind per-identity RE authz + a canary that covers RE'd outputs"
-status: Proposed
+status: Rejected
 planning_impact: true
 deciders: founder
 date: 2026-07-08

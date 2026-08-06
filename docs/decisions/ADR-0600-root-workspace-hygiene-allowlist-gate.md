@@ -1,7 +1,7 @@
 ---
 id: ADR-0600
 title: "Root-workspace-hygiene allowlist gate — make committed repo-root scratch structurally impossible"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-24

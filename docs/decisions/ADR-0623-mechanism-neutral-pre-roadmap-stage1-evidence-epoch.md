@@ -1,7 +1,7 @@
 ---
 id: ADR-0623
 title: "Keep the pre-roadmap Stage-1 evidence epoch mechanism-neutral"
-status: Proposed
+status: Rejected
 date: 2026-07-24
 owner_team: council-architecture
 co_owners: [council-architecture]

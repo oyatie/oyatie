@@ -1,3 +1,8 @@
+---
+id: ADR-0173
+status: Accepted
+---
+
 # ADR-0173 — Vendor lock-in avoidance and stack ownership
 
 | Field | Value |

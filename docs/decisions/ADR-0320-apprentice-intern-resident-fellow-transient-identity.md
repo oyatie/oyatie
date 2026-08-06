@@ -1,7 +1,7 @@
 ---
 id: ADR-0320
 title: Apprentice, Intern, Resident, and Fellow Transient Identity Doctrine
-status: Proposed
+status: Rejected
 date: 2026-05-20
 doc_class: architecture_decision_record
 owners:

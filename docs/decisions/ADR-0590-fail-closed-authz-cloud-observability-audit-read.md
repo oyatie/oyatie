@@ -1,7 +1,7 @@
 ---
 id: ADR-0590
 title: "Fail-closed verified-principal + server-side PDP authz for the Cloud Observability audit-read surface (C18 / AUTH-005 remediation)"
-status: Proposed
+status: Rejected
 planning_impact: false
 deciders: founder
 date: 2026-06-23

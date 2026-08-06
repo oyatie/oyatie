@@ -1,3 +1,8 @@
+---
+id: ADR-0152
+status: Accepted
+---
+
 # ADR-0152: RPO/RTO Canonical (Five-Tier Recovery Model)
 
 - Status: Accepted

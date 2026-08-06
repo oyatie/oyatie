@@ -1,3 +1,8 @@
+---
+id: ADR-0201
+status: Accepted
+---
+
 # ADR-0201 — Email + transactional comms adapter substrate
 
 - Status: Accepted
