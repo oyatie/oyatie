@@ -1,3 +1,3 @@
-Claim: current origin/dev has no mechanical detector that distinguishes a dead headless Codex lane from a slow lane before PR-open.
-Verification: git ls-tree on origin/dev for tools/oya-lane-supervisor-app and .omc/ultragoal returned no tracked supervisor or lane-ledger surfaces.
-Invalidator: a tracked cloud-ci/oya-ci lane-state gate on origin/dev already recording dead/stalled local workers and failing oya-ci-required would make this bridge unnecessary.
+SUNSET (keep-with-sunset, ADR-0709): this file is a path-stable residual slot only.
+Live premise gates belong in the lane dispatch brief / process kit, not under brand residue.
+Do not treat this file as mission authority; do not expand .omc/ultragoal tracked surface.
