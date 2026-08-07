@@ -12,10 +12,10 @@
     "ADR-0341": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "ADR-0348": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
     "ADR-0351": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
-    "cell_lifecycle_prd": "cloud/cell-lifecycle/PRD.md",
-    "cell_rebalancer_prd": "cloud/cell-rebalancer/PRD.md",
-    "cell_lifecycle_manifest": "cloud/cell-lifecycle/manifest.json",
-    "cell_rebalancer_manifest": "cloud/cell-rebalancer/manifest.json"
+    "cell_lifecycle_prd": "cell/cell-lifecycle/PRD.md",
+    "cell_rebalancer_prd": "cell/cell-rebalancer/PRD.md",
+    "cell_lifecycle_manifest": "cell/cell-lifecycle/manifest.json",
+    "cell_rebalancer_manifest": "cell/cell-rebalancer/manifest.json"
   },
   "purpose": "Provides the first CELL-002 machine-readable service-plan and fixture-only contract tying the six-input cell-promotion gate, the ADR-0351 cell-lifecycle/cell-rebalancer split, existing sharding_automation manifest blocks, residency-honoring rebalance filters, and rollback audit-row fixture shape together without adding runtime handlers, migration execution, audit-chain writers, provider calls, or production-readiness claims.",
   "authority": {
@@ -143,7 +143,7 @@
   },
   "cell_lifecycle_service_plan": {
     "service": "cell-lifecycle",
-    "source_path": "cloud/cell-lifecycle/PRD.md",
+    "source_path": "cell/cell-lifecycle/PRD.md",
     "owns": "logical_cell_state_machine",
     "states": [
       "Registered",
@@ -167,7 +167,7 @@
   },
   "cell_rebalancer_service_plan": {
     "service": "cell-rebalancer",
-    "source_path": "cloud/cell-rebalancer/PRD.md",
+    "source_path": "cell/cell-rebalancer/PRD.md",
     "owns": "across_cell_tenant_migration_workflow",
     "does_not_own": [
       "cell_lifecycle_state_machine",
@@ -197,8 +197,8 @@
       "dynamic_sharding"
     ],
     "service_manifest_inputs": [
-      "cloud/cell-lifecycle/manifest.json",
-      "cloud/cell-rebalancer/manifest.json"
+      "cell/cell-lifecycle/manifest.json",
+      "cell/cell-rebalancer/manifest.json"
     ],
     "default_thresholds": {
       "auto_rebalance_load_skew_threshold_percent": 30,

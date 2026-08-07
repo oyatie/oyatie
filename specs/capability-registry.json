@@ -102,8 +102,8 @@
       ],
       "absorbs_current_dirs": [
         "cell",
-        "cloud/cell-lifecycle",
-        "cloud/cell-rebalancer"
+        "cell/cell-lifecycle",
+        "cell/cell-rebalancer"
       ],
       "dag_node": "cell"
     },
@@ -404,8 +404,8 @@
       ],
       "absorbs_current_dirs": [
         "billing",
-        "oya/oya-meter",
-        "oya/oya-cost"
+        "billing/oya-meter",
+        "billing/oya-cost"
       ],
       "dag_node": "billing",
       "boundary_note": "Coarse collapse: metering + billing + tax + finops/cost as sub-modules. First-class cross-cutting sold-ness capability per founder ruling."
@@ -472,11 +472,11 @@
       ],
       "absorbs_current_dirs": [
         "comms",
-        "oya/comms-email",
+        "comms/comms-email",
         "oya/mail",
         "oya/messenger",
         "oya/meet",
-        "oya/contact-center",
+        "comms/contact-center",
         "oya/emergency"
       ],
       "dag_node": "comms",

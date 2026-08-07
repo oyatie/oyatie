@@ -20,9 +20,9 @@
   },
   "service_count": 101,
   "services": {
-    "cloud/cell-lifecycle/manifest.json": {
-      "service": "cloud/cell-lifecycle",
-      "manifest": "cloud/cell-lifecycle/manifest.json",
+    "cell/cell-lifecycle/manifest.json": {
+      "service": "cell/cell-lifecycle",
+      "manifest": "cell/cell-lifecycle/manifest.json",
       "capability": "cell",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -43,9 +43,9 @@
         ]
       }
     },
-    "cloud/cell-rebalancer/manifest.json": {
-      "service": "cloud/cell-rebalancer",
-      "manifest": "cloud/cell-rebalancer/manifest.json",
+    "cell/cell-rebalancer/manifest.json": {
+      "service": "cell/cell-rebalancer",
+      "manifest": "cell/cell-rebalancer/manifest.json",
       "capability": "cell",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -448,9 +448,9 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "oya/comms-email/manifest.json": {
-      "service": "oya/comms-email",
-      "manifest": "oya/comms-email/manifest.json",
+    "comms/comms-email/manifest.json": {
+      "service": "comms/comms-email",
+      "manifest": "comms/comms-email/manifest.json",
       "capability": "comms",
       "tier": "substrate",
       "tier_subtype": "substrate-comms",
@@ -512,9 +512,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/contact-center/manifest.json": {
-      "service": "oya/contact-center",
-      "manifest": "oya/contact-center/manifest.json",
+    "comms/contact-center/manifest.json": {
+      "service": "comms/contact-center",
+      "manifest": "comms/contact-center/manifest.json",
       "capability": "comms",
       "tier": "substrate",
       "tier_subtype": "substrate-comms",

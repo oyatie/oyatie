@@ -17,12 +17,10 @@ use ci_corpus_index_coverage::{
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
 const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
-const NESTED_REPAIR_PACKAGES: [&str; 5] = [
+const NESTED_REPAIR_PACKAGES: [&str; 3] = [
     "oya/oya-authn-device-firmware",
-    "oya/oya-cost",
     "oya/oya-flags",
     "oya/oya-identity",
-    "oya/oya-meter",
 ];
 
 struct LiveObservation {
@@ -380,7 +378,7 @@ fn the_frozen_ceilings_equal_todays_counts() {
 
 #[test]
 fn oya_census_off_by_one_blocks() {
-    assert!(validate_oya_census(3_798, 3_799).is_err());
+    assert!(validate_oya_census(3_711, 3_712).is_err());
 }
 
 #[test]
@@ -414,7 +412,7 @@ fn pre_repair_missing_ten_blocks() {
 }
 
 #[test]
-fn five_nested_faces_use_nearest_package_ownership() {
+fn three_nested_faces_use_nearest_package_ownership() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let counts: BTreeMap<_, _> = live
@@ -425,9 +423,9 @@ fn five_nested_faces_use_nearest_package_ownership() {
         .collect();
     assert_eq!(
         counts.values().copied().collect::<Vec<_>>(),
-        [1, 2, 1, 2, 2]
+        [1, 1, 2]
     );
-    assert_eq!(counts.len(), 5);
+    assert_eq!(counts.len(), 3);
 }
 
 #[test]
