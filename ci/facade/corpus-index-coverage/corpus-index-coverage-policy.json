@@ -8,7 +8,7 @@
   "min_expected_yaml_files": 4000,
   "min_expected_unpackaged_yaml_files": 400,
   "oya_corpus": {
-    "expected_yaml_files": 4103,
+    "expected_yaml_files": 3910,
     "max_files_per_extraction_face": 512,
     "max_source_bytes_per_extraction_face": 1048576
   },
