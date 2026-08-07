@@ -346,6 +346,10 @@
       "anchor": "ADR-0632 enforcement: owned Rust/Buck2 product protocol gate, policy data, negative fixtures, and tests that keep public/internal exposure, TLS, serialization, telemetry, and fabric posture fail-closed."
     },
     {
+      "prefix": "observability/BUCK",
+      "anchor": "ADR-0555 + ADR-0632 hermetic input declaration (PR #1583 dual-home burn-down): exact Buck package marker that exposes rehomed observability residual YAML (ex-oya/observability) and pre-existing observability/** YAML to the repository corpus graph via corpus_yaml_facts_shards; indexing only — no runtime authority. Mirrors oya/BUCK / cloud/BUCK / audit/BUCK registration for the capability package root. SSOT evidence: evidence/reorg/rr-dual-observability-residual-20260806.json."
+    },
+    {
       "prefix": "oya/BUCK",
       "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed Oyatie manifest and internal Proto corpora consumed by the product-protocol gate."
     },
