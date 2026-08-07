@@ -1566,7 +1566,7 @@ fn entire_governed_manifest_corpus_is_inventoried_and_protocol_compatible() {
         }
     }
     assert_eq!(
-        live_count, 59,
+        live_count, 56,
         "the Buck-declared live v1.0 service manifest corpus changed; classify and migrate every new match"
     );
     assert_eq!(

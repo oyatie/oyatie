@@ -3740,7 +3740,7 @@
       "source_artifacts": [
         "cloud/cloud-billing/crates/oya-billing",
         "cloud/cloud-billing/crates/oya-cloud-billing-domain",
-        "cloud/cloud-billing/contracts/proto/cloud-billing.proto"
+        "billing/contracts/proto/cloud-billing.proto"
       ],
       "runtime_status": "integration_point_only"
     }
