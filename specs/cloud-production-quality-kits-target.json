@@ -14,7 +14,7 @@
   ],
   "incorporated_from": [
     "plan/hyperscaler-grade-cloud-platform-quality-review.md (QR-001..QR-007)",
-    "plan/hyperscaler-grade-cloud-platform-changeset-slices.md (CS-0805..CS-0811)"
+    "specs/masterplan.json (CS slice content absorbed into ideal_production_roadmap; former plan/* changeset-slices disposed 2026-08-07)"
   ],
   "status": "Proposed-target",
   "date": "2026-05-25",
@@ -153,5 +153,8 @@
   "non_claims": [
     "Target spec only — defines the kits; does NOT implement harnesses, drills, evidence pipelines, or produce any measured evidence.",
     "No production/security/cost/SLO maturity claim; every kit's green status stays blocked_until_required_evidence_is_green."
+  ],
+  "_disposed_plan_docs_20260807": [
+    "plan/hyperscaler-grade-cloud-platform-changeset-slices.md"
   ]
 }
