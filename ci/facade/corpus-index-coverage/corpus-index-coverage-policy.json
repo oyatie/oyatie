@@ -8,12 +8,12 @@
   "min_expected_yaml_files": 4000,
   "min_expected_unpackaged_yaml_files": 400,
   "oya_corpus": {
-    "expected_yaml_files": 4042,
+    "expected_yaml_files": 3849,
     "max_files_per_extraction_face": 512,
     "max_source_bytes_per_extraction_face": 1048576
   },
   "measured": {
-    "_comment": "Measured by the live gate at freeze time, recorded so a later reader can see whether the ratchet moved or the corpus did. yaml_files_total counts the walk's census, which skips dot-directories; a git ls-files census reports 8 more (.github/**) and is not the number the ceilings are frozen against. Re-anchored 2026-08-05 when infra/gitops + infra/talos packages pulled 15 YAML files into the graph (448\u2192433). Re-anchored 2026-08-06 on PR #1584: audit/BUCK packages residual rehome YAML; only the 8 pre-existing unpackaged audit/observability SLO YAML leave the unpackaged set (433\u2192425); oya census 4103\u21924042 after oya/audit-chain residual leave oya/.",
+    "_comment": "Measured by the live gate at freeze time, recorded so a later reader can see whether the ratchet moved or the corpus did. yaml_files_total counts the walk's census, which skips dot-directories; a git ls-files census reports 8 more (.github/**) and is not the number the ceilings are frozen against. Re-anchored 2026-08-05 when infra/gitops + infra/talos packages pulled 15 YAML files into the graph (448\u2192433). Re-anchored 2026-08-06 on PR #1584: audit/BUCK packages residual rehome YAML; only the 8 pre-existing unpackaged audit/observability SLO YAML leave the unpackaged set (433\u2192425); oya census 4103\u21924042 after oya/audit-chain residual leave oya/. Re-anchored 2026-08-07 on PR #1611 tip after merge-from-dev: orphan scaffold deletes reduce oya census 4042\u21923849; expected_total manifests 100\u219295; live v1.0 59\u219257.",
     "yaml_packages_total": 35,
     "yaml_packages_indexed": 17,
     "yaml_files_total": 5868,

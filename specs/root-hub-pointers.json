@@ -855,7 +855,7 @@
       "target_path_after_md_retirement": "/oya/community/manifest.json until a community machine-readable PRD successor projection is authored"
     },
     "prd_community_shorts_retired": {
-      "current_path": "/oya/social/manifest.json",
+      "current_path": "/oya/community/manifest.json",
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
@@ -863,14 +863,19 @@
         "previous_path": "retired specs/products communications/shorts JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. The live successor authority is the accepted-topology oya/social manifest.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is oya/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
       "retired_on": "2026-05-21",
       "retirement_correction_2026_05_21": {
         "previous_path": "/specs/microservices/shorts.json",
         "reason": "Wave 15O retires shorts as a standalone µservice and absorbs its short-form video capabilities into social per ADR-0334."
       },
-      "successor_path": "/oya/social/manifest.json",
-      "target_path_after_md_retirement": "/oya/social/manifest.json (short-video flavor section)"
+      "successor_path": "/oya/community/manifest.json",
+      "target_path_after_md_retirement": "/oya/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
+      "successor_retarget_2026_08_06": {
+        "previous_path": "/oya/social/manifest.json",
+        "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under oya/community.",
+        "prd_authority": "/specs/microservices/social.json"
+      }
     },
     "prd_community_social": {
       "current_path": "/specs/microservices/social.json",
@@ -1017,14 +1022,19 @@
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_shorts": {
-      "current_path": "/oya/social/manifest.json",
+      "current_path": "/oya/community/manifest.json",
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
-      "purpose": "Retired shorts µservice PRD pointer. TikTok-/Reels-/YouTube-Shorts-class short-form video is absorbed into social as the TikTok-style media flavor per ADR-0334 (Wave 15O). Industry precedent (Instagram Reels in Instagram; YouTube Shorts in YouTube; X video in X) places short-video inside the social product, not in a sibling service. The live successor authority is the accepted-topology oya/social manifest.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is oya/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
       "retired_on": "2026-05-21",
-      "successor_path": "/oya/social/manifest.json",
-      "target_path_after_md_retirement": "/oya/social/manifest.json (short-video flavor section)"
+      "successor_path": "/oya/community/manifest.json",
+      "target_path_after_md_retirement": "/oya/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
+      "successor_retarget_2026_08_06": {
+        "previous_path": "/oya/social/manifest.json",
+        "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under oya/community.",
+        "prd_authority": "/specs/microservices/social.json"
+      }
     },
     "prd_social": {
       "current_path": "/specs/microservices/social.json",
