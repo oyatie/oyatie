@@ -1,0 +1,25 @@
+[package]
+name = "ci-workflow-lane-preflight"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Lane preflight gate. Makes the OWN-phase commit rule and "hotfiles never in owner cells"
+# EXECUTABLE instead of documented: a lane result is a deliverable only if it is COMMITTED (the
+# worktree is reaped on completion), git-VISIBLE (a gitignored artifact is invisible to collision
+# detection and to review alike), and DISJOINT by COMPUTED intersection rather than by author
+# assertion. The kernel is pure; the caller runs the git queries and passes the answers in.
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lib]
+name = "ci_workflow_lane_preflight"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

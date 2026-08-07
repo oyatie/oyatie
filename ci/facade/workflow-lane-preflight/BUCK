@@ -1,0 +1,41 @@
+rust_library(
+    name = "ci-workflow-lane-preflight",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_workflow_lane_preflight",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+# Pure-kernel unit tests: the commit rule, git-visibility, hotfile containment and pairwise
+# collision are all proven WITHOUT a filesystem, a clock or a git binary.
+rust_test(
+    name = "ci-workflow-lane-preflight-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_workflow_lane_preflight",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+# Live gate: reads the frozen policy off the real tree, proves the hotfile set has not rotted into
+# guarding paths that no longer exist, and carries the META-TEST that injects two colliding lanes
+# plus a gitignored declaration and asserts both are caught. Without the meta-test the gate could
+# rot into always-green and nobody would notice.
+rust_test(
+    name = "ci-workflow-lane-preflight-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_workflow_workflow_lane_preflight_gate",
+    crate_root = "tests/workflow_lane_preflight.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-workflow-lane-preflight",
+        "third-party//:serde_json",
+    ],
+)
