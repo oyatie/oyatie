@@ -37,12 +37,15 @@ def main() -> int:
     repo = find_repo(Path(args.cwd))
     board_path = repo / ".grok/programs/delivery-fabric/task-board.v1.json"
     drive_path = repo / ".grok/harness/drive.v1.json"
+    # Core four must stay active; W5 northstar-portfolio-audit is separate and
+    # recommended but does not raise min_required unless board fabric_classes says so.
     required = [
         "portfolio-work-manager",
         "implement-claimed-lane",
         "pr-babysit-lanes",
         "workflow-productivity-watch",
     ]
+    optional_audit = "northstar-portfolio-audit"
     if board_path.is_file():
         board = load(board_path)
         required = list(board.get("fabric_classes") or required)
@@ -85,6 +88,17 @@ def main() -> int:
     if len(active) < min_n:
         ok = False
 
+    audit_entry = heartbeats.get(optional_audit) or {}
+    audit_age = None
+    audit_active = False
+    if audit_entry.get("at"):
+        try:
+            t = datetime.fromisoformat(str(audit_entry["at"]).replace("Z", "+00:00"))
+            audit_age = round((now - t).total_seconds() / 60.0, 1)
+            audit_active = audit_age <= args.max_stale_min
+        except Exception:
+            pass
+
     report = {
         "ok": ok,
         "min_required": min_n,
@@ -92,6 +106,13 @@ def main() -> int:
         "active": active,
         "stale": stale,
         "missing": missing,
+        "northstar_audit": {
+            "class": optional_audit,
+            "active": audit_active,
+            "age_min": audit_age,
+            "note": audit_entry.get("note"),
+            "latest": str(repo / ".grok/mm-runs/_fabric/northstar-audit.latest.json"),
+        },
         "board": str(board_path),
         "heartbeats": str(hb_path),
         "lanes_ready": sum(
@@ -125,9 +146,13 @@ def main() -> int:
         ),
         "origin_dev": board.get("origin_dev"),
         "recommendation": (
-            "all four fabric classes heartbeating"
-            if ok
-            else "re-arm portfolio-work-manager, implement-claimed-lane, pr-babysit-lanes, workflow-productivity-watch"
+            "core four heartbeating; keep W5 northstar-portfolio-audit armed separately"
+            if ok and audit_active
+            else (
+                "all four fabric classes heartbeating; re-arm W5 northstar-portfolio-audit"
+                if ok
+                else "re-arm portfolio-work-manager, implement-claimed-lane, pr-babysit-lanes, workflow-productivity-watch"
+            )
         ),
     }
     if args.json or True:

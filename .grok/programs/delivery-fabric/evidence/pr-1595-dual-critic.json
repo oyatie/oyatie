@@ -1,0 +1,79 @@
+{
+  "schema": "dual-critic.v1",
+  "pr": 1595,
+  "branch": "agent/reorg-dual-iam-20260806",
+  "head": "5018fcd3cd997a28fe13be071e65592852b3cb6c",
+  "at": "2026-08-06T19:11:02Z",
+  "objective": "PR #1595 path-disjoint dual-home residual: rehome cloud/cloud-iam residual into iam/; retarget facade policy/contract slices; packaging/rehome scope; no move-plan; no generated.json hand edits",
+  "independence": "same_family",
+  "prefer_cross_model": true,
+  "independence_note": "cross_model preferred; same_family honest (W3 pr-babysit-lanes dual-critic A/B on xai; require_cross_model_critics=false)",
+  "verdict": "APPROVE",
+  "reviewer": "w3-pr-babysit-lanes",
+  "real": true,
+  "packaging_rehome_scope": true,
+  "scope_note": "packaging/rehome only: cloud/cloud-iam residual \u2192 iam/ (iam/cloud-iam docs/policy/contracts + authn-device-firmware; facade path retargets)",
+  "critics": [
+    {
+      "id": "critic-a-correctness",
+      "role": "correctness/reorg",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "essentialism",
+        "chesterton_fence"
+      ],
+      "findings": [
+        "Scope is packaging/rehome dual residual for iam \u2014 cloud/cloud-iam residual \u2192 iam/ (iam/cloud-iam docs/policy/contracts + authn-device-firmware; facade path retargets).",
+        "No *.generated.json hand edits; no live *-move-plan.json product thrash in this arm.",
+        "Path-disjoint dual residual family; same_family dual-critic honesty retained.",
+        "Head pin matches live PR tip 5018fcd3cd99."
+      ],
+      "residual": [
+        "await oya-ci-required green on tip 5018fcd3cd99"
+      ]
+    },
+    {
+      "id": "critic-b-blast-radius",
+      "role": "blast-radius/operability",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": [
+        "blast_radius",
+        "systems_thinking",
+        "operability",
+        "red_team"
+      ],
+      "findings": [
+        "Blast radius limited to iam residual packaging/rehome + facade path strings where present.",
+        "Path-disjoint from sibling dual residual fleet (#1595\u2013#1603).",
+        "Merge bar remains oya-ci-required; no empty-push thrash on this arm.",
+        "Family: dual residual rehome."
+      ],
+      "residual": []
+    }
+  ],
+  "summary": "APPROVE #1595 tip 5018fcd3cd99: packaging/rehome dual residual (iam); merge when oya-ci-required green",
+  "blockers": [],
+  "soft_red_addressed": {
+    "checks": [],
+    "status": "none_on_tip_at_arm"
+  },
+  "babysit_cycle_latest": {
+    "at": "2026-08-06T19:11:02Z",
+    "action": "arm_dual_critic_wait_oya_ci",
+    "head": "5018fcd3cd997a28fe13be071e65592852b3cb6c",
+    "note": "W3 2026-08-06T19:11:02Z: dual-critic APPROVE armed for #1595; packaging/rehome scope; same_family honesty; no empty-push; no product thrash",
+    "soft_reds": "0"
+  },
+  "reviewed_at": "2026-08-06T19:11:02Z",
+  "code_tip": "5018fcd3cd997a28fe13be071e65592852b3cb6c",
+  "head_pinned_at": "2026-08-06T19:11:02Z",
+  "residual": [
+    "await oya-ci-required green then mm-drive merge --pr 1595",
+    "process evidence committed on fabric #1579 branch (delivery-fabric evidence path); no product tip thrash"
+  ]
+}

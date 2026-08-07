@@ -835,9 +835,11 @@ def should_block_stop(board: dict, cfg: dict, stop_hook_active: bool, blocks_so_
         # Process fix (anti-passive): allow stop only with armed re-poll or explicit next action
         if sh.get("waiting_ci_requires_armed_repoll", True):
             parts.append(
-                "PROCESS: waiting_ci ≠ idle_complete. Before stop, arm a re-poll monitor "
-                "(or scheduler re-tick) and re-query gh on resume; tip-sync open PRs if origin/dev advanced. "
-                "Do not end a session as passive WAIT with no next action."
+                "PROCESS: waiting_ci ≠ idle_complete. Prefer fabric W3 sole babysit "
+                "(BABYSIT-SINGLE-FLIGHT.md): ensure board lane is ready_for_babysit with pr=N, "
+                "then claim a path-disjoint ready lane OR one-shot status later — do NOT multi-arm "
+                "sleep+gh poll loops for a PR W3 already owns. If you are explicit sole babysit owner "
+                "for that PR, arm at most one waiter per (pr, head_sha). tip-sync when origin/dev moves."
             )
     parts.append("ultragoal_not_completed remains true.")
     parts.append(
