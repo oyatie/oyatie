@@ -1,0 +1,79 @@
+{
+  "schema": "dual-critic.v1",
+  "pr": 1600,
+  "branch": "agent/reorg-dual-storage-20260806",
+  "head": "b3e49808e6df040e2222117877301cb1504bf3de",
+  "at": "2026-08-06T19:11:02Z",
+  "objective": "PR #1600 path-disjoint dual-home residual: rehome storage dual-home residual into storage/; retarget facade policy/contract slices; packaging/rehome scope; no move-plan; no generated.json hand edits",
+  "independence": "same_family",
+  "prefer_cross_model": true,
+  "independence_note": "cross_model preferred; same_family honest (W3 pr-babysit-lanes dual-critic A/B on xai; require_cross_model_critics=false)",
+  "verdict": "APPROVE",
+  "reviewer": "w3-pr-babysit-lanes",
+  "real": true,
+  "packaging_rehome_scope": true,
+  "scope_note": "packaging/rehome only: storage dual-home residual \u2192 storage/ (docs/contracts/cedar/benchmarks; facade + registry path retargets)",
+  "critics": [
+    {
+      "id": "critic-a-correctness",
+      "role": "correctness/reorg",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "essentialism",
+        "chesterton_fence"
+      ],
+      "findings": [
+        "Scope is packaging/rehome dual residual for storage \u2014 storage dual-home residual \u2192 storage/ (docs/contracts/cedar/benchmarks; facade + registry path retargets).",
+        "No *.generated.json hand edits; no live *-move-plan.json product thrash in this arm.",
+        "Path-disjoint dual residual family; same_family dual-critic honesty retained.",
+        "Head pin matches live PR tip b3e49808e6df."
+      ],
+      "residual": [
+        "await oya-ci-required green on tip b3e49808e6df"
+      ]
+    },
+    {
+      "id": "critic-b-blast-radius",
+      "role": "blast-radius/operability",
+      "provider": "xai",
+      "model": "grok",
+      "verdict": "APPROVE",
+      "lenses": [
+        "blast_radius",
+        "systems_thinking",
+        "operability",
+        "red_team"
+      ],
+      "findings": [
+        "Blast radius limited to storage residual packaging/rehome + facade path strings where present.",
+        "Path-disjoint from sibling dual residual fleet (#1595\u2013#1603).",
+        "Merge bar remains oya-ci-required; no empty-push thrash on this arm.",
+        "Family: dual residual rehome."
+      ],
+      "residual": []
+    }
+  ],
+  "summary": "APPROVE #1600 tip b3e49808e6df: packaging/rehome dual residual (storage); merge when oya-ci-required green",
+  "blockers": [],
+  "soft_red_addressed": {
+    "checks": [],
+    "status": "none_on_tip_at_arm"
+  },
+  "babysit_cycle_latest": {
+    "at": "2026-08-06T19:11:02Z",
+    "action": "arm_dual_critic_wait_oya_ci",
+    "head": "b3e49808e6df040e2222117877301cb1504bf3de",
+    "note": "W3 2026-08-06T19:11:02Z: dual-critic APPROVE armed for #1600; packaging/rehome scope; same_family honesty; no empty-push; no product thrash",
+    "soft_reds": "0"
+  },
+  "reviewed_at": "2026-08-06T19:11:02Z",
+  "code_tip": "b3e49808e6df040e2222117877301cb1504bf3de",
+  "head_pinned_at": "2026-08-06T19:11:02Z",
+  "residual": [
+    "await oya-ci-required green then mm-drive merge --pr 1600",
+    "process evidence committed on fabric #1579 branch (delivery-fabric evidence path); no product tip thrash"
+  ]
+}
