@@ -1893,6 +1893,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-workflow-lane-preflight"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
