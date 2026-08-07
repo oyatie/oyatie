@@ -1,5 +1,5 @@
 {
-  "$schema": "../../specs/microservices/manifest-schema.json",
+  "$schema": "../specs/microservices/manifest-schema.json",
   "microservice": "compliance",
   "tier": "substrate",
   "tier_subtype": "substrate-compliance",

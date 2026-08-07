@@ -7,7 +7,7 @@ metadata:
   title: Compliance
   description: Compliance evidence automation per ADR-0209 — in-house pipeline replacing Drata/Vanta.
   annotations:
-    backstage.io/managed-by-location: url:https://github.com/oyadev/oyatie/blob/main/oya/compliance/manifest.json
+    backstage.io/managed-by-location: url:https://github.com/oyadev/oyatie/blob/main/compliance/manifest.json
     oya.dev/microservice: compliance
     oya.dev/owner: axis-compliance
     oya.dev/frameworks: soc2-type-2,gdpr,hipaa,pci-dss
