@@ -1,6 +1,6 @@
 {
   "slice_id": "resilience-001-messenger-manifest-trace-sampling",
-  "spec_path": "oya/messenger/manifest.json",
+  "spec_path": "comms/messenger/manifest.json",
   "required_fields": [
     "microservice",
     "observability_trace_sampling_recipe.head_bps",

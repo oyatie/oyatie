@@ -470,9 +470,9 @@
       "tier_subtype": "product-consumer-community",
       "dr_tier": "T1"
     },
-    "oya/compliance/manifest.json": {
-      "service": "oya/compliance",
-      "manifest": "oya/compliance/manifest.json",
+    "compliance/manifest.json": {
+      "service": "compliance",
+      "manifest": "compliance/manifest.json",
       "capability": "compliance",
       "tier": "substrate",
       "tier_subtype": "substrate-compliance",
@@ -716,9 +716,9 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "oya/emergency/manifest.json": {
-      "service": "oya/emergency",
-      "manifest": "oya/emergency/manifest.json",
+    "comms/emergency/manifest.json": {
+      "service": "comms/emergency",
+      "manifest": "comms/emergency/manifest.json",
       "capability": "comms",
       "tier": "substrate",
       "tier_subtype": "substrate-comms",
@@ -906,9 +906,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
     },
-    "oya/mail/manifest.json": {
-      "service": "oya/mail",
-      "manifest": "oya/mail/manifest.json",
+    "comms/mail/manifest.json": {
+      "service": "comms/mail",
+      "manifest": "comms/mail/manifest.json",
       "capability": "comms",
       "tier": "substrate",
       "tier_subtype": "substrate-comms",
@@ -942,9 +942,9 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "oya/meet/manifest.json": {
-      "service": "oya/meet",
-      "manifest": "oya/meet/manifest.json",
+    "comms/meet/manifest.json": {
+      "service": "comms/meet",
+      "manifest": "comms/meet/manifest.json",
       "capability": "comms",
       "tier": "substrate",
       "tier_subtype": "substrate-comms",
@@ -956,9 +956,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/messenger/manifest.json": {
-      "service": "oya/messenger",
-      "manifest": "oya/messenger/manifest.json",
+    "comms/messenger/manifest.json": {
+      "service": "comms/messenger",
+      "manifest": "comms/messenger/manifest.json",
       "capability": "comms",
       "tier": "substrate",
       "tier_subtype": "substrate-comms",
@@ -1026,9 +1026,9 @@
         ]
       }
     },
-    "oya/ops-dashboard-control-center/manifest.json": {
-      "service": "oya/ops-dashboard-control-center",
-      "manifest": "oya/ops-dashboard-control-center/manifest.json",
+    "console/manifest.json": {
+      "service": "console",
+      "manifest": "console/manifest.json",
       "capability": "console",
       "tier": "substrate",
       "tier_subtype": "substrate-governance",

@@ -111,7 +111,7 @@
     {
       "field": "runtime_control_loop.tail_sampling.manifest_field_ref",
       "allowed": [
-        "oya/messenger/manifest.json#/observability_trace_sampling_recipe"
+        "comms/messenger/manifest.json#/observability_trace_sampling_recipe"
       ]
     },
     {

@@ -436,8 +436,7 @@
         "console shell"
       ],
       "absorbs_current_dirs": [
-        "console",
-        "oya/ops-dashboard-control-center"
+        "console"
       ],
       "dag_node": "console",
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): the console SHELL is the substrate capability (core/ports/facade: shell, token broker, design system, nav). Ops-dashboard leaves composing 2+ capabilities (incident-command, cluster-health, finops-portal, on-call-handoff, ...) are app/ops-console/<vertical> composition members; single-capability views stay a capability facade. The shell/surface line is the ADR-0562 \u00a73#5 2+-capability test."
@@ -454,7 +453,6 @@
       ],
       "absorbs_current_dirs": [
         "compliance",
-        "oya/compliance",
         "oya/governance"
       ],
       "dag_node": "compliance",
@@ -473,11 +471,11 @@
       "absorbs_current_dirs": [
         "comms",
         "comms/comms-email",
-        "oya/mail",
-        "oya/messenger",
-        "oya/meet",
+        "comms/mail",
+        "comms/messenger",
+        "comms/meet",
         "comms/contact-center",
-        "oya/emergency"
+        "comms/emergency"
       ],
       "dag_node": "comms",
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): comms is the multi-channel comms SUBSTRATE (messenger-stream, mail-mailbox, meet-media, notifications, contact-center engines + their sold API facades) \u2014 confirmed as-landed. A future end-user collaboration product wiring comms+iam+storage+billing is app/; none exists today. oya/emergency (ED clinical) is app/healthcare, not comms; it relocates from this absorb in the comms Batch-5 move-plan (0 crates, retained until the atomic move)."
@@ -523,7 +521,7 @@
       "pending_relocation": true
     },
     {
-      "from": "comms.absorbs_current_dirs[oya/emergency]",
+      "from": "comms.absorbs_current_dirs[comms/emergency]",
       "to": "app/healthcare (emergency/ED clinical context)",
       "executes_in": "specs/reorg/comms-move-plan.json (Batch-5)",
       "ruled_by": "ADR-0615 \u00a72 Q2",

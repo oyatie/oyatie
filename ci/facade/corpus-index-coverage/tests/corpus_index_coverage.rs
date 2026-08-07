@@ -378,7 +378,7 @@ fn the_frozen_ceilings_equal_todays_counts() {
 
 #[test]
 fn oya_census_off_by_one_blocks() {
-    assert!(validate_oya_census(3_711, 3_712).is_err());
+    assert!(validate_oya_census(3464, 3465).is_err());
 }
 
 #[test]
@@ -506,11 +506,11 @@ fn current_internal_yaml_symlink_inventory_is_seven_and_safe() {
     let paths = [
         "oya/connector/contracts/asyncapi-v1.yaml",
         "oya/connector/contracts/openapi-v1.yaml",
-        "oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml",
-        "oya/ops-dashboard-control-center/contracts/openapi-v1.yaml",
-        "oya/ops-dashboard-control-center/iac/ech-config.yaml",
-        "oya/ops-dashboard-control-center/iac/edge-waf.yaml",
-        "oya/ops-dashboard-control-center/iac/pqc-cert.yaml",
+        "console/contracts/asyncapi-v1.yaml",
+        "console/contracts/openapi-v1.yaml",
+        "console/iac/ech-config.yaml",
+        "console/iac/edge-waf.yaml",
+        "console/iac/pqc-cert.yaml",
     ];
     assert!(paths.iter().all(|path| {
         std::fs::symlink_metadata(root.join(path))
