@@ -215,11 +215,11 @@
       ],
       "absorbs_current_dirs": [
         "data",
-        "cloud/cloud-data",
-        "oya/ontology",
-        "oya/data-pipeline",
-        "oya/data-warehouse",
-        "oya/analytics"
+        "data/cloud-data",
+        "data/ontology",
+        "data/data-pipeline",
+        "data/data-warehouse",
+        "data/analytics"
       ],
       "dag_node": "ontology"
     },
@@ -488,7 +488,6 @@
       ],
       "absorbs_current_dirs": [
         "flags",
-        "oya/feature-flags",
         "oya/oya-flags"
       ],
       "dag_node": "flags"

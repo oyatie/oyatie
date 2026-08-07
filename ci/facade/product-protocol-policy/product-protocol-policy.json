@@ -84,15 +84,12 @@
       "oya",
       "cloud"
     ],
-    "expected_total": 82,
+    "expected_total": 76,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
-      "oya/analytics/manifest.json",
       "oya/ci-webhook-gateway/manifest.json",
       "oya/contract-lifecycle-management/manifest.json",
       "oya/crm/manifest.json",
-      "oya/data-pipeline/manifest.json",
-      "oya/data-warehouse/manifest.json",
       "oya/design-collaboration/manifest.json",
       "oya/diagnostics/manifest.json",
       "oya/financial-planning/manifest.json",
