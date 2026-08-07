@@ -75,6 +75,8 @@ let report = agent(
     + "Verdict: productive if status ok=true OR all 4 classes heartbeating after re-arm.\n"
     + "If still missing heartbeats, list exact workflow names to /workflow run.\n"
     + "Flag silent soft reds (soft_red_ready>0 with no claimed lanes) as UNPRODUCTIVE.\n"
+    + "If northstar-portfolio-audit (W5) heartbeat is stale >45m, note re-arm W5 separately "
+    + "(W5 audits NORTH-STAR-SHAPE / backlog / board gaps — not the same as this W4 liveness check).\n"
     + "Autonomy reminder: merge on dual-critic APPROVE + CI green without human GH approve.",
     #{ label: "w4-report", capability_mode: "execute", agent_type: "general-purpose" }
 );

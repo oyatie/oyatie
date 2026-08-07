@@ -1,0 +1,39 @@
+{
+  "kind": "frozen_execute_now_plan_disposition",
+  "wave_id": "reorg-W-residual-landing-20260806-dual-revise",
+  "continues": "reorg-northstar-single-3 interrupted Own cells",
+  "origin_dev_base": "607b6776434a75349445564d97147e621997d748",
+  "disposed": [
+    {
+      "path": "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
+      "fate": "supersede_then_delete",
+      "reason": "invalid draft ~70d; authority is specs/masterplan.json"
+    },
+    {
+      "path": "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md",
+      "fate": "delete",
+      "reason": "invalid draft ~73d"
+    },
+    {
+      "path": "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
+      "fate": "delete",
+      "reason": "invalid draft ~73d"
+    }
+  ],
+  "consumers_retargeted": [
+    "specs/masterplan.json",
+    "specs/cloud-production-quality-kits-target.json"
+  ],
+  "left_in_place": [
+    "plan/hyperscaler-grade-cloud-platform-quality-review.md"
+  ],
+  "non_goals": [
+    "residual REHOME-MAP apply",
+    "crate moves",
+    "delete historical audit TSV"
+  ],
+  "next": [
+    "babysit #1611",
+    "residual_single_pr wave"
+  ]
+}

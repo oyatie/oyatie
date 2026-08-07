@@ -1,11 +1,11 @@
 ---
 plan_id: PLAN-HYPERSCALER-CLOUD-QUALITY-REVIEW
 title: Hyperscaler Cloud Plan Code Review And Quality Addendum
-status: Draft
+status: Historical-non-authority
 date: 2026-05-23
 scope: plan-quality-review
-source_plan: plan/hyperscaler-grade-cloud-platform-greenfield-plan.md
-changeset_plan: plan/hyperscaler-grade-cloud-platform-changeset-slices.md
+source_plan: specs/masterplan.json  # former plan/hyperscaler-grade-cloud-platform-greenfield-plan.md disposed 2026-08-07
+changeset_plan: specs/masterplan.json  # former plan/hyperscaler-grade-cloud-platform-changeset-slices.md disposed 2026-08-07
 repo_documentation_read: false
 ---
 
