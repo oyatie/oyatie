@@ -399,8 +399,12 @@ fn cloud_manifests_have_existing_slo_refs_or_explicit_non_claims() {
     let root = repo_root();
     let manifest_paths = cloud_manifest_paths(&root);
     let manifest_count = manifest_paths.len();
+    // Floor on cloud/*/manifest.json count (issue #993). Lowered 21→20 with #1600
+    // intentional rehome cloud/cloud-storage → storage/ (dual-home residual burn-down).
+    // Storage keeps its own storage/manifest.json with the same live_exempted_no_runtime_sli
+    // exemption; this gate only enumerates cloud/*/manifest.json.
     assert!(
-        manifest_count >= 21,
+        manifest_count >= 20,
         "issue #993 coverage expects every current cloud/*/manifest.json; got {manifest_count}"
     );
 
