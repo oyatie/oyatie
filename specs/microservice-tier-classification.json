@@ -730,14 +730,6 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/emr/manifest.json": {
-      "service": "oya/emr",
-      "manifest": "oya/emr/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
     "oya/feature-flags/manifest.json": {
       "service": "oya/feature-flags",
       "manifest": "oya/feature-flags/manifest.json",
@@ -804,14 +796,6 @@
         "consumed_by_substrates": [],
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
-    },
-    "oya/healthcare-integration/manifest.json": {
-      "service": "oya/healthcare-integration",
-      "manifest": "oya/healthcare-integration/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
     },
     "oya/identity/manifest.json": {
       "service": "oya/identity",
@@ -1056,14 +1040,6 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/patient-monitoring/manifest.json": {
-      "service": "oya/patient-monitoring",
-      "manifest": "oya/patient-monitoring/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
     "oya/payments/manifest.json": {
       "service": "oya/payments",
       "manifest": "oya/payments/manifest.json",
@@ -1079,14 +1055,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
-    },
-    "oya/pharmacy/manifest.json": {
-      "service": "oya/pharmacy",
-      "manifest": "oya/pharmacy/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
     },
     "oya/plant-maintenance/manifest.json": {
       "service": "oya/plant-maintenance",
@@ -1205,14 +1173,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer-slides",
       "dr_tier": "T2"
-    },
-    "oya/social/manifest.json": {
-      "service": "oya/social",
-      "manifest": "oya/social/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-social",
-      "dr_tier": "T0"
     },
     "oya/supply-chain-planning/manifest.json": {
       "service": "oya/supply-chain-planning",
