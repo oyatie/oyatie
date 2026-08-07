@@ -606,7 +606,7 @@
       "aws-guest/sg-baseline"
     ],
     "wrapper_fixtures": [
-      "cloud/cloud-billing/iac/aws-guest/main.tofu"
+      "billing/iac/aws-guest/main.tofu"
     ],
     "version_pins": [
       "iac/modules/aws-guest/sg-baseline/v0.1.0"
