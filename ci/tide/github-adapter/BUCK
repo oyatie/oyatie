@@ -1,22 +1,26 @@
 rust_library(
-    name = "oya-ci-tide-kernel",
+    name = "ci-tide-github-adapter",
     srcs = glob(["src/**/*.rs", "**/*.cedar", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml"]),
-    crate = "oya_ci_tide_kernel",
+    crate = "ci_tide_github_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/tide/kernel:ci-tide-kernel",
+        "third-party//:reqwest",
         "third-party//:serde",
         "third-party//:serde_json",
     ],
 )
 
 rust_test(
-    name = "oya-ci-tide-kernel-tests",
+    name = "ci-tide-github-adapter-tests",
     srcs = glob(["src/**/*.rs"]),
-    crate = "oya_ci_tide_kernel",
+    crate = "ci_tide_github_adapter",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/tide/kernel:ci-tide-kernel",
+        "third-party//:reqwest",
         "third-party//:serde",
         "third-party//:serde_json",
     ],

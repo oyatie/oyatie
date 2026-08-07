@@ -1,5 +1,5 @@
 [package]
-name = "oya-ci-tide-github-adapter"
+name = "ci-tide-github-adapter"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -11,12 +11,12 @@ license = "Apache-2.0"
 # Forge of record = GitHub (D-FORGE; ADR-0513 Phase 2).
 
 [lib]
-name = "oya_ci_tide_github_adapter"
+name = "ci_tide_github_adapter"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-ci-tide-kernel = { path = "../oya-ci-tide-kernel" }
+ci-tide-kernel = { path = "../kernel" }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
