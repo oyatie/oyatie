@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /tmp/oya-w-b3-vcs && for f in docs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md docs/adr-archive/ADR-0091-governance-write-gate-foundations.md docs/adr-archive/ADR-0110-changeset-state-machine.md",
-  "error": "Exit code 1\n===== docs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md =====\ndocs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md:44:crates/oya-foundry-branch-protection-app    — branch protection as code\ndocs/adr-archive/ADR-0025-intelligence-as-engineering-platform.md:36:crates/oya-foundry-repoctl-app       — repoctl CLI orchestration\n===== docs/adr-archive/ADR-0091-governance-write-gate-foundations.md =====\ndocs/adr-archive/ADR-0091-governance-write-gate-foundations.md:41:`oya-foundry-write-gate-k...",
-  "timestamp": "2026-06-08T02:44:20.146Z",
-  "retry_count": 1
-}
