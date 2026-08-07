@@ -9,6 +9,8 @@
 !/.omc/ultragoal/TEAMMATE-PREAMBLE.md
 !/.omc/ultragoal/friction-ledger.jsonl
 !/.omc/ultragoal/premise.txt
+# Nested OMC session dirt under docs/ (accidentally tracked historically; never re-commit)
+docs/**/.omc/
 /.omx/
 # Local GJC runtime/session state is never committed.
 # Specs/plans promoted to product authority belong in tracked specs/docs/registry files.
@@ -238,6 +240,9 @@ _ralplan_workflow.js
 # committed-fragment door open.
 /.buckconfig.local
 
-# Multi-model harness journals
+# Multi-model harness journals (local process kit only).
+# Retention: keep recent mm-runs for active drive/babysit debugging; prune older
+# run trees locally as needed. Never commit mm-runs (gitignored); no bulk purge
+# in product PRs — process-kit hygiene only.
 .grok/mm-runs/
 .grok/memory/
