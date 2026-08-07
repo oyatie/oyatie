@@ -46,6 +46,12 @@ members = [
   "governance/check/*",
   "intelligence/testing/*",
   "os/harness/*",
+
+  # ci product services outside the four-face shape (ADR-0562 NORTH-STAR ci/<service>/).
+  # Literals until a dedicated service-leaf glob is adopted; shrink with face migration if any.
+  "ci/tide/app",
+  "ci/tide/github-adapter",
+  "ci/tide/kernel",
 ]
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.

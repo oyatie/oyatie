@@ -38,6 +38,8 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers |
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
 
+> **Spent leaf (no live plan file):** R-DUAL-CI-TIDE-MOVE (`oya/ci-tide` → `ci/tide/`) is applied in-tree; evidence `evidence/reorg/rr-dual-ci-tide-move-20260806.json`. Plan not kept LIVE because #1581 already holds the singleton for intelligence-remainder.
+
 ## North-star / anti-debt
 
 See delivery-fabric `NORTH-STAR-SHAPE.md` when kit is on trunk. Short form:

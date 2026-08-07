@@ -1,0 +1,23 @@
+rust_library(
+    name = "ci-tide-kernel",
+    srcs = glob(["src/**/*.rs", "**/*.cedar", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml"]),
+    crate = "ci_tide_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-tide-kernel-tests",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_tide_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

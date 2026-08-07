@@ -1,0 +1,90 @@
+{
+  "id": "RR-DUAL-CI-TIDE-MOVE",
+  "date": "2026-08-06",
+  "class": "move",
+  "card": "R-DUAL-CI-TIDE-MOVE",
+  "authority": [
+    "ADR-0562 (ci absorbs ci-tide as sub-module)",
+    "ADR-0614 (move-plan bijection + materialize-on-demand manifest)",
+    "ADR-0515 (delivery fabric / oya-ci-required)",
+    "#1604 disposition inventory"
+  ],
+  "origin_dev": "1ff54ddc56fe",
+  "branch": "agent/reorg-ci-tide-move-20260806",
+  "summary": "First staged split_brain leaf move: oya/ci-tide (3 crates, 10 files) rehomed to ci/tide/ with capability-first cargo names via oya-reorg-codemod. Controller and webhook-gateway intentionally not moved.",
+  "singleton": {
+    "live_plans_on_tip": [
+      "specs/reorg/intelligence-remainder-move-plan.json"
+    ],
+    "ci_tide_plan": "spent_not_committed_live",
+    "reason": "origin/dev already holds intelligence-remainder as sole LIVE (#1581); ci-tide leaf applied without retaining executable move-plan (RR-MOVEPLAN-SINGLETON)",
+    "evidence_only": "evidence/reorg/rr-dual-ci-tide-move-20260806.json"
+  },
+  "moves": [
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-kernel",
+      "new_path": "ci/tide/kernel",
+      "old_cargo_name": "oya-ci-tide-kernel",
+      "new_cargo_name": "ci-tide-kernel"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-github-adapter",
+      "new_path": "ci/tide/github-adapter",
+      "old_cargo_name": "oya-ci-tide-github-adapter",
+      "new_cargo_name": "ci-tide-github-adapter"
+    },
+    {
+      "old_path": "oya/ci-tide/crates/oya-ci-tide-app",
+      "new_path": "ci/tide/app",
+      "old_cargo_name": "oya-ci-tide-app",
+      "new_cargo_name": "ci-tide-app"
+    }
+  ],
+  "net_path_debt": {
+    "oya/ci-tide": 0,
+    "policy": "net_path_debt<=0 under oya/ci-tide",
+    "verified": true
+  },
+  "origin_dev_file_count_under_oya_ci_tide": 10,
+  "destination_file_count": 10,
+  "destination_files": [
+    "ci/tide/app/BUCK",
+    "ci/tide/app/Cargo.toml",
+    "ci/tide/app/src/bin/oya-ci-tide.rs",
+    "ci/tide/app/src/lib.rs",
+    "ci/tide/github-adapter/BUCK",
+    "ci/tide/github-adapter/Cargo.toml",
+    "ci/tide/github-adapter/src/lib.rs",
+    "ci/tide/kernel/BUCK",
+    "ci/tide/kernel/Cargo.toml",
+    "ci/tide/kernel/src/lib.rs"
+  ],
+  "consumers_updated": [
+    "Cargo.toml (literal members for ci/tide/* outside four-face globs)",
+    "Cargo.lock (package rename via codemod lock transform)",
+    "specs/capability-registry.json (drop oya/ci-tide from absorbs_current_dirs)",
+    "ci/facade/module-membership/capability-membership-policy.json (legacy_root_freeze burn-down 3 paths)",
+    "ci/facade/crate-catalog-coverage/crate-catalog-coverage-policy.json (uncatalogued rename)",
+    "registry/fixuptasks.jsonl (F-CR-CITIDE-TOCTOU named_in path)",
+    "specs/reorg/README.md (inventory LIVE plan)"
+  ],
+  "non_goals": [
+    "Do not move oya/ci-controller",
+    "Do not move oya/ci-webhook-gateway",
+    "Do not collapse absorbs_current_dirs to [ci] only until all three leaves land",
+    "Do not fold tide into ci/facade/"
+  ],
+  "verification": {
+    "codemod_dry_run": "clean (cargo_ok=true)",
+    "cargo_check": "ci-tide-kernel, ci-tide-github-adapter, ci-tide-app — pass",
+    "cargo_test": {
+      "ci-tide-kernel": "32 passed",
+      "ci-tide-github-adapter": "4 passed",
+      "ci-tide-app": "0 unit tests (binary crate)",
+      "ci-module-membership a_moved_crate_must_shrink_the_census_in_the_same_change": "pass",
+      "ci-baseline-ratchet reorg_at_most_one_executable_move_plan": "pass",
+      "ci-crate-catalog-coverage --lib": "10 passed"
+    }
+  },
+  "move_plan_historical": "specs/reorg/ci-tide-move-plan.json"
+}

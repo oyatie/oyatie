@@ -1,5 +1,5 @@
 [package]
-name = "oya-ci-tide-app"
+name = "ci-tide-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -15,13 +15,13 @@ name = "oya-ci-tide"
 path = "src/bin/oya-ci-tide.rs"
 
 [lib]
-name = "oya_ci_tide_app"
+name = "ci_tide_app"
 path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-ci-tide-kernel = { path = "../oya-ci-tide-kernel" }
-oya-ci-tide-github-adapter = { path = "../oya-ci-tide-github-adapter" }
+ci-tide-kernel = { path = "../kernel" }
+ci-tide-github-adapter = { path = "../github-adapter" }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
