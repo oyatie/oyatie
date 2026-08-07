@@ -5,8 +5,7 @@
 //! deterministic CI fixtures. Production secret storage is the planned OpenBao
 //! HSM backend (ADR-0043 + masterplan M02-P06 secrets µservice); when that
 //! adapter ships, every consumer of `InMemorySecretStoreAdapter` migrates per
-//! the SecretStorePort substitution scenario in
-//! `tools/oya-adapter-substitution-test-app`.
+//! the SecretStorePort substitution scenario (provider-agnostic adapter swap).
 //!
 //! Renamed 2026-05-15 from `OpenBaoAdapter` (which lied about its backend) per
 //! the Linus-mode audit. The previous implementation also keyed the map on

@@ -1,0 +1,139 @@
+{
+  "schema": "oyatie/evidence/rr-tools-leaf-delete-batch1/v1",
+  "id": "REORG-TOOLS-LEAF-DELETE-BATCH1-20260806",
+  "date": "2026-08-06",
+  "timestamp": "2026-08-06T20:10:47Z",
+  "branch": "agent/reorg-tools-leaf-delete-batch1-20260806",
+  "origin_dev_sha": "1ff54ddc56fe820b55924a3b81e69f84bd1a8ba8",
+  "wave": "W2",
+  "class": "delete",
+  "doctrine": "Delete tools/* leaves only with consumer-absence proof. Keep oya-reorg-codemod, hooks, active gates, merge drivers, governance outside-fleet frozen set.",
+  "companion_disposition_pr": 1582,
+  "path_disjoint_vs_pr_1582": {
+    "number": 1582,
+    "title": "docs(reorg): tools/* disposition \u2014 rewrite/refactor not move-only",
+    "paths": [
+      "evidence/reorg/rr-tools-disposition-20260806.json",
+      "specs/reachability-registry.json",
+      "tools/DISPOSITION.md",
+      "tools/OWNERS"
+    ],
+    "overlap_with_this_pr": "none \u2014 #1582 is disposition docs/OWNERS only; this PR deletes product leaves under tools/oya-* and companion inventory rows",
+    "conflict": false
+  },
+  "inventory_tools_dirs_after": [
+    "fixup-ledger-merge-driver-app",
+    "hooks",
+    "opensk-vendored",
+    "oya-architecture-graph-generator-app",
+    "oya-buck-test-wiring-app",
+    "oya-cargo-lock-merge-driver-app",
+    "oya-checkout-guard-app",
+    "oya-fabric-loop-state-app",
+    "oya-friction-ledger-merge-driver-app",
+    "oya-governance-adapter-with-no-importer-app",
+    "oya-governance-adr-shape-app",
+    "oya-governance-authoritative-tracked-app",
+    "oya-governance-banned-primitives-app",
+    "oya-governance-portfolio-citation-app",
+    "oya-governance-predictable-naming-app",
+    "oya-governance-purpose-audit-app",
+    "oya-governance-sunset-lifecycle-app",
+    "oya-lane-supervisor-app",
+    "oya-reorg-codemod-app",
+    "oya-tooling-agent-read",
+    "oya-xtask-metadata-augment-app"
+  ],
+  "deleted": [
+    {
+      "path": "tools/oya-bot-autofix-app",
+      "crate": "oya-bot-autofix-app",
+      "class": "delete",
+      "rationale": "ADR-0531 PROPOSE-only skeleton with no CI/workflow/hook/gitattributes invoke path; inventory-only consumers (membership freeze + catalog + lock).",
+      "catalog_row_removed": "registry/catalog/oya-bot-autofix-app.yaml"
+    },
+    {
+      "path": "tools/oya-adapter-substitution-test-app",
+      "crate": "oya-adapter-substitution-test-app",
+      "class": "delete",
+      "rationale": "Static self-test harness stub; no CI/workflow invoke; only membership freeze + catalog + lock + one doc-comment reference (updated).",
+      "catalog_row_removed": "registry/catalog/oya-adapter-substitution-test-app.yaml"
+    }
+  ],
+  "consumer_proof": [
+    {
+      "crate": "oya-bot-autofix-app",
+      "live_runtime_consumers": [],
+      "inventory_consumers_updated": [
+        "ci/facade/module-membership/capability-membership-policy.json#legacy_root_freeze.crates",
+        "specs/capability-registry.json#membership_lint_coverage.absorbs_current_crate_globs",
+        "Cargo.lock",
+        "registry/catalog/oya-bot-autofix-app.yaml"
+      ],
+      "non_blocking_historical_refs_left": [
+        "docs/ (archive ADRs / audits)",
+        "evidence/ (historical audits / multispectrum)",
+        "specs/crate-naming-audit.json (historical rename rows)",
+        "registry/stores/design-store.json (title strings)",
+        "specs/masterplan.json / registry/milestone-audit (IP path titles)"
+      ],
+      "fail_closed": true
+    },
+    {
+      "crate": "oya-adapter-substitution-test-app",
+      "live_runtime_consumers": [],
+      "inventory_consumers_updated": [
+        "ci/facade/module-membership/capability-membership-policy.json#legacy_root_freeze.crates",
+        "specs/capability-registry.json#membership_lint_coverage.absorbs_current_crate_globs",
+        "Cargo.lock",
+        "registry/catalog/oya-adapter-substitution-test-app.yaml"
+      ],
+      "non_blocking_historical_refs_left": [
+        "docs/ (archive ADRs / audits)",
+        "evidence/ (historical audits / multispectrum)",
+        "specs/crate-naming-audit.json (historical rename rows)",
+        "registry/stores/design-store.json (title strings)",
+        "specs/masterplan.json / registry/milestone-audit (IP path titles)"
+      ],
+      "fail_closed": true
+    }
+  ],
+  "explicitly_kept": [
+    "tools/hooks",
+    "tools/oya-reorg-codemod-app",
+    "tools/oya-xtask-metadata-augment-app",
+    "tools/oya-checkout-guard-app",
+    "tools/oya-governance-*-app (outside-fleet frozen gates)",
+    "tools/*-merge-driver-app (.gitattributes live)",
+    "tools/oya-fabric-loop-state-app",
+    "tools/oya-lane-supervisor-app",
+    "tools/oya-tooling-agent-read",
+    "tools/oya-architecture-graph-generator-app",
+    "tools/oya-buck-test-wiring-app",
+    "tools/opensk-vendored"
+  ],
+  "collateral_edits": [
+    {
+      "path": "ci/facade/module-membership/capability-membership-policy.json",
+      "change": "shrink legacy_root_freeze.crates by 2 (stale freeze fails closed if left)"
+    },
+    {
+      "path": "specs/capability-registry.json",
+      "change": "remove deleted paths from membership_lint_coverage.absorbs_current_crate_globs"
+    },
+    {
+      "path": "Cargo.lock",
+      "change": "surgical [[package]] removal only (no generate-lockfile rewrite)"
+    },
+    {
+      "path": "intelligence/adapters/account-adapter-inmemory/src/lib.rs",
+      "change": "doc-comment no longer points at deleted tools path"
+    }
+  ],
+  "net_path_debt_this_pr": -2,
+  "follow_on": [
+    "rewrite fabric-loop-state + lane-supervisor + tooling-agent-read \u2192 .grok (consumer migration first)",
+    "refactor merge-drivers \u2192 ci/facade or .grok/bin (after gitattributes rewiring)",
+    "rewrite governance-*-app \u2192 ci/facade gates (shrink GATE_CRATES_OUTSIDE_THE_FLEET in same PR)"
+  ]
+}
