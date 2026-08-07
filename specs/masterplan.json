@@ -5875,7 +5875,7 @@
   "ideal_production_roadmap": {
     "_doc": "Ideal long-term 0->100 production roadmap for the Oyatie Cloud hyperscaler platform + tenant microservices. Authority: this section + ADR-0358. Strangler-fig migration; Bazel rules_rust build graph + oya governance overlay; production-100 bar defined collaboratively in P-DEFINE. Research-grounded (Google TAP/Bazel RBE, Amazon Apollo staged rollout, Microsoft rings, Oracle blue-green, Nygard ADR immutability). Honest: this is a roadmap-spec; no production/hyperscaler-maturity claim until P-DEFINE bar evidence is green.",
     "authoring_adr": "ADR-0358",
-    "posture": "Layered migration: the cloud-* SUBSTRATE (production-100 product) is built GREENFIELD (new IaaS/PaaS, per plan/hyperscaler-grade-cloud-platform-greenfield-plan.md phases P0-P10); EXISTING product microservices (FD-001 enterprise/workflow/backbone) are STRANGLER-FIG migrated onto the proven substrate behind contracts (ADR-0358). Trunk always shippable; parallel lanes; cut over only when green.",
+    "posture": "Layered migration: the cloud-* SUBSTRATE (production-100 product) is built GREENFIELD (new IaaS/PaaS, per specs/masterplan.json (live masterplan_v2 authority; former plan/* drafts disposed 2026-08-07)); EXISTING product microservices (FD-001 enterprise/workflow/backbone) are STRANGLER-FIG migrated onto the proven substrate behind contracts (ADR-0358). Trunk always shippable; parallel lanes; cut over only when green.",
     "toolchain_target": {
       "build_graph": "cloud-ci Rust service owns build/test orchestration; current Buck2/Cargo and future hermetic/RBE graph integrations are adapters/patterns, not the service authority.",
       "remote": "cloud-ci-managed hermetic remote cache/RBE target with tenant-partitioned cache namespaces; sccache->SeaweedFS/Bazel-style RBE are bridge/reference patterns.",
@@ -6090,9 +6090,6 @@
     ],
     "incorporated_from_greenfield_plan": {
       "source_docs": [
-        "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
-        "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
-        "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md",
         "plan/hyperscaler-grade-cloud-platform-quality-review.md"
       ],
       "adopted": [
@@ -6105,7 +6102,12 @@
         "standards-hygiene re-check cadence before production commitments",
         "16-service initial catalog anchor (cross-ref specs/cloud-resource-catalog-target.json)"
       ],
-      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); current authority binds Buck2 plus cloud-ci/oya-ci Rust gate packets, with GitHub/Jenkins/Argo surfaces bridge/reference only until cutover. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission."
+      "reconciliation": "greenfield plan assumes build-from-scratch; we apply greenfield to the SUBSTRATE and strangler-fig to existing product-microservice migration. Build/CI vendor: the plan abstracts CI/CD to a contract (its CS-0104); current authority binds Buck2 plus cloud-ci/oya-ci Rust gate packets, with GitHub/Jenkins/Argo surfaces bridge/reference only until cutover. Pulsar/Kubewarden are our refinements of the plan's unspecified messaging/admission.",
+      "_disposed_greenfield_plan_docs_20260807": [
+        "plan/hyperscaler-grade-cloud-platform-greenfield-plan.md",
+        "plan/hyperscaler-grade-cloud-platform-changeset-slices.md",
+        "plan/hyperscaler-grade-cloud-platform-main-plan-audit.md"
+      ]
     },
     "standards_hygiene_cadence": "Re-check pinned standard versions (OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, OpenTelemetry, SLSA, NIST CSF/Privacy, FOCUS, Kubernetes PSS, Cedar, Pulsar, Kubewarden, Argo) against official/upstream before each production commitment; quarterly otherwise.",
     "toolchain_target_current_reconciliation_2026_06_02": {
