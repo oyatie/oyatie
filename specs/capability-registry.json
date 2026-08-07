@@ -182,8 +182,7 @@
         "audit"
       ],
       "absorbs_current_dirs": [
-        "audit",
-        "oya/audit-chain"
+        "audit"
       ],
       "dag_node": "audit-chain"
     },

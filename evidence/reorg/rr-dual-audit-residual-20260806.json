@@ -1,0 +1,28 @@
+{
+  "id": "REORG-DUAL-AUDIT-RESIDUAL-20260806",
+  "class": "delete",
+  "date": "2026-08-06T17:11:01Z",
+  "origin_dev": "1ff54ddc5",
+  "lane": "REORG-DUAL-AUDIT-BURNDOWN",
+  "summary": "Rehome residual zero-crate oya/audit-chain surface into registered audit/ home; retarget consumers; delete oya/audit-chain dual-home.",
+  "northstar": "one home per concern; absorbs inventory not multi-home design; net_path_debt <= 0 under oya/",
+  "moves": [
+    {
+      "from": "oya/audit-chain/{contracts,iac,catalog,capabilities,cedar,dashboards,decisions,dpia,IPs,policy,runbooks,scorecards,security,test-plans,manifest.json,...}",
+      "to": "audit/<same>"
+    }
+  ],
+  "consumers_retargeted": [
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "specs/capability-registry.json",
+    "specs/microservice-tier-classification.json",
+    "audit/manifest.json"
+  ],
+  "net_path_debt": "negative under oya/audit-chain (deleted); audit/ gains residual product artifacts that belong at capability home",
+  "non_goals": [
+    "no crate renames",
+    "no move-plan (not path bijection of crates)",
+    "no audit-chain runtime behavior change",
+    "historical docs/ADR archive paths left as history"
+  ]
+}

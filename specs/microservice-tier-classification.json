@@ -430,9 +430,9 @@
       "tier_subtype": "product-developer-application-shell",
       "dr_tier": "T1"
     },
-    "oya/audit-chain/manifest.json": {
-      "service": "oya/audit-chain",
-      "manifest": "oya/audit-chain/manifest.json",
+    "audit/manifest.json": {
+      "service": "audit",
+      "manifest": "audit/manifest.json",
       "capability": "audit",
       "tier": "substrate",
       "tier_subtype": "substrate-audit",

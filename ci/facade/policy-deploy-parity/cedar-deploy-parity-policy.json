@@ -17,7 +17,7 @@
     "paths": [
       "oya/api-gateway/iac/k8s/helm/templates/cedar.yaml",
       "oya/application/iac/k8s/helm/templates/cedar.yaml",
-      "oya/audit-chain/iac/k8s/helm/templates/cedar.yaml",
+      "audit/iac/k8s/helm/templates/cedar.yaml",
       "oya/calendar/iac/k8s/helm/templates/cedar.yaml",
       "oya/comms-email/iac/k8s/helm/templates/cedar.yaml",
       "oya/community/iac/k8s/helm/templates/cedar.yaml",
