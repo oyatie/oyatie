@@ -17,9 +17,8 @@ use ci_corpus_index_coverage::{
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
 const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
-const NESTED_REPAIR_PACKAGES: [&str; 3] = [
+const NESTED_REPAIR_PACKAGES: [&str; 2] = [
     "oya/oya-authn-device-firmware",
-    "oya/oya-flags",
     "oya/oya-identity",
 ];
 
@@ -378,7 +377,7 @@ fn the_frozen_ceilings_equal_todays_counts() {
 
 #[test]
 fn oya_census_off_by_one_blocks() {
-    assert!(validate_oya_census(3240, 3241).is_err());
+    assert!(validate_oya_census(3067, 3068).is_err());
 }
 
 #[test]
@@ -412,7 +411,7 @@ fn pre_repair_missing_ten_blocks() {
 }
 
 #[test]
-fn three_nested_faces_use_nearest_package_ownership() {
+fn nested_repair_faces_use_nearest_package_ownership() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let counts: BTreeMap<_, _> = live
@@ -423,9 +422,9 @@ fn three_nested_faces_use_nearest_package_ownership() {
         .collect();
     assert_eq!(
         counts.values().copied().collect::<Vec<_>>(),
-        [1, 1, 2]
+        [1, 2]
     );
-    assert_eq!(counts.len(), 3);
+    assert_eq!(counts.len(), 2);
 }
 
 #[test]
@@ -504,8 +503,8 @@ fn symlink_escaping_nearest_package_blocks() {
 fn current_internal_yaml_symlink_inventory_is_seven_and_safe() {
     let root = repo_root();
     let paths = [
-        "oya/connector/contracts/asyncapi-v1.yaml",
-        "oya/connector/contracts/openapi-v1.yaml",
+        "gateway/connector/contracts/asyncapi-v1.yaml",
+        "gateway/connector/contracts/openapi-v1.yaml",
         "console/contracts/asyncapi-v1.yaml",
         "console/contracts/openapi-v1.yaml",
         "console/iac/ech-config.yaml",

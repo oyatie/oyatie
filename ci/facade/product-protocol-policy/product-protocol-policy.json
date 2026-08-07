@@ -84,7 +84,7 @@
       "oya",
       "cloud"
     ],
-    "expected_total": 76,
+    "expected_total": 71,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
       "oya/ci-webhook-gateway/manifest.json",

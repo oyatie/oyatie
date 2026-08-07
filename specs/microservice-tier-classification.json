@@ -14,12 +14,78 @@
   },
   "tier_distribution": {
     "substrate": 55,
-    "product": 46,
+    "product": 41,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 101,
+  "service_count": 96,
   "services": {
+    "audit/manifest.json": {
+      "service": "audit",
+      "manifest": "audit/manifest.json",
+      "capability": "audit",
+      "tier": "substrate",
+      "tier_subtype": "substrate-audit",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "observability",
+          "ontology",
+          "workflow-engine"
+        ]
+      }
+    },
+    "billing/finops-portal/manifest.json": {
+      "service": "billing/finops-portal",
+      "manifest": "billing/finops-portal/manifest.json",
+      "capability": "billing",
+      "tier": "substrate",
+      "tier_subtype": "substrate-marketplace-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "billing/manifest.json": {
+      "service": "billing",
+      "manifest": "billing/manifest.json",
+      "capability": "billing",
+      "tier": "substrate",
+      "tier_subtype": "substrate-marketplace-data",
+      "dr_tier": "T2",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "billing/tax/manifest.json": {
+      "service": "billing/tax",
+      "manifest": "billing/tax/manifest.json",
+      "capability": "billing",
+      "tier": "substrate",
+      "tier_subtype": "substrate-marketplace-data",
+      "dr_tier": "T2",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
     "cell/cell-lifecycle/manifest.json": {
       "service": "cell/cell-lifecycle",
       "manifest": "cell/cell-lifecycle/manifest.json",
@@ -57,43 +123,6 @@
           "audit-chain",
           "cloud-secrets",
           "identity",
-          "intelligence",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy",
-          "workflow-engine"
-        ]
-      }
-    },
-    "cloud/cloud-iac/manifest.json": {
-      "service": "cloud/cloud-iac",
-      "manifest": "cloud/cloud-iac/manifest.json",
-      "capability": "iac",
-      "tier": "substrate",
-      "tier_subtype": "substrate-iac",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "cloud/cloud-iam/manifest.json": {
-      "service": "cloud/cloud-iam",
-      "manifest": "cloud/cloud-iam/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-identity",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [
-          "cell"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
           "intelligence",
           "observability",
           "ontology",
@@ -332,15 +361,326 @@
         ]
       }
     },
-    "oya/api-gateway/manifest.json": {
-      "service": "oya/api-gateway",
-      "manifest": "oya/api-gateway/manifest.json",
+    "comms/comms-email/manifest.json": {
+      "service": "comms/comms-email",
+      "manifest": "comms/comms-email/manifest.json",
+      "capability": "comms",
+      "tier": "substrate",
+      "tier_subtype": "substrate-comms",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "comms/contact-center/manifest.json": {
+      "service": "comms/contact-center",
+      "manifest": "comms/contact-center/manifest.json",
+      "capability": "comms",
+      "tier": "substrate",
+      "tier_subtype": "substrate-comms",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "comms/emergency/manifest.json": {
+      "service": "comms/emergency",
+      "manifest": "comms/emergency/manifest.json",
+      "capability": "comms",
+      "tier": "substrate",
+      "tier_subtype": "substrate-comms",
+      "dr_tier": "T3",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "comms/mail/manifest.json": {
+      "service": "comms/mail",
+      "manifest": "comms/mail/manifest.json",
+      "capability": "comms",
+      "tier": "substrate",
+      "tier_subtype": "substrate-comms",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "comms/meet/manifest.json": {
+      "service": "comms/meet",
+      "manifest": "comms/meet/manifest.json",
+      "capability": "comms",
+      "tier": "substrate",
+      "tier_subtype": "substrate-comms",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "comms/messenger/manifest.json": {
+      "service": "comms/messenger",
+      "manifest": "comms/messenger/manifest.json",
+      "capability": "comms",
+      "tier": "substrate",
+      "tier_subtype": "substrate-comms",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "compliance/manifest.json": {
+      "service": "compliance",
+      "manifest": "compliance/manifest.json",
+      "capability": "compliance",
+      "tier": "substrate",
+      "tier_subtype": "substrate-compliance",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "console/manifest.json": {
+      "service": "console",
+      "manifest": "console/manifest.json",
+      "capability": "console",
+      "tier": "substrate",
+      "tier_subtype": "substrate-governance",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "data/analytics/manifest.json": {
+      "service": "data/analytics",
+      "manifest": "data/analytics/manifest.json",
+      "capability": "data",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S3",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "workflow-engine"
+        ]
+      }
+    },
+    "data/cloud-data/manifest.json": {
+      "service": "data/cloud-data",
+      "manifest": "data/cloud-data/manifest.json",
+      "capability": "data",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S3",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "workflow-engine"
+        ]
+      }
+    },
+    "data/data-pipeline/manifest.json": {
+      "service": "data/data-pipeline",
+      "manifest": "data/data-pipeline/manifest.json",
+      "capability": "data",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T2",
+      "substrate_dag_position": {
+        "stratum": "S3",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "workflow-engine"
+        ]
+      }
+    },
+    "data/data-warehouse/manifest.json": {
+      "service": "data/data-warehouse",
+      "manifest": "data/data-warehouse/manifest.json",
+      "capability": "data",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T2",
+      "substrate_dag_position": {
+        "stratum": "S3",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "workflow-engine"
+        ]
+      }
+    },
+    "data/ontology/manifest.json": {
+      "service": "data/ontology",
+      "manifest": "data/ontology/manifest.json",
+      "capability": "data",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S3",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "workflow-engine"
+        ]
+      }
+    },
+    "flags/manifest.json": {
+      "service": "flags",
+      "manifest": "flags/manifest.json",
+      "capability": "flags",
+      "tier": "substrate",
+      "tier_subtype": "substrate-governance",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "gateway/connector/manifest.json": {
+      "service": "gateway/connector",
+      "manifest": "gateway/connector/manifest.json",
+      "capability": "gateway",
+      "tier": "substrate",
+      "tier_subtype": "substrate-api-gateway",
+      "dr_tier": "T2",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "gateway/manifest.json": {
+      "service": "gateway",
+      "manifest": "gateway/manifest.json",
       "capability": "gateway",
       "tier": "substrate",
       "tier_subtype": "substrate-api-gateway",
       "dr_tier": "T1",
       "substrate_dag_position": {
         "stratum": "S0",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "iac/manifest.json": {
+      "service": "iac",
+      "manifest": "iac/manifest.json",
+      "capability": "iac",
+      "tier": "substrate",
+      "tier_subtype": "substrate-iac",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "iam/cloud-iam/manifest.json": {
+      "service": "iam/cloud-iam",
+      "manifest": "iam/cloud-iam/manifest.json",
+      "capability": "iam",
+      "tier": "substrate",
+      "tier_subtype": "substrate-identity",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [
+          "cell"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy",
+          "workflow-engine"
+        ]
+      }
+    },
+    "iam/consent-graph/manifest.json": {
+      "service": "iam/consent-graph",
+      "manifest": "iam/consent-graph/manifest.json",
+      "capability": "iam",
+      "tier": "substrate",
+      "tier_subtype": "substrate-consent",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S3",
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
@@ -353,30 +693,6 @@
       "tier": "product",
       "tier_subtype": "product-developer-application-shell",
       "dr_tier": "T1"
-    },
-    "audit/manifest.json": {
-      "service": "audit",
-      "manifest": "audit/manifest.json",
-      "capability": "audit",
-      "tier": "substrate",
-      "tier_subtype": "substrate-audit",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "observability",
-          "ontology",
-          "workflow-engine"
-        ]
-      }
     },
     "oya/calendar/manifest.json": {
       "service": "oya/calendar",
@@ -400,20 +716,6 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "comms/comms-email/manifest.json": {
-      "service": "comms/comms-email",
-      "manifest": "comms/comms-email/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
     "oya/community/manifest.json": {
       "service": "oya/community",
       "manifest": "oya/community/manifest.json",
@@ -421,62 +723,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer-community",
       "dr_tier": "T1"
-    },
-    "compliance/manifest.json": {
-      "service": "compliance",
-      "manifest": "compliance/manifest.json",
-      "capability": "compliance",
-      "tier": "substrate",
-      "tier_subtype": "substrate-compliance",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "oya/connector/manifest.json": {
-      "service": "oya/connector",
-      "manifest": "oya/connector/manifest.json",
-      "capability": "gateway",
-      "tier": "substrate",
-      "tier_subtype": "substrate-api-gateway",
-      "dr_tier": "T2",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "oya/consent-graph/manifest.json": {
-      "service": "oya/consent-graph",
-      "manifest": "oya/consent-graph/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-consent",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "comms/contact-center/manifest.json": {
-      "service": "comms/contact-center",
-      "manifest": "comms/contact-center/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
     },
     "oya/contract-lifecycle-management/manifest.json": {
       "service": "oya/contract-lifecycle-management",
@@ -618,20 +864,6 @@
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "comms/emergency/manifest.json": {
-      "service": "comms/emergency",
-      "manifest": "comms/emergency/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T3",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
     "oya/financial-planning/manifest.json": {
@@ -796,20 +1028,6 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
     },
-    "comms/mail/manifest.json": {
-      "service": "comms/mail",
-      "manifest": "comms/mail/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
     "oya/marketing-automation/manifest.json": {
       "service": "oya/marketing-automation",
       "manifest": "oya/marketing-automation/manifest.json",
@@ -830,34 +1048,6 @@
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "comms/meet/manifest.json": {
-      "service": "comms/meet",
-      "manifest": "comms/meet/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "comms/messenger/manifest.json": {
-      "service": "comms/messenger",
-      "manifest": "comms/messenger/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
     "oya/notes/manifest.json": {
@@ -890,20 +1080,6 @@
           "ontology",
           "workflow-engine"
         ]
-      }
-    },
-    "console/manifest.json": {
-      "service": "console",
-      "manifest": "console/manifest.json",
-      "capability": "console",
-      "tier": "substrate",
-      "tier_subtype": "substrate-governance",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
     "oya/payments/manifest.json": {
@@ -1156,182 +1332,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
-    },
-    "billing/tax/manifest.json": {
-      "service": "billing/tax",
-      "manifest": "billing/tax/manifest.json",
-      "capability": "billing",
-      "tier": "substrate",
-      "tier_subtype": "substrate-marketplace-data",
-      "dr_tier": "T2",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "billing/manifest.json": {
-      "service": "billing",
-      "manifest": "billing/manifest.json",
-      "capability": "billing",
-      "tier": "substrate",
-      "tier_subtype": "substrate-marketplace-data",
-      "dr_tier": "T2",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "billing/finops-portal/manifest.json": {
-      "service": "billing/finops-portal",
-      "manifest": "billing/finops-portal/manifest.json",
-      "capability": "billing",
-      "tier": "substrate",
-      "tier_subtype": "substrate-marketplace-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "data/cloud-data/manifest.json": {
-      "service": "data/cloud-data",
-      "manifest": "data/cloud-data/manifest.json",
-      "capability": "data",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "workflow-engine"
-        ]
-      }
-    },
-    "data/analytics/manifest.json": {
-      "service": "data/analytics",
-      "manifest": "data/analytics/manifest.json",
-      "capability": "data",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "workflow-engine"
-        ]
-      }
-    },
-    "data/data-pipeline/manifest.json": {
-      "service": "data/data-pipeline",
-      "manifest": "data/data-pipeline/manifest.json",
-      "capability": "data",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T2",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "workflow-engine"
-        ]
-      }
-    },
-    "data/data-warehouse/manifest.json": {
-      "service": "data/data-warehouse",
-      "manifest": "data/data-warehouse/manifest.json",
-      "capability": "data",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T2",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "workflow-engine"
-        ]
-      }
-    },
-    "data/ontology/manifest.json": {
-      "service": "data/ontology",
-      "manifest": "data/ontology/manifest.json",
-      "capability": "data",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "workflow-engine"
-        ]
-      }
-    },
-    "flags/manifest.json": {
-      "service": "flags",
-      "manifest": "flags/manifest.json",
-      "capability": "flags",
-      "tier": "substrate",
-      "tier_subtype": "substrate-governance",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
     }
   }
 }

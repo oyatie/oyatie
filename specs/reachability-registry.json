@@ -34,8 +34,8 @@
       "anchor": "ADR-0535 \u00a75: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate."
     },
     {
-      "prefix": "cloud/cloud-iam/contracts/",
-      "anchor": "ADR-0559 Wave A API-first parity addendum: cloud/cloud-iam/contracts/ houses the Cloud IAM OpenAPI contract and Buck2 parity test for the provider-neutral IAM surface constants; breadth is only the contract/gate subtree, not the whole service."
+      "prefix": "iam/cloud-iam/contracts/",
+      "anchor": "ADR-0559 Wave A API-first parity addendum: iam/cloud-iam/contracts/ houses the Cloud IAM OpenAPI contract and Buck2 parity test for the provider-neutral IAM surface constants; breadth is only the contract/gate subtree, not the whole service."
     },
     {
       "prefix": "flags/release/runtime-safety-policy.json",
@@ -74,19 +74,19 @@
       "anchor": "ADR-0561 slice-1b-iii-c + ADR-0139 SLO-home: the in-cluster SVID-delivery operator's promotion-gating SLO subtree (the operator that PRODUCES the oya-cloud-iam-pdp-svid Secret the PDP mTLS PEP boots from \u2014 the single producer that closes the cert-delivery dimension of FRIC-1781490000 and unblocks G004). Per the ADR-0139 SLO-home convention this SLO is non-crate-resident (homed at <cap>/observability/slos/), so it is NOT reachable via cargo-members and needs an explicit reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact observability path verbatim. breadth: just this svid-operator SLO subdir"
     },
     {
-      "prefix": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml",
+      "prefix": "iam/cloud-iam/iac/k8s/helm/templates/svid-operator-deployment.yaml",
       "anchor": "ADR-0561 slice-1b-iii-c: the SVID-delivery operator's Helm Deployment template, amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so each new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)"
     },
     {
-      "prefix": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml",
+      "prefix": "iam/cloud-iam/iac/k8s/helm/templates/svid-operator-rbac.yaml",
       "anchor": "ADR-0561 slice-1b-iii-c: the SVID-delivery operator's Helm RBAC template (Secret create/update/patch scoped to oya-cloud-iam-pdp-svid in the cloud-iam namespace), amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so each new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)"
     },
     {
-      "prefix": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml",
+      "prefix": "iam/cloud-iam/iac/k8s/helm/templates/svid-operator-pdb.yaml",
       "anchor": "ADR-0561 slice-1b-iii-c: the SVID-delivery operator's Helm PodDisruptionBudget template, amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so each new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0561, whose '## Governed surfaces' amendment names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)"
     },
     {
-      "prefix": "cloud/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml",
+      "prefix": "iam/cloud-iam/iac/k8s/helm/templates/svid-operator-join-token-externalsecret.yaml",
       "anchor": "ADR-0606 / GH #980: the SVID-delivery operator's join-token ExternalSecret template (ESO ClusterSecretStore openbao-oya -> the operator-internal join-token Secret), amending the existing cloud/cloud-iam Helm chart (owned by the cloud/cloud-iam OWNERS, axis-cloud-platform). A non-crate-resident IaC manifest is NOT reachable via cargo-members and the cloud-iam chart carries no covering reachability prefix, so this new svid-operator template carries an explicit EXACT-path reachability seed; its justification is ADR-0606, whose '## Governed surfaces' block names this exact path verbatim. breadth: just this one template (no glob, #66 literal-path discipline)"
     },
     {

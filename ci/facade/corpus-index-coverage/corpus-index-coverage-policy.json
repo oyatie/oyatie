@@ -3,24 +3,24 @@
   "gate_id": "cloud-ci-corpus-index-coverage",
   "schema_version": "1.0.0",
   "baseline_uncovered_packages": 18,
-  "baseline_unpackaged_yaml_files": 270,
+  "baseline_unpackaged_yaml_files": 228,
   "min_expected_yaml_packages": 20,
   "min_expected_yaml_files": 4000,
   "min_expected_unpackaged_yaml_files": 200,
   "oya_corpus": {
-    "expected_yaml_files": 3241,
+    "expected_yaml_files": 3068,
     "max_files_per_extraction_face": 512,
     "max_source_bytes_per_extraction_face": 1048576
   },
   "measured": {
-    "_comment": "Measured by the live gate at freeze time, recorded so a later reader can see whether the ratchet moved or the corpus did. yaml_files_total counts the walk's census, which skips dot-directories; a git ls-files census reports 8 more (.github/**) and is not the number the ceilings are frozen against. Re-anchored 2026-08-05 when infra/gitops + infra/talos packages pulled 15 YAML files into the graph (448\u2192433). Re-anchored 2026-08-06 on PR #1584: audit/BUCK packages residual rehome YAML; only the 8 pre-existing unpackaged audit/observability SLO YAML leave the unpackaged set (433\u2192425); oya census 4103\u21924042 after oya/audit-chain residual leave oya/. Re-anchored 2026-08-07 residual_single wave0 billing rehome: billing/BUCK packages residual YAML (unpackaged 425\u2192413); oya census 4042\u21923992 after accounting/finops-portal/oya-billing leave oya/. Merged origin/dev PR #1611 orphan scaffold deletes (emr/healthcare/pharmacy/social/patient-monitoring): provisional oya census 3992\u21923799 pending re-measure after wave6. Re-anchored 2026-08-07 residual_single wave12 comms/compliance/console rehome: compliance/BUCK + console/BUCK package residual YAML (unpackaged 359\u2192346); oya census 3712\u21923465 after emergency/mail/meet/messenger/compliance/ops-dashboard leave oya/. Re-anchored 2026-08-07 residual_single wave18 data/flags rehome: data/BUCK + flags/BUCK package residual YAML (unpackaged 346\u2192270); oya census 3465\u21923241 after analytics/data-pipeline/data-warehouse/ontology/feature-flags leave oya/ and cloud-data leaves cloud/.",
+    "_comment": "Measured by the live gate at freeze time, recorded so a later reader can see whether the ratchet moved or the corpus did. yaml_files_total counts the walk's census, which skips dot-directories; a git ls-files census reports 8 more (.github/**) and is not the number the ceilings are frozen against. Re-anchored 2026-08-05 when infra/gitops + infra/talos packages pulled 15 YAML files into the graph (448\u2192433). Re-anchored 2026-08-06 on PR #1584: audit/BUCK packages residual rehome YAML; only the 8 pre-existing unpackaged audit/observability SLO YAML leave the unpackaged set (433\u2192425); oya census 4103\u21924042 after oya/audit-chain residual leave oya/. Re-anchored 2026-08-07 residual_single wave0 billing rehome: billing/BUCK packages residual YAML (unpackaged 425\u2192413); oya census 4042\u21923992 after accounting/finops-portal/oya-billing leave oya/. Merged origin/dev PR #1611 orphan scaffold deletes (emr/healthcare/pharmacy/social/patient-monitoring): provisional oya census 3992\u21923799 pending re-measure after wave6. Re-anchored 2026-08-07 residual_single wave12 comms/compliance/console rehome: compliance/BUCK + console/BUCK package residual YAML (unpackaged 359\u2192346); oya census 3712\u21923465 after emergency/mail/meet/messenger/compliance/ops-dashboard leave oya/. Re-anchored 2026-08-07 residual_single wave18 data/flags rehome: data/BUCK + flags/BUCK package residual YAML (unpackaged 346\u2192270); oya census 3465\u21923241 after analytics/data-pipeline/data-warehouse/ontology/feature-flags leave oya/ and cloud-data leaves cloud/. Re-anchored 2026-08-07 residual_single wave24 flags/gateway/iac/iam rehome: gateway/BUCK + iac/BUCK + iam/BUCK package residual YAML (unpackaged 270\u2192228); oya census 3241\u21923068 after api-gateway/connector/consent-graph/oya-flags leave oya/ and cloud-iac/cloud-iam leave cloud/.",
     "yaml_packages_total": 35,
     "yaml_packages_indexed": 17,
     "yaml_files_total": 5868,
-    "yaml_files_indexed": 5435,
-    "yaml_files_unpackaged": 270,
+    "yaml_files_indexed": 5477,
+    "yaml_files_unpackaged": 228,
     "package_coverage_bps": 4857,
-    "file_coverage_bps": 9262
+    "file_coverage_bps": 9333
   },
   "product_contract": {
     "born_advisory": "Born ADVISORY over today's debt and BLOCKING on regression. 18 YAML-owning packages declare no extraction target and 413 YAML files sit outside every buck2 package; both are reported as advisory findings and frozen as ceilings. A NEW uncovered package, or NEW YAML outside the build graph, exceeds its ceiling and fails closed.",

@@ -115,10 +115,10 @@
       ],
       "absorbs_current_dirs": [
         "iam",
-        "cloud/cloud-iam",
+        "iam/cloud-iam",
         "oya/identity",
         "oya/oya-identity",
-        "oya/consent-graph",
+        "iam/consent-graph",
         "oya/tenant-rbac",
         "oya/oya-authn-device-firmware"
       ],
@@ -305,8 +305,7 @@
       ],
       "absorbs_current_dirs": [
         "gateway",
-        "oya/api-gateway",
-        "oya/connector"
+        "gateway/connector"
       ],
       "dag_node": "api-gateway"
     },
@@ -391,7 +390,6 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "cloud/cloud-iac",
         "iac"
       ],
       "dag_node": "iac"
@@ -487,8 +485,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "flags",
-        "oya/oya-flags"
+        "flags"
       ],
       "dag_node": "flags"
     }
