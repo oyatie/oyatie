@@ -1,0 +1,16 @@
+context: build
+role: kernel
+capability: workflow-lane-preflight
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: ci/facade/workflow-lane-preflight/Cargo.toml
+non_claims:
+  - judges lane DECLARATIONS passed to it as data; the caller performs the git queries, so a caller that reports falsely is not detected here
+  - computes path intersection between lanes; it does not know whether a lane's declared scope was the right scope
+  - the hotfile set is policy data measured on one date, not derived, so it goes stale as the contended surface moves
