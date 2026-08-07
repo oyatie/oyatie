@@ -26,6 +26,10 @@
       "anchor": "ADR-0508 Phase-1 reference metadata: tools/opensk-vendored/UPSTREAM-CONFIG.json is the machine-readable upstream tracking config for the OpenSK reference, with source vendoring deferred to a follow-up IP."
     },
     {
+      "prefix": "tools/DISPOSITION.md",
+      "anchor": "PR #1582 tools/* reorg disposition (north-star): human-facing summary of rewrite/refactor/delete classes for the tools debt zone; SSOT machine form evidence/reorg/rr-tools-disposition-20260806.json. Process/docs only — not merge authority. Ownership seed tools/OWNERS (cloud-ci-platform)."
+    },
+    {
       "prefix": "oya-deps.toml",
       "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate."
     },
