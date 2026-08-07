@@ -1,7 +1,10 @@
 /target/
 **/target/
-# Local agent/runtime state is durable outside git only. Do not commit OMC/OMX
-# plans, sessions, checkpoints, HUD state, logs, or verification scratch.
+# Local agent/runtime state is durable outside git only. Do not commit runtime
+# plans, sessions, checkpoints, HUD state, logs, or verification scratch under
+# harness state dirs. Frozen keep-with-sunset brand residue (ADR-0709): only the
+# four exact paths below may stay tracked under .omc/ultragoal — do not expand.
+# friction-ledger.jsonl is CI load-bearing (ledger_path) until a future rehome.
 /.omc/*
 !/.omc/ultragoal/
 /.omc/ultragoal/*
@@ -9,7 +12,7 @@
 !/.omc/ultragoal/TEAMMATE-PREAMBLE.md
 !/.omc/ultragoal/friction-ledger.jsonl
 !/.omc/ultragoal/premise.txt
-# Nested OMC session dirt under docs/ (accidentally tracked historically; never re-commit)
+# Nested session dirt under docs/ (accidentally tracked historically; never re-commit)
 docs/**/.omc/
 /.omx/
 # Local GJC runtime/session state is never committed.
