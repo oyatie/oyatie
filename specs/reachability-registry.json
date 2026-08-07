@@ -362,6 +362,14 @@
       "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed cloud manifest and internal Proto corpora consumed by the product-protocol gate."
     },
     {
+      "prefix": "storage/BUCK",
+      "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed storage residual manifest and internal Proto/YAML corpora after dual-home burn-down of cloud/cloud-storage + oya/{drive,imaging,recordings} into storage/ (PR #1600)."
+    },
+    {
+      "prefix": "storage/drive/manifest.json",
+      "anchor": "ADR-0131/0512 pure-split residual: storage/drive is the rehomed oya/drive service leaf (capability-registry absorb); exact schema_version 1.0 manifest must stay reachability-registered so total-accounting does not treat dual-home burn-down as unjustified debt (PR #1600)."
+    },
+    {
       "prefix": "contracts/BUCK",
       "anchor": "ADR-0632 hermetic input declaration: exact contracts BUCK file for the root internal Proto corpus consumed by the product-protocol gate."
     },
