@@ -1,7 +1,7 @@
 {
   "schema": "oyatie/evidence/rr-cloud-kernel-disposition/v1",
   "card_id": "RR-CLOUD-KERNEL-DISPOSITION",
-  "title": "cloud/cloud-kernel multi-home disposition inventory (21 Cargo.toml) \u2014 plan-first, no moves",
+  "title": "cloud/cloud-kernel multi-home disposition inventory (21 Cargo.toml) — plan-first, no moves",
   "date": "2026-08-06",
   "branch": "agent/reorg-cloud-kernel-disposition-20260806",
   "origin_dev_sha": "1ff54ddc56fe820b55924a3b81e69f84bd1a8ba8",
@@ -30,7 +30,7 @@
       },
       {
         "id": "ADR-0611",
-        "note": "Landed asterinas crates into kernel/ as parallel nested workspace; describes cloud/cloud-kernel as the nested-workspace PRECEDENT it mirrors \u2014 dual-home is intentional interim, not accidental"
+        "note": "Landed asterinas crates into kernel/ as parallel nested workspace; describes cloud/cloud-kernel as the nested-workspace PRECEDENT it mirrors — dual-home is intentional interim, not accidental"
       },
       {
         "id": "ADR-0512",
@@ -61,7 +61,7 @@
       "note": "Registry already records dual-home for kernel capability; disposition does not invent a third home under os/ or compute/"
     },
     "backlog_crosswalk": {
-      "RR-CLOUD-KERNEL-DEL": "Backlog card frames unowned deletion after #1523; this inventory SUPERSEDES deletion as the default disposition \u2014 durable home is kernel/ face layout (or an explicit nested sub-workspace under kernel/), not delete-while-crates-live. Deletion only for proven-empty residual after successful rehome.",
+      "RR-CLOUD-KERNEL-DEL": "Backlog card frames unowned deletion after #1523; this inventory SUPERSEDES deletion as the default disposition — durable home is kernel/ face layout (or an explicit nested sub-workspace under kernel/), not delete-while-crates-live. Deletion only for proven-empty residual after successful rehome.",
       "kernel-move-plan.BLOCKED": "Authoritative face map for the 7 members; nested 13 ride along"
     }
   },
@@ -115,7 +115,7 @@
     ],
     "os_contrast": {
       "path": "os/",
-      "role": "Talos-class node OS (already absorbed cloud-os crates \u2014 PR #1416 pattern)",
+      "role": "Talos-class node OS (already absorbed cloud-os crates — PR #1416 pattern)",
       "sample_crates": [
         "os/core/archiver-domain",
         "os/core/cluster-mgmt-domain",
@@ -154,20 +154,24 @@
     },
     "B3_path_literals_encode_the_old_layout": {
       "status": "open",
-      "summary": "include!/include_bytes!/include_str! path-ups break when flat crates/<name> becomes <face>/<name>; tests-host names oya-cloud-kernel-user-layout-kernel directory literally (6 live include! paths). Counts tip-cleared on origin/dev.",
+      "summary": "include!/include_bytes! path-ups break when flat crates/<name> becomes <face>/<name>; tests-host names oya-cloud-kernel-user-layout-kernel directory literally (6 include! couplings); 21 include_bytes! out/*.elf path-ups; 33 path-sensitive macros total.",
       "evidence_counts": {
+        "include_macros_total": 39,
         "include_macros_with_relative_or_out_literal": 33,
-        "include_bytes_relative_or_out": 21,
+        "include_bytes_out_only": 21,
         "include_macros_naming_oya_cloud_kernel_crate_dir": 6,
-        "methodology": "include_macros_with_relative_or_out_literal = all include!/include_bytes!/include_str! string literals containing '../' or 'out/' under cloud/cloud-kernel (33). include_bytes_relative_or_out = include_bytes! subset only (21). named crate dir = include! to oya-cloud-kernel-user-layout-kernel/ in arch-aarch64-adapter/tests-host (6).",
+        "same_dir_bare_include": 6,
         "named_crate_dir_samples": [
-          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs:13 include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/layout.rs\")",
-          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs:23 include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/signal.rs\")",
-          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs:34 include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/timekeep.rs\")",
-          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs:46 include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/vfs.rs\")",
-          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs:59 include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/netlink.rs\")",
-          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs:71 include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/procinfo.rs\")"
-        ]
+          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/layout.rs\")",
+          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/signal.rs\")",
+          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/timekeep.rs\")",
+          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/vfs.rs\")",
+          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/netlink.rs\")",
+          "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/src/lib.rs include!(\"../../../oya-cloud-kernel-user-layout-kernel/src/procinfo.rs\")"
+        ],
+        "methodology": "Scan cloud/cloud-kernel/**/*.rs for include!/include_str!/include_bytes!. total=39; relative_or_out=path contains '/' or starts with '.' (33); include_bytes_out_only=include_bytes! literals under out/ (21); naming=include! path contains 'oya-cloud-kernel' directory segment (6, all tests-host → user-layout-kernel); same_dir_bare=6 include!(\"file.rs\") with no slash.",
+        "measured_against": "origin/dev tip concurrent with PR head e3ce83e48 (PR is evidence-only; tree unchanged)",
+        "measured_at": "2026-08-07T03:35:00Z"
       }
     }
   },
@@ -180,7 +184,7 @@
     "safe_delete_now": false,
     "safe_delete_reason": "20 live package crates + nested workspace + out/ ELFs + gate/registry dual-home absorb; not proven-empty",
     "zero_crate_residual_delete_gate": "Only after all package crates and required artifacts leave cloud/cloud-kernel and consumers (capability-registry current_dirs, BUCK, accounting) are updated may residual empty tree be deleted.",
-    "rationale": "All 20 package crates are rung-0 kuberos framekernel (HAL/Frame/ksync/user-layout/app + arch adapters + nested EL0 probes). Registry meta_dir is kernel/. Prior BLOCKED plan face map remains the settled durable shape. os/ and compute/ are different rungs/capabilities. Mega-move blocked by B1\u2013B3; inventory parks execution."
+    "rationale": "All 20 package crates are rung-0 kuberos framekernel (HAL/Frame/ksync/user-layout/app + arch adapters + nested EL0 probes). Registry meta_dir is kernel/. Prior BLOCKED plan face map remains the settled durable shape. os/ and compute/ are different rungs/capabilities. Mega-move blocked by B1–B3; inventory parks execution."
   },
   "inventory": [
     {
@@ -191,7 +195,7 @@
       "workspace_role": "workspace_root_and_artifacts",
       "suggested_durable_home": "kernel/",
       "suggested_face": null,
-      "suggested_new_path_note": "Workspace root/artifacts cannot blindly overwrite kernel/{Cargo.toml,.cargo,rust-toolchain.toml} \u2014 B1 destination occupied by asterinas nested workspace with incompatible edition/toolchain/target.",
+      "suggested_new_path_note": "Workspace root/artifacts cannot blindly overwrite kernel/{Cargo.toml,.cargo,rust-toolchain.toml} — B1 destination occupied by asterinas nested workspace with incompatible edition/toolchain/target.",
       "move_kind": "workspace_artifact_merge_blocked",
       "independent_move_leaf_now": false,
       "independent_move_leaf_reason": "B1: kernel/ already hosts asterinas nested workspace with incompatible single-valued per-tree files.",
@@ -852,7 +856,7 @@
         "class": "refactor",
         "title": "Unblock path-literal / include! couplings (B3)",
         "options": [
-          "Codemod gains include!/include_bytes!/include_str! relative-path rewrite for known old\u2192new layout",
+          "Codemod gains include!/include_bytes!/include_str! relative-path rewrite for known old→new layout",
           "OR refactor tests-host to depend on a host-testable package without cross-dir include! of sibling crate sources",
           "Recount path-ups after face layout (adapters under kernel/adapters/* change ../ depth to out/)"
         ],
@@ -866,7 +870,7 @@
           {
             "id": "S3-A",
             "name": "nested_subworkspace_under_kernel",
-            "description": "Home kuberos as kernel/kuberos/ (or kernel/frame/) with its own Cargo.toml/.cargo/rust-toolchain \u2014 parallel nested workspace beside asterinas members, avoiding single-valued file collision. Face layout can still be applied inside the subworkspace.",
+            "description": "Home kuberos as kernel/kuberos/ (or kernel/frame/) with its own Cargo.toml/.cargo/rust-toolchain — parallel nested workspace beside asterinas members, avoiding single-valued file collision. Face layout can still be applied inside the subworkspace.",
             "pros": [
               "Does not force edition/toolchain merge",
               "Preserves ADR-0611 asterinas as-is",
@@ -880,7 +884,7 @@
           {
             "id": "S3-B",
             "name": "merge_into_kernel_faces_after_deinherit",
-            "description": "Land into kernel/ports|core|adapters as BLOCKED plan states; de-inherit edition/rust-version on all manifests; split .cargo/rust-toolchain via per-crate or build-script strategy (hard \u2014 Cargo walk-up).",
+            "description": "Land into kernel/ports|core|adapters as BLOCKED plan states; de-inherit edition/rust-version on all manifests; split .cargo/rust-toolchain via per-crate or build-script strategy (hard — Cargo walk-up).",
             "pros": [
               "Matches original face map"
             ],
@@ -908,7 +912,7 @@
         "stage": "S4",
         "class": "move",
         "title": "Atomic kuberos rehome (single move-class PR after singleton free)",
-        "move_plan": "Amend specs/reorg/kernel-move-plan.BLOCKED.json \u2192 executable kernel-move-plan.json (or successor name) only when S1\u2013S3 exit; do not run concurrent second move-plan",
+        "move_plan": "Amend specs/reorg/kernel-move-plan.BLOCKED.json → executable kernel-move-plan.json (or successor name) only when S1–S3 exit; do not run concurrent second move-plan",
         "leaves": [
           {
             "leaf_id": "L-ports-hal",
@@ -949,7 +953,7 @@
       {
         "stage": "S5",
         "class": "delete",
-        "title": "Zero-crate residual only \u2014 delete empty cloud/cloud-kernel absorb",
+        "title": "Zero-crate residual only — delete empty cloud/cloud-kernel absorb",
         "condition": "package_crate_count == 0 AND no required artifacts remain AND capability-registry current_dirs updated AND BUCK/accounting consumers updated",
         "actions": [
           "Delete empty residual tree",
@@ -963,7 +967,7 @@
       "Do not move a single nested user-* package alone",
       "Do not move to os/ or compute/",
       "Do not delete cloud/cloud-kernel while package crates remain (RR-CLOUD-KERNEL-DEL as live-crate delete is rejected by this inventory)",
-      "Do not execute kernel-move-plan.BLOCKED until B1\u2013B3 clear"
+      "Do not execute kernel-move-plan.BLOCKED until B1–B3 clear"
     ]
   },
   "verification_this_pr": {

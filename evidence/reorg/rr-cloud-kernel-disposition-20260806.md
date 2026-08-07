@@ -53,7 +53,7 @@ Backlog card `RR-CLOUD-KERNEL-DEL` as *live-crate deletion* is **rejected** by t
 
 1. **B1** — `kernel/` already hosts incompatible asterinas nested workspace (edition / `.cargo` bare-metal target / rust-toolchain nightly vs stable).  
 2. **B2** — Codemod does not rewrite `[workspace.dependencies]` path deps (silent green risk).  
-3. **B3** — path-sensitive include macros: **33** with `../` or `out/` (`include_bytes!` subset **21**); **6** `include!` in `arch-aarch64-adapter/tests-host` naming `oya-cloud-kernel-user-layout-kernel/` (tip-cleared; machine `evidence_counts` match prose).
+3. **B3** — `include!` / `include_bytes!` path-ups + tests-host literals naming `oya-cloud-kernel-user-layout-kernel/` (tip: **6** named include!, **21** include_bytes! `out/`, **33** path-sensitive macros of **39** total).
 
 ## Staged move leaves (execute later)
 
