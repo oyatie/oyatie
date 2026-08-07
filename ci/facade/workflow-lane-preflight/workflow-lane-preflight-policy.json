@@ -1,0 +1,35 @@
+{
+  "_comment": "Lane preflight policy (DATA, not code). The hotfile set is MEASURED, never authored from intuition: across 23 concurrent reorg PRs the run touched 1937 distinct paths, of which only 21 collided — but those 21 reached 20 of the 23 PRs, so 21 of 23 conflicted. Every PR body asserted path-disjointness and every assertion was true of what the PR MOVED and false of what it RETARGETED. The eight paths below are that measured collision core: they are the shared registries, policy documents and gate fixtures that any lane touching the build graph, the capability set, or a facade gate ends up retargeting. A lane declaring one of them is claiming a mutex the run cannot grant in parallel, so it belongs in a serialized owner cell rather than in the fan-out. The three min_expected_* floors are the anti-vacuity backstop, and min_expected_hotfiles is the one that matters most: an empty hotfile list makes every hotfile intersection trivially empty, so the gate would pass every lane while checking nothing — the same silent-perfect-coverage failure the corpus-index-coverage ratchet guards with min_expected_yaml_packages. ALL repo-specifics are DATA; another repo adopts this preflight by repointing these values.",
+  "gate_id": "cloud-ci-workflow-lane-preflight",
+  "schema_version": "1.0.0",
+  "hotfiles": [
+    "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/corpus-index-coverage/tests/corpus_index_coverage.rs",
+    "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+    "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
+    "specs/microservice-tier-classification.json",
+    "specs/capability-registry.json",
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs"
+  ],
+  "min_expected_lanes": 1,
+  "min_expected_declared_paths": 1,
+  "min_expected_hotfiles": 8,
+  "measured": {
+    "_comment": "The run this policy is frozen against. Recorded so a later reader can tell whether the hotfile set moved or the run did.",
+    "concurrent_prs": 23,
+    "distinct_paths": 1937,
+    "colliding_paths": 21,
+    "prs_reached_by_a_collision": 20,
+    "prs_that_conflicted": 21,
+    "prs_asserting_disjointness_in_the_body": 23
+  },
+  "product_contract": {
+    "fail_closed": "Every finding blocks. Unlike a debt ratchet this gate has no legitimate backlog: each condition is a lane that will silently produce nothing or silently conflict, so there is no advisory tier.",
+    "computed_not_asserted": "Path disjointness is COMPUTED from the declared sets by intersection, including directory containment. Author-asserted disjointness is never an input. 23 of 23 assertions were sincere and 21 of 23 were wrong.",
+    "pure_kernel": "The evaluator does no I/O, no clock, no rand and no subprocess. The CALLER runs git rev-parse / git cat-file -e / git check-ignore and passes the answers in as data, which keeps the measurement independent of the artifact under test.",
+    "anti_vacuity": "min_expected_lanes, min_expected_declared_paths and min_expected_hotfiles fail the gate closed when the run or the policy collapses. Zero lanes intersect in zero paths, which is indistinguishable from perfect disjointness — that is exactly how the .omc/specs/ lane earned a clean verdict.",
+    "known_limitations": "Declared paths are compared as repo-relative strings with directory containment. Symlinks, case-insensitive filesystems, and renames declared only at the destination are not resolved here; the caller must normalize those before declaring."
+  },
+  "purpose": "Make the OWN-phase commit rule and 'hotfiles never in owner cells' EXECUTABLE, so a lane cannot report success for work that was never committed, was never git-visible, or was never actually disjoint."
+}
