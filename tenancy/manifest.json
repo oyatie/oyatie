@@ -52,7 +52,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/tenancy/contracts/proto/tenancy.proto"
+        "tenancy/contracts/proto/tenancy.proto"
       ]
     }
   },
@@ -450,7 +450,7 @@
     "source_of_truth": [
       "cloud/cell-lifecycle/manifest.json#cloud_ops_foundation",
       "cloud/cell-rebalancer/manifest.json#cloud_ops_foundation",
-      "cloud/tenancy/manifest.json#dr"
+      "tenancy/manifest.json#dr"
     ],
     "nonclaim_guard": [
       "no live multi-region/cell operation claim",
@@ -460,7 +460,7 @@
     "verification": {
       "json_validation_required": true,
       "targeted_buck_targets_present": false,
-      "owned_buck_target_discovery": "buck2 targets //cloud/cell-lifecycle/... //cloud/cell-rebalancer/... //cloud/tenancy/..."
+      "owned_buck_target_discovery": "buck2 targets //cloud/cell-lifecycle/... //cloud/cell-rebalancer/... //tenancy/..."
     }
   },
   "pod_runtime_tier": 1,
