@@ -1152,6 +1152,13 @@ name = "check-adr-citation"
 version = "0.1.0"
 
 [[package]]
+name = "check-adr-citation-closure"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "check-aspirational-enforcement"
 version = "0.1.0"
 
