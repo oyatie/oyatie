@@ -21,5 +21,11 @@ name = "ci_workflow_lane_preflight"
 path = "src/lib.rs"
 doctest = false
 
+# The runnable detector. The kernel above is pure and, without this, reachable only from test
+# fixtures — a gate no real run can fail.
+[[bin]]
+name = "ci-workflow-lane-preflight-bin"
+path = "src/main.rs"
+
 [lints]
 workspace = true

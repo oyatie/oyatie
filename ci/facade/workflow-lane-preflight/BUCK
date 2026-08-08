@@ -31,11 +31,43 @@ rust_test(
 rust_test(
     name = "ci-workflow-lane-preflight-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
-    crate = "ci_workflow_workflow_lane_preflight_gate",
+    crate = "ci_workflow_lane_preflight_gate",
     crate_root = "tests/workflow_lane_preflight.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":ci-workflow-lane-preflight",
+        "third-party//:serde_json",
+    ],
+)
+
+# The RUNNABLE detector. Without a binary the pure kernel is reachable only from test fixtures, so
+# no real run can ever fail it and its green reports the absence of measurement as coverage. This
+# target is what makes the gate invocable; REGISTERING it as a required context is a separate,
+# deliberate step and is not done here.
+rust_binary(
+    name = "ci-workflow-lane-preflight-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-workflow-lane-preflight",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+# Argument parsing and the caller-facing wire format are logic, so they get their own proof: a
+# binary that defaults to the wrong policy path, or silently swallows a flag missing its value,
+# judges a run against a document nobody chose and still exits 0.
+rust_test(
+    name = "ci-workflow-lane-preflight-bin-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_workflow_lane_preflight_bin_tests",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-workflow-lane-preflight",
+        "third-party//:serde",
         "third-party//:serde_json",
     ],
 )
