@@ -1,0 +1,36 @@
+rust_library(
+    name = "check-adr-citation-closure",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "check_adr_citation_closure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+# Pure-kernel unit tests: the both-sides oracle chains through archived intermediates, frontmatter
+# parsing ignores body prose and fenced blocks, a synthetic bad citation fails the gate, a line
+# naming several ADRs does not produce a false positive, and a collapsed walk or collapsed oracle
+# fails closed instead of reporting a clean corpus. All proven WITHOUT a filesystem.
+rust_test(
+    name = "check-adr-citation-closure-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "check_adr_citation_closure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+# Live-tree gate: reads every ADR under docs/decisions and docs/adr-archive, walks the repository
+# for ADR path citations, and evaluates them against the closure oracle. Carries the RED fixture
+# proving a new bad citation is caught against the REAL record set, so the gate is demonstrated
+# capable of failing.
+rust_test(
+    name = "check-adr-citation-closure-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "check_adr_citation_closure_gate",
+    crate_root = "tests/adr_citation_closure.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-adr-citation-closure",
+        "third-party//:serde_json",
+    ],
+)
