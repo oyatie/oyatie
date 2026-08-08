@@ -48,6 +48,12 @@ impl JoinToken {
     /// a short fingerprint of the seed and the secret half a longer one, both
     /// base36 so the result is whitespace-free and Talos-shaped (`<id>.<secret>`).
     /// This stands in for a CSPRNG-generated token while remaining reproducible.
+    ///
+    /// A derived token is fully predictable from `cluster_seed`, so this is
+    /// behind the non-default `modeled-crypto` feature: no production target
+    /// enables it, and a production build therefore cannot link this function.
+    /// Real cluster tokens come from the machine config via [`JoinToken::new`].
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn derive(cluster_seed: &[u8]) -> Self {
         let id = base36(fnv64(cluster_seed, 0x01));
         let secret = format!(
@@ -210,6 +216,34 @@ mod tests {
         assert_ne!(a.fingerprint(), b.fingerprint());
         // fingerprint must not leak the secret verbatim
         assert!(!a.fingerprint().contains("secretone"));
+    }
+
+    /// `JoinToken::derive` mints a token that is fully predictable from the
+    /// cluster seed. It must stay behind the non-default `modeled-crypto` gate
+    /// so a production build cannot link it. The barrier is the `cfg`; this
+    /// test only proves the `cfg` does not silently disappear.
+    // ponytail: source-text assertion. A `cfg` cannot be observed from inside a
+    // build where it is enabled, and a compile-fail harness (trybuild) would be
+    // a new dependency. Upgrade path: a repo-wide modeled-crypto gate if a
+    // second crate needs the same proof.
+    #[test]
+    fn modeled_derive_stays_behind_the_gate() {
+        assert!(
+            gated(
+                include_str!("token.rs"),
+                "pub fn derive(cluster_seed: &[u8]) -> Self {"
+            ),
+            "JoinToken::derive must be immediately preceded by {GATE}"
+        );
+    }
+
+    const GATE: &str = "#[cfg(any(test, feature = \"modeled-crypto\"))]";
+
+    /// True if some occurrence of `signature` in `src` is immediately preceded
+    /// (ignoring whitespace) by [`GATE`].
+    fn gated(src: &str, signature: &str) -> bool {
+        src.match_indices(signature)
+            .any(|(i, _)| src[..i].trim_end().ends_with(GATE))
     }
 
     #[test]
