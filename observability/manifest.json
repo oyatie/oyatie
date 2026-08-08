@@ -51,7 +51,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/observability/contracts/proto/slo-engine.proto"
+        "observability/contracts/proto/slo-engine.proto"
       ]
     }
   },
