@@ -218,22 +218,60 @@ mod tests {
         assert!(!a.fingerprint().contains("secretone"));
     }
 
-    /// `JoinToken::derive` mints a token that is fully predictable from the
-    /// cluster seed. It must stay behind the non-default `modeled-crypto` gate
-    /// so a production build cannot link it. The barrier is the `cfg`; this
-    /// test only proves the `cfg` does not silently disappear.
+    /// Every constructor in this crate that mints *modeled* key material must
+    /// stay behind the non-default `modeled-crypto` gate, so a production build
+    /// cannot link it. The barrier is the `cfg`; this test only proves the
+    /// `cfg` does not silently disappear.
+    ///
+    /// `JoinToken::derive` mints a token fully predictable from the cluster
+    /// seed. `KeyPair::from_seed` stands in for a real keygen. `InMemorySigner`
+    /// is a *whole modeled signing backend*: its "signature" is an 8-byte
+    /// FNV-1a MAC and `from_seed` makes the private key literally equal the
+    /// seed bytes, so anyone knowing the seed string forges any signature the
+    /// CA would accept. It satisfies the same `SigningBackend` bound
+    /// `CertificateAuthority::bootstrap` takes, so leaving it un-gated left a
+    /// production build able to stand up a CA that issues forgeable certs —
+    /// the same defect class as `derive`, one layer down. `KeyPair::new` and
+    /// `EcdsaP256Signer` stay un-gated: they take real key material.
     // ponytail: source-text assertion. A `cfg` cannot be observed from inside a
     // build where it is enabled, and a compile-fail harness (trybuild) would be
     // a new dependency. Upgrade path: a repo-wide modeled-crypto gate if a
     // second crate needs the same proof.
     #[test]
-    fn modeled_derive_stays_behind_the_gate() {
-        assert!(
-            gated(
+    fn modeled_crypto_constructors_stay_behind_the_gate() {
+        let required: [(&str, &str); 5] = [
+            (
                 include_str!("token.rs"),
-                "pub fn derive(cluster_seed: &[u8]) -> Self {"
+                "pub fn derive(cluster_seed: &[u8]) -> Self {",
             ),
-            "JoinToken::derive must be immediately preceded by {GATE}"
+            (
+                include_str!("x509.rs"),
+                "pub fn from_seed(seed: &[u8]) -> Self {",
+            ),
+            (include_str!("signer.rs"), "pub struct InMemorySigner {"),
+            (include_str!("signer.rs"), "impl InMemorySigner {"),
+            (
+                include_str!("signer.rs"),
+                "impl SigningBackend for InMemorySigner {",
+            ),
+        ];
+
+        for (src, signature) in required {
+            assert!(
+                gated(src, signature),
+                "`{signature}` must be immediately preceded by {GATE}"
+            );
+        }
+    }
+
+    /// The crate-root re-export must carry the gate too: a `pub use` of a
+    /// gated item is a compile error off-feature, so an un-gated re-export
+    /// would force whoever hit it to delete the gate rather than the usage.
+    #[test]
+    fn modeled_signer_reexport_is_gated() {
+        assert!(
+            gated(include_str!("lib.rs"), "pub use signer::InMemorySigner;"),
+            "the InMemorySigner re-export must be immediately preceded by {GATE}"
         );
     }
 
