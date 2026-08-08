@@ -60,7 +60,9 @@ pub use der::{IssuedDer, encode_ca_der, encode_leaf_der, issue_der};
 pub use error::{Result, TrustError};
 pub use persistence::KeySealer;
 pub use service::{CertificateRequest, CertificateResponse, SecurityService};
-pub use signer::{EcdsaP256Signer, InMemorySigner, SigningBackend};
+pub use signer::{EcdsaP256Signer, SigningBackend};
+#[cfg(any(test, feature = "modeled-crypto"))]
+pub use signer::InMemorySigner;
 pub use token::JoinToken;
 pub use x509::{DistinguishedName, KeyPair, PEMEncoded, PEMLabel, SubjectAltNames, Validity};
 
