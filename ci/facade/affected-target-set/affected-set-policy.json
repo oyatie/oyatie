@@ -59,6 +59,7 @@
       "root//ci/facade/repo-root-hygiene:",
       "root//ci/facade/scm-facts-snapshot:",
       "root//ci/facade/supply-chain-audit:",
+      "root//ci/facade/workflow-lane-preflight:",
       "root//governance/check/doc-catalog:",
       "root//governance/check/image-signing-discipline:",
       "root//governance/check/slsa-l3-evidence-grounded:",
