@@ -84,7 +84,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/drive/contracts/proto/drive.proto"
+        "storage/drive/contracts/proto/drive.proto"
       ]
     }
   },
