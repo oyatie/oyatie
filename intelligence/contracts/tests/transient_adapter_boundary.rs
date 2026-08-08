@@ -17,7 +17,7 @@ fn assert_omits(label: &str, haystack: &str, forbidden: &[&str]) {
 
 #[test]
 fn production_plan_targets_owned_policy_engine_and_secret_provider_ports() {
-    let ip001 = read("cloud/cloud-intelligence/IP-001-cloud-intelligence-design.md");
+    let ip001 = read("intelligence/IP-001-cloud-intelligence-design.md");
     for required in [
         "owned secret-provider/KMS",
         "owned policy-engine",
@@ -41,7 +41,7 @@ fn production_plan_targets_owned_policy_engine_and_secret_provider_ports() {
 #[test]
 fn capability_catalog_uses_policy_action_not_concrete_engine_action() {
     let capabilities =
-        read("cloud/cloud-intelligence/capabilities/cloud-intelligence.capabilities.yaml");
+        read("intelligence/capabilities/cloud-intelligence.capabilities.yaml");
     assert!(capabilities.contains("policy_action:"));
     assert_omits("capability catalog", &capabilities, &["cedar_action"]);
 }

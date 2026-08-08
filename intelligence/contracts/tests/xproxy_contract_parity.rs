@@ -9,8 +9,8 @@ const PROTO: &str = include_str!("../cloud-intelligence.proto");
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     loop {
-        if dir.join("cloud/cloud-intelligence/README.md").exists()
-            && dir.join("cloud/cloud-intelligence/manifest.json").exists()
+        if dir.join("intelligence/README.md").exists()
+            && dir.join("intelligence/manifest.json").exists()
         {
             return dir;
         }
@@ -344,8 +344,8 @@ fn cloud_intelligence_agent_and_canary_asyncapi_events_are_redacted_status_only(
 
 #[test]
 fn cloud_intelligence_manifest_and_readme_lock_the_local_foundation_non_claims() {
-    let readme = read_repo_file("cloud/cloud-intelligence/README.md");
-    let manifest = read_repo_file("cloud/cloud-intelligence/manifest.json");
+    let readme = read_repo_file("intelligence/README.md");
+    let manifest = read_repo_file("intelligence/manifest.json");
     let readme = readme.to_ascii_lowercase();
     let manifest = manifest.to_ascii_lowercase();
 
