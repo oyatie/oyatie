@@ -39,7 +39,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/managed-k8s-cluster-lifecycle/contracts/managed-k8s-cluster-lifecycle.proto"
+        "k8s/managed-cluster-lifecycle/contracts/managed-k8s-cluster-lifecycle.proto"
       ]
     }
   },

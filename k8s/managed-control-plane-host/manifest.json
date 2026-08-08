@@ -43,7 +43,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/managed-k8s-control-plane-host/contracts/control_plane_host.proto"
+        "k8s/managed-control-plane-host/contracts/control_plane_host.proto"
       ]
     }
   },
