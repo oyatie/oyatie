@@ -28,7 +28,7 @@ Current implementation lives in the existing `cloud/cloud-secrets/crates/oya-sec
 | `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs` | update/verify current `SecretReferenceUri`, config-wrapper parser, normalized serializer, and `clamp_secret_reference_cache_ttl_seconds` |
 | `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs` | update/verify parser and TTL tests |
 | `cloud/cloud-secrets/crates/oya-secrets-domain/BUCK` | update/verify Buck2 test/build targets |
-| `cloud/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-domain.yaml` | planned/verify catalog compatibility if a split resolver crate is reintroduced |
+| `secrets/catalog/oya-cloud-secrets-secret-reference-resolver-domain.yaml` | planned/verify catalog compatibility if a split resolver crate is reintroduced |
 
 ## Code Shape
 
@@ -115,7 +115,7 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is cited for CI-time 
 ## API Versioning (per ADR-0342)
 
 - Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
-- Initial declared_version: `cloud/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Initial declared_version: `secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
 - Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
 - Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
-- Surface evidence: `cloud/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `cloud/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `cloud/cloud-secrets/contracts/proto/cloud-secrets.proto`, `cloud/cloud-secrets/IP-004-resolver-domain.md`.
+- Surface evidence: `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/IP-004-resolver-domain.md`.

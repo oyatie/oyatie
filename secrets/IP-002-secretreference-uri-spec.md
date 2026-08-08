@@ -28,9 +28,9 @@ Current implementation surface: parser, normalized serializer, config-wrapper pa
 |---|---|---|
 | `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs` | update/verify | current `SecretReferenceUri` parser, serializer, config wrapper, and TTL clamp |
 | `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs` | update/verify | current valid/invalid parser coverage and TTL ceiling tests |
-| `cloud/cloud-secrets/contracts/secret-reference-uri.json` | planned | service-owned machine-readable mirror of the crate-backed contract, not independent authority |
-| `cloud/cloud-secrets/contracts/secret-reference-uri.abnf` | planned | ABNF mirror of the crate-backed contract |
-| `cloud/cloud-secrets/contracts/secret-reference-uri-test-corpus.jsonl` | planned | expanded corpus once generated SDKs consume the same cases |
+| `secrets/contracts/secret-reference-uri.json` | planned | service-owned machine-readable mirror of the crate-backed contract, not independent authority |
+| `secrets/contracts/secret-reference-uri.abnf` | planned | ABNF mirror of the crate-backed contract |
+| `secrets/contracts/secret-reference-uri-test-corpus.jsonl` | planned | expanded corpus once generated SDKs consume the same cases |
 
 ## ABNF
 
@@ -65,8 +65,8 @@ Current crate tests must round-trip canonical OpenBao references, parse `${...}`
 
 ## References
 
-- `cloud/cloud-secrets/policy/secret-isolation.md` §"TI-03"
-- `cloud/cloud-secrets/contracts/proto/cloud-secrets.proto`
+- `secrets/policy/secret-isolation.md` §"TI-03"
+- `secrets/contracts/proto/cloud-secrets.proto`
 - `cloud/cloud-secrets/crates/oya-secrets-domain/src/lib.rs`
 - `cloud/cloud-secrets/crates/oya-secrets-domain/tests/secret_reference_uri.rs`
 
@@ -112,16 +112,16 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is referenced only as
 ## API Versioning (per ADR-0342)
 
 - Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
-- Initial declared_version: `cloud/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Initial declared_version: `secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
 - Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
 - Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
-- Surface evidence: `cloud/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `cloud/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `cloud/cloud-secrets/contracts/proto/cloud-secrets.proto`, `cloud/cloud-secrets/IP-002-secretreference-uri-spec.md`.
+- Surface evidence: `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/IP-002-secretreference-uri-spec.md`.
 
 ## DR posture (per ADR-0343)
 
-- Target source: `cloud/cloud-secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Target source: `secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
 - Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
 - RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
 - Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
 - backup_substrate: [`openbao_seal_unseal`, `postgres_wal_g`, `audit_chain_merkle_seal`].
-- Surface evidence: `cloud/cloud-secrets/runbooks/hsm-key-rotation.md`, `cloud/cloud-secrets/runbooks/openbao-restart.md`, `cloud/cloud-secrets/manifest.json`, `cloud/cloud-secrets/IP-002-secretreference-uri-spec.md`.
+- Surface evidence: `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/openbao-restart.md`, `secrets/manifest.json`, `secrets/IP-002-secretreference-uri-spec.md`.
