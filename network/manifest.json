@@ -40,7 +40,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-network/contracts/proto/cloud-network-design.proto"
+        "network/contracts/proto/cloud-network-design.proto"
       ]
     }
   },

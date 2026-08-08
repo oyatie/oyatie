@@ -38,7 +38,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-network-dns/contracts/proto/cloud-network-dns-design.proto"
+        "network/dns/contracts/proto/cloud-network-dns-design.proto"
       ]
     }
   },
