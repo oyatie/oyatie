@@ -108,10 +108,10 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/identity/contracts/identity.proto",
-        "oya/identity/contracts/proto/identity.proto",
-        "oya/identity/contracts/proto/multi_context_split.proto",
-        "oya/identity/contracts/proto/workload.proto"
+        "iam/identity/contracts/identity.proto",
+        "iam/identity/contracts/proto/identity.proto",
+        "iam/identity/contracts/proto/multi_context_split.proto",
+        "iam/identity/contracts/proto/workload.proto"
       ]
     }
   },

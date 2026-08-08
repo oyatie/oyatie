@@ -121,7 +121,7 @@ The kernel takes `now_unix` as a parameter on every method that needs time. No h
 ADR-0507 promotes `webauthn-rs` as the Phase-1 WebAuthn relying-party bridge and
 ADR-0508 pairs it with the OpenSK authenticator-side reference. The full
 ADR-0507 parity table, OpenSK reference status, and promotion/cutover gates are
-tracked in `oya/identity/IP-017-bespoke-identity-authn-crypto-bridge.md`; this
+tracked in `iam/identity/IP-017-bespoke-identity-authn-crypto-bridge.md`; this
 IP remains the kernel-level ceremony state machine and adapter-boundary anchor.
 
 ## Out-of-scope (later IPs)
