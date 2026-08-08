@@ -1491,10 +1491,10 @@ This ChangeSet repaired the D-6 ADR-index duplicate-id blocker. It does **not** 
 
 Repaired state:
 
-- The ADR-0246 amendment file is now `docs/decisions/ADR-0709-general-live-apex.md` with frontmatter/H1 id `ADR-0353`; it still amends ADR-0246.
-- The ADR-0253 amendment file is now `docs/decisions/ADR-0705-product-protocol-live-apex.md` with frontmatter/H1 id `ADR-0354`; it still amends ADR-0253.
-- The ADR-0255 amendment file is now `docs/decisions/ADR-0709-general-live-apex.md` with frontmatter/H1 id `ADR-0355`; it still amends ADR-0255.
-- The ADR-0257 amendment file is now `docs/decisions/ADR-0709-general-live-apex.md` with frontmatter/H1 id `ADR-0356`; it still amends ADR-0257.
+- The ADR-0246 amendment file is now `docs/adr-archive/ADR-0353-amendment-library-first-network-opt-in-clarification.md` with frontmatter/H1 id `ADR-0353`; it still amends ADR-0246.
+- The ADR-0253 amendment file is now `docs/adr-archive/ADR-0354-amendment-http3-fallback-strict-tls-ech-pqc.md` with frontmatter/H1 id `ADR-0354`; it still amends ADR-0253.
+- The ADR-0255 amendment file is now `docs/adr-archive/ADR-0355-amendment-library-first-network-opt-in-clarification.md` with frontmatter/H1 id `ADR-0355`; it still amends ADR-0255.
+- The ADR-0257 amendment file is now `docs/adr-archive/ADR-0356-amendment-library-first-ontology-read-path.md` with frontmatter/H1 id `ADR-0356`; it still amends ADR-0257.
 - Exact active-doc slug references for the four old amendment files were replaced with the new ADR-0353..ADR-0356 slugs.
 - `docs/ADR-INDEX.md` and `docs/machine-readable/decisions.json` were regenerated from the current ADR corpus.
 
