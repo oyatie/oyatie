@@ -108,6 +108,21 @@ pub struct Policy {
     /// This is the guard the corpus gate learned the hard way: the dangerous failure is not a
     /// false red, it is a probe that silently sees nothing and reads as perfect.
     pub min_expected_hotfiles: usize,
+    /// Lanes the run has SERIALIZED, and which may therefore claim a hotfile.
+    ///
+    /// The hotfile rule says "hotfiles never belong in an owner cell", and an owner cell is a
+    /// member of a parallel fan-out. A lane the run has agreed to run alone is not in the fan-out,
+    /// so the mutex it claims is one the run CAN grant. Without this knob the integrator lane whose
+    /// entire job is to update a shared registry is blocked by the rule that exists to protect that
+    /// registry, and the only remedies are to delete the hotfile entry (disarming the guard for
+    /// everyone) or to stop running the gate. Naming the lane is narrower than either.
+    ///
+    /// Scope is deliberately ONE code: an exempt lane still fails on missing commits, invisible
+    /// paths, vacuity and — critically — COLLISION. Serialization is a claim about ordering, not a
+    /// licence to overlap another lane, and taking the exemption wider would re-open failure 3 for
+    /// exactly the lanes touching the most contended paths in the repo.
+    #[serde(default)]
+    pub serialized_owner_lanes: Vec<String>,
 }
 
 /// One gate finding. Every finding blocks; see the module docs for why there is no advisory tier.
@@ -168,8 +183,17 @@ pub fn normalize(path: &str) -> String {
 /// `ci/facade/corpus-index-coverage` retargets every file under it, and exact-string comparison
 /// would call that disjoint from a lane declaring one of those files. The intersection has to be
 /// over what the change REACHES, not over the strings it happens to spell.
+///
+/// An EMPTY side reaches nothing, in either role. Without this guard the equality arm makes
+/// `covers("", "")` true, so two lanes that declared a blank path — which is to say, two lanes that
+/// declared nothing — read as COLLIDING with each other on a path that does not exist. That is a
+/// fabricated finding about genuinely disjoint work, and it is the mirror of the false pass the
+/// blank produces everywhere else. The empty string is not a path and never reaches one.
 #[must_use]
 pub fn covers(outer: &str, inner: &str) -> bool {
+    if outer.is_empty() || inner.is_empty() {
+        return false;
+    }
     outer == inner || (inner.len() > outer.len() && inner.starts_with(outer) && inner.as_bytes()[outer.len()] == b'/')
 }
 
@@ -187,9 +211,20 @@ pub fn evaluate(lanes: &[LaneDeclaration], policy: &Policy) -> Verdict {
     let mut findings = Vec::new();
 
     let hotfiles: BTreeSet<String> = policy.hotfiles.iter().map(|p| normalize(p)).collect();
+    // BLANK DECLARATIONS ARE NOT PATHS. A whitespace-only or `./`-only declaration normalizes to
+    // "", which reaches no hotfile and is git-visible by vacuous default, so it would sail through
+    // every per-path check while still counting toward min_expected_declared_paths — one input
+    // buying a false pass AND inflating the floor that exists to detect exactly that collapse.
+    // They are discarded here and reported below, so no downstream set ever contains one.
     let declared: Vec<Vec<String>> = lanes
         .iter()
-        .map(|lane| lane.paths.iter().map(|c| normalize(&c.path)).collect())
+        .map(|lane| {
+            lane.paths
+                .iter()
+                .map(|c| normalize(&c.path))
+                .filter(|p| !p.is_empty())
+                .collect()
+        })
         .collect();
     let declared_paths: usize = declared.iter().map(Vec::len).sum();
     let distinct_paths = declared.iter().flatten().collect::<BTreeSet<_>>().len();
@@ -268,7 +303,26 @@ pub fn evaluate(lanes: &[LaneDeclaration], policy: &Policy) -> Verdict {
             });
         }
 
-        for (claim, path) in lane.paths.iter().zip(paths) {
+        let serialized_owner = policy.serialized_owner_lanes.iter().any(|l| l == &lane.lane);
+
+        for claim in &lane.paths {
+            // Re-normalized rather than zipped against `declared`: the blank filter above makes the
+            // two sequences different lengths, and a zip that silently truncates would drop the
+            // git-visibility check for the tail of every lane that declared one.
+            let path = normalize(&claim.path);
+            if path.is_empty() {
+                findings.push(Finding {
+                    code: CODE_VACUOUS.to_owned(),
+                    lane: lane.lane.clone(),
+                    detail: format!(
+                        "declared path {:?} normalizes to the empty string — it names nothing, so \
+                         it reaches no hotfile and collides with nothing while still counting as a \
+                         declaration",
+                        claim.path
+                    ),
+                });
+                continue;
+            }
             if !claim.git_visible {
                 findings.push(Finding {
                     code: CODE_INVISIBLE_PATH.to_owned(),
@@ -279,16 +333,20 @@ pub fn evaluate(lanes: &[LaneDeclaration], policy: &Policy) -> Verdict {
                     ),
                 });
             }
-            for hot in &hotfiles {
-                if overlaps(path, hot) {
-                    findings.push(Finding {
-                        code: CODE_HOTFILE_CLAIMED.to_owned(),
-                        lane: lane.lane.clone(),
-                        detail: format!(
-                            "declared path {path} reaches policy hotfile {hot} — hotfiles are \
-                             touched by most concurrent lanes and never belong in an owner cell"
-                        ),
-                    });
+            // A serialized lane is not in the fan-out, so the mutex it claims is grantable. Every
+            // other rule still applies to it, collision included.
+            if !serialized_owner {
+                for hot in &hotfiles {
+                    if overlaps(&path, hot) {
+                        findings.push(Finding {
+                            code: CODE_HOTFILE_CLAIMED.to_owned(),
+                            lane: lane.lane.clone(),
+                            detail: format!(
+                                "declared path {path} reaches policy hotfile {hot} — hotfiles are \
+                                 touched by most concurrent lanes and never belong in an owner cell"
+                            ),
+                        });
+                    }
                 }
             }
         }
@@ -338,6 +396,7 @@ mod tests {
             min_expected_lanes: 1,
             min_expected_declared_paths: 1,
             min_expected_hotfiles: 2,
+            serialized_owner_lanes: Vec::new(),
         }
     }
 
@@ -425,5 +484,141 @@ mod tests {
     fn a_sibling_prefix_is_not_containment() {
         assert!(!overlaps("ci/facade", "ci/facade-other/x.rs"));
         assert!(overlaps("ci/facade", "ci/facade/x.rs"));
+    }
+
+    // -- Finding 2: the blank declared path -----------------------------------------------------
+
+    #[test]
+    fn a_blank_declared_path_is_vacuous_rather_than_silently_clean() {
+        // Pre-fix this lane passed every per-path check: "" reaches no hotfile, and the lane was
+        // neither pathless nor uncommitted, so the verdict was GREEN on a declaration naming
+        // nothing.
+        let verdict = evaluate(&[lane("a", "aaa", &["   "])], &policy());
+        assert!(verdict.failed(), "a blank declaration must not read as a clean lane");
+        assert!(
+            verdict
+                .with_code(CODE_VACUOUS)
+                .iter()
+                .any(|f| f.lane == "a" && f.detail.contains("empty string")),
+            "{:?}",
+            verdict.findings
+        );
+    }
+
+    #[test]
+    fn a_blank_declared_path_does_not_count_toward_the_declared_paths_floor() {
+        // The floor exists to detect a collapsed run. A blank inflating it lets the collapse hide.
+        let verdict = evaluate(&[lane("a", "aaa", &["./", "ci/a/x.rs"])], &policy());
+        assert_eq!(verdict.declared_paths, 1, "{:?}", verdict.findings);
+        assert_eq!(verdict.distinct_paths, 1);
+    }
+
+    #[test]
+    fn two_lanes_declaring_blanks_do_not_collide_on_nothing() {
+        // The false-collision arm: covers("", "") was true, so two disjoint lanes were reported as
+        // sharing a path that does not exist.
+        let lanes = [lane("a", "aaa", &[" ", "ci/a/x.rs"]), lane("b", "bbb", &["", "ci/b/y.rs"])];
+        let verdict = evaluate(&lanes, &policy());
+        assert!(
+            verdict.with_code(CODE_LANE_COLLISION).is_empty(),
+            "genuinely disjoint lanes fabricated a collision: {:?}",
+            verdict.findings
+        );
+    }
+
+    #[test]
+    fn an_empty_path_reaches_nothing_in_either_direction() {
+        assert!(!overlaps("", ""));
+        assert!(!overlaps("", "ci/a/x.rs"));
+        assert!(!overlaps("ci/a/x.rs", ""));
+    }
+
+    #[test]
+    fn a_blank_path_cannot_smuggle_a_hotfile_claim_past_the_rule() {
+        // Belt and braces: the blank must not be treated as a directory covering the hotfile set.
+        let verdict = evaluate(&[lane("a", "aaa", &[""])], &policy());
+        assert!(verdict.with_code(CODE_HOTFILE_CLAIMED).is_empty(), "{:?}", verdict.findings);
+    }
+
+    // -- Finding 3: the serialized-owner exemption ----------------------------------------------
+
+    #[test]
+    fn a_serialized_owner_lane_may_claim_the_hotfile_it_owns() {
+        let mut policy = policy();
+        policy.serialized_owner_lanes = vec!["registry-integrator".to_owned()];
+        let verdict = evaluate(
+            &[lane("registry-integrator", "aaa", &["specs/capability-registry.json"])],
+            &policy,
+        );
+        assert!(
+            verdict.with_code(CODE_HOTFILE_CLAIMED).is_empty(),
+            "the lane whose job is the registry is blocked by the rule protecting it: {:?}",
+            verdict.findings
+        );
+        assert!(!verdict.failed(), "{:?}", verdict.findings);
+    }
+
+    #[test]
+    fn the_exemption_names_one_lane_and_does_not_leak_to_its_neighbours() {
+        let mut policy = policy();
+        policy.serialized_owner_lanes = vec!["registry-integrator".to_owned()];
+        let verdict = evaluate(
+            &[
+                lane("registry-integrator", "aaa", &["specs/capability-registry.json"]),
+                lane("some-other-lane", "bbb", &["specs/capability-registry.json"]),
+            ],
+            &policy,
+        );
+        let hot = verdict.with_code(CODE_HOTFILE_CLAIMED);
+        assert_eq!(hot.len(), 1, "{:?}", verdict.findings);
+        assert_eq!(hot[0].lane, "some-other-lane");
+    }
+
+    #[test]
+    fn a_serialized_owner_lane_is_still_held_to_every_other_rule() {
+        // Serialization is a claim about ORDERING. It is not a licence to overlap, to skip the
+        // commit, or to write somewhere git cannot see.
+        let mut policy = policy();
+        policy.serialized_owner_lanes = vec!["integrator".to_owned()];
+
+        let uncommitted = evaluate(&[lane("integrator", "", &["specs/capability-registry.json"])], &policy);
+        assert_eq!(uncommitted.with_code(CODE_UNCOMMITTED).len(), 1);
+
+        let mut invisible = lane("integrator", "aaa", &["specs/capability-registry.json"]);
+        invisible.paths[0].git_visible = false;
+        assert_eq!(evaluate(&[invisible], &policy).with_code(CODE_INVISIBLE_PATH).len(), 1);
+
+        let collides = evaluate(
+            &[
+                lane("integrator", "aaa", &["specs/capability-registry.json"]),
+                lane("other", "bbb", &["specs"]),
+            ],
+            &policy,
+        );
+        assert_eq!(
+            collides.with_code(CODE_LANE_COLLISION).len(),
+            1,
+            "an exempt lane must still be checked for overlap: {:?}",
+            collides.findings
+        );
+    }
+
+    #[test]
+    fn no_lane_is_exempt_by_default() {
+        // The knob must be opt-in. A policy that omits it cannot silently disarm the hotfile rule.
+        assert!(policy().serialized_owner_lanes.is_empty());
+        let verdict = evaluate(&[lane("registry-integrator", "aaa", &["specs/capability-registry.json"])], &policy());
+        assert_eq!(verdict.with_code(CODE_HOTFILE_CLAIMED).len(), 1);
+    }
+
+    #[test]
+    fn an_absent_serialized_owner_list_deserializes_as_empty_rather_than_failing() {
+        // Policy JSON predating the knob must keep parsing, and must parse as "nobody is exempt"
+        // rather than refusing to load — a policy that fails to parse is a gate that does not run.
+        let policy: Policy = serde_json::from_str(
+            r#"{"hotfiles":["a"],"min_expected_lanes":1,"min_expected_declared_paths":1,"min_expected_hotfiles":1}"#,
+        )
+        .expect("policy without the knob still parses");
+        assert!(policy.serialized_owner_lanes.is_empty());
     }
 }

@@ -1,5 +1,5 @@
 {
-  "_comment": "Lane preflight policy (DATA, not code). The hotfile set is MEASURED, never authored from intuition: across 23 concurrent reorg PRs the run touched 1937 distinct paths, of which only 21 collided — but those 21 reached 20 of the 23 PRs, so 21 of 23 conflicted. Every PR body asserted path-disjointness and every assertion was true of what the PR MOVED and false of what it RETARGETED. The eight paths below are that measured collision core: they are the shared registries, policy documents and gate fixtures that any lane touching the build graph, the capability set, or a facade gate ends up retargeting. A lane declaring one of them is claiming a mutex the run cannot grant in parallel, so it belongs in a serialized owner cell rather than in the fan-out. The three min_expected_* floors are the anti-vacuity backstop, and min_expected_hotfiles is the one that matters most: an empty hotfile list makes every hotfile intersection trivially empty, so the gate would pass every lane while checking nothing — the same silent-perfect-coverage failure the corpus-index-coverage ratchet guards with min_expected_yaml_packages. ALL repo-specifics are DATA; another repo adopts this preflight by repointing these values.",
+  "_comment": "Lane preflight policy (DATA, not code). The hotfile set is MEASURED, never authored from intuition: across 23 concurrent reorg PRs the run touched 1937 distinct paths, of which only 21 collided — but those 21 reached 20 of the 23 PRs, so 21 of 23 conflicted. Every PR body asserted path-disjointness and every assertion was true of what the PR MOVED and false of what it RETARGETED. The paths below are that measured collision core: they are the shared registries, policy documents and gate fixtures that any lane touching the build graph, the capability set, or a facade gate ends up retargeting. A lane declaring one of them is claiming a mutex the run cannot grant in parallel, so it belongs in a serialized owner cell rather than in the fan-out — and `serialized_owner_lanes` is how the run NAMES such a cell, so the integrator lane whose entire job is to update a shared registry is not blocked by the rule that exists to protect it. The three min_expected_* floors are the anti-vacuity backstop, and min_expected_hotfiles is the one that matters most: an empty hotfile list makes every hotfile intersection trivially empty, so the gate would pass every lane while checking nothing — the same silent-perfect-coverage failure the corpus-index-coverage ratchet guards with min_expected_yaml_packages. min_expected_hotfiles is deliberately held BELOW the entry count: when it equalled the count exactly, the LIVE rot test (which forces an entry naming a path that no longer exists back out of the set) could only be satisfied by lowering the very floor the field exists to hold, so routine rot repair silently weakened the guard. The headroom is what lets a rotted entry be removed without touching the floor. ALL repo-specifics are DATA; another repo adopts this preflight by repointing these values.",
   "gate_id": "cloud-ci-workflow-lane-preflight",
   "schema_version": "1.0.0",
   "hotfiles": [
@@ -10,11 +10,14 @@
     "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json",
     "specs/microservice-tier-classification.json",
     "specs/capability-registry.json",
-    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs"
+    "ci/facade/policy-deploy-parity/tests/cedar_deploy_parity.rs",
+    "Cargo.lock",
+    "ci/facade/gate-self-conformance/gate-self-conformance-policy.json"
   ],
-  "min_expected_lanes": 1,
-  "min_expected_declared_paths": 1,
+  "min_expected_lanes": 2,
+  "min_expected_declared_paths": 2,
   "min_expected_hotfiles": 8,
+  "serialized_owner_lanes": [],
   "measured": {
     "_comment": "The run this policy is frozen against. Recorded so a later reader can tell whether the hotfile set moved or the run did.",
     "concurrent_prs": 23,
@@ -24,11 +27,35 @@
     "prs_that_conflicted": 21,
     "prs_asserting_disjointness_in_the_body": 23
   },
+  "hotfile_set_remeasurement_2026_08_08": {
+    "_comment": "SECOND measurement, on a different and broader basis than the 23-PR reorg run above: commit frequency per path across the last 300 commits of the branch. Recorded rather than folded into `measured` because the two are not the same experiment and averaging them would hide that. Method: `git log -300 --name-only --format=` then rank by count. Two paths were added to the hotfile set on this evidence, and both out-rank paths the original run had already frozen — this is a measurement, not an intuition.",
+    "window_commits": 300,
+    "added": {
+      "Cargo.lock": {
+        "commits_touching": 49,
+        "rank": 2,
+        "why": "contended by every new crate in the tree; the owned lockfile lifecycle means a lane registering a crate necessarily rewrites it"
+      },
+      "ci/facade/gate-self-conformance/gate-self-conformance-policy.json": {
+        "commits_touching": 21,
+        "rank": 7,
+        "why": "carries a per-gate row, so every new ci/facade gate must edit it; 58 gate dirs currently map into this one file"
+      }
+    },
+    "already_frozen_for_comparison": {
+      "specs/capability-registry.json": 24,
+      "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json": 13
+    },
+    "measured_but_deliberately_not_added": {
+      ".github/workflows/oya-ci-required.yml": "Ranked 1st at 52 commits, ABOVE everything in the set, and is nonetheless excluded: it is a registered entry in registry/generated-artifact-control-plane.json, so it is a generated face whose churn is regeneration rather than hand contention. Its remediation is the generated-artifact lifecycle, not lane serialization, and blocking a lane for touching it would aim this guard at the wrong mechanism. Recorded here so the exclusion is a decision on the record rather than an oversight."
+    }
+  },
   "product_contract": {
-    "fail_closed": "Every finding blocks. Unlike a debt ratchet this gate has no legitimate backlog: each condition is a lane that will silently produce nothing or silently conflict, so there is no advisory tier.",
+    "fail_closed": "Every finding blocks. Unlike a debt ratchet this gate has no legitimate backlog: each condition is a lane that will silently produce nothing or silently conflict, so there is no advisory tier. The single escape hatch is serialized_owner_lanes, which is narrow by construction: it names a lane explicitly, it suppresses only workflow_lane_preflight_hotfile_claimed, and an exempt lane is still held to the commit rule, git-visibility, vacuity and — critically — collision. Serialization is a claim about ordering, not a licence to overlap.",
+    "runnable": "ci-workflow-lane-preflight-bin is the entry point that makes this gate invocable on a real run: it reads the frozen policy and a JSON array of lane declarations (stdin by default) and exits non-zero on any blocking finding. Before it existed the pure kernel was reachable only from hand-written fixtures, so no real run could fail it and its green reported the absence of measurement as if it were coverage — the same shape as the vacuous verdicts the gate itself exists to catch. Registering the binary as a required context is a separate, deliberate step and has NOT been done.",
     "computed_not_asserted": "Path disjointness is COMPUTED from the declared sets by intersection, including directory containment. Author-asserted disjointness is never an input. 23 of 23 assertions were sincere and 21 of 23 were wrong.",
     "pure_kernel": "The evaluator does no I/O, no clock, no rand and no subprocess. The CALLER runs git rev-parse / git cat-file -e / git check-ignore and passes the answers in as data, which keeps the measurement independent of the artifact under test.",
-    "anti_vacuity": "min_expected_lanes, min_expected_declared_paths and min_expected_hotfiles fail the gate closed when the run or the policy collapses. Zero lanes intersect in zero paths, which is indistinguishable from perfect disjointness — that is exactly how the .omc/specs/ lane earned a clean verdict.",
+    "anti_vacuity": "min_expected_lanes, min_expected_declared_paths and min_expected_hotfiles fail the gate closed when the run or the policy collapses. Zero lanes intersect in zero paths, which is indistinguishable from perfect disjointness — that is exactly how the .omc/specs/ lane earned a clean verdict. The lane and path floors are 2, not 1: at 1 they caught only the EMPTY run, while the collapsed run this gate is actually about — a fan-out that silently degraded until one lane was left — passed. A single lane is trivially disjoint from the empty set of its peers, which is the same vacuous green in a different costume, so a parallel run that observes fewer than two lanes has failed to measure rather than succeeded in separating. A blank declared path is also discarded before it reaches this floor, so a whitespace-only entry can no longer inflate a collapsed run past it.",
     "known_limitations": "Declared paths are compared as repo-relative strings with directory containment. Symlinks, case-insensitive filesystems, and renames declared only at the destination are not resolved here; the caller must normalize those before declaring."
   },
   "purpose": "Make the OWN-phase commit rule and 'hotfiles never in owner cells' EXECUTABLE, so a lane cannot report success for work that was never committed, was never git-visible, or was never actually disjoint."
