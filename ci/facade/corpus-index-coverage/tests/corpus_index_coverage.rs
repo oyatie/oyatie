@@ -17,10 +17,13 @@ use ci_corpus_index_coverage::{
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
 const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
-const NESTED_REPAIR_PACKAGES: [&str; 2] = [
-    "oya/oya-authn-device-firmware",
-    "oya/oya-identity",
-];
+// The nested-ownership proof needs a package that sits INSIDE oya/ and declares its own extraction
+// target, so the two tests below can show its YAML is attributed to it and not to the oya/ root
+// package. It named oya/oya-authn-device-firmware + oya/oya-identity until wave 25 rehomed both
+// under iam/, where they are outside the oya census these tests evaluate; oya/ci-webhook-gateway is
+// the surviving nested subject and carries 11 YAML in a single literal face.
+const NESTED_REPAIR_PACKAGES: [&str; 1] = ["oya/ci-webhook-gateway"];
+const NESTED_REPAIR_FACE_PATHS: [usize; 1] = [11];
 
 struct LiveObservation {
     packages: Vec<PackageObservation>,
@@ -422,9 +425,9 @@ fn nested_repair_faces_use_nearest_package_ownership() {
         .collect();
     assert_eq!(
         counts.values().copied().collect::<Vec<_>>(),
-        [1, 2]
+        NESTED_REPAIR_FACE_PATHS
     );
-    assert_eq!(counts.len(), 2);
+    assert_eq!(counts.len(), NESTED_REPAIR_PACKAGES.len());
 }
 
 #[test]
