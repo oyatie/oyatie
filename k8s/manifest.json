@@ -48,7 +48,7 @@
     "service_local_contract_scaffolds": [
       "microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml",
       "microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml",
-      "microservices/cloud-k8s/contracts/proto/cloud-k8s.proto"
+      "k8s/contracts/proto/cloud-k8s.proto"
     ],
     "contract_status": "root cloud-compute OpenAPI contracts are code-tested; service-local cloud-k8s contract files are compatibility/planning scaffolds and are not runtime-readiness evidence"
   },

@@ -224,7 +224,7 @@
     },
     {
       "kind": "grpc",
-      "file": "contracts/proto/emergency.proto",
+      "file": "comms/emergency/contracts/proto/emergency.proto",
       "stability": "v0-draft"
     }
   ],

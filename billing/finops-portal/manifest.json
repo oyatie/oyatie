@@ -241,7 +241,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/finops-portal/contracts/cost-allocation-policy-internal.proto"
+        "billing/finops-portal/contracts/cost-allocation-policy-internal.proto"
       ]
     },
     "contract_status": "service-local FinOps invoice, FOCUS export, and cost-allocation contract files exist in this package; Rust tests cover local report boundaries only and no portal, export, invoice-render, or OpenCost runtime is claimed"
@@ -296,7 +296,7 @@
     "local_contract_refs": [
       "contracts/focus-export-internal.asyncapi.yaml",
       "contracts/tenant-invoice-public.openapi.yaml",
-      "contracts/cost-allocation-policy-internal.proto"
+      "billing/finops-portal/contracts/cost-allocation-policy-internal.proto"
     ],
     "non_claim": "Traceability only: this records the planned handoff from billing metering/export contracts into FinOps invoice and FOCUS contract surfaces. It does not implement OpenCost ingest, FOCUS data generation, portal UI, invoice PDF rendering, scheduler, database, or production FinOps runtime readiness."
   }

@@ -55,7 +55,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/ontology/contracts/proto/ontology.proto"
+        "data/ontology/contracts/proto/ontology.proto"
       ]
     }
   },

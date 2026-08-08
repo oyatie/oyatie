@@ -609,7 +609,7 @@
       "contracts": {
         "openapi": "microservices/identity/contracts/identity.openapi.yaml",
         "asyncapi": "microservices/identity/contracts/identity.asyncapi.yaml",
-        "proto": "microservices/identity/contracts/identity.proto"
+        "proto": "iam/identity/contracts/identity.proto"
       },
       "policy": "microservices/identity/policy/identity.cedar",
       "capabilities": "microservices/identity/capabilities/identity.capabilities.yaml",

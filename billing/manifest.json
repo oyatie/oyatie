@@ -38,7 +38,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-billing/contracts/proto/cloud-billing.proto",
+        "billing/contracts/proto/cloud-billing.proto",
         "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
         "contracts/proto/platform/metering/v1/metering-event-v1.proto"
       ]
@@ -356,7 +356,7 @@
       "contracts/openapi.yaml#/paths/~1cloud-billing-event",
       "contracts/openapi.yaml#/paths/~1meter-aggregate",
       "contracts/asyncapi.yaml#/channels/cloud_billing.usage.recorded",
-      "contracts/proto/cloud-billing.proto"
+      "billing/contracts/proto/cloud-billing.proto"
     ],
     "settlement_contract_refs": [
       "contracts/openapi.yaml#/paths/~1settlement",

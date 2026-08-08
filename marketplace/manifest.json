@@ -281,7 +281,7 @@
     "local_marketplace_contract_refs": [
       "contracts/openapi-v1.yaml#/paths/~1marketplace~1revenue-shares",
       "contracts/asyncapi-v1.yaml",
-      "contracts/marketplace-v1.proto"
+      "marketplace/contracts/marketplace-v1.proto"
     ],
     "upstream_billing_contract_refs": [
       "../../billing/contracts/openapi.yaml#/paths/~1settlement",

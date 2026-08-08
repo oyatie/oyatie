@@ -37,7 +37,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/meet/contracts/proto/meet.proto"
+        "comms/meet/contracts/proto/meet.proto"
       ]
     }
   },

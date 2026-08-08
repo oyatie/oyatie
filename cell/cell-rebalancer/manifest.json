@@ -248,7 +248,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cell-rebalancer/contracts/proto/cell-rebalancer-design.proto"
+        "cell/cell-rebalancer/contracts/proto/cell-rebalancer-design.proto"
       ]
     },
     "contract_status": "service-local contracts are retained as planning scaffolds; no transport implementation or broker runtime is code-backed"

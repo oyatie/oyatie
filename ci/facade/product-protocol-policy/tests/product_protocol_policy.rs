@@ -93,6 +93,13 @@ fn collect_named_files(directory: &Path, name: &str, output: &mut Vec<PathBuf>) 
         let entry = entry.expect("directory entry");
         let path = entry.path();
         if entry.file_type().expect("file type").is_dir() {
+            // A manifest under `tests/` is a FIXTURE, not a service. Widening governed_roots
+            // to 22 pulled cell/core/regional-pack/tests/fixtures/kr/manifest.json into the
+            // governed corpus, where it drifted the reviewed-legacy baseline by one entry.
+            // Widening a corpus without reconciling its new members trades one red for another.
+            if entry.file_name() == "tests" {
+                continue;
+            }
             collect_named_files(&path, name, output);
         } else if entry.file_name() == name {
             output.push(path);

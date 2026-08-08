@@ -49,7 +49,8 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "cloud/cloud-iam/contracts/proto/cloud-iam-design.proto"
+        "iam/cloud-iam/contracts/proto/cloud-iam-design.proto",
+        "iam/facade/cloud-pdp-app/proto/cloud-iam-pdp.proto"
       ]
     }
   },

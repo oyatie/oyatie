@@ -70,7 +70,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/consent-graph/contracts/proto/consent-graph.proto"
+        "iam/consent-graph/contracts/proto/consent-graph.proto"
       ]
     }
   },

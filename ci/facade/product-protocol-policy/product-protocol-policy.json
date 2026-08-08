@@ -104,18 +104,24 @@
       "tenancy",
       "workflow"
     ],
-    "expected_total": 97,
+    "expected_total": 96,
     "expected_live_v1_total": 58,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
+      "comms/comms-email/manifest.json",
+      "comms/contact-center/manifest.json",
+      "comms/emergency/manifest.json",
+      "compliance/manifest.json",
+      "data/analytics/manifest.json",
+      "data/data-pipeline/manifest.json",
+      "data/data-warehouse/manifest.json",
+      "observability/diagnostics/manifest.json",
       "oya/ci-webhook-gateway/manifest.json",
       "oya/contract-lifecycle-management/manifest.json",
       "oya/crm/manifest.json",
       "oya/design-collaboration/manifest.json",
-      "observability/diagnostics/manifest.json",
       "oya/financial-planning/manifest.json",
       "oya/global-trade/manifest.json",
-      "storage/imaging/manifest.json",
       "oya/incident-management/manifest.json",
       "oya/itsm/manifest.json",
       "oya/learning-management/manifest.json",
@@ -128,7 +134,8 @@
       "oya/supply-chain-planning/manifest.json",
       "oya/treasury/manifest.json",
       "oya/warehouse/manifest.json",
-      "oya/whiteboard/manifest.json"
+      "oya/whiteboard/manifest.json",
+      "storage/imaging/manifest.json"
     ],
     "reviewed_overlay_manifests": [
       "marketplace/developer-sdk/packs/eu/manifest.json",
@@ -143,7 +150,8 @@
       "marketplace/plugin-app-store/packs/us-public-sector/manifest.json"
     ],
     "legacy_review_rule": "Named legacy manifests remain migration inventory only. They receive no protocol exemption: shape-independent checks still reject internal gRPC outside HTTP/2 and FlatBuffers without the benchmark-gated derived-adapter posture.",
-    "public_proto_posture": "No public_surface_files.proto carrier is permitted, including in legacy manifests. Every Buck-corpus Proto is internal-only and marker-classified; live Proto service contracts must also be declared through contracts.internal_grpc. Named reviewed-legacy service contracts remain migration inventory, receive no content exemption, and do not imply runtime readiness."
+    "public_proto_posture": "No public_surface_files.proto carrier is permitted, including in legacy manifests. Every Buck-corpus Proto is internal-only and marker-classified; live Proto service contracts must also be declared through contracts.internal_grpc. Named reviewed-legacy service contracts remain migration inventory, receive no content exemption, and do not imply runtime readiness.",
+    "_comment": "2026-08-08 (PR #1620): 97 -> 96. The governed-manifest walk now skips tests/ directories, removing exactly one entry - cell/core/regional-pack/tests/fixtures/kr/manifest.json - which entered the corpus when governed_roots widened to 22 and is a FIXTURE, not a service. The delta is one file and it is named. This is an accounted re-freeze, not a floor lowered to match a coverage loss: no service left the corpus."
   },
   "rules": [
     {
