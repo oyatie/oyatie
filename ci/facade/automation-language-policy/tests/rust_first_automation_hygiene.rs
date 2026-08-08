@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::{Read, Write};
 use std::net::TcpListener;
@@ -16,10 +16,11 @@ use oya_cloud_ci_rust_first_automation_hygiene_app::{
     collect_observed_non_rust_automation, collect_observed_workflow_inline_shell, evaluate,
     evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
     evaluate_interpreter_command_authority, evaluate_keyed,
-    evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
-    load_non_rust_exception_baseline_from_merge_base, load_scan_from_merge_base,
-    load_workflow_inline_shell_baseline_from_merge_base,
-    validate_non_rust_exception_baseline_ceiling, validate_scan_scope_ceiling,
+    detect_renames_since_merge_base, evaluate_non_rust_exception_baseline_keyed,
+    evaluate_workflow_inline_shell_keyed, load_non_rust_exception_baseline_from_merge_base,
+    load_scan_from_merge_base, load_workflow_inline_shell_baseline_from_merge_base,
+    relabel_baseline_keys_for_renames, validate_non_rust_exception_baseline_ceiling,
+    validate_non_rust_exception_baseline_ceiling_with_renames, validate_scan_scope_ceiling,
     validate_workflow_inline_shell_baseline_ceiling,
 };
 use serde_json::{Value, json};
@@ -617,6 +618,10 @@ fn retired_baselined_inline_shell_is_stale_red() {
 /// non-Rust bridge beyond baseline is born-blocking, a removed bridge must shrink the baseline in
 /// the same PR. With the allowlist == baseline, the dimension is GREEN today, and the
 /// _provenance.keys_total tripwire must match the baseline array length.
+///
+/// The frozen ceiling is relabelled through the merge-base rename map first: under ADR-0562 a
+/// baselined bridge can MOVE, and a pure relocation must not read as a new bridge at the
+/// destination (the merge-base tree is immutable, so no baseline edit could ever clear that).
 #[test]
 fn live_non_rust_exceptions_match_frozen_baseline_green() {
     let root = repo_root();
@@ -624,9 +629,13 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
     let protected_baseline = load_non_rust_exception_baseline_from_merge_base(&root)
         .expect("read the non-Rust exception baseline from the immutable merge-base policy tree");
     let candidate_baseline = &policy["non_rust_exception_baseline"];
+    let renames = detect_renames_since_merge_base(&root);
 
-    let mut findings =
-        validate_non_rust_exception_baseline_ceiling(candidate_baseline, &protected_baseline);
+    let mut findings = validate_non_rust_exception_baseline_ceiling_with_renames(
+        candidate_baseline,
+        &protected_baseline,
+        &renames,
+    );
     findings.extend(evaluate_non_rust_exception_baseline_keyed(
         &policy,
         candidate_baseline,
@@ -657,6 +666,187 @@ fn live_non_rust_exceptions_match_frozen_baseline_green() {
         codes_len, provenance_total,
         "baseline _provenance.keys_total ({provenance_total}) must equal the codes array length \
          ({codes_len})"
+    );
+}
+
+// ─────────────────── rename relabel (ADR-0562 structural moves) ───────────────────
+//
+// The frozen ceiling is PATH-KEYED and lives in the IMMUTABLE merge-base tree. A pure `git mv` of
+// an already-baselined bridge therefore reads as a new path beyond the ceiling at the destination,
+// and no legitimate candidate edit can clear it — retargeting the candidate baseline (the correct
+// edit) trips the ceiling, and reverting it trips the stale check instead. These tests pin the
+// relabel that makes a move behave like an in-place edit, and — the property that matters — pin
+// that the relabel cannot be used as a cloak for debt added alongside the move.
+
+/// Baseline face carrying exactly `paths` under the non-Rust exception code.
+fn exception_baseline(paths: &[&str]) -> Value {
+    json!({"codes": {"rust_first_automation_unbaselined_non_rust_exception": paths}})
+}
+
+fn rename_map(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
+    pairs
+        .iter()
+        .map(|(old, new)| ((*old).to_owned(), (*new).to_owned()))
+        .collect()
+}
+
+fn key_set(keys: &[&str]) -> BTreeSet<String> {
+    keys.iter().map(|key| (*key).to_owned()).collect()
+}
+
+#[test]
+fn pure_move_without_relabel_is_a_false_ceiling_breach() {
+    // THE DEFECT, pinned: with no rename handling a relocation of a baselined bridge is
+    // indistinguishable from a brand-new one. This is the pre-fix behaviour and must stay visible.
+    let findings = validate_non_rust_exception_baseline_ceiling(
+        &exception_baseline(&["k8s/tests/moved.py", "infra/capi/init.sh"]),
+        &exception_baseline(&["cloud/cloud-k8s/tests/moved.py", "infra/capi/init.sh"]),
+    );
+    assert!(
+        findings.iter().any(|finding| {
+            finding.code == "rust_first_automation_unbaselined_non_rust_exception"
+                && finding.key == "k8s/tests/moved.py"
+        }),
+        "an unrelabelled move must still surface as a ceiling breach: {findings:#?}"
+    );
+}
+
+#[test]
+fn relabelled_pure_move_clears_the_ceiling() {
+    // With the rename map applied, a pure move is a NO-OP: the debt follows the file. Not
+    // laundering — the exception stays tracked, at its new address.
+    let findings = validate_non_rust_exception_baseline_ceiling_with_renames(
+        &exception_baseline(&["k8s/tests/moved.py", "infra/capi/init.sh"]),
+        &exception_baseline(&["cloud/cloud-k8s/tests/moved.py", "infra/capi/init.sh"]),
+        &rename_map(&[("cloud/cloud-k8s/tests/moved.py", "k8s/tests/moved.py")]),
+    );
+    assert!(
+        findings.is_empty(),
+        "a pure relabel must not read as new debt: {findings:#?}"
+    );
+}
+
+#[test]
+fn relabel_still_catches_new_debt_introduced_alongside_a_move() {
+    // ANTI-LAUNDERING, the property this whole mechanism has to keep: relabelling must never
+    // become a cloak. A PR that moves a baselined bridge AND adds a genuinely new one is still a
+    // ceiling breach — for the new bridge, and only for it.
+    let findings = validate_non_rust_exception_baseline_ceiling_with_renames(
+        &exception_baseline(&[
+            "k8s/tests/moved.py",
+            "infra/capi/init.sh",
+            "scripts/brand-new-bridge.sh",
+        ]),
+        &exception_baseline(&["cloud/cloud-k8s/tests/moved.py", "infra/capi/init.sh"]),
+        &rename_map(&[("cloud/cloud-k8s/tests/moved.py", "k8s/tests/moved.py")]),
+    );
+    assert_eq!(
+        keys_for(
+            &findings,
+            "rust_first_automation_unbaselined_non_rust_exception"
+        ),
+        key_set(&["scripts/brand-new-bridge.sh"]),
+        "debt added during a move must still breach the ceiling: {findings:#?}"
+    );
+}
+
+#[test]
+fn relabel_does_not_admit_a_new_bridge_at_a_moved_path() {
+    // The narrower shape of the same risk: the move happens, and the candidate ALSO keeps an
+    // exception at the source path. Relabel moves the single frozen row to the destination, so the
+    // source is now the unbaselined one — the count of tolerated bridges cannot grow by moving.
+    let findings = validate_non_rust_exception_baseline_ceiling_with_renames(
+        &exception_baseline(&["cloud/cloud-k8s/tests/moved.py", "k8s/tests/moved.py"]),
+        &exception_baseline(&["cloud/cloud-k8s/tests/moved.py"]),
+        &rename_map(&[("cloud/cloud-k8s/tests/moved.py", "k8s/tests/moved.py")]),
+    );
+    assert_eq!(
+        keys_for(
+            &findings,
+            "rust_first_automation_unbaselined_non_rust_exception"
+        ),
+        key_set(&["cloud/cloud-k8s/tests/moved.py"]),
+        "a move must relabel one row, never widen the ceiling to two: {findings:#?}"
+    );
+}
+
+#[test]
+fn relabel_ignores_renames_whose_source_is_not_baselined() {
+    // EXISTENCE GUARD: moving a file that carried no exception must not invent a ceiling row at
+    // the destination, which would pre-tolerate a real new bridge landing at that path.
+    let relabelled = relabel_baseline_keys_for_renames(
+        &key_set(&["infra/capi/init.sh"]),
+        &rename_map(&[("docs/never-a-bridge.md", "k8s/tests/new-bridge.py")]),
+    );
+    assert_eq!(
+        relabelled,
+        key_set(&["infra/capi/init.sh"]),
+        "relabel must not fabricate ceiling keys"
+    );
+}
+
+#[test]
+fn relabel_refuses_to_collide_two_baselined_keys() {
+    // NON-COLLISION GUARD: relabelling onto an already-baselined key would merge two rows into
+    // one, shrinking the ceiling with no burn-down. Refuse; leave both intact.
+    let relabelled = relabel_baseline_keys_for_renames(
+        &key_set(&["a.sh", "b.sh"]),
+        &rename_map(&[("a.sh", "b.sh")]),
+    );
+    assert_eq!(relabelled, key_set(&["a.sh", "b.sh"]));
+}
+
+#[test]
+fn relabel_resolves_chains_against_the_original_frozen_set() {
+    // `a -> b` and `b -> c` in one map must not walk a.sh's debt onto c.sh. Renames resolve
+    // against the ORIGINAL frozen set, so the unbaselined hop is ignored and a.sh lands at b.sh.
+    let relabelled = relabel_baseline_keys_for_renames(
+        &key_set(&["a.sh"]),
+        &rename_map(&[("a.sh", "b.sh"), ("b.sh", "c.sh")]),
+    );
+    assert_eq!(relabelled, key_set(&["b.sh"]));
+}
+
+#[test]
+fn relabel_never_shrinks_the_frozen_key_count() {
+    // Two sources pointing at one destination (a mis-pairing Git cannot normally emit) must not
+    // silently drop a row: the second keeps its original key.
+    let relabelled = relabel_baseline_keys_for_renames(
+        &key_set(&["a.sh", "b.sh"]),
+        &rename_map(&[("a.sh", "c.sh"), ("b.sh", "c.sh")]),
+    );
+    assert_eq!(relabelled.len(), 2, "relabel must preserve the key count");
+}
+
+#[test]
+fn empty_rename_map_is_the_identity() {
+    let frozen = key_set(&["a.sh", "b.sh"]);
+    assert_eq!(
+        relabel_baseline_keys_for_renames(&frozen, &BTreeMap::new()),
+        frozen
+    );
+}
+
+/// FAIL-OPEN direction, pinned: when Git cannot answer (here: no protected base ref at all) the
+/// rename map is EMPTY, which relabels nothing and leaves the strict ceiling in force. The failure
+/// mode of the detector must be a false RED a human investigates, never a false GREEN.
+#[test]
+fn rename_detection_without_a_protected_base_is_empty_not_permissive() {
+    let temp = TestDir::new("automation-policy-rename-detection");
+    let root = temp.path();
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+    fs::write(root.join("a.sh"), "#!/bin/sh\necho a\n").expect("write file");
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "initial"]);
+
+    assert!(
+        detect_renames_since_merge_base(root).is_empty(),
+        "a repository without the protected base must relabel nothing"
     );
 }
 
