@@ -52,7 +52,7 @@
     },
     "5.2.8_apparmor_profile": {
       "pass": false,
-      "evidence": "CONTRADICTED 2026-07-26: no AppArmor annotation or appArmorProfile field anywhere under oya/identity/iac/helm/; the chart sets seccomp only"
+      "evidence": "CONTRADICTED 2026-07-26: no AppArmor annotation or appArmorProfile field anywhere under iam/identity/iac/helm/; the chart sets seccomp only"
     },
     "5.2.9_seccomp_profile": {
       "pass": true,
