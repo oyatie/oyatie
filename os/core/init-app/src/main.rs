@@ -1492,6 +1492,7 @@ mod init {
     use os_init_app::{DEFAULT_HOSTNAME, MACHINE_CONFIG_PATH, PROC_CMDLINE_PATH};
 
     use os_kernel::MachineType;
+    use os_kernel_abi::KernelNet;
     use os_machined_domain::boot::{
         BootPhaseId, BootRuntimeMode, BootSequencer, BootService, MountRequest, ProgressLogger,
         RestartPolicy, Runtime, SysctlOutcome, TaskOutcome, detect_runtime_mode, mount_skip_reason,
@@ -1517,6 +1518,16 @@ mod init {
         run_image_cache_runtime_adapters_with_supervisor_and_copy_adapter, seq_task_line,
         service_started_line, sysctl_path, write_pre_config_resolv_conf_at,
     };
+
+    /// The kernel-network port binding for this build.
+    ///
+    /// PID 1 reaches the kernel's network stack only through
+    /// [`os_kernel_abi::KernelNet`]; `LinuxNet` is one adapter for it. Swapping
+    /// the kernel substrate for another that implements the same operations is
+    /// a change to this one function, not to the call sites below.
+    fn kernel_net() -> impl KernelNet {
+        os_network_domain::linux_net::LinuxNet::new()
+    }
 
     /// Entry point for the real PID 1. Never returns: on any path it powers the
     /// machine off (and if `reboot(2)` somehow returns, the trailing loop keeps
@@ -1706,7 +1717,7 @@ mod init {
                 "[net] eth0: assigning {}/{} (add_ipv4)",
                 addr.addr, addr.prefix
             );
-            match os_network_domain::linux_net::add_ipv4("eth0", &addr.addr, addr.prefix) {
+            match kernel_net().add_ipv4_address("eth0", &addr.addr, addr.prefix) {
                 Ok(()) => println!("[net] eth0: add_ipv4 ok"),
                 Err(e) => {
                     // add_ipv4 (RTM_NEWADDR) is BEST EFFORT under a sandbox: the
@@ -1726,7 +1737,7 @@ mod init {
             }
 
             // Verification path: read the kernel's view back.
-            match os_network_domain::linux_net::query_addrs("eth0") {
+            match kernel_net().ipv4_addresses("eth0") {
                 Ok(addrs) => {
                     let joined = if addrs.is_empty() {
                         "<none>".to_string()
@@ -1742,7 +1753,7 @@ mod init {
             }
 
             // Cross-confirmation from /sys.
-            match os_network_domain::linux_net::get_operstate("eth0") {
+            match kernel_net().link_oper_state("eth0") {
                 Ok(state) => println!("net: eth0 operstate={state}"),
                 Err(e) => {
                     println!("[net] eth0: get_operstate error: {e}");
@@ -1773,7 +1784,7 @@ mod init {
                 wait_for_iface(iface, 50, self.mode);
             }
             println!("[net] {iface}: pre-config link up (set_link_up / rtnetlink RTM_NEWLINK)");
-            match os_network_domain::linux_net::set_link_up(iface) {
+            match kernel_net().set_link_up(iface) {
                 Ok(()) => println!("[net] {iface}: pre-config link up"),
                 Err(e) => {
                     let errno = net_errno(&e.to_string());
@@ -1928,7 +1939,7 @@ mod init {
                     "[net] {iface}: DHCPv4 assigning {}/{}",
                     address.address, address.prefix_len
                 );
-                match os_network_domain::linux_net::add_ipv4(
+                match kernel_net().add_ipv4_address(
                     iface,
                     &address.address.to_string(),
                     address.prefix_len,
@@ -1971,13 +1982,13 @@ mod init {
                     route.gateway.map(|addr| addr.to_string()),
                     route.metric
                 );
-                match os_network_domain::linux_net::add_ipv4_route(
+                match kernel_net().add_ipv4_route(
                     iface,
                     destination,
                     route.prefix_len,
                     gateway,
                     route.metric,
-                    route.protocol.protocol_id(),
+                    route.protocol.into(),
                 ) {
                     Ok(()) => println!("[net] {iface}: DHCPv4 route applied"),
                     Err(e) => {
@@ -2166,7 +2177,7 @@ mod init {
                             "[net] {iface}: DHCPv6 assigning {}/{}",
                             address.address, address.prefix_len
                         );
-                        match os_network_domain::linux_net::add_ipv6(
+                        match kernel_net().add_ipv6_address(
                             iface,
                             &address.address.to_string(),
                             address.prefix_len,
@@ -2437,7 +2448,7 @@ mod init {
                 wait_for_iface(iface, 50, self.mode);
             }
             println!("[net] {iface}: bringing up (set_link_up / rtnetlink RTM_NEWLINK)");
-            match os_network_domain::linux_net::set_link_up(iface) {
+            match kernel_net().set_link_up(iface) {
                 Ok(()) => {
                     println!("[net] {iface}: link up");
                     if iface == "lo" {
