@@ -41,7 +41,10 @@ commit does not inherit the PR's checks):
 
 ```
 gh api repos/jason931225/oyatie/commits/574bb16365c8e07650c80c93fd11e9ba7709956b/check-runs \
-  --jq '.check_runs[]|"\(.name)|\(.conclusion)|\(.completed_at)|app=\(.app.id)"'
+  --jq '.check_runs[]|"\(.name)|\(.conclusion)|\(.completed_at)|app=\(.app.id)|started=\(.started_at)|\(.html_url)"'
+# Corrected after review: the earlier format string omitted started_at and html_url, so it could not
+# have produced the output shown below. For a packet whose value is verbatim re-derivation, the
+# reproduction command must actually reproduce it.
 → oya-ci-required|success|2026-08-05T20:37:07Z|started 2026-08-05T20:37:05Z|app=15368
   https://github.com/jason931225/oyatie/actions/runs/31040344390/job/92437964542
 ```

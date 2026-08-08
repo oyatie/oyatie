@@ -69,7 +69,12 @@ failure  .github    The operation was canceled.
 failure  .github    Process completed with exit code 130.
 ```
 
-Exit **130** is SIGINT. The lane was terminated mid-flight at 15:06:02Z by the same event that
+Exit **130** is SIGINT. The lane was terminated mid-flight at 15:06:02Z. CORRECTED after review: an
+earlier draft attributed this to "the same event" that cancelled the run. The other jobs in this run
+were cancelled at 15:08:16Z — **2 m 14 s later** — so common causation is an inference, not an
+observation, and the gap is itself evidence against the "identical instant" framing. What is observed is
+a SIGINT here at 15:06:02Z and cancellations at 15:08:16Z; the relationship between them is unestablished.
+The earlier wording claimed it was
 cancelled the run; GitHub recorded `failure` rather than `cancelled` only because the step process
 exited non-zero before the cancellation propagated. There is **no substantive gate failure** on the
 promoted SHA.
@@ -165,7 +170,11 @@ I verified the change's actual behavior, not merely that CI is green afterwards.
 live-postgres legs path-optional **on `pull_request` only**, and relaxed the fan-in to accept
 `success OR skipped` for those two legs alone.
 
-- **Non-PR arm — both legs must always run** (`push`/`merge_group`/`workflow_dispatch` set
+- **Non-PR arm — both legs must always run** — NOTE: this invariant is demonstrated on `e409b104ef` and
+  on the current tip, but NOT on this packet's own promoted SHA `215db340`, which is a push run carrying
+  `total_count=8` with neither leg present. The run died before they scheduled. The invariant is not
+  contradicted here, but neither is it evidenced on the SHA this packet is about.
+  (`push`/`merge_group`/`workflow_dispatch` set
   `adapters=true; facades=true` unconditionally). Verified on dev push `e409b104ef` and on the
   current tip `3da3bb9093`: both legs `success` in each case. Durable trunk proof is intact —
   the Chesterton's-Fence concern the PR comment raises is honored in practice.

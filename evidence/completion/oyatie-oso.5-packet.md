@@ -85,7 +85,7 @@ Per-job breakdown of run `31009564936`:
 | cache-writer identity (trusted dev push only) | skipped (by design — not a dev push) |
 | **gate · ADR census epoch receipt (P2 active; P3 dormant)** | **cancelled** |
 
-10 of 11 substantive jobs passed. The single cancelled job never ran:
+9 of 11 jobs passed; 1 was skipped by design and 1 cancelled. (An earlier draft said "10 of 11", counting the skipped `cache-writer identity` job as a pass — the same skipped-is-not-passed conflation this evidence set declines to make elsewhere.) The single cancelled job never ran:
 
 ```
 $ gh api ".../actions/runs/31009564936/jobs" --jq '.jobs[]|select(.conclusion=="cancelled")'
@@ -97,7 +97,7 @@ $ gh api ".../actions/runs/31009564936/jobs" --jq '.jobs[]|select(.conclusion=="
 `runner_name` is empty and `steps` is an empty array: the job **queued for 49 minutes waiting for
 an `oya-arm64` self-hosted runner and was cancelled without executing a single step.** This is
 runner starvation on the scarce ARC arm64 pool, not a gate failure and not a defect in the Lane 3A
-change. One never-scheduled job carried the whole run's conclusion to `cancelled`, and with it the
+change. CORRECTED after review: an earlier draft said a never-scheduled job "carried the whole run's conclusion to cancelled". That inverts the causality — a queued job cannot cancel a run. The cancel arrived from outside and then marked the queued job cancelled. Cross-run evidence refutes starvation as the mechanism: in sibling run `31010277244` the `gate · affected-set` job was actively executing on `oya-arm64-fpw8b-runner-xqgt8` with 13 steps when it was killed (exit 130), and four other jobs in that run SUCCEEDED on real runners. Starvation is a correlate in some runs, not the cause. What the run lost was the
 `oya-ci-required` check-run.
 
 **A hypothesis I tested and discarded:** I first suspected concurrency-group eviction, because

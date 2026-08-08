@@ -86,7 +86,7 @@ Two facts, stated plainly:
 1. **There is no check-run named `oya-ci-required` on `5d62f6a3` at all.** `oya-ci-required` is a
    zero-command *fan-in* job that is green IFF every constituent lane is green; because the lanes
    were cancelled, the fan-in never ran and never published a check-run.
-2. The eight constituent lanes that did get scheduled were cancelled 59 m 35 s after start, all at
+2. The seven constituent lanes that were cancelled went 59 m 35 s after start, all at
    the same instant.
 
 The bead's AUDIT REOPEN note ("promoted-SHA run 31013688156 was CANCELLED") is **confirmed
@@ -196,7 +196,7 @@ harness). Faces were materialized first via the sanctioned boundary.
 | `//ci/facade/generated-artifact-policy:ci-generated-artifact-policy-unittest` | **74 passed**, 0 failed |
 | `//ci/facade/generated-artifact-policy:ci-generated-artifact-policy-gate` | **8 passed**, 0 failed (after materialize) |
 
-**273 tests passed, 0 failed, 1 ignored** across the exact four crates the promotion touched plus
+**283 tests passed, 0 failed, 1 ignored** across the exact four crates the promotion touched plus
 the gate that consumes the edited manifest.
 
 The one ignored test is named, not hidden: `ci/facade/crate-registration/src/tests.rs:1341`,
@@ -351,7 +351,7 @@ is silently dropped:
 | Criterion | Verdict |
 | --- | --- |
 | Exact promoted SHA `5d62f6a3` has `oya-ci-required` SUCCESS | **NOT MET — unobtainable here.** No such check-run exists; run 31013688156 cancelled. Pre-merge exact-head success (+46 s margin) and descendant-trunk green offered only as substitute. |
-| Targeted regression evidence for path-resolution / SCM / crate-registration behavior | **MET.** Zero non-comment `.rs` lines changed (mechanical proof); 273 buck2 tests pass across all four crates + the manifest gate. Scoping caveat in §4. |
+| Targeted regression evidence for path-resolution / SCM / crate-registration behavior | **MET.** Zero non-comment `.rs` lines changed (mechanical proof); 283 buck2 tests pass across all four crates + the manifest gate. Scoping caveat in §4. |
 | Durable packet: rollout/current-state, rollback, observability, release impact, observation-harvest | **MET.** §6. |
 | Generated-face ban remains non-vacuously enforced | **MET.** 0 tracked `*.generated.json` at both SHAs; gate proven live by RED-on-absence → GREEN-after-materialize (§5). |
 

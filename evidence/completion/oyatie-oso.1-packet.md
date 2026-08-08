@@ -109,8 +109,12 @@ oya-ci-required status=completed concl=cancelled head=ee000cb7... event=push att
 # created 2026-08-05T15:03:01Z · updated 2026-08-05T15:08:17Z · actor jason931225
 ```
 
-Run `31018312576` is the only workflow run at the promoted SHA. Jobs *started* (`started_at`
-15:03:02Z) and ran ~5 minutes before cancellation at 15:08:16Z — this was not a zero-job pending
+Run `31018312576` is the only workflow run at the promoted SHA. CORRECTED after review: an earlier
+draft of this packet claimed jobs "started and ran ~5 minutes before cancellation", citing 15:03:02Z.
+That is false. `actions/runs/31018312576/jobs` returns seven cancelled jobs, every one with
+`runner_name: ""` and `steps: []` — none acquired a runner and none executed a step. The 15:03:02Z
+timestamp is the `completed_at` of the *skipped* `cache-writer identity` check-run and is not evidence
+that anything ran. This run IS the zero-job pending
 eviction.
 
 **Cause: not established.** Recording the observation without asserting a mechanism:

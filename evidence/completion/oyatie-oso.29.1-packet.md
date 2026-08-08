@@ -86,6 +86,9 @@ Total check-runs on the exact head: 20, all `success` or `skipped`, none `failur
 ```
 $ gh api repos/jason931225/oyatie/commits/$h/check-runs \
     --jq '.check_runs[]|"\(.name) | \(.conclusion) | \(.completed_at)"'
+# The block below is a HAND-COLLAPSED SUMMARY of that command's 20 rows, not its literal output:
+# sibling platform/analysis rows are merged onto one line. Totals verified: 20 check-runs,
+# 17 success, 3 skipped.
 oya-ci-required                                              | success | 2026-08-07T08:59:34Z
 gate · affected-set (ADR-0554, binding workspace coverage)   | success | 2026-08-07T08:59:26Z
 buck2 (hermetic build + affected gate tests)                 | success | 2026-08-07T08:41:51Z
@@ -122,8 +125,9 @@ success 2026-08-07T09:27:51Z
 ```
 
 Confirmed: run `31164028155` is a **`push`-event run on `dev` at head_sha `3da3bb909`** — i.e. genuinely the
-promoted-SHA run named in the acceptance criteria — and its conclusion is `success`. All 19 constituent
-check-runs on the promoted SHA are `success`, with only `cache-writer identity` skipped. Notably the two
+promoted-SHA run named in the acceptance criteria — and its conclusion is `success`. 18 of the 19 constituent
+check-runs on the promoted SHA are `success`; the remaining one, `cache-writer identity`, is `skipped`
+by design. Notably the two
 `gate-live-postgres-*` gates that were `skipped` on the PR head ran and passed on trunk.
 
 **Trunk-green timing, stated honestly:** the run *started* at `08:59:57Z`, four seconds **after** `mergedAt`,

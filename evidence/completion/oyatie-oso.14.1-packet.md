@@ -91,7 +91,7 @@ it. Three failed before the one that admitted the merge:
 | **success** | **2026-07-01T08:27:56Z** | [**28502892227**](https://github.com/jason931225/oyatie/actions/runs/28502892227/job/84488407309) |
 
 Across all attempts the head SHA tallies 135 success / 5 failure / 10 cancelled. The non-green ones
-concentrate in two names — `gate · affected-set (ADR-0554)` (2 failures) and `buck2` plus eight peers
+concentrate in two names — `gate · affected-set (ADR-0554)` (2 failures) and `buck2` plus eight other names — ten cancelled check-runs across nine distinct names, because `buck2` appears twice —
 cancelled at 07:39 in what reads as a re-trigger cascade.
 
 **I could not determine why the earlier attempts failed.** The workflow logs for a 2026-07-01 run are
