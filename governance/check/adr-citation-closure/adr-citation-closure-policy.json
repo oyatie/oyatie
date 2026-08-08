@@ -29,9 +29,9 @@
     ".txt"
   ],
   "measured": {
-    "_comment": "ENFORCED shrink-only ceilings, pinned by EQUALITY in live_tree_findings_equal_the_frozen_ceilings. Originally recorded as inert measurements with the gate deliberately red; that could not land, because affected-set test-health counts any failing test as a regression against a baseline of zero, so a permanently-red gate is correct and unmergeable. Equality rather than <= is deliberate and matches ci/facade/corpus-index-coverage: a NEW finding exceeds the ceiling and fails, and a REPAIRED finding falls below it and also fails, forcing the ceiling down in the same change. The census values are the anti-vacuity anchor — a repaired corpus and a collapsed walk both report fewer findings, and only the census distinguishes them.",
+    "_comment": "ENFORCED shrink-only ceilings, pinned by EQUALITY in live_tree_findings_equal_the_frozen_ceilings. Originally recorded as inert measurements with the gate deliberately red; that could not land, because affected-set test-health counts any failing test as a regression against a baseline of zero, so a permanently-red gate is correct and unmergeable. Equality rather than <= is deliberate and matches ci/facade/corpus-index-coverage: a NEW finding exceeds the ceiling and fails, and a REPAIRED finding falls below it and also fails, forcing the ceiling down in the same change. The census values are the anti-vacuity anchor — a repaired corpus and a collapsed walk both report fewer findings, and only the census distinguishes them. 2026-08-08 (ADR-0710): citation_lines 8896 -> 8897. Exactly one tracked file was ADDED - docs/decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md - and it contributes one citation line. adr_records also moved 458 -> 459 for the same file; files_scanned is UNCHANGED at 16519, measured not assumed - the equality assert short-circuits on the first mismatch, so each was found by re-running rather than predicted. This is a corpus growth re-freeze, not a finding repair: adr_citation_closure_mismatch is unchanged at 252.",
     "run_at": "2026-08-08T10:05Z",
-    "adr_records": 458,
+    "adr_records": 459,
     "live_apexes": 10,
     "archived": 448,
     "archived_with_successor": 425,
