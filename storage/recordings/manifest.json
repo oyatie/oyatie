@@ -35,7 +35,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/recordings/contracts/proto/recordings.proto"
+        "storage/recordings/contracts/proto/recordings.proto"
       ]
     }
   },
