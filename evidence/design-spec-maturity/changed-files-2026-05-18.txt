@@ -4,21 +4,21 @@
  M crates/oya-governance-gate-catalog-domain/src/lib.rs
  M docs/ADR-INDEX.md
  M docs/MASTERPLAN.md
- M docs/decisions/ADR-0709-general-live-apex.md
- M docs/decisions/ADR-0709-general-live-apex.md
- M docs/decisions/ADR-0709-general-live-apex.md
- M docs/decisions/ADR-0701-monorepo-capability-live-apex.md
- M docs/decisions/ADR-0704-k8s-port-live-apex.md
- M docs/decisions/ADR-0701-monorepo-capability-live-apex.md
- M docs/decisions/ADR-0700-ci-admission-live-apex.md
-RM docs/adr-archive/ADR-0131-per-microservice-flat-layout.md -> docs/decisions/ADR-0700-ci-admission-live-apex.md
-RM docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/adr-archive/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/adr-archive/ADR-0135-aspirational-enforcement-gate.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/adr-archive/ADR-0136-intelligence-as-single-microservice.md -> docs/decisions/ADR-0709-general-live-apex.md
-RM docs/adr-archive/ADR-0179-postgres-connection-pooling-pgcat.md -> docs/decisions/ADR-0708-platform-foundations-live-apex.md
-RM docs/adr-archive/ADR-0180-slo-composition-inheritance-arithmetic.md -> docs/decisions/ADR-0704-k8s-port-live-apex.md
+ M docs/decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md
+ M docs/decisions/ADR-0192-vector-database-canonical-milvus.md
+ M docs/decisions/ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md
+ M docs/decisions/ADR-0197-backup-substrate-velero-pgbackrest-restic.md
+ M docs/decisions/ADR-0198-k8s-node-autoscaling-karpenter.md
+ M docs/decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md
+ M docs/decisions/ADR-0215-multi-context-platform-architecture.md
+RM docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md -> docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md
+RM docs/decisions/ADR-0132-connect-core-public-contracts.md -> docs/decisions/ADR-0235-connect-core-public-contracts.md
+RM docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md -> docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md
+RM docs/decisions/ADR-0134-connect-dissolution-strangler-migration.md -> docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md
+RM docs/decisions/ADR-0135-connect-super-app-expansion.md -> docs/decisions/ADR-0238-connect-super-app-expansion.md
+RM docs/decisions/ADR-0136-amendment-foundry-internal-scope-clarification-2026-05-18.md -> docs/decisions/ADR-0239-amendment-intelligence-internal-scope-clarification-2026-05-18.md
+RM docs/decisions/ADR-0179-sovereign-cloud-per-regional-pack.md -> docs/decisions/ADR-0240-sovereign-cloud-per-regional-pack.md
+RM docs/decisions/ADR-0180-dr-business-continuity-portfolio-policy.md -> docs/decisions/ADR-0241-dr-business-continuity-portfolio-policy.md
  M docs/machine-readable/decisions.json
  M docs/standards/backup-canonical.md
  M docs/standards/ci-lanes.md
