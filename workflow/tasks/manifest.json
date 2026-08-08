@@ -79,7 +79,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/tasks/contracts/proto/tasks.proto"
+        "workflow/tasks/contracts/proto/tasks.proto"
       ]
     }
   },
