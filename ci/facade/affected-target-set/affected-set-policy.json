@@ -86,6 +86,7 @@
       "root//ci/facade/repo-root-hygiene:",
       "root//ci/facade/scm-facts-snapshot:",
       "root//ci/facade/supply-chain-audit:",
+      "root//ci/facade/workflow-lane-preflight:",
       "root//governance/check/doc-catalog:",
       "root//governance/check/image-signing-discipline:",
       "root//governance/check/slsa-l3-evidence-grounded:",
@@ -197,9 +198,6 @@
       "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate"
     ],
     "docs/programs/k8s-port/**": [
-      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
-    ],
-    "docs/decisions/ADR-0704-k8s-port-live-apex.md": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
     "docs/decisions/ADR-0704-k8s-port-live-apex.md": [
