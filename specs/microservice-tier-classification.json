@@ -55,7 +55,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "billing/manifest.json": {
@@ -69,7 +69,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "billing/tax/manifest.json": {
@@ -83,7 +83,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cell/cell-lifecycle/manifest.json": {
@@ -181,7 +181,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "secrets/kms/manifest.json": {
@@ -244,7 +244,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "secrets/manifest.json": {
@@ -279,7 +279,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "k8s/managed-cluster-lifecycle/manifest.json": {
@@ -604,7 +604,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "gateway/connector/manifest.json": {
@@ -713,7 +713,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/community/manifest.json": {
@@ -863,7 +863,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/financial-planning/manifest.json": {
@@ -953,7 +953,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/incident-management/manifest.json": {
@@ -1047,7 +1047,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/notes/manifest.json": {
@@ -1189,7 +1189,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/sheets/manifest.json": {
