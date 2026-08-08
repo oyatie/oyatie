@@ -3829,9 +3829,56 @@ fn git_commit_timestamps(repo_root: &Path) -> Result<BTreeMap<String, u64>, Stri
     Ok(map)
 }
 
-/// The tracked-paths universe. Moved VERBATIM from the producer's old `git_ls_files`.
+/// git's own options that make a path-listing subcommand emit RAW repo-relative paths.
+///
+/// git's default `core.quotePath=true` C-quotes any path holding a non-ASCII byte: the µ in
+/// `.../tenancy-µservice's-sandbox-.md` comes out as the literal 21-character string
+/// `"marketplace/...\302\265service...md"` — SURROUNDING DOUBLE QUOTES INCLUDED. That string
+/// then enters `tracked_paths`, i.e. the universe every downstream accounting consumer walks,
+/// and its first ancestor segment is `"marketplace` — a directory that exists nowhere. So the
+/// file matches no OWNERS row, no justification prefix and no reachability prefix, under EVERY
+/// accounting code at once, and no amount of correct registration can ever clear it: it is
+/// structurally unregisterable. Both the universe (`ls-files`) and the last-touch walk
+/// (`log --name-only`) must carry the SAME option, or their keys disagree and every non-ASCII
+/// path silently loses its last-touch instead.
+const GIT_RAW_PATH_OPTS: [&str; 2] = ["-c", "core.quotePath=false"];
+
+/// Decode stdout from a `GIT_RAW_PATH_OPTS` path listing, failing closed on both ways git can
+/// still hand back something that is not a usable repo-relative path.
+///
+/// 1. NON-UTF-8. `from_utf8_lossy` would substitute U+FFFD and emit a renamed key that matches
+///    nothing — the same silent-mismatch class as the quoting bug, just wearing a different
+///    escape. Fail closed instead.
+/// 2. RESIDUAL QUOTING. `core.quotePath=false` only stops git quoting NON-ASCII bytes; git
+///    still C-quotes a path containing a control character (a newline in a filename is legal),
+///    a `"` or a `\`, and such a line arrives with its quotes intact. Verified against git
+///    directly: with `core.quotePath=false`, `d/a-µb.md` comes out raw while a newline-bearing
+///    sibling still comes out as `"d/new\nline.md"`. Emitting that would recreate exactly the
+///    defect this option fixes, so it is a hard error with a named remedy rather than a row.
+fn decode_git_path_listing(stdout: &[u8], what: &str) -> Result<String, String> {
+    let text = String::from_utf8(stdout.to_vec()).map_err(|_| {
+        format!(
+            "{what}: git emitted a non-UTF-8 path. scm-facts keys every accounting consumer by \
+             this string, so a lossy substitution would emit an unregisterable row; rename the \
+             offending path to UTF-8."
+        )
+    })?;
+    if let Some(quoted) = text.lines().find(|line| line.starts_with('"')) {
+        return Err(format!(
+            "{what}: git C-quoted the path {quoted} even under core.quotePath=false, so it holds \
+             a control character, a double quote or a backslash. Emitting it would put a \
+             nonexistent leading path segment into tracked_paths, which no OWNERS, \
+             justification or reachability prefix can ever match; rename the path."
+        ));
+    }
+    Ok(text)
+}
+
+/// The tracked-paths universe. Moved VERBATIM from the producer's old `git_ls_files`, then
+/// corrected to read RAW paths (see `GIT_RAW_PATH_OPTS`).
 fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
     let output = Command::new("git")
+        .args(GIT_RAW_PATH_OPTS)
         .arg("-C")
         .arg(repo_root)
         .arg("ls-files")
@@ -3844,7 +3891,7 @@ fn git_ls_files(repo_root: &Path) -> Result<Vec<String>, String> {
             String::from_utf8_lossy(&output.stderr).trim()
         ));
     }
-    let mut paths: Vec<String> = String::from_utf8_lossy(&output.stdout)
+    let mut paths: Vec<String> = decode_git_path_listing(&output.stdout, "ls-files")?
         .lines()
         .map(str::to_owned)
         .filter(|p| !p.is_empty())
@@ -3871,11 +3918,13 @@ fn is_generated_class(path: &str) -> bool {
 }
 
 /// One `git log --name-only` pass builds the path -> last-touch-commit map for the whole tree.
-/// The git walk is moved VERBATIM from the producer's old `git_last_touch`; the only addition is
-/// skipping `generated`-class paths (see `is_generated_class`) so scm-facts is convergent without
-/// altering any produced face.
+/// The git walk is moved from the producer's old `git_last_touch`; the additions are skipping
+/// `generated`-class paths (see `is_generated_class`) so scm-facts is convergent without altering
+/// any produced face, and reading RAW paths (see `GIT_RAW_PATH_OPTS`) so this map is keyed
+/// IDENTICALLY to the `git_ls_files` universe it is joined against.
 fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> {
     let output = Command::new("git")
+        .args(GIT_RAW_PATH_OPTS)
         .arg("-C")
         .arg(repo_root)
         .args(["log", "--name-only", "--format=commit:%H"])
@@ -3890,7 +3939,7 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
     }
     let mut map: BTreeMap<String, String> = BTreeMap::new();
     let mut current: Option<String> = None;
-    for line in String::from_utf8_lossy(&output.stdout).lines() {
+    for line in decode_git_path_listing(&output.stdout, "log --name-only")?.lines() {
         if let Some(sha) = line.strip_prefix("commit:") {
             current = Some(sha.to_owned());
         } else if !line.is_empty()
@@ -3908,6 +3957,104 @@ fn git_last_touch(repo_root: &Path) -> Result<BTreeMap<String, String>, String> 
 mod tests {
     use super::*;
     use ci_path_resolver_adapters::MOVE_MANIFEST_SCHEMA;
+
+    /// A non-ASCII tracked path must reach the emitted universe with its REAL ancestor
+    /// segments, exactly like an ASCII sibling in the same directory.
+    ///
+    /// This is the whole quoted-path defect, end to end at the real git boundary. Under git's
+    /// default `core.quotePath=true` the µ file comes back as the literal string
+    /// `"d/a-\302\265b.md"` — quotes included — so its first ancestor segment is `"d`, a
+    /// directory that exists nowhere, and the file matches no OWNERS row, no justification
+    /// prefix and no reachability prefix under any accounting code. The ASCII sibling in the
+    /// SAME directory resolves to `d`, which is why only non-ASCII names were reported as
+    /// unregisterable regressions.
+    ///
+    /// EFFICACY: this drives `git_ls_files` and `git_last_touch` against a real repository and
+    /// asserts on their output, NOT on a decoder applied to its own input, so reverting either
+    /// `GIT_RAW_PATH_OPTS` call site turns it RED (verified by reverting). The last-touch half
+    /// matters independently: if only one of the two carried the option their keys would
+    /// disagree and the non-ASCII path would silently lose its last-touch instead.
+    #[test]
+    fn non_ascii_tracked_path_keeps_the_same_ancestor_as_its_ascii_sibling() {
+        let sandbox = std::env::temp_dir().join(format!(
+            "oya-scm-facts-quotepath-{}-{}",
+            std::process::id(),
+            unix_timestamp_nanos().expect("quotepath test nonce")
+        ));
+        let repo_root = sandbox.join("repo");
+        std::fs::create_dir_all(repo_root.join("d")).expect("create quotepath fixture tree");
+        let repo_root = canonical_repo_root(&repo_root).expect("canonicalize quotepath root");
+
+        // U+00B5 MICRO SIGN — two UTF-8 bytes (\302\265), the exact property that distinguishes
+        // the two unregisterable repository paths from their clean same-commit siblings.
+        let non_ascii = "d/a-\u{b5}b.md";
+        let ascii_sibling = "d/plain.md";
+        for path in [non_ascii, ascii_sibling] {
+            std::fs::write(repo_root.join(path), b"x").expect("write quotepath fixture file");
+        }
+        for args in [
+            &["init", "-q"][..],
+            &["config", "user.email", "scm-facts@example.invalid"][..],
+            &["config", "user.name", "scm-facts"][..],
+            &["add", "-A"][..],
+            &["commit", "-q", "-m", "quotepath fixture"][..],
+        ] {
+            let status = Command::new("git")
+                .arg("-C")
+                .arg(&repo_root)
+                .args(args)
+                .status()
+                .expect("run git for quotepath fixture");
+            assert!(status.success(), "git {args:?} failed in quotepath fixture");
+        }
+
+        let tracked = git_ls_files(&repo_root).expect("list quotepath fixture tracked paths");
+        let last_touch = git_last_touch(&repo_root).expect("walk quotepath fixture last touch");
+
+        let ancestor = |path: &str| {
+            tracked
+                .iter()
+                .find(|tracked| tracked.as_str() == path)
+                .map(|tracked| tracked.split('/').next().expect("split yields a segment"))
+                .map(str::to_owned)
+        };
+        assert_eq!(
+            ancestor(non_ascii),
+            ancestor(ascii_sibling),
+            "the non-ASCII path must resolve to the same first ancestor segment as its ASCII \
+             sibling; tracked = {tracked:?}"
+        );
+        assert_eq!(
+            ancestor(non_ascii).as_deref(),
+            Some("d"),
+            "tracked = {tracked:?}"
+        );
+        assert!(
+            last_touch.contains_key(non_ascii),
+            "the last-touch map must be keyed identically to the universe; last_touch = \
+             {last_touch:?}"
+        );
+
+        std::fs::remove_dir_all(&sandbox).expect("remove quotepath fixture");
+    }
+
+    /// A path git STILL quotes under `core.quotePath=false` (a newline is legal in a filename)
+    /// must fail closed with a named remedy rather than enter the universe with its quotes on.
+    /// Without this the fix would narrow the silent-mismatch class instead of closing it.
+    #[test]
+    fn a_path_git_quotes_even_under_raw_path_opts_fails_closed() {
+        let error = decode_git_path_listing(b"d/plain.md\n\"d/new\\nline.md\"\n", "ls-files")
+            .expect_err("a residually quoted path must fail closed");
+        assert!(error.contains("core.quotePath=false"), "{error}");
+        assert!(error.contains("rename the path"), "{error}");
+        assert!(
+            decode_git_path_listing(b"d/a-\xff.md\n", "ls-files")
+                .expect_err("a non-UTF-8 path must fail closed")
+                .contains("non-UTF-8"),
+        );
+        decode_git_path_listing("d/a-\u{b5}b.md\nd/plain.md\n".as_bytes(), "ls-files")
+            .expect("raw non-ASCII paths are accepted");
+    }
 
     /// A fake candidate tree (task #64 relabel tests): tracked-path existence + per-path
     /// content, both supplied by the test (mirrors RepointAttackRepo style for the frozen side).
