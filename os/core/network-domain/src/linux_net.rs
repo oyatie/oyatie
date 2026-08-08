@@ -1324,6 +1324,52 @@ mod linux_impl {
             list_link_statuses()
         }
     }
+
+    /// `LinuxNet` is the Linux **adapter** for the kernel-ABI port. Callers
+    /// depend on the trait, so swapping the kernel substrate replaces this impl
+    /// and nothing else. Every method here is pure delegation: the encoding
+    /// work (netlink message layout, `RTPROT_*` numbers, the `/sys` path) stays
+    /// in this module, which is where Linux belongs.
+    impl os_kernel_abi::KernelNet for LinuxNet {
+        fn set_link_up(&self, iface: &str) -> Result<()> {
+            set_link_up(iface)
+        }
+
+        fn add_ipv4_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
+            add_ipv4(iface, addr, prefix_len)
+        }
+
+        fn add_ipv6_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
+            add_ipv6(iface, addr, prefix_len)
+        }
+
+        fn add_ipv4_route(
+            &self,
+            iface: &str,
+            destination: Option<[u8; 4]>,
+            prefix_len: u8,
+            gateway: Option<[u8; 4]>,
+            metric: u32,
+            origin: os_kernel_abi::RouteOrigin,
+        ) -> Result<()> {
+            add_ipv4_route(
+                iface,
+                destination,
+                prefix_len,
+                gateway,
+                metric,
+                crate::route::RouteProtocol::from(origin).protocol_id(),
+            )
+        }
+
+        fn ipv4_addresses(&self, iface: &str) -> Result<Vec<String>> {
+            query_addrs(iface)
+        }
+
+        fn link_oper_state(&self, iface: &str) -> Result<String> {
+            get_operstate(iface)
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
