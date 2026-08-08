@@ -275,7 +275,19 @@ pub fn parse_supersession(
     let mut active: Option<&'static str> = None;
 
     for raw in head.lines() {
-        if let Some(item) = raw.strip_prefix("  - ") {
+        let indented_item = {
+            let trimmed = raw.trim_start();
+            // ANY indentation, not the exact two spaces the first version required. A
+            // `supersedes:` or `superseded_by:` written at four-space indent used to fall
+            // through to the blanket "skip anything indented" arm below and vanish with no
+            // error, in a parser whose contract is to fail closed on what it cannot read.
+            // The archive already carries 18 four-space list items today (against 5783
+            // two-space); they sit under unrelated keys, so `active` is None for them and
+            // the match below still ignores them exactly as before. What changes is only
+            // that a supersession edge written that way is now SEEN.
+            if raw.len() > trimmed.len() { trimmed.strip_prefix("- ") } else { None }
+        };
+        if let Some(item) = indented_item {
             // A block-list item belongs to whichever list key opened it, and to nothing otherwise.
             match active {
                 Some("supersedes") => supersedes.get_or_insert_with(Vec::new).extend(ids_in(item)),
@@ -353,6 +365,9 @@ pub fn scan_line(line: &str) -> (Vec<String>, Vec<String>) {
     let bytes = line.as_bytes();
     let mut cited = Vec::new();
     let mut context = Vec::new();
+    // Ids this line writes as an `adr-archive/` path. The line is thereby STATING they are
+    // historical, which is not evidence about which apex the sentence is about.
+    let mut archived_here: Vec<String> = Vec::new();
     let mut index = 0usize;
     while index + 5 <= bytes.len() {
         if &bytes[index..index + 4] != b"ADR-" {
@@ -365,8 +380,17 @@ pub fn scan_line(line: &str) -> (Vec<String>, Vec<String>) {
             end += 1;
         }
         if let Some(id) = normalize_id(&line[start..end]) {
-            if line[..index].ends_with("decisions/") {
+            let before = &line[..index];
+            if before.ends_with("decisions/") {
                 cited.push(id);
+            } else if before.ends_with("adr-archive/") {
+                // Collected, then subtracted from `context` in a post-pass below. A
+                // per-occurrence skip is NOT enough: a markdown link writes the id twice,
+                // once as bare text and once in the path — `[ADR-0111](docs/adr-archive/
+                // ADR-0111-x.md)` — and the bare occurrence reaches `context` before the
+                // path one is ever seen. The first version of this fix skipped only the
+                // path and the regression test below caught it.
+                archived_here.push(id);
             } else {
                 context.push(id);
             }
@@ -378,6 +402,12 @@ pub fn scan_line(line: &str) -> (Vec<String>, Vec<String>) {
     context.sort();
     context.dedup();
     context.retain(|id| !cited.contains(id));
+    // An id the line writes as an archive path has been declared historical BY THIS LINE.
+    // Leaving it in `context` made `evaluate` read it as residual evidence of the
+    // sentence's subject, so a correct line naming a historical ADR beside a live apex
+    // fired a mismatch. `known_limitations` promises ambiguous attribution is skipped
+    // rather than guessed; here the line has disambiguated itself and the gate guessed.
+    context.retain(|id| !archived_here.contains(id));
     (cited, context)
 }
 
@@ -776,6 +806,52 @@ pub fn evaluate(records: &[AdrRecord], citations: &[CitationLine], policy: &Poli
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // REGRESSION, review of PR #1616: a supersession list written at four-space indent
+    // used to be silently dropped. FAILS before the indented_item change: the block-item
+    // branch matched only the exact prefix "  - ", so these two ids never reached
+    // superseded_by and the record read as having no successor at all.
+    #[test]
+    fn a_four_space_supersession_list_is_parsed() {
+        let doc = "---\nstatus: Superseded\nsuperseded_by:\n    - ADR-0700\n    - ADR-0701\n---\nbody\n";
+        let parsed = parse_supersession("ADR-0001", "docs/adr-archive/ADR-0001-x.md", false, doc)
+            .expect("parses");
+        assert_eq!(
+            parsed.superseded_by,
+            vec!["ADR-0700".to_owned(), "ADR-0701".to_owned()],
+            "a four-space block list must be READ, not silently skipped by a parser whose \
+             contract is to fail closed"
+        );
+    }
+
+    // And the nested-key case must stay unaffected: a four-space list under some OTHER
+    // key still belongs to nothing, because `active` is None for it.
+    #[test]
+    fn a_four_space_list_under_an_unrelated_key_is_still_ignored() {
+        let doc = "---\nstatus: Superseded\nci_lanes:\n    - ADR-0700\n---\nbody\n";
+        let parsed = parse_supersession("ADR-0002", "docs/adr-archive/ADR-0002-x.md", false, doc)
+            .expect("parses");
+        assert!(
+            parsed.superseded_by.is_empty(),
+            "a list under an unrelated key claims nothing"
+        );
+    }
+
+    // REGRESSION, review of PR #1616: an `adr-archive/` link is the sentence stating the
+    // ADR is historical. Routing it to `context` made it residual evidence of the
+    // sentence's subject, so a CORRECT line naming a historical ADR alongside a live apex
+    // fired a mismatch. FAILS before the fix: ADR-0111 appeared in context.
+    #[test]
+    fn an_archive_link_is_neither_cited_nor_context() {
+        let line = "historical: [ADR-0111](docs/adr-archive/ADR-0111-x.md); current rule is \
+                    [ADR-0709](docs/decisions/ADR-0709-general-live-apex.md)";
+        let (cited, context) = scan_line(line);
+        assert_eq!(cited, vec!["ADR-0709".to_owned()], "only the decisions/ path is a citation");
+        assert!(
+            !context.contains(&"ADR-0111".to_owned()),
+            "an archive link states the ADR is historical; it is not evidence about the apex"
+        );
+    }
 
     fn archived(id: &str, superseded_by: &[&str]) -> AdrRecord {
         AdrRecord {
