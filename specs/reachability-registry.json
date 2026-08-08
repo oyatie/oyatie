@@ -62,7 +62,7 @@
       "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate ops skeleton; static zero-replica operator and GitOps manifests, no runtime controller or live-sync claim."
     },
     {
-      "prefix": "oya/identity/IP-017-bespoke-identity-authn-crypto-bridge.md",
+      "prefix": "iam/identity/IP-017-bespoke-identity-authn-crypto-bridge.md",
       "anchor": "ADR-0476 + ADR-0506/0507/0508: IP-017 is the reviewed tracking artifact for the bespoke identity/authn/crypto bridge gates; it records non-runtime promotion/cutover gates and no implementation claim."
     },
     {
@@ -310,35 +310,35 @@
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md",
+      "prefix": "marketplace/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md",
       "anchor": "ADR-SDK-0007: accepted developer-sdk decision replacing the retired Backstage extension proposal with a module in the first-party portal; the exact path is registered without broadening reachability to the full legacy decisions directory."
     },
     {
-      "prefix": "oya/identity/iac/colo/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/colo/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/identity/iac/guest-on-aws/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/guest-on-aws/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/identity/iac/guest-on-oci/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/guest-on-oci/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/identity/iac/oci-guest/always-free/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/oci-guest/always-free/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/identity/iac/on-prem/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/on-prem/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/identity/iac/oyatie-as-cloud-provider/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/oyatie-as-cloud-provider/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {
-      "prefix": "oya/identity/iac/oyatie-public-cloud/.terraform.lock.hcl",
+      "prefix": "iam/identity/iac/oyatie-public-cloud/.terraform.lock.hcl",
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg."
     },
     {

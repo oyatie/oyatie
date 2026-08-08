@@ -116,11 +116,11 @@
       "absorbs_current_dirs": [
         "iam",
         "iam/cloud-iam",
-        "oya/identity",
-        "oya/oya-identity",
+        "iam/identity",
+        "iam/oya-identity",
         "iam/consent-graph",
-        "oya/tenant-rbac",
-        "oya/oya-authn-device-firmware"
+        "iam/tenant-rbac",
+        "iam/authn-device-firmware"
       ],
       "dag_node": "identity",
       "boundary_note": "Coarse collapse per founder ruling: identity + oya-identity + consent(-graph) + tenant-rbac as sub-modules of iam (distinct core vs facade faces, not separate capabilities). RESOLVED (ADR-0615, founder 2026-07-10): the Cedar PDP / PBAC+ReBAC decision plane (policy) is EXTRACTED to its own standalone capability (ADR-0562 \u00a77 split \u2014 OWNERS boundary axis-policy-engine + clean PDP port seam + this ADR amendment; ADR-0280 \u00a7D-13.D marks policy 'Standalone'). oya/policy + the policy-engine dag_node move to the policy capability; the Cedar PDP crates physically under iam/** stay iam-mapped to avoid a membership double-map. iam keeps identity/credentials/consent/tenant-RBAC/workload-identity consumption."
@@ -146,8 +146,7 @@
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "tenancy",
-        "cloud/tenancy"
+        "tenancy"
       ],
       "dag_node": "tenancy"
     },
@@ -163,8 +162,7 @@
       ],
       "absorbs_current_dirs": [
         "secrets",
-        "cloud/cloud-kms",
-        "cloud/cloud-secrets"
+        "secrets/kms"
       ],
       "dag_nodes": [
         "cloud-secrets"
@@ -198,8 +196,7 @@
       ],
       "absorbs_current_dirs": [
         "observability",
-        "oya/observability",
-        "oya/diagnostics"
+        "observability/diagnostics"
       ],
       "dag_node": "observability"
     },
@@ -235,10 +232,9 @@
       ],
       "absorbs_current_dirs": [
         "storage",
-        "cloud/cloud-storage",
-        "oya/drive",
-        "oya/imaging",
-        "oya/recordings"
+        "storage/drive",
+        "storage/imaging",
+        "storage/recordings"
       ],
       "dag_node": "storage",
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 \u00a710.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) is app/healthcare (PACS) \u2014 its oya/imaging scaffold relocates to app_products in the storage Batch-5 move-plan (retained in this absorb until that atomic move to avoid orphaning). storage/facade also = the S3-analog CAS sold as infra (Amazon S3 the product, NOT ADR-0280 stratum S3 \u2014 the two spellings collide in this note). STRATUM (ADR-0631 floor test): the permitted range is S2..S5 \u2014 floor S2 from storage/core/domain -> cell/core/region (cell S2) and storage/facade/recordings -> comms/core/meet-domain (comms S2); nothing ranked consumes storage, so there is no ceiling. S2 is the FLOOR and is what is declared. The `tier_subtype: substrate-data` shared with cloud-data(S3)/ontology(S3) is NOT evidence for a mid-range S3: that subtype spans nine manifests which split 5x S3 (all data-capability services) and 4x forward-declared (cloud-storage, drive, recordings, imaging \u2014 precisely storage's own absorbs), so the subtype tracks the DATA capability's rank, not storage's. Declaring the floor also preserves headroom: every future ranked consumer of storage is legal at S2 and up."
@@ -267,11 +263,10 @@
       ],
       "absorbs_current_dirs": [
         "k8s",
-        "cloud/cloud-k8s",
-        "cloud/managed-k8s-cluster-lifecycle",
-        "cloud/managed-k8s-control-plane-host",
-        "cloud/managed-k8s-sla-observability",
-        "cloud/managed-k8s-tenant-quota"
+        "k8s/managed-cluster-lifecycle",
+        "k8s/managed-control-plane-host",
+        "k8s/managed-sla-observability",
+        "k8s/managed-tenant-quota"
       ],
       "dag_node": "control-plane",
       "boundary_note": "Coarse collapse per founder ruling: owned control-plane (core) + managed-k8s (facade). The four managed-k8s-* dirs become facade sub-modules."
@@ -288,8 +283,7 @@
       ],
       "absorbs_current_dirs": [
         "network",
-        "cloud/cloud-network",
-        "cloud/cloud-network-dns"
+        "network/dns"
       ],
       "dag_node": "network"
     },
@@ -336,9 +330,8 @@
       ],
       "absorbs_current_dirs": [
         "intelligence",
-        "cloud/cloud-intelligence",
         "oya/intelligence",
-        "oya/detection"
+        "intelligence/detection"
       ],
       "dag_node": "intelligence"
     },
@@ -354,10 +347,10 @@
       ],
       "absorbs_current_dirs": [
         "workflow",
-        "oya/workflow-engine",
-        "oya/workflow-studio",
-        "oya/tasks",
-        "oya/forms"
+        "workflow/workflow-engine",
+        "workflow/workflow-studio",
+        "workflow/tasks",
+        "workflow/forms"
       ],
       "dag_node": "workflow-engine"
     },
@@ -416,9 +409,8 @@
       ],
       "absorbs_current_dirs": [
         "marketplace",
-        "oya/marketplace",
-        "oya/plugin-app-store",
-        "oya/developer-sdk"
+        "marketplace/plugin-app-store",
+        "marketplace/developer-sdk"
       ],
       "dag_node": "marketplace",
       "boundary_note": "First-class sold-ness capability per founder ruling. The generated SKU/pricing sell-catalog VIEW is materialized as build/ output over face:facade crates; marketplace owns the marketplace ENGINE, not the catalog view."
@@ -496,14 +488,14 @@
   "pending_relocations": [
     {
       "_comment": "ADR-0615-ruled absorbs->app_products relocations that await their capability's Batch-5 move-plan. The path is RETAINED in its current substrate absorb (to avoid orphaning against the membership lint) until the atomic move re-homes it. 0-crate scaffolds today.",
-      "from": "storage.absorbs_current_dirs[oya/imaging]",
+      "from": "storage.absorbs_current_dirs[storage/imaging]",
       "to": "app/healthcare (imaging/PACS context)",
       "executes_in": "specs/reorg/storage-move-plan.json (Batch-5)",
       "ruled_by": "ADR-0615 \u00a72 Q4",
       "pending_relocation": true
     },
     {
-      "from": "observability.absorbs_current_dirs[oya/diagnostics]",
+      "from": "observability.absorbs_current_dirs[observability/diagnostics]",
       "to": "app/health-diagnostics (clinical lab)",
       "executes_in": "specs/reorg/observability-move-plan.json (Batch-5)",
       "ruled_by": "ADR-0615 \u00a72 Q8",

@@ -32,9 +32,9 @@
       "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
       "libs/oya-shared-pdp-kernel/src/lib.rs",
       "iam/adapters/pdp-cedar/src/lib.rs",
-      "cloud/tenancy/IP-018-kyb-kyc-verifier-domain.md",
-      "cloud/tenancy/IP-024-kyb-kyc-rest-and-async.md",
-      "cloud/tenancy/capabilities/kyb-kyc-complete.yaml"
+      "tenancy/IP-018-kyb-kyc-verifier-domain.md",
+      "tenancy/IP-024-kyb-kyc-rest-and-async.md",
+      "tenancy/capabilities/kyb-kyc-complete.yaml"
     ]
   },
   "source_authorities": [

@@ -132,9 +132,9 @@
         ]
       }
     },
-    "cloud/cloud-intelligence/manifest.json": {
-      "service": "cloud/cloud-intelligence",
-      "manifest": "cloud/cloud-intelligence/manifest.json",
+    "intelligence/manifest.json": {
+      "service": "intelligence",
+      "manifest": "intelligence/manifest.json",
       "capability": "intelligence",
       "tier": "substrate",
       "tier_subtype": "substrate-ai",
@@ -156,9 +156,9 @@
         ]
       }
     },
-    "cloud/cloud-k8s/manifest.json": {
-      "service": "cloud/cloud-k8s",
-      "manifest": "cloud/cloud-k8s/manifest.json",
+    "k8s/manifest.json": {
+      "service": "k8s",
+      "manifest": "k8s/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -184,9 +184,9 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "cloud/cloud-kms/manifest.json": {
-      "service": "cloud/cloud-kms",
-      "manifest": "cloud/cloud-kms/manifest.json",
+    "secrets/kms/manifest.json": {
+      "service": "secrets/kms",
+      "manifest": "secrets/kms/manifest.json",
       "capability": "secrets",
       "tier": "substrate",
       "tier_subtype": "substrate-secrets",
@@ -205,9 +205,9 @@
         ]
       }
     },
-    "cloud/cloud-network-dns/manifest.json": {
-      "service": "cloud/cloud-network-dns",
-      "manifest": "cloud/cloud-network-dns/manifest.json",
+    "network/dns/manifest.json": {
+      "service": "network/dns",
+      "manifest": "network/dns/manifest.json",
       "capability": "network",
       "tier": "substrate",
       "tier_subtype": "substrate-network",
@@ -219,9 +219,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-network/manifest.json": {
-      "service": "cloud/cloud-network",
-      "manifest": "cloud/cloud-network/manifest.json",
+    "network/manifest.json": {
+      "service": "network",
+      "manifest": "network/manifest.json",
       "capability": "network",
       "tier": "substrate",
       "tier_subtype": "substrate-network",
@@ -247,9 +247,9 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "cloud/cloud-secrets/manifest.json": {
-      "service": "cloud/cloud-secrets",
-      "manifest": "cloud/cloud-secrets/manifest.json",
+    "secrets/manifest.json": {
+      "service": "secrets",
+      "manifest": "secrets/manifest.json",
       "capability": "secrets",
       "tier": "substrate",
       "tier_subtype": "substrate-secrets",
@@ -268,9 +268,9 @@
         ]
       }
     },
-    "cloud/cloud-storage/manifest.json": {
-      "service": "cloud/cloud-storage",
-      "manifest": "cloud/cloud-storage/manifest.json",
+    "storage/manifest.json": {
+      "service": "storage",
+      "manifest": "storage/manifest.json",
       "capability": "storage",
       "tier": "substrate",
       "tier_subtype": "substrate-data",
@@ -282,9 +282,9 @@
         "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "cloud/managed-k8s-cluster-lifecycle/manifest.json": {
-      "service": "cloud/managed-k8s-cluster-lifecycle",
-      "manifest": "cloud/managed-k8s-cluster-lifecycle/manifest.json",
+    "k8s/managed-cluster-lifecycle/manifest.json": {
+      "service": "k8s/managed-cluster-lifecycle",
+      "manifest": "k8s/managed-cluster-lifecycle/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -296,9 +296,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/managed-k8s-control-plane-host/manifest.json": {
-      "service": "cloud/managed-k8s-control-plane-host",
-      "manifest": "cloud/managed-k8s-control-plane-host/manifest.json",
+    "k8s/managed-control-plane-host/manifest.json": {
+      "service": "k8s/managed-control-plane-host",
+      "manifest": "k8s/managed-control-plane-host/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -310,9 +310,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/managed-k8s-sla-observability/manifest.json": {
-      "service": "cloud/managed-k8s-sla-observability",
-      "manifest": "cloud/managed-k8s-sla-observability/manifest.json",
+    "k8s/managed-sla-observability/manifest.json": {
+      "service": "k8s/managed-sla-observability",
+      "manifest": "k8s/managed-sla-observability/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -324,9 +324,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/managed-k8s-tenant-quota/manifest.json": {
-      "service": "cloud/managed-k8s-tenant-quota",
-      "manifest": "cloud/managed-k8s-tenant-quota/manifest.json",
+    "k8s/managed-tenant-quota/manifest.json": {
+      "service": "k8s/managed-tenant-quota",
+      "manifest": "k8s/managed-tenant-quota/manifest.json",
       "capability": "k8s",
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -338,9 +338,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/tenancy/manifest.json": {
-      "service": "cloud/tenancy",
-      "manifest": "cloud/tenancy/manifest.json",
+    "tenancy/manifest.json": {
+      "service": "tenancy",
+      "manifest": "tenancy/manifest.json",
       "capability": "tenancy",
       "tier": "substrate",
       "tier_subtype": "substrate-tenancy",
@@ -748,9 +748,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/detection/manifest.json": {
-      "service": "oya/detection",
-      "manifest": "oya/detection/manifest.json",
+    "intelligence/detection/manifest.json": {
+      "service": "intelligence/detection",
+      "manifest": "intelligence/detection/manifest.json",
       "capability": "intelligence",
       "tier": "substrate",
       "tier_subtype": "substrate-ai",
@@ -772,57 +772,57 @@
         ]
       }
     },
-    "oya/developer-sdk/manifest.json": {
-      "service": "oya/developer-sdk",
-      "manifest": "oya/developer-sdk/manifest.json",
+    "marketplace/developer-sdk/manifest.json": {
+      "service": "marketplace/developer-sdk",
+      "manifest": "marketplace/developer-sdk/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T1"
     },
-    "oya/developer-sdk/packs/eu/manifest.json": {
-      "service": "oya/developer-sdk",
-      "manifest": "oya/developer-sdk/packs/eu/manifest.json",
+    "marketplace/developer-sdk/packs/eu/manifest.json": {
+      "service": "marketplace/developer-sdk",
+      "manifest": "marketplace/developer-sdk/packs/eu/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "oya/developer-sdk/packs/kr/manifest.json": {
-      "service": "oya/developer-sdk",
-      "manifest": "oya/developer-sdk/packs/kr/manifest.json",
+    "marketplace/developer-sdk/packs/kr/manifest.json": {
+      "service": "marketplace/developer-sdk",
+      "manifest": "marketplace/developer-sdk/packs/kr/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "oya/developer-sdk/packs/us-financial/manifest.json": {
-      "service": "oya/developer-sdk",
-      "manifest": "oya/developer-sdk/packs/us-financial/manifest.json",
+    "marketplace/developer-sdk/packs/us-financial/manifest.json": {
+      "service": "marketplace/developer-sdk",
+      "manifest": "marketplace/developer-sdk/packs/us-financial/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "oya/developer-sdk/packs/us-healthcare/manifest.json": {
-      "service": "oya/developer-sdk",
-      "manifest": "oya/developer-sdk/packs/us-healthcare/manifest.json",
+    "marketplace/developer-sdk/packs/us-healthcare/manifest.json": {
+      "service": "marketplace/developer-sdk",
+      "manifest": "marketplace/developer-sdk/packs/us-healthcare/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "oya/developer-sdk/packs/us-public-sector/manifest.json": {
-      "service": "oya/developer-sdk",
-      "manifest": "oya/developer-sdk/packs/us-public-sector/manifest.json",
+    "marketplace/developer-sdk/packs/us-public-sector/manifest.json": {
+      "service": "marketplace/developer-sdk",
+      "manifest": "marketplace/developer-sdk/packs/us-public-sector/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "oya/diagnostics/manifest.json": {
-      "service": "oya/diagnostics",
-      "manifest": "oya/diagnostics/manifest.json",
+    "observability/diagnostics/manifest.json": {
+      "service": "observability/diagnostics",
+      "manifest": "observability/diagnostics/manifest.json",
       "capability": "observability",
       "tier": "substrate",
       "tier_subtype": "substrate-observability",
@@ -852,9 +852,9 @@
       "tier_subtype": "product-consumer-docs",
       "dr_tier": "T1"
     },
-    "oya/drive/manifest.json": {
-      "service": "oya/drive",
-      "manifest": "oya/drive/manifest.json",
+    "storage/drive/manifest.json": {
+      "service": "storage/drive",
+      "manifest": "storage/drive/manifest.json",
       "capability": "storage",
       "tier": "substrate",
       "tier_subtype": "substrate-data",
@@ -874,9 +874,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/forms/manifest.json": {
-      "service": "oya/forms",
-      "manifest": "oya/forms/manifest.json",
+    "workflow/forms/manifest.json": {
+      "service": "workflow/forms",
+      "manifest": "workflow/forms/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
@@ -919,9 +919,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/identity/manifest.json": {
-      "service": "oya/identity",
-      "manifest": "oya/identity/manifest.json",
+    "iam/identity/manifest.json": {
+      "service": "iam/identity",
+      "manifest": "iam/identity/manifest.json",
       "capability": "iam",
       "tier": "substrate",
       "tier_subtype": "substrate-identity",
@@ -942,9 +942,9 @@
         ]
       }
     },
-    "oya/imaging/manifest.json": {
-      "service": "oya/imaging",
-      "manifest": "oya/imaging/manifest.json",
+    "storage/imaging/manifest.json": {
+      "service": "storage/imaging",
+      "manifest": "storage/imaging/manifest.json",
       "capability": "storage",
       "tier": "substrate",
       "tier_subtype": "substrate-data",
@@ -1036,9 +1036,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
     },
-    "oya/marketplace/manifest.json": {
-      "service": "oya/marketplace",
-      "manifest": "oya/marketplace/manifest.json",
+    "marketplace/manifest.json": {
+      "service": "marketplace",
+      "manifest": "marketplace/manifest.json",
       "capability": "marketplace",
       "tier": "substrate",
       "tier_subtype": "substrate-marketplace-data",
@@ -1058,9 +1058,9 @@
       "tier_subtype": "product-consumer-notes",
       "dr_tier": "T0"
     },
-    "oya/observability/manifest.json": {
-      "service": "oya/observability",
-      "manifest": "oya/observability/manifest.json",
+    "observability/manifest.json": {
+      "service": "observability",
+      "manifest": "observability/manifest.json",
       "capability": "observability",
       "tier": "substrate",
       "tier_subtype": "substrate-observability",
@@ -1106,49 +1106,49 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/plugin-app-store/manifest.json": {
-      "service": "oya/plugin-app-store",
-      "manifest": "oya/plugin-app-store/manifest.json",
+    "marketplace/plugin-app-store/manifest.json": {
+      "service": "marketplace/plugin-app-store",
+      "manifest": "marketplace/plugin-app-store/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-plugin-store",
       "dr_tier": "T1"
     },
-    "oya/plugin-app-store/packs/eu/manifest.json": {
-      "service": "oya/plugin-app-store",
-      "manifest": "oya/plugin-app-store/packs/eu/manifest.json",
+    "marketplace/plugin-app-store/packs/eu/manifest.json": {
+      "service": "marketplace/plugin-app-store",
+      "manifest": "marketplace/plugin-app-store/packs/eu/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-plugin-store",
       "dr_tier": "T2"
     },
-    "oya/plugin-app-store/packs/kr/manifest.json": {
-      "service": "oya/plugin-app-store",
-      "manifest": "oya/plugin-app-store/packs/kr/manifest.json",
+    "marketplace/plugin-app-store/packs/kr/manifest.json": {
+      "service": "marketplace/plugin-app-store",
+      "manifest": "marketplace/plugin-app-store/packs/kr/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-plugin-store",
       "dr_tier": "T2"
     },
-    "oya/plugin-app-store/packs/us-financial/manifest.json": {
-      "service": "oya/plugin-app-store",
-      "manifest": "oya/plugin-app-store/packs/us-financial/manifest.json",
+    "marketplace/plugin-app-store/packs/us-financial/manifest.json": {
+      "service": "marketplace/plugin-app-store",
+      "manifest": "marketplace/plugin-app-store/packs/us-financial/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-plugin-store",
       "dr_tier": "T2"
     },
-    "oya/plugin-app-store/packs/us-healthcare/manifest.json": {
-      "service": "oya/plugin-app-store",
-      "manifest": "oya/plugin-app-store/packs/us-healthcare/manifest.json",
+    "marketplace/plugin-app-store/packs/us-healthcare/manifest.json": {
+      "service": "marketplace/plugin-app-store",
+      "manifest": "marketplace/plugin-app-store/packs/us-healthcare/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-plugin-store",
       "dr_tier": "T2"
     },
-    "oya/plugin-app-store/packs/us-public-sector/manifest.json": {
-      "service": "oya/plugin-app-store",
-      "manifest": "oya/plugin-app-store/packs/us-public-sector/manifest.json",
+    "marketplace/plugin-app-store/packs/us-public-sector/manifest.json": {
+      "service": "marketplace/plugin-app-store",
+      "manifest": "marketplace/plugin-app-store/packs/us-public-sector/manifest.json",
       "capability": "marketplace",
       "tier": "product",
       "tier_subtype": "product-developer-plugin-store",
@@ -1178,9 +1178,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
     },
-    "oya/recordings/manifest.json": {
-      "service": "oya/recordings",
-      "manifest": "oya/recordings/manifest.json",
+    "storage/recordings/manifest.json": {
+      "service": "storage/recordings",
+      "manifest": "storage/recordings/manifest.json",
       "capability": "storage",
       "tier": "substrate",
       "tier_subtype": "substrate-data",
@@ -1224,9 +1224,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T3"
     },
-    "oya/tasks/manifest.json": {
-      "service": "oya/tasks",
-      "manifest": "oya/tasks/manifest.json",
+    "workflow/tasks/manifest.json": {
+      "service": "workflow/tasks",
+      "manifest": "workflow/tasks/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
@@ -1279,9 +1279,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/workflow-engine/manifest.json": {
-      "service": "oya/workflow-engine",
-      "manifest": "oya/workflow-engine/manifest.json",
+    "workflow/workflow-engine/manifest.json": {
+      "service": "workflow/workflow-engine",
+      "manifest": "workflow/workflow-engine/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
@@ -1302,9 +1302,9 @@
         "consumed_by_substrates": []
       }
     },
-    "oya/workflow-studio/manifest.json": {
-      "service": "oya/workflow-studio",
-      "manifest": "oya/workflow-studio/manifest.json",
+    "workflow/workflow-studio/manifest.json": {
+      "service": "workflow/workflow-studio",
+      "manifest": "workflow/workflow-studio/manifest.json",
       "capability": "workflow",
       "tier": "substrate",
       "tier_subtype": "substrate-orchestration",
