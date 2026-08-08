@@ -84,7 +84,7 @@
       "oya",
       "cloud"
     ],
-    "expected_total": 95,
+    "expected_total": 91,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
       "oya/analytics/manifest.json",
