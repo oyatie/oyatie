@@ -127,6 +127,7 @@ impl From<os_kernel::Error> for ClusterError {
 ///
 /// This ties the modules together with a provisioner injected by the caller so
 /// the OS boundary stays behind a trait.
+#[cfg(any(test, feature = "modeled-crypto"))]
 pub fn create_cluster<P: Provisioner>(
     spec: &ClusterSpec,
     provisioner: &mut P,
@@ -445,6 +446,56 @@ mod tests {
         let mut p = InMemoryProvisioner::new(ProvisionerKind::Docker);
         let err = create_cluster(&spec, &mut p).unwrap_err();
         assert_eq!(err.kind(), "invalid");
+    }
+
+    /// Every constructor that mints modeled CA/token material — and every
+    /// function that transitively reaches one — must stay behind the
+    /// non-default `modeled-crypto` gate, so a production build cannot link a
+    /// path that yields CA keys derived from the cluster name. `Secret` has a
+    /// private field and no other constructor, so gating `Secret::derive`
+    /// makes the whole downstream bundle unconstructible off-feature.
+    ///
+    /// The barrier is the `cfg`; this test only proves it does not silently
+    /// disappear.
+    // ponytail: source-text assertion. A `cfg` cannot be observed from inside a
+    // build where it is enabled, and a compile-fail harness (trybuild) would be
+    // a new dependency.
+    #[test]
+    fn modeled_crypto_constructors_stay_behind_the_gate() {
+        const GATE: &str = "#[cfg(any(test, feature = \"modeled-crypto\"))]";
+
+        // (source file, item signature)
+        let required: [(&str, &str); 7] = [
+            (include_str!("gen.rs"), "pub fn derive(seed: &str) -> Self {"),
+            (
+                include_str!("gen.rs"),
+                "fn derive(cluster: &str, kind: &str) -> Self {",
+            ),
+            (
+                include_str!("gen.rs"),
+                "pub fn generate(cluster_name: &str) -> Result<Self, ClusterError> {",
+            ),
+            (
+                include_str!("gen.rs"),
+                "pub fn generate(input: &GenInput) -> Result<Self, ClusterError> {",
+            ),
+            (include_str!("gen.rs"), "pub fn generate_with_secrets("),
+            (
+                include_str!("bundle.rs"),
+                "pub fn plan(spec: &ClusterSpec) -> Result<Self, ClusterError> {",
+            ),
+            (
+                include_str!("lib.rs"),
+                "pub fn create_cluster<P: Provisioner>(",
+            ),
+        ];
+
+        for (src, signature) in required {
+            let gated = src
+                .match_indices(signature)
+                .any(|(i, _)| src[..i].trim_end().ends_with(GATE));
+            assert!(gated, "`{signature}` must be immediately preceded by {GATE}");
+        }
     }
 
     #[test]
