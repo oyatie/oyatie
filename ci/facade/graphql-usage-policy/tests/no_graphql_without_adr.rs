@@ -130,7 +130,7 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
         "marketplace/core/doc-set-scaffold",
         "marketplace/facade/dev-cli/src",
         "marketplace/observability/slos",
-        "oya/marketplace",
+        "marketplace",
         "data/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
         "oya/workplace-integration",
     ];
