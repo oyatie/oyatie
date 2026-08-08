@@ -751,6 +751,55 @@ pub fn evaluate_non_rust_exception_baseline_keyed(
     findings
 }
 
+/// Relabel FROZEN merge-base baseline keys through an `old_path -> new_path` rename map.
+///
+/// WHY THIS EXISTS. This baseline is PATH-KEYED, so a pure `git mv` of an already-baselined
+/// bridge reads as a NEW path beyond the immutable merge-base ceiling
+/// (`rust_first_automation_unbaselined_non_rust_exception`) at the destination — even though the
+/// candidate baseline was correctly retargeted in the same PR. The merge-base tree cannot be
+/// edited, so no legitimate baseline edit can clear it: a PURE RELABEL is red until the move
+/// itself lands on the protected base. With ~250 crates still to move out of the legacy `oya/`
+/// and `cloud/` roots under ADR-0562, every structural move would otherwise have to lower the
+/// ceiling or add an exception row — both of which HIDE the defect. Relabelling makes a move
+/// behave exactly like an in-place edit: the debt follows the file to its new address.
+///
+/// THIS IS NOT LAUNDERING. The exception is neither dropped nor waived, only re-keyed to where
+/// the file now lives; it still has to be burned down, and the returned set has the same key
+/// COUNT as the input. The laundering direction is dropping a row, which this never does.
+///
+/// Two guards keep it honest, mirroring the sibling ratchet kernel
+/// (`ci/facade/baseline-ratchet/src/lib.rs::relabel_baseline_for_renames`):
+///
+/// - EXISTENCE — a rename whose source carries no baselined exception is ignored (implicit here:
+///   only keys already in the frozen set are ever considered). Inventing a row at the destination
+///   would pre-tolerate a genuinely new bridge landing there.
+/// - NON-COLLISION — a rename onto a key that is ALREADY baselined is refused, leaving both keys
+///   intact. Merging two rows would shrink the ceiling with no burn-down.
+///
+/// Renames are resolved against the ORIGINAL frozen set, never against the partially-relabelled
+/// one, so a chain (`a -> b`, `b -> c`) cannot walk one row's debt onto an unrelated destination.
+pub fn relabel_baseline_keys_for_renames(
+    protected_keys: &BTreeSet<String>,
+    renames: &BTreeMap<String, String>,
+) -> BTreeSet<String> {
+    if renames.is_empty() {
+        return protected_keys.clone();
+    }
+    let mut relabelled: BTreeSet<String> = BTreeSet::new();
+    for key in protected_keys {
+        let target = match renames.get(key) {
+            Some(new) if !protected_keys.contains(new) => new,
+            _ => key,
+        };
+        // Two sources relabelled onto one destination would silently shrink the ceiling; keep the
+        // second at its original key so the count is preserved.
+        if !relabelled.insert(target.clone()) {
+            relabelled.insert(key.clone());
+        }
+    }
+    relabelled
+}
+
 /// Enforce the immutable merge-base non-Rust exception baseline as an anti-expansion ceiling. A
 /// candidate may remove an exception and shrink its matching baseline in the same PR, but may not
 /// add a baseline path to waive a new exception.
@@ -758,8 +807,34 @@ pub fn validate_non_rust_exception_baseline_ceiling(
     candidate_baseline: &Value,
     protected_baseline: &Value,
 ) -> BTreeSet<Finding> {
+    validate_non_rust_exception_baseline_ceiling_with_renames(
+        candidate_baseline,
+        protected_baseline,
+        &BTreeMap::new(),
+    )
+}
+
+/// The ceiling check with ADR-0562 structural moves accounted for: the frozen merge-base keys are
+/// first relabelled through `renames` (see [`relabel_baseline_keys_for_renames`]), so a path that
+/// MOVED is matched against its merge-base identity instead of counting as a new bridge. Debt
+/// added ALONGSIDE a move is unaffected and still fails.
+///
+/// The residual exposure is a MIS-PAIRING: a deleted baselined bridge that Git pairs with a
+/// substantially similar new file. It is bounded three ways — Git pairs each deletion with at most
+/// one addition and takes the best match; the similarity floor is Git's strict 50% default; and
+/// the candidate must STILL edit its own `exceptions[]` row and its own baseline array to name the
+/// destination, so the swap stays review-visible in the diff exactly as an ordinary bridge
+/// addition would.
+pub fn validate_non_rust_exception_baseline_ceiling_with_renames(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+    renames: &BTreeMap<String, String>,
+) -> BTreeSet<Finding> {
     let candidate_keys = baseline_non_rust_exception_keys(candidate_baseline);
-    let protected_keys = baseline_non_rust_exception_keys(protected_baseline);
+    let protected_keys = relabel_baseline_keys_for_renames(
+        &baseline_non_rust_exception_keys(protected_baseline),
+        renames,
+    );
     candidate_keys
         .difference(&protected_keys)
         .map(|key| {
@@ -978,6 +1053,79 @@ pub fn load_workflow_inline_shell_baseline_from_merge_base(
 /// Load the protected scan configuration from the immutable merge-base tree.
 pub fn load_scan_from_merge_base(repo_root: &Path) -> Result<Value, String> {
     frozen_policy_field(&GitCliFrozenPolicySource { repo_root }, "scan")
+}
+
+/// Detect `old_path -> new_path` renames between the immutable merge-base and the candidate tree,
+/// using Git's own similarity detection.
+///
+/// This is the I/O half of the rename relabel; the decision logic is the pure
+/// [`relabel_baseline_keys_for_renames`] kernel, which applies the existence and non-collision
+/// guards. The merge-base is resolved through the SAME seam the frozen baseline is read from, so
+/// the rename map and the ceiling always describe one tree.
+///
+/// `--find-renames` is passed explicitly because `diff.renames=false` in a contributor's or a
+/// runner's config would otherwise turn every move into add+delete and silently restore the false
+/// RED. The threshold is Git's 50% default rather than the sibling ratchet's 30%: that lower knee
+/// exists for relocated `Cargo.toml` manifests, which MUST rewrite their package name and path
+/// dependencies. The keys here are shell/Python bridge scripts, which a move does not rewrite, so
+/// the stricter default is kept — it narrows the window in which an unrelated new script could be
+/// mis-paired with a deleted baselined one. `-l0` removes the rename limit so a large structural
+/// PR cannot drop pairs.
+///
+/// FAIL-OPEN BY DESIGN: if Git cannot answer (detached checkout, missing merge-base, shallow
+/// clone) this returns an EMPTY map, which relabels nothing and leaves the ceiling in its strict
+/// pre-existing behaviour. The failure mode is therefore a false RED a human investigates, never
+/// a false GREEN.
+pub fn detect_renames_since_merge_base(repo_root: &Path) -> BTreeMap<String, String> {
+    let mut renames = BTreeMap::new();
+    let source = GitCliFrozenPolicySource { repo_root };
+    let Ok(merge_base) = source.merge_base(PROTECTED_BASE_REF) else {
+        return renames;
+    };
+    if merge_base.is_empty() {
+        return renames;
+    }
+    let Ok(output) = Command::new("git")
+        .args([
+            "diff",
+            "--find-renames=50%",
+            "-l0",
+            "--diff-filter=R",
+            "--name-status",
+            "-z",
+            &merge_base,
+        ])
+        .current_dir(repo_root)
+        .output()
+    else {
+        return renames;
+    };
+    if !output.status.success() {
+        return renames;
+    }
+    // `-z` output for a rename is three NUL-terminated fields: "R<score>", old, new.
+    let fields: Vec<&str> = std::str::from_utf8(&output.stdout)
+        .unwrap_or_default()
+        .split('\0')
+        .filter(|field| !field.is_empty())
+        .collect();
+    let mut index = 0;
+    while index < fields.len() {
+        let Some(status) = fields.get(index) else {
+            break;
+        };
+        if !status.starts_with('R') {
+            // Not a rename record; advance one field and resynchronise.
+            index += 1;
+            continue;
+        }
+        let (Some(old), Some(new)) = (fields.get(index + 1), fields.get(index + 2)) else {
+            break;
+        };
+        renames.insert((*old).to_owned(), (*new).to_owned());
+        index += 3;
+    }
+    renames
 }
 
 // ─────────────────────────── forbidden workflow `uses:` dimension ───────────────────────────
