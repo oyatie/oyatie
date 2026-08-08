@@ -330,6 +330,37 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
     let (_, observed, verdict) = live();
     let count = |code: &str| verdict.findings.iter().filter(|f| f.code == code).count();
 
+    // THE CORPUS IS PINNED BEFORE THE FINDINGS ARE.
+    //
+    // A high-effort review PROVED this gate could be turned green without repairing a
+    // single citation: append two entries to `exempt_path_prefixes`, lower the two
+    // ceilings in the same file, and all ten tests pass while 281 findings silently
+    // leave the enforced set. The corpus definition and the ceilings live in one policy
+    // file, so a policy-only edit satisfied a ratchet meant to require repair.
+    //
+    // The census values the policy itself calls "the anti-vacuity anchor" were asserted
+    // by NO test, which is what made the exploit invisible. Pinning them by equality
+    // closes it: narrowing the corpus necessarily moves `files_scanned` and
+    // `citation_lines`, so shrinking the scan now fails HERE, before any finding count
+    // is even compared. Repairing citations moves the finding counts and leaves these
+    // untouched — which is exactly the distinction the ratchet was supposed to make.
+    for (label, actual, key) in [
+        ("files_scanned", observed.files_scanned, "files_scanned"),
+        ("citation_lines", verdict.census.citation_lines, "citation_lines"),
+        ("adr_records", verdict.census.adr_records, "adr_records"),
+    ] {
+        let frozen = ceiling(key);
+        assert_eq!(
+            actual, frozen,
+            "{label}: observed {actual}, frozen {frozen}. This is the CORPUS, not a \
+             finding count. If it moved because the scan was narrowed, that is the \
+             false-green path and the narrowing must be justified on its own terms \
+             rather than folded into a repair. If it moved because tracked files were \
+             genuinely added or removed, re-freeze it in the SAME change.\n{}",
+            report(&observed, &verdict)
+        );
+    }
+
     // Anti-vacuity FIRST: every count below is meaningless if the walk saw nothing.
     assert_eq!(
         count(CODE_VACUOUS_SCAN),
