@@ -158,6 +158,10 @@
       "prefix": "docs/ideas/"
     },
     {
+      "anchor": "ADR-0555 born-accounting: the G004 burn-down-enforcement-debt unit mapping is the binding convention surface every unit on that goal converges on - the four repeating defect patterns, the seven diff-checkable invariants, and the fifteen traps, including the three refusals the goal deliberately did not implement. Homed in its own docs/programs/g004-enforcement-debt/ subtree for the same reason docs/security-program/ is: a nearest-ancestor OWNERS can own it without over-claiming docs/, where a docs/OWNERS would cover 2631 tracked paths against the 2000-path max_paths_per_owners_file bound and therefore own nothing. Non-crate program doc tree, parallel to docs/programs/k8s-port/ and docs/programs/hyperscaler-delivery-lanes/.",
+      "prefix": "docs/programs/g004-enforcement-debt/"
+    },
+    {
       "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live oya-ci-required cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",
       "prefix": "docs/programs/hyperscaler-delivery-lanes/"
     },
