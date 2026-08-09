@@ -14,7 +14,7 @@ use check_adr_citation_closure::{
     AdrRecord, CODE_AMBIGUOUS_CLOSURE, CODE_ASYMMETRY, CODE_CITATION_MISMATCH,
     CODE_DANGLING_CITATION, CODE_DUPLICATE_ID, CODE_REJECTED_AUTHORITY, CODE_UNRESOLVABLE,
     CODE_VACUOUS_SCAN, CitationLine, Oracle, Policy, Resolution, Verdict, evaluate,
-    parse_supersession, scan_line,
+    parse_supersession, scan_line, undeclared_authority_surface,
 };
 
 const POLICY_PATH: &str = "governance/check/adr-citation-closure/adr-citation-closure-policy.json";
@@ -25,6 +25,7 @@ const MAX_SCANNED_BYTES: u64 = 4_194_304;
 struct Config {
     policy: Policy,
     authority_surfaces: Vec<String>,
+    authority_surface_marker: String,
     exempt_prefixes: Vec<String>,
     scan_extensions: Vec<String>,
 }
@@ -33,6 +34,10 @@ struct Observed {
     records: Vec<AdrRecord>,
     citations: Vec<CitationLine>,
     files_scanned: usize,
+    /// Files whose own frontmatter declares them authority surfaces while the policy list omits
+    /// them. Collected during the SAME walk that produces the census, so the check costs no second
+    /// pass and cannot drift out of sync with the corpus it is checking.
+    undeclared_surfaces: Vec<String>,
 }
 
 fn repo_root() -> PathBuf {
@@ -81,6 +86,10 @@ fn load_config(root: &Path) -> Config {
             min_authority_surfaces: number("min_authority_surfaces"),
         },
         authority_surfaces: strings("authority_surfaces"),
+        authority_surface_marker: doc["authority_surface_marker"]
+            .as_str()
+            .expect("policy field authority_surface_marker missing or not a string")
+            .to_owned(),
         exempt_prefixes: strings("exempt_path_prefixes"),
         scan_extensions: strings("scan_extensions"),
     }
@@ -189,6 +198,7 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
 
     let mut citations = Vec::new();
     let mut files_scanned = 0usize;
+    let mut undeclared_surfaces = Vec::new();
     for relative in tracked_files(root)? {
         if in_excluded_dir(&relative) || exempt(&relative, &config.exempt_prefixes) {
             continue;
@@ -222,6 +232,14 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
         // latin-1 and UTF-16 both carry ASCII `ADR-NNNN` perfectly well.
         let text = String::from_utf8_lossy(&bytes);
         files_scanned += 1;
+        if let Some(missing) = undeclared_authority_surface(
+            &relative,
+            &text,
+            &config.authority_surface_marker,
+            &config.authority_surfaces,
+        ) {
+            undeclared_surfaces.push(missing);
+        }
         let authority_surface = config.authority_surfaces.iter().any(|s| s == &relative);
         for (index, line) in text.lines().enumerate() {
             let (cited, context) = scan_line(line);
@@ -238,10 +256,12 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
         }
     }
     citations.sort_by(|a, b| (&a.path, a.line).cmp(&(&b.path, b.line)));
+    undeclared_surfaces.sort();
     Ok(Observed {
         records,
         citations,
         files_scanned,
+        undeclared_surfaces,
     })
 }
 
@@ -587,4 +607,50 @@ fn every_declared_authority_surface_exists_and_was_scanned() {
             "declared authority surface {surface} produced no ADR citation — it may have moved"
         );
     }
+}
+
+// THE OMISSION HALF of the same staleness problem, and the one that was actually costing findings.
+//
+// The test above iterates `authority_surfaces` and checks each entry is real. It CANNOT see a
+// surface that was never listed — it is checking the very list that is incomplete, so a governance
+// document nobody remembered to declare is invisible to it and to the rejected-authority rule
+// behind it. That is not a mis-set value, it is a rule that structurally cannot reach its own
+// strongest instances, which is the same defect class as the `context`-only scan repaired in
+// `_review_remeasure_2026_08_08`: both were rules that could not see the citations that state
+// doctrine most explicitly.
+//
+// The fix is to stop treating the hand-curated list as the definition and derive candidates from
+// what each document declares about ITSELF, in frontmatter, during the walk that is already
+// running. `authority_surface_marker` is policy DATA, so another repo repoints it.
+//
+// OBSERVED FIRING, on the live tree at this commit's parent, before
+// `docs/AGENTS-OPERATING-CONTRACT.md` was added to `authority_surfaces` — this is the execution
+// that makes the green below evidence rather than decoration:
+//
+//   thread 'a_document_declaring_itself_an_operating_contract_is_a_declared_surface' panicked at
+//   governance/check/adr-citation-closure/tests/adr_citation_closure.rs:640:5:
+//   assertion `left == right` failed: these files declare `doc_class: Operating-Contract` in their
+//   own frontmatter but are absent from authority_surfaces, so the rejected-authority rule cannot
+//   see them: ["docs/AGENTS-OPERATING-CONTRACT.md"]. […]
+//   test result: FAILED. 10 passed; 1 failed
+//   Tests finished: Pass 1. Fail 1. … Commands: 3 (cached: 0, remote: 0, local: 3)
+//
+// It fired on exactly ONE file, which is also the control that the marker is not over-matching:
+// `doc_class: Operating-Contract` appears in the frontmatter head of two tracked documents, and the
+// other one — `docs/AGENTS.md` — was already declared. The sibling test above passed in that same
+// run, which is the direct evidence that it cannot see this class.
+#[test]
+fn a_document_declaring_itself_an_operating_contract_is_a_declared_surface() {
+    let (config, observed, _) = live();
+    let empty: Vec<String> = Vec::new();
+    assert_eq!(
+        observed.undeclared_surfaces, empty,
+        "these files declare `{}` in their own frontmatter but are absent from \
+         authority_surfaces, so the rejected-authority rule cannot see them: {:?}. Declare them \
+         and re-measure BOTH numbers it moves — the citation_lines census (an authority surface \
+         contributes lines whose `cited` is empty) and adr_citation_rejected_authority — in the \
+         SAME change.",
+        config.authority_surface_marker,
+        observed.undeclared_surfaces
+    );
 }
