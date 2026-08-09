@@ -547,7 +547,7 @@ Boxing subtotal: 603 + 456 + 253 + 0 + 0 = **1,312 of 9,063 = 14.5%**. This is t
 §4.3 encodes as 9,063 − 7,751 "real" non-escaping allocations, so the two sections agree.
 Reproduce the whole table with `sh census/shapes.sh`.
 
-### 6.2 Ownership pressure is uniform across subsystems
+### 6.2 Aggregate ownership pressure by top-level area
 
 Borrowable-to-leaking parameter ratio by top-level area:
 
@@ -559,10 +559,18 @@ Borrowable-to-leaking parameter ratio by top-level area:
 | `cmd/` | 3,222 | 1,747 | 1.84 |
 | `plugin/` | 1,589 | 388 | 4.09 |
 
-`staging/` and `pkg/` — the two areas that are the actual system — are statistically
-indistinguishable (2.03 vs 2.05). **There is no easy subsystem to carve off and port first, and
-no ownership-hostile subsystem to quarantine.** Sequencing must be driven by something other
-than ownership difficulty, because ownership difficulty is uniform.
+`staging/` and `pkg/` — the two areas that are the actual system — have near-identical
+**aggregate** ratios (2.03 vs 2.05). That is all this table says. **An earlier draft read it as
+"there is no easy subsystem to carve off and port first, and no ownership-hostile subsystem to
+quarantine … because ownership difficulty is uniform", and that inference is withdrawn.** Two
+equal aggregate means constrain nothing about within-tree variance: `staging/` alone spans ~40
+separately-versioned repos (`apimachinery`, `client-go`, `apiserver`, `kubectl`, `cri-api`, …)
+and `pkg/` spans kubelet, scheduler, proxy and controller-manager, and both could hold widely
+divergent per-package ratios while averaging to 2.03 and 2.05. Carve-out viability is a claim
+about the *tail* of a distribution; no distribution was computed here. Closing it is a
+re-aggregation of data this instrument already produces — group the unique `file:line:col`
+positions by package directory and report median, IQR and the top and bottom deciles — and
+until that is run, carve-out viability is listed in §8 as not determined.
 
 ### 6.3 Pointer-shaped syntax — labelled proxy
 
@@ -596,9 +604,18 @@ Pointer-bearing fields total 9,734 (24.6%). But the pointee distribution reframe
 | `int`, `float64`, `uint64` | 89 |
 | **subtotal: pointers to scalars** | **2,595 (28.2% of all pointer fields)** |
 
-> **28.2% of pointer-typed fields point at a scalar.** These are not aliasing at all — they are
-> Go's only idiom for an optional field, and they map to `Option<T>` with zero ownership
-> consequence. The genuine aliasing-pressure figure is nearer 17% of fields than 24.6%.
+> **28.2% of pointer-typed fields point at a scalar.** Scalar pointees are overwhelmingly Go's
+> optional-field idiom, and in the generated API surface (`// +optional` on `*string`/`*int32`/
+> `*bool`) they are allocated fresh per value. But the syntax cannot *exclude* shared identity or
+> alias-visible mutation — Go permits `a.p = b.p` and mutation through either alias on a `*int`
+> field exactly as on any other pointer — so subtracting them yields a **proxy-adjusted proxy,
+> roughly 17% of fields rather than 24.6%, and not a measurement of aliasing pressure.** An
+> earlier draft called the 2,595 "not aliasing at all" and 17% "the genuine aliasing-pressure
+> figure"; both are withdrawn, because that is the syntax being read as saying which — the thing
+> this section opens by forbidding. The cheap strengthening is to split the 2,595 by generated vs
+> hand-written using the same generated-file list §7 uses for `unsafe.Pointer` (113 of 129) and
+> report the hand-written residue separately; that residue is where the hazard actually lives, and
+> it is not measured here.
 
 The remaining pointee mass is dominated by generated machinery: `mock.Call` (161),
 `gentype.ClientWithListAndApply` (158+158), `genericregistry.Store` (120), and
@@ -626,10 +643,26 @@ Return shapes among the 18,410 pointer-returning functions concentrate hard:
 | **top 2 shapes** | **17,804** | **96.7%** |
 | remaining 18 shapes | 606 | 3.3% |
 
-**96.7% of pointer-returning functions are one of two shapes**, both the constructor/factory
-idiom. A returned `*T` from a constructor is an *owned* value in Rust — `fn new() -> T` or
-`-> Result<T, E>`. No `Arc`, no lifetime. This is the single most mechanically translatable
-shape in the corpus and it covers ~18k functions.
+**96.7% of pointer-returning functions are one of two shapes.** That is a statement about return
+*arity*, and arity does not establish *provenance*. **An earlier draft read both shapes as the
+constructor/factory idiom and concluded that the ~18k functions are owned values needing no `Arc`
+and no lifetime analysis; that conclusion is withdrawn.** Two reasons, both from this document's
+own numbers and from the corpus's own contract:
+
+1. The same section reports 50,957 methods among the 82,914 declarations, 86.5% of them with
+   pointer receivers, so a large share of the 18,410 pointer-returners are **methods** — and a
+   method returning `*T` is far more often a getter over receiver-owned state than a constructor.
+   The 18,410 are not split by receiver presence here, though the AST instrument can do it.
+2. A `*T`-returning method commonly yields receiver-owned or cache-owned state. `client-go`'s
+   `Lister`/`Indexer` API returns pointers *into the shared informer cache* under an explicit
+   documented contract that callers must not mutate them; those are shared, not owned, and
+   mutating them is a known Kubernetes bug class. The pointee table above already shows
+   `gentype.ClientWithListAndApply` (158+158) in the top mass.
+
+The measurement that would close this is the receiver split: report only the **free-function**
+subset as a mechanically-owned candidate and label the method subset unclassified provenance. It
+is not run here, so the mechanical-translatability claim over the 18,410 is listed in §8 as not
+determined. The two-shape concentration itself stands and is AST-exact.
 
 ---
 
@@ -757,6 +790,9 @@ Remaining threats, unresolved:
 | Escape analysis carries **no alias information** | A non-escaping parameter may still be aliased at the call site, so `&mut T` may be illegal where lifetime permits a borrow | **Lifetime-compatibility is not borrowability**; the two errors run in opposite directions and the net is unsigned (§4.4) |
 | Mutation detection is depth-1 | Misses mutation via helper functions | Understates mutating types |
 | File coverage counts only files with ≥1 diagnostic | 72.9% is a floor, not the true coverage | Understates coverage |
+| §6.2 reports **aggregate** ratios per top-level tree, with no per-package distribution | Carve-out viability is a claim about the tail; equal aggregates for `staging/` (2.03) and `pkg/` (2.05) do not constrain within-tree variance across the ~40 staging repos or the kubelet/scheduler/proxy split | **Unsigned** — a favourable or hostile subsystem may exist in either tree and would be invisible here |
+| §6.3 does not split the 18,410 pointer-returning functions by receiver presence | Method returns are unclassified provenance: a `*T`-returning method may yield receiver-owned or cache-owned state (`client-go` Listers return into the shared informer cache under a do-not-mutate contract) | **Overstates mechanical translatability** if return arity is read as ownership |
+| §6.3's 2,595 scalar pointees are not split by generated vs hand-written | The optional-field reading is strong for the generated API surface and unevidenced for hand-written code; the ~17% adjustment is a proxy applied to a proxy | **Overstates** how much pointer syntax can be discounted |
 
 ---
 
@@ -770,8 +806,8 @@ Remaining threats, unresolved:
 | 4 | Distinct escaping-allocation shapes | **14 measured shapes covering 79.81%**; a residue of 20.19% holding 10,125 distinct subjects | **Authored taxonomy with a residue bucket — NOT a closed set.** 100% coverage is by construction |
 | 5 | Types needing `Arc<Mutex<T>>` | **Not determined.** Two proxies: 437 hand-written types declare internal locking; 1,152 have ≥1 mutating method | **Neither is a bound** — 437 need not be shared, and the mutation detector under-detects (§5.5). Needs alias analysis |
 | 6 | Types needing `Arc<T>` vs `Box<T>` | **Not determined** | Requires whole-program points-to analysis |
-| 7 | Pointer fields that are really `Option<scalar>` | **28.2%** of pointer fields | Measured (AST-exact) |
-| 8 | Pointer-returning functions in 2 shapes | **96.7%** of 18,410 | Measured (AST-exact) |
+| 7 | Pointer fields whose pointee is a scalar | **28.2%** of pointer fields | Count measured (AST-exact). Reading them as `Option<scalar>` with no aliasing is a **proxy**, not a measurement, and the ~17% adjusted figure inherits that label (§6.3) |
+| 8 | Pointer-returning functions in 2 shapes | **96.7%** of 18,410 | Shape concentration measured (AST-exact). **Provenance not determined** — the 18,410 are not split by receiver, so this is not a count of owned returns (§6.3) |
 | 9 | `unsafe.Pointer` with no safe mapping | **3 shapes**; hand-written residue **32 occurrences / 6 files** | Measured |
 | 10 | Package coverage of the escape analysis | **83.7%**, Linux-only paths excluded | Measured |
 | 11 | Go toolchain cost | 53 s, 4.6 GB cache, **zero install, nothing broke** | Measured |
@@ -795,3 +831,9 @@ The two findings that should change a decision:
 **Not determined, and requiring a separate instrument:** the alias/points-to analysis of §5.1;
 a typed AST pass to close the §6.1 residue's 10,125 distinct subject expressions; and a
 Linux-hosted re-run to cover the ≥153 platform-excluded files of §3.
+
+**Not determined, but closable by re-aggregating data this census already produced** (§6.2, §6.3):
+the per-package distribution of the borrow ratio, without which no subsystem can be called a
+carve-out candidate or a quarantine candidate; the receiver split of the 18,410 pointer-returning
+functions, without which return arity cannot be read as ownership; and the generated
+vs hand-written split of the 2,595 scalar pointee fields.
