@@ -1,10 +1,10 @@
 {
   "name": "api-stability-tier",
   "version": 1,
-  "_stage_vocabulary_open_question": "UNRESOLVED, and it must be resolved BEFORE any unknown_stage row for this lane is frozen. Measured: this lane observes 750 artifacts and reports 750 unknown_stage — a 100% failure rate on one code, which indicates a VOCABULARY MISMATCH rather than 750 individually-wrong artifacts. All 750 registry/catalog/*.yaml declare `api_stability: preview`, and `preview` is canonical, not a placeholder: docs/machine-readable/contracts.json `_metadata.stability_tiers` is [preview, stable, GA], intelligence/core/catalog-domain `enum ApiStability` is {Preview, Stable, Ga}, and marketplace/facade/dev-cli/src/governance_gates.rs validate_claim_ceiling_gate enforces FoundationClaimCeiling::preview_foundation() = max Preview over this exact directory. So the `stages` list below ({experimental, stable, deprecated, removed}) is a DIFFERENT vocabulary that shares only `stable` — the config is mismatched to its corpus, the corpus is not in debt. Freezing 750 unknown_stage would certify that mismatch as corpus debt and make it permanent, and the debt would be UNRETIRABLE: raising any crate above preview is exactly what the claim-ceiling gate rejects. Aligning this vocabulary to [preview, stable, GA] instead yields a lane that enforces canonical-tier conformance across 750 files born-blocking (any future non-canonical value is an unbaselined_violation immediately) and still reds via lane_discovered_nothing if the root moves away. Note `defaults.case_insensitive_stage_match` is true, so GA/ga need not be spelled twice. The vocabulary decision is deliberately NOT taken in this commit.",
+  "_stage_vocabulary_ruling": "This vocabulary is [preview, stable, GA] because that is the repo's canonical API-stability tier set, confirmed three independent ways: docs/machine-readable/contracts.json `_metadata.stability_tiers`, `enum ApiStability` in intelligence/core/catalog-domain/src/lib.rs, and marketplace/facade/dev-cli/src/governance_gates.rs validate_claim_ceiling_gate, which runs FoundationClaimCeiling::preview_foundation() over this exact directory and caps every record at Preview. The earlier {experimental, stable, deprecated, removed} list was a different vocabulary sharing one token, so the lane reported 750 unknown_stage against 750 artifacts. A 100% failure rate on a SINGLE code is a config-mismatch signature, not a debt signature: sample the declared values before proposing a baseline. Freezing those 750 would also have been a trap rather than debt, because the only remedy — declaring higher tiers per crate — is precisely what the claim-ceiling gate rejects, so no permitted action could ever have reduced the count. `defaults.case_insensitive_stage_match` is true, so GA needs no second lowercase spelling. Transitions encode the monotone ladder Preview < Stable < Ga that `enum ApiStability` derives via Ord; there is no deprecation or removal tier in this vocabulary, so no stage requires a supersession edge.",
   "stages": [
     {
-      "id": "experimental",
+      "id": "preview",
       "terminal": false,
       "requires_supersession_edge": false
     },
@@ -14,32 +14,19 @@
       "requires_supersession_edge": false
     },
     {
-      "id": "deprecated",
-      "terminal": false,
-      "requires_supersession_edge": true
-    },
-    {
-      "id": "removed",
+      "id": "GA",
       "terminal": true,
       "requires_supersession_edge": false
     }
   ],
   "transitions": [
     {
-      "from": "experimental",
+      "from": "preview",
       "to": "stable"
     },
     {
-      "from": "experimental",
-      "to": "removed"
-    },
-    {
       "from": "stable",
-      "to": "deprecated"
-    },
-    {
-      "from": "deprecated",
-      "to": "removed"
+      "to": "GA"
     }
   ],
   "sources": [
@@ -56,5 +43,5 @@
     "wave": "C",
     "case_insensitive_stage_match": true
   },
-  "purpose": "Lifecycle state machine for API stability tier transitions from experimental through removal."
+  "purpose": "Lifecycle state machine for API stability tier transitions across registry/catalog records, from preview through GA."
 }
