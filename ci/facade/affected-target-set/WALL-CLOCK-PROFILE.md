@@ -97,35 +97,85 @@ and most of it already exists:
   The `gate-affected-target-set` job (:650-1026) **never calls the resolver.** Licensing warm
   reads tomorrow would not move this job by one second.
 
-Ordered work, none of it in this package. **Step 0 is an authorization gate, not engineering** —
-steps 1–6 are the work a go-gate would authorize, never a substitute for it, and nothing below may
-be switched on before it clears:
+Ordered work, none of it in this package, in **two phases**. Step 0 is an authorization gate, not
+engineering — but it gates *activation*, not the bootstrap that produces the evidence activation
+itself demands:
 
-0. **Go-gate.** `docs/decisions/ADR-0700-ci-admission-live-apex.md` live hard norm 4 keeps warm
-   CAS / RE activation **fail-closed** until an explicit go-gate: credentials (#1541), cache-only
-   proof, and an **Accepted** activation ADR. That norm also says outright that apex gists
-   mentioning `remote_enabled=true` are historical design, not activation authority — which is
-   exactly what the dark `warm-cache-*.buckconfig` wiring quoted above is.
-1. Stand up a NativeLink CAS reachable from the executing lanes.
-2. Run the cold integrity canary to GREEN; record its run id in `cache-warm-license.json`.
-3. **Issue and mount a cache identity for this lane.** `controlled_child` resolves its overlay
-   through `effective_buckconfig`, which **rejects every warm mode** when
-   `OYA_CACHE_TLS_CLIENT_CERT` is unset, empty or non-absolute
-   (`ci/facade/build-cache-policy/src/lib.rs:230-245`), and `gate-affected-target-set` grants only
-   `contents: read` / `actions: read` and mounts no secret (`oya-ci-required.yml:652-654`). Wiring
-   the resolver in without this step either fails the required job or leaves it in bypass — no
-   reuse either way. Fork PRs are handed no secret at all, so they must resolve to a declared
-   cold/bypass class rather than to a broken warm one.
-4. **Relicense the PR build class, as a reviewed policy edit.**
-   `specs/cache-warmth-policy.json` pins `untrusted-author-presubmit` to `warmth: cold,
-   cache_read: false, cache_write: false`, and its own reason text calls a read-only relaxation
-   "a reviewed two-way policy edit". Read-only reuse on PRs is therefore not merely unwired, it is
-   currently **prohibited by policy**. The write prohibition is one-way and stays.
-5. Wire `gate-affected-target-set`'s build + test through `cache-wiring-bin` with its own build
-   class (trusted-push for the dev-push producer, read-only untrusted-author for PRs, cold for
-   forks). This is a `.github/workflows/oya-ci-required.yml` edit and is the piece that has never
-   been written.
-6. Re-measure. Do not quote a speedup before then.
+0. **Go-gate, and its scope.** `docs/decisions/ADR-0700-ci-admission-live-apex.md` live hard norm 4
+   keeps warm CAS / RE activation **fail-closed** until an explicit go-gate: credentials (#1541),
+   cache-only proof, and an **Accepted** activation ADR. That norm also says outright that apex
+   gists mentioning `remote_enabled=true` are historical design, not activation authority — which
+   is exactly what the dark `warm-cache-*.buckconfig` wiring quoted above is. What norm 4 gates is
+   **activation**: licensing warm reads, mounting a cache identity into the required lane, and
+   `remote_enabled=true`. It does **not** gate deploying a cache-only CAS or running the
+   pre-license canary. It cannot: the gate's own criterion is "cache-only proof", and that proof is
+   produced by *operating* the cache-only tier. Reading step 0 as blocking the bootstrap makes the
+   gate demand an artifact only the steps it blocks can produce.
+
+### Phase A — non-activating bootstrap (no go-gate)
+
+`specs/cache-warm-license.json` stays `warm_reads_licensed: false` and the required lane stays cold
+throughout. This phase **produces** the cache-only proof the gate demands.
+
+- **A1.** Deploy the cache-only tier — `storage/adapters/nativelink/nativelink-cas.k8s.yaml` (CAS +
+  Action Cache only; the scheduler and worker tiers are deliberately not deployed until the RE
+  phase) — reachable from the executing lanes.
+- **A2.** Issue the fixed reader/writer OIDC identities the canary controller exchanges for
+  (`cache-integrity-canary.yml:182-189`).
+- **A3.** Set repo var `OYA_CAS_IDENTITY_PROOF_ENABLED=true` so the **already-wired**
+  `cache-writer-identity` job (`oya-ci-required.yml:627-635`, trusted dev push only) seeds the
+  fresh CAS.
+- **A4.** Run the `workflow_dispatch` reader proof with `prelicense_probe=true` and `writer_run_id`
+  set to the same-SHA writer run (`cache-integrity-canary.yml:44-66`, `:167-174`, `:205`). Its
+  byte-equality canary verdict **is** the cache-only proof.
+
+Three live artifacts confirm the repo already treats this bootstrap as non-activating and expects it
+*ahead* of any gate: the canary workflow's own header ("THIS JOB THEREFORE FAILS DAILY UNTIL CAS
+EXISTS, AND THAT IS THE CORRECT READING", verdict `INACTIVE_NO_ENDPOINT` exiting nonzero — CAS
+bring-up is *awaited*, not gated); the `cache-writer-identity` job already shipped behind a repo
+var; and the canary's `prelicense_probe` input, whose verdict condition runs while
+`steps.license.outputs.warm_licensed != 'true'` — a proof path designed to execute *before*
+licensing.
+
+### Phase B — behind the ADR-0700 norm 4 go-gate
+
+Credentials (#1541), the Phase-A cache-only proof, and an **Accepted** activation ADR.
+
+- **B1.** Flip `specs/cache-warm-license.json` `warm_reads_licensed`, recording the licensing run in
+  `licensed_by_canary_run`.
+- **B2.** **The PR build class is not one line of data.** `specs/cache-warmth-policy.json` pins
+  `untrusted-author-presubmit` to `warmth: cold, cache_read: false, cache_write: false`, and its
+  reason text calls a read-only relaxation "a reviewed two-way policy edit". The same file's
+  `product_contract.door_asymmetry` overrides that reason: the cold-required floor is **one-way**.
+  `untrusted-author-presubmit` is one of the four `COLD_REQUIRED_FLOOR` classes in
+  `ci/facade/build-cache-policy/tests/cache_conformance.rs:34-39`, and
+  `cold_required_floor_holds_even_under_a_licensed_fixture` (`:696-714`) binds cold /
+  `cache_read: false` / `cache_write: false` / `Bypass` **even under a licensed fixture** — so
+  editing the JSON alone turns that live test RED, and leaving it alone leaves the step inert. The
+  move is an ADR **plus** a `COLD_REQUIRED_FLOOR` amendment **plus** the JSON edit, in that order,
+  and the door now runs through ADR-0703 (live apex for `cas_cache`), which superseded ADR-0556 —
+  not through ADR-0556, which is itself already Superseded.
+
+  **The consequence this profile must not bury:** while `untrusted-author-presubmit` stays on the
+  cold floor, warm reuse cannot reach the PR lane at all. The CAS then buys the dev-push FULL runs
+  (26.2m / 27.9m — rows 31241020054 and 31254973893 in section 1) and **not** the escalated PR FULL
+  runs (28.9–29.1m) this bead is actually about. The cheaper alternative, needing no ADR and no
+  floor amendment: run the dev-push producer under a trusted warm-eligible class and leave PRs
+  cold. That speeds the dev-push tier and leaves every PR-lane number in section 1 unchanged.
+- **B3.** **Issue and mount a cache identity for this lane.** `controlled_child` resolves its
+  overlay through `effective_buckconfig`, which **rejects every warm mode** when
+  `OYA_CACHE_TLS_CLIENT_CERT` is unset, empty or non-absolute
+  (`ci/facade/build-cache-policy/src/lib.rs:230-245`), and `gate-affected-target-set` grants only
+  `contents: read` / `actions: read` and mounts no secret (`oya-ci-required.yml:652-654`). Wiring
+  the resolver in without this step either fails the required job or leaves it in bypass — no
+  reuse either way. Fork PRs are handed no secret at all, so they must resolve to a declared
+  cold/bypass class rather than to a broken warm one. Mounting a secret into the **required** job is
+  activation, which is why this sits after the gate and not in Phase A.
+- **B4.** Wire `gate-affected-target-set`'s build + test through `cache-wiring-bin` with its own
+  build class (trusted-push for the dev-push producer, read-only untrusted-author for PRs, cold for
+  forks). This is a `.github/workflows/oya-ci-required.yml` edit and is the piece that has never
+  been written.
+- **B5.** Re-measure. Do not quote a speedup before then.
 
 What is measured about reuse, locally, on this package's own graph:
 
