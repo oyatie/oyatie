@@ -721,10 +721,7 @@ pub fn parse_addr_dump(buf: &[u8]) -> Result<Vec<ParsedAddr>> {
                     .map(|v| v as i32)
                     .unwrap_or(0);
                 if errno != 0 {
-                    return Err(Error::Other(format!(
-                        "netlink dump error: errno {}",
-                        -errno
-                    )));
+                    return Err(errno_error("netlink dump error", -errno));
                 }
             }
             RTM_NEWADDR => {
@@ -766,10 +763,7 @@ pub fn parse_link_dump(buf: &[u8]) -> Result<Vec<LinkStatus>> {
                     .map(|v| v as i32)
                     .unwrap_or(0);
                 if errno != 0 {
-                    return Err(Error::Other(format!(
-                        "netlink dump error: errno {}",
-                        -errno
-                    )));
+                    return Err(errno_error("netlink dump error", -errno));
                 }
             }
             RTM_NEWLINK => {
@@ -810,10 +804,7 @@ pub fn dump_chunk_done_or_error(buf: &[u8]) -> Result<bool> {
                     .map(|v| v as i32)
                     .unwrap_or(0);
                 if errno != 0 {
-                    return Err(Error::Other(format!(
-                        "netlink dump error: errno {}",
-                        -errno
-                    )));
+                    return Err(errno_error("netlink dump error", -errno));
                 }
             }
             _ => {}
@@ -941,6 +932,38 @@ pub fn link_status_from_sysfs_fields(
 }
 
 // ---------------------------------------------------------------------------
+// Errno classification for the kernel-ABI port
+// ---------------------------------------------------------------------------
+
+/// Map a Linux errno onto the [`Error`] variant the `os_kernel_abi::KernelNet`
+/// failure contract requires, keeping the raw `errno N` in the message.
+///
+/// This is where Linux's error vocabulary is translated, so callers classify by
+/// variant and never by adapter text. Before this existed the only signal was
+/// the literal `"errno N"` suffix, which meant any non-Linux substrate — one
+/// that reports "permission denied" without a Linux errno number — was silently
+/// classified as an unexpected failure by PID 1, losing the sandbox-skip
+/// handling. That is the seam being false at the error boundary.
+///
+/// Pure and host-testable: it takes the errno as a plain integer and performs
+/// no syscall, so it is compiled and exercised on non-Linux hosts too.
+pub fn errno_error(ctx: &str, errno: i32) -> Error {
+    let msg = format!("{ctx}: errno {errno}");
+    // Compare on the absolute value: netlink reports a negated errno.
+    match errno.abs() {
+        // EPERM / EACCES — the caller may not perform the operation.
+        1 | 13 => Error::permission_denied(msg),
+        // ENOSYS / EOPNOTSUPP / ENOTTY — the substrate does not implement it.
+        38 | 95 | 25 => Error::unsupported(msg),
+        // EEXIST — the address or route is already installed.
+        17 => Error::invalid_state(msg),
+        // ENOENT / ENODEV — the interface does not exist.
+        2 | 19 => Error::not_found(msg),
+        _ => Error::Other(msg),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // The real syscall paths (Linux only). Compiled out on non-Linux hosts so the
 // pure code above still builds and tests there; exercised for real at boot.
 // ---------------------------------------------------------------------------
@@ -956,11 +979,13 @@ mod linux_impl {
     use super::*;
     use core::mem;
 
-    /// Translate the last OS error into a crate [`Error`].
+    /// Translate the last OS error into a crate [`Error`], classified by
+    /// [`super::errno_error`] so the variant — not the message text — carries
+    /// the meaning across the port.
     fn last_os_error(ctx: &str) -> Error {
         // SAFETY: reading the thread-local errno is always valid.
         let errno = unsafe { *libc_errno_location() };
-        Error::Other(format!("{ctx}: errno {errno}"))
+        super::errno_error(ctx, errno)
     }
 
     /// `__errno_location()` shim (libc exposes it as `__errno_location` on glibc
@@ -1092,10 +1117,10 @@ mod linux_impl {
         if nlmsg_type == NLMSG_ERROR {
             let errno = read_u32(reply, NLMSGHDR_LEN).map(|v| v as i32).unwrap_or(0);
             if errno != 0 {
-                return Err(Error::Other(format!(
-                    "netlink request failed: errno {}",
-                    -errno
-                )));
+                // The kernel negates the errno in an NLMSG_ERROR ack; the
+                // message keeps that sign for diagnostics while the classifier
+                // matches on its magnitude.
+                return Err(super::errno_error("netlink request failed", -errno));
             }
         }
         Ok(())
@@ -1379,6 +1404,57 @@ mod linux_impl {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The whole point of a port is that its two substrates agree. This is the
+    /// only place both are in scope (`os-kernel-abi` cannot depend on this
+    /// crate — the dependency runs the other way), so the agreement is asserted
+    /// here.
+    ///
+    /// Duplicate-add was the concrete divergence: the Linux adapter sends
+    /// `NLM_F_CREATE | NLM_F_EXCL` and gets `EEXIST`, while the in-memory fake
+    /// used to silently deduplicate and return `Ok`. A test written against the
+    /// fake therefore passed over a caller that fails on a real kernel.
+    #[test]
+    fn both_substrates_report_the_same_class_for_a_duplicate_add() {
+        use os_kernel_abi::{InMemoryKernelNet, KernelNet};
+
+        let fake = InMemoryKernelNet::new().with_link("eth0");
+        fake.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap();
+        let fake_err = fake.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap_err();
+
+        // EEXIST is what the kernel answers the adapter's NLM_F_EXCL with.
+        let linux_err = errno_error("netlink request failed", -17);
+
+        assert_eq!(fake_err.kind(), linux_err.kind());
+        assert_eq!(fake_err.kind(), "invalid_state");
+    }
+
+    #[test]
+    fn errno_classification_separates_sandbox_denial_from_a_real_failure() {
+        // The classes PID 1 actually branches on. A substrate that reports
+        // these without an errno number now still lands in the right arm,
+        // because the variant carries the meaning.
+        assert_eq!(errno_error("op", -1).kind(), "permission_denied"); // EPERM
+        assert_eq!(errno_error("op", -13).kind(), "permission_denied"); // EACCES
+        assert_eq!(errno_error("op", -38).kind(), "unsupported"); // ENOSYS
+        assert_eq!(errno_error("op", -95).kind(), "unsupported"); // EOPNOTSUPP
+        assert_eq!(errno_error("op", -25).kind(), "unsupported"); // ENOTTY
+        assert_eq!(errno_error("op", -17).kind(), "invalid_state"); // EEXIST
+        assert_eq!(errno_error("op", -2).kind(), "not_found"); // ENOENT
+        assert_eq!(errno_error("op", -19).kind(), "not_found"); // ENODEV
+        assert_eq!(errno_error("op", -99).kind(), "other");
+    }
+
+    #[test]
+    fn classification_preserves_the_errno_text_pid1_still_parses() {
+        // The legacy `net_errno` scan must keep working on Linux while callers
+        // migrate to matching the variant, so the suffix is not dropped.
+        assert!(
+            errno_error("socket(AF_NETLINK)", -13)
+                .to_string()
+                .ends_with("errno -13")
+        );
+    }
 
     #[test]
     fn netmask_math() {
@@ -1679,7 +1755,10 @@ mod tests {
         buf.extend_from_slice(&(-1i32).to_ne_bytes());
         patch_nlmsg_len(&mut buf);
         let err = parse_addr_dump(&buf).unwrap_err();
-        assert_eq!(err.kind(), "other");
+        // Classified rather than opaque: EPERM on a dump is the sandbox case
+        // PID 1 tolerates, and it must be recognisable without reading text.
+        assert_eq!(err.kind(), "permission_denied");
+        assert!(err.to_string().contains("errno 1"));
     }
 
     #[test]
@@ -1693,7 +1772,9 @@ mod tests {
 
         let err = dump_chunk_done_or_error(&buf).unwrap_err();
 
-        assert_eq!(err.kind(), "other");
+        // ENODEV means the interface is gone, which the port contract maps to
+        // NotFound. The raw errno stays in the message for diagnostics.
+        assert_eq!(err.kind(), "not_found");
         assert!(err.to_string().contains("errno 19"));
     }
 
