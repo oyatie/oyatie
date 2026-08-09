@@ -22,7 +22,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0710-D2
     description: "Own the three components that replace the policy engine: the tier-map projection controller, the CI signing + digest-pinning verifier, and the asynchronous cluster conformance scanner."
-    exit_criteria: "Each has an OWNERS file, a BUCK target, a registry catalog row, and a gate asserting manifest-to-cluster agreement for the tier map. Each ALSO names its failure mode and carries an OpenSLO objective plus a failure-injection test before it promotes past dev, because repository artifacts alone cannot show a security control fails safely: a STALE tier projection must be indistinguishable from an absent one and DENY (never admit on last-known-good); a signing-verifier outage must fail the build rather than let an unverified digest through; and the conformance scanner carries a bounded staleness objective past which its verdict reads UNKNOWN, never PASS. A FOURTH executed failure-injection test sits alongside those three: REVOKE a D-6 allowlist entry and prove a pod referencing that digest is refused. The gate asserts each objective exists and each injection test is executed, not merely declared. HOMES, so the placement decision is made here rather than re-derived at implementation time, following the capability-first split already live in k8s/{core,ports,adapters,facade} and ci/facade: the tier-map projection controller is k8s/core/runtime-tier-projection-kernel (pure projection logic) plus k8s/facade/runtime-tier-projection-app (the running controller); the asynchronous cluster conformance scanner is k8s/core/cluster-conformance-kernel plus k8s/facade/cluster-conformance-app; and the CI signing + digest-pinning verifier that issues the D-6 allowlist is ci/facade/image-provenance-verifier. Ports and adapters are added per area convention where a boundary is needed."
+    exit_criteria: "Each has an OWNERS file, a BUCK target, a registry catalog row, and a gate asserting manifest-to-cluster agreement for the tier map. Each ALSO names its failure mode and carries an OpenSLO objective plus a failure-injection test before it promotes past dev, because repository artifacts alone cannot show a security control fails safely: a STALE tier projection must be indistinguishable from an absent one and DENY (never admit on last-known-good) — and that is a MECHANISM here, not an assertion, because nothing in the substrate makes it true for free: the tier map carries the same freshness-window label and `paramRef.selector` binding D-6 specifies for the allowlist, so a projector that stops re-stamping makes the selector match zero objects and the mandated `parameterNotFoundAction: Deny` fires on the path VAP already enforces; a signing-verifier outage must fail the build rather than let an unverified digest through; and the conformance scanner carries a bounded staleness objective past which its verdict reads UNKNOWN, never PASS. TWO FURTHER executed failure-injection tests sit alongside those three. FOURTH: REVOKE a D-6 allowlist entry and prove a pod referencing that digest is refused. FIFTH, CRASH-AFTER-WRITE, which is the one that separates a mechanism from a property: kill the projector immediately after a successful write, advance past one freshness window, and assert that a digest which was admissible before the crash is REFUSED after it. The fifth test is required for BOTH param resources — the D-6 allowlist and this tier map — because a stale allowlist and a stale tier projection fail identically and for the same reason. The gate asserts each objective exists and each injection test is executed, not merely declared. HOMES, so the placement decision is made here rather than re-derived at implementation time, following the capability-first split already live in k8s/{core,ports,adapters,facade} and ci/facade: the tier-map projection controller is k8s/core/runtime-tier-projection-kernel (pure projection logic) plus k8s/facade/runtime-tier-projection-app (the running controller); the asynchronous cluster conformance scanner is k8s/core/cluster-conformance-kernel plus k8s/facade/cluster-conformance-app; and the CI signing + digest-pinning verifier that issues the D-6 allowlist is ci/facade/image-provenance-verifier. Ports and adapters are added per area convention where a boundary is needed."
     verified_by: "oya-ci-required"
 ---
 # ADR-0710: Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook
@@ -129,20 +129,47 @@ become optional, and digest pinning on its own does not replace it:
 
 The allowlist is a **cache of a verification decision**, and a cache with no lifecycle is a
 control that cannot be tightened. The param resource is therefore specified end to end, not only
-at its issuance edge:
+at its issuance edge — and specified as a **data structure with an enforceable shape**, because
+every property below has to be carried by something the API server evaluates on its own. TTL,
+revocation and garbage collection are all *executed by the projector*. Stated only as properties,
+all three stop the moment the projector dies after its last successful write, while the param
+object persists with stale contents that VAP keeps admitting. **Absence is the only condition VAP
+enforces natively** — `parameterNotFoundAction: Deny` — so staleness is made to COLLAPSE INTO
+ABSENCE rather than asserted to be equivalent to it.
 
-- **Record schema.** Each entry carries the digest, the issuing CI run and workflow identity,
-  the **verifier-policy version** it was issued under, an issue timestamp, and its tenant/cell
-  scope.
-- **Bounded validity.** Entries carry a TTL, past which admission refuses the digest until CI
-  re-issues it.
-- **Revocation.** An entry is removable, and removal propagates to the param resource before the
-  next admission decision. Re-issuance is **REQUIRED** when the verifier-policy version changes,
-  so tightening the verifier — or revoking a trusted workflow identity after a compromise —
-  invalidates every entry issued under the old version instead of leaving it admissible. A stale
-  projection is treated exactly as deliverable D-2's exit criteria already require for the tier
-  map: indistinguishable from absent, and **DENY**, never last-known-good.
-- **Garbage collection.** Entries for digests no longer deployed are collected.
+- **Shape: a map keyed by digest, never a list of records.** The object is a `ConfigMap` whose
+  `data` keys are the digests, so admission is `params.data[digest]` — a constant-time lookup. A
+  list makes set membership an `exists()` scan whose CEL cost grows with the corpus, and because
+  this ADR mandates `failurePolicy: Fail`, the first expression to exceed Kubernetes'
+  per-expression cost budget would deny every matching API write cluster-wide.
+- **Bounded shards, never one global object.** `paramKind` is **namespaced**, and the allowlist is
+  sharded per cell/tenant namespace so the binding resolves the shard from the request's own
+  namespace. Each object is then bounded by one tenant's live artifacts rather than by the whole
+  fleet's, which is what keeps it inside etcd's ~1.5 MiB per-object ceiling. A per-shard entry
+  ceiling is declared; exceeding it makes the projector **refuse to project and alarm**, never
+  silently truncate — a truncated shard is indistinguishable from a revoked digest.
+- **Record schema.** Each entry's value carries the issuing CI run and workflow identity, the
+  **verifier-policy version** it was issued under, an issue timestamp, and its tenant/cell scope.
+  The scope field is a cross-check that the record landed in the right shard, not the shard
+  boundary itself.
+- **Bounded validity, carried by a freshness window rather than by a timestamp comparison.** The
+  projector stamps every shard with the current window in
+  `metadata.labels['allowlist.oya/window']` and re-stamps it at a declared interval; the
+  `ValidatingAdmissionPolicyBinding` selects the shard by `paramRef.selector` on that label rather
+  than by a fixed `paramRef.name`. A projector that stops — crashed, evicted or partitioned —
+  stops re-stamping, the selector then matches **zero** objects, and `parameterNotFoundAction:
+  Deny` fires on the path VAP already enforces. No new controller and no current-time dependency.
+  The window length and the required re-stamp interval are part of this schema. This is
+  deliberately NOT a per-entry TTL checked in CEL at admission: admission CEL excludes
+  non-deterministic functions, so no current-time value is available to compare an issue timestamp
+  against, and a TTL expressed that way would be unenforceable at admission and projector-coupled
+  like everything else.
+- **Revocation.** An entry is removable, and removal propagates to the shard before the next
+  admission decision. Re-issuance is **REQUIRED** when the verifier-policy version changes, so
+  tightening the verifier — or revoking a trusted workflow identity after a compromise —
+  invalidates every entry issued under the old version instead of leaving it admissible.
+- **Garbage collection.** Entries for digests no longer deployed are collected. GC bounds the set
+  to live artifacts; it is the SHARDING above, not GC, that bounds a single object.
 
 Without that lifecycle this clause would not survive its own standard. Relocating verification
 out of the request path converts a control that was re-evaluated on every API write into a cache
