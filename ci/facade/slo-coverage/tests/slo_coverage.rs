@@ -12,12 +12,12 @@ use ci_slo_coverage::{Verdict, evaluate, evaluate_keyed};
 use serde_json::Value;
 
 const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
-    "cloud/cloud-intelligence/manifest.json",
-    "cloud/managed-k8s-cluster-lifecycle/manifest.json",
-    "cloud/managed-k8s-control-plane-host/manifest.json",
-    "cloud/managed-k8s-sla-observability/manifest.json",
-    "cloud/managed-k8s-tenant-quota/manifest.json",
-    "cloud/tenancy/manifest.json",
+    "intelligence/manifest.json",
+    "k8s/managed-cluster-lifecycle/manifest.json",
+    "k8s/managed-control-plane-host/manifest.json",
+    "k8s/managed-sla-observability/manifest.json",
+    "k8s/managed-tenant-quota/manifest.json",
+    "tenancy/manifest.json",
 ];
 
 /// FALSE-GREEN FLOOR: the producer must be shown to have actually enumerated the
@@ -111,15 +111,50 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
+/// The issue #993 cloud substrate service manifests, at their capability-first homes.
+/// This was a `read_dir("cloud")` walk until the ADR-0562 rehomes emptied `cloud/`, at which point
+/// the walk silently found 2 of 21 — a scan that shrinks to nothing is a false green, so the set is
+/// now named explicitly and `manifest_missing` below fails closed on any entry that stops resolving.
+const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
+    "billing/manifest.json",
+    "billing/tax/manifest.json",
+    "cell/cell-lifecycle/manifest.json",
+    "cell/cell-rebalancer/manifest.json",
+    "cloud/cloud-kernel/manifest.json",
+    "cloud/cloud-os/manifest.json",
+    "data/cloud-data/manifest.json",
+    "iac/manifest.json",
+    "iam/cloud-iam/manifest.json",
+    "intelligence/manifest.json",
+    "k8s/managed-cluster-lifecycle/manifest.json",
+    "k8s/managed-control-plane-host/manifest.json",
+    "k8s/managed-sla-observability/manifest.json",
+    "k8s/managed-tenant-quota/manifest.json",
+    "k8s/manifest.json",
+    "network/dns/manifest.json",
+    "network/manifest.json",
+    "secrets/kms/manifest.json",
+    "secrets/manifest.json",
+    "storage/manifest.json",
+    "tenancy/manifest.json",
+];
+
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
-    for entry in fs::read_dir(root.join("cloud")).expect("read cloud directory") {
-        let entry = entry.expect("read cloud child");
-        let manifest = entry.path().join("manifest.json");
+    let mut missing = Vec::new();
+    for relative in CLOUD_SUBSTRATE_MANIFESTS {
+        let manifest = root.join(relative);
         if manifest.is_file() {
             paths.push(manifest);
+        } else {
+            missing.push(relative);
         }
     }
+    assert!(
+        missing.is_empty(),
+        "cloud substrate service manifests no longer resolve (rehomed without re-anchoring this \
+         gate): {missing:?}"
+    );
     paths.sort();
     paths
 }

@@ -36,11 +36,14 @@ rust_test(
     name = "iac-app-cloud-iac-app",
     srcs = [],
     crate = "iac_app_cloud_iac_app",
-    crate_root = "cloud/cloud-iac/crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
+    crate_root = "iac/facade/app/tests/cloud_iac_app.rs",
     visibility = ["PUBLIC"],
+    # Sandbox layout mirrors the post-rehome repo layout, which is what the test source already
+    # expects: include_str!("../../../tofu/modules/release-index.json") resolves from
+    # iac/facade/app/tests/ to iac/tofu/modules/release-index.json.
     mapped_srcs = {
-        "tests/cloud_iac_app.rs": "cloud/cloud-iac/crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
-        "//cloud/cloud-iac/tofu/modules:release-index.json": "cloud/cloud-iac/tofu/modules/release-index.json",
+        "tests/cloud_iac_app.rs": "iac/facade/app/tests/cloud_iac_app.rs",
+        "//iac/tofu/modules:release-index.json": "iac/tofu/modules/release-index.json",
     },
     deps = [
         ":iac-app",

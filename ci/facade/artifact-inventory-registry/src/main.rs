@@ -125,10 +125,35 @@ fn load_scm_facts(path: &Path) -> Result<ScmFacts, CliError> {
                 path.display()
             )));
         };
-        tracked_paths.push(tracked_path.to_owned());
+        tracked_paths.push(decode_tracked_path(tracked_path)?);
     }
+    // Decoding reorders relative to the emitter's sort over the QUOTED spellings (`"` sorts
+    // below every path character), so re-establish the sorted+deduped invariant the face
+    // declares and every consumer assumes.
+    tracked_paths.sort();
+    tracked_paths.dedup();
 
     Ok(ScmFacts { tracked_paths })
+}
+
+/// THE ingestion boundary for a Git pathname: decode the C-quoted spelling ONCE, here, so
+/// every downstream key — the accounting row `path`, the ownership walk, the justification
+/// lookup, the reachability match, the brand-residue census key — is the real pathname.
+/// Before this, a quoted path was keyed by its `"…\302\265…"` spelling, so the ownership walk
+/// climbed ancestors of `"marketplace` and matched no OWNERS, no justification and no
+/// reachability entry: permanently unowned/unjustified/unreachable.
+///
+/// NON-UTF-8 POLICY: fail closed. Such bytes cannot round-trip through the JSON `path` field,
+/// and a lossily-renamed key would silently reintroduce exactly the mismatch class this decode
+/// removes — a wrong key that LOOKS right is worse than a loud stop. Rename the file to UTF-8.
+fn decode_tracked_path(tracked_path: &str) -> Result<String, CliError> {
+    String::from_utf8(decode_git_path(tracked_path)?).map_err(|_| {
+        CliError::Io(format!(
+            "tracked path {tracked_path:?} decodes to non-UTF-8 bytes: it cannot be a canonical \
+             accounting key without a lossy rename, which would silently mis-key ownership, \
+             justification and reachability. Rename the file to UTF-8."
+        ))
+    })
 }
 
 impl From<ProducerError> for CliError {
@@ -688,9 +713,14 @@ fn collect_brand_residue(
 /// as arbitrary bytes. Symlinks contribute their link payload rather than the target contents,
 /// matching Git's blob semantics. Every error is fatal so an incomplete checkout cannot erase a
 /// strict-zero finding.
+///
+/// `tracked_path` is ALREADY decoded ([`decode_tracked_path`] at the ingestion boundary), so it
+/// IS the real pathname and its bytes ARE the real path bytes. Decoding again here would be a
+/// second, position-dependent decode: a file whose real name legitimately starts with `"` would
+/// be decoded twice and resolve to the wrong path (or fail with a misleading quoting error).
 fn read_tracked_blob(repo_root: &Path, tracked_path: &str) -> Result<(Vec<u8>, Vec<u8>), CliError> {
-    let raw_path = decode_git_path(tracked_path)?;
-    let relative_path = path_buf_from_bytes(raw_path.clone(), tracked_path)?;
+    let raw_path = tracked_path.as_bytes().to_vec();
+    let relative_path = PathBuf::from(tracked_path);
     if relative_path.as_os_str().is_empty()
         || relative_path.is_absolute()
         || relative_path.components().any(|component| {
@@ -800,22 +830,9 @@ fn invalid_git_path(tracked_path: &str, reason: &str) -> CliError {
     ))
 }
 
-#[cfg(unix)]
-fn path_buf_from_bytes(raw_path: Vec<u8>, _tracked_path: &str) -> Result<PathBuf, CliError> {
-    use std::os::unix::ffi::OsStringExt;
-
-    Ok(PathBuf::from(std::ffi::OsString::from_vec(raw_path)))
-}
-
-#[cfg(not(unix))]
-fn path_buf_from_bytes(raw_path: Vec<u8>, tracked_path: &str) -> Result<PathBuf, CliError> {
-    String::from_utf8(raw_path).map(PathBuf::from).map_err(|_| {
-        invalid_git_path(
-            tracked_path,
-            "pathname bytes are not valid UTF-8 on this platform",
-        )
-    })
-}
+// The former `path_buf_from_bytes` (unix / non-unix pair) is gone: canonical tracked paths are
+// UTF-8 `String`s by construction (`decode_tracked_path` fails closed otherwise), so
+// `PathBuf::from(&str)` is correct on every platform.
 
 /// Map the oya-ci config `[vocab]` section onto the brand crate's injected [`VocabPolicy`]
 /// (§3.3 / Stage 3). The kind enum is mirrored 1:1; the bundled default reproduces today's
@@ -1851,35 +1868,99 @@ mod tests {
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
-    #[cfg(unix)]
+    /// The decoded (canonical) spelling of a non-ASCII pathname resolves to the file's exact
+    /// bytes and is the census key. Post-ingestion-decode this collector never sees a quoted
+    /// spelling, so it must not decode again — see [`read_tracked_blob`].
     #[test]
-    fn strict_zero_collector_decodes_git_c_quoted_path_bytes() {
-        use std::os::unix::ffi::OsStringExt;
-
+    fn strict_zero_collector_reads_a_non_ascii_tracked_path_by_its_decoded_spelling() {
         let root = unique_temp_repo();
-        let raw_relative = std::ffi::OsString::from_vec(
-            [
-                b"oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-".as_slice(),
-                &[0xc2, 0xb5],
-                b"service.md".as_slice(),
-            ]
-            .concat(),
+        let tracked_key = decode_tracked_path(
+            r#""oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-\302\265service.md""#,
+        )
+        .expect("quoted path decodes");
+        assert_eq!(
+            tracked_key,
+            "oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-\u{b5}service.md"
         );
-        let full = root.join(raw_relative);
+        let full = root.join(&tracked_key);
         fs::create_dir_all(full.parent().expect("fixture parent")).expect("create parent");
         fs::write(&full, retired_coordination_brand_bytes()).expect("write quoted-path fixture");
-        let tracked_key =
-            r#""oya/developer-sdk/decisions/ADR-SDK-0003-tenancy-\302\265service.md""#.to_owned();
         let cfg =
             oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
 
         let grouped = collect_brand_residue(&root, std::slice::from_ref(&tracked_key), &cfg)
-            .expect("Git C-quoted tracked pathname resolves to its exact bytes");
+            .expect("decoded tracked pathname resolves to its exact bytes");
         assert!(
             grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
                 .contains(&tracked_key)
         );
         fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// THE regression test for the ingestion boundary, driven from the FACE the producer
+    /// actually reads: a Git C-quoted `tracked_paths` entry must arrive as its DECODED
+    /// spelling, and therefore resolve the SAME owner as its unquoted sibling. Before the
+    /// decode, the row keyed on `"marketplace/…`, so the ownership walk climbed ancestors of
+    /// `"marketplace` and resolved `null` while every sibling resolved the directory OWNERS.
+    /// Reverting the decode in `load_scm_facts` fails this test on the first assertion.
+    #[test]
+    fn scm_facts_ingestion_decodes_quoted_paths_so_they_resolve_the_sibling_owner() {
+        let root = unique_temp_repo();
+        let dir = "marketplace/developer-sdk/decisions";
+        write_test_file(&root, &format!("{dir}/OWNERS"), "axis-ecosystem\n");
+        let sibling = format!("{dir}/ADR-SDK-0001-plain.md");
+        write_test_file(&root, &sibling, "# plain\n");
+        let decoded = format!("{dir}/ADR-SDK-0003-\u{b5}service.md");
+        write_test_file(&root, &decoded, "# quoted-name sibling\n");
+
+        let face = write_test_file(
+            &root,
+            "scm-facts.generated.json",
+            r#"{"schema":"oya-ci/scm-facts/v2","tracked_paths":[
+                "marketplace/developer-sdk/decisions/OWNERS",
+                "marketplace/developer-sdk/decisions/ADR-SDK-0001-plain.md",
+                "\"marketplace/developer-sdk/decisions/ADR-SDK-0003-\\302\\265service.md\""
+            ]}"#,
+        );
+        let tracked = load_scm_facts(&face)
+            .expect("scm-facts face loads")
+            .tracked_paths;
+
+        assert!(
+            tracked.contains(&decoded),
+            "ingestion must yield the DECODED spelling, got: {tracked:?}"
+        );
+        assert!(
+            !tracked.iter().any(|p| p.starts_with('"')),
+            "no quoted spelling may survive ingestion: {tracked:?}"
+        );
+
+        let cfg =
+            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+        let owners = resolve_owners(&root, &tracked, &cfg).by_path;
+        assert_eq!(
+            owners.get(&sibling).map(String::as_str),
+            Some(format!("OWNERS:{dir}").as_str()),
+            "the unquoted sibling must be owned (fixture sanity)"
+        );
+        assert_eq!(
+            owners.get(&decoded),
+            owners.get(&sibling),
+            "a Git-quoted path must resolve the same OWNERS as its unquoted sibling"
+        );
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// Non-UTF-8 path bytes fail CLOSED rather than lossily renaming the key: a lossy key
+    /// looks right and mis-keys ownership/justification/reachability all over again.
+    #[test]
+    fn a_non_utf8_tracked_path_fails_closed() {
+        let error = decode_tracked_path(r#""bad-\377-name.md""#)
+            .expect_err("non-UTF-8 path bytes must fail closed");
+        assert!(
+            error.to_string().contains("non-UTF-8"),
+            "unexpected error: {error}"
+        );
     }
 
     fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
@@ -4680,12 +4761,15 @@ fn git_added_paths(repo_root: &Path, merge_base: &str) -> Result<Vec<String>, Cl
             String::from_utf8_lossy(&output.stderr).trim()
         )));
     }
-    Ok(String::from_utf8_lossy(&output.stdout)
+    // `git diff --name-only` C-quotes the same pathnames `ls-files` does, so this is the SECOND
+    // ingestion boundary and takes the SAME decode — otherwise the author-side check silently
+    // disagrees with the full gate on exactly the paths that need it most.
+    String::from_utf8_lossy(&output.stdout)
         .lines()
         .map(str::trim)
         .filter(|line| !line.is_empty())
-        .map(str::to_owned)
-        .collect())
+        .map(decode_tracked_path)
+        .collect()
 }
 
 /// Resolve the firewall verdict for a set of ADDED paths, reusing the EXACT producer

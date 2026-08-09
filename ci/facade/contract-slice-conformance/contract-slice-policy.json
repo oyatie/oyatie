@@ -1331,9 +1331,9 @@
         {
           "field": "properties.focus_opencost_rollup.properties.consumer_contracts.default",
           "members": [
-            "oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
-            "oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
-            "oya/finops-portal/contracts/cost-allocation-policy-internal.proto"
+            "billing/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+            "billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+            "billing/finops-portal/contracts/cost-allocation-policy-internal.proto"
           ]
         },
         {
@@ -1506,7 +1506,7 @@
     },
     {
       "slice_id": "release-001-runtime-safety-policy",
-      "spec_path": "oya/feature-flags/release/runtime-safety-policy.json",
+      "spec_path": "flags/release/runtime-safety-policy.json",
       "required_fields": [
         "schema_version",
         "service",
@@ -1686,7 +1686,7 @@
         {
           "field": "verification.catalog_ref",
           "allowed": [
-            "oya/feature-flags/catalog/oya-feature-flags-rollout-kernel.yaml"
+            "flags/catalog/oya-feature-flags-rollout-kernel.yaml"
           ]
         },
         {
@@ -2555,7 +2555,7 @@
     },
     {
       "slice_id": "resilience-001-messenger-manifest-trace-sampling",
-      "spec_path": "oya/messenger/manifest.json",
+      "spec_path": "comms/messenger/manifest.json",
       "required_fields": [
         "microservice",
         "observability_trace_sampling_recipe.head_bps",
@@ -2711,7 +2711,7 @@
         {
           "field": "runtime_control_loop.tail_sampling.manifest_field_ref",
           "allowed": [
-            "oya/messenger/manifest.json#/observability_trace_sampling_recipe"
+            "comms/messenger/manifest.json#/observability_trace_sampling_recipe"
           ]
         },
         {
@@ -3208,7 +3208,7 @@
                 "infra/capi/clusters/README.md",
                 "infra/capi/clusters/values.yaml",
                 "infra/gitops/root-app.yaml",
-                "cloud/managed-k8s-control-plane-host/adr-links.md"
+                "k8s/managed-control-plane-host/adr-links.md"
               ]
             },
             {
@@ -3257,15 +3257,15 @@
               "when_member": "managed_k8s_surface",
               "field": "source_paths",
               "must_contain": [
-                "cloud/managed-k8s-cluster-lifecycle/PRD.md",
-                "cloud/managed-k8s-cluster-lifecycle/contracts/openapi.yaml",
-                "cloud/managed-k8s-tenant-quota/PRD.md",
-                "cloud/managed-k8s-control-plane-host/PRD.md",
-                "cloud/managed-k8s-control-plane-host/tenant-isolation.md",
-                "cloud/managed-k8s-sla-observability/PRD.md",
-                "cloud/managed-k8s-tenant-quota/contracts/openapi-v1.yaml",
-                "cloud/managed-k8s-control-plane-host/contracts/openapi.yaml",
-                "cloud/managed-k8s-sla-observability/contracts/openapi-v1.yaml"
+                "k8s/managed-cluster-lifecycle/PRD.md",
+                "k8s/managed-cluster-lifecycle/contracts/openapi.yaml",
+                "k8s/managed-tenant-quota/PRD.md",
+                "k8s/managed-control-plane-host/PRD.md",
+                "k8s/managed-control-plane-host/tenant-isolation.md",
+                "k8s/managed-sla-observability/PRD.md",
+                "k8s/managed-tenant-quota/contracts/openapi-v1.yaml",
+                "k8s/managed-control-plane-host/contracts/openapi.yaml",
+                "k8s/managed-sla-observability/contracts/openapi-v1.yaml"
               ]
             },
             {

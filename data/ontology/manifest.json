@@ -1,0 +1,609 @@
+{
+  "schema_version": "1.0",
+  "microservice": "ontology",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S3",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "observability",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": [
+      "intelligence",
+      "workflow-engine"
+    ]
+  },
+  "version": "0.1.0",
+  "owner": "axis-ontology",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [],
+  "bounded_contexts": [
+    {
+      "name": "ontology-substrate",
+      "description": "Typed ontology substrate spanning object/link/action/function registries, entity store, function/action/query engines, agent gateway, audit-chain, and pillar enforcement contexts.",
+      "crates": [
+        "oya-ontology-query-engine-domain",
+        "oya-ontology-query-engine-usecase"
+      ]
+    }
+  ],
+  "layers": [
+    "kernel",
+    "domain",
+    "usecase",
+    "adapter",
+    "rest"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/ontology/contracts/openapi/ontology.yaml"
+    ],
+    "asyncapi": [
+      "microservices/ontology/contracts/asyncapi/ontology-events.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "data/ontology/contracts/proto/ontology.proto"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "cedar-evaluate",
+      "file": "microservices/ontology/capabilities/cedar-evaluate.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "query-execute",
+      "file": "microservices/ontology/capabilities/query-execute.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "type-register",
+      "file": "microservices/ontology/capabilities/type-register.yaml",
+      "risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "ontology-action-invocation-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(oya_ontology_action_invocations_total{outcome=~\"success|denied\"}[1m]))",
+      "file": "data/observability/slos/ontology/action-invocation-availability.openslo.yaml"
+    },
+    {
+      "name": "ontology-audit-chain-emission-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_ontology_audit_chain_seal_total[1m]))",
+      "file": "data/observability/slos/ontology/audit-chain-emission-completeness.openslo.yaml"
+    },
+    {
+      "name": "ontology-dynamic-layer-freshness",
+      "target": "0.99",
+      "sli": "sum(rate(oya_ontology_dynamic_layer_freshness_lag_seconds_bucket{le=\"2\"}[1m]))",
+      "file": "data/observability/slos/ontology/dynamic-layer-freshness.openslo.yaml"
+    },
+    {
+      "name": "ontology-function-read-availability",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_ontology_function_evaluations_total{outcome=\"success\"}[1m]))",
+      "file": "data/observability/slos/ontology/function-read-availability.openslo.yaml"
+    },
+    {
+      "name": "ontology-function-read-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_ontology_function_evaluation_duration_seconds_bucket{le=\"0.050\"}[1m]))",
+      "file": "data/observability/slos/ontology/function-read-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-ontology-iac-stack",
+      "title": "IP-001: Ontology IaC stack",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-001-ontology-iac-stack.md"
+    },
+    {
+      "id": "IP-002-object-type-registry-kernel-domain",
+      "title": "IP-002: object-type-registry kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-002-object-type-registry-kernel-domain.md"
+    },
+    {
+      "id": "IP-003-link-action-function-type-registry",
+      "title": "IP-003: link-type-registry + action-type-registry + function-type-registry",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-003-link-action-function-type-registry.md"
+    },
+    {
+      "id": "IP-004-entity-store-rls-citus",
+      "title": "IP-004: entity-store (Postgres + Citus + RLS)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-004-entity-store-rls-citus.md"
+    },
+    {
+      "id": "IP-005-link-store-traversal",
+      "title": "IP-005: link-store (typed Link Type persistence + traversal)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-005-link-store-traversal.md"
+    },
+    {
+      "id": "IP-006-cedar-fragment-coverage-engine",
+      "title": "IP-006: cedar-fragment-coverage",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-006-cedar-fragment-coverage-engine.md"
+    },
+    {
+      "id": "IP-007-action-engine-cedar-gated",
+      "title": "IP-007: action-engine",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-007-action-engine-cedar-gated.md"
+    },
+    {
+      "id": "IP-008-function-engine-oltp-and-olap",
+      "title": "IP-008: function-engine (OLTP)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-008-function-engine-oltp-and-olap.md"
+    },
+    {
+      "id": "IP-009-clickhouse-history-mirror",
+      "title": "IP-009: ClickHouse history-mirror",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-009-clickhouse-history-mirror.md"
+    },
+    {
+      "id": "IP-010-audit-chain-merkle-ed25519",
+      "title": "IP-010: audit-chain (Merkle + Ed25519)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-010-audit-chain-merkle-ed25519.md"
+    },
+    {
+      "id": "IP-011-query-engine-3layer-kg",
+      "title": "IP-011: query-engine (3-layer Knowledge Graph)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-011-query-engine-3layer-kg.md"
+    },
+    {
+      "id": "IP-012-agent-gateway-llm-tool-call",
+      "title": "IP-012: agent-gateway",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-012-agent-gateway-llm-tool-call.md"
+    },
+    {
+      "id": "IP-013-pillar-cross-pillar-grant",
+      "title": "IP-013: pillar (org / person + cross-pillar grant)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-013-pillar-cross-pillar-grant.md"
+    },
+    {
+      "id": "IP-014-rest-and-sdk-surfaces",
+      "title": "IP-014: REST + SDK surfaces",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-014-rest-and-sdk-surfaces.md"
+    },
+    {
+      "id": "IP-015-app-binaries-and-branch-protection",
+      "title": "IP-015: App binaries + branch-protection + HG-ONT + OpenSLO",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-015-app-binaries-and-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "clickhouse": "24.10",
+    "postgres": "16.6",
+    "valkey": "8.1",
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0006",
+      "title": "Ontology Typed Entity Layer",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0055",
+      "title": "Object Graph Renamed To Ontology",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0059",
+      "title": "Workflow Ontology Ecosystem Adapter Layer",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
+    },
+    {
+      "id": "ADR-0107",
+      "title": "Tools Implicit App Convention",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0110",
+      "title": "Changeset State Machine",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0114",
+      "title": "Canary Observability Rollback",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0706-observability-live-apex.md"
+    },
+    {
+      "id": "ADR-0122",
+      "title": "Ontology Crate Rename From Object Graph",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0234",
+      "title": "Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0172",
+      "title": "Cqrs Read Replicas",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
+    },
+    {
+      "id": "ADR-0336",
+      "title": "Valkey is the canonical in-memory KV / cache / pubsub substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.ontology.cedar-evaluate",
+      "oya.ontology.query-execute",
+      "oya.ontology.type-register"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "valkey_substrate": {
+    "source_task": "VALKEY-001 / t_86328d15",
+    "decision_adr": "ADR-0336",
+    "dependency_posture": "valkey_only",
+    "topology": "per-cell hot cache for ontology schema/function lookup acceleration; Postgres/Citus remains the source of truth and Valkey is a cache/substrate dependency, not storage authority",
+    "manifest_pin": {
+      "substrate": "valkey",
+      "connection_budget_field": "capacity_model.connections_per_tenant.valkey",
+      "connections_per_tenant": 3
+    },
+    "counterpart_fact_policy": "No quote-bound third-party legacy cache counterpart facts are present under oya/ontology in this slice; any future external counterpart fact must remain quote-bound and must not become ontology substrate posture.",
+    "validation_evidence": [
+      "python3 -m json.tool oya/ontology/manifest.json >/dev/null",
+      "targeted VALKEY-001 invariant: manifest cites ADR-0336, pins capacity_model.connections_per_tenant.valkey=3, carries valkey_only posture, and contains no legacy cache substrate token under oya/ontology except the ADR-0336 file slug."
+    ],
+    "non_claims": [
+      "no Valkey runtime adapter implementation is introduced by VALKEY-001",
+      "no cache deployment, shard topology, or live connection is claimed",
+      "affected service behavior and source-of-truth persistence remain unchanged"
+    ]
+  },
+  "ontology_projections": [
+    {
+      "entity_name": "Person",
+      "projection_target_table": "ontology_persons",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Document",
+      "projection_target_table": "ontology_documents",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    },
+    {
+      "entity_name": "Recording",
+      "projection_target_table": "ontology_recordings",
+      "projection_kind": "idempotent-rewrite",
+      "lag_budget_seconds": 60
+    }
+  ],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "naming_justifications": "ontology is a BNF v4.1 kebab-case microservice slug; generated names follow oya-ontology-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "soc2-type2",
+    "lgpd",
+    "soc2",
+    "iso27001",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_signals: INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "owner_team": "axis-ontology",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "soc2-type2",
+    "lgpd",
+    "soc2",
+    "iso27001",
+    "SOC 2 Type 2",
+    "kr-isms-p",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5",
+    "DORA"
+  ],
+  "depends_on_microservices": [
+    "calendar",
+    "audit-chain",
+    "cell",
+    "marketplace",
+    "tenancy",
+    "identity",
+    "observability",
+    "network",
+    "intelligence",
+    "workflow-studio",
+    "mail",
+    "notes",
+    "social",
+    "detection",
+    "cloud-iac",
+    "governance"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T1",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.24,
+    "baseline_ram_per_tenant": 512,
+    "storage_per_tenant": 10,
+    "connections_per_tenant": {
+      "valkey": 3,
+      "postgres": 5,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_query",
+    "cell_placement_class": "Tier-1",
+    "notes": "Entity graph reads, projection queries, and history mirrors scale primarily with query and projection load; Valkey is a per-cell hot-cache topology for rebuildable type/function reads, not the authoritative ontology store."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 60,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "clickhouse_iceberg_layered",
+      "audit_chain_merkle_seal",
+      "openbao_seal_unseal"
+    ],
+    "failover_runbook": "runbooks/postgres-citus-rebalance.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Ontology stores tenant entity graphs, links, histories, and agent-facing projections. It does not run tenant code, but it is a tenant-data-touching substrate and therefore requires Tier 1 runtime isolation.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/ontology/PRD.md",
+    "microservices/ontology/ARCHITECTURE.md",
+    "microservices/ontology/IP-004-entity-store-rls-citus.md",
+    "microservices/ontology/IP-010-audit-chain-merkle-ed25519.md",
+    "microservices/ontology/runbooks/postgres-citus-rebalance.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-21",
+      "2025-11-21"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [
+      {
+        "version": "2025-11-21",
+        "deprecated_at": "2026-05-21",
+        "sunset_at": "2026-11-21",
+        "breaking_change_adr": "docs/decisions/ADR-0709-general-live-apex.md",
+        "migration_doc": "microservices/ontology/MIGRATION-2026-05-21.md"
+      }
+    ],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/ontology/contracts/openapi/ontology.yaml",
+        "2026-02-21": "microservices/ontology/contracts/openapi/ontology.yaml",
+        "2025-11-21": "microservices/ontology/contracts/openapi/ontology.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml",
+        "2026-02-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml",
+        "2025-11-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "postgresql",
+    "clickhouse",
+    "valkey",
+    "cedar",
+    "openbao",
+    "opentelemetry",
+    "cilium",
+    "istio",
+    "kyverno"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oci-guest",
+      "primitive": "postgresql-cluster",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "on-prem",
+      "primitive": "clickhouse-iceberg-layer",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "colo",
+      "primitive": "openbao-secret-binding",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "service-mesh-waypoint",
+      "version_pin": "v1",
+      "tenant_class_scope": "paid"
+    }
+  ],
+  "quality_gates": {
+    "foundation_targeted_tests": [
+      "cargo test -p oya-ontology-kernel -p oya-ontology-query-engine-domain -p oya-ontology-query-engine-usecase -p oya-saas-workflow-kernel -p oya-saas-workflow-domain -p oya-saas-workflow-app -p oya-workflow-engine-event-bus-kernel -p oya-workflow-engine-event-bus-domain -p oya-workflow-engine-event-bus-usecase -p oya-workflow-engine-event-bus-api -p oya-workflow-engine-event-bus-rest -p oya-workflow-engine-event-bus-worker -p oya-workflow-engine-event-bus-sdk -p oya-workflow-engine-event-bus-app -p oya-workflow-engine-event-bus-adapter -p oya-workflow-engine-event-bus-adapter-postgres -p oya-workflow-engine-event-bus-adapter-valkey -p oya-workflow-engine-event-bus-adapter-kafka -p oya-workflow-engine-event-bus-adapter-redpanda -p oya-workflow-engine-event-bus-adapter-nats -p oya-workflow-engine-event-bus-adapter-pulsar -p oya-workflow-engine-execution-engine-kernel -p oya-workflow-engine-execution-engine-domain -p oya-workflow-engine-execution-engine-usecase -p oya-workflow-engine-execution-engine-adapter -p oya-workflow-engine-execution-engine-adapter-postgres -p oya-workflow-engine-execution-engine-api -p oya-workflow-engine-execution-engine-rest -p oya-workflow-engine-execution-engine-worker -p oya-workflow-engine-execution-engine-sdk -p oya-workflow-engine-execution-engine-app -p oya-workflow-engine-trigger-orchestrator-kernel -p oya-workflow-engine-trigger-orchestrator-domain -p oya-workflow-engine-trigger-orchestrator-usecase -p oya-workflow-engine-trigger-orchestrator-api -p oya-workflow-engine-trigger-orchestrator-rest -p oya-workflow-engine-trigger-orchestrator-worker -p oya-workflow-engine-trigger-orchestrator-sdk -p oya-workflow-engine-trigger-orchestrator-app -p oya-workflow-engine-state-machine-kernel -p oya-workflow-engine-state-machine-domain -p oya-workflow-engine-state-machine-usecase -p oya-workflow-engine-state-machine-api -p oya-workflow-engine-state-machine-adapter -p oya-workflow-engine-state-machine-adapter-postgres -p oya-workflow-studio-visual-canvas-kernel -p oya-workflow-studio-dsl-emitter-domain -p oya-workflow-studio-dsl-loader-domain -p oya-workflow-studio-policy-preview-domain -p oya-intelligence-model-routing-kernel -p oya-intelligence-model-routing-domain -p oya-intelligence-model-routing-usecase -p oya-intelligence-assist-draft-kernel -p oya-intelligence-assist-draft-domain -p oya-intelligence-assist-draft-usecase -p oya-intelligence-assist-draft-adapter -p oya-intelligence-assist-draft-api -p oya-intelligence-assist-draft-rest -p oya-intelligence-assist-draft-worker -p oya-intelligence-guardrails-kernel -p oya-intelligence-guardrails-domain -p oya-intelligence-guardrails-usecase -p oya-intelligence-context-aware-retrieval-kernel -p oya-intelligence-context-aware-retrieval-domain -p oya-intelligence-context-aware-retrieval-usecase -p oya-intelligence-context-aware-retrieval-adapter -p oya-intelligence-context-aware-retrieval-worker -p oya-intelligence-eval-kernel -p oya-intelligence-eval-domain -p oya-intelligence-eval-usecase -p oya-intelligence-eval-adapter -p oya-intelligence-eval-worker -p oya-intelligence-attribution-kernel -p oya-intelligence-attribution-domain -p oya-intelligence-attribution-usecase -p oya-intelligence-attribution-adapter -p oya-intelligence-attribution-worker -p oya-intelligence-dispatch-usecase -p oya-intelligence-providers-adapter-openai -p oya-intelligence-credential-resolver-domain -p oya-intelligence-credential-resolver-usecase -p oya-intelligence-credential-resolver-adapter -p oya-intelligence-audit-tap-usecase -p oya-intelligence-audit-tap-adapter -p oya-intelligence-audit-tap-worker"
+    ],
+    "foundation_lint": [
+      "cargo clippy -p <touched-foundation-crate> --all-targets -- -D warnings"
+    ],
+    "hyperscaler_claim_policy": "preview-foundation only; no hyperscaler-grade production claim until specs/hyperscaler-gates.json gates have current runtime, CI/CD, operational, SLO, supply-chain, rollback, and Oya VCS promotion evidence."
+  },
+  "hyperscaler_claims": {
+    "claim_status": "not_claimed",
+    "honest_claim_scope": "source-level foundation primitives and tests only",
+    "required_before_hyperscaler_claim": [
+      "fresh ./bin/oya verify --ci-required output",
+      "hyperscaler-maturity-claims and hyperscaler-arch-invariants gates green for the exact surface",
+      "runtime deployment, SLO, rollback, runbook, threat-model, and supply-chain evidence",
+      "Oya VCS verify/done/promote evidence"
+    ]
+  }
+}

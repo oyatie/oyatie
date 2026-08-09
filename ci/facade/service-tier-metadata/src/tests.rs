@@ -515,3 +515,54 @@ fn structured_named_slo_exemption_covers_planned_entry_without_stale_file() {
     );
     assert!(findings.is_empty(), "{findings:?}");
 }
+
+/// REGRESSION PIN, 2026-08-08 (PR #1620 review, finding 1 of 10).
+///
+/// The capability-first rehome turned `cloud/cloud-billing/manifest.json` into
+/// `billing/manifest.json` — ONE path component after the governed root, not two. The
+/// predicate required exactly two, so fourteen substrate services silently left
+/// `evaluate_sharding_automation` and `evaluate_openslo_manifest_refs` while the gate
+/// still reported green: billing, compliance, console, flags, gateway, iac,
+/// intelligence, k8s, marketplace, network, observability, secrets, storage, tenancy.
+///
+/// All fourteen satisfied the predicate before the move. A gate that stops looking at a
+/// T0/T1 substrate service and stays green is the false-green class this gate exists to
+/// prevent, which is why this is pinned rather than left to the corpus test.
+#[test]
+fn both_top_level_service_manifest_shapes_are_governed_and_deeper_paths_are_not() {
+    let roots: BTreeSet<String> = ["billing", "cell", "cloud", "oya"]
+        .into_iter()
+        .map(String::from)
+        .collect();
+
+    // <root>/manifest.json — the capability's OWN manifest. This is the shape the rehome
+    // produces and the one whose absence was the defect.
+    assert!(
+        is_top_level_service_manifest("billing/manifest.json", &roots),
+        "a capability's own manifest must be governed; requiring two components dropped 14 services"
+    );
+
+    // <root>/<service>/manifest.json — a sub-service. Must keep working.
+    assert!(
+        is_top_level_service_manifest("oya/connector/manifest.json", &roots),
+        "a sub-service manifest must stay governed"
+    );
+
+    // Deeper paths are not services. A test fixture that demands tier metadata it will
+    // never legitimately carry is a false positive, so the depth limit is load-bearing.
+    assert!(
+        !is_top_level_service_manifest(
+            "cell/core/regional-pack/tests/fixtures/kr/manifest.json",
+            &roots
+        ),
+        "a tests/fixtures manifest is not a service and must not be pulled into tier coverage"
+    );
+    assert!(
+        !is_top_level_service_manifest("oya/a/b/manifest.json", &roots),
+        "nested non-service manifests stay out"
+    );
+
+    // Not a manifest, and not under a governed root.
+    assert!(!is_top_level_service_manifest("billing/README.md", &roots));
+    assert!(!is_top_level_service_manifest("ungoverned/manifest.json", &roots));
+}

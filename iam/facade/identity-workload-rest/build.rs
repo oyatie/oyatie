@@ -7,11 +7,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Dual-mode proto resolution: the buck2 buildscript genrule copies the
     // contract INTO the manifest dir (`<manifest>/contracts/proto`), while the
     // cargo layout reaches the shared contract at
-    // `<crate>/../../../oya/identity/contracts/proto` (post-Move-18 reorg: the
-    // proto moved from iam/contracts/proto to oya/identity/contracts/proto;
+    // `<crate>/../../../iam/identity/contracts/proto` (post-Move-18 reorg: the
+    // proto moved from iam/contracts/proto to iam/identity/contracts/proto;
     // three levels up from iam/facade/identity-workload-rest reaches repo root,
-    // then oya/identity/contracts/proto). Buck2 already references the correct
-    // location via `//oya/identity/contracts/proto:workload.proto` in the BUCK
+    // then iam/identity/contracts/proto). Buck2 already references the correct
+    // location via `//iam/identity/contracts/proto:workload.proto` in the BUCK
     // genrule and is unaffected. Only the cargo-fallback path needed correction.
     // Probe the in-manifest (buck2/hermetic) location first, then the cargo
     // workspace location, so one build.rs serves both build systems.
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // Buck's generated manifest dir does not include Cargo.toml; in that
         // mode a missing in-manifest proto is a hermetic-input error and must
         // not be masked by falling back to a host-relative path.
-        manifest_dir.join("../../../oya/identity/contracts/proto")
+        manifest_dir.join("../../../iam/identity/contracts/proto")
     } else {
         return Err(format!(
             "buck manifest dir {} is missing contracts/proto/workload.proto",

@@ -240,6 +240,15 @@ fn collect_manifest_paths(
             .file_type()
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
+            // A manifest under `tests/` is a FIXTURE, not a service. Widening
+            // `governed_service_roots` to include `cell` pulled
+            // `cell/core/regional-pack/tests/fixtures/kr/manifest.json` into the coverage
+            // corpus, where the gate demanded tier/tier_subtype/dr_tier it will never
+            // legitimately carry. Widening a corpus without reconciling its new members
+            // trades one red for another, so the fixture class is excluded at the walk.
+            if path.file_name().and_then(|n| n.to_str()) == Some("tests") {
+                continue;
+            }
             collect_manifest_paths(&path, repo_root, out)?;
         } else if path.file_name().and_then(|n| n.to_str()) == Some("manifest.json") {
             let rel = path
@@ -589,6 +598,25 @@ fn evaluate_one(
     }
 }
 
+/// A service manifest that owns the ADR-0348 sharding and OpenSLO-ref obligations.
+///
+/// TWO shapes are top-level, and missing the first one is a silent coverage loss:
+///
+///   `<root>/manifest.json`            the capability's OWN service manifest
+///   `<root>/<service>/manifest.json`  a sub-service under that capability
+///
+/// The capability-first rehome turns `cloud/cloud-billing/manifest.json` into
+/// `billing/manifest.json`, which has ONE component after the root, not two. Requiring
+/// two silently dropped fourteen substrate services out of
+/// `evaluate_sharding_automation` and `evaluate_openslo_manifest_refs` — billing,
+/// compliance, console, flags, gateway, iac, intelligence, k8s, marketplace, network,
+/// observability, secrets, storage, tenancy — while the gate still reported green. All
+/// fourteen satisfied this predicate before the move.
+///
+/// A gate that stops looking at a T0/T1 substrate service and stays green is the exact
+/// false-green class this gate exists to prevent, so both shapes are accepted and the
+/// depth limit is kept: anything deeper (notably `*/tests/fixtures/**/manifest.json`) is
+/// not a service and must stay out.
 fn is_top_level_service_manifest(path: &str, governed_roots: &BTreeSet<String>) -> bool {
     governed_roots.iter().any(|root| {
         let root = root.trim_matches('/');
@@ -602,9 +630,13 @@ fn is_top_level_service_manifest(path: &str, governed_roots: &BTreeSet<String>) 
             return false;
         };
         let mut parts = rest.split('/');
-        parts.next().is_some_and(|service| !service.is_empty())
-            && parts.next() == Some("manifest.json")
-            && parts.next().is_none()
+        let Some(first) = parts.next().filter(|segment| !segment.is_empty()) else {
+            return false;
+        };
+        if first == "manifest.json" {
+            return parts.next().is_none();
+        }
+        parts.next() == Some("manifest.json") && parts.next().is_none()
     })
 }
 

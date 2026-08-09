@@ -96,7 +96,7 @@
         "contract": "Embedded PDP port; every allow/deny decision emits an attributable audit record and fails closed on audit-chain emission error"
       },
       {
-        "path": "cloud/cloud-kms/crates/oya-cloud-kms-api/src/lib.rs",
+        "path": "secrets/kms/crates/oya-cloud-kms-api/src/lib.rs",
         "contract": "KMS encrypt/decrypt/schedule-delete API boundary requires tenant, principal, authorization receipt, data_class, purpose, idempotency, region, and cell context"
       },
       {
@@ -342,7 +342,7 @@
           "Emit audit-chain evidence for key creation, import/BYOK proof, rotation, decrypt, denied decrypt, schedule deletion, cancellation, and shred completion."
         ],
         "source_contract_refs": [
-          "cloud/cloud-kms/crates/oya-cloud-kms-api/src/lib.rs",
+          "secrets/kms/crates/oya-cloud-kms-api/src/lib.rs",
           "/specs/compliance-pack-schema.json#encryption_byok_required"
         ],
         "evidence_required": [

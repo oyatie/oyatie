@@ -1,0 +1,13 @@
+# Legacy Backstage-shaped catalog import for one-way migration into the first-party portal.
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: compliance-rest-v1
+  description: Compliance µservice REST API v1
+spec:
+  type: openapi
+  lifecycle: experimental
+  owner: axis-compliance
+  system: oyatie-platform
+  definition:
+    $text: https://github.com/oyadev/oyatie/blob/main/compliance/contracts/openapi.yaml

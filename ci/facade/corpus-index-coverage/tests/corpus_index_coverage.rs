@@ -17,14 +17,13 @@ use ci_corpus_index_coverage::{
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
 const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
-const NESTED_REPAIR_PACKAGES: [&str; 6] = [
-    "oya/oya-authn-device-firmware",
-    "oya/oya-billing",
-    "oya/oya-cost",
-    "oya/oya-flags",
-    "oya/oya-identity",
-    "oya/oya-meter",
-];
+// The nested-ownership proof needs a package that sits INSIDE oya/ and declares its own extraction
+// target, so the two tests below can show its YAML is attributed to it and not to the oya/ root
+// package. It named oya/oya-authn-device-firmware + oya/oya-identity until wave 25 rehomed both
+// under iam/, where they are outside the oya census these tests evaluate; oya/ci-webhook-gateway is
+// the surviving nested subject and carries 11 YAML in a single literal face.
+const NESTED_REPAIR_PACKAGES: [&str; 1] = ["oya/ci-webhook-gateway"];
+const NESTED_REPAIR_FACE_PATHS: [usize; 1] = [11];
 
 struct LiveObservation {
     packages: Vec<PackageObservation>,
@@ -381,7 +380,7 @@ fn the_frozen_ceilings_equal_todays_counts() {
 
 #[test]
 fn oya_census_off_by_one_blocks() {
-    assert!(validate_oya_census(3_848, 3_849).is_err());
+    assert!(validate_oya_census(3067, 3068).is_err());
 }
 
 #[test]
@@ -415,7 +414,7 @@ fn pre_repair_missing_ten_blocks() {
 }
 
 #[test]
-fn six_nested_faces_use_nearest_package_ownership() {
+fn nested_repair_faces_use_nearest_package_ownership() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let counts: BTreeMap<_, _> = live
@@ -426,9 +425,9 @@ fn six_nested_faces_use_nearest_package_ownership() {
         .collect();
     assert_eq!(
         counts.values().copied().collect::<Vec<_>>(),
-        [1, 2, 2, 1, 2, 2]
+        NESTED_REPAIR_FACE_PATHS
     );
-    assert_eq!(counts.len(), 6);
+    assert_eq!(counts.len(), NESTED_REPAIR_PACKAGES.len());
 }
 
 #[test]
@@ -507,13 +506,13 @@ fn symlink_escaping_nearest_package_blocks() {
 fn current_internal_yaml_symlink_inventory_is_seven_and_safe() {
     let root = repo_root();
     let paths = [
-        "oya/connector/contracts/asyncapi-v1.yaml",
-        "oya/connector/contracts/openapi-v1.yaml",
-        "oya/ops-dashboard-control-center/contracts/asyncapi-v1.yaml",
-        "oya/ops-dashboard-control-center/contracts/openapi-v1.yaml",
-        "oya/ops-dashboard-control-center/iac/ech-config.yaml",
-        "oya/ops-dashboard-control-center/iac/edge-waf.yaml",
-        "oya/ops-dashboard-control-center/iac/pqc-cert.yaml",
+        "gateway/connector/contracts/asyncapi-v1.yaml",
+        "gateway/connector/contracts/openapi-v1.yaml",
+        "console/contracts/asyncapi-v1.yaml",
+        "console/contracts/openapi-v1.yaml",
+        "console/iac/ech-config.yaml",
+        "console/iac/edge-waf.yaml",
+        "console/iac/pqc-cert.yaml",
     ];
     assert!(paths.iter().all(|path| {
         std::fs::symlink_metadata(root.join(path))

@@ -291,7 +291,7 @@
             "infra/capi/clusters/README.md",
             "infra/capi/clusters/values.yaml",
             "infra/gitops/root-app.yaml",
-            "cloud/managed-k8s-control-plane-host/adr-links.md"
+            "k8s/managed-control-plane-host/adr-links.md"
           ]
         },
         {
@@ -340,15 +340,15 @@
           "when_member": "managed_k8s_surface",
           "field": "source_paths",
           "must_contain": [
-            "cloud/managed-k8s-cluster-lifecycle/PRD.md",
-            "cloud/managed-k8s-cluster-lifecycle/contracts/openapi.yaml",
-            "cloud/managed-k8s-tenant-quota/PRD.md",
-            "cloud/managed-k8s-control-plane-host/PRD.md",
-            "cloud/managed-k8s-control-plane-host/tenant-isolation.md",
-            "cloud/managed-k8s-sla-observability/PRD.md",
-            "cloud/managed-k8s-tenant-quota/contracts/openapi-v1.yaml",
-            "cloud/managed-k8s-control-plane-host/contracts/openapi.yaml",
-            "cloud/managed-k8s-sla-observability/contracts/openapi-v1.yaml"
+            "k8s/managed-cluster-lifecycle/PRD.md",
+            "k8s/managed-cluster-lifecycle/contracts/openapi.yaml",
+            "k8s/managed-tenant-quota/PRD.md",
+            "k8s/managed-control-plane-host/PRD.md",
+            "k8s/managed-control-plane-host/tenant-isolation.md",
+            "k8s/managed-sla-observability/PRD.md",
+            "k8s/managed-tenant-quota/contracts/openapi-v1.yaml",
+            "k8s/managed-control-plane-host/contracts/openapi.yaml",
+            "k8s/managed-sla-observability/contracts/openapi-v1.yaml"
           ]
         },
         {

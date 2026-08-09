@@ -9,8 +9,28 @@
     "ADR-0280"
   ],
   "governed_service_roots": [
+    "audit",
+    "billing",
+    "cell",
     "cloud",
-    "oya"
+    "comms",
+    "compliance",
+    "console",
+    "data",
+    "flags",
+    "gateway",
+    "iac",
+    "iam",
+    "intelligence",
+    "k8s",
+    "marketplace",
+    "network",
+    "observability",
+    "oya",
+    "secrets",
+    "storage",
+    "tenancy",
+    "workflow"
   ],
   "tier_enum": [
     "substrate",
