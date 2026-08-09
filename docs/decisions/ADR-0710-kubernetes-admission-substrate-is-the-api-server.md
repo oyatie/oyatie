@@ -216,26 +216,64 @@ the wrong RuntimeClass can breach isolation rather than merely degrade hygiene �
 exactly why ADR-0338 places tenant-untrusted code on Kata — and the reframing above does not
 hold.
 
-D-8 is therefore gated on the sufficient half, stated as a measurement: **can two tenants be
-scheduled onto the same node, the same hypervisor, or the same physical host?** Control-plane
-separation is necessary and is not the answer. If the answer is yes anywhere in the hosted
-default, D-8 fails and runtime-tier admission stays an isolation control with all the
-obligations that carries.
+D-8 is therefore gated on the sufficient half, and that half is a **conjunction of two
+boundaries, not a single question**. Both must be answered before D-8 can be satisfied:
+
+1. **Tenant-vs-tenant.** Can two tenants be scheduled onto the same node, the same hypervisor,
+   or the same physical host?
+2. **Tenant-vs-operator.** Does any Tier-0 workload run on a node whose kernel, kubelet
+   credentials, node identity, or CSI/secret material belong to the **operator**?
+
+**Answering NO to (1) does not answer (2).** ADR-0338 §A.1 grounds Kata in operator-untrusted
+code rather than in co-tenancy — "the security benefit of Kata is VM-isolation against
+guest-kernel escape and against shared-kernel side channels ... that benefit matters when the
+code running inside the pod is **untrusted by the operator**" — and §A.2 enumerates the five
+Tier-0 surfaces (tenant Wasm modules, customer workflows, marketplace plugins, tenant agent
+capabilities, uploaded SDK modules) as "the floor for Tier 0". That boundary is
+tenant-versus-operator. A single-tenant dedicated host therefore still runs operator-untrusted
+code on an operator-owned kernel beside operator credentials, and a Tier-0 pod admitted under
+runc there is a guest-kernel-escape exposure **at zero co-tenancy**. Dedicated hosts answer (1)
+and are silent on (2), and that is not hypothetical: the companion idea page's MVP scope puts
+"dedicated hosts, so no two tenants share a physical machine" in scope, which is exactly the
+topology where a one-question gate would read satisfied while (2) went untested.
+
+Control-plane separation is necessary and answers neither. If EITHER question answers yes
+anywhere in the hosted default, D-8 fails, the "placement hygiene inside a trust domain"
+reframing above does not hold — regardless of dedicated hosts — and runtime-tier admission stays
+an isolation control with all the obligations that carries. Today (1) already answers yes, since
+this repo's hosted-default topology includes shared-substrate operation, so the clause fails safe
+now; (2) is recorded here because it is the criterion a future dedicated-host topology would
+still have to meet, and the narrow reading must not be re-derived once (1) flips.
 
 ### D-9 — The owned authorization PDP stays out of the admission path
 
 The platform is building a **Cedar-compatible PDP with Zanzibar-style ReBAC** (ADR-0702
 topic). It must not be placed in the admission path, for two independent reasons:
 
-1. **Shape.** Cedar is principal-centric and Zanzibar is relationship-centric — both answer
-   "may this subject act on this object." Admission is resource-shape-centric: "is this object
-   well-formed." A pod spec has no subject. ADR-0183 and ADR-0379 both identified this
-   mismatch and both were right; Zanzibar makes it stronger, not weaker.
+1. **Shape — the question and where its data lives, not the absence of a subject.** An earlier
+   draft of this clause said "a pod spec has no subject." That is false as written, and this
+   repo refutes it: an admission request carries an authenticated caller in `request.userInfo`
+   (username, groups, uid, extra), VAP exposes the `authorizer` CEL library for RBAC checks
+   in-process, and a pod additionally names its `spec.serviceAccountName`. Caller-sensitive
+   admission rules are therefore expressible IN-PROCESS, and this ADR must not be read as
+   forbidding them — `iam/core/tenant-rbac-tenant-admission-policy` is the live instance, a
+   `ValidatingAdmissionPolicy` + `ValidatingAdmissionPolicyBinding` contract scoped to a tenant
+   namespace with `tenant_labels_required`, and it exists precisely because a shape allowed for
+   one party is not allowed for another. **Identity-bound fail-closed CEL/RBAC for
+   caller-sensitive operations is explicitly RETAINED by this ADR.** What stays out of the
+   request path is the **remote relationship-graph lookup**: a Zanzibar-style ReBAC answer
+   requires traversing a relation store that lives behind a network call, which is reason 2's
+   coupling argument arriving one layer earlier. Cedar is principal-centric and Zanzibar is
+   relationship-centric, and the difference that matters is not that admission has no principal
+   — it is that admission answers from data the request already carries and never leaves the
+   process to get more.
 2. **Coupling.** Putting our PDP in the admission path makes an application-authorization
    outage into a cluster-admission outage. Those failure domains must stay separate.
 
 The separation ADR-0183 drew is preserved and sharpened: **the owned PDP answers principal and
-relationship questions; the API server answers object-shape questions.** No overlap.
+relationship questions from a relation store; the API server answers object-shape questions, and
+caller questions it can settle from the request it already holds.** The boundary is the network
+hop and the relation store, not the presence of a principal.
 
 ### D-10 — Accepted cost: no background scanning, and it needs an owner
 
