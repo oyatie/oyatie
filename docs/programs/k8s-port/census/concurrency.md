@@ -496,12 +496,35 @@ What was measured instead is a **syntactic lower-bound proxy**, and it is labell
 *a lock is in effect (unreleased `Lock()`/`RLock()`, or a `defer Unlock()` registered in an enclosing
 scope) and a line in that scope performs a visible channel op, `select`, `.Wait()` or `time.Sleep()`.*
 
-**Error direction is one-sided and known: this UNDER-counts, probably by a large factor.** It sees
-only *visible* blocking operations. It cannot see `mu.Lock(); defer mu.Unlock(); client.Get(ctx, ...)`
-— an HTTP call under a lock, which is the case that most reliably becomes a held-guard-across-await.
-Over-counting is possible but bounded: lines inside a `go func` launched under the lock are excluded
-explicitly (0 of the 103 hits fell in that category), and scope tracking resets `deferred` state when
-brace depth leaves the scope that registered the `defer`, so the closure-under-lock false positive is
+**Error direction is one-sided and known: this UNDER-counts, probably by a large factor.** There are
+now **two** named reasons, not one.
+
+1. **It sees only *visible* blocking operations.** It cannot see
+   `mu.Lock(); defer mu.Unlock(); client.Get(ctx, ...)` — an HTTP call under a lock, which is the
+   case that most reliably becomes a held-guard-across-await.
+2. **The instrument modelled Go's `defer` as block-scoped, and Go's `defer` is function-scoped.**
+   `lock_block.awk` (§8.4) carries
+   `if (deferred > 0 && depth < deferDepth) deferred = 0;  # left the scope that registered the defer`,
+   which discharges lock state that Go still holds: a `defer mu.Unlock()` registered inside an `if`
+   or a `case` keeps the lock until the enclosing **function** returns. This is the same Go semantic
+   that `defer-panic-recover.md` §3 measures from the other side — 43 of its 2,062
+   `defer …Unlock()` sites are registered below function-body depth — and it is a second, previously
+   unnamed under-count reason.
+
+**Reason 2 is now measured rather than asserted** (§8.4b): re-running the identical instrument with
+`deferred` kept live to function end takes the raw flag count from **103 to 183** and the distinct
+site count from **74 to 126**, so the §4.3 hazard figure would move from 55 to 107.
+
+**The published figures stay on the block-scoped instrument, and the reason is that the
+function-scoped variant errs the other way.** Keeping `deferred` live to function end also keeps it
+live past a `return` *inside* the registering block, after which the lock is genuinely gone — which
+is exactly the shape §4.2 records at `request.go:736`. So block-scope under-counts and function-scope
+over-counts, and the truth is bracketed by them rather than located at either. **Read the §4.3
+hazard figure as `[55, 107]`, not as 55.** Closing it needs per-site control-flow, not a one-line
+change to an `awk` script; it is the same call-graph follow-up §4.3 already names.
+
+Over-counting is otherwise bounded: lines inside a `go func` launched under the lock are excluded
+explicitly (0 of the 103 hits fell in that category), so the closure-under-lock false positive is
 handled.
 
 ### 4.2 The proxy result
@@ -544,7 +567,7 @@ Two flagged sites were read in full to confirm the proxy is not producing noise:
   What the measurement says is only that this site holds a lock across an unbounded wait, which is
   a shape no mechanical translation can preserve without a decision being made about it.
 
-### 4.3 The hazard floor is 55, not 74 — the 19 `cond.Wait()` sites do not belong in it
+### 4.3 The hazard floor is `[55, 107]`, not 74 — the 19 `cond.Wait()` sites do not belong in it
 
 An earlier draft reported **74 sites as the floor on locks held across blocking work**. That is
 wrong by this document's own §4.2, and the correction is worth stating precisely because the
@@ -562,7 +585,11 @@ is correct in both languages cannot floor a population of hazards.
 | …minus `cond.Wait()`, which releases the lock by construction | **55** | 26 `select` + 14 receive + 8 `WaitGroup.Wait()` + 6 send + 1 `Sleep` |
 | …of which hand-read end to end | **2** | `graph_builder.go:305` and `mux.go:120` — both true positives |
 
-**55 is the hazard population, and it is a proxy, not yet a validated floor.** Only 2 of the 55 were
+**55 is the hazard population under the block-scoped defer model, and it is a proxy, not yet a
+validated floor.** §4.1 now measures the second under-count reason: with `defer` modelled as
+function-scoped, as Go actually runs it, the same instrument yields 126 distinct sites and a hazard
+figure of **107**. That variant over-counts where the registering block returns, so **the honest
+statement is `[55, 107]`** and 55 is the low end of it, not the answer. Only 2 of the 55 were
 read in full. The remaining 53 inherit whatever residual false-positive rate the instrument has;
 §4.1 argues that rate is small and names the two classes it handles explicitly, but arguing is not
 measuring, and 53 unread sites are 53 unread sites. Validating them is cheap — they are enumerable —
@@ -745,10 +772,11 @@ Plus, and separately:
   than any rule in the table above, and it *shrinks the rule corpus* rather than adding to it.
 
 - **A residue of 80–140 sites requiring human restructure**, not translation:
-  **55** lock-across-blocking sites (§4.3 — the instrument's 74 distinct sites minus the 19
-  `cond.Wait()` sites, which release the lock by construction and are one rule, not a hazard; this
-  total ALREADY CONTAINS the 8 `WaitGroup.Wait()`-under-lock sites broken out beneath §4.2's table,
-  so they are not a separate addend), 25 blocking-send selects (§3.2a, enumerated in §9), 5
+  **55–107** lock-across-blocking sites (§4.3 — the instrument's 74 distinct sites minus the 19
+  `cond.Wait()` sites, which release the lock by construction and are one rule, not a hazard; the
+  upper end is the same instrument with Go's function-scoped `defer` modelled correctly, §4.1/§8.4b;
+  this total ALREADY CONTAINS the 8 `WaitGroup.Wait()`-under-lock sites broken out beneath §4.2's
+  table, so they are not a separate addend), 25 blocking-send selects (§3.2a, enumerated in §9), 5
   closed-check idioms, and the sampled estimate's slack (§3.3). The band moved down by 19 from an
   earlier draft for exactly that reason. These are enumerable and mostly already enumerated, which is the point: they can be
   scheduled as a finite, named work list rather than discovered during a multi-year port.
@@ -765,10 +793,13 @@ async-colouring fixpoint), both of which are closed by the same follow-up: a typ
 Stated plainly, because an honest "could not determine" is the point:
 
 1. **How many `MutexGuard`s cross an `.await`.** Needs async-colouring over a type-resolved call
-   graph. §4 gives a proxy population of **55** — the instrument's 74 distinct sites less the 19
-   `cond.Wait()` sites, which release the lock while waiting in both languages — and names its
-   error direction (one-sided under-count, probably large). Only 2 of the 55 were hand-read, so
-   even that figure is a proxy rather than a validated floor. It does not give the answer.
+   graph. §4 gives a proxy population of **55–107** — the instrument's 74 distinct sites less the 19
+   `cond.Wait()` sites, which release the lock while waiting in both languages, at the low end; the
+   high end is the same instrument with Go's function-scoped `defer` modelled correctly (§4.1,
+   receipt at §8.4b), which errs the other way by keeping the defer live past a `return` inside the
+   registering block. Both ends are proxies and the error directions are named. Only 2 of the 55
+   were hand-read, so even the low end is a proxy rather than a validated floor. It does not give
+   the answer.
 2. **The shape of 173 of 745 goroutine launches (23.2%).** The shape is in the callee body. Needs
    `go/packages` + `callgraph`. §1.6.
 3. **Actual `context.Context` propagation *depth*** — the mean/max number of hops a context is
@@ -1064,6 +1095,45 @@ $ ... | awk -F'\t' '$1=="LOCKBLOCK" && $4=="wait"{print $6}' | sort | uniq -c
 $ rg --files -g '*.go' -g '!vendor/**' -g '!*_test.go' . | xargs awk -f go_shape.awk | grep -c '^GO'
 745                                               # §1.4 "extracted 745 of the 751 sites"
 ```
+
+### 8.4b Receipt: what the block-scoped `defer` model costs
+
+`lock_block.awk` above discharges `deferred` on leaving the registering block. Go discharges it on
+leaving the **function**. The variant below is the same program with that one line replaced by a
+comment, so `deferred` resets only at `^func` and at `depth <= 0`; both were run against the same
+pinned corpus:
+
+```
+$ git -C "$CORPUS" rev-parse HEAD
+756939600b9a7180fc2df6550a4585b638875e67
+
+$ diff lock_block.awk lock_block_fnscope.awk
+57c57,58
+<   if (deferred > 0 && depth < deferDepth) deferred = 0;      # left the scope that registered the defer
+---
+>   # Go runs deferred calls at FUNCTION return, so leaving the registering block does NOT
+>   # discharge the defer; `deferred` is reset only at ^func and at depth<=0 (end of func body).
+
+$ find . -name '*.go' -not -path './vendor/*' -not -name '*_test.go' -print0 \
+    | xargs -0 awk -f lock_block.awk | grep -c '^LOCKBLOCK'
+103                                               # published
+
+$ ... -f lock_block_fnscope.awk | grep -c '^LOCKBLOCK'
+183                                               # function-scoped
+
+$ ... -f lock_block_fnscope.awk | awk -F'\t' '$1=="LOCKBLOCK"{c[$4]++} END{for(k in c) print k, c[k]}'
+select 41   wait 55   chan-recv 79   chan-send 6   sleep 2
+                                                  # 79 chan-recv - 57 collapsed `case` lines = 22;
+                                                  # 41+55+22+6+2 = 126 distinct sites
+                                                  # 126 - 19 cond.Wait() = 107 hazard sites
+```
+
+`LOCKSITE` is 2273 under both, as it must be — the change touches release tracking only, not
+acquisition. The 19 `cond.Wait()` sites are the same 19 under both.
+
+**Neither number is the answer.** Block-scope under-counts because Go still holds the lock;
+function-scope over-counts because it keeps holding it past a `return` inside the registering block.
+§4.1 states the bracket and §4.3 carries it.
 
 ### 8.5 `sel_sig.awk`
 

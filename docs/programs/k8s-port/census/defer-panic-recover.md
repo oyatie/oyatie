@@ -186,6 +186,33 @@ two — mutex release and an inline closure — cover half.
   the Rust `MutexGuard` returned by `lock()`. The rule rewrites the acquire, and
   **deletes** the defer. This one rule retires nearly half the surface, and it
   is the only one in this document that reduces line count rather than raising it.
+  **The rule is qualified to defers registered directly in the function body**,
+  and the qualification is not cosmetic: Go runs deferred calls at *function*
+  return (§4), so a `defer mu.Unlock()` registered inside an `if`, `switch` or
+  `select` block holds the lock until the function returns, whereas a Rust guard
+  created in that block drops at *block* end. Deleting the defer there releases
+  the lock **early** — a race, not a leak, and the direction of failure that no
+  test reliably catches. §4's hard-stop detector guards loops only, so nested
+  non-loop blocks fell straight through to this rule.
+
+  **Measured** (`deferdepth.go`, Appendix A, reconciling site-for-site against
+  `census.go`'s 2 062):
+
+  | Where the `defer …Unlock()` is registered | Sites | Share |
+  |---|---:|---:|
+  | directly in the function body — **rule applies** | **2 019** | 97.9 % |
+  | inside a nested block — **hard stop** | **43** | 2.1 % |
+  | — `if` / `else` | 38 | |
+  | — `switch` case | 3 | |
+  | — `select` case | 2 | |
+
+  28 of the 43 are outside the `test/` tree. The concentration is real rather
+  than scattered: `podautoscaler/horizontal.go` alone holds 6,
+  `client-go/transport` 3, `apiserver/pkg/storage/cacher` 3. Note that
+  `request.go:736` — the loop case §4 records as "behaviour-preserving and
+  releases the lock earlier" — is in this set, and it is benign only because
+  every path returns inside that block; that is a per-site reading, not a
+  property of the shape.
 - `defer wg.Done()` (237) — grouped with the above in an earlier draft on the assumption that a
   join handle absorbs it. **That does not hold and the claim is withdrawn:** both std and Tokio
   handles DETACH when dropped rather than waiting, and many WaitGroups coordinate dynamically
@@ -336,11 +363,19 @@ e.g. `staging/src/k8s.io/apimachinery/pkg/util/wait/backoff.go:253`,
 
 Two rules, not one.
 
-1. **Detect and refuse to auto-map.** Any `defer` whose enclosing loop is inside
-   the same function is a hard stop for the mechanical `defer → Drop` rule.
+1. **Detect and refuse to auto-map.** The detector's condition is **any
+   enclosing block that is not the function body** — not only an enclosing loop.
+   A loop is the loudest case because it accumulates one pending call per
+   iteration, but the semantic that makes it unsafe is the same for an `if`, a
+   `switch` case or a `select` case: Go defers fire at *function* return and a
+   Rust `Drop` fires at *block* exit, so a scope-drop rewrite releases early
+   wherever the registering block is not the function body. An earlier draft
+   scoped the detector to loops, which let the 43 nested non-loop
+   `defer …Unlock()` sites measured in §3 fall through to shape 1's delete rule.
    Emitting a scope-drop here is a silent semantic change (earlier release), and
-   emitting nothing is a leak. 27 prod sites is small enough to be a
-   **hand-authored exception list with a receipt each**, not a general rule.
+   emitting nothing is a leak. 27 prod loop sites plus 43 nested-block unlock
+   sites is small enough to be a **hand-authored exception list with a receipt
+   each**, not a general rule.
    The hard stop is not optional politeness: at rows 4, 12 and 13 above a
    scope-drop rewrite produces a *functional defect*, not a drift.
 2. **The 19 IIFE sites translate for free**: the literal is already the scope, so
@@ -850,7 +885,7 @@ engine needs, which is the number that sizes the programme.
 | Surface | Sites | Shapes | Engine cost |
 |---|---:|---:|---|
 | `defer` total | 4 294 | 6 shapes cover 77.9 % | Low. `Unlock`/`RUnlock` (2 062) and `Done` (237) **delete**; they do not translate. |
-| `defer` in loop | 27 | 7 sub-shapes | Low volume, high care. 19 IIFE counter-shape sites translate free; the 27 need a hard-stop detector and per-site receipts — 3 of them become functional defects under a naive scope-drop. |
+| `defer` in loop | 27 | 7 sub-shapes | Low volume, high care. 19 IIFE counter-shape sites translate free; the 27 need a hard-stop detector and per-site receipts — 3 of them become functional defects under a naive scope-drop. The detector's real condition is **any enclosing block that is not the function body** (§4), which adds the 43 nested-block `defer …Unlock()` sites of §3. |
 | `defer` mutating named result | 24 (19 + 5) | 2 channels | Restructure, no analogue — but 0.56 % of defers, **not** the common case the brief anticipated. |
 | `defer` argument capture that matters | 2 verified (6 syntactic) | 1 | One unconditional rule (bind args into locals at the defer) makes all 4 294 correct. |
 | `panic(` | 1 339 | top 3 = 70.1 % | 512 vanish with the type system (generator rule); ~400 map one-to-one; ~200 wait on the error model. |
@@ -1847,6 +1882,239 @@ $1 == "panic" && $2 ~ /prod$/ {
 END {
   for (k in n) printf "%-34s %5d  %5.1f%%\n", k, n[k], 100*n[k]/total
   printf "%-34s %5d\n", "TOTAL", total
+}
+```
+
+</details>
+
+<details>
+<summary><code>deferdepth.go</code> — is a <code>defer …Unlock()</code> registered in the function body or in a nested block?</summary>
+
+```go
+// deferdepth.go -- for every `defer x.Unlock()` / `defer x.RUnlock()` in prod
+// files, report whether the defer is registered DIRECTLY in the function body
+// or inside a nested block (if / for / switch / select / labelled / bare block).
+//
+//	go run deferdepth.go <corpus-root>
+//
+// Same file selection and same defer/callee-name rules as census.go, so the
+// total reconciles against `defer total/prod` filtered to Unlock|RUnlock.
+package main
+
+import (
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+func callName(e ast.Expr) string {
+	switch x := e.(type) {
+	case *ast.Ident:
+		return x.Name
+	case *ast.SelectorExpr:
+		return callName(x.X) + "." + x.Sel.Name
+	case *ast.CallExpr:
+		return callName(x.Fun)
+	case *ast.IndexExpr:
+		return callName(x.X)
+	case *ast.ParenExpr:
+		return callName(x.X)
+	}
+	return "?"
+}
+
+func isUnlock(n string) bool {
+	i := strings.LastIndex(n, ".")
+	if i >= 0 {
+		n = n[i+1:]
+	}
+	return n == "Unlock" || n == "RUnlock"
+}
+
+type hit struct {
+	loc    string
+	nested bool
+	encl   string
+}
+
+func main() {
+	root := os.Args[1]
+	fset := token.NewFileSet()
+	var hits []hit
+
+	// walk a function body; depth 0 == the body's own statement list.
+	var walk func(n ast.Node, encl string, top bool, file string)
+	// scanLits: a func literal in a non-body position (an if/for/switch header,
+	// a call argument) is its own function body, so its defers fire at ITS
+	// return and it re-enters walk with top reset.
+	scanLits := func(n ast.Node, file string) {
+		if n == nil {
+			return
+		}
+		ast.Inspect(n, func(m ast.Node) bool {
+			if fl, ok := m.(*ast.FuncLit); ok {
+				walk(fl.Body, "func-body", true, file)
+				return false
+			}
+			return true
+		})
+	}
+	walk = func(n ast.Node, encl string, top bool, file string) {
+		switch s := n.(type) {
+		case *ast.BlockStmt:
+			for _, st := range s.List {
+				walk(st, encl, top, file)
+			}
+			return
+		case *ast.DeferStmt:
+			name := callName(s.Call.Fun)
+			if isUnlock(name) {
+				p := fset.Position(s.Pos())
+				rel, _ := filepath.Rel(root, p.Filename)
+				hits = append(hits, hit{
+					loc:    fmt.Sprintf("%s:%d", rel, p.Line),
+					nested: !top,
+					encl:   encl,
+				})
+				return
+			}
+			// `defer func(){ ... }()` — the literal is its own function body.
+			scanLits(s.Call, file)
+			return
+		case *ast.GoStmt:
+			scanLits(s.Call, file)
+			return
+		case *ast.IfStmt:
+			scanLits(s.Init, file)
+			scanLits(s.Cond, file)
+			walk(s.Body, "if", false, file)
+			if s.Else != nil {
+				walk(s.Else, "if", false, file)
+			}
+			return
+		case *ast.ForStmt:
+			scanLits(s.Init, file)
+			scanLits(s.Cond, file)
+			scanLits(s.Post, file)
+			walk(s.Body, "for", false, file)
+			return
+		case *ast.RangeStmt:
+			scanLits(s.X, file)
+			walk(s.Body, "range", false, file)
+			return
+		case *ast.SwitchStmt:
+			scanLits(s.Init, file)
+			scanLits(s.Tag, file)
+			for _, c := range s.Body.List {
+				if cc, ok := c.(*ast.CaseClause); ok {
+					for _, e := range cc.List {
+						scanLits(e, file)
+					}
+					for _, st := range cc.Body {
+						walk(st, "switch", false, file)
+					}
+				}
+			}
+			return
+		case *ast.TypeSwitchStmt:
+			scanLits(s.Init, file)
+			scanLits(s.Assign, file)
+			for _, c := range s.Body.List {
+				if cc, ok := c.(*ast.CaseClause); ok {
+					for _, st := range cc.Body {
+						walk(st, "type-switch", false, file)
+					}
+				}
+			}
+			return
+		case *ast.SelectStmt:
+			for _, c := range s.Body.List {
+				if cc, ok := c.(*ast.CommClause); ok {
+					scanLits(cc.Comm, file)
+					for _, st := range cc.Body {
+						walk(st, "select", false, file)
+					}
+				}
+			}
+			return
+		case *ast.LabeledStmt:
+			walk(s.Stmt, encl, top, file)
+			return
+		}
+		// function literals start a new function body: their defers fire at
+		// the literal's return, so recurse with top reset.
+		ast.Inspect(n, func(m ast.Node) bool {
+			if fl, ok := m.(*ast.FuncLit); ok {
+				walk(fl.Body, "func-body", true, file)
+				return false
+			}
+			return true
+		})
+	}
+
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info.IsDir() {
+			if info.Name() == ".git" || info.Name() == "vendor" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		src, err := os.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+		f, err := parser.ParseFile(fset, path, src, 0)
+		if err != nil {
+			return nil
+		}
+		ast.Inspect(f, func(n ast.Node) bool {
+			switch d := n.(type) {
+			case *ast.FuncDecl:
+				if d.Body != nil {
+					walk(d.Body, "func-body", true, path)
+				}
+				return false
+			case *ast.FuncLit:
+				walk(d.Body, "func-body", true, path)
+				return false
+			}
+			return true
+		})
+		return nil
+	})
+
+	byEncl := map[string]int{}
+	nested := 0
+	for _, h := range hits {
+		if h.nested {
+			nested++
+			byEncl[h.encl]++
+		}
+	}
+	fmt.Printf("total defer-unlock (prod): %d\n", len(hits))
+	fmt.Printf("registered directly in a function body: %d\n", len(hits)-nested)
+	fmt.Printf("registered in a NESTED block:           %d  (%.1f%%)\n",
+		nested, 100*float64(nested)/float64(len(hits)))
+	for _, k := range []string{"if", "for", "range", "switch", "type-switch", "select"} {
+		if byEncl[k] > 0 {
+			fmt.Printf("  %-12s %d\n", k, byEncl[k])
+		}
+	}
+	// one LOC row per site, so the total reconciles site-for-site against
+	// census.go's `defer total/prod` filtered to Unlock|RUnlock.
+	for _, h := range hits {
+		fmt.Println("LOC", h.loc, h.nested, h.encl)
+	}
 }
 ```
 
