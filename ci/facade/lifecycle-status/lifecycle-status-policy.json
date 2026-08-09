@@ -1,13 +1,13 @@
 {
-  "_comment": "ADR-0109 lifecycle-status gate policy. ONE required lane over EVERY config in configs_dir, replacing the nine tools/oya-governance-*-lifecycle-app dev-CLI crates that were never referenced by .github/workflows/** and therefore enforced nothing for their entire lifetime. Adding a lifecycle is a CONFIG file here, never a new crate; the completeness dimension makes an unevaluated config fail closed, so a lane cannot be born dark the way the nine dev-CLIs were. MEASURED on the live corpus at first wiring: only 2 of the 9 declared lifecycles observe anything at all.",
+  "_comment": "ADR-0109 lifecycle-status gate policy. ONE required lane over EVERY config in configs_dir, replacing the nine tools/oya-governance-*-lifecycle-app dev-CLI crates that were never referenced by .github/workflows/** and therefore enforced nothing for their entire lifetime. Adding a lifecycle is a CONFIG file here, never a new crate; the completeness dimension makes an unevaluated config fail closed, so a lane cannot be born dark the way the nine dev-CLIs were. MEASURED on the live corpus at first wiring: only 2 of the 9 declared lifecycles observed anything at all. THAT IS NO LONGER TRUE, and the difference is a ruling per lane rather than a new mechanism. The seven dark lanes each took a re-root-or-delete disposition: six configs whose declared corpus does not exist on disk were DELETED, and api-stability-tier was RE-ROOTED onto registry/catalog/*.yaml. 3 configs remain and ALL 3 observe a live corpus \u2014 measured by the gate itself at this tree: adr-status 10 artifacts, api-stability-tier 750, doc-status 2702. known_broken_lanes is now EMPTY, and that is the load-bearing consequence: an entry there is the only thing that suppresses lifecycle_status_lane_discovery_failed and lifecycle_status_lane_discovered_nothing, so with nothing listed every lane's anti-vacuity floor is ARMED. A future move that walks a scan root out from under a lane now REDS this required context instead of observing zero and reporting a clean green \u2014 which is precisely how these seven went dark in the first place.",
   "gate_id": "cloud-ci-lifecycle-status",
   "purpose": "ADR-0109 lifecycle state-machine ratchet: every declared lifecycle config is evaluated against the live corpus, per (lane, violation_kind) counts are frozen shrink-only, and a lane that cannot see its corpus is blocking rather than vacuously green.",
   "schema_version": "1.0.0",
   "configs_dir": "specs/lifecycle-configs",
   "frozen_violation_baseline": {
-    "_comment": "FROZEN shrink-only per (lane, violation_kind) counts, MEASURED against the live corpus. An absent pair is born-blocking; growth is a regression; a count that FALLS makes this baseline stale and must shrink in the same reviewed PR, so a fixed violation cannot leave headroom for the next one. Only the two lanes that actually observe a corpus appear here \u2014 the other seven are in known_broken_lanes and are deliberately unbaselined, because a baseline over an unobservable corpus certifies nothing.",
+    "_comment": "FROZEN shrink-only per (lane, violation_kind) counts, MEASURED against the live corpus. An absent pair is born-blocking; growth is a regression; a count that FALLS makes this baseline stale and must shrink in the same reviewed PR, so a fixed violation cannot leave headroom for the next one. EVERY config on disk is now a lane that observes a live corpus, so the earlier note that only two of nine appeared here is retired: there is no unbaselined-because-unobservable tier left, and known_broken_lanes is empty. A lane with NO row here is not exempt \u2014 it is asserting zero violations of every kind, since an absent (lane, kind) pair is born-blocking.",
     "adr-status-lifecycle": {
-      "_comment": "Live apex ADRs only (docs/decisions/ADR-*.md post-disposition). All carry readable status scalars; historical corpus is under docs/adr-archive/ outside this source glob. Zero-count pairs omitted (absent pair is already born-blocking). Measured 2026-08-06 PR #1574."
+      "_comment": "Live apex ADRs only (docs/decisions/ADR-*.md post-disposition). All carry readable status scalars; historical corpus is under docs/adr-archive/ outside this source glob. Zero-count pairs omitted (absent pair is already born-blocking). Measured 2026-08-06 PR #1574. NOTE the consequence of a clean lane: with no violation row, this lane's ONLY floor is `artifacts > 0` via LaneDiscoveredNothing, which is weaker than a shrink-only count. That is accepted here because the corpus is 10 apex records and any drop to zero is a scan-root move, not a slow drift."
     },
     "doc-status-lifecycle": {
       "_comment": "2667 docs observed. This is the repo's largest single ungoverned-status corpus and the reason this lane must be a ratchet rather than a flag day: 72% of tracked docs declare no lifecycle stage at all.",
@@ -16,34 +16,6 @@
     }
   },
   "known_broken_lanes": {
-    "_comment": "Lanes that CANNOT observe a live corpus today. Every one was measured, not assumed. A listed lane may fail discovery or observe zero artifacts without reddening the required context; an UNLISTED lane doing either is born-blocking. Shrink-only in both directions: a listed lane that starts observing artifacts fails with known_broken_lane_now_live and must lose its entry in the same PR, and an entry naming a deleted config also fails. Every entry states a resolution \u2014 a defect with no resolution is a permanent excuse, and the parser rejects it. These seven are the disposition question this gate makes VISIBLE rather than answers: each needs a re-root-or-delete ruling, and until one lands the lane is honestly recorded as enforcing nothing instead of reporting a clean green.",
-    "api-stability-tier-lifecycle": {
-      "defect": "source root docs/api-stability does not exist; the lane has never observed an artifact",
-      "resolution": "re-root onto the live API-stability surface (registry/catalog *.yaml api_stability fields) or delete the config, and delete this entry in the same PR"
-    },
-    "capability-status-lifecycle": {
-      "defect": "source root resolves but the glob matches ZERO artifacts, so the lane evaluates perfectly clean while observing nothing \u2014 a vacuous green the kernel cannot detect because its glob only errors on a missing directory",
-      "resolution": "re-root onto the live capability surface (specs/capability-registry.json / <cap>/catalog) or delete the config, and delete this entry in the same PR"
-    },
-    "crate-status-lifecycle": {
-      "defect": "source root crates/*-domain does not exist \u2014 the capability-first reorg (ADR-0562) moved every crate out of crates/ and the config was never re-rooted; this is the reorg-move scan-root blindness class",
-      "resolution": "re-root onto the live crate surface (registry/catalog/*.yaml) or delete the config, and delete this entry in the same PR"
-    },
-    "dependency-status-lifecycle": {
-      "defect": "source root docs/dependencies does not exist; the lane has never observed an artifact",
-      "resolution": "re-root onto registry/dependency-rationales.json / oya-deps.toml or delete the config, and delete this entry in the same PR"
-    },
-    "feature-flag-status-lifecycle": {
-      "defect": "source root docs/feature-flags does not exist; the lane has never observed an artifact",
-      "resolution": "re-root onto the live feature-flag surface or delete the config, and delete this entry in the same PR"
-    },
-    "migration-status-lifecycle": {
-      "defect": "source root .omc/plans/milestones is GITIGNORED agent operational state, absent from every CI checkout by construction \u2014 this lane could never have run in required CI even if it had been wired",
-      "resolution": "re-root onto a tracked migration surface (docs/migration-playbooks, specs/reorg/*.json) or delete the config, and delete this entry in the same PR"
-    },
-    "plan-status-lifecycle": {
-      "defect": "source root .omc/plans/milestones is GITIGNORED agent operational state, absent from every CI checkout by construction \u2014 same structural defect as migration-status-lifecycle",
-      "resolution": "re-root onto the tracked masterplan surface (specs/masterplan.json) or delete the config, and delete this entry in the same PR"
-    }
+    "_comment": "EMPTY, and the emptiness is the enforcement. An entry here is the ONLY thing that suppresses lifecycle_status_lane_discovery_failed and lifecycle_status_lane_discovered_nothing (ci/facade/lifecycle-status/src/lib.rs compare(), the `!known_broken` guards), so with nothing listed EVERY lane on disk fails closed the moment it stops seeing its corpus. The seven entries this block used to carry were never excuses to be renewed; they were a disposition question the gate made visible, and it has been answered lane by lane: capability-status, crate-status, dependency-status, feature-flag-status, migration-status and plan-status were DELETED because their declared corpus does not exist in any checkout (two of them rooted on GITIGNORED .omc agent state), and api-stability-tier was RE-ROOTED onto registry/catalog/*.yaml. The key itself is retained because parse_policy requires the object, and because adding a lane back must be a review-visible edit to a block that currently reads empty. RULES IF ONE IS EVER ADDED, unchanged: a listed lane may fail discovery or observe zero artifacts without reddening the required context; an UNLISTED lane doing either is born-blocking; a listed lane that starts observing artifacts fails with known_broken_lane_now_live and must lose its entry in the same PR; an entry naming a deleted config fails with known_broken_lane_without_config; and every entry must carry a non-empty `resolution`, which parse_policy hard-rejects otherwise. The cost of a listing is total \u2014 a lane recorded here enforces NOTHING for as long as it is listed \u2014 which is why the correct length of this block is zero."
   }
 }
