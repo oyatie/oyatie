@@ -1,3 +1,12 @@
+---
+doc_class: Program-Census-Record
+doc_status: published
+census_lane: concurrency
+upstream_pin: 756939600b9a7180fc2df6550a4585b638875e67
+measured_at: 2026-08-08
+authority_tier: 3
+---
+
 # Go→Rust rule-corpus census: the concurrency surface
 
 Status: measurement artifact. Not a decision, not an ADR, not a plan.
