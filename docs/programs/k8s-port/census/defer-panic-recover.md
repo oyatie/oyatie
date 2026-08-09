@@ -884,12 +884,12 @@ engine needs, which is the number that sizes the programme.
 
 | Surface | Sites | Shapes | Engine cost |
 |---|---:|---:|---|
-| `defer` total | 4 294 | 6 shapes cover 77.9 % | Low. `Unlock`/`RUnlock` (2 062) and `Done` (237) **delete**; they do not translate. |
+| `defer` total | 4 294 | 6 shapes cover 77.9 % | Low. `Unlock`/`RUnlock` (2 062) **delete** — but 43 of them are registered in a nested block and are a **hard stop**, not a delete (§3/§4). `Done` (237) is **not** a delete: §3 withdrew that mapping, because std and Tokio join handles detach on drop and dynamically-spawned WaitGroup work has no retained handle; those 237 belong to the unmapped whole-pattern-rewrite class. |
 | `defer` in loop | 27 | 7 sub-shapes | Low volume, high care. 19 IIFE counter-shape sites translate free; the 27 need a hard-stop detector and per-site receipts — 3 of them become functional defects under a naive scope-drop. The detector's real condition is **any enclosing block that is not the function body** (§4), which adds the 43 nested-block `defer …Unlock()` sites of §3. |
 | `defer` mutating named result | 24 (19 + 5) | 2 channels | Restructure, no analogue — but 0.56 % of defers, **not** the common case the brief anticipated. |
 | `defer` argument capture that matters | 2 verified (6 syntactic) | 1 | One unconditional rule (bind args into locals at the defer) makes all 4 294 correct. |
 | `panic(` | 1 339 | top 3 = 70.1 % | 512 vanish with the type system (generator rule); ~400 map one-to-one; ~200 wait on the error model. |
-| `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | **21 sites decide `panic=unwind` vs `panic=abort` for the whole port** — 13 resuming (R3/R5/R6), 5 cleanup-then-rethrow (R4) whose compensation runs only during unwinding, and 3 typed-payload control-flow protocols (R7) whose recover and payload identity exist only while unwinding. See §7.5/§7.6; an earlier draft said 13, then 18. |
+| `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | **21 enumerated recover-boundary sites are the known unwind-dependent set** — 13 resuming (R3/R5/R6), 5 cleanup-then-rethrow (R4) whose compensation runs only during unwinding, and 3 typed-payload control-flow protocols (R7) whose recover and payload identity exist only while unwinding. It is a **floor**, not the decision set for the whole port: the unmeasured remainder is the defers reachable on a panic path (§8 item 7). See §7.5/§7.6; an earlier draft said 13, then 18. |
 
 The headline for programme sizing: on this surface the corpus is far more
 uniform than its size suggests. `defer` is 78 % six callee shapes, `panic` is

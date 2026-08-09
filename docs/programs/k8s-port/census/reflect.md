@@ -947,8 +947,8 @@ Stated plainly, because a wrong number here is expensive.
 | --- | ---: | --- | --- |
 | Corpus files (D1/D2/D3) | 16,941 / 12,587 / 9,573 | exact | `find`, matches the shape given to this lane |
 | `reflect` importers (D3) | 355 | exact | two independent parsers agree file-for-file (§3.1) |
-| — generated | 104 | exact | set intersection; generator attribution sums to 104 |
-| — hand-written | 251 | exact | set difference |
+| — generated | 104 | **exact relative to the marker-derived generated set (§2.2); not exact as generated vs hand-written** | set intersection against `gen-nvnt-refined.txt`, which §2.2 labels an estimate; an unmarked generated `reflect` importer moves a file between this row and the next |
+| — hand-written | 251 | **exact relative to the marker-derived generated set (§2.2); not exact as generated vs hand-written** | set difference against `gen-nvnt-refined.txt`, which §2.2 labels an estimate; an unmarked generated `reflect` importer moves a file between this row and the one above |
 | Generated files (D3) | 3,384 | **marker-derived estimate; not a bound** (§2.2) | every row of the §2.2 table can only see files bearing a generation phrase; the +58 swagger recovery in that section is the demonstration that unmarked generated files exist and are invisible to it |
 | Generated lines (D3) | 929,168 | exact given the file set | `cat | wc -l` over the set |
 | Reflective core | 38 | **lower bound** | union of two chosen idioms; a third would add (§8.2) |
