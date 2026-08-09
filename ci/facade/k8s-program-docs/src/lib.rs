@@ -482,12 +482,16 @@ fn load_wave_registry(
                 "wave identifiers and ordinals must be unique",
             ));
         }
+        // Resolved for EVERY row, not only the completed ones. Keying validation to consumption
+        // rather than to presence left any journal path on an in-flight wave an unverified string:
+        // a typo, rename or deletion stayed green until the wave eventually completed, and the
+        // backlink dangled in the meantime.
+        let entries = fields
+            .get("operations_entries")
+            .map_or(Ok(Vec::new()), |value| {
+                load_journal_entries(program_root, value)
+            })?;
         if completed == "true" {
-            let entries = fields
-                .get("operations_entries")
-                .map_or(Ok(Vec::new()), |value| {
-                    load_journal_entries(program_root, value)
-                })?;
             waves.push(CompletedWave {
                 id: id.to_owned(),
                 ordinal,
@@ -926,6 +930,26 @@ mod tests {
         let error = load_wave_registry(root, &root.join(PROGRAM_ROOT))
             .expect_err("missing wave registry must fail closed without a prose escape");
         assert_eq!(error.code, "R-DOC-WAVE-REGISTRY-MISSING");
+    }
+
+    #[test]
+    fn incomplete_wave_with_unreadable_journal_path_is_red() {
+        // The regression test for resolving journal paths on EVERY row. Before the hoist this
+        // returned Ok(vec![]): nothing had completed, so nothing was resolved, and the dangling
+        // backlink stayed invisible until the wave eventually completed.
+        let root = std::env::temp_dir().join("r-doc-incomplete-wave-journal-fixture");
+        let registry = root.join(WAVE_REGISTRY);
+        fs::create_dir_all(registry.parent().expect("the registry has a parent directory"))
+            .expect("the fixture tree is creatable");
+        fs::write(
+            &registry,
+            "version=1\nwave=W0-A;ordinal=0;completed=false;operations_entries=absent.md;no_extraction_rationale=\n",
+        )
+        .expect("the fixture registry is writable");
+        let result = load_wave_registry(&root, &root.join(PROGRAM_ROOT));
+        fs::remove_dir_all(&root).ok();
+        let error = result.expect_err("an in-flight wave's journal path is resolved, not trusted");
+        assert_eq!(error.code, "R-DOC-JOURNAL-ENTRY-UNREADABLE");
     }
 
     #[test]
