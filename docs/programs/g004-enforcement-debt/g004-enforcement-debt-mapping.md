@@ -334,6 +334,39 @@ Corollary for the citation census: frontmatter is free there as long as it names
 `scan_line` only fills `cited` behind a `decisions/` or `adr-archive/` prefix (T8). Verified: the
 frontmatter added here left `files_scanned` at 16519 and `citation_lines` at 8906.
 
+**T16 — it was THREE corpora, not two, and the third dictates WHERE the file lives.** T15 was still
+short. `ci/facade/baseline-ratchet` runs ADR-0555 born-accounting over every tracked path, and this
+document arrived failing all three of its registration codes at once:
+
+```
+[cloud-ci-total-accounting] unjustified regressions {"docs/g004-enforcement-debt-mapping.md"}
+[cloud-ci-total-accounting] unowned      regressions {"docs/g004-enforcement-debt-mapping.md"}
+[cloud-ci-total-accounting] unreachable  regressions {"docs/g004-enforcement-debt-mapping.md"}
+```
+
+Two of the three are one act: REACHED implies JUSTIFIED, so a reviewed
+`specs/reachability-registry.json` prefix clears `unreachable` and `unjustified` together.
+
+`unowned` is the one with a location consequence, and it cannot be satisfied at `docs/<file>.md` at
+all. Ownership resolves to the NEAREST ancestor `OWNERS`, and an `OWNERS` covering more than
+`[owners] max_paths_per_owners_file` tracked paths (`oya-ci.toml`, 2000) owns **nothing** —
+fail-closed, with no fall-through to a broader ancestor. Measured: root `OWNERS` is far past the
+bound, and a new `docs/OWNERS` would cover **2631** paths, also past it. So a top-level `docs/*.md`
+is structurally unownable, and adding `docs/OWNERS` would have looked like a fix while changing
+nothing.
+
+The answer is a subtree, and the registry already records this exact reasoning for
+`docs/security-program/`: *"homed in its own docs/security-program/ subtree so ADR-0555
+nearest-ancestor OWNERS can own it without over-claiming docs/."* This document therefore lives at
+`docs/programs/g004-enforcement-debt/`, beside `docs/programs/k8s-port/` and
+`docs/programs/hyperscaler-delivery-lanes/`, which carry the same shape for the same reason.
+
+Cross-check on the other two corpora: the move is a rename INSIDE the scanned set and the added
+`OWNERS` has no `scan_extensions` suffix, so `files_scanned` holds at 16519; the registry anchor
+names ADR ids bare, so it adds no `cited` and `citation_lines` holds at 8906. **The rule for a new
+tracked artifact is therefore: pick a directory that an OWNERS can actually own BEFORE writing the
+file** — location is an accounting decision, not a filing preference.
+
 ---
 
 ## 5. Unit ledger

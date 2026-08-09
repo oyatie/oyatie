@@ -33,9 +33,17 @@ rust_library(
 # source (the crate-root cfg) and half build graph (no production target turning
 # the feature on), and a test that only checked the source half would miss the
 # way the barrier actually gets removed.
+#
+# It is a LITERAL PATTERN INSIDE the glob, not `glob([...]) + ["BUCK"]`. The
+# concatenation builds the same file set for buck2 and an UNREADABLE one for
+# ci/facade/embedded-asset-hermeticity: parse_srcs models `glob(...)` and a bare
+# list, and a binary `+` of the two falls to its `_ => unparseable` arm, which
+# fail-safes the whole target to a born-blocking `skip_buck_unparseable` rather
+# than certifying a srcs set it cannot see. Keeping srcs a single glob call
+# keeps the include site RESOLVED instead of skipped.
 rust_test(
     name = "os-secrets-domain-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]) + ["BUCK"],
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**", "BUCK"]),
     crate = "os_secrets_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
