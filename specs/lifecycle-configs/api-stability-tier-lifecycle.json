@@ -1,6 +1,7 @@
 {
   "name": "api-stability-tier",
   "version": 1,
+  "_stage_vocabulary_ruling": "`preview` is DELIBERATELY absent from `stages`, and adding it would break this lane rather than fix it. All 750 registry/catalog/*.yaml declare `api_stability: preview`, so the lane baselines 750 unknown_stage — and THAT frozen count is this lane's only anti-shrink floor: ci/facade/lifecycle-status BaselineStale fires the moment the observed count drops to 749, long before LaneDiscoveredNothing would ever see 0. Legalising `preview` yields a lane with zero violations, hence no shrink floor at all, and converts a measured gap into the fabricated compliance ci/facade/gate-self-conformance/gate-self-conformance-policy.json forbids. Retire the debt by declaring real tiers per crate, never by widening the vocabulary.",
   "stages": [
     {
       "id": "experimental",
@@ -43,9 +44,9 @@
   ],
   "sources": [
     {
-      "kind": "yaml_front_matter",
-      "glob": "docs/api-stability/**/*.md",
-      "stage_field": "stability_tier",
+      "kind": "yaml_document",
+      "glob": "registry/catalog/*.yaml",
+      "stage_field": "api_stability",
       "supersession_field": "replaced_by_api",
       "deadline_field": "removal_deadline",
       "milestone_field": null
