@@ -320,6 +320,14 @@ whose group ends in `.k8s.io` or is one of the five suffix-less upstream groups 
 `autoscaling`, `policy`, `extensions`). A closed allowlist would have been blind to a first
 `batch/v1` or `networking.k8s.io/v1` — exactly the growth this invariant exists to catch.
 
+The `git grep` line above is a **reproducer, not the definition**. It enumerates spellings, so it
+reads only an unquoted value after `apiVersion: `. The gate normalizes the value before classifying
+it — a quoted key (`"apiVersion":`), a quoted value (`"apps/v1"`, `\"apps/v1\"`, `'apps/v1'`) and
+extra spaces all count, which is what stops the census being silently under-inclusive as soon as a
+site is written in any of those spellings. On this tree the two agree at 16 with zero per-line
+differences across all 373 `os/**/*.rs`, so the widening moved no number; it removed a way for a
+future site to hide. Where they can disagree, the gate is authoritative.
+
 The negative control is the point: `os/core/block-domain/src/controller.rs` carries 16 `apiVersion:`
 lines of its own and matches none of them (trap T-1). The exclusion is structural, not incidental:
 all 168 `v1alpha1` occurrences in `os/**/*.rs` are **bare**, carrying no group segment, while every

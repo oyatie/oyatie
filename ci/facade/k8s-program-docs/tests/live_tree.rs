@@ -37,6 +37,31 @@ fn live_k8s_program_document_corpus_is_green_and_nonempty() {
     assert!(report.is_green());
 }
 
+/// The leaf census against the real tree. The denominator is enumerated, so this asserts it is not
+/// vacuous before trusting the equality the evaluation checks.
+#[test]
+fn live_seam_leaf_census_is_enumerated_not_declared() {
+    let root = repo_root();
+    let corpus = ci_k8s_program_docs::load_repository(&root)
+        .expect("the live R-DOC corpus must load without malformed or missing inputs");
+
+    assert!(
+        corpus.crate_leaves.len() >= 50,
+        "the leaf scan enumerated {} crate leaves across k8s/ and os/; a collapsed denominator makes the classification meaningless",
+        corpus.crate_leaves.len()
+    );
+    assert_eq!(
+        corpus.declared_leaves.total_leaves,
+        corpus.crate_leaves.len(),
+        "the declared leaf census does not equal the tree at HEAD"
+    );
+    assert_eq!(
+        corpus.declared_leaves.rows.len(),
+        corpus.crate_leaves.len(),
+        "declared leaf rows do not equal the enumerated crate leaves"
+    );
+}
+
 /// INV-3 against the real tree, with the positive control the negative claim needs (trap T-2).
 #[test]
 fn live_os_tree_holds_the_frozen_upstream_emit_site_ceiling() {
