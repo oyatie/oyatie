@@ -125,10 +125,46 @@ itself demands:
 `specs/cache-warm-license.json` stays `warm_reads_licensed: false` and the required lane stays cold
 throughout. This phase **produces** the cache-only proof the gate demands.
 
+- **A0. KMS/TLS bootstrap — EXTERNAL DEPENDENCY, not owned by this rollout.** A3's identity exchange
+  presumes an OpenBao that speaks authenticated TLS on `:8202`, and the RUNBOOK ordering that governs
+  A1 puts the CAS deploy after this block's readback. **Declared state provides neither.**
+  `infra/gitops/values.yaml:95` registers the `openbao` Application with `include:
+  openbao.k8s.yaml` only, and that manifest declares `listener "tcp" { address = "0.0.0.0:8200";
+  tls_disable = true }` with a Service exposing exactly `{http 8200, cluster 8201}` — no 8202, no
+  TLS. `openbao-tls-migration.k8s.yaml` and `openbao-ci-identity.k8s.yaml` exist on disk but appear
+  in **no** `include:` (the only mention of the former is the comment at `values.yaml:93-94` saying
+  promotion is a reviewed source switch). This block is listed so the dependency is **recorded, not
+  implied**; it is sequenced by `infra/external-secrets/RUNBOOK.md:25-60`, whose order is
+  authoritative over the wording of any single comment.
+  - *(i) TLS bootstrap* (RUNBOOK step 1). Secret `oya-kms/openbao-server-tls` (`tls.crt`/`tls.key`)
+    plus the **populated** `openbao-offline-root-ca` ConfigMap in both `external-secrets` and
+    `arc-runners`, with the certificate covering `openbao.oya-kms.svc`. Do not apply the empty
+    public-CA scaffold directly.
+  - *(ii) Identity roles* (RUNBOOK step 2). Apply `infra/kms/openbao-ci-identity.k8s.yaml` and
+    bootstrap the JWT + PKI roles **over the existing plaintext 8200 listener** — this is the origin
+    of `github-cas-writer-dev-push` / `github-cas-reader-integrity-canary` and the two `pki_cas_*`
+    roles that A3 needs. Note the ordering consequence: role *creation* happens on 8200 before TLS
+    exists; what requires `:8202` is the canary controller's **runtime** OIDC->PKI exchange.
+  - *(iii) TLS promotion* (RUNBOOK step 3). A **reviewed PR** switching `infra/gitops/values.yaml:95`
+    from `openbao.k8s.yaml` to `openbao-tls-migration.k8s.yaml` **and** adding an exact-path
+    Application for `infra/kms/openbao-ci-identity.k8s.yaml` with `cascadeDelete: true`. Raw
+    `kubectl apply` of the migration manifest is **forbidden**: Argo owns the same Deployment,
+    Service and NetworkPolicy with prune + self-heal, so a direct apply is reverted or fights the
+    controller.
+  - *(iv) Readback* (RUNBOOK step 4). Service ports `8200..8203`, authenticated TLS health on
+    `8202`, plaintext `8200` still answering during the dual-listener phase, and the Namespace +
+    `openbao-data` PVC UIDs identical before and after reconciliation.
 - **A1.** Deploy the cache-only tier — `storage/adapters/nativelink/nativelink-cas.k8s.yaml` (CAS +
   Action Cache only; the scheduler and worker tiers are deliberately not deployed until the RE
   phase). Deploying it does **not** make it reachable from the canary; that is A2, and it is work,
   not a property.
+  - *Precondition and ordering, against declared state rather than against the manifest.* The
+    manifest existing is not the manifest being deployed: `grep -n nativelink infra/gitops/values.yaml`
+    returns **nothing**, so nothing reconciles this file today. Per `infra/external-secrets/RUNBOOK.md`
+    step 5, it is added as an **exact-path GitOps Application with `cascadeDelete: true`**, in a
+    reviewed PR, and **only after** the A0(iv) KMS/TLS readback — never by raw `kubectl
+    apply`, which would leave Argo owning the same objects with prune + self-heal. A1 is therefore
+    ordered after A0, not first.
 - **A2.** **Move the canary onto an in-cluster runner.** Without this step A4 cannot produce the
   cache-only proof at all, and the omission is invisible because it reads as a property of A1
   rather than a task. The CAS is cluster-internal: both Services are ClusterIP (no `spec.type`,
@@ -158,7 +194,13 @@ throughout. This phase **produces** the cache-only proof the gate demands.
     as a licence for the amd64 lane. Covering the required lane needs either an amd64 in-cluster
     fleet or an explicit, separately argued cross-arch claim.
 - **A3.** Issue the fixed reader/writer OIDC identities the canary controller exchanges for
-  (`cache-integrity-canary.yml:182-189`).
+  (`cache-integrity-canary.yml:182-189`). **This is not a standalone action.** The identities are
+  the `github-cas-writer-dev-push` / `github-cas-reader-integrity-canary` JWT roles and the two
+  `pki_cas_*` PKI roles created in **A0(ii)**, and the canary performs the exchange against
+  `OYA_OPENBAO_ADDR: https://openbao.oya-kms.svc:8202` (`cache-integrity-canary.yml:75`, asserted —
+  not incidental — by `infra/arc/tests/ci_workspace_capacity.rs:1353`). That address **does not
+  resolve until A0(iii) lands**: declared state today terminates plaintext 8200 only. Until then
+  this step has no endpoint to exchange against.
 - **A4.** Set repo var `OYA_CAS_IDENTITY_PROOF_ENABLED=true` so the **already-wired**
   `cache-writer-identity` job (`oya-ci-required.yml:627-635`, trusted dev push only) seeds the
   fresh CAS.
@@ -212,6 +254,24 @@ Credentials (#1541), the Phase-A cache-only proof, and an **Accepted** activatio
   build class (trusted-push for the dev-push producer, read-only untrusted-author for PRs, cold for
   forks). This is a `.github/workflows/oya-ci-required.yml` edit and is the piece that has never
   been written.
+
+  **PRECONDITION, not covered by B3 — reachability.** `gate-affected-target-set` is
+  `runs-on: ubuntu-latest` (`oya-ci-required.yml:657`) while `cache-wiring-bin` dials
+  `nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}`, hardcoded at
+  `ci/facade/build-cache-policy/src/main.rs:215-216`. A hosted runner cannot resolve or route those,
+  and per A2 external exposure is ruled out by the `nativelink-cas-ingress` `podSelector`, which no
+  hosted runner can ever satisfy. B3 supplies a **certificate, not reachability** — so with B3 alone
+  this lane resolves to bypass or fails outright. **No reuse either way.** This step therefore also
+  requires moving the job onto an in-cluster runner.
+
+  **And that is NOT the one-line change A2 was.** This is the **binding linux-amd64** lane, and the
+  only in-cluster fleets declared in `infra/gitops/values.yaml` are `oya-arm64` (`:125`) and
+  `oya-live-postgres-arm64` (`:137`) — **both arm64**. The comment at `:122-124` says an amd64 box
+  "adds a sibling entry + values file", i.e. **none exists today**. Covering this lane therefore
+  needs either an amd64 scale set (a new `infra/arc/runner-scale-set-amd64-values.yaml` plus a
+  sibling Application entry) or the explicitly argued cross-arch claim the A2 consequence note
+  demands — an arm64 GREEN is not a licence for the amd64 lane, because buck2 action keys include
+  `cpu:` and `os:`. Recording that dependency is part of this step; do not leave it implied.
 - **B5.** Re-measure. Do not quote a speedup before then.
 
 What is measured about reuse, locally, on this package's own graph:
