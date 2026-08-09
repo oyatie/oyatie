@@ -71,6 +71,38 @@ mod integration_tests {
     use super::*;
     use os_kernel::Role;
 
+    /// The feature must never become a DEFAULT feature.
+    ///
+    /// Non-defaultness is the load-bearing property of the whole gate: the
+    /// `cfg` above only strips `InMemorySigner` and `KeyPair::from_seed` while
+    /// the feature is off, and a `default` entry turns it on for every
+    /// `cargo build` in the workspace. Before this test that property was
+    /// carried by a comment in `Cargo.toml` and nothing else, and buck2 cannot
+    /// notice the change because buck2 features come from the target attribute
+    /// and never consult `Cargo.toml`.
+    ///
+    /// Sibling of the same guard in `os-secrets-domain` and
+    /// `os-cluster-mgmt-domain`. Proven to fire by adding
+    /// `default = ["modeled-crypto"]` to `[features]`.
+    #[test]
+    fn cargo_manifest_declares_no_default_feature() {
+        let features: Vec<&str> = include_str!("../Cargo.toml")
+            .lines()
+            .skip_while(|l| l.trim() != "[features]")
+            .skip(1)
+            .take_while(|l| !l.trim_start().starts_with('['))
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+            .collect();
+
+        assert_eq!(
+            features,
+            ["modeled-crypto = []"],
+            "Cargo.toml [features] must not declare `default`: modeled-crypto \
+             is non-default and that is the whole barrier"
+        );
+    }
+
     /// End-to-end: bootstrap a CA, stand up the service, have a node join with
     /// the cluster token, obtain a cert, get authorized, then renew it.
     #[test]
