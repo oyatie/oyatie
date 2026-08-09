@@ -17,6 +17,21 @@
 //! present. A test can be skipped, filtered, or left unrun; a failed const assertion is a build
 //! failure with no path around it.
 //!
+//! WHAT THAT BLOCK DOES AND DOES NOT DECIDE, stated plainly because the difference is the whole
+//! honesty of the claim. It rejects a fixed CANARY SET of corpus vocabulary — [`FORBIDDEN_CORPUS_TOKENS`],
+//! five needles chosen because they are the ones a corpus-specific author reaches for first. It is
+//! NOT a decision procedure for "is this corpus-specific": a branch on some corpus noun no needle
+//! anticipates compiles, and review is what catches that. No finite needle list could be complete,
+//! because the corpus's vocabulary is open.
+//!
+//! Deriving the needles from corpus policy instead was considered and REFUSED: it would make the
+//! neutral kernel read the corpus it is defined by not knowing, which is the exact coupling D1
+//! forbids, and it would let an edit to corpus policy silently widen or narrow what the engine
+//! may contain. The structural properties carry the rest of the weight and are complete where the
+//! text scan is not — this crate has no dependencies, its seams name no corpus type, and rule
+//! semantics live in DATA under `specs/port-rules/**` where a corpus-specific rule is supposed to
+//! be. The canary set is a cheap backstop on top of that, never the argument for neutrality.
+//!
 //! The scan is COMPLETE rather than hopeful because [`UNSCANNED_CODE_KEYWORDS`] also refuses the
 //! two constructs that could put kernel code in a file this scan never reads — a submodule
 //! declaration and a source-splicing macro. So "the kernel is exactly this file" is a proven
@@ -56,15 +71,31 @@
 //!
 //! - [`plan`] — pairs a [`SourceModel`] with a [`RulePack`] into an ordered [`TransformPlan`].
 //!   Fails closed on a language mismatch, on a duplicate unit id (which would make plan order
-//!   ambiguous, i.e. non-deterministic), and on a rule the pack did not declare.
-//! - [`emit`] — drives a [`Renderer`] over a [`TargetIr`]. Fails closed on a language mismatch and
-//!   on a renderer whose emitted region set is not exactly the IR's region set (a renderer that
-//!   drops or invents a region has silently changed the output surface).
+//!   ambiguous, i.e. non-deterministic), on a rule the pack did not declare, and on declared rules
+//!   handed back in an order that is not the pack's own — the last one because rule order is part
+//!   of the transform, so a plan that depends on which pack answered is not deterministic either.
+//! - [`emit`] — drives a [`Renderer`] over a [`TargetIr`]. Fails closed on a language mismatch, on
+//!   an IR declaring one region identity twice, and on a renderer whose emitted region set is not
+//!   exactly the IR's region set (a renderer that drops or invents a region has silently changed
+//!   the output surface).
 //! - [`verify`] — ADR-0637 D2: an emitted-byte change is explained only by a differing receipt
-//!   axis. "An unexplained emitted-byte change is RED."
+//!   axis. "An unexplained emitted-byte change is RED." The changed set is DERIVED from the two
+//!   emitted trees, never supplied, so no caller can assert its way to a Green.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![forbid(unsafe_code)]
+// The const scan is a bounded linear walk of this file's own bytes, once per needle. `deny` by
+// default, `long_running_const_eval` is a HANG detector — its own note says a genuinely long
+// evaluation may allow it — and this evaluation is neither long nor unbounded: every loop is
+// `while start <= last_start` over a fixed-length slice, so it terminates by construction.
+//
+// It is allowed here rather than worked around because the review that added the seam refusals
+// crossed the step budget purely by making the file longer, and every way of getting back under it
+// costs enforcement: dropping the seam test's corpus pass demotes a build error to a test, and
+// shortening the needle list narrows what is refused. Compile cost is the cheap side of that
+// trade. If it ever stops being cheap, the fix is to derive the scanned set from the build rule's
+// srcs and scan at test time with a build-time guard on the srcs list — not to scan less.
+#![allow(long_running_const_eval)]
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -92,7 +123,10 @@ const KERNEL_SOURCE: &str = include_str!("lib.rs");
 /// INPUT to compiling the library, never a module of it.
 const SEAM_TEST_SOURCE: &str = include_str!("../tests/seams.rs");
 
-/// Corpus vocabulary the neutral engine may never contain, in code or in prose. Spelled as bytes
+/// Corpus vocabulary the neutral engine may never contain, in code or in prose. A CANARY SET, not
+/// a decision procedure — see the module docs: no finite list can decide "corpus-specific", and
+/// deriving one from corpus policy was refused because it would couple the neutral engine to the
+/// corpus. Spelled as bytes
 /// rather than string literals for one reason: a needle written as text would be a needle in the
 /// haystack, and every workaround for that (marker lines, split literals, skipping the tail of the
 /// file) is a hole an author can hide a real token in.
@@ -249,35 +283,60 @@ const _: () = {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct LanguagePair {
     /// Slug of the language being read (matches [`SourceModel::language`]).
-    pub source: String,
+    pub source: String, // data_class: INTERNAL_ONLY
     /// Slug of the language being emitted (matches [`TargetIr::target_language`]).
-    pub target: String,
+    pub target: String, // data_class: INTERNAL_ONLY
 }
 
 impl LanguagePair {
     /// The `<pair>` path segment of the rule namespace, e.g. `source-target`.
-    #[must_use]
-    pub fn slug(&self) -> String {
-        format!("{}-{}", self.source, self.target)
+    ///
+    /// FAIL-CLOSED, and the reason is an addressing collision rather than tidiness. The segment is
+    /// the two slugs joined by `-`, so if a slug may itself contain `-` the join is not injective:
+    /// `("a-b", "c")` and `("a", "b-c")` both render `a-b-c`, and once this value addresses
+    /// `specs/port-rules/lang/<pair>` the two pairs select the SAME rule namespace. One of them is
+    /// then reading or overwriting the other's rules with no error anywhere. Refusing the
+    /// ambiguity here is the only place it is cheap: after the join the information is gone.
+    ///
+    /// The rule is that neither slug may be empty or contain the separator. That keeps the segment
+    /// exactly what the ADR fixes — ONE path component of the form `<source>-<target>` — instead
+    /// of escaping the components into something no reader of the tree could predict.
+    ///
+    /// # Errors
+    /// [`PortError::AmbiguousLanguagePair`] when either slug is empty or carries a `-`.
+    pub fn slug(&self) -> Result<String, PortError> {
+        for slug in [&self.source, &self.target] {
+            if slug.is_empty() || slug.contains(PAIR_SEPARATOR) {
+                return Err(PortError::AmbiguousLanguagePair {
+                    source: self.source.clone(),
+                    target: self.target.clone(),
+                });
+            }
+        }
+        Ok(format!("{}{PAIR_SEPARATOR}{}", self.source, self.target))
     }
 }
 
+/// The byte joining the two slugs of a [`LanguagePair::slug`], and therefore the byte neither slug
+/// may contain.
+pub const PAIR_SEPARATOR: char = '-';
+
 /// A stable identity for one translatable unit of the source model.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct UnitId(pub String);
+pub struct UnitId(pub String); // data_class: INTERNAL_ONLY
 
 /// A stable identity for one rule in a [`RulePack`].
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct RuleId(pub String);
+pub struct RuleId(pub String); // data_class: INTERNAL_ONLY
 
 /// A stable identity for one emitted region (the ADR-0597 registered regenerable region).
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct RegionId(pub String);
+pub struct RegionId(pub String); // data_class: INTERNAL_ONLY
 
 /// An opaque content digest. The kernel COMPARES digests and never computes one — hashing is an
 /// adapter concern, and keeping it out of here is what lets the receipt seam stay pure.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Digest(pub String);
+pub struct Digest(pub String); // data_class: INTERNAL_ONLY
 
 /// The canonical semantic model of the source corpus, as produced by a front end.
 ///
@@ -315,18 +374,18 @@ pub trait RulePack {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PlanStep {
     /// The unit the rule applies to.
-    pub unit: UnitId,
+    pub unit: UnitId, // data_class: INTERNAL_ONLY
     /// The rule to apply.
-    pub rule: RuleId,
+    pub rule: RuleId, // data_class: INTERNAL_ONLY
 }
 
 /// The deterministic, ordered transform to execute. Data only: holding it does not run it.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TransformPlan {
     /// The pair this plan translates.
-    pub pair: LanguagePair,
+    pub pair: LanguagePair, // data_class: INTERNAL_ONLY
     /// The steps, in execution order (model unit order, then pack rule order).
-    pub steps: Vec<PlanStep>,
+    pub steps: Vec<PlanStep>, // data_class: INTERNAL_ONLY
 }
 
 /// The neutral intermediate representation handed to a [`Renderer`].
@@ -349,7 +408,8 @@ pub trait Renderer {
     /// enforces that rather than trusting it.
     ///
     /// # Errors
-    /// Whatever the implementation refuses with; [`emit`] adds the region-set proof on top.
+    /// Whatever the implementation refuses with — [`PortError::Render`] exists so that sentence is
+    /// true of this closed enum. [`emit`] adds the region-set proof on top.
     fn render(&self, ir: &dyn TargetIr) -> Result<BTreeMap<RegionId, Vec<u8>>, PortError>;
 }
 
@@ -386,17 +446,17 @@ pub const RECEIPT_AXES: [ReceiptAxis; 6] = [
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Receipt {
     /// The upstream pin (an opaque revision identifier).
-    pub pin: String,
+    pub pin: String, // data_class: INTERNAL_ONLY
     /// Digest of the source snapshot.
-    pub snapshot_digest: Digest,
+    pub snapshot_digest: Digest, // data_class: INTERNAL_ONLY
     /// Digest of the engine that emitted.
-    pub engine_digest: Digest,
+    pub engine_digest: Digest, // data_class: INTERNAL_ONLY
     /// Digest of the rule pack in force.
-    pub rulepack_digest: Digest,
+    pub rulepack_digest: Digest, // data_class: INTERNAL_ONLY
     /// Digest of the toolchain in force.
-    pub toolchain_digest: Digest,
+    pub toolchain_digest: Digest, // data_class: INTERNAL_ONLY
     /// Digest of the formatter in force.
-    pub formatter_digest: Digest,
+    pub formatter_digest: Digest, // data_class: INTERNAL_ONLY
 }
 
 impl Receipt {
@@ -429,16 +489,16 @@ pub enum Delta {
     /// Regions changed and at least one receipt axis moved to account for it.
     Explained {
         /// The regions whose bytes changed.
-        regions: BTreeSet<RegionId>,
+        regions: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
         /// The axes that moved.
-        axes: BTreeSet<ReceiptAxis>,
+        axes: BTreeSet<ReceiptAxis>, // data_class: INTERNAL_ONLY
     },
     /// Regions changed while every receipt axis held. ADR-0637 D2: this is RED, and it is a
     /// defect in the engine, rules, policy, model, or a declared detachment — never something to
     /// be repaired by editing the generated output.
     Unexplained {
         /// The regions whose bytes changed with no axis to account for them.
-        regions: BTreeSet<RegionId>,
+        regions: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
     },
 }
 
@@ -455,9 +515,9 @@ pub enum Verdict {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Verification {
     /// Green or red.
-    pub verdict: Verdict,
+    pub verdict: Verdict, // data_class: INTERNAL_ONLY
     /// Why.
-    pub delta: Delta,
+    pub delta: Delta, // data_class: INTERNAL_ONLY
 }
 
 /// A typed, fail-closed refusal. Every variant carries enough to act on without re-deriving.
@@ -466,28 +526,74 @@ pub enum PortError {
     /// A language slug did not match the one it was paired against.
     LanguageMismatch {
         /// What the consumer required.
-        expected: String,
+        expected: String, // data_class: INTERNAL_ONLY
         /// What it was handed.
-        actual: String,
+        actual: String, // data_class: INTERNAL_ONLY
     },
     /// The source model emitted the same unit id twice, so step order is ambiguous.
     DuplicateUnit {
         /// The repeated id.
-        unit: UnitId,
+        unit: UnitId, // data_class: INTERNAL_ONLY
     },
     /// `rules_for` returned a rule the pack does not declare.
     UndeclaredRule {
         /// The unit it was returned for.
-        unit: UnitId,
+        unit: UnitId, // data_class: INTERNAL_ONLY
         /// The undeclared rule.
-        rule: RuleId,
+        rule: RuleId, // data_class: INTERNAL_ONLY
+    },
+    /// `rules_for` returned pack-declared rules in an order that is not the pack's own.
+    ///
+    /// The trait contracts BOTH [`RulePack::rules`] and [`RulePack::rules_for`] as pack order, and
+    /// rule order is part of the transform — so a pack that answers the second question in a
+    /// different order than the first makes the plan depend on which question was asked. Two
+    /// implementations over the SAME rule data would then produce different plans, which is the
+    /// non-determinism this engine exists to exclude. Refused rather than silently re-sorted, for
+    /// the same reason [`PortError::DuplicateUnit`] is refused rather than deduplicated: the
+    /// defect is in the pack, and repairing it here would hide it there.
+    RuleOrderViolation {
+        /// The unit `rules_for` was asked about.
+        unit: UnitId, // data_class: INTERNAL_ONLY
+        /// The rule that arrived out of pack order (or a second time).
+        rule: RuleId, // data_class: INTERNAL_ONLY
     },
     /// A renderer's emitted region set was not exactly the IR's region set.
     RegionSetMismatch {
         /// Regions the IR declared that the renderer did not emit.
-        missing: BTreeSet<RegionId>,
+        missing: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
         /// Regions the renderer emitted that the IR did not declare.
-        unexpected: BTreeSet<RegionId>,
+        unexpected: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
+    },
+    /// A [`TargetIr`] declared the same region identity twice.
+    ///
+    /// The declared regions are compared against the emitted ones as SETS, so a duplicate would
+    /// collapse on the way in and a renderer that emitted the region once would satisfy the
+    /// comparison — one declared occurrence lost with nothing to show for it. This is the same
+    /// ambiguous-identity condition [`PortError::DuplicateUnit`] refuses on the source side.
+    DuplicateRegion {
+        /// The repeated region identity.
+        region: RegionId, // data_class: INTERNAL_ONLY
+    },
+    /// A renderer refused for a reason of its own.
+    ///
+    /// [`Renderer::render`] is contracted to return "whatever the implementation refuses with",
+    /// and without this variant that sentence was not true of a closed enum whose other variants
+    /// are all engine-side conditions: malformed IR, a formatter failure, or any other
+    /// renderer-specific refusal had nowhere to go except a misclassification. The detail is
+    /// opaque to the kernel — it is carried, never interpreted.
+    Render {
+        /// The renderer's own description of its refusal.
+        detail: String, // data_class: INTERNAL_ONLY
+    },
+    /// A [`LanguagePair`] cannot address a rule namespace unambiguously.
+    ///
+    /// See [`LanguagePair::slug`] — an empty slug, or one containing [`PAIR_SEPARATOR`], makes the
+    /// joined segment non-injective and two distinct pairs can address one namespace.
+    AmbiguousLanguagePair {
+        /// The source slug as supplied.
+        source: String, // data_class: INTERNAL_ONLY
+        /// The target slug as supplied.
+        target: String, // data_class: INTERNAL_ONLY
     },
 }
 
@@ -512,6 +618,12 @@ impl fmt::Display for PortError {
                 "rule `{}` applied to unit `{}` is not declared by the pack",
                 rule.0, unit.0
             ),
+            Self::RuleOrderViolation { unit, rule } => write!(
+                f,
+                "rule `{}` arrived out of pack order for unit `{}`: rules_for must answer in the \
+                 order rules() declares",
+                rule.0, unit.0
+            ),
             Self::RegionSetMismatch {
                 missing,
                 unexpected,
@@ -520,6 +632,17 @@ impl fmt::Display for PortError {
                 "renderer region set mismatch: {} missing, {} unexpected",
                 missing.len(),
                 unexpected.len()
+            ),
+            Self::DuplicateRegion { region } => write!(
+                f,
+                "duplicate declared region `{}`: region identity is ambiguous",
+                region.0
+            ),
+            Self::Render { detail } => write!(f, "renderer refused: {detail}"),
+            Self::AmbiguousLanguagePair { source, target } => write!(
+                f,
+                "language pair (`{source}`, `{target}`) cannot address a rule namespace \
+                 unambiguously: neither slug may be empty or contain `{PAIR_SEPARATOR}`"
             ),
         }
     }
@@ -533,8 +656,17 @@ impl std::error::Error for PortError {}
 /// does not declare. Step order is model unit order, then pack rule order — both supplied, neither
 /// invented here.
 ///
+/// Pack order is ENFORCED, not assumed. `rules()` is the pack's declared order, and `rules_for`
+/// is contracted to answer in that same order; the engine checks that the rules it is handed for a
+/// unit are a strictly increasing subsequence of `rules()` rather than trusting the claim. Without
+/// the check two packs over identical rule data can hand back the same rules in different orders
+/// and produce different plans — non-determinism arriving through the seam the plan is supposed to
+/// make deterministic. Strictly increasing also rules out the same rule twice for one unit, which
+/// would duplicate a step for no stated reason.
+///
 /// # Errors
-/// [`PortError::LanguageMismatch`], [`PortError::DuplicateUnit`], [`PortError::UndeclaredRule`].
+/// [`PortError::LanguageMismatch`], [`PortError::DuplicateUnit`], [`PortError::UndeclaredRule`],
+/// [`PortError::RuleOrderViolation`].
 pub fn plan(model: &dyn SourceModel, pack: &dyn RulePack) -> Result<TransformPlan, PortError> {
     let pair = pack.pair();
     if pair.source != model.language() {
@@ -544,7 +676,13 @@ pub fn plan(model: &dyn SourceModel, pack: &dyn RulePack) -> Result<TransformPla
         });
     }
 
-    let declared: BTreeSet<RuleId> = pack.rules().into_iter().collect();
+    // Declared rules by position, so membership and ORDER are one lookup. A rule the pack declares
+    // twice keeps its first position; that is a pack defect of its own, and one this W0 kernel
+    // does not yet name, so it is recorded here rather than silently relied on.
+    let mut declared: BTreeMap<RuleId, usize> = BTreeMap::new();
+    for (position, rule) in pack.rules().into_iter().enumerate() {
+        declared.entry(rule).or_insert(position);
+    }
     let mut seen: BTreeSet<UnitId> = BTreeSet::new();
     let mut steps: Vec<PlanStep> = Vec::new();
 
@@ -552,10 +690,15 @@ pub fn plan(model: &dyn SourceModel, pack: &dyn RulePack) -> Result<TransformPla
         if !seen.insert(unit.clone()) {
             return Err(PortError::DuplicateUnit { unit });
         }
+        let mut previous: Option<usize> = None;
         for rule in pack.rules_for(&unit) {
-            if !declared.contains(&rule) {
+            let Some(&position) = declared.get(&rule) else {
                 return Err(PortError::UndeclaredRule { unit, rule });
+            };
+            if previous.is_some_and(|last| position <= last) {
+                return Err(PortError::RuleOrderViolation { unit, rule });
             }
+            previous = Some(position);
             steps.push(PlanStep {
                 unit: unit.clone(),
                 rule,
@@ -571,9 +714,14 @@ pub fn plan(model: &dyn SourceModel, pack: &dyn RulePack) -> Result<TransformPla
 
 /// Render `ir` with `renderer`, proving the emitted region set is exactly the declared one.
 ///
+/// The declared regions are checked for a repeated identity BEFORE they become a set. Collecting
+/// straight into a set would collapse a duplicate, and a renderer emitting that region once would
+/// then satisfy the set comparison — one declared occurrence lost, silently, by the very step
+/// meant to prove nothing was lost. [`plan`] refuses the same condition on the source side.
+///
 /// # Errors
-/// [`PortError::LanguageMismatch`], [`PortError::RegionSetMismatch`], or whatever the renderer
-/// itself refuses with.
+/// [`PortError::LanguageMismatch`], [`PortError::DuplicateRegion`],
+/// [`PortError::RegionSetMismatch`], or whatever the renderer itself refuses with.
 pub fn emit(
     renderer: &dyn Renderer,
     ir: &dyn TargetIr,
@@ -585,7 +733,12 @@ pub fn emit(
         });
     }
 
-    let declared: BTreeSet<RegionId> = ir.regions().into_iter().collect();
+    let mut declared: BTreeSet<RegionId> = BTreeSet::new();
+    for region in ir.regions() {
+        if !declared.insert(region.clone()) {
+            return Err(PortError::DuplicateRegion { region });
+        }
+    }
     let rendered = renderer.render(ir)?;
     let emitted: BTreeSet<RegionId> = rendered.keys().cloned().collect();
 
@@ -605,12 +758,36 @@ pub fn emit(
 ///
 /// Unchanged bytes are green. Changed bytes with a moved axis are explained. Changed bytes with
 /// every axis held are UNEXPLAINED and red — the engine cannot say why its own output moved.
+///
+/// THE CHANGED SET IS DERIVED FROM THE EMITTED BYTES, never supplied. An earlier signature took a
+/// `changed_regions` argument, which made the verdict a function of the caller's claim rather than
+/// of the output: a caller that passed an empty set — by omission, by a bug, or deliberately — got
+/// Green with no byte ever compared, so stale or forged output verified clean. The two trees are
+/// exactly the maps [`emit`] returns, so the caller has nothing left to get wrong. Both are read
+/// in full: a region present on one side only is a change, which a key-wise comparison of the
+/// intersection would have missed.
+///
+/// This stays a PURE classifier — the trees are values in memory, no filesystem and no hashing,
+/// which is what keeps the receipt seam adapter-free.
 #[must_use]
 pub fn verify(
     previous: &Receipt,
+    previous_output: &BTreeMap<RegionId, Vec<u8>>,
     current: &Receipt,
-    changed_regions: &BTreeSet<RegionId>,
+    current_output: &BTreeMap<RegionId, Vec<u8>>,
 ) -> Verification {
+    let mut changed_regions: BTreeSet<RegionId> = BTreeSet::new();
+    for (region, bytes) in previous_output {
+        if current_output.get(region) != Some(bytes) {
+            changed_regions.insert(region.clone());
+        }
+    }
+    for region in current_output.keys() {
+        if !previous_output.contains_key(region) {
+            changed_regions.insert(region.clone());
+        }
+    }
+
     if changed_regions.is_empty() {
         return Verification {
             verdict: Verdict::Green,
@@ -623,7 +800,7 @@ pub fn verify(
         return Verification {
             verdict: Verdict::Red,
             delta: Delta::Unexplained {
-                regions: changed_regions.clone(),
+                regions: changed_regions,
             },
         };
     }
@@ -631,7 +808,7 @@ pub fn verify(
     Verification {
         verdict: Verdict::Green,
         delta: Delta::Explained {
-            regions: changed_regions.clone(),
+            regions: changed_regions,
             axes,
         },
     }

@@ -110,6 +110,14 @@ fn region(s: &str) -> RegionId {
     RegionId(s.into())
 }
 
+// An emitted tree, the shape `emit` returns and the shape `verify` reads its diff from.
+fn output(regions: &[(&str, &[u8])]) -> BTreeMap<RegionId, Vec<u8>> {
+    regions
+        .iter()
+        .map(|(id, bytes)| (region(id), (*bytes).to_vec()))
+        .collect()
+}
+
 // Two arbitrary slugs. Deliberately NOT any real language name: the kernel must be provably
 // indifferent to which pair it is handed, and a test that only ever passes one real pair would
 // not show that.
@@ -141,7 +149,27 @@ fn receipt() -> Receipt {
 
 #[test]
 fn pair_slug_is_the_rule_namespace_segment() {
-    assert_eq!(pair().slug(), "alpha-beta");
+    assert_eq!(pair().slug().expect("slug"), "alpha-beta");
+}
+
+#[test]
+fn pair_slug_refuses_a_pair_whose_join_is_not_injective() {
+    // ("a-b", "c") and ("a", "b-c") both render "a-b-c", so one namespace would serve two pairs.
+    // The refusal is what keeps the joined segment a KEY rather than a coincidence.
+    for (source, target) in [("a-b", "c"), ("a", "b-c"), ("", "beta"), ("alpha", "")] {
+        let ambiguous = LanguagePair {
+            source: source.into(),
+            target: target.into(),
+        };
+        assert_eq!(
+            ambiguous.slug(),
+            Err(PortError::AmbiguousLanguagePair {
+                source: source.into(),
+                target: target.into(),
+            }),
+            "({source}, {target}) must be refused"
+        );
+    }
 }
 
 #[test]
@@ -175,32 +203,76 @@ fn plan_orders_by_unit_then_pack_rule_order() {
         units: vec![unit("u2"), unit("u1")],
     };
     let mut applies = BTreeMap::new();
-    applies.insert(unit("u1"), vec![rule("r2"), rule("r1")]);
-    applies.insert(unit("u2"), vec![rule("r1")]);
+    applies.insert(unit("u1"), vec![rule("r1"), rule("r2")]);
+    applies.insert(unit("u2"), vec![rule("r2")]);
     let pack = pack_with(applies, vec![rule("r1"), rule("r2")]);
 
     let plan = plan(&model, &pack).expect("plan");
 
-    // Model order (u2 before u1) is preserved, NOT sorted; within a unit the pack's returned
-    // order is preserved. Both are the supplier's decision, and the engine must not reorder.
+    // Model order (u2 before u1) is preserved, NOT sorted — that is the model's decision. Rule
+    // order within a unit is the PACK's declared order, and the engine proves it rather than
+    // trusting it; see plan_refuses_rules_returned_out_of_pack_order.
     assert_eq!(
         plan.steps,
         vec![
             PlanStep {
                 unit: unit("u2"),
-                rule: rule("r1")
-            },
-            PlanStep {
-                unit: unit("u1"),
                 rule: rule("r2")
             },
             PlanStep {
                 unit: unit("u1"),
                 rule: rule("r1")
             },
+            PlanStep {
+                unit: unit("u1"),
+                rule: rule("r2")
+            },
         ]
     );
     assert_eq!(plan.pair, pair());
+}
+
+#[test]
+fn plan_refuses_rules_returned_out_of_pack_order() {
+    // Both rules are DECLARED, so the undeclared-rule refusal does not reach this. The defect is
+    // order alone: a second pack over the same rule data answering in declared order would produce
+    // a different plan, and a plan that depends on which pack asked is not deterministic.
+    let model = FakeModel {
+        language: "alpha".into(),
+        units: vec![unit("u1")],
+    };
+    let mut applies = BTreeMap::new();
+    applies.insert(unit("u1"), vec![rule("r2"), rule("r1")]);
+    let pack = pack_with(applies, vec![rule("r1"), rule("r2")]);
+
+    assert_eq!(
+        plan(&model, &pack),
+        Err(PortError::RuleOrderViolation {
+            unit: unit("u1"),
+            rule: rule("r1"),
+        })
+    );
+}
+
+#[test]
+fn plan_refuses_the_same_rule_twice_for_one_unit() {
+    // Same predicate, other half: a repeat is not strictly increasing either, and a duplicated
+    // step has no stated meaning.
+    let model = FakeModel {
+        language: "alpha".into(),
+        units: vec![unit("u1")],
+    };
+    let mut applies = BTreeMap::new();
+    applies.insert(unit("u1"), vec![rule("r1"), rule("r1")]);
+    let pack = pack_with(applies, vec![rule("r1"), rule("r2")]);
+
+    assert_eq!(
+        plan(&model, &pack),
+        Err(PortError::RuleOrderViolation {
+            unit: unit("u1"),
+            rule: rule("r1"),
+        })
+    );
 }
 
 #[test]
@@ -347,12 +419,74 @@ fn no_change_is_unchanged_even_when_every_axis_moved() {
     let previous = receipt();
     let mut current = receipt();
     current.pin = "pin-1".into();
+    let bytes = output(&[("a", b"x")]);
 
     assert_eq!(
-        verify(&previous, &current, &BTreeSet::new()),
+        verify(&previous, &bytes, &current, &bytes),
         Verification {
             verdict: Verdict::Green,
             delta: Delta::Unchanged,
+        }
+    );
+}
+
+#[test]
+fn the_changed_set_is_read_off_the_bytes_and_cannot_be_asserted_by_a_caller() {
+    // The forgery this signature exists to make unrepresentable: identical receipts, output that
+    // moved, and NOTHING the caller can pass to make it look clean. There is no changed-set
+    // argument any more, so an empty or omitted one cannot buy a Green.
+    let previous = receipt();
+    let current = receipt();
+
+    assert_eq!(
+        verify(
+            &previous,
+            &output(&[("a", b"x")]),
+            &current,
+            &output(&[("a", b"y")])
+        ),
+        Verification {
+            verdict: Verdict::Red,
+            delta: Delta::Unexplained {
+                regions: [region("a")].into_iter().collect(),
+            },
+        }
+    );
+}
+
+#[test]
+fn a_region_present_on_one_side_only_is_a_change() {
+    // Comparing only the keys both sides share would call an added or dropped region unchanged.
+    let previous = receipt();
+    let current = receipt();
+
+    assert_eq!(
+        verify(
+            &previous,
+            &output(&[("a", b"x")]),
+            &current,
+            &output(&[("a", b"x"), ("b", b"new")])
+        ),
+        Verification {
+            verdict: Verdict::Red,
+            delta: Delta::Unexplained {
+                regions: [region("b")].into_iter().collect(),
+            },
+        }
+    );
+
+    assert_eq!(
+        verify(
+            &previous,
+            &output(&[("a", b"x"), ("b", b"gone")]),
+            &current,
+            &output(&[("a", b"x")])
+        ),
+        Verification {
+            verdict: Verdict::Red,
+            delta: Delta::Unexplained {
+                regions: [region("b")].into_iter().collect(),
+            },
         }
     );
 }
@@ -362,14 +496,18 @@ fn a_changed_region_with_a_moved_axis_is_explained() {
     let previous = receipt();
     let mut current = receipt();
     current.rulepack_digest = Digest("pack-1".into());
-    let changed: BTreeSet<RegionId> = [region("a")].into_iter().collect();
 
     assert_eq!(
-        verify(&previous, &current, &changed),
+        verify(
+            &previous,
+            &output(&[("a", b"x")]),
+            &current,
+            &output(&[("a", b"y")])
+        ),
         Verification {
             verdict: Verdict::Green,
             delta: Delta::Explained {
-                regions: changed,
+                regions: [region("a")].into_iter().collect(),
                 axes: [ReceiptAxis::RulePack].into_iter().collect(),
             },
         }
@@ -380,13 +518,19 @@ fn a_changed_region_with_a_moved_axis_is_explained() {
 fn a_changed_region_with_every_axis_held_is_unexplained_and_red() {
     let previous = receipt();
     let current = receipt();
-    let changed: BTreeSet<RegionId> = [region("a")].into_iter().collect();
 
     assert_eq!(
-        verify(&previous, &current, &changed),
+        verify(
+            &previous,
+            &output(&[("a", b"x")]),
+            &current,
+            &output(&[("a", b"y")])
+        ),
         Verification {
             verdict: Verdict::Red,
-            delta: Delta::Unexplained { regions: changed },
+            delta: Delta::Unexplained {
+                regions: [region("a")].into_iter().collect(),
+            },
         }
     );
 }
@@ -428,4 +572,57 @@ fn errors_render_their_subject() {
     .to_string();
     assert!(rendered.contains("ghost"), "{rendered}");
     assert!(rendered.contains("u1"), "{rendered}");
+}
+
+#[test]
+fn emit_refuses_an_ir_that_declares_one_region_twice() {
+    // Collected straight into a set the duplicate would vanish, and a renderer emitting the region
+    // ONCE would then satisfy the set comparison — a declared occurrence lost by the step that
+    // exists to prove nothing was lost.
+    let ir = FakeIr {
+        target_language: "beta".into(),
+        regions: vec![region("a"), region("a")],
+    };
+    let renderer = FakeRenderer {
+        target_language: "beta".into(),
+        emits: vec![region("a")],
+    };
+
+    assert_eq!(
+        emit(&renderer, &ir),
+        Err(PortError::DuplicateRegion { region: region("a") })
+    );
+}
+
+#[test]
+fn a_renderer_can_refuse_with_its_own_error() {
+    // `render` is contracted to return whatever the implementation refuses with. Before
+    // PortError::Render existed that was untrue of a closed enum with no rendering variant, and a
+    // real renderer had to misclassify a formatter failure as one of the engine-side conditions.
+    struct RefusingRenderer;
+    impl Renderer for RefusingRenderer {
+        fn target_language(&self) -> &str {
+            "beta"
+        }
+        fn formatter_digest(&self) -> Digest {
+            Digest("fmt-0".into())
+        }
+        fn render(&self, _ir: &dyn TargetIr) -> Result<BTreeMap<RegionId, Vec<u8>>, PortError> {
+            Err(PortError::Render {
+                detail: "formatter exited non-zero".into(),
+            })
+        }
+    }
+
+    let ir = FakeIr {
+        target_language: "beta".into(),
+        regions: vec![region("a")],
+    };
+
+    assert_eq!(
+        emit(&RefusingRenderer, &ir),
+        Err(PortError::Render {
+            detail: "formatter exited non-zero".into(),
+        })
+    );
 }
