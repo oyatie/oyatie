@@ -481,6 +481,26 @@ it is a **cheap** restructure, not a programme risk:
 > composes with §7.4 R3 (`catch_unwind` → `Result`), not with a Drop guard.
 > The 5 `&named_result` sites additionally require inlining the callee's epilogue,
 > because `&mut` to a local return slot has no stable Rust spelling.
+>
+> **Precondition — no `defer` may be registered before the named-result closure.**
+> Go runs defers in registration **LIFO** order, so a defer registered *earlier*
+> runs *after* the epilogue. Hoisting the epilogue into the outer wrapper makes it
+> run *before* instead, which reverses the pair. Where an earlier defer exists, the
+> whole ordered defer sequence must be rewritten together and this shape rule does
+> not apply on its own.
+
+The counter-example is already in this document's own table.
+`goroutinemap.go:112` and `:114` are two rows of the 5-site indirect channel and
+are the **same anonymous function**, which registers three defers in order
+`k8sRuntime.HandleCrash()`, `grm.operationComplete(operationName, &err)`,
+`k8sRuntime.RecoverFromPanic(&err)`. LIFO means `RecoverFromPanic` **writes**
+`err` and `operationComplete` then **reads** it; the upstream file's own comment
+says so ("Defer operations are executed in Last-In is First-Out order").
+`types.go:78`/`:81` — the other two indirect rows — has the same shape:
+`CompleteFunc`, `EventRecorderFunc(&eventErr)`, `RecoverFromPanic(&detailedErr)`.
+This also under-specifies the rule above: it says the 5 `&named_result` sites
+require inlining "the callee's epilogue", singular, where `goroutinemap` has
+**two** `&err` epilogues whose relative order is load-bearing.
 
 The 67 read-only sites are a *different* and easier rule: they become a scope
 guard that observes the outcome, and for those the value must be moved into an
@@ -898,6 +918,16 @@ Stated plainly, with the cost of answering each:
    `unwind` vs `abort` decision actually spans, which is why §7.6 states 21 as a
    floor. Needs the same whole-program call graph as items 1 and 2. **Not
    measured**, and as with item 1 the syntactic answer is not a substitute.
+8. **How many of the 24 shape-3 sites carry a `defer` registered *before* the
+   named-result closure.** That is the precondition of the §5 rule: LIFO makes an
+   earlier-registered defer run *after* the epilogue, and the restructure inverts
+   that order. **Not measured.** At least **2 of the 5** indirect sites violate it
+   (`goroutinemap.go:112`/`:114`, `types.go:78`/`:81`); the count over the 19
+   direct sites is unknown. Cheap to close — the existing harness already emits a
+   position for every `defer` (`census.go`, `defer-shape`) and already computes
+   per-function body spans (`census.go`, `spans`), so the registration ordinal
+   falls out of the pass that is already run. A re-aggregation, not a new
+   instrument.
 
 ---
 
@@ -910,7 +940,7 @@ engine needs, which is the number that sizes the programme.
 |---|---:|---:|---|
 | `defer` total | 4 294 | 6 shapes cover 77.9 % | Low. `Unlock`/`RUnlock` (2 062) **delete** — but 43 of them are registered in a nested block and are a **hard stop**, not a delete (§3/§4). `Done` (237) is **not** a delete: §3 withdrew that mapping, because std and Tokio join handles detach on drop and dynamically-spawned WaitGroup work has no retained handle; those 237 belong to the unmapped whole-pattern-rewrite class. |
 | `defer` in loop | 27 | 7 sub-shapes | Low volume, high care. 19 IIFE counter-shape sites translate free; the 27 need a hard-stop detector and per-site receipts — 3 of them become functional defects under a naive scope-drop. The detector's real condition is **any enclosing block that is not the function body** (§4), which adds the 43 nested-block `defer …Unlock()` sites of §3. |
-| `defer` mutating named result | 24 (19 + 5) | 2 channels | Restructure, no analogue — but 0.56 % of defers, **not** the common case the brief anticipated. |
+| `defer` mutating named result | 24 (19 + 5) | 2 channels | Restructure, no analogue — but 0.56 % of defers, **not** the common case the brief anticipated. The restructure carries the **ordering precondition of §5**: it inverts the relative order of any defer registered before the named-result closure, and at least **2 of the 5** indirect sites violate it. How many of the 24 do is **not measured** (§8 item 8). |
 | `defer` argument capture that matters | 2 verified (6 syntactic) | 1 | One unconditional rule (bind args into locals at the defer) makes all 4 294 correct. |
 | `panic(` | 1 339 | top 3 = 70.1 % | 512 vanish with the type system (generator rule); ~400 map one-to-one; ~200 wait on the error model. |
 | `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | **21 enumerated recover-boundary sites are the known unwind-dependent set** — 13 resuming (R3/R5/R6), 5 cleanup-then-rethrow (R4) whose compensation runs only during unwinding, and 3 typed-payload control-flow protocols (R7) whose recover and payload identity exist only while unwinding. It is a **floor**, not the decision set for the whole port: the unmeasured remainder is the defers reachable on a panic path (§8 item 7). See §7.5/§7.6; an earlier draft said 13, then 18. |
