@@ -525,10 +525,23 @@ The homogeneity of the residue's head is nonetheless informative: `wireType` (4,
 residue, from three identifiers in generated code.
 
 **The critical split within this table.** Classes 2, 3, 5, 7 and 15 — 92,902 sites, **45.0% of
-all escaping allocations** — are not ownership decisions at all. They are Go boxing arguments
-into `interface{}` for `fmt.Errorf`, `klog`, and friends, plus compiler-synthesised variadic
-slices. In Rust the equivalent code (`format_args!`, `&dyn Display`, a slice of borrows)
-allocates nothing and owns nothing.
+all escaping allocations** — have the *shape* of Go boxing arguments into `interface{}` for
+`fmt.Errorf`, `klog`, and friends, plus compiler-synthesised variadic slices. Where the boxed
+value is a transient call argument the Rust equivalent (`format_args!`, `&dyn Display`, a slice
+of borrows) allocates nothing and owns nothing, and the site is not an ownership decision.
+
+**That last step is not measured, and the instrument cannot measure it.** The classifier is the
+`awk` cascade above, run over `final/esc.subj.u` — the *subject expression* column of
+`go build -gcflags=-m`. `-m` emits `<subject> escapes to heap` and carries **no destination**, so
+nothing in this instrument separates a value boxed as a transient `fmt.Errorf`/`klog` argument
+from one boxed **into** a `map[string]any`, a struct field, or a function result — which does need
+owned storage and a lifetime in Rust. The sibling census measures that direction directly:
+`interfaces.md` §4 counts **455 `interface{}` function-result positions and 75 struct-field
+positions** in CORE and labels the result direction "`Box<dyn Any>` — the hard direction". This is
+a **one-way** error: every mis-classified site inflates the share called not-an-ownership-decision.
+Reading "escapes to heap" as itself implying a durable destination does not rescue the split — Go's
+escape analysis is conservative and `fmt` arguments escape because `fmt`'s parameters escape, so
+the verdict is not a destination signal in either direction.
 
 **This 45.0% inherits the residue's uncertainty**, because class 2 (41,655 sites) is the residue
 bucket, classified as boxing by assumption rather than by pattern. Two spot-checks against the
@@ -544,12 +557,17 @@ grep -m1 ': pod\.ObjectMeta\.Name escapes to heap$' final/corpus.txt
 ```
 
 The floor that does not depend on the assumption is classes 3, 5, 7 and 15 alone: **51,247
-sites, 24.8%**, all pattern-matched. So the boxing share is **24.8% (measured) to 45.0%
-(measured plus the residue assumption)**.
+sites, 24.8%**, all pattern-matched. So the **boxing-shape** share is **24.8% (measured) to 45.0%
+(measured plus the residue assumption)**. Note what that floor is a floor *on*: 24.8% is a floor on
+boxing **shape**, not on non-ownership. Both endpoints inherit the destination-blindness above —
+that is a separate, one-way error from the residue assumption, and it applies to the 24.8% end
+exactly as it does to the 45.0% end.
 
 > **A port rule that treats "escapes to heap" as an ownership signal would be wrong on at least
-> 24.8% and probably ~45% of escaping sites.** These must be recognised and discarded before any
-> ownership rule fires. The conclusion is unchanged across the whole range.
+> 24.8% and probably ~45% of escaping sites.** These must be recognised and **triaged by
+> destination** before any ownership rule fires — discarding them on subject shape alone drops the
+> stored and returned cases with the transient ones. The conclusion is unchanged across the whole
+> range.
 
 Non-escaping allocations are differently shaped, which corroborates the split — slice literals
 lead at 31.4%, and the same five boxing classes fall to **14.5%** (vs 45.0%). Full table, all
@@ -821,6 +839,7 @@ Remaining threats, unresolved:
 | File coverage counts only files with ≥1 diagnostic | 72.9% is a floor, not the true coverage | Understates coverage |
 | §6.2 reports **aggregate** ratios per top-level tree, with no per-package distribution | Carve-out viability is a claim about the tail; equal aggregates for `staging/` (2.03) and `pkg/` (2.05) do not constrain within-tree variance across the ~40 staging repos or the kubelet/scheduler/proxy split | **Unsigned** — a favourable or hostile subsystem may exist in either tree and would be invisible here |
 | §6.3 does not split the 18,410 pointer-returning functions by receiver presence | Method returns are unclassified provenance: a `*T`-returning method may yield receiver-owned or cache-owned state (`client-go` Listers return into the shared informer cache under a do-not-mutate contract) | **Overstates mechanical translatability** if return arity is read as ownership |
+| The §6.1 boxing classes are classified by **subject expression**; the boxed value's **destination** is unmeasured | `-m` carries no destination, so a box whose destination is a container, a struct field or a function result is an ownership decision counted here as not one; `interfaces.md` §4 measures 455 `interface{}` function-result and 75 struct-field positions in CORE | **Overstates the discardable share** — one-way, and it applies to the 24.8% floor as well as the 45.0% end |
 | §6.3's 2,595 scalar pointees are not split by generated vs hand-written | The optional-field reading is strong for the generated API surface and unevidenced for hand-written code; the ~17% adjustment is a proxy applied to a proxy | **Overstates** how much pointer syntax can be discounted |
 
 ---
@@ -831,7 +850,7 @@ Remaining threats, unresolved:
 |---|---|---|---|
 | 1 | Parameters *lifetime*-compatible with a borrow | **55.1%** (48.1% hand-written) | Measured; a lower bound on **lifetime**-compatibility only. **Not** a bound on borrowability — exclusivity is unmeasured (§4.2, §4.4) |
 | 2 | Allocation sites escaping to heap | **93.6%–95.0%** real / 95.8% raw | **Escape-analysis upper bound.** Not "measured": the 93.6% end additionally assumes the §6.1 residue (41,655 sites) is boxing, on two spot checks; the 95.0% end uses the pattern-matched boxing floor only (§4.3) |
-| 3 | Escaping sites that are *not* ownership decisions | **24.8%–45.0%** (interface boxing) | Lower end measured; upper end assumes the §6.1 residue is boxing |
+| 3 | Escaping sites that are *not* ownership decisions | **24.8%–45.0%** (interface boxing) | Lower end measured; upper end assumes the §6.1 residue is boxing. **Both endpoints are boxing *shape* only** — classification reads the subject expression, and the boxed value's destination is unmeasured, so a box into a container, struct field or function result is counted here as not an ownership decision. One-way: it overstates at both endpoints of the range (§8, last threats row) |
 | 4 | Distinct escaping-allocation shapes | **14 measured shapes covering 79.81%**; a residue of 20.19% holding 10,125 distinct subjects | **Authored taxonomy with a residue bucket — NOT a closed set.** 100% coverage is by construction |
 | 5 | Types needing `Arc<Mutex<T>>` | **Not determined.** Two proxies: 437 hand-written types declare internal locking; 1,152 have ≥1 mutating method | **Neither is a bound** — 437 need not be shared, and the mutation detector under-detects (§5.5). Needs alias analysis |
 | 6 | Types needing `Arc<T>` vs `Box<T>` | **Not determined** | Requires whole-program points-to analysis |

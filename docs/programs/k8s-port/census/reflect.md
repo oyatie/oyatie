@@ -590,7 +590,7 @@ literals or `//go:linkname` directives, all three of which §3.3 found in the wi
 **The top shape covers 45.8%; the top 5 cover 65.7%; the top 8 cover 72.9%. The remaining 65 shapes
 share 68 files** — a classic long tail where the head is trivial and the tail is the work.
 
-### 5.2 The head of the distribution needs no reflection in Rust at all
+### 5.2 The head of the distribution is Go idiom, not reflection Rust would need
 
 The top 8 shapes are not "reflection" in any sense Rust would recognise. Each is a Go idiom that
 exists only because Go lacks a language feature Rust has:
@@ -715,8 +715,13 @@ partition, not the filtering. Both columns are upper bounds on executing sites f
 reason §5.1 gives.
 
 **The entire reflection problem in hand-written, non-vendor, non-`_test.go` Kubernetes is 891 call
-sites in 38 files.** The other 596 sites in 213 files are equality checks, error strings and nil
-tests that require no reflection facility in Rust whatsoever.
+sites in 38 files.** The other 596 sites in 213 files are, *by shape*, equality checks, error strings
+and nil tests. Whether each of them needs no reflection facility in Rust is a per-site question this
+census does not answer: for the 226 `DeepEqual` sites because Go's `DeepEqual` and Rust's `PartialEq`
+diverge on maps, function values, NaN and nil-vs-empty (§5.2), and for the `TypeOf` sites because
+§5.2 records the type names they print as operator-observable. §8.1 states the same limit — the
+shape claim is not a proof about each site — and blocks the answer on the type-checked pass §8.7
+cannot run here. The 596 are therefore described here, not disposed of.
 
 ---
 
@@ -870,9 +875,12 @@ moves the percentage by 0.9 points.
    six map onto `serde`, derive macros, traits, or generated registries. **One does not: JSONPath and
    Go-template evaluation (4 files) is genuine dynamic interpretation over a dynamic value tree, and
    it stays an interpreter in Rust** — that is the residue, and it is 4 files.
-3. **The 213 shallow reflect users are a non-problem.** 596 sites, 226 of them `reflect.DeepEqual`.
-   Every one is a Go workaround for a missing language feature — no generics-era equality derive, no
-   `Option`, no compile-time type names. Rust deletes the need rather than translating the code.
+3. **The 213 shallow reflect users are not sized here.** 596 sites, 226 of them `reflect.DeepEqual`.
+   The *shapes* are Go idioms for missing language features — no generics-era equality derive, no
+   `Option`, no compile-time type names — and most are expected to delete rather than translate. But
+   this population is **not subtracted from the programme** in this document: it stays in the
+   unresolved workload until the type-checked `go/packages` `LoadAllSyntax` pass of §8.1 classifies
+   each site, and §8.7 blocks that pass on this checkout.
 4. **`unsafe` is 22 hand-written files and shrinks to 11.**
 5. **The honest negative:** 6,151 files of hand-written control logic remain, and nothing in this
    census makes *them* smaller. This census bounds the reflection and codegen problem; it says
@@ -954,6 +962,7 @@ Stated plainly, because a wrong number here is expensive.
 | Reflective core | 38 | **lower bound** | union of two chosen idioms; a third would add (§8.2) |
 | `reflect.X` sites, core | 891 (was 899) | **upper bound on executing sites** | §3.3's comment filter applied (§5.1); residual over-count from trailing comments, string literals and `//go:linkname`, which that filter does not catch |
 | `reflect.X` sites, hand-written | 1,487 (was 1,511) | **upper bound on executing sites** | same filter; 891 + 596 reconciles independently, which checks the partition, not the filtering |
+| Shallow reflect users, disposition | 213 files / 596 sites (226 `DeepEqual`) | **unresolved — shape claim, not a per-site proof** | §5.2 and §8.1: whether a `DeepEqual` site is removable is a type-checked question (maps, func values, NaN, nil-vs-empty) and the `TypeOf` names are operator-observable; blocked on §8.7. Not counted as removable in any sizing above |
 | Distinct symbol-set shapes | 73 | exact for the extraction, unchanged by filtering | no symbol and no file is comment-only, so the shape distribution does not move |
 | `unsafe` importers (D3) | 154 | exact | same parser as `reflect`, same guarantees |
 | — hand-written | 22 | **exact relative to the marker-derived generated set (§2.2); not exact as generated vs hand-written** | set difference against `gen-nvnt-refined.txt`, which §2.2 labels an estimate; an unmarked generated `unsafe` importer moves a file out of this row |
