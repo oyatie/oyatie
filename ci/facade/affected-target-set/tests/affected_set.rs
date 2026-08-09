@@ -215,25 +215,68 @@ fn empty_diff_selects_nothing_legitimately() {
 
 #[test]
 fn docs_only_diff_keeps_its_licence_to_select_nothing_in_the_shipped_pack() {
-    // The other GREEN half, against the SHIPPED pack rather than a fixture: docs-only changes may
+    // The other GREEN half, against the SHIPPED pack rather than a fixture: docs ASSETS may
     // legitimately select nothing, so the shipped `inert_selection_classes` must actually cover
     // them. Without this the assertion would RED every docs PR — a gate that fires on everything
     // is as useless as one that fires on nothing.
+    //
+    // MARKDOWN IS NO LONGER IN THIS SET, and the reason is the census pin: the adr-citation-closure
+    // gate equality-pins `files_scanned`/`citation_lines` over a whole-tree walk that includes
+    // `.md`, so a markdown-only diff CAN move a pinned term and must select that gate. `.mdx` is
+    // absent from the gate's `scan_extensions` and non-`.md` docs assets are not scanned at all, so
+    // both keep the licence. See `markdown_selects_the_citation_gate_in_the_shipped_pack` below.
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
-    for path in [
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "README.md",
-        "docs/guide/x.mdx",
-    ] {
+    for path in ["docs/guide/x.mdx", "docs/img/x.png"] {
         let changes = [Change::Present(path.into())];
         let plan = plan_changes(&changes, &p);
         assert_eq!(
             resolve(&plan, &owners(&[(path, &[])]), &p),
             Decision::NoGraphTargets,
-            "`{path}` is a docs-class change and must keep passing with an empty selection"
+            "`{path}` is a docs-asset change and must keep passing with an empty selection"
         );
     }
+}
+
+/// The half the licence above no longer covers: a markdown-only diff must SELECT the
+/// citation-closure gate, because that gate equality-pins a whole-tree `.md` census while its own
+/// package is untouched by the diff. Before this seed existed, such a diff resolved
+/// `NoGraphTargets` and the census test never ran — PR #1623 reported CI GREEN while carrying a red
+/// census exactly that way.
+#[test]
+fn markdown_selects_the_citation_gate_in_the_shipped_pack() {
+    const CITATION_GATE: &str =
+        "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate";
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    for path in [
+        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+        "README.md",
+    ] {
+        let changes = [Change::Present(path.into())];
+        let plan = plan_changes(&changes, &p);
+        assert_eq!(
+            resolve(&plan, &owners(&[(path, &[])]), &p),
+            Decision::Affected {
+                seeds: vec![CITATION_GATE.into()]
+            },
+            "`{path}` must seed the citation-closure gate, not select nothing"
+        );
+    }
+}
+
+/// `**/*.md` must never hold an empty-selection licence: its seed is non-empty, so a markdown-only
+/// PR resolves `Affected` and never reaches predicate (1). If someone later empties the seed list,
+/// this keeps the outcome RED instead of silently restoring the false-green channel.
+#[test]
+fn shipped_pack_does_not_license_the_markdown_class_to_select_nothing() {
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    assert!(
+        !p.inert_selection_classes.iter().any(|c| c == "**/*.md"),
+        "`**/*.md` must never hold an empty-selection licence; got {:?}",
+        p.inert_selection_classes
+    );
 }
 
 #[test]
@@ -746,15 +789,20 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate_despite_docs_inert
     // E4 archive inputs are cross-artifact-agreement inputs, even though the generic docs
     // declaration is inert. Synthetic declarations union, so the narrow non-empty archive
     // mapping contributes this gate while `docs/**` contributes no seed.
+    //
+    // The `.md` member unions in the citation-closure gate on top, from `**/*.md`; the `.json`
+    // sibling does not match that class and keeps the single seed. That asymmetry is the union
+    // semantics working, not a special case.
+    const CROSS: &str = "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate";
+    const CITATION: &str =
+        "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate";
     let pack = shipped_pack_path();
     let policy = Policy::from_json(&fs::read_to_string(pack).expect("read shipped pack"))
         .expect("shipped pack parses");
-    let expected =
-        vec!["root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate".into()];
 
-    for path in [
-        "docs/ideas/archive/e4-transition.md",
-        "specs/markdown-retirement-policy.json",
+    for (path, expected) in [
+        ("docs/ideas/archive/e4-transition.md", vec![CROSS, CITATION]),
+        ("specs/markdown-retirement-policy.json", vec![CROSS]),
     ] {
         let changes = [Change::Present(path.into())];
         let decision = resolve(
@@ -765,15 +813,21 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate_despite_docs_inert
         assert_eq!(
             decision,
             Decision::Affected {
-                seeds: expected.clone()
-            }
+                seeds: expected.into_iter().map(Into::into).collect()
+            },
+            "unexpected seeds for `{path}`"
         );
     }
 }
 
 #[test]
 fn k8s_program_records_and_rules_seed_the_live_r_doc_gate() {
-    let expected = vec!["root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate".into()];
+    // Every path here is `.md`, so each unions the citation-closure gate in from `**/*.md`
+    // alongside its own program-docs gate.
+    let expected: Vec<String> = vec![
+        "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate".into(),
+        "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate".into(),
+    ];
 
     for path in [
         "docs/programs/k8s-port/README.md",
