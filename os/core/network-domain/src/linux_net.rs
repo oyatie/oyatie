@@ -721,7 +721,7 @@ pub fn parse_addr_dump(buf: &[u8]) -> Result<Vec<ParsedAddr>> {
                     .map(|v| v as i32)
                     .unwrap_or(0);
                 if errno != 0 {
-                    return Err(errno_error("netlink dump error", -errno));
+                    return Err(errno_error("netlink dump error", errno.wrapping_neg()));
                 }
             }
             RTM_NEWADDR => {
@@ -763,7 +763,7 @@ pub fn parse_link_dump(buf: &[u8]) -> Result<Vec<LinkStatus>> {
                     .map(|v| v as i32)
                     .unwrap_or(0);
                 if errno != 0 {
-                    return Err(errno_error("netlink dump error", -errno));
+                    return Err(errno_error("netlink dump error", errno.wrapping_neg()));
                 }
             }
             RTM_NEWLINK => {
@@ -804,7 +804,7 @@ pub fn dump_chunk_done_or_error(buf: &[u8]) -> Result<bool> {
                     .map(|v| v as i32)
                     .unwrap_or(0);
                 if errno != 0 {
-                    return Err(errno_error("netlink dump error", -errno));
+                    return Err(errno_error("netlink dump error", errno.wrapping_neg()));
                 }
             }
             _ => {}
@@ -949,8 +949,13 @@ pub fn link_status_from_sysfs_fields(
 /// no syscall, so it is compiled and exercised on non-Linux hosts too.
 pub fn errno_error(ctx: &str, errno: i32) -> Error {
     let msg = format!("{ctx}: errno {errno}");
-    // Compare on the absolute value: netlink reports a negated errno.
-    match errno.abs() {
+    // Compare on the magnitude: netlink reports a negated errno. `unsigned_abs`
+    // rather than `abs` because this is reached from the public dump parsers
+    // with attacker-shaped bytes: an `NLMSG_ERROR` body of `0x80000000` decodes
+    // to `i32::MIN`, whose `abs` panics (`core::num`) under the overflow-checks
+    // that dev and test profiles enable by default. No errno has that
+    // magnitude, so it falls to `Other` — classified, not fatal.
+    match errno.unsigned_abs() {
         // EPERM / EACCES — the caller may not perform the operation.
         1 | 13 => Error::permission_denied(msg),
         // ENOSYS / EOPNOTSUPP / ENOTTY — the substrate does not implement it.
@@ -1120,7 +1125,10 @@ mod linux_impl {
                 // The kernel negates the errno in an NLMSG_ERROR ack; the
                 // message keeps that sign for diagnostics while the classifier
                 // matches on its magnitude.
-                return Err(super::errno_error("netlink request failed", -errno));
+                return Err(super::errno_error(
+                    "netlink request failed",
+                    errno.wrapping_neg(),
+                ));
             }
         }
         Ok(())
@@ -1759,6 +1767,31 @@ mod tests {
         // PID 1 tolerates, and it must be recognisable without reading text.
         assert_eq!(err.kind(), "permission_denied");
         assert!(err.to_string().contains("errno 1"));
+    }
+
+    #[test]
+    fn hostile_errno_is_classified_not_fatal() {
+        // The dump parsers are `pub fn ... (buf: &[u8])`, so the errno is
+        // attacker-shaped, not kernel-shaped. `0x80000000` decodes to `i32::MIN`,
+        // which has no negation and no absolute value in `i32`: both `-errno` at
+        // the call site and `errno.abs()` in `errno_error` aborted the parser
+        // under the overflow-checks dev/test builds enable by default. Decoding
+        // must be total over every 32-bit body, so assert on all three parsers.
+        let hostile = || {
+            let mut buf = Vec::new();
+            push_nlmsghdr(&mut buf, NLMSG_ERROR, 0, 1);
+            buf.extend_from_slice(&0x8000_0000u32.to_ne_bytes());
+            patch_nlmsg_len(&mut buf);
+            buf
+        };
+
+        let err = parse_addr_dump(&hostile()).unwrap_err();
+        // No errno has this magnitude, so it stays unclassified rather than
+        // impersonating one that does.
+        assert_eq!(err.kind(), "other");
+
+        assert!(parse_link_dump(&hostile()).is_err());
+        assert!(dump_chunk_done_or_error(&hostile()).is_err());
     }
 
     #[test]
