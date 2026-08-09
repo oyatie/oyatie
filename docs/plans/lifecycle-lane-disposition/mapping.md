@@ -307,19 +307,40 @@ Today's 1921/9 reproduce the frozen baseline exactly, which validates the reader
 the 1921 undeclared docs carry a `doc_status:` line outside a fence, which is why the change cannot
 move that number. Re-derive both columns yourself before landing — do not carry these over.
 
-**DO NOT add `preview` to the stage vocabulary.** Two reasons; the second is the crux:
+**RETRACTED — this ruling was overturned by U7 on contradicting measured evidence (§0 line 107).
+What SHIPPED is `stages: [preview, stable, GA]` with NO violation row.** The retraction is recorded
+in place, in the §3.1.1 convention, because the amendment was previously applied only *partially*:
+R2 of §3.1.1 already calls this baseline "retracted" while this section still read as binding, so a
+re-litigation arriving here — the path `specs/reachability-registry.json` anchors this file for —
+would have read a live ruling that the tree had already reversed.
 
-1. It converts 750 undeclared tiers into fabricated compliance — precisely what
-   `ci/facade/gate-self-conformance/gate-self-conformance-policy.json:241` says this gate must never
-   do ("a mechanical fix would stamp a default stage ... and convert a measured gap into fabricated
-   compliance").
-2. **`unknown_stage: 750` IS the anti-shrink floor.** `BaselineStale` fires when observed < frozen,
-   so if a later move empties or relocates `registry/catalog/` the lane reds at **749** — long before
-   it reaches the 0 that `LaneDiscoveredNothing` catches. A lane that lights up with ZERO violations
-   has **no shrink floor at all**, only `artifacts > 0`. Prefer the root that yields a real,
-   baselined debt count; that is what makes the lane un-re-darkenable.
+**The overturning evidence, measured at this tree.** `750/750 registry/catalog/*.yaml` carry
+`api_stability: preview`; a 100% failure rate on a SINGLE code is a config-mismatch signature, not a
+debt signature. `[preview, stable, GA]` is the repo's canonical tier vocabulary, confirmed three
+independent ways: `docs/machine-readable/contracts.json` `_metadata.stability_tiers`;
+`enum ApiStability` in `intelligence/core/catalog-domain/src/lib.rs`; and `validate_claim_ceiling_gate`
+in `marketplace/facade/dev-cli/src/governance_gates.rs`, which runs
+`FoundationClaimCeiling::preview_foundation()` over this exact directory. So this was never `preview`
+being *added* to a vocabulary — it was the config carrying the WRONG vocabulary, sharing one token
+with the right one. Both original reasons are kept below with their dispositions, because deleting
+them would erase the reasoning a re-litigation needs.
 
-Baseline row to add: `"api-stability-tier-lifecycle": { "unknown_stage": 750 }`.
+1. ~~It converts 750 undeclared tiers into fabricated compliance.~~ **VOID ON ITS PREMISE.** The 750
+   were never undeclared: every one declares `api_stability: preview` explicitly. The
+   `gate-self-conformance` prohibition it cites is against *stamping a default stage onto artifacts
+   that declare none* — a different act from aligning a config to values the corpus already carries.
+2. **`unknown_stage: 750` IS the anti-shrink floor** — **CORRECT ANALYSIS, OVERTURNED AT A COST, and
+   the cost is real.** The floor could not be kept: its ONLY remedy — declaring higher tiers per
+   crate — is precisely what `validate_claim_ceiling_gate` rejects over this directory, so no
+   permitted action could ever have shrunk it, and a ratchet no permitted action can retire is not a
+   ratchet. The stated consequence stands exactly as written: with no violation row this lane's only
+   floor is `artifacts > 0` (`ci/facade/lifecycle-status/src/lib.rs` `compare()`, the
+   `LaneObservation::Observed { artifacts: 0, .. }` arm), so a PARTIAL corpus collapse is silent
+   **on this lane**. What catches it instead is `ci/facade/crate-catalog-coverage`, recorded in the
+   lane's own `_comment` in `ci/facade/lifecycle-status/lifecycle-status-policy.json`.
+
+~~Baseline row to add: `"api-stability-tier-lifecycle": { "unknown_stage": 750 }`.~~ **RETRACTED with
+the ruling above: no violation row is added and the lane ships at zero violations.**
 
 Also add one line of doc comment on `SourceSpec.kind` recording that no reader dispatches on it.
 That is an honesty fix, not a mechanism — **do not implement kind dispatch.**
@@ -329,7 +350,7 @@ That is an honesty fix, not a mechanism — **do not implement kind dispatch.**
 ```
 specs/lifecycle-configs/   adr-status · doc-status · api-stability-tier      (3, all live)
 known_broken_lanes         {}  (keep a "_comment" key; parse_policy requires the object to exist)
-frozen_violation_baseline  doc-status {1921, 9} · api-stability-tier {750}
+frozen_violation_baseline  doc-status {1921, 9} · api-stability-tier — NO violation row (§3.2 RETRACTED)
 ```
 
 ---

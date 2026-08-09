@@ -19,6 +19,7 @@
       "requires_supersession_edge": false
     }
   ],
+  "_transitions_are_declarative": "READ THIS BEFORE TREATING `transitions` AS ENFORCEMENT: it is DECLARATIVE ONLY and no lane evaluates it. ViolationKind::IllegalTransition is raised solely by iterating `artifact.history` (libs/oya-governance-lifecycle-kernel/src/lib.rs, `for t in &artifact.history` in evaluate()), and discover() constructs EVERY LifecycledArtifact with `history: vec![]` (same file, in the per-file read loop). So the history is empty for every artifact of every lane, and no declared edge is ever checked: a record moving preview -> GA directly would pass unnoticed. This is inherited kernel-wide behaviour, identical at merge-base 8857944612, not anything specific to this lane. It cannot be repaired at this config either, because a per-file YAML snapshot carries no transition log — every SourceSpec in this repo globs CURRENT-state records, so there is no history corpus anywhere for discover() to feed the evaluator. The array is retained rather than deleted because it documents the monotone ladder Preview < Stable < Ga that `enum ApiStability` derives via Ord, and because every other lifecycle config declares transitions the same way: removing it from this one lane would create an inconsistency without retiring the class.",
   "transitions": [
     {
       "from": "preview",

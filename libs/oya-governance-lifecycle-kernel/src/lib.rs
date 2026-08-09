@@ -116,6 +116,12 @@ pub struct Transition {
 /// resulting `LifecycledArtifact` records.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceSpec {
+    /// DESCRIPTIVE METADATA ONLY — **no reader dispatches on this field.** It is
+    /// parsed from the config and never branched on, so `yaml_front_matter` and
+    /// `yaml_document` are indistinguishable to `discover()`: both take the single
+    /// `frontmatter_scalar` path below. Do not read a `kind` as a promise that the
+    /// source is parsed differently, and do not add dispatch here without also
+    /// re-measuring every lane it would re-partition.
     // data_class: INTERNAL_ONLY
     pub kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
@@ -548,6 +554,21 @@ pub mod discovery {
     /// contain a fence, and every fenced file takes the identical code path it
     /// took before. The only behaviour delta is `None` -> `Some` on fence-less
     /// files.
+    ///
+    /// SCOPE: that admission is CORPUS-WIDE, not confined to the `yaml_document`
+    /// source that motivated it. `SourceSpec.kind` is never dispatched on (see its
+    /// doc comment), so every lane's fence-less files are read whole — including
+    /// the `docs/**/*.md` and `docs/decisions/ADR-*.md` corpora. What BOUNDS that
+    /// today is measurement, not a code fence, so re-derive it before assuming:
+    /// at this tree 796 `docs/**/*.md` contain a `doc_status` substring and all 796
+    /// carry a `---` line, so the fence-less set contributing a `doc_status` is
+    /// EMPTY and doc-status stays at 1921/9; 10 of 10 `docs/decisions/ADR-*.md` are
+    /// fenced, so adr-status stays at 0 violations. A substring grep is a strict
+    /// SUPERSET of what can match here (the field must start the trimmed line), so
+    /// those are sound upper bounds. Note also that the failure mode if that ever
+    /// changes is BLOCKING, not silent: a spuriously-read declaration either shrinks
+    /// `stage_not_declared` below its frozen 1921 (`BaselineStale`) or grows
+    /// `unknown_stage` (a regression). Both red the required context.
     pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
         let mut in_fm = !raw.lines().any(|line| line.trim() == "---");
         let mut started = false;
