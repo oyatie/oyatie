@@ -272,7 +272,7 @@ rather than pretending otherwise.
 
 | # | Unit | Touches | Lands after |
 |---|---|---|---|
-| U0 | this mapping + its census re-freeze | `docs/plans/lifecycle-lane-disposition-mapping.md`, `governance/check/adr-citation-closure/adr-citation-closure-policy.json` (`files_scanned` 16524 → 16525) | — |
+| U0 | this mapping + its census re-freeze | `docs/plans/lifecycle-lane-disposition/mapping.md`, `governance/check/adr-citation-closure/adr-citation-closure-policy.json` (`files_scanned` 16524 → 16525) | — |
 | U1 | DELETE the six | 6 × `specs/lifecycle-configs/*.json` (deleted), the ledger (6 entries), 3 feature-flag reference sites | U0 |
 | U2 | RE-ROOT api-stability | `libs/oya-governance-lifecycle-kernel/src/lib.rs`, `specs/lifecycle-configs/api-stability-tier-lifecycle.json`, the ledger (1 entry out, 1 baseline row in) | U1 |
 | U3 | LAND | `governance/check/adr-citation-closure/adr-citation-closure-policy.json` (`files_scanned` 16525 → 16519), whole-graph sweep, **the single PR** | U2 |
