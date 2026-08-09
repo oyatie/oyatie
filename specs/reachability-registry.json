@@ -158,6 +158,10 @@
       "prefix": "docs/ideas/"
     },
     {
+      "anchor": "ADR-0555 born-accounting: the re-root-or-delete disposition mapping the dark-lifecycle-lane work (six ci/facade/lifecycle-status configs DELETED, api-stability-tier RE-ROOTED onto registry/catalog/*.yaml) was authored against and is reviewed against — the durable record a future re-litigation of those rulings reads, kept because the rulings outlive the PR that made them. Own directory with its own narrow OWNERS (parallel to docs/programs/k8s-port/), because docs/plans/ has no OWNERS and one placed there would claim twelve unrelated legacy plan documents nobody reviewed for this change.",
+      "prefix": "docs/plans/lifecycle-lane-disposition/mapping.md"
+    },
+    {
       "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live oya-ci-required cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",
       "prefix": "docs/programs/hyperscaler-delivery-lanes/"
     },
