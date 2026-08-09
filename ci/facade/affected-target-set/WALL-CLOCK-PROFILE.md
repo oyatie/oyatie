@@ -97,14 +97,35 @@ and most of it already exists:
   The `gate-affected-target-set` job (:650-1026) **never calls the resolver.** Licensing warm
   reads tomorrow would not move this job by one second.
 
-Ordered work, none of it in this package:
+Ordered work, none of it in this package. **Step 0 is an authorization gate, not engineering** —
+steps 1–6 are the work a go-gate would authorize, never a substitute for it, and nothing below may
+be switched on before it clears:
 
+0. **Go-gate.** `docs/decisions/ADR-0700-ci-admission-live-apex.md` live hard norm 4 keeps warm
+   CAS / RE activation **fail-closed** until an explicit go-gate: credentials (#1541), cache-only
+   proof, and an **Accepted** activation ADR. That norm also says outright that apex gists
+   mentioning `remote_enabled=true` are historical design, not activation authority — which is
+   exactly what the dark `warm-cache-*.buckconfig` wiring quoted above is.
 1. Stand up a NativeLink CAS reachable from the executing lanes.
 2. Run the cold integrity canary to GREEN; record its run id in `cache-warm-license.json`.
-3. Wire `gate-affected-target-set`'s build + test through `cache-wiring-bin` with its own build
-   class (trusted-push for the dev-push producer, read-only untrusted-author for PRs). This is a
-   `.github/workflows/oya-ci-required.yml` edit and is the piece that has never been written.
-4. Re-measure. Do not quote a speedup before then.
+3. **Issue and mount a cache identity for this lane.** `controlled_child` resolves its overlay
+   through `effective_buckconfig`, which **rejects every warm mode** when
+   `OYA_CACHE_TLS_CLIENT_CERT` is unset, empty or non-absolute
+   (`ci/facade/build-cache-policy/src/lib.rs:230-245`), and `gate-affected-target-set` grants only
+   `contents: read` / `actions: read` and mounts no secret (`oya-ci-required.yml:652-654`). Wiring
+   the resolver in without this step either fails the required job or leaves it in bypass — no
+   reuse either way. Fork PRs are handed no secret at all, so they must resolve to a declared
+   cold/bypass class rather than to a broken warm one.
+4. **Relicense the PR build class, as a reviewed policy edit.**
+   `specs/cache-warmth-policy.json` pins `untrusted-author-presubmit` to `warmth: cold,
+   cache_read: false, cache_write: false`, and its own reason text calls a read-only relaxation
+   "a reviewed two-way policy edit". Read-only reuse on PRs is therefore not merely unwired, it is
+   currently **prohibited by policy**. The write prohibition is one-way and stays.
+5. Wire `gate-affected-target-set`'s build + test through `cache-wiring-bin` with its own build
+   class (trusted-push for the dev-push producer, read-only untrusted-author for PRs, cold for
+   forks). This is a `.github/workflows/oya-ci-required.yml` edit and is the piece that has never
+   been written.
+6. Re-measure. Do not quote a speedup before then.
 
 What is measured about reuse, locally, on this package's own graph:
 
