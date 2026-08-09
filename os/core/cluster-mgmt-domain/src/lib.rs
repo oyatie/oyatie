@@ -460,6 +460,22 @@ mod tests {
     // ponytail: source-text assertion. A `cfg` cannot be observed from inside a
     // build where it is enabled, and a compile-fail harness (trybuild) would be
     // a new dependency.
+    //
+    // That the gate BITES is proven separately, and by execution rather than by
+    // assertion — a rule never seen to fire is the false green it exists to
+    // prevent. Adding `pub fn probe() -> Secret { Secret::derive("prod") }` to
+    // `gen.rs`, outside `cfg(test)`, and building the PRODUCTION target:
+    //
+    //   buck2 build //os/core/cluster-mgmt-domain:os-cluster-mgmt-domain
+    //   error[E0599]: no associated function or constant named `derive` found
+    //                 for struct `Secret` in the current scope
+    //   BUILD FAILED
+    //
+    // Not merely private off-feature: it does not EXIST, so no caller can reach
+    // modeled CA material and no downstream bundle can be constructed. The
+    // `rust_library` rule in BUCK declares no `features`, so no production
+    // target can turn `modeled-crypto` on. This test guards the attribute that
+    // makes that true.
     #[test]
     fn modeled_crypto_constructors_stay_behind_the_gate() {
         const GATE: &str = "#[cfg(any(test, feature = \"modeled-crypto\"))]";
