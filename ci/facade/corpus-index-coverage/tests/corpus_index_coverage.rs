@@ -10,7 +10,8 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use ci_corpus_index_coverage::{
-    CODE_COVERAGE_REGRESSION, CODE_VACUOUS_SCAN, CorpusInput, ExtractionDeclaration,
+    CODE_COVERAGE_REGRESSION, CODE_UNPACKAGED_DROP_UNATTRIBUTED, CODE_VACUOUS_SCAN, CorpusInput,
+    ExtractionDeclaration,
     FaceObservation, OyaCorpusPolicy, PackageObservation, Policy, derive_faces, evaluate,
     evaluate_face_coverage, extraction_declaration,
 };
@@ -64,8 +65,13 @@ fn load_policy(root: &Path) -> (Policy, OyaCorpusPolicy) {
         baseline_unpackaged_yaml_files: field("baseline_unpackaged_yaml_files"),
         min_expected_yaml_packages: field("min_expected_yaml_packages"),
         min_expected_yaml_files: field("min_expected_yaml_files"),
-        min_expected_unpackaged_yaml_files: field("min_expected_unpackaged_yaml_files"),
     };
+    assert!(
+        doc.get("min_expected_unpackaged_yaml_files").is_none(),
+        "min_expected_unpackaged_yaml_files was a FLOOR on a term whose northstar is ZERO (bead \
+         oyatie-ln1). It is deleted, not re-tuned; re-adding it re-creates a guard that fails the \
+         gate closed on honest progress. The two-sided baseline_unpackaged_yaml_files replaced it."
+    );
     let oya = serde_json::from_value(doc["oya_corpus"].clone()).expect("oya_corpus policy parses");
     (policy, oya)
 }
@@ -329,7 +335,10 @@ fn the_walk_sees_the_real_corpus() {
         .sum();
     assert!(live.packages.len() >= policy.min_expected_yaml_packages);
     assert!(packaged + live.unpackaged >= policy.min_expected_yaml_files);
-    assert!(live.unpackaged >= policy.min_expected_unpackaged_yaml_files);
+    assert_eq!(
+        live.unpackaged, policy.baseline_unpackaged_yaml_files,
+        "the northstar ceiling is two-sided: a drop must be re-frozen in the change that caused it"
+    );
 }
 
 #[test]
@@ -344,7 +353,9 @@ fn an_attribution_collapse_fails_the_live_policy() {
         verdict
             .blocking()
             .iter()
-            .any(|finding| finding.code == CODE_VACUOUS_SCAN)
+            .any(|finding| finding.code == CODE_UNPACKAGED_DROP_UNATTRIBUTED),
+        "an out-of-package census that collapses to zero against the LIVE policy must still fail \
+         closed — the replacement guard has to be shown firing on the real corpus, not a fixture"
     );
 }
 
