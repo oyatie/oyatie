@@ -55,6 +55,44 @@ fn parses_the_committed_policy_shape() {
 }
 
 #[test]
+fn a_prose_only_ledger_lists_no_lane_and_leaves_every_floor_armed() {
+    // The shape this policy SHIPS after the seven dark lanes took their re-root-or-delete
+    // rulings: `known_broken_lanes` retains its key (parse_policy requires the object) and
+    // carries nothing but review prose. The whole claim "the floors are armed" rests on that
+    // prose NOT being read as a lane, because a listed lane is the only thing that suppresses
+    // LaneDiscoveryFailed and LaneDiscoveredNothing. Asserted at the parse+compare seam rather
+    // than trusting the two halves separately.
+    let shipped = policy_with("{}", r#"{"_comment":"EMPTY, and the emptiness is the enforcement."}"#);
+    assert!(
+        shipped.known_broken_lanes.is_empty(),
+        "prose must not be admitted as a standing excuse: {:?}",
+        shipped.known_broken_lanes
+    );
+
+    let findings = compare(
+        &lanes(&["api-stability-tier-lifecycle", "doc-status-lifecycle"]),
+        &seen(&[
+            ("api-stability-tier-lifecycle", None, &[]),
+            ("doc-status-lifecycle", Some(0), &[]),
+        ]),
+        &shipped,
+    );
+    assert_eq!(
+        findings,
+        vec![
+            Finding::LaneDiscoveryFailed {
+                lane: "api-stability-tier-lifecycle".to_owned(),
+                error: "missing source root: gone/".to_owned(),
+            },
+            Finding::LaneDiscoveredNothing {
+                lane: "doc-status-lifecycle".to_owned()
+            },
+        ],
+        "with an empty ledger a moved scan root must RED, never observe zero and report clean"
+    );
+}
+
+#[test]
 fn a_zero_baseline_row_is_rejected_rather_than_silently_accepted() {
     let error = parse_policy(
         r#"{"configs_dir":"d","known_broken_lanes":{},"frozen_violation_baseline":{"adr-status":{"unknown_stage":0}}}"#,
