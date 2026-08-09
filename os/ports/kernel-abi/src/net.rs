@@ -28,9 +28,30 @@ pub enum RouteOrigin {
 
 /// Network operations `os/` needs from a kernel.
 ///
-/// Implementations are expected to be idempotent wherever the kernel is:
-/// re-adding an address or route that already exists is the caller's normal
-/// re-run path, and callers classify the resulting error rather than aborting.
+/// # Failure contract
+///
+/// The port classifies failures by [`Error`] **variant**, so a caller can tell
+/// a benign outcome from a real one without parsing adapter text. Every
+/// implementation MUST map its native failures onto these:
+///
+/// | Condition | Variant |
+/// |---|---|
+/// | interface does not exist | [`Error::NotFound`] |
+/// | the address/route is already installed | [`Error::InvalidState`] |
+/// | the caller may not perform the operation | [`Error::PermissionDenied`] |
+/// | the substrate does not implement the operation | [`Error::Unsupported`] |
+///
+/// This exists because PID 1 classifies these outcomes. It previously did so by
+/// scanning the Linux adapter's `"errno N"` display text, which silently
+/// returns "unexpected" for any substrate that does not spell its errors the
+/// Linux way — a false seam. Implementations may still carry an `errno N`
+/// suffix in the message for diagnostics; nothing may *depend* on it.
+///
+/// Adds are deliberately **not** idempotent: the Linux adapter issues
+/// `NLM_F_CREATE | NLM_F_EXCL` and the kernel answers a duplicate with
+/// `EEXIST`, so a fake that silently deduplicates would let a test pass over
+/// code that fails in production. Re-adding is still the normal re-run path —
+/// the caller tolerates [`Error::InvalidState`] rather than aborting.
 ///
 /// Methods take `&self` because the kernel — not the handle — holds the state;
 /// adapters over a real kernel are stateless, and the in-memory fake uses
@@ -79,11 +100,19 @@ pub trait KernelNet {
 // ---------------------------------------------------------------------------
 
 /// One interface in the [`InMemoryKernelNet`].
+///
+/// Every field carries a `data_class` per the kernel data-boundary rule: this
+/// crate is cataloged `role: kernel`, and a crate-level `data_classes_owned`
+/// does not discharge the per-field obligation.
 #[derive(Debug, Clone, Default)]
 struct FakeLink {
+    // data_class: INTERNAL_ONLY — admin link flag, machine-local.
     up: bool,
+    // data_class: INTERNAL_ONLY — seeded operational state, machine-local.
     oper_state: Option<String>,
+    // data_class: INTERNAL_ONLY — node IPv4 addresses, machine-local.
     ipv4: Vec<String>,
+    // data_class: INTERNAL_ONLY — node IPv6 addresses, machine-local.
     ipv6: Vec<String>,
 }
 
@@ -103,16 +132,22 @@ impl FakeLink {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FakeRoute {
     /// The interface the route leaves by.
+    // data_class: INTERNAL_ONLY — interface name, machine-local.
     pub iface: String,
     /// Destination network, `None` for the default route.
+    // data_class: INTERNAL_ONLY — node routing topology, machine-local.
     pub destination: Option<[u8; 4]>,
     /// Destination prefix length.
+    // data_class: INTERNAL_ONLY — node routing topology, machine-local.
     pub prefix_len: u8,
     /// Next hop, if any.
+    // data_class: INTERNAL_ONLY — node routing topology, machine-local.
     pub gateway: Option<[u8; 4]>,
     /// Route metric.
+    // data_class: INTERNAL_ONLY — route preference, machine-local.
     pub metric: u32,
     /// Who installed it.
+    // data_class: INTERNAL_ONLY — route provenance, machine-local.
     pub origin: RouteOrigin,
 }
 
@@ -123,7 +158,9 @@ pub struct FakeRoute {
 /// substrate the surface is proven against.
 #[derive(Debug, Default)]
 pub struct InMemoryKernelNet {
+    // data_class: INTERNAL_ONLY — simulated interface table, test-process-local.
     links: RefCell<alloc::collections::BTreeMap<String, FakeLink>>,
+    // data_class: INTERNAL_ONLY — simulated routing table, test-process-local.
     routes: RefCell<Vec<FakeRoute>>,
 }
 
@@ -187,6 +224,14 @@ fn cidr(addr: &str, prefix_len: u8) -> String {
     alloc::format!("{addr}/{prefix_len}")
 }
 
+/// The duplicate-install failure, in the variant the port's failure contract
+/// requires — the same one the Linux adapter produces from `EEXIST`.
+fn already_exists(what: &str, iface: &str, detail: &str) -> Error {
+    Error::invalid_state(alloc::format!(
+        "{what} on '{iface}' already exists: {detail}"
+    ))
+}
+
 impl KernelNet for InMemoryKernelNet {
     fn set_link_up(&self, iface: &str) -> Result<()> {
         self.mutate(iface, |l| l.up = true)
@@ -195,20 +240,23 @@ impl KernelNet for InMemoryKernelNet {
     fn add_ipv4_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
         let entry = cidr(addr, prefix_len);
         self.mutate(iface, |l| {
-            // Idempotent, as the kernel's own re-add path is for the caller.
-            if !l.ipv4.contains(&entry) {
-                l.ipv4.push(entry);
+            if l.ipv4.contains(&entry) {
+                return Err(already_exists("address", iface, &entry));
             }
-        })
+            l.ipv4.push(entry);
+            Ok(())
+        })?
     }
 
     fn add_ipv6_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
         let entry = cidr(addr, prefix_len);
         self.mutate(iface, |l| {
-            if !l.ipv6.contains(&entry) {
-                l.ipv6.push(entry);
+            if l.ipv6.contains(&entry) {
+                return Err(already_exists("address", iface, &entry));
             }
-        })
+            l.ipv6.push(entry);
+            Ok(())
+        })?
     }
 
     fn add_ipv4_route(
@@ -231,9 +279,10 @@ impl KernelNet for InMemoryKernelNet {
             origin,
         };
         let mut routes = self.routes.borrow_mut();
-        if !routes.contains(&route) {
-            routes.push(route);
+        if routes.contains(&route) {
+            return Err(already_exists("route", iface, "already installed"));
         }
+        routes.push(route);
         Ok(())
     }
 
@@ -290,12 +339,50 @@ mod tests {
     }
 
     #[test]
-    fn re_adding_is_idempotent() {
+    fn re_adding_reports_already_exists_and_changes_nothing() {
+        // The Linux adapter sends NLM_F_CREATE | NLM_F_EXCL, so the kernel
+        // rejects a duplicate rather than absorbing it. A fake that silently
+        // deduplicated would let a caller's re-run path pass here and fail on a
+        // real kernel — the failure the port's contract exists to prevent.
         let net = InMemoryKernelNet::new().with_link("eth0");
         boot_sequence(&net).unwrap();
-        let addrs = boot_sequence(&net).unwrap();
-        assert_eq!(addrs.len(), 1);
+
+        let err = net.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap_err();
+        assert_eq!(err.kind(), "invalid_state");
+
+        let route_err = net
+            .add_ipv4_route(
+                "eth0",
+                None,
+                0,
+                Some([10, 0, 0, 1]),
+                1024,
+                RouteOrigin::Dhcp,
+            )
+            .unwrap_err();
+        assert_eq!(route_err.kind(), "invalid_state");
+
+        // Rejected, not appended twice.
+        assert_eq!(net.ipv4_addresses("eth0").unwrap().len(), 1);
         assert_eq!(net.routes().len(), 1);
+    }
+
+    #[test]
+    fn a_duplicate_ipv6_address_is_rejected_the_same_way() {
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+        let err = net.add_ipv6_address("eth0", "fd00::5", 64).unwrap_err();
+        assert_eq!(err.kind(), "invalid_state");
+        assert_eq!(net.ipv6_addresses("eth0").len(), 1);
+    }
+
+    #[test]
+    fn an_unknown_interface_is_not_found_not_invalid_state() {
+        // The two failure classes the contract table separates must not
+        // collapse into each other: the caller tolerates one and reports the
+        // other.
+        let net = InMemoryKernelNet::new();
+        assert_eq!(net.set_link_up("eth0").unwrap_err().kind(), "not_found");
     }
 
     #[test]

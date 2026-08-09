@@ -12,6 +12,7 @@ traceability:
   source_crate: os/ports/kernel-abi/Cargo.toml
 non_claims:
   - defines the kernel-ABI port surface only; it performs no syscall and links no raw-ABI crate
-  - models only the network operations the two raw-ABI-holding os/ crates issue today, not Talos's full kernel surface
+  - models the rtnetlink configuration operations only, not every network operation PID 1 issues, and not Talos's full kernel surface
+  - not a completed swappability boundary; os-init-app still reaches Linux directly for /sys/class/net discovery and MAC reads, /proc/net/if_inet6 parsing, if_nametoindex, setsockopt, and the SIOCSIFFLAGS link-up fallback
   - the in-memory implementation is a test substrate, not a kernel emulator
   - no gate yet forbids raw-ABI dependencies outside adapters, so the isolation is convention until one lands

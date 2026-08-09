@@ -15,6 +15,7 @@
 //! * [`kmsg`]       — `/dev/kmsg` + console logging.
 //! * [`signals`]    — PID 1 signal disposition model.
 //! * [`boot`]       — the early-boot sequence state machine tying it together.
+//! * [`net_error`]  — classification of kernel-network failures.
 //!
 //! Everything kernel-facing is expressed as a trait with an in-memory fake used
 //! by the unit tests, so the whole crate builds and tests on a non-Linux host.
@@ -24,6 +25,7 @@ pub mod cmdline;
 pub mod config;
 pub mod kmsg;
 pub mod mount;
+pub mod net_error;
 pub mod platform_config;
 pub mod reaper;
 pub mod signals;
