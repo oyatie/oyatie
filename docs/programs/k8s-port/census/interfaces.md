@@ -609,8 +609,12 @@ type documentable interface {
 `SwaggerDoc()` is generated onto every API type in `k8s.io/api`. The apiserver probes for it with a
 type assertion. **1,128 types match, the match is genuine and used, and `k8s.io/api` does not
 import `k8s.io/apiserver`** — nor could it, the dependency runs the other way. In Rust the trait
-lives in the apiserver crate and the types live in the api crate, and neither crate may host the
-impl. This one interface is an orphan violation worth 1,128 impls.
+lives in the apiserver crate and the types live in the api crate: the `api` crate **may not** host
+the impl, because that would need a dependency on `apiserver` and the dependency runs the wrong
+way; the `apiserver` crate **may**, because Rust's orphan rule constrains impls of *foreign*
+traits and always permits an impl of a locally-defined trait. So the cost this example demonstrates
+is crate **layering**, not coherence — and it is still worth 1,128 impls, all of which must be
+emitted somewhere that can see both the trait and the type.
 
 The same shape recurs: `runtime.ProtobufMarshaller` and five sibling probes at 1,264 matches each,
 `metrics.resettable` at 1,588, `endpoints.documentable` at 1,128.
@@ -618,18 +622,37 @@ The same shape recurs: `runtime.ProtobufMarshaller` and five sibling probes at 1
 **So the orphan finding is two-sided and must be reported as such:** by count it is negligible
 (0.45% of declared impls); by blast radius it is concentrated in perhaps a dozen high-fan-out
 capability probes where a single unresolved case costs 1,000+ impls. The mitigation is
-architectural, not per-site — sink the trait to a crate below both (`apimachinery`-level), or
-generate the impls in the defining crate — and it must be decided before those crates are emitted,
-because it determines crate layering.
+architectural, not per-site, and there are **two complete and independently sufficient routes** —
+they are alternatives, not two halves of one remedy:
+
+- **Route A — emit the impls in the trait-defining crate.** Legal without moving anything, because
+  the trait is local there and Rust always permits `impl LocalTrait for ForeignType`. It works for
+  `documentable` today: `apiserver` already depends on `k8s.io/api` (e.g.
+  `pkg/apis/flowcontrol/bootstrap/default.go`, `pkg/endpoints/filters/impersonation/impersonation.go`),
+  and `k8s.io/api/go.mod` names no `k8s.io/apiserver` dependency, so the reverse edge does not
+  exist. The cost is that the trait crate must depend on every crate defining a matching type.
+- **Route B — sink the trait to a crate below both** (`apimachinery`-level) **and emit the impls in
+  the type-defining crate**, which then depends on the sunk trait crate. Sinking alone legalises
+  nothing: a crate owning neither the trait nor the type cannot host the impl, so the sink is only
+  useful together with naming where the impl lands.
+
+Either way it must be decided before those crates are emitted, because it determines crate
+layering.
 
 ## 8. Structural matches: the combinatorial risk, measured
 
 `S11`. **This is bracketed, not exact.** Deciding whether a Go type satisfies an interface requires
 resolved types; the walker compares signatures as written. Two computations bracket the truth:
 
-- **Upper bound — method *names* only** (ignore signatures entirely). Cannot miss a real
-  satisfaction, because a type that satisfies an interface necessarily carries its method names.
-  This one *is* a bound.
+- **Ceiling — method *names* only** (ignore signatures entirely). A type that satisfies an
+  interface necessarily carries its method names, so within the method sets this walker builds
+  nothing is missed. **The qualification is the method sets, not the matching**: those sets are
+  built from `*ast.FuncDecl` nodes carrying a receiver, and Go's method set also contains methods
+  **promoted from embedded fields**, which are never collected here. A type satisfying wholly
+  through promotion is therefore absent — `runtime.codec` (`apimachinery/pkg/runtime/codec.go:35`)
+  is the worked case, and 479 CORE struct types embed an anonymous field while declaring no
+  explicit method at all, so they are not among the 9,017 below (§11). So this is a ceiling on
+  declared-receiver method sets, **not** on Go method sets.
 - **Exact canonical signature strings must match.** An earlier draft called this a lower bound. **It
   is not one**, and the correction matters: it misses real satisfactions where the same type is
   spelled differently across packages (`v1.Pod` vs `corev1.Pod`), *and* it admits pairs that do not
@@ -877,7 +900,10 @@ Read off the measurements, not asserted.
    (§7) — and the number of those matches is an estimate, which is precisely why the ruling must be
    architectural rather than sized off it. At most six declared impls are blocked, and that six is
    an upper bound under naive crate assignment (§7); the exposure is concentrated in ~12
-   high-fan-out probes where the trait must sink below both crates.
+   high-fan-out probes. Sinking the trait below both crates is **Route B** of §7 and only one of
+   two sufficient routes — Route A emits the impls in the trait-defining crate, which Rust permits
+   without any sink because the trait is local there. The decision is which route, not whether to
+   sink.
 8. **60 god-interfaces (≥15 methods) and 410 named-empty marker interfaces are hand
    decisions, not rules** (§1). Budget them as one-time work; do not attempt to rule them.
 

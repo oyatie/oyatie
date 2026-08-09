@@ -835,14 +835,31 @@ is. This is the second instance of the defect the section already records once
 (13 → 18 by adding R4), and the note that "the smaller number was the more
 attractive one, which is exactly why it needed checking" applies to it again.
 
-So the corpus can be built `panic=abort` only if the port re-expresses **21**
-sites — the 13 as process or thread boundaries, each R4 compensation as an
+So the corpus can be built `panic=abort` only if the port re-expresses **at
+least 21** sites — the 13 as process boundaries, each R4 compensation as an
 explicit action taken before an abort rather than as a `Drop` guard, *and* each
 R7 protocol as an ordinary typed error return rather than as a payload carried
 through an unwind. That is still a tractable, countable decision, and still a
 decision, which is why it belongs to the programme and not to the engine. It is
-simply 21 rather than 13, and the eight it was missing are the ones where
+at least 21 rather than 13, and the eight it was missing are the ones where
 getting it wrong is silent.
+
+**Not "or thread".** An earlier draft offered a thread boundary as an
+alternative to a process boundary for the 13. Under `panic = "abort"` that does
+not exist: a panic on *any* thread aborts the whole process without unwinding,
+`catch_unwind` does not catch it (its own documentation notes that a panic "can
+be implemented by aborting the process as well"), and `JoinHandle::join` never
+observes an `Err`. A thread boundary recovers a panic only under
+`panic = "unwind"`, which is the very thing this section is deciding.
+
+**And 21 is a floor over the recover-boundary population, not the decision set
+for the whole port.** The 21 enumerate sites where a *recover* boundary depends
+on unwinding. Go also runs deferred functions during unwinding at frames with no
+recover anywhere above them, and under `panic = "abort"` no `Drop` runs at all —
+so any of the 4 294 defers that can be reached on a panic path is also a site the
+abort decision touches. Which ones those are is exactly what §8 items 1 and 2
+record as unbuildable from this harness. The 21 is what was measurable; the
+remainder is named in §8 item 7 rather than assumed away.
 
 ---
 
@@ -874,6 +891,13 @@ Stated plainly, with the cost of answering each:
    `defer` statements by line count. If vendored dependencies are in port scope,
    this census must be re-run with the exclusion lifted; nothing here can be
    extrapolated to them.
+7. **Which of the 4 294 `defer`s can run during unwinding.** Go runs deferred
+   functions while a panic unwinds even at frames where nothing recovers; under
+   Rust `panic = "abort"` none of their `Drop` renderings run at all. That
+   population — not only the 21 recover-boundary sites of §7.6 — is what the
+   `unwind` vs `abort` decision actually spans, which is why §7.6 states 21 as a
+   floor. Needs the same whole-program call graph as items 1 and 2. **Not
+   measured**, and as with item 1 the syntactic answer is not a substitute.
 
 ---
 
