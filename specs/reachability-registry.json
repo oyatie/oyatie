@@ -166,7 +166,7 @@
       "prefix": "docs/programs/k8s-port/"
     },
     {
-      "anchor": "ADR-0701 §pod runtime tier (the live apex carrying the archived ADR-0338 Kata + Cloud Hypervisor decision statement): founder-reserved kernel-track decision support. Measurement packs that gather and present evidence for the OSDK-greenfield versus Asterinas-adoption question WITHOUT ruling on it; the ruling is founder-reserved and no ADR is authored from this tree. Non-crate program doc tree parallel to docs/programs/k8s-port/, homed in its own subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
+      "anchor": "ADR-0701 §pod runtime tier (the live apex carrying the archived ADR-0338 Kata + Cloud Hypervisor decision statement): founder-reserved kernel-track decision support. Measurement packs that gather and present evidence for the OSDK-greenfield versus Asterinas-adoption question WITHOUT ruling on it, plus the standing MAPPING.md that fixes the conventions, invariants, traps and definition of done every pack in this subtree is checked against; the ruling is founder-reserved and no ADR is authored from this tree. Non-crate program doc tree parallel to docs/programs/k8s-port/, homed in its own subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
       "prefix": "docs/programs/kernel-track/"
     },
     {
