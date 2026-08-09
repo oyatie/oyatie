@@ -21,28 +21,49 @@ rust_library(
 # in for the production library without touching a single `use`.
 #
 # `visibility` is the barrier, not a convention: it is enumerated at the two
-# packages that consume this target today, so a third package depending on it
-# fails buck2 ANALYSIS rather than a test. That is the compile-time
-# impossibility this gate is for. An enumerated `visibility` was chosen over the
-# repo's usual `[]` because `[]` is package-private and both real consumers are
-# in other packages; over `["PUBLIC"]` because PUBLIC is what let a production
-# target reach the model in the first place.
+# TARGETS that consume this target today, so anything else depending on it fails
+# buck2 ANALYSIS rather than a test. That is the compile-time impossibility this
+# gate is for. An enumerated `visibility` was chosen over the repo's usual `[]`
+# because `[]` is package-private and both real consumers are in other packages;
+# over `["PUBLIC"]` because PUBLIC is what let a production target reach the
+# model in the first place.
 #
-# Proven to fire, by mutation. Adding this target to the `deps` of
-# `//os/core/runtime-cri-domain:os-runtime-cri-domain` — a package NOT named
-# below — and running `buck2 build //os/core/runtime-cri-domain:os-runtime-cri-domain`
-# gives BUILD FAILED before a single compile action:
+# TARGET granularity, not package granularity, and the difference is the whole
+# barrier. `//os/core/kubernetes-domain:` admits EVERY target in that package —
+# including `:os-kubernetes-domain`, a `rust_library` with `visibility =
+# ["PUBLIC"]`. Under the package form, adding this target to that library's
+# `deps` was one line, produced no analysis error, and was invisible to
+# `no_production_buck_target_enables_the_model` (which reads only this file). So
+# visibility is NECESSARY and NOT SUFFICIENT at package granularity; naming the
+# targets is what makes it sufficient. Naming targets also fails LOUDLY if
+# either test target is renamed, which is the correct direction.
 #
-#   Error running analysis for `root//os/core/runtime-cri-domain:os-runtime-cri-domain`
-#   1: `root//os/core/secrets-domain:os-secrets-domain-modeled` is not visible to
-#      `root//os/core/runtime-cri-domain:os-runtime-cri-domain`
+# Proven to fire, by mutation, twice. Both give BUILD FAILED before a single
+# compile action:
 #
-# Pick an unrelated package when re-running this. Mutating a package the modeled
+# (1) a package NOT named below — adding this target to the `deps` of
+#     `//os/core/runtime-cri-domain:os-runtime-cri-domain` and running
+#     `buck2 build //os/core/runtime-cri-domain:os-runtime-cri-domain`:
+#
+#       Error running analysis for `root//os/core/runtime-cri-domain:os-runtime-cri-domain`
+#       1: `root//os/core/secrets-domain:os-secrets-domain-modeled` is not visible to
+#          `root//os/core/runtime-cri-domain:os-runtime-cri-domain`
+#
+# (2) the SAME-PACKAGE production library, which the package form permitted —
+#     adding this target to the `deps` of
+#     `//os/core/kubernetes-domain:os-kubernetes-domain` and running
+#     `buck2 build //os/core/kubernetes-domain:os-kubernetes-domain`:
+#
+#       Error running analysis for `root//os/core/kubernetes-domain:os-kubernetes-domain`
+#       1: `root//os/core/secrets-domain:os-secrets-domain-modeled` is not visible to
+#          `root//os/core/kubernetes-domain:os-kubernetes-domain`
+#
+# Pick an unrelated package when re-running (1). Mutating a package the modeled
 # target itself depends on (`//os/core/kernel`) reports a configured target CYCLE
 # instead, which is a true failure for the wrong reason and does not prove
 # visibility.
 #
-# The mutation is deliberately NOT committed: a permanently-broken target would
+# The mutations are deliberately NOT committed: a permanently-broken target would
 # redden `buck2 build //...` for every lane, which is what the affected-set FULL
 # tier runs. Same reasoning as trap T2 in the lane mapping.
 rust_library(
@@ -52,8 +73,8 @@ rust_library(
     crate_root = "src/lib.rs",
     features = ["modeled-crypto"],
     visibility = [
-        "//os/core/kubernetes-domain:",
-        "//os/harness/difftest-app:",
+        "//os/core/kubernetes-domain:os-kubernetes-domain-unittest",
+        "//os/harness/difftest-app:os-difftest-app-differential",
     ],
     deps = [
         "//os/core/kernel:os-kernel",

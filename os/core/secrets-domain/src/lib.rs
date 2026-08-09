@@ -341,9 +341,12 @@ mod tests {
     ///
     /// Matching at the *start* of a line rather than anywhere in the file is
     /// deliberate. A `contains` check passes on a gate that has been commented
-    /// out — a `//`-prefixed line still contains the string — which is the
-    /// known hole in the sibling guards in `os-trustd-domain` and
-    /// `os-cluster-mgmt-domain`. Prefix-matching a whole line closes it while
+    /// out — a `//`-prefixed line still contains the string — which was the
+    /// hole in the sibling guards in `os-trustd-domain` and
+    /// `os-cluster-mgmt-domain`. Both now carry this same shape, and those two
+    /// plus this one were the whole class — the suffix form survives nowhere in
+    /// the tree except in prose like this line.
+    /// Prefix-matching a whole line closes it while
     /// still allowing a trailing comment on the gate itself. It also stops the
     /// test satisfying itself: `GATE` below is written with escaped quotes, so
     /// its own source line does not begin with the value it holds.
@@ -389,6 +392,13 @@ mod tests {
     ///   left: 2
     ///  right: 1
     /// ```
+    ///
+    /// Known residual, stated rather than fixed: a *swap* satisfies this — move
+    /// `features = ["modeled-crypto"]` from the modeled target onto the
+    /// production one and delete it from the modeled, and the count stays 1.
+    /// That mutation renames what "production" means in a 2-line diff no
+    /// reviewer would miss, so counting is the proportionate instrument here;
+    /// per-target parsing is the upgrade path if it ever stops being.
     #[test]
     fn no_production_buck_target_enables_the_model() {
         // Comments are stripped first so prose about the feature cannot be read
