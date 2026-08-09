@@ -38,13 +38,20 @@ census cites the apex rather than the superseded pair.
 count over-counts by roughly 14% because different packages declare interfaces with identical
 method sets.
 
-**Emitting only pairs the program actually uses instead of every structural match is a 17x–60x
-prune**: 80,042 name-level structural matches narrow to 22,304 exact-signature matches (a LOWER
-bound on structural satisfaction, not a ceiling — see §9), 5,573 of those are between packages that
-can even see each other, and the source declares 1,323 outright as `var _ Iface = ...`. Whether the
+**Emitting only pairs the program actually uses instead of every structural match is a large prune,
+and the corpus is combinatorial before it**: 80,042 name-level structural matches, 22,304
+exact-signature matches, 5,573 of those between packages that can even see each other, and 1,323
+declared outright in the source as `var _ Iface = ...`.
+
+Of those four, **only 80,042 and 1,323 are bounds.** 80,042 cannot miss a real satisfaction, because
+a satisfying type necessarily has the interface's method names; 1,323 are compile-checked by Go, so
+each is a real satisfying pair. **True structural satisfaction therefore brackets to [1,323,
+80,042]**, and that bracket is wide because this instrument does not resolve types. 22,304 is a
+syntactic estimate that errs in BOTH directions and is not a bound in either — see §9. Whether the
 declared set sits inside the 22,304 was not computed, so these are separate measurements rather
-than nested ones. Structural matching is combinatorial; usage is not. The engine must
-emit impls from usage.
+than nested ones. Structural matching is combinatorial; usage is not. The engine must emit impls
+from usage — that conclusion rests on the 80,042 ceiling and the 1,323 floor, neither of which the
+22,304 correction disturbs.
 
 **The orphan rule is a narrow problem, not a broad one.** Of 1,323 impls Kubernetes declares
 explicitly, 6 (0.45%) are foreign-trait-on-foreign-type, the shape Rust forbids. But a small
@@ -306,14 +313,30 @@ five cover 496 (20.6%). These are `PodInterface`, `NodeInterface`, `ServiceInter
 only in the resource type they return. In Go they are 496 separate interfaces. In Rust they are a
 handful of generic traits parameterised over the resource type.
 
-**So the bracket is not "uncertainty", it is a design choice with a price tag:**
+**So part of the bracket is not "uncertainty", it is a design choice — but its price tag is
+narrower than an earlier draft claimed, and the overclaim is worth stating exactly.**
 
 - Emit non-generic traits → ~2,077 traits.
-- Emit generic traits where the corpus instantiates one shape per resource → ~1,448 traits,
-  and roughly 500 fewer hand-maintained surfaces.
+- Emit generic traits wherever the corpus instantiates one shape per resource → fewer than 2,077.
+  **How many fewer is not measured here, and it is NOT 1,448.**
 
-The generic path is worth ~30% of the trait corpus. It should be decided before the rule pack is
-authored, because retro-fitting generics onto emitted traits is a rewrite, not a refactor.
+The withdrawn step was reading 1,448 as an emission option. It is a floor, and it is a floor
+computed by *name-set* dedup — which merges by exactly the criterion this section has already shown
+to be lossy. Interfaces can share a method-name set while differing in arity, result count, or
+parameter structure in ways that are not a resource-type parameter of one trait, and those cannot
+be collapsed into a single generic trait at all. Hitting 1,448 would require every name-set
+collapse to be legitimate; nothing here shows that, so "~500 fewer hand-maintained surfaces" and
+"~30% of the trait corpus" are both withdrawn.
+
+**What IS demonstrated is that the opportunity is real and concentrated.** The top two name-sets
+cover 348 declarations and the top five cover 496, and those are the generated client shapes —
+`PodInterface`, `NodeInterface`, `ServiceInterface` — which visibly differ only in the resource
+type they return. That is a floor on the prize, not a ceiling. Sizing it properly needs
+signature-level grouping (group by full signature set modulo one type parameter), which needs
+`go/types` and is the same blocker as everywhere else in this census.
+
+The decision still belongs before the rule pack is authored, because retro-fitting generics onto
+emitted traits is a rewrite, not a refactor.
 
 ## 3. Inline and anonymous interfaces
 
@@ -514,8 +537,10 @@ types — legal.
 
 The declared set is not the whole picture, because Go does not require declaration. §8 finds 22,304
 exact-signature structural matches, of which **16,731 (75.0%) are between a type whose package does
-not import the interface's package at all**. Most of those are coincidental (§8), but not all, and
-the exceptions are large. The clearest case, read from source rather than inferred:
+not import the interface's package at all**. Both figures are estimates, not bounds — they inherit
+the unresolved-type-name error §8 records — so the orphan exposure is **not** sized from them here.
+Most are coincidental (§8) in any case, but not all, and the exceptions are large. The argument
+below therefore rests on a case read from source rather than on the count:
 
 ```go
 // staging/src/k8s.io/apiserver/pkg/endpoints/installer.go:175
@@ -546,17 +571,23 @@ because it determines crate layering.
 resolved types; the walker compares signatures as written. Two computations bracket the truth:
 
 - **Upper bound — method *names* only** (ignore signatures entirely). Cannot miss a real
-  satisfaction; admits types whose method names coincide but whose signatures differ.
-- **Lower bound — exact canonical signature strings must match**. Cannot admit a signature
-  mismatch; misses real satisfactions where the same type is spelled differently across packages
-  (`v1.Pod` vs `corev1.Pod`).
+  satisfaction, because a type that satisfies an interface necessarily carries its method names.
+  This one *is* a bound.
+- **Exact canonical signature strings must match.** An earlier draft called this a lower bound. **It
+  is not one**, and the correction matters: it misses real satisfactions where the same type is
+  spelled differently across packages (`v1.Pod` vs `corev1.Pod`), *and* it admits pairs that do not
+  satisfy at all, because two packages that each declare a local `Options` type produce an identical
+  `Get() Options` key for unrelated types. That is the same false-split/false-merge pair §2 records
+  for the trait count, and it applies here for the same reason — signatures are compared as
+  written, never resolved. A quantity with error in both directions bounds nothing. **22,304 is an
+  estimate.**
 
 CORE has **9,017 concrete named types with methods**.
 
 | Basis | Pairs |
 |---|---:|
-| Name-only match (upper bound) | **80,042** |
-| Exact-signature match (lower bound) | **22,304** |
+| Name-only match (**true upper bound**) | **80,042** |
+| Exact-signature match (**estimate**, errs both ways) | **22,304** |
 | — same package | 1,978 |
 | — different package, type's package imports the interface's package | 3,595 |
 | — different package, no import either way | 16,731 |
@@ -599,21 +630,29 @@ has one gap in it.
 
 | Basis | Pairs | Status |
 |---|---:|---|
-| Name-only structural matches | 80,042 | upper bound, exact computation |
-| Exact-signature structural matches | 22,304 | **lower bound on structural satisfaction** — NOT an upper bound on used pairs (see note) |
+| Name-only structural matches | 80,042 | **true upper bound**, exact computation |
+| Exact-signature structural matches | 22,304 | **estimate, not a bound in either direction** (see note) |
 | …restricted to pairs whose packages can see each other | 5,573 | **not a bound** — see below |
-| Declared `var _ Iface = T{}` assertions | 1,323 | **strict lower bound on used pairs** |
+| Declared `var _ Iface = T{}` assertions | 1,323 | **strict lower bound on used pairs**, compile-checked by Go |
 | Interface-typed downcast sites | 789, over 229 interfaces | exact; distinct probe surface |
 
-**The prune is 17x from exact-signature matches to declared impls (22,304 → 1,323), and 60x from
-the name-only ceiling.** That is the difference between bounded and combinatorial.
+**Structural satisfaction brackets to [1,323, 80,042].** Both ends are earned: every declared
+assertion is verified by the Go compiler, so it is a real satisfying pair; and no real satisfying
+pair can fall outside the name-only match, because satisfaction implies the names are present. The
+bracket is wide, and it is honestly wide — this instrument does not resolve types.
 
-**Why 22,304 is not the ceiling.** §8's own method makes the exact-signature pass a LOWER bound on
-structural satisfaction: it requires canonical signature strings to match, so it misses every real
-satisfaction where the same type is spelled differently across packages (`v1.Pod` vs `corev1.Pod`).
-A really-used pair can therefore sit outside the 22,304, which means structural satisfaction
-brackets to [22,304, 80,042] and used pairs cannot be capped at 22,304. Nor is the declared set
-shown to be a subset of it — that containment was never computed.
+**Why 22,304 is not an endpoint of it.** An earlier draft used 22,304 as the lower end and derived a
+17x prune ratio from it. Both are withdrawn. The exact-signature pass misses real satisfactions
+spelled differently across packages (`v1.Pod` vs `corev1.Pod`) — which would make it a floor — but
+it also *admits* pairs that do not satisfy, because unresolved local type names collide (§2's false
+merge: two packages each declaring `Options` yield one `Get() Options` key). Error in both
+directions is not a bound, so no prune factor can be computed from it and none is quoted here.
+
+**The prune is still the finding, and it survives without 22,304.** From the 80,042 ceiling to the
+1,323 compile-checked declarations is **60x**, and that ratio is between two quantities that ARE
+bounds. It is the difference between combinatorial and bounded, which is the whole argument for
+emitting from usage. Nor is the declared set shown to be a subset of the 22,304 — that containment
+was never computed.
 
 **What I could not determine: the true used-pair count.** It sits somewhere in [1,323, 80,042]. I
 will not narrow it further than the evidence allows, and the reason the obvious tightening fails is
@@ -692,9 +731,13 @@ Stated plainly, because an honest gap is more useful than a substituted proxy.
 
 1. **The true used-pair count.** Bracketed to [1,323, 80,042]; see §9. Needs `go/types` plus a
    whole-program assignability walk. This is the highest-value follow-up.
-2. **Exact structural satisfaction.** Bracketed to [22,304, 80,042]. Same blocker. The brackets are
-   3.6x apart, which is wide, but both ends are computed rather than guessed and the *shape* of the
-   distribution (§8) is robust to which end is right.
+2. **Exact structural satisfaction.** Bracketed to [1,323, 80,042] — 60x apart, and that width is
+   the honest answer. An earlier draft narrowed it to [22,304, 80,042] by treating the
+   exact-signature count as the floor; §9 withdraws that, since unresolved local type names let the
+   signature pass admit non-satisfying pairs as well as miss satisfying ones. Same `go/types`
+   blocker. The *shape* of the distribution (§8) — the long tail of zero-and-one-match interfaces
+   against a handful of thousand-match probes — is robust to where in the bracket the truth sits,
+   because it is a statement about how matches concentrate, not about how many there are.
 3. **True distinct method sets.** Bracketed to [1,448, 2,412] with 2,077 as the estimate. The
    bounds are proven; the estimate is not. Same blocker.
 4. **Whether a high-fan-out structural match is real or coincidental.** `documentable`'s 1,128 are
@@ -712,11 +755,15 @@ Stated plainly, because an honest gap is more useful than a substituted proxy.
 
 Read off the measurements, not asserted.
 
-1. **Size the trait corpus at ~2,077 traits, or ~1,448 with generics.** Not 2,832. Decide the
-   generics question first — it is worth ~630 traits and ~500 hand-maintained surfaces (§2).
-2. **Emit impls from usage, never from structural matching.** The prune is 17x–60x (§9), and the
-   unpruned count grows as traits × types (§8). This is the single most important structural
-   ruling in this census.
+1. **Size the trait corpus at ~2,077 traits, and treat 1,448 as the floor it cannot go below, not
+   as a target generics can reach.** Not 2,832. The generics question is worth deciding first, but
+   see §2 for why the size of the prize is not 630 traits: collapsing a shared method-name set into
+   one generic trait is only valid when the members differ *exactly* by a resource type parameter,
+   and that has been demonstrated for the top name-sets, not for all 1,448.
+2. **Emit impls from usage, never from structural matching.** The prune from the 80,042 ceiling to
+   the 1,323 compile-checked declarations is **60x** (§9), and the unpruned count grows as
+   traits × types (§8). This is the single most important structural ruling in this census, and it
+   rests on two proven bounds — it does not depend on the withdrawn 22,304 floor.
 3. **Bootstrap the used set from the 1,323 declared assertions.** They are extractable with no type
    information, they are what the authors intended, and they cover 516 interfaces.
 4. **The duck-typing surface needing whole-program reasoning is 229 interfaces, not 2,077** (§9).
@@ -726,7 +773,9 @@ Read off the measurements, not asserted.
 6. **Rule the single-value type assertion once, globally.** 9,725 sites (79.1%) panic on mismatch
    in Go (§5). Preserve-the-panic and force-a-`Result` are both defensible; per-site judgment is
    not.
-7. **The orphan rule needs a crate-layering decision, not 22,304 per-site decisions** (§7). Six
+7. **The orphan rule needs a crate-layering decision, not a per-site decision per structural match**
+   (§7) — and the number of those matches is an estimate, which is precisely why the ruling must be
+   architectural rather than sized off it. Six
    declared impls are blocked; the exposure is concentrated in ~12 high-fan-out probes where the
    trait must sink below both crates.
 8. **60 god-interfaces (≥15 methods) and 410 named-empty marker interfaces are hand
@@ -740,7 +789,27 @@ Reproducing every figure above requires this program, which is not committed to 
 this census's declared write scope is a single file. Save it as `census-interfaces.go` in an empty
 directory with `go mod init census`, then run the commands in [§Method](#method).
 
-`sha256(main.go) = 4263b2243cbd23c1623f0229df8499671f6939ccf1abf6fcf3564850d503abbd`
+`sha256(main.go) = 4407093d04b94393e14e3d6fc79da85569449398a3808125c8b2e88b5c88b457`
+
+That digest is of the source **exactly as embedded below**, so a reader can check it without
+trusting this sentence. Extract the fenced block from this very file and hash it — the extraction
+is anchored on the `<summary>` marker, not on line numbers, so it survives edits to this document:
+
+````
+awk '/^<summary>census-interfaces\.go/{f=1;next} f&&/^```go$/{g=1;next} g&&/^```$/{exit} g' docs/programs/k8s-port/census/interfaces.md > main.go
+
+shasum -a 256 main.go   # 4407093d04b94393e14e3d6fc79da85569449398a3808125c8b2e88b5c88b457
+wc -l main.go           # 1102
+gofmt main.go | shasum -a 256
+                        # d97eb939ee3cfd7c9fd1d5ba47bbb6773fecdf01eb0d16eee89e2e454d44be46
+go vet main.go          # clean — the embedded text is the compilable instrument, not a paraphrase
+````
+
+**An earlier draft of this appendix published `4263b224…`, and that digest was wrong.** It was
+taken from a working copy that was edited after it was hashed, so no artifact a reader could obtain
+ever produced it, and the reproduction instruction above — the whole point of publishing a digest —
+could not be carried out. Both values above were recomputed against the embedded text, and `gofmt`
+changes the bytes, so hash before formatting or compare against the second digest.
 
 Design notes worth knowing before trusting its output:
 

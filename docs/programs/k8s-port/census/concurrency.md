@@ -61,8 +61,9 @@ two instruments see the same tree.
 ### Instruments
 
 Regex counts are cheap and approximate. Three of the five questions below could not be answered by
-regex at all, so four small `awk` programs were written to do brace-matched scanning. They live in
-the lane scratchpad and are reproduced verbatim in §8 so every figure is re-derivable:
+regex at all, so six small `awk` programs were written to do brace-matched scanning. They live in
+the lane scratchpad, which is ephemeral, and all six are therefore reproduced **in full** in §8 so
+every figure is re-derivable from this document alone:
 
 - `select_census.awk` — brace-matched `select` statement + branch extraction
 - `case_shape.awk` — branch-shape classification
@@ -396,10 +397,10 @@ inherited from the source. A port that fuses a Go branch *body* into a `tokio::s
 obvious way to write "run this until shutdown" — manufactures the unsafety. That is a **rule-design
 constraint on the port engine**, not a count to be extracted from Kubernetes.
 
-Stated as a rule the engine must obey: a Go `select` branch translates to a `tokio::select!` arm
-whose future is *only* the channel operation; the branch body must run *after* the `select!`
-completes, in the arm's handler, never inside the awaited expression. Follow that and 2.3's 885
-branches are cancellation-safe by construction.
+No rule is stated here for how a port should achieve that; see the scope note in §6. The
+MEASUREMENT is the finding: the risk in this area is manufactured by a translation choice rather
+than inherited from the corpus, so it is a design constraint to be settled when the rule pack is
+authored against a real engine — not a property of Kubernetes that this census can count.
 
 ### 3.2 What is genuinely at risk, mechanically counted
 
@@ -417,8 +418,15 @@ Splitting them by whether the select has a `default` is decisive:
 
 | | Selects | Verdict |
 |---|---:|---|
-| send + `default` | 38 | `try_send` — no future, no cancellation, **mechanical** |
-| send, no `default` (blocking send racing another branch) | 25 | **restructure**: `reserve()` then `send`, or re-materialise the value |
+| send + `default` | 38 | non-blocking by construction; no future is awaited, so cancellation does not arise |
+| send, no `default` (blocking send racing another branch) | 25 | blocking send racing a cancel — the shape that needs a decision |
+
+**Buffered and unbuffered are NOT the same shape here, and this census does not separate them.**
+A Go send with `default` on an UNBUFFERED channel is a rendezvous: it succeeds only if a receiver
+is already waiting. That is a materially different condition from a send onto a channel with free
+buffer capacity, and any mapping that treats the two alike changes behaviour. How many of the 38
+are unbuffered is not measured here; it is a follow-up, and it must be answered before the 38 are
+treated as one mechanical class.
 
 The 25 are listed in full in §9. They are not scattered: they are concentrated almost entirely in
 **watch-event delivery** — `apimachinery/pkg/watch/mux.go`, `streamwatcher.go`,
@@ -532,13 +540,41 @@ Two flagged sites were read in full to confirm the proxy is not producing noise:
 - `apimachinery/pkg/watch/mux.go:120–134` (`Broadcaster.blockQueue`) — `m.incomingBlock.Lock();
   defer …Unlock();` then a `select` on `m.stopped`, then an **unbuffered send** `m.incoming <- Event{…}`,
   then `wg.Wait()`. **True positive, and the worst single site found.** Its own comment calls it
-  "this terrible hack". In Rust this is a compile error with `tokio::Mutex` and a deadlock with
-  `std::Mutex`. It is not a translation; it is a redesign.
+  "this terrible hack". No Rust mapping is prescribed here — see the note on prescriptions in §6.
+  What the measurement says is only that this site holds a lock across an unbounded wait, which is
+  a shape no mechanical translation can preserve without a decision being made about it.
 
-So: **74 sites is a floor, and it is a floor established on evidence.** The true count once
-async-colouring is known will be materially higher. The right next measurement is: build the Go call
-graph, mark the I/O leaves, propagate `async`, and re-run this same scan asking "is any *call* in the
-guard's live range async-coloured?" That is a bounded, mechanical follow-up — it just is not this census.
+### 4.3 The hazard floor is 55, not 74 — the 19 `cond.Wait()` sites do not belong in it
+
+An earlier draft reported **74 sites as the floor on locks held across blocking work**. That is
+wrong by this document's own §4.2, and the correction is worth stating precisely because the
+instrument is fine — only the arithmetic on top of it was not.
+
+`cond.Wait()` **atomically releases the lock while it waits and reacquires before returning.** The
+guard is therefore not held across the wait, in Go or in Rust — `Condvar::wait` consumes the guard
+and returns it, by the same design. §4.2 already says these 19 are "required and correct Go" and "a
+single well-understood rule, not 19 problems", and then the total counted them anyway. A site that
+is correct in both languages cannot floor a population of hazards.
+
+| Quantity | Count | What it is |
+|---|---:|---|
+| Distinct sites where a lock is in effect across a visible blocking construct | **74** | the instrument's raw result — unchanged, and still correct as stated |
+| …minus `cond.Wait()`, which releases the lock by construction | **55** | 26 `select` + 14 receive + 8 `WaitGroup.Wait()` + 6 send + 1 `Sleep` |
+| …of which hand-read end to end | **2** | `graph_builder.go:305` and `mux.go:120` — both true positives |
+
+**55 is the hazard population, and it is a proxy, not yet a validated floor.** Only 2 of the 55 were
+read in full. The remaining 53 inherit whatever residual false-positive rate the instrument has;
+§4.1 argues that rate is small and names the two classes it handles explicitly, but arguing is not
+measuring, and 53 unread sites are 53 unread sites. Validating them is cheap — they are enumerable —
+and it should happen before any of them is budgeted as a human restructure.
+
+The error in the other direction is the larger one and is unchanged: §4.1's under-count is
+one-sided and probably large, because the scan sees only *visible* blocking operations and misses
+`mu.Lock(); defer mu.Unlock(); client.Get(ctx, …)` entirely. So the true count once async-colouring
+is known will be materially higher than 55. The right next measurement is unchanged too: build the
+Go call graph, mark the I/O leaves, propagate `async`, and re-run this same scan asking "is any
+*call* in the guard's live range async-coloured?" That is a bounded, mechanical follow-up — it just
+is not this census.
 
 ---
 
@@ -596,13 +632,22 @@ any cut.
 inflated by generated code (deepcopy, clientset accessors, conversion functions) which by construction
 takes no context, so the *hand-written* proportion is higher.
 
-The number that actually matters for the port is **1367 `context.TODO()` + `context.Background()`
-sites**. Each is a point where context propagation is *broken* — a new root is minted instead of a
-parent being threaded. In Rust these become either a fresh `CancellationToken` (losing the parent
-link, faithfully reproducing the Go bug) or a compile-time hole the port engine must surface. This is
-a **propagation-depth measurement by its complement**: rather than measuring how deep ctx threads
-(which needs a call graph), measure how often it *stops*. 1367 stops against 13070 threaded parameters
-is roughly one break per ten hops.
+The number that matters for the port is **1367 `context.TODO()` + `context.Background()` sites** —
+but the earlier reading of that number was wrong and is corrected here.
+
+**These are not all propagation breaks.** `context.Background()` is the DOCUMENTED way to mint an
+intentional root: `main`, package initialisation, tests, and the top-level context of an incoming
+request are all supposed to call it. An intentional root and a dropped parent link are opposite
+findings that this scan cannot tell apart, because separating them needs to know the caller's
+role — which needs the call graph this census does not build. `context.TODO()` is the better
+proxy for a genuine gap, since its own documentation says it marks a site where it is unclear
+which context to use, but it is a proxy and not a proof either.
+
+So the honest statement is: **1367 sites mint a fresh root, an unknown fraction of them
+legitimately.** The complement-of-depth idea still holds as a method — measure where threading
+stops rather than how deep it goes — but the ratio of one stop per ten threaded parameters
+describes root-minting, not breakage, and must not be quoted as a defect rate. Splitting the 1367
+by caller role is a bounded follow-up and is not done here.
 
 The 340 `<-chan struct{}` parameters are the legacy `stopCh` convention, mid-migration to `ctx`. Both
 conventions are live in the corpus simultaneously, so the port needs rules for both **and** for the
@@ -626,11 +671,21 @@ Read the split as: **400 channels are created; 579 direction-restricted type pos
 outnumber creations, which is the good case for a port — the intended direction is usually declared,
 so a Rust `Sender<T>`/`Receiver<T>` split is derivable from the source rather than inferred.
 
-**179 of 400 created channels (44.8%) are `chan struct{}`** — pure signals, not data. Those do not
-map to `mpsc` at all; they map to `CancellationToken`, `Notify`, or `oneshot`. Combined with the 265
-`close(ch)` calls (Go's broadcast-close idiom, which `mpsc` has no equivalent for), **close to half of
-all channel traffic in this corpus is signalling, not data transport**, and needs a different Rust
-primitive entirely.
+**179 of 400 created channels (44.8%) are `chan struct{}`** — pure signals by type, carrying no
+payload. A further 265 sites call `close(ch)`, Go's broadcast-close idiom.
+
+**Neither number measures traffic, and the earlier claim that they did is withdrawn.** 179 counts
+CONSTRUCTIONS and 265 counts `close` CALL SITES; the two populations can overlap, and a single
+data channel may carry arbitrarily many sends and receives over its life while a one-shot signal
+channel carries exactly one event. A corpus of many short-lived signal channels and a few
+extremely hot data channels would produce exactly these counts while being overwhelmingly
+data-transport by volume. So "close to half of all channel traffic is signalling" does not follow
+from this evidence and has been removed.
+
+What DOES follow, and is what the rule corpus is sized by: **44.8% of channel constructions are
+payload-free**, so the signal/data split is a real and large shape distinction that the rule pack
+must handle as two families rather than one. Measuring actual traffic would need send/receive site
+counts per channel identity, which this census does not attempt.
 
 **239 of 400 created channels (59.8%) are unbuffered** (400 − 161 buffered). Unbuffered Go channels
 are rendezvous points; `tokio::mpsc::channel(0)` does not exist (capacity must be ≥1), so unbuffered
@@ -640,6 +695,29 @@ and it applies to the majority of channels.
 ---
 
 ## 6. What this corpus needs: estimated rule count
+
+### Scope note: this census sizes rules, it does not prescribe them
+
+Earlier drafts named specific Rust constructs as the mapping for particular Go shapes. Those
+prescriptions have been REMOVED, and deliberately not replaced, for two reasons.
+
+The first is scope: the brief for this lane was to measure, and explicitly not to author rules. A
+measurement record that also prescribes reads as settled design when the port engine that would
+implement it does not exist yet (`build/port-engine/*` is v0, unbuilt — see the baseline header).
+
+The second is that review found the prescriptions to be where the errors were, while leaving the
+counts untouched. One was inverted outright: a `tokio::sync::Mutex` guard is `Send` and is
+specifically intended to be held across `.await`, so the compiler does NOT reject that shape — it is
+`std::sync::Mutex`, whose guard is `!Send`, that breaks a spawned future. The draft claimed the
+reverse, which made a genuine hazard look like something the compiler would catch for free. Others
+in the same class: an unbuffered Go channel is a rendezvous and is not equivalent to a
+capacity-one queue; `panic = abort` skips `Drop`, so cleanup-dependent sites constrain the unwind
+decision too.
+
+The SHAPE COUNTS below are unaffected by any of that, because they are derived from the Go corpus
+alone. A rule family is sized here by how many distinct Go shapes must be handled — not by what
+Rust each becomes, which is a design question for whoever authors the rule pack, against a real
+engine, with tests.
 
 Sizing derives from **shapes**, not occurrences. Ranges, with the derivation attached, because a
 single number here would be false precision.
@@ -666,15 +744,17 @@ Plus, and separately:
   Porting them by hand, once, correctly, is worth more
   than any rule in the table above, and it *shrinks the rule corpus* rather than adding to it.
 
-- **A residue of 100–160 sites requiring human restructure**, not translation:
-  74 lock-across-blocking sites (§4.2, a floor — this total ALREADY CONTAINS the 8
-  `WaitGroup.Wait()`-under-lock sites broken out beneath §4.2's table, so they are not a separate
-  addend), 25 blocking-send selects (§3.2a, enumerated in §9), 5 closed-check idioms, and the
-  sampled estimate's slack (§3.3). These are enumerable and mostly already enumerated, which is the point: they can be
+- **A residue of 80–140 sites requiring human restructure**, not translation:
+  **55** lock-across-blocking sites (§4.3 — the instrument's 74 distinct sites minus the 19
+  `cond.Wait()` sites, which release the lock by construction and are one rule, not a hazard; this
+  total ALREADY CONTAINS the 8 `WaitGroup.Wait()`-under-lock sites broken out beneath §4.2's table,
+  so they are not a separate addend), 25 blocking-send selects (§3.2a, enumerated in §9), 5
+  closed-check idioms, and the sampled estimate's slack (§3.3). The band moved down by 19 from an
+  earlier draft for exactly that reason. These are enumerable and mostly already enumerated, which is the point: they can be
   scheduled as a finite, named work list rather than discovered during a multi-year port.
 
 **Read the whole table as: the concurrency surface is roughly 60–80 mechanical rules, five hand-ported
-libraries, and ~150 named exceptions.** It is not open-ended. The single largest uncertainty in that
+libraries, and ~110 named exceptions.** It is not open-ended. The single largest uncertainty in that
 statement is not any of the counts — it is §1.6 (23% of launch sites unclassified) and §4.1 (the
 async-colouring fixpoint), both of which are closed by the same follow-up: a type-checked Go call graph.
 
@@ -685,8 +765,10 @@ async-colouring fixpoint), both of which are closed by the same follow-up: a typ
 Stated plainly, because an honest "could not determine" is the point:
 
 1. **How many `MutexGuard`s cross an `.await`.** Needs async-colouring over a type-resolved call
-   graph. §4 gives a measured floor of 74 and names its error direction (under-count). It does not
-   give the answer.
+   graph. §4 gives a proxy population of **55** — the instrument's 74 distinct sites less the 19
+   `cond.Wait()` sites, which release the lock while waiting in both languages — and names its
+   error direction (one-sided under-count, probably large). Only 2 of the 55 were hand-read, so
+   even that figure is a proxy rather than a validated floor. It does not give the answer.
 2. **The shape of 173 of 745 goroutine launches (23.2%).** The shape is in the callee body. Needs
    `go/packages` + `callgraph`. §1.6.
 3. **Actual `context.Context` propagation *depth*** — the mean/max number of hops a context is
@@ -704,7 +786,7 @@ Stated plainly, because an honest "could not determine" is the point:
 
 ## 8. Instruments (verbatim, for re-derivation)
 
-The five `awk` programs are reproduced here rather than referenced, because the lane scratchpad is
+The six `awk` programs are reproduced here rather than referenced, because the lane scratchpad is
 ephemeral and every figure above depends on them. Each is run as
 `rg --files -g '*.go' -g '!vendor/**' -g '!*_test.go' . | xargs awk -f <program>` from the corpus root,
 except `case_shape.awk` and `sel_sig.awk` which consume `select_census.awk`'s output.
@@ -764,9 +846,99 @@ $1 != "CASE" { next }
 
 ### 8.3 `go_shape.awk` (feature extraction) and `go_taxonomy.awk` (collapse)
 
+An earlier draft described `go_shape.awk` in prose and printed only the taxonomy ladder, while §8
+claimed all five instruments were reproduced verbatim. **That was a false claim of reproducibility
+and the full source is now below**, because the 745-site taxonomy cannot be re-derived from a
+description of a feature vector.
+
 `go_shape.awk` brace-matches each `go func` closure body and emits a feature vector over
 `{inloop, wgadd, wgdone, bodyloop, bodyselect, ticker, bodysend, bodyrecv, ctxdone, crash, errch}`;
-named launches emit the callee instead. `go_taxonomy.awk` collapses vectors to shapes with this
+named launches emit the callee instead. One reading note before the source: its header comment also
+lists `defer_close` and `singleline`, but `flush()` never emits either — they are vestigial, and a
+re-deriver expecting 13 features will find 11.
+
+```awk
+#!/usr/bin/awk -f
+# go_shape.awk -- feature-extract every `go` statement launch site.
+# For `go func(...)` literals the closure body is brace-matched and scanned.
+# Output: GO<TAB>file<TAB>line<TAB>kind<TAB>features<TAB>bodylines<TAB>callee
+#   kind      = literal | named
+#   features  = sorted, +-joined subset of:
+#               inloop  wgadd  wgdone  bodyloop  bodyselect  ticker  bodysend  bodyrecv
+#               ctxdone crash  errch   defer_close  singleline
+function strip(l) {
+  gsub(/`[^`]*`/, "``", l);
+  gsub(/"([^"\\]|\\.)*"/, "\"\"", l);
+  sub(/\/\/.*$/, "", l);
+  return l;
+}
+function braces(l,   i, c, d) {
+  d = 0;
+  for (i = 1; i <= length(l); i++) { c = substr(l, i, 1); if (c == "{") d++; else if (c == "}") d--; }
+  return d;
+}
+function flush(   f) {
+  f = "";
+  if (fi["inloop"])     f = f "+inloop";
+  if (fi["wgadd"])      f = f "+wgadd";
+  if (fi["wgdone"])     f = f "+wgdone";
+  if (fi["bodyloop"])   f = f "+bodyloop";
+  if (fi["bodyselect"]) f = f "+bodyselect";
+  if (fi["ticker"])     f = f "+ticker";
+  if (fi["bodysend"])   f = f "+bodysend";
+  if (fi["bodyrecv"])   f = f "+bodyrecv";
+  if (fi["ctxdone"])    f = f "+ctxdone";
+  if (fi["crash"])      f = f "+crash";
+  if (fi["errch"])      f = f "+errch";
+  sub(/^\+/, "", f);
+  if (f == "") f = "(bare)";
+  printf "GO\t%s\t%d\t%s\t%s\t%d\t%s\n", gfile, gline, gkind, f, gbody, gcallee;
+}
+FNR == 1 { depth = 0; nfor = 0; open = 0; delete fi; delete fordepth }
+{
+  s = strip($0);
+
+  # remember the last 3 lines for wg.Add() lookbehind
+  p3 = p2; p2 = p1; p1 = s;
+
+  if (open) {
+    gbody++;
+    if (s ~ /(^|[^[:alnum:]_])for[ \t(]/ || s ~ /(^|[^[:alnum:]_])for[ \t]*{/) fi["bodyloop"] = 1;
+    if (s ~ /(^|[^[:alnum:]_])select[ \t]*{/) fi["bodyselect"] = 1;
+    if (s ~ /Ticker|time\.After|wait\.(Until|Forever|Jitter|Poll)/) fi["ticker"] = 1;
+    if (s ~ /[[:alnum:]_)\]][ \t]*<-[ \t]/ && s !~ /chan<-/ && s !~ /<-chan/) fi["bodysend"] = 1;
+    if (s ~ /(^|[^-[:alnum:]_])<-[ \t]*[[:alnum:]_(]/ && s !~ /<-chan/) fi["bodyrecv"] = 1;
+    if (s ~ /[Cc]tx\.Done\(\)|[Cc]ontext\(\)\.Done\(\)|stopCh|stopChan|<-[ \t]*done|<-[ \t]*stop/) fi["ctxdone"] = 1;
+    if (s ~ /HandleCrash/) fi["crash"] = 1;
+    if (s ~ /\.Done\(\)/ && s ~ /(wg|Wg|WG|waitGroup|group)/) fi["wgdone"] = 1;
+    if (s ~ /(^|[^[:alnum:]_])(errCh|errChan|errc|resultCh|results)[ \t]*<-/) fi["errch"] = 1;
+  }
+
+  isGo = (s ~ /^[ \t]*go [[:alnum:]_(]/);
+  if (isGo && !open) {
+    gfile = FILENAME; gline = FNR; gbody = 0; delete fi;
+    if (s ~ /^[ \t]*go func/) { gkind = "literal"; gcallee = "func-literal" }
+    else { gkind = "named"; gcallee = s; sub(/^[ \t]*go /, "", gcallee); sub(/\(.*$/, "", gcallee) }
+    if (nfor > 0) fi["inloop"] = 1;
+    if (p2 ~ /\.Add\(/ || p3 ~ /\.Add\(/) fi["wgadd"] = 1;
+    open = 1; gdepth = depth;
+  }
+
+  d = braces(s);
+  # for-loop depth stack
+  if (s ~ /(^|[^[:alnum:]_])for[ \t({]/ && d > 0) { nfor++; fordepth[nfor] = depth }
+  depth += d;
+  while (nfor > 0 && depth <= fordepth[nfor]) nfor--;
+
+  if (open) {
+    if (gkind == "named") { flush(); open = 0 }
+    else if (depth <= gdepth) { flush(); open = 0 }
+  }
+  if (depth <= 0) { depth = 0; nfor = 0; if (open) { flush(); open = 0 } }
+}
+```
+
+`go_taxonomy.awk` collapses vectors to shapes with this
 priority ladder (the two `// fixed` lines are the §1.7 corrections):
 
 ```awk
@@ -794,14 +966,103 @@ a loop — which is why §1.5 lists 8 shapes, not 9.)
 Tracks, per top-level `func`, whether a `Lock()`/`RLock()` is unreleased or a `defer …Unlock()` is in
 scope, resetting both when brace depth leaves the registering scope; excludes lines inside a `go func`
 opened under the lock; flags lines matching channel-recv / channel-send / `select {` / `.Wait()` /
-`time.Sleep(`. Full source in the lane scratchpad; the classification predicates are:
+`time.Sleep(`.
+
+An earlier draft said "full source in the lane scratchpad" and printed only the five classification
+predicates. **The scratchpad is ephemeral and the §4 floor is not re-derivable from five
+predicates, so the full source is below.** Note in particular the `held`/`deferred` scope-reset
+lines at the bottom — they are what makes the proxy's false-positive rate small, and they are not
+visible in the predicate excerpt that used to stand in for this.
 
 ```awk
-if (s ~ /(^|[^-[:alnum:]_])<-[ \t]*[[:alnum:]_(]/ && s !~ /<-chan/)                    cls = "chan-recv";
-else if (s ~ /[[:alnum:]_)\]][ \t]*<-[ \t]/ && s !~ /chan<-/ && s !~ /<-chan/)         cls = "chan-send";
-else if (s ~ /(^|[^[:alnum:]_])select[ \t]*{/)                                        cls = "select";
-else if (s ~ /\.Wait\(\)/)                                                            cls = "wait";
-else if (s ~ /time\.Sleep\(/)                                                         cls = "sleep";
+#!/usr/bin/awk -f
+# lock_block.awk -- SYNTACTIC proxy for "mutex guard held across a blocking operation".
+# Flags a line when, inside the same top-level func body, a Lock()/RLock() is in effect
+# (either an unreleased explicit Lock, or a `defer ...Unlock()` in scope) and the line
+# performs a channel op / select / .Wait() / time.Sleep().
+# Output: LOCKBLOCK<TAB>file<TAB>line<TAB>class<TAB>ingoroutine<TAB>text
+#     and LOCKSITE<TAB>file<TAB>line<TAB>kind   for every lock acquisition seen.
+function strip(l) {
+  gsub(/`[^`]*`/, "``", l);
+  gsub(/"([^"\\]|\\.)*"/, "\"\"", l);
+  sub(/\/\/.*$/, "", l);
+  return l;
+}
+function braces(l,   i, c, d) {
+  d = 0;
+  for (i = 1; i <= length(l); i++) { c = substr(l, i, 1); if (c == "{") d++; else if (c == "}") d--; }
+  return d;
+}
+FNR == 1 { depth = 0; held = 0; deferred = 0; gdepth = -1 }
+{
+  s = strip($0);
+
+  if (s ~ /^func[ (]/) { held = 0; deferred = 0; gdepth = -1 }
+
+  # goroutine-literal region: anything inside it does NOT run under the caller's guard
+  if (s ~ /(^|[^[:alnum:]_])go[ \t]+func/) gdepth = depth;
+
+  ingo = (gdepth >= 0) ? 1 : 0;
+
+  # --- classify blocking ops BEFORE updating lock state for this line ---
+  if ((held > 0 || deferred > 0)) {
+    cls = "";
+    if (s ~ /(^|[^-[:alnum:]_])<-[ \t]*[[:alnum:]_(]/ && s !~ /<-chan/) cls = "chan-recv";
+    else if (s ~ /[[:alnum:]_)\]][ \t]*<-[ \t]/ && s !~ /chan<-/ && s !~ /<-chan/) cls = "chan-send";
+    else if (s ~ /(^|[^[:alnum:]_])select[ \t]*{/) cls = "select";
+    else if (s ~ /\.Wait\(\)/) cls = "wait";
+    else if (s ~ /time\.Sleep\(/) cls = "sleep";
+    if (cls != "") {
+      t = s; gsub(/^[ \t]+/, "", t);
+      printf "LOCKBLOCK\t%s\t%d\t%s\t%d\t%s\n", FILENAME, FNR, cls, ingo, t;
+    }
+  }
+
+  # --- lock state transitions ---
+  if (s ~ /\.(Lock|RLock)\(\)/) {
+    if (s ~ /(^|[^[:alnum:]_])defer[ \t]/) { }          # `defer x.Lock()` is nonsense; ignore
+    else { held++; if (held == 1) heldDepth = depth; printf "LOCKSITE\t%s\t%d\t%s\n", FILENAME, FNR, (s ~ /RLock/ ? "RLock" : "Lock"); }
+  }
+  if (s ~ /\.(Unlock|RUnlock)\(\)/) {
+    if (s ~ /(^|[^[:alnum:]_])defer[ \t]/) { if (deferred == 0) deferDepth = depth; deferred++ }
+    else if (held > 0) held--;
+  }
+
+  d = braces(s);
+  depth += d;
+  if (gdepth >= 0 && depth <= gdepth) gdepth = -1;
+  if (deferred > 0 && depth < deferDepth) deferred = 0;      # left the scope that registered the defer
+  if (held > 0 && depth < heldDepth) held = 0;               # left the scope that took the lock
+  if (depth <= 0) { depth = 0; held = 0; deferred = 0; gdepth = -1 }
+}
+```
+
+### 8.4a Re-derivation receipt for the two restored instruments
+
+Both were re-run against the pinned corpus **after** being restored to this document, so what is
+printed above is what produced the figures — not a description of it:
+
+```
+$ git -C "$CORPUS" rev-parse HEAD
+756939600b9a7180fc2df6550a4585b638875e67          # matches specs/k8s-port/upstream-pin.json
+
+$ rg --files -g '*.go' -g '!vendor/**' -g '!*_test.go' . | xargs awk -f lock_block.awk | grep -c '^LOCKSITE'
+2273                                              # §4.2 "2273 lock acquisition sites"
+
+$ rg --files -g '*.go' -g '!vendor/**' -g '!*_test.go' . | xargs awk -f lock_block.awk | grep -c '^LOCKBLOCK'
+103                                               # §4.2 "103 flagged lines"
+
+$ ... | awk -F'\t' '$1=="LOCKBLOCK"{c[$4]++} END{for(k in c) print k, c[k]}'
+select 26   wait 27   chan-recv 43   chan-send 6   sleep 1
+                                                  # 43 chan-recv - 29 collapsed `case` lines = 14;
+                                                  # 26+27+14+6+1 = 74 distinct sites (§4.2 table)
+
+$ ... | awk -F'\t' '$1=="LOCKBLOCK" && $4=="wait"{print $6}' | sort | uniq -c
+19 x *.cond.Wait() / *Cond.Wait()   8 x WaitGroup-style .Wait()
+                                                  # the §4.3 split: 74 - 19 = 55 hazard sites
+
+$ rg --files -g '*.go' -g '!vendor/**' -g '!*_test.go' . | xargs awk -f go_shape.awk | grep -c '^GO'
+745                                               # §1.4 "extracted 745 of the 751 sites"
 ```
 
 ### 8.5 `sel_sig.awk`
@@ -809,7 +1070,54 @@ else if (s ~ /time\.Sleep\(/)                                                   
 Joins `SEL` and `CASE` rows by `file:selectline` and reduces each select to a sorted set over
 `{cancel, timer, recv, send, default}`. `cancel` keys on `*.Done()` / `*stopCh` / `done` / `stop` /
 `quit` / `*.stopped`; `timer` on `time.After(` / `.C` / `.C()` / `After(` / `timeout`. Both are
-name-based heuristics — see the caveat under §2.4.
+name-based heuristics — see the caveat under §2.4. The heuristics are the whole content of this
+instrument, so reading the two classification lines matters more here than anywhere else in §8:
+
+```awk
+#!/usr/bin/awk -f
+# sel_sig.awk -- branch-set signature per select, from case_shape.awk output joined to SEL rows.
+# Input: case-shapes.txt lines  SHAPE<TAB>kind<TAB>subject<TAB>file<TAB>line
+#        (needs select id) -- so we re-derive it from select-census.txt instead.
+# Usage: awk -f sel_sig.awk select-census.txt
+BEGIN { FS = "\t" }
+$1 == "SEL" { key = $2 ":" $3; if (!(key in sig)) sig[key] = "" ; nb[key] = $4 }
+$1 == "CASE" {
+  key = $2 ":" $4;
+  t = $0; sub(/^([^\t]*\t){4}/, "", t); gsub(/^[ \t]+/, "", t);
+  if (t ~ /^default/) { c = "default" }
+  else {
+    sub(/^case[ \t]*/, "", t); sub(/:[ \t]*$/, "", t);
+    if (t ~ /^<-/) { subj = substr(t, 3); kind = "recv" }
+    else if (t ~ /=[ \t]*<-/) { subj = t; sub(/^.*=[ \t]*<-[ \t]*/, "", subj); kind = "recv" }
+    else if (t ~ /<-/) { subj = t; sub(/[ \t]*<-.*$/, "", subj); kind = "send" }
+    else { subj = t; kind = "recv" }
+    gsub(/^[ \t]+|[ \t]+$/, "", subj);
+    if (kind == "send") c = "send";
+    else if (subj ~ /\.Done\(\)$/ || subj ~ /^(stopCh|stopChan|done|doneCh|stop|quit|c\.stopCh|w\.stopCh|q\.stopCh|m\.stopped|sw\.done)$/ || subj ~ /[Ss]top[Cc]h$/ || subj ~ /^.*\.stopped$/) c = "cancel";
+    else if (subj ~ /^time\.After\(/ || subj ~ /\.C$/ || subj ~ /\.C\(\)$/ || subj ~ /After\(/ || subj ~ /^tick$/ || subj ~ /[Tt]imeout/ || subj ~ /^timer$/) c = "timer";
+    else c = "recv";
+  }
+  cnt[key "|" c]++;
+  if (!seen[key "|" c]++) sig[key] = sig[key] "," c;
+}
+END {
+  for (k in nb) {
+    s = sig[k]; sub(/^,/, "", s);
+    n = split(s, a, ",");
+    # sort tokens for a canonical signature
+    for (i = 1; i < n; i++) for (j = i + 1; j <= n; j++) if (a[j] < a[i]) { tmp = a[i]; a[i] = a[j]; a[j] = tmp }
+    o = "";
+    for (i = 1; i <= n; i++) o = o (i > 1 ? "+" : "") a[i];
+    if (o == "") o = "(empty select{})";
+    print o;
+  }
+}
+```
+
+**The §8 heading now holds.** Before this revision it read "Instruments (verbatim, for
+re-derivation)" over a section in which two of the six programs were prose descriptions and a third
+was a five-line excerpt. All six are now present in full: `select_census.awk`, `case_shape.awk`,
+`go_shape.awk`, `go_taxonomy.awk`, `lock_block.awk` and `sel_sig.awk`.
 
 ---
 

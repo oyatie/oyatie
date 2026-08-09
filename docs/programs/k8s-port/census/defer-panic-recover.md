@@ -186,11 +186,17 @@ two — mutex release and an inline closure — cover half.
   the Rust `MutexGuard` returned by `lock()`. The rule rewrites the acquire, and
   **deletes** the defer. This one rule retires nearly half the surface, and it
   is the only one in this document that reduces line count rather than raising it.
-- `defer wg.Done()` (237) similarly disappears into the join handle.
-- `defer f.Close()` (256) → drop of an owned handle at scope end, **plus** an
-  explicit `close()?` where the Go code checks the error (`kubectl/pkg/cmd/cp/cp.go:500`
-  does `return f.Close()` *after* `defer f.Close()`; both must survive).
-- `defer cancel()` (241) → the cancellation token's own Drop, or an explicit guard.
+- `defer wg.Done()` (237) — grouped with the above in an earlier draft on the assumption that a
+  join handle absorbs it. **That does not hold and the claim is withdrawn:** both std and Tokio
+  handles DETACH when dropped rather than waiting, and many WaitGroups coordinate dynamically
+  spawned work whose handles the waiter never retains. These 237 sites are counted here, not
+  mapped.
+- `defer f.Close()` (256) — note the error-checking variant must survive separately:
+  `kubectl/pkg/cmd/cp/cp.go:500` does `return f.Close()` *after* `defer f.Close()`, so the deferred
+  close and the checked close are two different obligations at one site.
+- `defer cancel()` (241) — **not** equivalent to dropping a local token. Where child tasks hold
+  clones, `cancel()` explicitly and immediately notifies every descendant, whereas dropping one
+  clone signals nothing to the others. Counted, not mapped.
 - `defer <func literal>` (549) is the residue: no single mapping, and it is where
   shapes 3 and 4 live.
 
@@ -585,14 +591,17 @@ shape, one rule.
 
 #### Rust rules (panic)
 
-| Shape | Rule |
-|---|---|
-| 512 generated nil guards | **Do not translate.** These guard against a nil pointer that Rust's type system forbids: the generated builder takes `&FooApplyConfiguration`, and the whole guard vanishes. This must be a *generator* rule, not a source rule — the 512 sites are outputs of `applyconfiguration-gen`, and the port must reimplement that generator, not port its output. Largest single reduction available in this census. |
-| 281 + 129 string/formatted invariants | `panic!("…")` / `unreachable!()` / `todo!()`. Direct, one-to-one, no policy content. Choose `unreachable!()` only where the Go message says so (`"unreachable"`, 6 sites) — inventing unreachability is how a port introduces UB-adjacent bugs. |
-| 146 `panic(err)` + 49 constructed errors | `.expect(&msg)` / `Result::unwrap`. Requires the callee to already return `Result`, so this rule is **downstream of the error-model rule** and cannot be scheduled before it. |
-| 120 `OrDie` + 13 `Must` | Idiomatic Rust keeps both spellings: a `try_new() -> Result<T>` plus a thin `new()` that `.expect()`s. One rule generating two functions; the 133 call sites need no change. |
-| 61 `main`/`init` | Not a panic in Rust: `fn main() -> Result<…>` or an explicit `std::process::exit` after a diagnostic. Translating these to `panic!` would change operator-visible behaviour (stack trace and exit code 101 instead of a message and a chosen code). |
-| 16 re-panics | `std::panic::resume_unwind(payload)` — preserves the original payload, which `panic!("{e}")` does not. |
+| Shape | Sites | What the count means |
+|---|---:|---|
+| generated nil guards | 512 | Outputs of `applyconfiguration-gen`, not hand-written source. Whatever the port does here is a GENERATOR concern, so these 512 are not 512 source sites to rule over. Largest single reduction available in this census. |
+| string / formatted invariants | 281 + 129 | Message-only panics carrying no payload. Of these, 6 say "unreachable" in the Go message itself; the rest merely assert. |
+| `panic(err)` + constructed errors | 146 + 49 | **Carry a typed payload.** An earlier draft mapped these to `.expect()`/`unwrap`, which is withdrawn: where such a panic reaches a recovering boundary — the `http.ErrAbortHandler` sentinel paths especially — recovery compares or type-asserts on the value, and a newly constructed panic payload cannot answer that. Payload identity is part of the contract at these sites. |
+| `OrDie` + `Must` | 120 + 13 | Convention-named infallible wrappers over fallible constructors, 133 call sites. |
+| `main`/`init` | 61 | Process-exit paths, where operator-visible exit code and message are part of behaviour. |
+
+No Rust mapping is prescribed for these shapes; see the scope note under §7.4. The counts and the
+shape split are the deliverable.
+
 
 ### 7.2 The recover surface is bigger than `recover()`
 
@@ -703,11 +712,15 @@ swallow), R6 = 2 (bare swallow that defeats `HandleCrash`).** Everything else
 either re-panics (R2, R4, R7 — 16 sites) or is a helper definition (R1 — 6).
 `13 + 16 + 6 = 35`.
 
-R6 counts as resumption. Its two sites eat the panic and continue serving, and
-§7.4's R6 rule is *"replace with an explicit `catch_unwind` at that boundary"* —
-so R6 carries the same `panic=unwind` requirement as R3 and R5. **13, not 11, is
-the number that decides the panic strategy**, and it is used consistently in
-§7.4, here, and in §9.
+R6 counts as resumption. Its two sites eat the panic and continue serving, so R6
+carries the same `panic=unwind` requirement as R3 and R5. **13, not 11, is the
+size of the resuming set.**
+
+**13 is not, however, the number that decides the panic strategy** — an earlier
+draft said it was, in this section and in §9. R4's 5 sites do not resume, but
+their compensation runs *during* unwinding and is skipped entirely under
+`panic = abort`, so they constrain the same choice. The deciding set is **18**.
+See the corrected programme-level consequence under §7.4.
 
 Those 13 are the ones that cannot be translated by a syntactic rule, because
 each encodes a judgement that *this* subsystem's failure is not the process's
@@ -723,24 +736,63 @@ failure:
 - a send to a closed audit buffer becomes `"audit backend shut down"`
   (`buffered.go`).
 
-### Rust rules (recover)
+### Rust rules (recover) — REMOVED, and why
 
-| Class | Rule |
-|---|---|
-| R1 (6 definitions) → 164 call sites | Reimplement `HandleCrash*` **once** as a panic hook (`std::panic::set_hook`) that runs the registered handlers and logs, and leave the abort to the runtime. Because `ReallyCrash` is true, the 162 `defer HandleCrash()` sites become **nothing at all** — the hook is global. This is the largest single deletion in the panic surface, and it depends entirely on §7.3 being read rather than assumed. |
-| R2 (8) | `std::thread::spawn` + `JoinHandle::join()` already returns `Err(payload)` on panic; the panic channel disappears and the parent does `resume_unwind(payload)`. Direct, and *simpler* than the Go original. Requires the spawned work to be `UnwindSafe`-clean. |
-| R3 (8) — hard | `std::panic::catch_unwind` returning `Result`. **Each site is a policy decision, not a mapping**, and each carries two preconditions the engine cannot discharge alone: the crate must not be built with `panic=abort` (or the boundary must be re-expressed as a process/thread boundary), and the caught closure must satisfy `UnwindSafe` — which for `cached_token_authenticator.go:168` and `buffered.go:264` means the mutated state (`record`, `evIndex`) must be moved behind `AssertUnwindSafe` with an argued justification, not a blanket wrapper. Budget: 8 hand-authored ports with individual receipts. |
-| R4 (5) | A Drop guard that performs the compensation, plus normal unwinding. Drop already runs during unwind, so the re-panic is implicit — this class becomes *simpler* in Rust, provided the guard does not itself panic (double-panic aborts). |
-| R5 (3) | `catch_unwind` + log. Same preconditions as R3. Two of the three are diagnostics-only and are candidates for deletion rather than translation. |
-| R6 (2) | Do **not** translate structurally. These exist only to cancel `HandleCrash`'s re-panic; under the R1 hook design there is nothing to cancel. Replace with an explicit `catch_unwind` at that boundary and a receipt recording that the die-policy was intentionally overridden upstream. |
-| R7 (3) | These are not panics, they are exceptions with a private payload type. Translate the *protocol*, not the panic: a private error enum returned as `Result` through the call chain. The re-panic-if-not-mine branch becomes a type-level impossibility. |
+This section prescribed a Rust mapping per recover class (R1..R7). Those prescriptions have been
+REMOVED rather than corrected, because prescribing was outside this lane's brief: the lane was to
+MEASURE the panic/recover surface, and `build/port-engine/*` is v0 and unbuilt, so a mapping stated
+here reads as settled design that nothing can yet test.
 
-**Programme-level consequence.** The choice of `panic=unwind` vs `panic=abort`
-for the ported crates is decided by exactly **13 prod sites** (R3 = 8 + R5 = 3 +
-R6 = 2 — the resuming set of §7.5). If the port instead re-expresses those 13 as
-process or thread boundaries, the whole corpus can be built `panic=abort` and
-`catch_unwind` never appears. That is a tractable, countable decision — and it is
-a decision, which is why it belongs to the programme and not to the engine.
+Review also found the prescriptions to be where the errors were, while leaving the CLASSIFICATION
+and its counts intact. Recorded so the same mistakes are not re-derived later:
+
+- **A global panic hook is not equivalent to a per-boundary `HandleCrash`.** Of the 164 call sites,
+  52 pass a context and 16 a logger, and others carry extra handlers. A hook installed once has no
+  access to any of that per-site state, so collapsing all of them into one hook loses information
+  the Go code deliberately carries.
+- **Thread-per-recovered-task is not viable on the request path.** Mapping those goroutines to
+  `std::thread::spawn` creates a kernel thread per operation, and joining it blocks the caller —
+  on `timeout`, priority-and-fairness, finisher and streaming handlers that is a throughput
+  collapse, not a translation.
+- **`panic = abort` does not run destructors.** So the sites whose compensation is a `Drop` guard
+  constrain the unwind decision too. It is NOT only the 13 resuming sites that decide
+  unwind-vs-abort, and the smaller number was the more attractive one, which is exactly why it
+  needed checking.
+- **Mapping `panic(err)` to `.expect()`/`unwrap()` discards the typed payload.** Where a panic
+  value reaches a recovering boundary — the `http.ErrAbortHandler` sentinel paths especially —
+  recovery compares or type-asserts on that value, and a freshly constructed Rust panic payload
+  cannot answer those questions.
+
+The CLASSIFICATION above (R1..R7, their site counts, and which sites resume versus log-and-abort)
+is a property of the Go corpus and stands unchanged. What each class becomes in Rust is a design
+question for the rule pack, to be settled against a real engine with tests.
+
+**Programme-level consequence — corrected.** An earlier draft said the choice of
+`panic=unwind` vs `panic=abort` is decided by exactly **13 prod sites** (R3 = 8 +
+R5 = 3 + R6 = 2 — the resuming set of §7.5). **13 is the resuming set; it is not
+the unwind-deciding set**, and the smaller number was the more attractive one,
+which is exactly why it needed checking.
+
+The omission is **R4** (§7.4, 5 sites). Those sites compensate and then re-panic,
+so they never resume — but their compensation is precisely the thing that runs
+*during* unwinding: stop the plugin, emit the `StagePanic` audit event, restore
+klog state. **`panic = abort` does not run destructors**, so under abort a Rust
+`Drop`-guard rendering of R4 silently does nothing and the compensation is lost.
+Not resuming and not caring about unwinding are different properties, and the
+earlier draft conflated them.
+
+| Constraining class | Sites | Why it forces unwind |
+|---|---:|---|
+| R3 + R5 + R6 (resuming) | 13 | control returns to the caller after the panic |
+| R4 (cleanup-then-rethrow) | 5 — **3 outside test trees** (`draplugin.go`, `nonblockinggrpcserver.go`, `audit.go`), 2 under `test/` | compensation runs only while unwinding |
+| **Total** | **18** (16 excluding the two test-tree sites) | |
+
+So the corpus can be built `panic=abort` only if the port re-expresses **18**
+sites — the 13 as process or thread boundaries, *and* each R4 compensation as an
+explicit action taken before an abort rather than as a `Drop` guard. That is
+still a tractable, countable decision, and still a decision, which is why it
+belongs to the programme and not to the engine. It is simply 18 rather than 13,
+and the five it was missing are the ones where getting it wrong is silent.
 
 ---
 
@@ -787,7 +839,7 @@ engine needs, which is the number that sizes the programme.
 | `defer` mutating named result | 24 (19 + 5) | 2 channels | Restructure, no analogue — but 0.56 % of defers, **not** the common case the brief anticipated. |
 | `defer` argument capture that matters | 2 verified (6 syntactic) | 1 | One unconditional rule (bind args into locals at the defer) makes all 4 294 correct. |
 | `panic(` | 1 339 | top 3 = 70.1 % | 512 vanish with the type system (generator rule); ~400 map one-to-one; ~200 wait on the error model. |
-| `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | 164 collapse into one panic hook. **13 sites decide `panic=unwind` vs `panic=abort` for the whole port.** |
+| `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | **18 sites decide `panic=unwind` vs `panic=abort` for the whole port** — 13 resuming (R3/R5/R6) plus 5 cleanup-then-rethrow (R4), whose compensation runs only during unwinding. See §7.5; an earlier draft said 13 and omitted R4. |
 
 The headline for programme sizing: on this surface the corpus is far more
 uniform than its size suggests. `defer` is 78 % six callee shapes, `panic` is

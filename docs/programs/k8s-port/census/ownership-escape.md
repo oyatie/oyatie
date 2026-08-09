@@ -184,15 +184,25 @@ confidently.
 
 ### 4.2 Parameters — the borrow question
 
-This is the ratio that maps most directly onto Rust, because a Go parameter that does not escape
-is a parameter that can become `&T` with no lifetime gymnastics and no refcount.
+This is the ratio that maps most directly onto Rust — but only on the **lifetime** axis, and an
+earlier draft of this section overstated what it settles. That correction is stated first, because
+it changes how every number below should be read.
 
-All counts are **unique source positions** (`file:line:col`), corpus-only (stdlib and `vendor/`
-removed).
+**A `does not escape` verdict proves that a parameter does not outlive the call. It does NOT prove
+the exclusivity a Rust borrow needs.** Go callers may pass the same pointer as two parameters, or
+retain an alias while the callee mutates through one of them; escape analysis never asks — §4.1
+already records that it has no alias information, and that limitation applies here too, not only
+to the heap question. So a non-escaping parameter is guaranteed *lifetime*-compatible with a
+borrow, and undetermined between `&T` and `&mut T`: `&mut T` requires no other live alias, which is
+unmeasured, and `&T` cannot carry mutation without interior mutability or shared ownership.
 
-| Verdict | Positions | Share | Rust consequence |
+The counts stand; the property they measure is renamed from **borrow-compatible** to
+**lifetime-compatible**. All counts are **unique source positions** (`file:line:col`), corpus-only
+(stdlib and `vendor/` removed).
+
+| Verdict | Positions | Share | Lifetime consequence |
 |---|---:|---:|---|
-| `x does not escape` | 96,823 | 49.3% | `&T` — direct borrow |
+| `x does not escape` | 96,823 | 49.3% | need not outlive the call — a borrow suffices on lifetime grounds; `&T` vs `&mut T` undetermined |
 | `leaking param: x to result …` | 11,391 | 5.8% | `fn f<'a>(x: &'a T) -> &'a U` — lifetime-parametric borrow, still no refcount |
 | `leaking param content: x` | 38,009 | 19.3% | contents outlive the call — owned field, or borrow of the contents |
 | `leaking param: x` | 50,289 | 25.6% | genuinely escapes — owned `T`, `Box`, or shared |
@@ -208,20 +218,28 @@ reported both as leaking to a result and as leaking its content). Measured direc
 | **Union of the four rows** | **194,727** | `cat param_{noescape,to_result,content,leak}.pos \| sort -u \| wc -l` |
 | Double-counted | 1,785 (0.9%) | 196,512 − 194,727 |
 | …of which within the three leak flavours | 1,776 | 99,689 − 97,913 (`cat param_{to_result,content,leak}.pos \| sort -u \| wc -l` → 97,913) |
-| Union of the two borrow-compatible rows | 108,213 | `cat param_{noescape,to_result}.pos \| sort -u \| wc -l` |
+| Union of the two lifetime-compatible rows | 108,213 | `cat param_{noescape,to_result}.pos \| sort -u \| wc -l` |
 
-> **55.1% of analysed parameters (108,214 of 196,512) are borrow-compatible with no reference
-> counting whatsoever** — 49.3% as plain `&T`, a further 5.8% as lifetime-parametric borrows.
-> On the deduplicated union basis the same figure is **55.6%** (108,213 / 194,727). The 0.5 pp
-> difference is immaterial to every conclusion drawn from it; both are reported so a reader is
-> not left to assume a partition that does not exist. Every other percentage in this section is
-> stated on the sum basis.
+> **55.1% of analysed parameters (108,214 of 196,512) are lifetime-compatible with a borrow —
+> nothing about their lifetime forces reference counting** — 49.3% not outliving the call at all,
+> a further 5.8% outliving it only through the result. On the deduplicated union basis the same
+> figure is **55.6%** (108,213 / 194,727). The 0.5 pp difference is immaterial to every conclusion
+> drawn from it; both are reported so a reader is not left to assume a partition that does not
+> exist. Every other percentage in this section is stated on the sum basis.
+>
+> **This is not a lower bound on how many parameters become borrows in Rust**, and an earlier draft
+> read it as one. It is an upper bound on nothing either. It says: for 55.1% of positions, *lifetime*
+> is not the obstacle. Whether each is a shared or exclusive borrow — and whether an exclusive one is
+> even legal — needs call-site aliasing and mutation, which this instrument does not compute. The
+> 44.9% complement is the firmer half of the finding: those positions *do* have a lifetime obstacle,
+> and that verdict does not depend on aliasing.
 
 Splitting `leaking param` by flavour is what produces this. Collapsing all three leak flavours
 into one bucket — the obvious reading of the raw output — would report **50.7% leaking**
-(99,689 / 196,512; 50.3% on the union basis, 97,913 / 194,727), against a borrowable 49.3%.
-Splitting them moves borrowability from 49.3% to 55.1%, because the lifetime-parametric 5.8% is
-in fact borrowable. Commands:
+(99,689 / 196,512; 50.3% on the union basis, 97,913 / 194,727), against a lifetime-compatible
+49.3%. Splitting them moves lifetime-compatibility from 49.3% to 55.1%, because the
+lifetime-parametric 5.8% outlives the call only through the result, which a borrow expresses.
+Commands:
 
 ```sh
 grep -E ' leaking param: [^ ]+ to result ' corpus.txt | cut -d' ' -f1 | sort -u | wc -l   # 11391
@@ -235,13 +253,13 @@ grep -E ' [A-Za-z_][A-Za-z0-9_]* does not escape$' corpus.txt \
 The builtin exclusion is load-bearing: `append` is a bare identifier and would otherwise be
 miscounted as a parameter. This was an actual defect in an earlier pass (§8).
 
-**Generated code borrows better than hand-written code, and the gap is large:**
+**Generated code holds its parameters more shallowly than hand-written code, and the gap is large:**
 
 | | Total | Generated | Hand-written |
 |---|---:|---:|---:|
-| Borrow-compatible params | 108,214 | 55,486 | 52,728 |
+| Lifetime-compatible params | 108,214 | 55,486 | 52,728 |
 | All params | 196,512 | 86,832 | 109,680 |
-| **Borrow rate** | **55.1%** | **63.9%** | **48.1%** |
+| **Lifetime-compatible rate** | **55.1%** | **63.9%** | **48.1%** |
 
 Sizing consequence: the hand-written 48.1% is the number that should drive planning. Generated
 code will be regenerated by an owned generator, not translated, so its favourable 63.9% is
@@ -278,15 +296,27 @@ heap allocation did not already cost.
 
 This asymmetry is essential to using the numbers correctly:
 
-- **`does not escape` is effectively exact and is a safe LOWER bound on borrowability.** The
-  compiler proved the value does not outlive the frame. If it says stack, it is stack.
+- **`does not escape` is effectively exact and is a safe LOWER bound on *lifetime*-compatibility.**
+  The compiler proved the value does not outlive the frame. If it says stack, it is stack. Note the
+  narrowed noun: an earlier draft said "borrowability", and lifetime is only one of the two things
+  a Rust borrow needs.
 - **`escapes to heap` is an UPPER bound on genuine heap need.** Escape analysis is conservative
   and flow-insensitive across function boundaries; it heap-promotes whenever it cannot prove
   otherwise. Some fraction of these values would not require heap allocation under Rust's more
   precise, whole-function borrow reasoning.
 
-Therefore: 55.1% borrow-compatible parameters is a **floor**, not a ceiling. The true figure is
-higher by an amount this method cannot measure.
+**So 55.1% is a floor on lifetime-compatibility, and it is NOT a floor on borrowability.** The two
+errors run in opposite directions and neither is measured here:
+
+| Error source | Effect on the true borrowable count | Measured? |
+|---|---|---|
+| Escape analysis is conservative (heap-promotes when unproven) | raises it | no |
+| Aliasing is unknown, so some non-escaping positions cannot take `&mut T` | lowers it | no |
+
+An unsigned net error is not a bound. The earlier draft's conclusion — "the true figure is higher
+by an amount this method cannot measure" — kept only the first row and is therefore withdrawn. What
+the number does support is a *lifetime* budget: for 44.9% of positions, lifetime alone already
+forces ownership or sharing, and no alias analysis can improve that half.
 
 ---
 
@@ -306,12 +336,14 @@ substantially larger instrument than this census, and it does not scale triviall
 this size. **Recording that as the requirement is the honest output here.** I have not
 substituted a syntactic proxy and called it the answer.
 
-What follows are **bounds**, explicitly labelled, that constrain the answer without giving it.
+What follows are **two syntactic proxies**, explicitly labelled. An earlier draft presented them as
+a lower and an upper bound and assembled them into a range; **that framing is withdrawn in §5.5**,
+because neither survives as a bound. The counts themselves are unchanged and are worth having.
 
-### 5.2 Lower bound — author-declared shared-mutable state
+### 5.2 Proxy A — author-declared internal locking
 
 A struct with an embedded `sync.Mutex`/`RWMutex`/`sync.Map` is one whose author declared
-concurrent mutation. These are the near-certain `Arc<Mutex<T>>` cases.
+concurrent mutation of that type's own state.
 
 | Measure | All code | Hand-written only |
 |---|---:|---:|
@@ -322,13 +354,15 @@ That the two counts are nearly identical (448 vs 437) is itself informative: **g
 essentially free of concurrency primitives**; all but 11 of the corpus's locked types are
 hand-written.
 
-### 5.3 Upper bound — types with any mutating method
+### 5.3 Proxy B — types with any mutating method
 
 A type is counted as mutating if it has ≥1 pointer-receiver method that assigns through the
-receiver (`r.f = …`, `r.f++`, `r.m[k] = v`). This is a **lower bound on mutation** (it misses
-mutation via free functions taking `*T`, and mutation of a field's pointee) but serves as an
-**upper bound on `Arc<Mutex>` candidates**, since most mutable types have a single owner and map
-to `&mut T`, not to a lock.
+receiver (`r.f = …`, `r.f++`, `r.m[k] = v`). This is a **lower bound on mutation**: it misses
+mutation via free functions taking `*T`, and mutation of a field's pointee. The bottom row of the
+table below measures part of the miss directly — 948 hand-written free functions mutate through a
+`*T` parameter — so a type can be genuinely shared-and-mutated while sitting outside this count.
+An earlier draft called it an upper bound on `Arc<Mutex>` candidates; **a count that provably
+under-detects the very property it selects on cannot cap anything**, and that claim is withdrawn.
 
 | Measure | All code | Hand-written only |
 |---|---:|---:|
@@ -353,24 +387,43 @@ to 13.9%.
 751 goroutine launches across 9,523 files. Sharing across threads — the only thing that forces
 `Arc` over `Rc` or plain ownership — originates at a strikingly small number of sites.
 
-### 5.5 What the bounds jointly say
+### 5.5 What the two proxies jointly say — and the range that was withdrawn
 
-Assembling the bounds, with the uncertainty kept explicit:
+An earlier draft assembled §5.2 and §5.3 into a range:
 
-> `Arc<Mutex<T>>` is required for **at least 437** hand-written types (declared locks) and for
-> **at most 1,152** (all hand-written types with any mutating method) — that is, between **5.3%
-> and 13.9%** of hand-written struct types. Not for the 93.6% of allocation sites that escape to
-> the heap.
+> ~~`Arc<Mutex<T>>` is required for **at least 437** hand-written types and **at most 1,152** —
+> between **5.3% and 13.9%** of hand-written struct types.~~
 
-The gap between those two bounds is where the real answer lies, and closing it needs the alias
-analysis of §5.1.
+**Both endpoints fail, so the range is withdrawn.** Each fails for its own reason, and neither is a
+defect in the counting:
 
-The programme-relevant conclusion: **the failure mode the brief names — `Arc<Mutex>` everywhere,
-with its performance tax and deadlock surface — would arise from mistaking the escape ratio for
-a sharing ratio.** A translation keyed on escape verdicts would emit on the order of 10⁵
-`Arc<Mutex>` sites. The measured need is bounded by ~10³ types. That is **two orders of
-magnitude** of avoidable damage, and avoiding it is a rule-design decision, not a code-generation
-detail.
+- **437 is not a floor.** A type carrying a `sync.Mutex` need not be *shared*. It can be singly
+  owned and still lock internally — Go's own convention puts a mutex in a struct whether or not
+  that struct is ever aliased. In Rust that is a plain `Mutex<T>` inside an owned value, with no
+  `Arc` at all; it may even be a `&mut` path once ownership is explicit. What 437 floors is
+  **types whose author declared internal locking**, which is a real and useful measurement — it is
+  simply not the same population.
+- **1,152 is not a ceiling**, for the reason §5.3 now states: the mutation detector under-detects
+  by construction, and 948 hand-written free-function mutation sites are the measured evidence of
+  the miss.
+
+So the two numbers do not bracket the answer, and the **later claim that the need is bounded by
+roughly 1,000 types is withdrawn with them.** Closing this needs the alias analysis of §5.1;
+nothing cheaper does, which is what §5.1 said before the range was constructed on top of it.
+
+**What survives, and it is the programme-relevant part.** The failure mode the brief names —
+`Arc<Mutex>` everywhere, with its performance tax and deadlock surface — would arise from mistaking
+the escape ratio for a sharing ratio. A translation keyed on escape verdicts would emit on the
+order of **10⁵** `Arc<Mutex>` sites. Against that, both proxies sit in the **10³** range, and §5.4
+counts only 751 `go` statements in the corpus. That third figure is *also* not a bound — a
+goroutine launched by the standard library (every `net/http` handler, for one) runs corpus code
+without any corpus `go` statement — so read it as a third independent indication, not as a cap.
+
+Three indications, none of them a bound on the answer, all roughly two orders of magnitude below
+what a naive escape-keyed translation would emit. The conclusion **"do not key sharing off escape"**
+is robust to every correction above, because it only needs the gap to be large, not measured. What
+is *not* available from this census is a number to size the `Arc<Mutex>` work from — and saying so
+is the deliverable, not a shortfall in it.
 
 ---
 
@@ -697,10 +750,11 @@ Remaining threats, unresolved:
 |---|---|---|
 | **darwin/arm64 build** excludes ≥153 Linux-guarded files | kubelet/runtime/cgroup/netlink paths unmeasured | **Unknown; likely understates difficulty**, since these are the pointer-heaviest paths |
 | Position deduplication keeps one verdict per `file:line:col` **within** a verdict class | 357,265 raw → 292,974 unique, an 18% collapse; a site whose verdict differs per generic instantiation is attributed to one | Unknown, believed small |
-| Verdict classes **overlap across** classes; the §4.2 table is a sum, not a partition | 1,785 positions (0.9%) carry two verdicts; union 194,727 vs sum 196,512. Borrowability is 55.6% on the union basis vs 55.1% on the sum basis | Sum basis **understates** shares of the total by ≤0.9% |
+| Verdict classes **overlap across** classes; the §4.2 table is a sum, not a partition | 1,785 positions (0.9%) carry two verdicts; union 194,727 vs sum 196,512. Lifetime-compatibility is 55.6% on the union basis vs 55.1% on the sum basis | Sum basis **understates** shares of the total by ≤0.9% |
 | The §6.1 shape taxonomy is hand-authored with an `else` default | 20.19% of escaping sites land in a residue holding 10,125 distinct subjects; 100% coverage is by construction, not measurement | **Understates the rule-corpus size** by an unknown amount |
 | `-m` output is an unstable diagnostic surface | Regex parsing may silently miss a format not present in this corpus | Understates counts |
-| Escape analysis is conservative | Over-reports escaping | **Escape figures are upper bounds; borrow figures are lower bounds** |
+| Escape analysis is conservative | Over-reports escaping | **Escape figures are upper bounds; lifetime-compatibility figures are lower bounds** |
+| Escape analysis carries **no alias information** | A non-escaping parameter may still be aliased at the call site, so `&mut T` may be illegal where lifetime permits a borrow | **Lifetime-compatibility is not borrowability**; the two errors run in opposite directions and the net is unsigned (§4.4) |
 | Mutation detection is depth-1 | Misses mutation via helper functions | Understates mutating types |
 | File coverage counts only files with ≥1 diagnostic | 72.9% is a floor, not the true coverage | Understates coverage |
 
@@ -710,11 +764,11 @@ Remaining threats, unresolved:
 
 | # | Question | Answer | Confidence |
 |---|---|---|---|
-| 1 | Parameters that borrow with no refcount | **55.1%** (48.1% hand-written) | Measured; a **lower bound** |
+| 1 | Parameters *lifetime*-compatible with a borrow | **55.1%** (48.1% hand-written) | Measured; a lower bound on **lifetime**-compatibility only. **Not** a bound on borrowability — exclusivity is unmeasured (§4.2, §4.4) |
 | 2 | Allocation sites escaping to heap | **93.6%** real / 95.8% raw | Measured; an **upper bound** |
 | 3 | Escaping sites that are *not* ownership decisions | **24.8%–45.0%** (interface boxing) | Lower end measured; upper end assumes the §6.1 residue is boxing |
 | 4 | Distinct escaping-allocation shapes | **14 measured shapes covering 79.81%**; a residue of 20.19% holding 10,125 distinct subjects | **Authored taxonomy with a residue bucket — NOT a closed set.** 100% coverage is by construction |
-| 5 | Types needing `Arc<Mutex<T>>` | **5.3%–13.9%** of hand-written types | **Bounded, not determined** — needs alias analysis |
+| 5 | Types needing `Arc<Mutex<T>>` | **Not determined.** Two proxies: 437 hand-written types declare internal locking; 1,152 have ≥1 mutating method | **Neither is a bound** — 437 need not be shared, and the mutation detector under-detects (§5.5). Needs alias analysis |
 | 6 | Types needing `Arc<T>` vs `Box<T>` | **Not determined** | Requires whole-program points-to analysis |
 | 7 | Pointer fields that are really `Option<scalar>` | **28.2%** of pointer fields | Measured (AST-exact) |
 | 8 | Pointer-returning functions in 2 shapes | **96.7%** of 18,410 | Measured (AST-exact) |
@@ -725,14 +779,16 @@ Remaining threats, unresolved:
 The two findings that should change a decision:
 
 1. **Sharing is not escape.** Sizing `Arc`/`Mutex` from the escape ratio over-provisions by
-   roughly two orders of magnitude. The measured shared-mutable surface is 437–1,152 types, not
-   ~200,000 sites.
+   roughly two orders of magnitude: three independent syntactic indications all land in the 10³
+   range against ~200,000 escaping sites. The shared-mutable surface itself is **not determined** —
+   437 and 1,152 are proxies, not the bracket an earlier draft assembled from them (§5.5). The
+   decision this supports is "do not key sharing off escape", which needs only the gap to be large.
 2. **Much of the residue is shaped, but it is not closed, and the corpus is generated-heavy.**
    14 measured allocation shapes cover 79.81% of escaping sites; 3 `unsafe` shapes and 2
    pointer-return shapes are genuinely closed (both enumerated from the full population, not
    from a default bucket); and 34.7% of files are machine output that should be regenerated
-   rather than translated. The rule corpus is sized by the hand-written 65.3%, where the borrow
-   rate is 48.1%, not 55.1%. **Do not size the allocation-rule corpus at 15** — that figure is
+   rather than translated. The rule corpus is sized by the hand-written 65.3%, where the
+   lifetime-compatible rate is 48.1%, not 55.1%. **Do not size the allocation-rule corpus at 15** — that figure is
    an artefact of an authored classifier, and the unclassified fifth is where the sizing risk
    lives.
 

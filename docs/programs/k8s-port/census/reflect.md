@@ -554,10 +554,10 @@ share 68 files** — a classic long tail where the head is trivial and the tail 
 The top 8 shapes are not "reflection" in any sense Rust would recognise. Each is a Go idiom that
 exists only because Go lacks a language feature Rust has:
 
-| Shape | Files | What it actually is | Rust answer | Difficulty |
-| --- | ---: | --- | --- | --- |
-| `DeepEqual` only | 115 | structural equality | `#[derive(PartialEq)]`, `==` | trivial |
-| `TypeOf` only | 17 | dynamic type name in an error/log string | `std::any::type_name`, or a `Display` impl | trivial |
+| Shape | Files | What it actually is | Note |
+| --- | ---: | --- | --- |
+| `DeepEqual` only | 115 | structural equality | NOT mechanically a derived `==`. Go's `DeepEqual` distinguishes a nil slice or map from an empty non-nil one, and has defined behaviour for function values and other shapes called out in section 8; a derived structural equality does not reproduce those. Whether each site can use plain equality depends on the types it compares, which is not measured here. |
+| `TypeOf` only | 17 | dynamic type name in an error/log string | These names are OBSERVABLE — they appear in operator-facing diagnostics. Any rewrite must preserve the name a reader would see, which is a behavioural constraint, not a formatting detail. |
 | `ValueOf` only | 14 | mostly the typed-nil-interface check | `Option<T>` — the bug class does not exist | vanishes |
 | `Type` / `Type TypeOf` | 19 | a type used as a map key | a generic param or an enum discriminant | trivial |
 | `StructTag` only | 8 | reading `json:`/`protobuf:` struct tags | `#[serde(rename=…)]` | trivial |
@@ -745,8 +745,12 @@ They fall into three clusters, all of which shrink rather than grow the programm
    `controller-manager/config/v1/conversion.go`, `dynamic-resource-allocation/api/v1beta1/conversion.go`.
    Same idiom as the generated 113, written by hand. Same Rust answer: safe `From` impls.
 3. **Zero-copy `[]byte` ↔ `string` — 5 files.** The cache and envelope files under `apiserver/pkg`:
-   `return unsafe.String(unsafe.SliceData(b), len(b))`. **In Rust `&str` and `&[u8]` already share a
-   representation**; this is `std::str::from_utf8`. The motivation for the `unsafe` disappears.
+   `return unsafe.String(unsafe.SliceData(b), len(b))`. An earlier draft called this
+   `std::str::from_utf8` and is WITHDRAWN: **Go strings hold arbitrary bytes and `unsafe.String`
+   performs no UTF-8 validation, whereas `from_utf8` REJECTS invalid UTF-8.** For cache and
+   envelope payloads, which are not guaranteed text, that turns a successful zero-copy conversion
+   into an error path. The byte-vs-text distinction is the whole content of these 5 sites, and it
+   is why they are listed rather than mapped.
 
 **Verdict:** `unsafe` is a 22-file hand-written surface (0.23% of D3), of which only the 11
 platform-interop files remain unsafe in Rust. It is not a programme risk.
