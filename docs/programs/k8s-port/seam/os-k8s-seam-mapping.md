@@ -481,8 +481,12 @@ from the diff.
    the command and its literal output. Every negative claim carries a positive control (T-2).
 10. **One runnable check.** Non-trivial logic leaves behind the smallest thing that fails if the logic
     breaks. A data-file-only unit satisfies this with the gate run that reads it.
-11. **Landing.** Committed directly to `impl/os-k8s-seam-conformance`. No branch, no merge commit, no
-    PR. Named files only — never `git add -A`, never `git stash`/`reset`/`clean` in a shared tree.
+11. **Landing.** Units of this lane commit onto the lane branch `impl/os-k8s-seam-conformance` rather
+    than spawning their own branches; the lane lands as a single pull request against `dev` through
+    the governance pipeline in `CLAUDE.md` / `docs/AGENTS.md`, which is the authority for admission
+    and merge. This item restates no admission rule and confers no exemption from one. Hygiene within
+    the shared tree is what is local here: named files only — never `git add -A`, never `git
+    stash`/`reset`/`clean`.
 
 ## 12. Non-claims
 
