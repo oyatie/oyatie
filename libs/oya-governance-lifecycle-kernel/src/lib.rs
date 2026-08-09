@@ -1729,8 +1729,9 @@ mod tests {
         );
 
         // A fenced document must NOT widen: a field that appears only in the
-        // BODY stays invisible. This is the half that fails if the fence-less
-        // admission is implemented as `in_fm = true` unconditionally.
+        // BODY stays invisible. This is the assert that fails if the admission
+        // is written as "scan the whole document" — i.e. if the `break` at the
+        // closing fence is dropped.
         // NOTE: the body scalar deliberately carries no `ADR-<digits>` token.
         // `.rs` is in adr-citation-closure's scan_extensions and its
         // citation_lines census is pinned by EQUALITY, so a realistic-looking
@@ -1745,6 +1746,18 @@ mod tests {
             discovery::frontmatter_scalar(fenced, "superseded_by"),
             None,
             "a body line below the closing fence must stay unread"
+        );
+
+        // A line ABOVE the opening fence must also stay unread. THIS is the
+        // assert that fails if the admission is written as an unconditional
+        // `in_fm = true` rather than being keyed on the absence of a fence:
+        // the closing-fence `break` hides that mutation from the body case
+        // above, so without this line the over-broad implementation passes.
+        let preamble = "doc_status: published\n---\nstatus: Accepted\n---\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(preamble, "doc_status"),
+            None,
+            "a line above the opening fence must stay unread"
         );
     }
 
