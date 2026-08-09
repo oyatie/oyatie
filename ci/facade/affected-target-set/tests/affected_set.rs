@@ -249,20 +249,59 @@ fn markdown_selects_the_citation_gate_in_the_shipped_pack() {
         "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate";
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
-    for path in [
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        "README.md",
-    ] {
-        let changes = [Change::Present(path.into())];
-        let plan = plan_changes(&changes, &p);
-        assert_eq!(
-            resolve(&plan, &owners(&[(path, &[])]), &p),
-            Decision::Affected {
-                seeds: vec![CITATION_GATE.into()]
-            },
-            "`{path}` must seed the citation-closure gate, not select nothing"
-        );
-    }
+    // UNOWNED half. `buck2 uquery "owner(README.md)"` returns EMPTY on this tree, so the
+    // empty-owner fixture is faithful and the seed arrives via the no-owner path.
+    let path = "README.md";
+    let changes = [Change::Present(path.into())];
+    let plan = plan_changes(&changes, &p);
+    assert_eq!(
+        resolve(&plan, &owners(&[(path, &[])]), &p),
+        Decision::Affected {
+            seeds: vec![CITATION_GATE.into()]
+        },
+        "`{path}` must seed the citation-closure gate, not select nothing"
+    );
+}
+
+/// The half a no-owner fixture CANNOT prove, and the reason the seed had to become additive.
+///
+/// An ADR is buck2-OWNED: `buck2 uquery "owner(<the apex path bound below>)"` returns
+/// `root//docs/decisions:adr-corpus` AND `root//docs/decisions:ADR-0700-...md`, from
+/// docs/decisions/BUCK's `glob(["ADR-*.md"])` filegroup plus its 10 `export_file` entries. Owners
+/// are therefore the PRODUCTION state for the 458 files that dominate the pinned census, and
+/// stubbing them empty asserts the fix under a state production cannot produce.
+///
+/// Ownership does not rescue the gate either: `rdeps(//..., <those two targets>)` returns only the
+/// two seeds plus `root//ci/facade/product-protocol-policy:ci-product-protocol-policy-gate`, and
+/// that gate names neither `files_scanned` nor `citation_lines`. So without the union below, an
+/// ADR-only diff still selects nothing that asserts the census.
+#[test]
+fn an_owned_markdown_file_seeds_the_citation_gate_alongside_its_owners() {
+    const CITATION_GATE: &str =
+        "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate";
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    let path = "docs/decisions/ADR-0700-ci-admission-live-apex.md";
+    let real_owners = [
+        "root//docs/decisions:adr-corpus",
+        "root//docs/decisions:ADR-0700-ci-admission-live-apex.md",
+    ];
+    let changes = [Change::Present(path.into())];
+    let plan = plan_changes(&changes, &p);
+    // `seeds` is a BTreeSet collected in order: 'A' (0x41) sorts before 'a' (0x61) within the
+    // shared `root//docs/decisions:` prefix, then 'd' before 'g'.
+    assert_eq!(
+        resolve(&plan, &owners(&[(path, &real_owners[..])]), &p),
+        Decision::Affected {
+            seeds: vec![
+                "root//docs/decisions:ADR-0700-ci-admission-live-apex.md".into(),
+                "root//docs/decisions:adr-corpus".into(),
+                CITATION_GATE.into(),
+            ]
+        },
+        "an OWNED `.md` must seed the citation gate IN ADDITION TO its owners; ownership must not \
+         suppress a declared live-tree edge"
+    );
 }
 
 /// `**/*.md` must never hold an empty-selection licence: its seed is non-empty, so a markdown-only
