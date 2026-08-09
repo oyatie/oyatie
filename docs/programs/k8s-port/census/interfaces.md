@@ -36,7 +36,12 @@ census cites the apex rather than the superseded pair.
 **The trait corpus induced by this corpus is 1,448 – 2,412 distinct method sets, best estimate
 2,077.** That is the number of Rust traits, not the 2,832 interface declarations. Declaration
 count over-counts by roughly 14% because different packages declare interfaces with identical
-method sets.
+method sets. **2,412 is a ceiling over top-level *named* declarations, not over the trait corpus
+the source induces.** That corpus additionally admits up to 14 shapes outside the counted
+population — the 7 function-local interface declarations enumerated in §Method and the 7 distinct
+inline shapes of §3 — because neither set was deduplicated against the named method sets. Read it
+as **2,412 + ≤14 residue**, the way §Method already publishes 2,832 + 7; the residue is at most
+0.6% and moves no distribution.
 
 **Emitting only pairs the program actually uses instead of every structural match is a large prune,
 and the corpus is combinatorial before it**: 80,042 name-level structural matches, 22,304
@@ -44,15 +49,22 @@ exact-signature matches, 5,573 of those between packages that can even see each 
 distinct pairs declared outright in the source as `var _ Iface = ...` (1,323 assertion
 *occurrences*, 7 of them duplicates — §7).
 
-Of those four, **only 80,042 and 1,316 are bounds.** 80,042 cannot miss a real satisfaction, because
-a satisfying type necessarily has the interface's method names; the 1,316 declared pairs are
-compile-checked by Go, so each is a real satisfying pair. **True structural satisfaction therefore
-brackets to [1,316, 80,042]**, and that bracket is wide because this instrument does not resolve
-types. 22,304 is a syntactic estimate that errs in BOTH directions and is not a bound in either —
-see §9. Whether the declared set sits inside the 22,304 was not computed, so these are separate
-measurements rather than nested ones. Structural matching is combinatorial; usage is not. The
-engine must emit impls from usage — that conclusion rests on the 80,042 ceiling and the 1,316
-floor, neither of which the 22,304 correction disturbs.
+Of those four, **1,316 is a proven floor; 80,042 is a ceiling relative to the declared-receiver
+method sets, not to Go method sets.** The 1,316 declared pairs are compile-checked by Go, so each
+is a real satisfying pair. 80,042 is an upper bound over method sets built from *explicitly
+declared receivers only*: the walker records a method solely where an `*ast.FuncDecl` carries a
+receiver (Appendix A), so it **misses** satisfactions arising from methods promoted through
+embedded fields, which Go counts in a type's method set and this instrument does not. The
+population is not marginal — 2,747 CORE struct types embed at least one anonymous field, and 479
+of those declare no explicit method at all (§11). An earlier draft justified the ceiling by
+arguing that 80,042 cannot miss a real satisfaction, because a satisfying type necessarily has the
+interface's method names; **that justification is false as written and is withdrawn**, because the
+names can be promoted rather than declared. 22,304 is a syntactic estimate that errs in BOTH
+directions and is not a bound in either — see §9. Whether the declared set sits inside the 22,304
+was not computed, so these are separate measurements rather than nested ones. Structural matching
+is combinatorial; usage is not. The engine must emit impls from usage — that conclusion rests on
+the 1,316 floor and the direction of the 80,042 ceiling, and neither the 22,304 correction nor the
+promoted-method correction disturbs it.
 
 **The orphan rule is a narrow problem, not a broad one.** Of the 1,323 impl assertions Kubernetes
 writes explicitly, 6 (0.45%) are foreign-trait-on-foreign-type, the shape Rust forbids — and 6 is
@@ -130,7 +142,7 @@ is available for resolving embedded interfaces into vendored packages even when 
 | Type assertions, type switches, case counts | **Exact** | AST node counts. Validated against grep, §5. |
 | Inline interface literals | **Exact** | AST. |
 | Distinct method sets after dedup | **Estimate inside a proven bracket** | Signatures are compared as written, not as resolved types. See §2. |
-| Structural satisfaction (which type implements what) | **Bracketed, not exact** | Needs `go/types`. See §8. |
+| Structural satisfaction (which type implements what) | **Bracketed, not exact**, and the upper end is a ceiling on *declared-receiver* method sets only | Needs `go/types`. See §8. The method sets are built from `*ast.FuncDecl` nodes carrying a receiver, so **methods promoted from embedded struct fields are absent from every method set this instrument builds** — Go counts them, this does not. 2,747 CORE struct types embed at least one anonymous field; 479 declare no explicit method at all and so appear in no method set here (§11). |
 | "Used pairs" | **Not determined** | Needs whole-program assignment analysis. See §11. |
 
 ### Known residue in the declaration count
@@ -279,15 +291,21 @@ better served by a concrete struct than by a trait. That judgment is per-interfa
 
 | Basis | CORE | Meaning |
 |---|---:|---|
-| Trait-candidate declarations | 2,412 | **true upper bound** — dedup can only reduce |
+| Trait-candidate declarations | 2,412 | **upper bound over top-level *named* declarations** — dedup can only reduce, but the 7 function-local declarations (§Method) and the 7 distinct inline shapes (§3) sit outside this population: 2,412 + ≤14 residue |
 | Distinct full signature sets | **2,077** | best estimate |
 | Distinct method-*name* sets | **1,448** | **true lower bound** |
 | Signature sets shared by ≥2 declarations | 192 | |
 
-The two outer numbers are proven bounds, and the reasoning is worth stating because the middle
-number is not a bound:
+The two outer numbers are bounds and the middle one is not, but they are not bounds of the same
+strength, and the reasoning is worth stating:
 
-- **2,412 is a true upper bound.** Deduplication is a quotient; it never increases the count.
+- **2,412 is an upper bound over the top-level named population.** Deduplication is a quotient; it
+  never increases the count — but the population it quotients is top-level named declarations only.
+  §3 prescribes "anonymous trait synthesis with structural dedup against the named corpus" as the
+  rule for inline shapes and §Method enumerates 7 function-local declarations, and **that dedup was
+  never computed**: any local or inline method set not already present among the named sets is a
+  further trait. At most 7 + 7 = 14 shapes, ≤0.6% of 2,412. Published as **2,412 + ≤14 residue**
+  rather than restated as 2,426, because the residue is a bound and not a count.
 - **1,448 is a true lower bound.** Two interfaces whose method *names* differ cannot possibly be
   the same trait, whatever their signatures resolve to. So the count of distinct name sets can
   never exceed the count of distinct traits.
@@ -381,8 +399,8 @@ syntactic role — this is the breakdown that matters, because the role decides 
 | Role | Count | Share of 10,212 | Plausible Rust target |
 |---|---:|---:|---|
 | function parameter | 5,905 | 57.8% | generic `T`, `impl Trait`, or `&dyn Any` |
-| map value (`map[K]interface{}`) | 2,288 | 22.4% | `serde_json::Value` / owned dynamic enum |
-| slice element (`[]interface{}`) | 998 | 9.8% | same as map value |
+| map value (`map[K]interface{}`) | 2,288 | 22.4% | `serde_json::Value` / owned dynamic enum **where the element is a decoded document — not established by role alone (§11)** |
+| slice element (`[]interface{}`) | 998 | 9.8% | same as map value, same qualification |
 | function result | 455 | 4.5% | `Box<dyn Any>` — the hard direction |
 | variadic parameter | 219 | 2.1% | format/log varargs; macro target |
 | type-parameter constraint (`[T any]`) | 138 | 1.4% | unconstrained generic — free |
@@ -400,10 +418,20 @@ Three readings matter for sizing:
    9,191, 90.0%). Parameters are the benign case: most are logging, formatting, and
    `DeepCopy`-style plumbing where a generic parameter or a trait bound is a faithful translation.
 2. **The 3,286 container occurrences (map value + slice element, 32.2%) are one problem, not
-   3,286.** `map[string]interface{}` and `[]interface{}` in this corpus are overwhelmingly decoded
-   JSON/YAML — `unstructured.Unstructured` and friends. One rule that recognises the
-   dynamic-document shape and targets a single owned value type retires roughly a third of the
-   whole `interface{}` surface. It is the highest-leverage single rule the census found.
+   3,286** — *if* the elements are decoded documents, which the role pass does not establish.
+   What the role pass sees is only that the element type is `interface{}`. What is measured about
+   the key type is favourable and worth printing instead of asserting: over the same CORE scope at
+   the pin, **2,315 of 2,338 `map[K]interface{}`/`any` occurrences (99.02%) have key type
+   `string`**, and the entire non-string residue is 23 occurrences — 22 with an `interface{}` key
+   and 1 with `jose.HeaderKey` — which is enumerable by hand. (That occurrence population is the
+   map *type* population, slightly wider than the 2,288 map-value role count; the point it settles
+   is the key type, not the role attribution.) What is **not** measured is whether the values are
+   serializable, and whether a later type assertion recovers the concrete identity — both of which
+   a single owned-document target silently requires. So: one rule that recognises the
+   dynamic-document shape and targets a single owned value type would retire roughly a third of the
+   whole `interface{}` surface, and it is the highest-leverage single rule the census found, but the
+   fraction of the 3,286 genuinely reducible to it is a role-based population and not a measurement
+   (§11).
 3. **The residue is 455 results plus 75 struct fields.** Returning `interface{}` is where Rust has
    no clean target, because the caller cannot recover the type without a downcast. 530 sites is
    small enough to enumerate and triage by hand.
@@ -615,7 +643,7 @@ CORE has **9,017 concrete named types with methods**.
 
 | Basis | Pairs |
 |---|---:|
-| Name-only match (**true upper bound**) | **80,042** |
+| Name-only match (**ceiling on declared-receiver method sets**, §11) | **80,042** |
 | Exact-signature match (**estimate**, errs both ways) | **22,304** |
 | — same package | 1,978 |
 | — different package, type's package imports the interface's package | 3,595 |
@@ -659,16 +687,23 @@ has one gap in it.
 
 | Basis | Pairs | Status |
 |---|---:|---|
-| Name-only structural matches | 80,042 | **true upper bound**, exact computation |
+| Name-only structural matches | 80,042 | **ceiling relative to declared-receiver method sets**, exact computation over those sets — not a ceiling on Go method sets, which include promoted methods this instrument never collects (§Method, §11) |
 | Exact-signature structural matches | 22,304 | **estimate, not a bound in either direction** (see note) |
 | …restricted to pairs whose packages can see each other | 5,573 | **not a bound** — see below |
 | Distinct declared pairs (per §7) | 1,316 | **strict lower bound on used pairs**, compile-checked by Go. The 1,323 figure in §7 counts assertion *occurrences*; this row counts pairs, which is the unit every other row uses |
 | Interface-typed downcast sites | 789, over 229 interfaces | exact; distinct probe surface |
 
-**Structural satisfaction brackets to [1,316, 80,042].** Both ends are earned: every declared
-assertion is verified by the Go compiler, so it is a real satisfying pair; and no real satisfying
-pair can fall outside the name-only match, because satisfaction implies the names are present. The
-bracket is wide, and it is honestly wide — this instrument does not resolve types.
+**Structural satisfaction sits above 1,316; 80,042 is the ceiling of the declared-receiver method
+sets, not of Go method sets.** The floor is earned outright — every declared assertion is verified
+by the Go compiler, so it is a real satisfying pair. The ceiling is earned only relative to what
+the instrument builds: satisfaction does imply the interface's method *names* are present in the
+type's method set, but Go's method set includes methods **promoted from embedded fields**, and the
+walker collects only methods declared with a receiver (§Method). A type that satisfies entirely
+through promotion contributes zero pairs to the 80,042 — `runtime.codec`
+(`apimachinery/pkg/runtime/codec.go:35`) is `type codec struct { Encoder; Decoder }` with no
+declared methods, and `NewCodec` returns it as `Codec`, a satisfaction the Go compiler checks and
+this instrument cannot see. The bracket is wide, and it is honestly wide — this instrument does not
+resolve types.
 
 **Why 22,304 is not an endpoint of it.** An earlier draft used 22,304 as the lower end and derived a
 17x prune ratio from it. Both are withdrawn. The exact-signature pass misses real satisfactions
@@ -766,17 +801,21 @@ to port rather than re-source vendored dependencies raises the trait corpus by r
 
 Stated plainly, because an honest gap is more useful than a substituted proxy.
 
-1. **The true used-pair count.** Bracketed to [1,316, 80,042]; see §9. Needs `go/types` plus a
-   whole-program assignability walk. This is the highest-value follow-up.
-2. **Exact structural satisfaction.** Bracketed to [1,316, 80,042] — 60.8x apart, and that width is
-   the honest answer. An earlier draft narrowed it to [22,304, 80,042] by treating the
-   exact-signature count as the floor; §9 withdraws that, since unresolved local type names let the
-   signature pass admit non-satisfying pairs as well as miss satisfying ones. Same `go/types`
-   blocker. The *shape* of the distribution (§8) — the long tail of zero-and-one-match interfaces
-   against a handful of thousand-match probes — is robust to where in the bracket the truth sits,
-   because it is a statement about how matches concentrate, not about how many there are.
-3. **True distinct method sets.** Bracketed to [1,448, 2,412] with 2,077 as the estimate. The
-   bounds are proven; the estimate is not. Same blocker.
+1. **The true used-pair count.** Above 1,316 and below the 80,042 ceiling of §9, with the ceiling
+   qualified by item 7 below. Needs `go/types` plus a whole-program assignability walk. This is the
+   highest-value follow-up.
+2. **Exact structural satisfaction.** 1,316 is a proven floor; 80,042 is a ceiling **relative to
+   the declared-receiver method sets** and not to Go method sets (item 7). An earlier draft
+   narrowed the bracket to [22,304, 80,042] by treating the exact-signature count as the floor; §9
+   withdraws that, since unresolved local type names let the signature pass admit non-satisfying
+   pairs as well as miss satisfying ones. Same `go/types` blocker. The *shape* of the distribution
+   (§8) — the long tail of zero-and-one-match interfaces against a handful of thousand-match probes
+   — is robust to where in the range the truth sits, because it is a statement about how matches
+   concentrate, not about how many there are.
+3. **True distinct method sets.** In [1,448, 2,412] with 2,077 as the estimate. The lower bound is
+   proven; the upper bound is proven **relative to the top-level named population** and admits ≤14
+   residue shapes (§Method's 7 function-local declarations, §3's 7 distinct inline shapes, neither
+   deduplicated against the named method sets). The estimate is not a bound at all. Same blocker.
 4. **Whether a high-fan-out structural match is real or coincidental.** `documentable`'s 1,128 are
    real; `pathSpec`'s 1,807 are almost certainly not. I did not attempt to separate these
    automatically, and I do not think a syntactic method can. Roughly a dozen interfaces need this
@@ -787,6 +826,21 @@ Stated plainly, because an honest gap is more useful than a substituted proxy.
    std traits is a prerequisite of the rule pack, not an output of this census.
 6. **Shadowed `any`.** A locally-declared type or variable named `any` would corrupt the §4 count.
    Not checked; expected zero; bounded and immaterial.
+7. **Promoted methods from embedded struct fields are not in any method set this instrument
+   builds.** The appendix records a method only from an `*ast.FuncDecl` with a receiver, and §8
+   keys its match table off that map alone; Go, by contrast, counts promoted methods in a type's
+   method set. Over the identical CORE scope at the pin (9,573 files, 0 parse errors), **2,747
+   struct types embed at least one anonymous field**, so every one of them has a method set larger
+   than recorded; **479 of those declare zero explicit methods** and therefore do not appear among
+   the 9,017 concrete types with methods at all; 24 of the 479 embed a corpus-declared interface
+   with ≥2 methods. Worked example: `runtime.codec` at
+   `staging/src/k8s.io/apimachinery/pkg/runtime/codec.go:35` — `type codec struct { Encoder;
+   Decoder }`, zero declared methods, returned by `NewCodec` as `Codec`. Closing this needs
+   `go/types`.
+8. **Whether a container's element is serializable, and whether its concrete identity is recovered
+   by a later type assertion.** The §4 role pass sees only that the element type is `interface{}`.
+   Needs `go/types`. This is the precondition of the §12 item 5 rule and is the single largest
+   unmeasured dependency of this census's highest-leverage claim.
 
 ## 12. Consequences for rule-corpus sizing
 
@@ -810,8 +864,11 @@ Read off the measurements, not asserted.
    missing impls are the undeclared-but-used pairs of §9.
 4. **The duck-typing surface needing whole-program reasoning is 229 interfaces, not 2,077** (§9).
    61% of them have ≤2 methods. This is a tractable, enumerable population.
-5. **One rule for `map[string]interface{}` / `[]interface{}` retires ~32.2% of the entire
-   `interface{}` surface** (3,286 of 10,212 sites, §4). Highest single-rule leverage found.
+5. **One rule for `map[string]interface{}` / `[]interface{}` addresses ~32.2% of the entire
+   `interface{}` surface** (3,286 of 10,212 sites, §4). Highest single-rule leverage found — but
+   3,286 is a **role-based population**, not a measurement of how many are genuinely reducible to
+   one owned document type. Serializability of the elements and later recovery of concrete identity
+   by type assertion are both unmeasured (§11 item 8), and the rule requires them.
 6. **Rule the single-value type assertion once, globally.** 9,725 sites (79.1%) panic on mismatch
    in Go (§5). Preserve-the-panic and force-a-`Result` are both defensible; per-site judgment is
    not. The same ruling must fix the failure payload, and it needs a second rule for the ~14%

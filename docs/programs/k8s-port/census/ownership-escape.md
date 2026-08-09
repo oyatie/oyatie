@@ -283,6 +283,17 @@ sense a Rust port would reproduce (§6.1). Excluding interface-boxing artifacts:
 |---|---:|---:|---:|
 | All reported sites | 206,271 | 9,063 | 95.8% |
 | Real allocations only | 113,369 | 7,751 | **93.6%** |
+| Real allocations only, **measured boxing floor** (classes 3/5/7/15) | 155,024 | 8,207 | **95.0%** |
+
+The third row exists because **93.6% is not a measured quantity**: its numerator subtracts all five
+boxing classes (206,271 − 92,902), and class 2 of those — the §6.1 residue, 41,655 sites — is
+classified as boxing *by assumption*, on two spot checks against 10,125 distinct subject
+expressions. The denominator is adjusted the same way (9,063 − 1,312, of which 456 is the
+residue). Dropping the assumption and keeping only the pattern-matched boxing classes gives
+206,271 − 51,247 = 155,024 escaping and 9,063 − 856 = 8,207 non-escaping, i.e. 95.0%. **So the real
+escape rate is in [93.6%, 95.0%]**, and the residue assumption moves it by 1.4 points inside a
+figure that is an upper bound either way. (24.8% and 45.0% are the boxing *shares* of escaping
+sites, not escape rates; that range is published in §6.1 and §9 row 3.)
 
 Either way the answer is the same and it is unwelcome: **Kubernetes allocates on the heap almost
 everywhere.** This is not a measurement artifact — it is what the program is. Kubernetes is an
@@ -801,7 +812,7 @@ Remaining threats, unresolved:
 | # | Question | Answer | Confidence |
 |---|---|---|---|
 | 1 | Parameters *lifetime*-compatible with a borrow | **55.1%** (48.1% hand-written) | Measured; a lower bound on **lifetime**-compatibility only. **Not** a bound on borrowability — exclusivity is unmeasured (§4.2, §4.4) |
-| 2 | Allocation sites escaping to heap | **93.6%** real / 95.8% raw | Measured; an **upper bound** |
+| 2 | Allocation sites escaping to heap | **93.6%–95.0%** real / 95.8% raw | **Escape-analysis upper bound.** Not "measured": the 93.6% end additionally assumes the §6.1 residue (41,655 sites) is boxing, on two spot checks; the 95.0% end uses the pattern-matched boxing floor only (§4.3) |
 | 3 | Escaping sites that are *not* ownership decisions | **24.8%–45.0%** (interface boxing) | Lower end measured; upper end assumes the §6.1 residue is boxing |
 | 4 | Distinct escaping-allocation shapes | **14 measured shapes covering 79.81%**; a residue of 20.19% holding 10,125 distinct subjects | **Authored taxonomy with a residue bucket — NOT a closed set.** 100% coverage is by construction |
 | 5 | Types needing `Arc<Mutex<T>>` | **Not determined.** Two proxies: 437 hand-written types declare internal locking; 1,152 have ≥1 mutating method | **Neither is a bound** — 437 need not be shared, and the mutation detector under-detects (§5.5). Needs alias analysis |

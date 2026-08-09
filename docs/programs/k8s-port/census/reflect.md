@@ -27,7 +27,9 @@ Nothing here is a decision, an ADR, or a proposal. It is five measurements and t
 
 **Headline, stated before the evidence so it can be checked against it:** of the 9,573 non-vendor,
 non-`_test.go` Go files in this corpus, **3,384 (35.4%) are already machine-generated**, **38 (0.40%)
-are genuine reflection machinery**, and **6,151 (64.3%) are hand-written non-reflective control logic**.
+are genuine reflection machinery**, and **6,151 (64.3%) are hand-written and not detected as
+reflective — an upper bound on the transpile target**, because §8.2 treats the 38-file core as a
+lower bound and §2.2 labels the generated set an estimate.
 By lines the generated share is larger still: **43.5% of all non-vendor non-test Go lines are generated**.
 The transpiler's real target is about two-thirds of the file count, and the reflection problem is
 **891 call sites in 38 files** — not a pervasive property of the corpus.
@@ -824,7 +826,7 @@ hand-written files, which is D3 minus the generated files.
 | --- | --- | ---: | ---: | ---: | ---: |
 | **(a)** | **Already generated** — regenerate from schema in Rust, never transpile | **3,384** | **35.35%** | 929,168 | **43.48%** |
 | **(b)** | **Reflection-heavy core** — schema-codegen and interpreter territory | **38** | **0.40%** | (891 sites) | — |
-| **(c)** | **Hand-written non-reflective control logic** — the actual transpile target | **6,151** | **64.25%** | ≈1,208,022 | ≈56.5% |
+| **(c)** | **Hand-written, NOT DETECTED as reflective by the two idioms of §4.3** — the transpile target, an upper bound | **6,151** | **64.25%** | ≈1,208,022 | ≈56.5% |
 
 3,384 + 38 + 6,151 = 9,573.
 
@@ -836,7 +838,8 @@ moves the percentage by 0.9 points.
 
 - **(c) still contains 801 files of e2e/integration harness** under `./test/` that are not
   `_test.go`. Those are rewritten as Rust tests, not transpiled. **Production hand-written
-  non-reflective control logic is 6,151 − 801 = 5,350 files, 55.9% of D3.**
+  not-detected-as-reflective control logic is 6,151 − 801 = 5,350 files, 55.9% of D3** — an upper
+  bound, inheriting (c)'s (§9).
 
   ```sh
   LC_ALL=C comm -23 "$S/nvnt.txt" "$S/gen-nvnt-refined.txt" > "$S/hand-nvnt.txt"
@@ -953,8 +956,8 @@ Stated plainly, because a wrong number here is expensive.
 | `reflect.X` sites, hand-written | 1,487 (was 1,511) | **upper bound on executing sites** | same filter; 891 + 596 reconciles independently, which checks the partition, not the filtering |
 | Distinct symbol-set shapes | 73 | exact for the extraction, unchanged by filtering | no symbol and no file is comment-only, so the shape distribution does not move |
 | `unsafe` importers (D3) | 154 | exact | same parser as `reflect`, same guarantees |
-| — hand-written | 22 | exact | set difference against the generated set |
-| Transpile target (c) | 6,151 files | derived | D3 − generated − core; disjoint by construction |
+| — hand-written | 22 | **exact relative to the marker-derived generated set (§2.2); not exact as generated vs hand-written** | set difference against `gen-nvnt-refined.txt`, which §2.2 labels an estimate; an unmarked generated `unsafe` importer moves a file out of this row |
+| Transpile target (c) | 6,151 files | **derived upper bound** | D3 − generated − core; the core is a **lower bound** (§8.2) and the generated set an estimate (§2.2), so this complement is an upper bound relative to the *detected* sets, not a measured non-reflective population |
 
 Every count in this document was produced by running the command shown, on the tree at
 `756939600b9a7180fc2df6550a4585b638875e67`, with `/usr/bin/grep`. None was inferred from reading
