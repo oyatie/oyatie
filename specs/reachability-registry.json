@@ -554,6 +554,10 @@
       "prefix": "specs/policy-ir-benchmark-rubric.json"
     },
     {
+      "anchor": "ADR-0637 D1 + ADR-0638 (archived under docs/adr-archive/, live via apex ADR-0704): the NEUTRAL language-translation rule data root the port engine consumes. Its named consumer is live today — ci/facade/k8s-program-docs load_rule_records() walks this root recursively and reads rule_id/rule_kind/operations_journal_ref from every record, and the R-DOC rule-journal-reference check evaluates each one. Records are Markdown-only because that loader fail-closes on any other extension. Registered BEFORE the first record lands so ADR-0555 born-accounting resolves REACHED (which implies JUSTIFIED) on arrival; zero tracked paths cover it until then, which is the declared legal state for a not-yet-committed artifact. Ownership needs no new OWNERS file and inherits specs/OWNERS (council-architecture), measured at 373 tracked paths against the oya-ci.toml [owners] max_paths_per_owners_file cap of 2000.",
+      "prefix": "specs/port-rules/"
+    },
+    {
       "anchor": "ADR-0632 artifact accounting: exact canonical product protocol contract consumed by the cloud-ci product-protocol-policy gate and linked from the root hub.",
       "prefix": "specs/product-protocol-contract.json"
     },

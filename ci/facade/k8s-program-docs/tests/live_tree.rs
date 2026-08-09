@@ -36,3 +36,27 @@ fn live_k8s_program_document_corpus_is_green_and_nonempty() {
     );
     assert!(report.is_green());
 }
+
+/// The corpus-token check is only worth its green if the walk actually REACHED both neutral roots.
+/// A unit test cannot answer that — it hands the scan its own inputs — so the reach is asserted
+/// against the live tree, once, here. This is the assertion that a narrowed scan cannot survive.
+#[test]
+fn the_neutral_scan_reaches_both_neutral_roots_on_the_live_tree() {
+    let root = repo_root();
+    let corpus = ci_k8s_program_docs::load_repository(&root).expect("the live R-DOC corpus loads");
+
+    for prefix in ["specs/port-rules/", "build/port-engine/"] {
+        assert!(
+            corpus
+                .neutral_artifacts
+                .iter()
+                .any(|artifact| artifact.path.starts_with(prefix)),
+            "the neutral scan reached no file under {prefix}; scanned: {:?}",
+            corpus
+                .neutral_artifacts
+                .iter()
+                .map(|artifact| artifact.path.as_str())
+                .collect::<Vec<_>>()
+        );
+    }
+}
