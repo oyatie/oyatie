@@ -210,6 +210,59 @@ mod tests {
         );
     }
 
+    /// No buck2 target in this package may enable the model.
+    ///
+    /// The sibling of `no_production_buck_target_enables_the_model` in
+    /// `os-secrets-domain`, and the reason it has to exist here too: that crate
+    /// closed the INSTANCE and this one was left open, which is the exact class
+    /// failure this branch is about. `Cargo.toml` and the `cfg` attributes are
+    /// half the barrier; the other half is the build graph, and buck2 features
+    /// come from the target attribute, so a `features = ["modeled-crypto"]` on
+    /// the production `rust_library` would hand the modeled `Secret` and
+    /// `SecretsBundle` constructors to every consumer without touching a line
+    /// of Rust or of the manifest — invisible to both existing guards.
+    ///
+    /// Zero, not one: unlike `os-secrets-domain` there is no modeled *target*
+    /// here. The gate is `cfg(any(test, feature = "modeled-crypto"))`, so the
+    /// `rust_test` already sees the modeled items through `test` and no target
+    /// in this package ever needs the feature. Any occurrence is therefore a
+    /// production one.
+    ///
+    /// The `contains` line below is what makes this anti-vacuous: an assertion
+    /// that a count is zero passes on an empty string, so the test first proves
+    /// it read the BUCK file it meant to read.
+    ///
+    /// Proven to fire, by mutation: adding `features = ["modeled-crypto"]` to
+    /// the `os-cluster-mgmt-domain` `rust_library` gives
+    ///
+    /// ```text
+    /// assertion `left == right` failed: no buck2 target in this package may
+    /// enable modeled-crypto
+    ///   left: 1
+    ///  right: 0
+    /// ```
+    #[test]
+    fn no_buck_target_enables_the_model() {
+        let buck: String = include_str!("../BUCK")
+            .lines()
+            .filter(|l| !l.trim_start().starts_with('#'))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(
+            buck.contains("os-cluster-mgmt-domain"),
+            "read the wrong BUCK file: a zero-count assertion below would pass vacuously"
+        );
+        assert_eq!(
+            buck.matches("modeled-crypto").count(),
+            0,
+            "no buck2 target in this package may enable modeled-crypto: the crate gate \
+             is cfg(any(test, feature = \"modeled-crypto\")), so the rust_test already \
+             sees the modeled items via `test`, and the only thing a feature attribute \
+             here could do is put them in a production library"
+        );
+    }
+
     #[test]
     fn secrets_bundle_is_deterministic_and_shares_cas() {
         let a = SecretsBundle::generate("acme").unwrap();
@@ -536,10 +589,29 @@ mod tests {
             ),
         ];
 
+        // Prefix-match the last non-blank preceding LINE, rather than
+        // suffix-matching the text before the signature. The earlier
+        // `src[..i].trim_end().ends_with(GATE)` was satisfied by
+        // `// #[cfg(any(test, feature = "modeled-crypto"))]` — a commented-out
+        // gate still ends with the gate string — so the quiet way to remove
+        // the barrier left this test green while the item became unconditional
+        // and linkable by production. Deletion was caught; commenting out was
+        // not. Same shape as `os_secrets_domain::tests::crate_root_gate_is_present`
+        // and `os_trustd_domain::token::tests::gated`.
+        //
+        // Proven to fire, by mutation: commenting out the gate above
+        // `pub fn derive(seed: &str) -> Self {` in `gen.rs` gives
+        //
+        //   `pub fn derive(seed: &str) -> Self {` must be immediately preceded
+        //   by #[cfg(any(test, feature = "modeled-crypto"))]
         for (src, signature) in required {
-            let gated = src
-                .match_indices(signature)
-                .any(|(i, _)| src[..i].trim_end().ends_with(GATE));
+            let gated = src.match_indices(signature).any(|(i, _)| {
+                src[..i]
+                    .lines()
+                    .rev()
+                    .find(|l| !l.trim().is_empty())
+                    .is_some_and(|l| l.trim_start().starts_with(GATE))
+            });
             assert!(gated, "`{signature}` must be immediately preceded by {GATE}");
         }
     }
