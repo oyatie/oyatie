@@ -569,8 +569,11 @@ pub mod catalog_yaml {
     /// Compute the `registry/catalog/<leaf>.yaml` content for `crate_dir` with the given `plane` and
     /// `slo`. PURE — no I/O. The record is schema-driven (the practical catalog-record shape the
     /// `cloud-ci-slo-coverage` / `cloud-ci-catalog-liveness` gates parse: a top-level `slo:` scalar
-    /// plus the human-decision `plane:` field). Both `plane` and `slo` are REQUIRED — an empty value
-    /// is a [`WriterError::MissingCatalogField`] (never silently defaulted, per ADR-0548 D2).
+    /// plus the human-decision `plane:` field, plus the `api_stability:` tier the
+    /// `cloud-ci-lifecycle-status` api-stability-tier lane requires of every row). Both `plane` and
+    /// `slo` are REQUIRED — an empty value is a [`WriterError::MissingCatalogField`] (never
+    /// silently defaulted, per ADR-0548 D2). `api_stability` is not a parameter: see the inline
+    /// note on why it is forced to `preview`.
     ///
     /// Deterministic: the same inputs always render byte-identical content (idempotent re-apply).
     ///
@@ -598,8 +601,21 @@ pub mod catalog_yaml {
         // slo-coverage / catalog-liveness contract) plus the human-supplied `plane:` and the
         // capability slug derived from the crate leaf. Rendered as canonical YAML (one
         // `key: value` per line, trailing newline) so re-rendering is byte-stable.
+        //
+        // `api_stability` is NOT decoration and NOT a human decision: the ci/facade/lifecycle-status
+        // api-stability-tier lane is rooted on `registry/catalog/*.yaml` with `stage_field:
+        // api_stability` and carries NO frozen violation row, so an absent (lane, kind) pair is
+        // born-blocking and a row rendered without this key reds that required context as a
+        // `stage_not_declared` unbaselined_violation the moment the next crate is registered.
+        // The value is FORCED to `preview` rather than parameterised: it is the first tier of the
+        // canonical [preview, stable, GA] ladder, and marketplace/facade/dev-cli/src/
+        // governance_gates.rs validate_claim_ceiling_gate runs
+        // FoundationClaimCeiling::preview_foundation().validate_catalog() over this exact
+        // directory, which REJECTS any record declaring above Preview. A newly scaffolded crate
+        // has no evidence for a higher tier, so any other default would be a claim the ceiling
+        // gate rejects on sight. Promotion is a deliberate later edit to the row.
         Ok(format!(
-            "capability: {capability}\nplane: {plane}\nslo: {slo}\n"
+            "capability: {capability}\nplane: {plane}\nslo: {slo}\napi_stability: preview\n"
         ))
     }
 
