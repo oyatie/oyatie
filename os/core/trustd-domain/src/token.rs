@@ -237,6 +237,20 @@ mod tests {
     // build where it is enabled, and a compile-fail harness (trybuild) would be
     // a new dependency. Upgrade path: a repo-wide modeled-crypto gate if a
     // second crate needs the same proof.
+    //
+    // That the gate BITES is proven separately, and by execution rather than by
+    // assertion — a rule never seen to fire is the false green it exists to
+    // prevent. Adding `pub fn probe() -> JoinToken { JoinToken::derive(b"x") }`
+    // to this file, outside `cfg(test)`, and building the PRODUCTION target:
+    //
+    //   buck2 build //os/core/trustd-domain:os-trustd-domain
+    //   error[E0599]: no associated function or constant named `derive` found
+    //                 for struct `JoinToken` in the current scope
+    //   BUILD FAILED
+    //
+    // Not merely private off-feature: it does not EXIST. The `rust_library`
+    // rule in BUCK declares no `features`, so no production target can turn
+    // `modeled-crypto` on. This test guards the attribute that makes that true.
     #[test]
     fn modeled_crypto_constructors_stay_behind_the_gate() {
         let required: [(&str, &str); 5] = [
