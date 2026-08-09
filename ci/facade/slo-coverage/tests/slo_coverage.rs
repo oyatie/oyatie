@@ -69,7 +69,38 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  slack it was sitting on — 738 against 749 means the producer
 ///                                  could have silently lost eleven rows and still passed. That
 ///                                  slack is what this pin removes.
-const SLO_CATALOG_CENSUS: usize = 749;
+///   2026-08-09  749 -> pin 750     BASE MOVE, not a change of what this branch enumerates. The
+///                                  one added row is named: crate_id `port-engine-kernel`,
+///                                  source_path `registry/catalog/port-engine-kernel.yaml`,
+///                                  introduced by dev commit 885794461 (PR #1621, port-engine W0
+///                                  skeleton, ADR-0637 D1). `git diff --name-only
+///                                  origin/dev...HEAD -- registry/catalog/port-engine-kernel.yaml`
+///                                  is EMPTY, so this branch does not contribute it.
+///
+///                                  WHICH OF THE TWO IT WAS, since the gate says a count cannot
+///                                  tell a legitimate arrival from a widened enumeration: it was
+///                                  an ARRIVAL, and the discriminator is a control rather than an
+///                                  argument. The SAME producer binary, built from this branch's
+///                                  head, was run twice over the same source tree with only the
+///                                  `--scm-facts` face swapped — the pre-rebase face gives 749
+///                                  rows and the regenerated face gives 750, added 1, removed 0.
+///                                  Holding the predicate fixed and moving only the corpus isolates
+///                                  the delta to the corpus. Independently: the enumerating
+///                                  producer is ci/facade/artifact-inventory-registry, which this
+///                                  branch does not touch at all; the slo-coverage edits in this
+///                                  branch are to the census RULE
+///                                  (`evaluate_catalog_census`), never to the walk.
+///
+///                                  WHY IT WAS MISSED until CI, recorded because the failure mode
+///                                  outlived the number: `scm-facts.generated.json` is gitignored
+///                                  and locally MATERIALIZED, so a lane that rebases without
+///                                  regenerating it keeps enumerating the pre-rebase corpus. The
+///                                  local gate ran GREEN at 749 against a face materialized hours
+///                                  before the rebase, and CI — which regenerates it — read 750.
+///                                  Regenerate the face after any rebase before trusting a census
+///                                  pin locally; a green local census gate proves nothing about a
+///                                  stale face.
+const SLO_CATALOG_CENSUS: usize = 750;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
