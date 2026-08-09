@@ -2,8 +2,16 @@
 
 Measurement record for bead `oyatie-zng`. Every number below was read off a completed
 `oya-ci-required` run via `gh api .../jobs`, or off the job log; none is estimated.
-**No code changed.** The conclusion is that the FULL-tier work is irreducible inside this
-package, and the one lever that does not shrink coverage lives outside it.
+**No code changed to take these measurements** — every number was read off a completed run. The
+PR carrying this document is NOT documentation-only: it also (a) makes `resolve()` UNION synthetic
+dependency declarations with a non-empty `owner()` instead of consulting them only as a no-owner
+fallback (`src/lib.rs`), (b) seeds `**/*.md` to
+`root//governance/check/adr-citation-closure:check-adr-citation-closure-gate` and drops `**/*.md`
+from `inert_selection_classes` (`affected-set-policy.json`), and (c) re-freezes the
+citation-closure census against dev at 885794461 (`adr-citation-closure-policy.json`). (a) and (b)
+are selector-authority changes and are the repair for the false green this branch itself hit. The
+conclusion below — that FULL-tier work is irreducible inside this package, and that the one lever
+which does not shrink coverage lives outside it — is about the measurement, not about the diff.
 
 ## 1. The job is trimodal, not a single number
 
