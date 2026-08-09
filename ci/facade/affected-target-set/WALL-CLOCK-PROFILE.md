@@ -119,13 +119,42 @@ throughout. This phase **produces** the cache-only proof the gate demands.
 
 - **A1.** Deploy the cache-only tier — `storage/adapters/nativelink/nativelink-cas.k8s.yaml` (CAS +
   Action Cache only; the scheduler and worker tiers are deliberately not deployed until the RE
-  phase) — reachable from the executing lanes.
-- **A2.** Issue the fixed reader/writer OIDC identities the canary controller exchanges for
+  phase). Deploying it does **not** make it reachable from the canary; that is A2, and it is work,
+  not a property.
+- **A2.** **Move the canary onto an in-cluster runner.** Without this step A4 cannot produce the
+  cache-only proof at all, and the omission is invisible because it reads as a property of A1
+  rather than a task. The CAS is cluster-internal: both Services are ClusterIP (no `spec.type`,
+  `nativelink-cas.k8s.yaml:357-383`), there is no Ingress, LoadBalancer, NodePort or Gateway
+  anywhere under `storage/adapters/nativelink/` or `infra/ci/`, and the buckconfigs dial
+  `grpc://nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}` — cluster DNS,
+  which a GitHub-hosted runner cannot resolve or route. The canary is pinned to hosted amd64
+  (`cache-integrity-canary.yml:98`, `runs-on: ubuntu-latest`) and is consumed via `workflow_call`,
+  which cannot override `runs-on` — so **both** lanes are affected, not just A4: A3's writer seed
+  runs the same reusable workflow (`oya-ci-required.yml:627-635`). Left as-is, A4's verdict stays
+  `INACTIVE_NO_ENDPOINT` (nonzero) permanently. The move itself is a one-line `runs-on` change to
+  the `oya-arm64` scale set; the CAS client labels it needs are **already provisioned and not
+  outstanding work** — `infra/arc/runner-scale-set-arm64-values.yaml:51-62` already sets
+  `oya.io/nativelink-cas-{reader,writer}: "true"` on the runner pod template, and that file is
+  registered in GitOps at `infra/gitops/values.yaml:131`, so the labels come with the fleet for
+  free. Do not re-provision them.
+  - *Why not the alternative.* Exposing the CAS externally would also require replacing the
+    `nativelink-cas-ingress` NetworkPolicy, which admits :50051/:50052 only `from` a
+    `podSelector` — and a podSelector can only ever match a pod **in** the cluster, so no hosted
+    runner can satisfy it regardless of routing. That is a larger, security-relevant change than
+    moving the canary, and it is not chosen here.
+  - *Consequence this step must carry.* `oya-arm64` is an **arm64** fleet (arch-pinned by
+    nodeSelector) while the required lane is amd64-hosted, and buck2 action keys include `cpu:`
+    and `os:` — the same file's comment at line 66 says so. An arm64 canary therefore proves
+    byte-equality in a **different cache namespace** from the one the required amd64 lane would
+    later consume. State that in the activation record, or a future lane will read an arm64 GREEN
+    as a licence for the amd64 lane. Covering the required lane needs either an amd64 in-cluster
+    fleet or an explicit, separately argued cross-arch claim.
+- **A3.** Issue the fixed reader/writer OIDC identities the canary controller exchanges for
   (`cache-integrity-canary.yml:182-189`).
-- **A3.** Set repo var `OYA_CAS_IDENTITY_PROOF_ENABLED=true` so the **already-wired**
+- **A4.** Set repo var `OYA_CAS_IDENTITY_PROOF_ENABLED=true` so the **already-wired**
   `cache-writer-identity` job (`oya-ci-required.yml:627-635`, trusted dev push only) seeds the
   fresh CAS.
-- **A4.** Run the `workflow_dispatch` reader proof with `prelicense_probe=true` and `writer_run_id`
+- **A5.** Run the `workflow_dispatch` reader proof with `prelicense_probe=true` and `writer_run_id`
   set to the same-SHA writer run (`cache-integrity-canary.yml:44-66`, `:167-174`, `:205`). Its
   byte-equality canary verdict **is** the cache-only proof.
 
