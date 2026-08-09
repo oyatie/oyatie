@@ -138,7 +138,8 @@
       "measured_at": "2026-08-09",
       "repository_baseline": {
         "ref": "origin/dev",
-        "commit": "5e452bd70"
+        "commit": "1d3105277",
+        "rebase_revalidation": "Authored against 5e452bd70 and re-measured at Land after the lane rebased onto 1d3105277. The reproducer below was RE-RUN at the new base rather than the commit id being relabelled: k8s_leaves 18, os_leaves 41, total 59 — identical at both refs. This matters because the new base adds 252 files under k8s/, so an unexamined rebase looks like it should have moved the leaf count; none of those files is a Cargo.toml, which is why it did not."
       },
       "k8s_leaves": 18,
       "os_leaves": 41,

@@ -13,7 +13,7 @@ authority_tier: 3
 
 | Authority | Version this document was authored against | Status at authoring (2026-08-09) |
 |---|---|---|
-| Repository baseline | `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e` | Lane base for branch `impl/os-k8s-seam-conformance`. |
+| Repository baseline | authored against `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e`; **rebased at Land onto `origin/dev` @ `1d31052774ef580553a5ff81014849bb38d6e327`** | Lane base for branch `impl/os-k8s-seam-conformance`. `git diff --stat 5e452bd70 1d3105277 -- os/` is empty — the new base touches no `os/` path — so every `os/` measurement below survives the rebase unchanged. Section 8 names the one number that did move. |
 | Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Read from `specs/k8s-port/upstream-pin.json` and **re-resolved against upstream**: `git ls-remote --tags https://github.com/kubernetes/kubernetes.git 'refs/tags/v1.36.1' 'refs/tags/v1.36.1^{}'` returns annotated tag object `5b824a493a7ca248b726b6ea09d53842b9b992c2` and this peeled commit, matching the pin file. |
 | Engine | `build/port-engine/*`, v0 — the path does not exist on the base tree | Not in force. Nothing in this lane emits. |
 | Neutral rule pack | `specs/port-rules/**`, v0 — the path does not exist on the base tree | Not in force. No rule is authored or implied here. |
@@ -300,7 +300,10 @@ edited **as text keyed by name**, never round-tripped through JSON, which reform
 
 ## 8. Measured baselines — frozen here, re-derived by every unit
 
-All measured on `origin/dev` @ `5e452bd70`.
+All measured on `origin/dev` @ `5e452bd70`, the tree this document was authored against. The lane was
+rebased at Land onto `origin/dev` @ `1d3105277`. Every number in this section was re-run at the new
+base; only the `files_scanned` row moved, and that row states the number the gate **observed**, never
+an arithmetic one.
 
 **Upstream-Kubernetes emit sites in `os/`: 16** (15 production + 1 test fixture at
 `manifest_controller.rs:200`, whose `mod tests` opens at line 196).
@@ -322,15 +325,18 @@ lines of its own and matches none of them (trap T-1).
 | `k8s/` → `os/` dependency edges | 0 | INV-2, with positive control. |
 | `k8s/ports/` incumbent lines | 1,162 | 289 + 386 + 236 + 251. |
 | `divergence-ledger.json` rows | 5 seeds | Growth budget 2 per wave after the seeds. |
-| `adr-citation-closure` `files_scanned` | 16,519 → **16,520** | Equality-pinned. This document is the +1; re-frozen in this commit per INV-6. The **only** ceiling this commit moves. |
+| `adr-citation-closure` `files_scanned` | 16,518 → **16,521** | Equality-pinned, and **observed rather than computed**: `check-adr-citation-closure-gate` asserts equality and passes at 16,521. The base fell 16,519 → 16,518 on the new dev tip — a genuine tracked deletion, not a scan narrowing — and this lane adds exactly three files carrying a scanned extension: this document, `docs/programs/k8s-port/operations/W0-F-20260809-os-overlap-archaeology.md`, and `specs/k8s-port/regenerable-regions.json`. `wave-registry.rdoc` has no scanned extension and `divergence-ledger.json` already existed, so neither is in the delta. |
 | `adr-citation-closure` `citation_lines` | 8,896, unchanged | Only a line carrying an ADR **path** enters this census; a bare id in prose costs nothing. The draft of this document scored +2 purely from the two malformed path placeholders in T-5, and repairing them returned it to the base value. |
 | `adr-citation-closure` `adr_citation_dangling_path` | 2,002, unchanged | Held after repairing the three findings the draft introduced (T-5). Its being *unchanged* is the proof this document adds no citation debt. |
 | `lifecycle-status` `stage_not_declared` | 1,921, unchanged | Shrink-only. Declared `doc_status:` in frontmatter rather than raising it (T-4). |
 
-Two of these numbers are known to be racing other lanes: an in-flight census lane sets
-`files_scanned` to 16,524 and `citation_lines` to 8,898, and a separate PR sets `files_scanned` to
-16,518. **Do not pre-compute the Land value.** The equality ratchet will state the observed number at
-rebase time; take that number, not an arithmetic guess.
+Two of these numbers were racing other lanes when this section was written: an in-flight census lane
+set `files_scanned` to 16,524 and `citation_lines` to 8,898, and a separate PR set `files_scanned` to
+16,518. **Do not pre-compute the Land value.** That instruction paid: by Land the second had merged
+and is the 16,518 base above, while the first had not, so the arithmetic that looked right when this
+was drafted would have been wrong by six. The equality ratchet stated the observed number and the row
+above takes it. A forge query at Land still shows the census lane open as PR #1625, so whichever of
+the two lands second pays a one-line re-freeze. That is the ratchet working, not a defect.
 
 ## 9. What this lane does not decide
 
