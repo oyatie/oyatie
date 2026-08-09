@@ -12,6 +12,13 @@ name = "os_secrets_domain"
 path = "src/lib.rs"
 doctest = false
 
+[features]
+# NON-DEFAULT, and it must stay that way. The whole crate sits behind this
+# feature (see the crate-root `cfg` in src/lib.rs): it models Talos PKI rather
+# than implementing it, so off-feature there is nothing to link and nothing to
+# misuse. Test-only consumers turn it on explicitly.
+modeled-crypto = []
+
 [dependencies]
 os-kernel = { path = "../kernel" }
 
