@@ -57,6 +57,8 @@ Chronological listings are secondary navigation only. An entry is found by lane 
 | Licensing and attribution | `upstream-pin.json`, `licensing.json`, per-file provenance, and generated `k8s/NOTICE` | supply-chain and license policy |
 | Program-memory durability | operations, prescriptions, and doctrine entries | `ci/facade/k8s-program-docs` R-DOC |
 
+Two rows of that table — `Gate liveness` and `Rule liveness` — name artifacts that CANNOT exist under the landed enforcing gate. They are left exactly as written rather than silently corrected, because which surface is authoritative is a governance question this program has not answered. See open question `OQ-K8SPORT-001` below.
+
 Every program document MUST carry the baseline version header above. The `ci/facade/k8s-program-docs` R-DOC gate is fail-closed and RED when any of these conditions holds:
 
 1. A program document lacks its baseline header.
@@ -66,6 +68,16 @@ Every program document MUST carry the baseline version header above. The `ci/fac
 5. Lane (ii) is empty while lane (i) grows across two consecutive gates.
 
 The population-liveness predicate is: **RED when the journal has zero entries for a completed wave (broken probe), not merely when a finding count is zero.** A nonzero journal population proves that the required probe ran; it does not itself prove an incident. Separately, every determinism gate has a scanned-population counter and a finding counter: zero scanned population is RED unconditionally, while zero findings with nonzero scanned population is GREEN. Registered canary regions provide the nonzero liveness floor when a determinism gate is wired.
+
+## Open questions
+
+Recorded so that no lane resolves one silently. An open question is closed by its owner, in a change that states which surface it made authoritative — never by a lane editing whichever surface is cheaper to edit.
+
+| ID | Question | Owner | Opened | Status |
+|---|---|---|---|---|
+| `OQ-K8SPORT-001` | The traceability table above names `specs/port-rules/canary/index.json` and `specs/port-rules/index.json`. Neither path can exist while `ci/facade/k8s-program-docs` is the enforcing gate: its `load_rule_records` walks `specs/port-rules` recursively and returns `R-DOC-RULE-METADATA-MALFORMED` ("rule records must be Markdown with YAML-style front matter") for any path whose extension is not `md`, then `ensure_only_fields` rejects any front-matter key outside `rule_id`, `rule_kind`, `operations_journal_ref`. That is a LOAD error, not a finding, so a single `.json` under that root reddens the gate before any other R-DOC check evaluates. Which surface is authoritative — this table, or the landed gate — is undecided. | `council-architecture` (owns `specs/`; owns doctrine and ADR graduation per the review-roles table below). `axis-cloud-platform` is the co-accountable role for the R-DOC gate result. | 2026-08-09, by the G006 language-rule-pack lane | OPEN. Neither surface has been changed to match the other. |
+
+Until it is closed, the G006 lane behaves as [`MAPPING-G006-go-rust-language-pack.md`](MAPPING-G006-go-rust-language-pack.md) §2 D1 rules: rule records are Markdown only, rule order is byte-lexicographic on `rule_id` (which equals the filename stem, so no index file is needed for a deterministic order), and fixtures are fenced blocks inside the record. That ruling governs one lane's conduct under the contradiction. It does not resolve the contradiction and is not a substitute for closing it.
 
 ## Lifecycle
 

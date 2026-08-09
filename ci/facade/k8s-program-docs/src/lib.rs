@@ -19,6 +19,39 @@ const SIX_AXIS_TOKENS: [&str; 6] = [
     "formatter_digest",
 ];
 
+/// Roots whose every byte must stay free of corpus vocabulary: the neutral rule pack and the
+/// neutral engine. Both are hard-required — a missing root is a `LoadError`, never a silent skip,
+/// because "the directory was not there" and "the directory was clean" must not look alike.
+const NEUTRAL_ROOTS: [&str; 2] = ["specs/port-rules", "build/port-engine"];
+
+/// The canary set, lowercase, matched case-insensitively as substrings against both the path and
+/// the bytes of every file under [`NEUTRAL_ROOTS`].
+///
+/// DUPLICATED from `port_engine_kernel::FORBIDDEN_CORPUS_TOKENS` on purpose: `ci/facade/*`
+/// depending on `build/*` is a layer inversion, and a shared crate for five strings is not worth a
+/// new dependency edge. Keep the two lists identical; the kernel's copy is the older one and its
+/// module docs carry the derivation, including why the first entry is a bare prefix rather than an
+/// enumeration of the compounds built on it.
+///
+/// Spelled as plain literals here, unlike the kernel's byte arrays, because this crate scans the
+/// two roots above and never its own source — so a needle written as text is not a needle in this
+/// haystack. The crate's own directory name is itself one of these tokens, which is the shortest
+/// available proof that self-scanning was never on the table.
+const FORBIDDEN_CORPUS_TOKENS: [&str; 5] = ["kube", "k8s", "apimachinery", "etcd", "talos"];
+
+/// The single file exempt from the corpus-token scan, matched by EXACT repository-relative path.
+///
+/// It is the neutral kernel's own neutrality proof, and it must spell the needles out to
+/// demonstrate that they bite — the same reason the kernel's compile-time scan reads `src/lib.rs`
+/// and `tests/seams.rs` and never this file. Measured 2026-08-09: it is the ONLY file under either
+/// neutral root that matches any token.
+///
+/// Deliberately not a prefix, not a glob and not a list. An exemption that can grow without a code
+/// change is how a gate starts passing because it observes nothing; an exact path can only be
+/// widened by editing this line, which a reviewer sees.
+const NEUTRALITY_PROOF_EXEMPTION: &str =
+    "build/port-engine/core/port-engine-kernel/tests/neutrality.rs";
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum FindingCode {
     EmptyProgramCorpus,
@@ -27,6 +60,8 @@ pub enum FindingCode {
     RuleWithoutJournalReference,
     DoctrineWithoutAdr,
     PrescriptionStarvation,
+    CorpusTokenInNeutralArtifact,
+    EmptyNeutralScan,
 }
 
 impl FindingCode {
@@ -38,6 +73,8 @@ impl FindingCode {
             Self::RuleWithoutJournalReference => "R-DOC-RULE-JOURNAL-REFERENCE-MISSING",
             Self::DoctrineWithoutAdr => "R-DOC-DOCTRINE-ADR-OVERDUE",
             Self::PrescriptionStarvation => "R-DOC-PRESCRIPTION-STARVATION",
+            Self::CorpusTokenInNeutralArtifact => "R-DOC-NEUTRAL-CORPUS-TOKEN",
+            Self::EmptyNeutralScan => "R-DOC-NEUTRAL-SCAN-EMPTY",
         }
     }
 }
@@ -118,6 +155,15 @@ pub struct DoctrineRecord {
     pub adr_reference: Option<String>,
 }
 
+/// One file under a neutral root, carried whole so the split check reads what a reviewer reads.
+/// Kept distinct from [`MarkdownDocument`] because the baseline-header check iterates that type and
+/// a Rust source file has no baseline header to carry.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NeutralArtifact {
+    pub path: String,
+    pub contents: String,
+}
+
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Corpus {
     pub documents: Vec<MarkdownDocument>,
@@ -125,6 +171,8 @@ pub struct Corpus {
     pub rules: Vec<RuleRecord>,
     pub doctrine: Vec<DoctrineRecord>,
     pub prescription_count: usize,
+    /// Every file under [`NEUTRAL_ROOTS`] except [`NEUTRALITY_PROOF_EXEMPTION`].
+    pub neutral_artifacts: Vec<NeutralArtifact>,
 }
 
 pub fn evaluate(corpus: &Corpus) -> Evaluation {
@@ -212,6 +260,32 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
         }
     }
 
+    // The language/corpus split, enforced. Convention will not hold it: a corpus-specific rule in
+    // the neutral pack compiles, reads well, and looks perfect until the second repository arrives.
+    if corpus.neutral_artifacts.is_empty() {
+        findings.push(finding(
+            FindingCode::EmptyNeutralScan,
+            NEUTRAL_ROOTS[0],
+            "no neutral artifacts were scanned; a scan that observes nothing cannot prove neutrality",
+        ));
+    }
+    for artifact in &corpus.neutral_artifacts {
+        // Path as well as contents: a rule named for a corpus noun carries the token in its
+        // filename, which is also its rule id, and the body can stay spotless.
+        let haystack = format!("{}\n{}", artifact.path, artifact.contents).to_ascii_lowercase();
+        for token in FORBIDDEN_CORPUS_TOKENS {
+            if haystack.contains(token) {
+                findings.push(finding(
+                    FindingCode::CorpusTokenInNeutralArtifact,
+                    &artifact.path,
+                    &format!(
+                        "neutral artifact contains the corpus token '{token}'; a language rule may not name the corpus it was sized from"
+                    ),
+                ));
+            }
+        }
+    }
+
     findings.sort_by(|left, right| {
         left.code
             .cmp(&right.code)
@@ -223,7 +297,8 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             + corpus.completed_waves.len()
             + corpus.rules.len()
             + corpus.doctrine.len()
-            + corpus.prescription_count,
+            + corpus.prescription_count
+            + corpus.neutral_artifacts.len(),
         finding_count: findings.len(),
     };
     Evaluation { counters, findings }
@@ -246,13 +321,35 @@ fn load_repository_inner(repo_root: &Path) -> Result<Corpus, LoadError> {
     let rules = load_rule_records(repo_root)?;
     let doctrine = load_doctrine_records(repo_root, &program_root)?;
     let prescription_count = count_lane_entries(repo_root, &program_root.join("prescriptions"))?;
+    let neutral_artifacts = load_neutral_artifacts(repo_root)?;
     Ok(Corpus {
         documents,
         completed_waves,
         rules,
         doctrine,
         prescription_count,
+        neutral_artifacts,
     })
+}
+
+/// Reads every file under both [`NEUTRAL_ROOTS`] whole. Both roots are required: `collect_files`
+/// already fails closed on a missing directory, and that is the wanted behaviour here — a neutral
+/// root that has been moved or deleted must redden rather than shrink the scan to nothing.
+fn load_neutral_artifacts(repo_root: &Path) -> Result<Vec<NeutralArtifact>, LoadError> {
+    let mut artifacts = Vec::new();
+    for root in NEUTRAL_ROOTS {
+        for path in collect_files(&repo_root.join(root), "R-DOC-NEUTRAL-ROOT-UNREADABLE")? {
+            let path_string = display_path(repo_root, &path);
+            if path_string == NEUTRALITY_PROOF_EXEMPTION {
+                continue;
+            }
+            artifacts.push(NeutralArtifact {
+                contents: read_utf8(&path, "R-DOC-NEUTRAL-ARTIFACT-UNREADABLE")?,
+                path: path_string,
+            });
+        }
+    }
+    Ok(artifacts)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -787,6 +884,11 @@ mod tests {
             }],
             doctrine: Vec::new(),
             prescription_count: 1,
+            neutral_artifacts: vec![NeutralArtifact {
+                path: "specs/port-rules/canary/NEUTRALITY-CANARY-000.md".to_owned(),
+                contents: "---\nrule_id: NEUTRALITY-CANARY-000\n---\nA rendezvous is not a queue.\n"
+                    .to_owned(),
+            }],
         }
     }
 
@@ -900,8 +1002,83 @@ mod tests {
     fn true_zero_document_scan_is_red_and_counters_are_distinct() {
         let evaluation = evaluate(&Corpus::default());
         assert_eq!(evaluation.counters.scanned_population, 0);
-        assert_eq!(evaluation.counters.finding_count, 1);
+        // Two independent liveness probes fire on a wholly empty corpus: the program-document scan
+        // and the neutral-artifact scan. Neither subsumes the other.
+        assert_eq!(evaluation.counters.finding_count, 2);
         assert!(has_code(&evaluation, FindingCode::EmptyProgramCorpus));
+        assert!(has_code(&evaluation, FindingCode::EmptyNeutralScan));
+    }
+
+    /// Prove the needles bite before trusting any green: a token list that had been silently
+    /// shortened would leave this test red on the dropped entry rather than passing quietly.
+    #[test]
+    fn every_forbidden_corpus_token_reddens_a_neutral_artifact_on_its_own() {
+        for token in FORBIDDEN_CORPUS_TOKENS {
+            let mut corpus = live_fixture();
+            corpus.neutral_artifacts[0].contents =
+                format!("Derived from how {token} does it, which is not a derivation.\n");
+            let evaluation = evaluate(&corpus);
+            assert!(
+                has_code(&evaluation, FindingCode::CorpusTokenInNeutralArtifact),
+                "token '{token}' did not redden the neutral scan"
+            );
+            assert!(
+                evaluation.findings.iter().any(|found| found.message.contains(token)),
+                "the finding for '{token}' must name the token a reviewer has to remove"
+            );
+        }
+    }
+
+    #[test]
+    fn a_corpus_token_in_the_path_is_red_even_when_the_body_is_clean() {
+        let mut corpus = live_fixture();
+        // The filename is also the rule id, so this is the form that survives a body review.
+        corpus.neutral_artifacts[0].path =
+            "specs/port-rules/lang/go-rust/GO-RUST-ETCD-010.md".to_owned();
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::CorpusTokenInNeutralArtifact
+        ));
+    }
+
+    #[test]
+    fn token_matching_is_case_insensitive() {
+        let mut corpus = live_fixture();
+        corpus.neutral_artifacts[0].contents = "See the K8s shape census.\n".to_owned();
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::CorpusTokenInNeutralArtifact
+        ));
+    }
+
+    /// The negative control. Without it, a check that fired unconditionally would satisfy every
+    /// other test in this module.
+    #[test]
+    fn a_clean_neutral_artifact_is_green_and_is_counted() {
+        let corpus = live_fixture();
+        let evaluation = evaluate(&corpus);
+        assert!(!has_code(
+            &evaluation,
+            FindingCode::CorpusTokenInNeutralArtifact
+        ));
+        assert!(!has_code(&evaluation, FindingCode::EmptyNeutralScan));
+        assert!(evaluation.counters.scanned_population >= corpus.neutral_artifacts.len());
+    }
+
+    #[test]
+    fn an_empty_neutral_scan_is_red_even_when_every_other_lane_is_populated() {
+        let mut corpus = live_fixture();
+        corpus.neutral_artifacts.clear();
+        let evaluation = evaluate(&corpus);
+        assert!(has_code(&evaluation, FindingCode::EmptyNeutralScan));
+    }
+
+    /// The exemption is exactly one path, so it cannot widen without editing the constant.
+    #[test]
+    fn the_neutrality_proof_exemption_is_a_single_exact_path_under_a_neutral_root() {
+        assert!(NEUTRALITY_PROOF_EXEMPTION.starts_with(NEUTRAL_ROOTS[1]));
+        assert!(!NEUTRALITY_PROOF_EXEMPTION.contains('*'));
+        assert!(!NEUTRALITY_PROOF_EXEMPTION.ends_with('/'));
     }
 
     #[test]
