@@ -1,3 +1,9 @@
+---
+doc_class: Idea-Onepager
+doc_status: drafted
+date: 2026-08-08
+---
+
 # Sovereign Confidential Kubernetes
 
 > Status: **idea, not ratified.** Produced 2026-08-08 via `/idea-refine`. Nothing here

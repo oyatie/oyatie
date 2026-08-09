@@ -43,7 +43,7 @@ runtime placement cites the oldest of them.
   written in Rust "align admission policy with the WASM-native server-side sandbox doctrine
   (ADR-0023) and the Rust-everywhere stack," and demoted Kyverno to a non-default adapter.
 - **ADR-0338** (pod runtime tiers 0–3) makes `enforce-pod-runtime-tier` BLOCKER-class and
-  names **Kyverno** in 44 places, because it predates ADR-0379.
+  names **Kyverno** 48 times across 44 lines, because it predates ADR-0379.
 
 Both named engines are **admission webhooks**. ADR-0379's own rejected-alternatives section
 contains the decisive observation, and then stops one step short of it:
