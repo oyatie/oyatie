@@ -159,7 +159,8 @@ therefore be simultaneously **correct** under `cloud-ci-catalog-liveness` and **
 `cloud-ci-lifecycle-status`. Retiring the 694 means either declaring 694 live crates non-existent
 (false), or introducing a sixth value into a closed vocabulary that belongs to another gate — an
 edit outside this lane. This is the same failure mode as the retracted `unknown_stage: 750`
-api-stability baseline whose only remedy the claim-ceiling gate rejected (§3.2), one hop further
+api-stability baseline whose only remedy the claim-ceiling check rejects when run (§3.2 — that check
+gates no merge), one hop further
 out: **not forbidden, but not retirable by anything this lane owns.** `status: active` on 2 rows
 is the live proof — it is outside `NON_LIVE_STATUS_MARKERS`, so the owning gate silently ignores it.
 
@@ -318,9 +319,13 @@ would have read a live ruling that the tree had already reversed.
 `api_stability: preview`; a 100% failure rate on a SINGLE code is a config-mismatch signature, not a
 debt signature. `[preview, stable, GA]` is the repo's canonical tier vocabulary, confirmed three
 independent ways: `docs/machine-readable/contracts.json` `_metadata.stability_tiers`;
-`enum ApiStability` in `intelligence/core/catalog-domain/src/lib.rs`; and `validate_claim_ceiling_gate`
-in `marketplace/facade/dev-cli/src/governance_gates.rs`, which runs
-`FoundationClaimCeiling::preview_foundation()` over this exact directory. So this was never `preview`
+`enum ApiStability` in `intelligence/core/catalog-domain/src/lib.rs`; and
+`FoundationClaimCeiling::preview_foundation()` (`libs/oya-check-claim-ceiling/src/lib.rs:22`),
+applied over this exact directory by `validate_claim_ceiling_gate`
+(`marketplace/facade/dev-cli/src/governance_gates.rs:84`). **That third citation is VOCABULARY
+evidence, not merge authority**: it is reachable only from the `oya gate validate claim-ceiling` CLI
+subcommand (`commands/gate/mod.rs:284`) and from fixture-only tests; no `ci/facade` lane invokes it
+and no workflow references `dev-cli`. So this was never `preview`
 being *added* to a vocabulary — it was the config carrying the WRONG vocabulary, sharing one token
 with the right one. Both original reasons are kept below with their dispositions, because deleting
 them would erase the reasoning a re-litigation needs.
@@ -330,10 +335,12 @@ them would erase the reasoning a re-litigation needs.
    `gate-self-conformance` prohibition it cites is against *stamping a default stage onto artifacts
    that declare none* — a different act from aligning a config to values the corpus already carries.
 2. **`unknown_stage: 750` IS the anti-shrink floor** — **CORRECT ANALYSIS, OVERTURNED AT A COST, and
-   the cost is real.** The floor could not be kept: its ONLY remedy — declaring higher tiers per
-   crate — is precisely what `validate_claim_ceiling_gate` rejects over this directory, so no
-   permitted action could ever have shrunk it, and a ratchet no permitted action can retire is not a
-   ratchet. The stated consequence stands exactly as written: with no violation row this lane's only
+   the cost is real.** The floor could not be kept — but the reason is narrower than first written:
+   its ONLY remedy — declaring higher tiers per crate — is what `validate_claim_ceiling_gate` rejects
+   WHEN RUN, and that check is not in the required fan-in, so unretirability was never mechanically
+   guaranteed. What is self-standing is the vocabulary mismatch itself: 750/750 records declare
+   `preview`, a value absent from the old {experimental, stable, deprecated, removed} list.
+   The stated consequence stands exactly as written: with no violation row this lane's only
    floor is `artifacts > 0` (`ci/facade/lifecycle-status/src/lib.rs` `compare()`, the
    `LaneObservation::Observed { artifacts: 0, .. }` arm), so a PARTIAL corpus collapse is silent
    **on this lane**. What catches it instead is `ci/facade/crate-catalog-coverage`, recorded in the
