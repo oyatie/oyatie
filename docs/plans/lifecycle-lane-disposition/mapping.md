@@ -183,6 +183,93 @@ declaring it. Until the producer emits it, any lane rooted on a catalog field re
 `register_crate`; that is not a hypothetical, it is the defect this branch fixed for `api_stability`
 in the same change that records this section.
 
+#### 3.1.2 The other five, re-litigated against their alternate surfaces
+
+§3.1.1 exists because the first `crate-status` rationale argued the wrong option. The same class of
+error — dismissing the surface that mattered in one line, or never naming it — is checkable in the
+other five, so each was re-measured at this tree against its best available alternate. **All five
+DELETE rulings stand. None was overturned.** Two candidates that the §3.1 table never named are
+surfaced and answered here rather than left for a future re-litigation to find.
+
+Every ruling below turns on one of two kernel limits, and both are now pinned by tests so a widening
+of either forces this section to be re-opened rather than silently expiring (§2.2, §2.3; tests
+`a_wildcard_directory_component_is_a_literal_path_component_not_an_expansion` and
+`a_recursive_tail_containing_a_slash_matches_zero_files_forever`).
+
+| Lane | Best alternate surface | Measured | Ruling |
+|---|---|---|---|
+| `capability-status` | `*/capabilities/*.yaml` | 378 files, **66 directories, 18 distinct top-level roots** | DELETE — unreachable, and wrong axis |
+| `dependency-status` | `third-party/**/fixups.toml` (**not named in §3.1**) | 66 files vs **1274** third-party crate targets | DELETE — 5% coverage, no lifecycle key |
+| `migration-status` | `*/migration-playbooks/*.md` | 27 files, 14 directories, 0 fenced | DELETE — unreachable, fabricated debt |
+| `plan-status` | `docs/plans/**/*.md` (**not named in §3.1**) | 13 files, one legal glob, 3 declare `status:` | DELETE — subset of a lane already kept |
+| `feature-flag-status` | `flags/catalog/*.yaml` | 12 files, `canonical-crate-record-schema.json` | DELETE — a crate catalog, not a flag corpus |
+
+**`capability-status`.** The §3.1 cell dismissed this in one line, and the corpus is the largest of
+the five, so it got the closest look. Three independent grounds, any one sufficient:
+
+- *Not expressible.* `expand_glob` treats the head of a `/**/` split, and the `rsplit_once('/')`
+  directory of a shallow glob, as a **literal path**. `*/capabilities/*.yaml` resolves `dir` to the
+  literal string `*/capabilities`, which does not exist → `Err("missing source root")` → the lane is
+  `DiscoveryFailed`, not a 378-file corpus. Reaching the files needs **66 hand-listed shallow
+  sources** (18 roots × their sub-paths), which is legal (§2.8) and is the worst possible shape here:
+  `shallow_glob` errors on a missing root, so **any one of the 66 directories moving reds the entire
+  lane**, and a directory that is added is silently invisible. That is 66 tripwires wired into a
+  repo whose capability-first reorg is moving directories now.
+- *Wrong axis.* Config vocabulary is `{proposed, granted, revoked, expired}` with
+  `deadline_field: expires_at` — an authz **grant** lifecycle. Measured in the 378: `expires_at`
+  present on **0**, `granted`/`revoked` on **0**, `status:` on **16** with values
+  `{Accepted × 10, Active × 3, incubating × 3}` — vocabulary intersection **∅**.
+- *The near-miss, ruled out on its merits.* `maturity:` is present on **108/378** with
+  `{stable × 66, preview × 18, incubating × 11, proposed × 8, scaffolded × 4, experimental × 1}`.
+  This is the one field that would survive the api-stability re-vocabulary precedent — and it must
+  not be used, because it is a **maturity** axis, which is the axis `api-stability-tier` already
+  governs (§3.2). Adopting it renames the lane and makes it a second copy. The remaining 270 would
+  be fabricated debt on a field whose absence is not wrong.
+
+**`dependency-status`.** §3.1 named only two single-file alternates (1 artifact each = vacuity in the
+shape the goal is about). It never named the real per-dependency corpus: `third-party/fixups/*/fixups.toml`,
+which **is** reachable by one legal glob (`third-party/**/fixups.toml`, literal head, filename tail)
+and **is** one record per dependency — so it had to be answered, not assumed away. It fails on
+coverage and content: **66** fixups against **1274** third-party crate targets, i.e. a fixup exists
+only for a dependency that needs a *build* fixup, so the corpus is not "the dependencies" but "the
+awkward five percent". Every key across all 66 is reindeer build vocabulary
+(`run`, `env`, `cfgs`, `srcs`, `preferred_linkage`, `name`, `headers`, …) — **no lifecycle key on any
+file**, so a re-root baselines 66 fabricated `stage_not_declared` on a schema that is not ours to
+extend.
+
+**`migration-status`.** Confirmed: 27 `*/migration-playbooks/*.md` across **14** directories, every
+one opening with a `# Migration playbook — …` heading and **none** carrying a fence. Two failures,
+and the second is the more instructive: the natural-looking single glob `<root>/**/migration-playbooks/*.md`
+is **not** a narrowing — the recursive tail is handed to `matches_glob`, which matches a **filename**,
+and no filename begins `migration-playbooks/`. It matches **zero files forever** while looking
+exactly like a correct pattern (T2). This is the trap that makes the lane look re-rootable on paper.
+
+**`plan-status`.** `.omc/plans/milestones` is absent from this checkout and gitignored, so the lane
+is `DiscoveryFailed` in CI regardless. The candidate §3.1 never named is `docs/plans/**/*.md` — and
+unlike every other alternate here it **is** one legal glob over a real corpus, so it is the strongest
+of the five and gets the direct answer §3.1.1 gave `registry/catalog`. It still fails, on two
+grounds. First, content: 13 tracked `.md`, of which **8** declare `doc_status: published` (a
+different lane's field), **3** declare `status:` with `{Accepted, Superseded, approved}`, **1**
+carries no fence at all — against a 17-stage vocabulary whose intersection with those three values is
+**∅** (`approved-folded` is a stage; `approved` is not, and stage matching is equality, not prefix).
+A re-root reports 13/13 violating on two codes. Second, and decisive independent of any vocabulary
+edit: `docs/plans/**` is a **strict subset** of `doc-status`'s `docs/**/*.md`, so every one of those
+13 files is already counted in that lane's frozen 1921 — R3 of §3.1.1, a third copy of a property
+already measured, at 13 artifacts.
+
+**`feature-flag-status`.** Confirmed there is **no per-flag artifact class anywhere in the tree**
+(negative established by enumerating `flags/` and every tracked path matching `feature-flag`; the
+matches are archived decision records, two architecture docs, one canonical spec, one SLO file, and
+crate rows — no per-flag record). `flags/catalog/*.yaml` is 12 files whose first line names
+`specs/catalog/canonical-crate-record-schema.json`, the same schema `registry/catalog/*.yaml` uses:
+re-rooting a flag lane there governs twelve **crates** named `oya-feature-flags-*`, which is a third
+copy of `crate-status` wearing a flag's name.
+
+**RE-OPENING CONDITIONS.** `capability-status` re-opens if `expand_glob` gains a wildcard directory
+component *and* a grant-axis field is emitted into capability records by their producer.
+`plan-status` re-opens if plan lifecycle is separated from `doc_status` onto a field of its own.
+The other three re-open only if a per-artifact corpus is created that does not exist today.
+
 ### 3.2 RE-ROOT — one lane
 
 **`api-stability-tier-lifecycle` → `registry/catalog/*.yaml`.** The only surface in the repo where

@@ -1718,6 +1718,39 @@ mod tests {
         assert!(discovery::expand_glob(&recursive).is_err());
     }
     #[test]
+    fn a_wildcard_directory_component_is_a_literal_path_component_not_an_expansion() {
+        // `*/capabilities/*.yaml` LOOKS like it reaches the 378 capability
+        // records spread over 66 directories, and a lane disposition rests on
+        // it NOT doing so. `expand_glob` hands the directory half to the
+        // filesystem verbatim, so the `*` is a literal path component and the
+        // root cannot resolve. Widening this is a legitimate change — but it
+        // re-opens that disposition, which is why this assert exists.
+        let err = discovery::expand_glob("*/capabilities/*.yaml")
+            .expect_err("a wildcard directory component must not expand");
+        assert!(
+            err.contains("*/capabilities"),
+            "the unexpanded literal must appear in the error, got: {err}"
+        );
+    }
+    #[test]
+    fn a_recursive_tail_containing_a_slash_matches_zero_files_forever() {
+        // The natural-looking narrowing `<root>/**/migration-playbooks/*.md`
+        // is a vacuity bug in the costume of a correct pattern: the tail is
+        // handed to the FILE NAME matcher, and no file name begins with a
+        // directory segment.
+        assert!(
+            !discovery::matches_glob("from-vault-enterprise.md", "migration-playbooks/*.md"),
+            "a tail containing a path separator can never match a file name"
+        );
+        // Guard against co-breaking: the same name against the same tail with
+        // the directory segment removed DOES match, so the assert above is
+        // measuring the separator and not a matcher that rejects everything.
+        assert!(discovery::matches_glob(
+            "from-vault-enterprise.md",
+            "*.md"
+        ));
+    }
+    #[test]
     fn fenceless_document_is_read_whole_without_widening_fenced_documents() {
         // A bare declaration record — the shape of every `registry/catalog/*.yaml`.
         // Before the fence-less admission this returned None for every field.
