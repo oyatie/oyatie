@@ -271,11 +271,60 @@ an out-of-band build of the **production** target with a probe added, and the pr
 deliberately **not** committed — a permanently-broken target would redden `buck2 build //...` for
 every lane, which is exactly what the affected-set FULL tier runs.
 
-**T3 — a source-text guard cannot detect its own removal.** The landed
-`modeled_crypto_constructors_stay_behind_the_gate` asserts the attribute string appears next to each
-signature. A gate commented out with `//` still matches that string. Treat it as guarding against
-*accidental deletion*, not as proving the gate holds. The claim "the gate holds" rests on the
-recorded E0599 execution, not on this test. Do not let a reviewer read it as stronger than it is.
+**T3 — AMENDED 2026-08-09. The hole was real and is now closed; the trap's advice is what went
+stale.** Recorded here rather than only in the unit table for the same reason T1 was: a later unit
+that reads the caveat and not the outcome will defend a weakness the tree no longer has, or will
+re-derive the fix that already landed.
+
+*What the trap said:* that `modeled_crypto_constructors_stay_behind_the_gate` only asserts the
+attribute string appears next to each signature, that a gate commented out with `//` still matches,
+and that the guard should therefore be read as catching *accidental deletion* only.
+
+*What actually happened:* the diagnosis was right and the advice was wrong — a guard that passes on
+the quiet removal is not a weaker guard, it is a false green, and the correct response was to fix it
+rather than to annotate it. The mechanism was `src[..i].trim_end().ends_with(GATE)`: a **suffix**
+test, and `// #[cfg(any(test, feature = "modeled-crypto"))]` still *ends with* the gate string. All
+three crates now **prefix-match the last non-blank preceding line** instead, so a `//` prefix fails.
+Fixed as a class rather than at the two named sites: `git grep -n 'ends_with(GATE)' -- '*.rs'` had
+exactly two hits and now has none outside prose. Landed `1d0189c81` (secrets, trustd) and
+`48ba09646` (cluster-mgmt).
+
+*Observed firing*, gate commented out above `pub fn derive(seed: &str) -> Self {` in
+`cluster-mgmt-domain/src/gen.rs`:
+
+```text
+os/core/cluster-mgmt-domain/src/lib.rs:615
+`pub fn derive(seed: &str) -> Self {` must be immediately preceded by
+#[cfg(any(test, feature = "modeled-crypto"))]
+test result: FAILED. 21 passed; 1 failed
+```
+
+*What survives from the trap:* the general claim, which is still true and still worth reading —
+a source-text guard tests TEXT, so it can only ever be as strong as the mutations its matcher
+distinguishes. Enumerate the removals you mean to catch (deleted, commented, reworded) and check the
+matcher against each. What did **not** survive is "treat it as accidental-deletion only": that was a
+caveat standing in for a fix.
+
+*A companion correction, same date — the guard's own mutation proof can be a false negative.*
+Applying the mutation and running `buck2` **inside one shell command** reported `22 passed` on a
+tree whose gate was commented out on disk; the identical mutation, run after the write had landed in
+a separate command, failed as above. buck2's file watcher had not observed the write when the daemon
+computed the graph. The rule: **write the mutation, confirm it on disk in a separate command, then
+build.** A single-command mutation proof that comes back green proves nothing, and is the exact
+shape of the false green a mutation proof exists to prevent.
+
+**T3b — closing an instance is not closing the class, and the class here had two more routes.** The
+crate-root `cfg`, the `[features]` guard and the modeled target's enumerated `visibility` between
+them still left two one-line bypasses that every existing guard was blind to. Both are now guarded,
+both proven by mutation, landed `003dba9a7` / `48ba09646`:
+
+| route | why nothing saw it | guard |
+|---|---|---|
+| `features = ["modeled-crypto"]` on the *production* `rust_library` of `os-trustd-domain` or `os-cluster-mgmt-domain` | buck2 features come from the target attribute, so the manifest guard cannot see it; the sibling crates had no BUCK guard at all | `no_buck_target_enables_the_model`, asserting **zero** occurrences (there is no modeled *target* in those packages) behind a `contains` assertion so the zero cannot pass vacuously |
+| `os-secrets-domain` moved from `[dev-dependencies]` to `[dependencies]` in a **consumer's** manifest | every guard lived in the *owning* crate; none constrains a consumer, and buck2 deps come from BUCK | `modeled_crate_is_declared_only_as_a_dev_dependency` in `os-kubernetes-domain`, asserting the **section** each declaration sits in |
+
+The generalisation worth keeping: a barrier owned entirely by the crate it protects is incomplete,
+because the last step of linking it is always taken by somebody else's file.
 
 **T4 — POSIX ERE has no word-boundary atom.** `git grep -E "\bFOO"` matches **nothing**, silently,
 and reads as a clean negative. Every negative claim in a unit must be accompanied by a **control**
