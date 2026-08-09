@@ -56,4 +56,4 @@ extern crate alloc;
 
 pub mod net;
 
-pub use net::{InMemoryKernelNet, KernelNet, RouteOrigin};
+pub use net::{InMemoryKernelNet, KernelNet, RouteOrigin, check_ipv4_route_shape};
