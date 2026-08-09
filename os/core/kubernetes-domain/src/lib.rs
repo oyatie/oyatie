@@ -85,3 +85,59 @@ pub const STATIC_POD_PATH: &str = "/etc/kubernetes/manifests";
 
 /// The namespace control-plane static pods run in.
 pub const CONTROL_PLANE_NAMESPACE: &str = "kube-system";
+
+#[cfg(test)]
+mod tests {
+    /// The modeled PKI crate must stay a DEV dependency of this one.
+    ///
+    /// This is the consumer half of the `os-secrets-domain` barrier, and it was
+    /// the last unguarded route to the model. That crate's own guards cover its
+    /// crate-root `cfg`, its `[features]` section and its BUCK targets; the
+    /// modeled buck2 target's enumerated `visibility` names this package, and
+    /// only the `rust_test` here depends on it. None of that constrains *this*
+    /// manifest. Moving the entry below from `[dev-dependencies]` to
+    /// `[dependencies]` puts the model in the production `os-kubernetes-domain`
+    /// rlib for every `cargo build`, and buck2 stays green through it because
+    /// buck2 deps come from BUCK and never consult `Cargo.toml` — the same
+    /// blindness that made the `default`-feature hole invisible.
+    ///
+    /// The assertion is over the SECTION each declaration appears in, not over
+    /// the presence of a string, which makes it anti-vacuous in both
+    /// directions: deleting the dependency, renaming the section, or declaring
+    /// it twice all produce a vector that is not exactly `["dev-dependencies"]`.
+    ///
+    /// Proven to fire, by mutation: moving the entry to `[dependencies]` gives
+    ///
+    /// ```text
+    /// assertion `left == right` failed: os-secrets-domain models Talos PKI and
+    /// must be declared ONLY under [dev-dependencies]
+    ///   left: ["dependencies"]
+    ///  right: ["dev-dependencies"]
+    /// ```
+    #[test]
+    fn modeled_crate_is_declared_only_as_a_dev_dependency() {
+        let mut section = "";
+        let mut declared_in: Vec<&str> = Vec::new();
+
+        for line in include_str!("../Cargo.toml").lines() {
+            let line = line.trim();
+            if line.starts_with('#') {
+                continue;
+            }
+            match line.strip_prefix('[').and_then(|l| l.strip_suffix(']')) {
+                Some(header) => section = header,
+                None if line.starts_with("os-secrets-domain") => declared_in.push(section),
+                None => {}
+            }
+        }
+
+        assert_eq!(
+            declared_in,
+            ["dev-dependencies"],
+            "os-secrets-domain models Talos PKI and must be declared ONLY under \
+             [dev-dependencies]: every use of it in this crate is inside a \
+             `#[cfg(test)] mod tests`, and a normal dependency would link the model \
+             into the production rlib on every cargo build while buck2 stayed green"
+        );
+    }
+}

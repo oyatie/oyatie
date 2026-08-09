@@ -103,6 +103,59 @@ mod integration_tests {
         );
     }
 
+    /// No buck2 target in this package may enable the model.
+    ///
+    /// The sibling of `no_production_buck_target_enables_the_model` in
+    /// `os-secrets-domain`, and the reason it has to exist here too: that crate
+    /// closed the INSTANCE and this one was left open, which is the exact class
+    /// failure this branch is about. `Cargo.toml` and the `cfg` attributes are
+    /// half the barrier; the other half is the build graph, and buck2 features
+    /// come from the target attribute, so a `features = ["modeled-crypto"]` on
+    /// the production `rust_library` would hand `InMemorySigner` and
+    /// `KeyPair::from_seed` to every consumer without touching a line of Rust
+    /// or of the manifest — invisible to both existing guards.
+    ///
+    /// Zero, not one: unlike `os-secrets-domain` there is no modeled *target*
+    /// here. The gate is `cfg(any(test, feature = "modeled-crypto"))`, so the
+    /// `rust_test` already sees the modeled items through `test` and no target
+    /// in this package ever needs the feature. Any occurrence is therefore a
+    /// production one.
+    ///
+    /// The `contains` line below is what makes this anti-vacuous: an assertion
+    /// that a count is zero passes on an empty string, so the test first proves
+    /// it read the BUCK file it meant to read.
+    ///
+    /// Proven to fire, by mutation: adding `features = ["modeled-crypto"]` to
+    /// the `os-trustd-domain` `rust_library` gives
+    ///
+    /// ```text
+    /// assertion `left == right` failed: no buck2 target in this package may
+    /// enable modeled-crypto
+    ///   left: 1
+    ///  right: 0
+    /// ```
+    #[test]
+    fn no_buck_target_enables_the_model() {
+        let buck: String = include_str!("../BUCK")
+            .lines()
+            .filter(|l| !l.trim_start().starts_with('#'))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(
+            buck.contains("os-trustd-domain"),
+            "read the wrong BUCK file: a zero-count assertion below would pass vacuously"
+        );
+        assert_eq!(
+            buck.matches("modeled-crypto").count(),
+            0,
+            "no buck2 target in this package may enable modeled-crypto: the crate gate \
+             is cfg(any(test, feature = \"modeled-crypto\")), so the rust_test already \
+             sees the modeled items via `test`, and the only thing a feature attribute \
+             here could do is put them in a production library"
+        );
+    }
+
     /// End-to-end: bootstrap a CA, stand up the service, have a node join with
     /// the cluster token, obtain a cert, get authorized, then renew it.
     #[test]
