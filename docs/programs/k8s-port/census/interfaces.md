@@ -40,24 +40,26 @@ method sets.
 
 **Emitting only pairs the program actually uses instead of every structural match is a large prune,
 and the corpus is combinatorial before it**: 80,042 name-level structural matches, 22,304
-exact-signature matches, 5,573 of those between packages that can even see each other, and 1,323
-declared outright in the source as `var _ Iface = ...`.
+exact-signature matches, 5,573 of those between packages that can even see each other, and 1,316
+distinct pairs declared outright in the source as `var _ Iface = ...` (1,323 assertion
+*occurrences*, 7 of them duplicates — §7).
 
-Of those four, **only 80,042 and 1,323 are bounds.** 80,042 cannot miss a real satisfaction, because
-a satisfying type necessarily has the interface's method names; 1,323 are compile-checked by Go, so
-each is a real satisfying pair. **True structural satisfaction therefore brackets to [1,323,
-80,042]**, and that bracket is wide because this instrument does not resolve types. 22,304 is a
-syntactic estimate that errs in BOTH directions and is not a bound in either — see §9. Whether the
-declared set sits inside the 22,304 was not computed, so these are separate measurements rather
-than nested ones. Structural matching is combinatorial; usage is not. The engine must emit impls
-from usage — that conclusion rests on the 80,042 ceiling and the 1,323 floor, neither of which the
-22,304 correction disturbs.
+Of those four, **only 80,042 and 1,316 are bounds.** 80,042 cannot miss a real satisfaction, because
+a satisfying type necessarily has the interface's method names; the 1,316 declared pairs are
+compile-checked by Go, so each is a real satisfying pair. **True structural satisfaction therefore
+brackets to [1,316, 80,042]**, and that bracket is wide because this instrument does not resolve
+types. 22,304 is a syntactic estimate that errs in BOTH directions and is not a bound in either —
+see §9. Whether the declared set sits inside the 22,304 was not computed, so these are separate
+measurements rather than nested ones. Structural matching is combinatorial; usage is not. The
+engine must emit impls from usage — that conclusion rests on the 80,042 ceiling and the 1,316
+floor, neither of which the 22,304 correction disturbs.
 
-**The orphan rule is a narrow problem, not a broad one.** Of 1,323 impls Kubernetes declares
-explicitly, 6 (0.45%) are foreign-trait-on-foreign-type, the shape Rust forbids. But a small
-number of high-fan-out capability probes — `documentable`, `ProtobufMarshaller` — are individually
-worth 1,000+ impls each and are exactly the orphan shape. The count is small; the blast radius of
-each is not.
+**The orphan rule is a narrow problem, not a broad one.** Of the 1,323 impl assertions Kubernetes
+writes explicitly, 6 (0.45%) are foreign-trait-on-foreign-type, the shape Rust forbids — and 6 is
+an upper bound under naive crate assignment, not a count of impls that are actually blocked (§7).
+But a small number of high-fan-out capability probes — `documentable`, `ProtobufMarshaller` — are
+individually worth 1,000+ impls each and are exactly the orphan shape. The count is small; the
+blast radius of each is not.
 
 ## Provenance
 
@@ -440,11 +442,24 @@ sites (1.8%), and the top 25 targets cover 1,501 (12.2%). There is no small set 
 the rule must be general.
 
 The 79.1% single-value figure is a translation hazard worth stating plainly: those 9,725 sites are
-`panic`-on-mismatch in Go. A mechanical translation to Rust's `downcast_ref().unwrap()` preserves
-semantics exactly, including the panic. That is faithful but it exports a Go runtime-safety
-property into a Rust codebase where it will read as a bug. Whether the engine preserves the panic
-or forces a `Result` is a doctrine decision affecting 9,725 sites; it is not a per-site judgment
-and should be ruled once.
+`panic`-on-mismatch in Go. `downcast_ref().unwrap()` is the closest mechanical rendering, and an
+earlier draft said it **preserves semantics exactly**; that is withdrawn, on two counts the target-kind
+table above already bounds.
+
+- **Ownership.** `downcast_ref()` yields a `&T`. Go's `x.(T)` on a non-pointer `T` yields an *owned*
+  `T`. `downcast_ref` therefore fits the 81.2% pointer targets; the ~14% non-pointer targets — 818
+  bare-ident plus 850 selector, of 12,290 — need an owning extraction instead
+  (`Box<dyn Any>::downcast`, or a copy/clone), which is a different rule and a different cost.
+- **Failure payload.** Go's failure raises a typed `*runtime.TypeAssertionError` carrying the
+  interface, asserted and concrete types, and a recovering boundary can inspect it. `unwrap`'s
+  payload is a `&str`, which cannot answer that. This is the same payload-identity point already
+  accepted for `panic(err)` in `defer-panic-recover.md` §6, and it applies here for the same reason.
+
+That mechanical rendering is also faithful in a way that exports a Go runtime-safety property into
+a Rust codebase where it will read as a bug. Whether the engine preserves the panic or forces a
+`Result` is a doctrine decision affecting 9,725 sites; it is not a per-site judgment and should be
+ruled once — and **the payload type belongs in that same ruling**, because a `Result` and a panic
+answer the payload question differently.
 
 ### Type switches — 282 in CORE
 
@@ -515,7 +530,10 @@ translation can be illegal. The question is how often.
 ### Declared impls — exact, and reassuring
 
 Kubernetes writes 1,323 explicit satisfaction assertions in CORE (`var _ Iface = &T{}`), covering
-1,316 distinct pairs and 516 distinct interfaces. These are the impls the authors *intended*:
+1,316 distinct pairs and 516 distinct interfaces. **1,323 counts occurrences, not pairs; 7 are
+duplicate assertions of a pair already asserted elsewhere. The bracket in §9 uses the 1,316
+distinct pairs**, because the other endpoint of that bracket counts pairs too. These are the impls
+the authors *intended*:
 
 | Quadrant | Count | Share | Legal in Rust? |
 |---|---:|---:|---|
@@ -525,8 +543,19 @@ Kubernetes writes 1,323 explicit satisfaction assertions in CORE (`var _ Iface =
 | **foreign trait + foreign type** | **6** | **0.45%** | **no — needs a newtype or relocation** |
 
 The overwhelming majority (99.5%) put the concrete type in the emitting crate, which is precisely
-the case Rust permits. **The orphan rule blocks 6 of 1,323 declared impls.** Six newtypes is not a
-programme risk.
+the case Rust permits.
+
+**What the quadrant is computed from, and what that presumes.** Each pair is classified by
+qualification *at the Go assertion site* — whether the trait and the type are spelled local or
+imported where the author wrote `var _ Iface = &T{}`. That presumes the Rust impl is emitted in
+the crate corresponding to the *asserting* package, and a Go→Rust generator is not obliged to
+choose that crate. Emitting in the type-defining crate legalises a foreign-trait + foreign-type
+pair whenever that crate may depend on the trait's crate. **So 6 is an upper bound on blocked
+declared impls under naive crate assignment, not a count of impls that are actually blocked**, and
+resolving it needs a dependency-direction check per pair. Six pairs is small enough to enumerate
+rather than estimate, and the check is worth doing before any newtype or relocation work is
+booked — but note that the escape is not always available: §7's `documentable` case below shows a
+pair where the dependency runs the wrong way and *neither* crate may host the impl.
 
 The most-asserted interfaces show the shape: `admission.ValidationInterface` (30),
 `rest.ShortNamesProvider` (28), `rest.CategoriesProvider` (20), `admission.MutationInterface` (18),
@@ -633,10 +662,10 @@ has one gap in it.
 | Name-only structural matches | 80,042 | **true upper bound**, exact computation |
 | Exact-signature structural matches | 22,304 | **estimate, not a bound in either direction** (see note) |
 | …restricted to pairs whose packages can see each other | 5,573 | **not a bound** — see below |
-| Declared `var _ Iface = T{}` assertions | 1,323 | **strict lower bound on used pairs**, compile-checked by Go |
+| Distinct declared pairs (per §7) | 1,316 | **strict lower bound on used pairs**, compile-checked by Go. The 1,323 figure in §7 counts assertion *occurrences*; this row counts pairs, which is the unit every other row uses |
 | Interface-typed downcast sites | 789, over 229 interfaces | exact; distinct probe surface |
 
-**Structural satisfaction brackets to [1,323, 80,042].** Both ends are earned: every declared
+**Structural satisfaction brackets to [1,316, 80,042].** Both ends are earned: every declared
 assertion is verified by the Go compiler, so it is a real satisfying pair; and no real satisfying
 pair can fall outside the name-only match, because satisfaction implies the names are present. The
 bracket is wide, and it is honestly wide — this instrument does not resolve types.
@@ -648,13 +677,17 @@ it also *admits* pairs that do not satisfy, because unresolved local type names 
 merge: two packages each declaring `Options` yield one `Get() Options` key). Error in both
 directions is not a bound, so no prune factor can be computed from it and none is quoted here.
 
-**The prune is still the finding, and it survives without 22,304.** From the 80,042 ceiling to the
-1,323 compile-checked declarations is **60x**, and that ratio is between two quantities that ARE
-bounds. It is the difference between combinatorial and bounded, which is the whole argument for
-emitting from usage. Nor is the declared set shown to be a subset of the 22,304 — that containment
-was never computed.
+**The prune is still the finding, and it survives without 22,304 — but read what the ratio is
+between.** 80,042 / 1,316 is **60.8x, reported as ~60x**, and both quantities are bounds. What it
+measures is the gap between **two concrete emission strategies**: emit an impl for every name-level
+structural match (80,042 impls) versus emit only the declared assertions (1,316 impls). It is
+**not** an estimate of the prune to the true *used* set, because the true used count is unmeasured
+anywhere in [1,316, 80,042] — a ratio between an upper and a lower bound is the maximum conceivable
+prune, not a central estimate of it. The finding that survives is directional and is enough for the
+decision at hand: structural matching is combinatorial and usage is not. Nor is the declared set
+shown to be a subset of the 22,304 — that containment was never computed.
 
-**What I could not determine: the true used-pair count.** It sits somewhere in [1,323, 80,042]. I
+**What I could not determine: the true used-pair count.** It sits somewhere in [1,316, 80,042]. I
 will not narrow it further than the evidence allows, and the reason the obvious tightening fails is
 worth recording:
 
@@ -671,9 +704,13 @@ assigned, passed, returned, or stored into an interface-typed position. That is 
 it is the single measurement that would most improve this census. It was out of scope for a
 read-only pass; it is not out of reach.
 
-Until then, the defensible planning figures are the two anchors. **The declared-impl count of 1,323
+Until then, the defensible planning figures are the two anchors. **The declared-pair count of 1,316
 is the better anchor of the two**, because it is what Kubernetes' own authors thought was worth
 writing down, and the engine can extract exactly that set with no type information at all.
+**Its hazard has to be stated with it: 1,316 is a strict lower bound, so an engine sized on it
+under-generates by an unmeasured amount**, and the impls it misses are exactly the
+undeclared-but-used pairs this census cannot count. Anchoring on it is a decision to discover
+those at compile time rather than to provision for them up front.
 
 ### The probe surface is small and enumerable
 
@@ -729,9 +766,9 @@ to port rather than re-source vendored dependencies raises the trait corpus by r
 
 Stated plainly, because an honest gap is more useful than a substituted proxy.
 
-1. **The true used-pair count.** Bracketed to [1,323, 80,042]; see §9. Needs `go/types` plus a
+1. **The true used-pair count.** Bracketed to [1,316, 80,042]; see §9. Needs `go/types` plus a
    whole-program assignability walk. This is the highest-value follow-up.
-2. **Exact structural satisfaction.** Bracketed to [1,323, 80,042] — 60x apart, and that width is
+2. **Exact structural satisfaction.** Bracketed to [1,316, 80,042] — 60.8x apart, and that width is
    the honest answer. An earlier draft narrowed it to [22,304, 80,042] by treating the
    exact-signature count as the floor; §9 withdraws that, since unresolved local type names let the
    signature pass admit non-satisfying pairs as well as miss satisfying ones. Same `go/types`
@@ -760,24 +797,30 @@ Read off the measurements, not asserted.
    see §2 for why the size of the prize is not 630 traits: collapsing a shared method-name set into
    one generic trait is only valid when the members differ *exactly* by a resource type parameter,
    and that has been demonstrated for the top name-sets, not for all 1,448.
-2. **Emit impls from usage, never from structural matching.** The prune from the 80,042 ceiling to
-   the 1,323 compile-checked declarations is **60x** (§9), and the unpruned count grows as
-   traits × types (§8). This is the single most important structural ruling in this census, and it
-   rests on two proven bounds — it does not depend on the withdrawn 22,304 floor.
-3. **Bootstrap the used set from the 1,323 declared assertions.** They are extractable with no type
-   information, they are what the authors intended, and they cover 516 interfaces.
+2. **Emit impls from usage, never from structural matching.** Emitting every name-level structural
+   match produces 80,042 impls; emitting only the compile-checked declarations produces 1,316. That
+   **60.8x** gap is between two emission STRATEGIES, not an estimate of the prune to the true used
+   set, which is unmeasured in [1,316, 80,042] (§9) — but the ruling needs only the direction, and
+   the unpruned count grows as traits × types (§8). This is the single most important structural
+   ruling in this census, and it rests on two proven bounds — it does not depend on the withdrawn
+   22,304 floor.
+3. **Bootstrap the used set from the 1,316 declared pairs.** They are extractable with no type
+   information, they are what the authors intended, and they cover 516 interfaces. Because 1,316 is
+   a strict lower bound, an engine sized on it **under-generates by an unmeasured amount**; the
+   missing impls are the undeclared-but-used pairs of §9.
 4. **The duck-typing surface needing whole-program reasoning is 229 interfaces, not 2,077** (§9).
    61% of them have ≤2 methods. This is a tractable, enumerable population.
 5. **One rule for `map[string]interface{}` / `[]interface{}` retires ~32.2% of the entire
    `interface{}` surface** (3,286 of 10,212 sites, §4). Highest single-rule leverage found.
 6. **Rule the single-value type assertion once, globally.** 9,725 sites (79.1%) panic on mismatch
    in Go (§5). Preserve-the-panic and force-a-`Result` are both defensible; per-site judgment is
-   not.
+   not. The same ruling must fix the failure payload, and it needs a second rule for the ~14%
+   non-pointer targets, which need an owning extraction rather than `downcast_ref` (§5).
 7. **The orphan rule needs a crate-layering decision, not a per-site decision per structural match**
    (§7) — and the number of those matches is an estimate, which is precisely why the ruling must be
-   architectural rather than sized off it. Six
-   declared impls are blocked; the exposure is concentrated in ~12 high-fan-out probes where the
-   trait must sink below both crates.
+   architectural rather than sized off it. At most six declared impls are blocked, and that six is
+   an upper bound under naive crate assignment (§7); the exposure is concentrated in ~12
+   high-fan-out probes where the trait must sink below both crates.
 8. **60 god-interfaces (≥15 methods) and 410 named-empty marker interfaces are hand
    decisions, not rules** (§1). Budget them as one-time work; do not attempt to rule them.
 
