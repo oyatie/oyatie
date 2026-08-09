@@ -88,9 +88,23 @@ ceiling until full verification. Anonymous signup is the thing to refuse outrigh
       the customer receives a quote and does not know what to do with it.
       → Prototype the verification flow end to end, and walk an auditor through it.
       This is now the TOP risk, ahead of any isolation question.
-- [ ] **SEV-SNP or TDX works on our substrate at acceptable overhead.**
-      → Boot one Talos node as a confidential VM under Cloud Hypervisor and measure.
-      Published figures suggest 2–10%; measure ours, do not cite theirs.
+- [ ] **SEV-SNP or TDX works on our substrate at acceptable overhead — for a POD, not just a
+      node.** The MVP scope below puts confidential worker nodes AND `containerd + Kata` inside
+      the same plan, and Kata launches a Cloud Hypervisor VM per pod through `/dev/kvm`. In that
+      topology the VMM runs *inside* the confidential guest and needs **nested virtualization
+      within an SEV-SNP VM**. A node-only boot test never touches that layer, so it can pass green
+      while no tenant pod can start — or, worse, while pods start with Kata silently disabled and
+      the Tier-0 boundary ADR-0338 requires simply absent.
+      → (a) Boot the Talos node as a confidential VM under Cloud Hypervisor **and launch a
+      representative Kata pod on it**, attest the **pod's** guest, and measure overhead at the pod
+      level. Published figures suggest 2–10%; measure ours, do not cite theirs.
+      → (b) Record explicitly whether nested KVM is available inside the SEV-SNP guest. A negative
+      answer invalidates the **topology**, not the measurement.
+      → Fallback the negative answer forces, named here rather than improvised later: make the
+      **Kata guest itself** the SEV-SNP VM, launched from a non-confidential host. That is the
+      shape Confidential Containers already uses and it removes the nesting requirement entirely.
+      Kill criterion: if neither topology boots and attests a Kata pod, the MVP's isolation story
+      is unproven and the confidential-worker plan changes.
 - [ ] **Enterprise procurement can be cleared in the runway available.**
       → SOC 2 Type II, DPAs, pen-test report, insurance certificates. 6–12 months of
       calendar time. Start in parallel today; it is the real critical path.
@@ -125,7 +139,7 @@ straddle two layers, and indexing by name is how a layer silently loses its dest
 | Upstream in MVP | Seam it sits behind | Owned destination | Deletion criterion |
 | --- | --- | --- | --- |
 | containerd + Kata | CRI + RuntimeClass | owned runtime | tier-0 parity on the ADR-0338 tier contract |
-| Cloud Hypervisor | VMM interface | owned VMM | boot + attest a confidential guest at parity overhead |
+| Cloud Hypervisor | VMM interface | owned VMM | boot + attest a confidential guest **running a Kata pod**, at parity overhead |
 | Linux / KVM (**host** kernel + virtualization API) | the `/dev/kvm` ioctl surface | **none named yet** — see below | undefined until a destination is named |
 | Linux (**guest** kernel — a different layer from the host row above) | guest ABI | Asterinas track | full ABI coverage for tier-0 syscall surface |
 
@@ -160,13 +174,35 @@ central confidentiality claim would ship untested.
 So the MVP ships the binding, not just the report: measurements are **approved by the tenant**
 (or by a verifier the tenant designates — not by us), the key-release service **refuses** any
 guest whose quote fails verification or whose measurement is unapproved, and secret material
-reaches a guest only after that refusal point. This is also the standing repository invariant
-`INV-CONFIDENTIAL-COMPUTE` in `specs/hyperscaler-architecture-invariants.json`: attestation of
-the enclave is verified *before* secrets are provisioned.
+reaches a guest only after that refusal point.
 
-Its acceptance test is the negative one, and it is launch-gating: boot a deliberately altered
-guest, and a guest whose quote cannot be verified, and prove each receives **no** secret
-material. A launch that cannot demonstrate that has not demonstrated confidentiality.
+That much is **ordering** — verify, then provision — and ordering is one of the four properties
+needed, not all of them. The standing repository invariant `INV-CONFIDENTIAL-COMPUTE` in
+`specs/hyperscaler-architecture-invariants.json` says exactly the same thing and no more
+("attestation of the enclave is verified *before* secrets are provisioned"), so it is cited here
+as agreement rather than as sufficiency. Ordering alone is defeated two ways, and the control is
+therefore specified as a **binding**:
+
+1. **Freshness.** The key-release flow issues a **per-request challenge**, and the guest's
+   attestation report must carry that challenge in its caller-supplied report data. A report
+   without the current challenge is refused. Without this, a report captured from a genuinely
+   good guest is **replayable**, and a compromised operator presents a valid quote for a guest
+   that is not the one asking.
+2. **Key binding.** The guest generates a keypair **inside** the enclave and the public key's
+   hash travels in that same report data. Secret material is encrypted **to that attested key and
+   to no other**, so a redirected release is *undecryptable* rather than merely disallowed.
+   Without this, the operator passes verification with guest A and delivers the plaintext to
+   guest B.
+3. **Custody.** The verification and key-release root is **tenant-side or tenant-designated** —
+   the same "not by us" already applied to measurement approval. Otherwise this page's own wedge
+   argument, that on EKS/GKE/AKS "the attestation root, the key-release service, and the legal
+   entity answering process are all still theirs", applies verbatim to our MVP.
+
+Its acceptance tests are the negative ones and they are launch-gating. **Four, not two:** an
+**altered guest** and a guest whose **quote cannot be verified** each receive no secret material;
+a **replayed** quote captured from a known-good guest releases no secret; and under
+**redirection**, attest guest A then attempt delivery to guest B and prove B cannot decrypt. A
+launch that cannot demonstrate all four has not demonstrated confidentiality.
 
 ## Not Doing (and Why)
 
