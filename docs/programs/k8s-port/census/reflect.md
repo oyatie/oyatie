@@ -1,5 +1,18 @@
 # Go→Rust rule-corpus census: the reflection surface
 
+## Baseline version header
+
+| Authority | Version this document was authored against | Status at authoring (2026-08-08) |
+|---|---|---|
+| Repository baseline | `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e` | Lane base. |
+| Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Verified before counting; matches `specs/k8s-port/upstream-pin.json`. Apache-2.0. |
+| Engine | `build/port-engine/*`, v0 — unbuilt | Not in force. This census is an input to sizing, not engine output. |
+| Neutral rule pack | `specs/port-rules/**`, v0 — unauthored | Not in force. No rule is authored or implied by this record. |
+| Corpus rule policy | `specs/k8s-port/rules/**`, v0 — unauthored | Not in force. |
+| Go front end | `find`/`grep`/`comm` set arithmetic over generated-marker headers and `reflect` imports; no Go parser | Measurement instrument only; not an admitted extractor. Marker-based detection is why the generated set is reported as a lower bound plus a refinement. |
+| Reproducibility tuple / receipt schema | `pin`, `snapshot_digest`, `engine_digest`, `rulepack_digest`, `toolchain_digest`, `formatter_digest` | Six required axes; not in force. This census emits no receipt. |
+| Program authority | ADR-0637 / ADR-0638 | Measurement record only; authorizes nothing. |
+
 Lane: `census-reflect`. Read-only measurement over the pinned Kubernetes corpus.
 Nothing here is a decision, an ADR, or a proposal. It is five measurements and their error bars.
 

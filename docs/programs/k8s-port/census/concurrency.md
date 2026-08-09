@@ -3,6 +3,19 @@
 Status: measurement artifact. Not a decision, not an ADR, not a plan.
 Lane: `census-concurrency`. Date of measurement: 2026-08-08.
 
+## Baseline version header
+
+| Authority | Version this document was authored against | Status at authoring (2026-08-08) |
+|---|---|---|
+| Repository baseline | `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e` | Lane base. |
+| Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Verified before counting (§0); matches `specs/k8s-port/upstream-pin.json`. Apache-2.0. |
+| Engine | `build/port-engine/*`, v0 — unbuilt | Not in force. This census is an input to sizing, not engine output. |
+| Neutral rule pack | `specs/port-rules/**`, v0 — unauthored | Not in force. No rule is authored or implied by this record. |
+| Corpus rule policy | `specs/k8s-port/rules/**`, v0 — unauthored | Not in force. |
+| Go front end | `rg` file enumeration plus four purpose-written `awk` brace-matching programs (§0, §8); no SourceModel | Measurement instrument only; not an admitted extractor. Brace arithmetic is line-local, which is why §2/§3 carry the error bars they do. |
+| Reproducibility tuple / receipt schema | `pin`, `snapshot_digest`, `engine_digest`, `rulepack_digest`, `toolchain_digest`, `formatter_digest` | Six required axes; not in force. This census emits no receipt. |
+| Program authority | ADR-0637 / ADR-0638 | Measurement record only; authorizes nothing. |
+
 ## 0. Corpus, pin, denominators
 
 Every figure below was produced against the pinned upstream tree, verified before counting:

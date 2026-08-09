@@ -13,6 +13,9 @@ authority_tier: 3
 | Source licence | Apache-2.0 | per pin record |
 | Repository baseline | `origin/dev` @ `5e452bd70` | lane base |
 | Program authority | ADR-0637 / ADR-0638, live under apex [ADR-0704](../../../decisions/ADR-0704-k8s-port-live-apex.md) | measurement only; ratifies nothing |
+| Engine / rule pack / corpus policy | `build/port-engine/*`, `specs/port-rules/**`, `specs/k8s-port/rules/**` — all v0, unbuilt or unauthored | Not in force. This census is an INPUT to sizing, never engine output. |
+| Go front end | `go/parser` + `go/ast` walk (go1.26.5), ad hoc | Measurement instrument only; not an admitted extractor. |
+| Reproducibility tuple / receipt schema | `pin`, `snapshot_digest`, `engine_digest`, `rulepack_digest`, `toolchain_digest`, `formatter_digest` | Six required axes; not in force. This census emits no receipt. |
 
 This document is a **measurement record**. It sizes a rule corpus. It does not
 propose rules, amend an ADR, or make anything operative.
