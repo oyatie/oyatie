@@ -1186,14 +1186,12 @@ mod linux_impl {
         metric: u32,
         protocol: u8,
     ) -> Result<()> {
-        if prefix_len > 32 {
-            return Err(Error::invalid(format!(
-                "ipv4 route prefix length {prefix_len} out of range 0..=32"
-            )));
-        }
-        if prefix_len > 0 && destination.is_none() {
-            return Err(Error::invalid("non-default IPv4 route needs destination"));
-        }
+        // The port owns these preconditions so the fake enforces exactly what
+        // this adapter does. Every rejection here is one the kernel already
+        // makes on the `RTM_NEWROUTE` path, so this can only fail requests
+        // netlink would have failed anyway — it never refuses a route Linux
+        // would have accepted.
+        os_kernel_abi::check_ipv4_route_shape(destination, prefix_len)?;
         let index = if_index(ifname)?;
         let sock = NetlinkSocket::open()?;
         let msg = build_add_ipv4_route(

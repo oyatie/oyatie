@@ -255,6 +255,54 @@ fn v6_cidr(addr: &str, prefix_len: u8) -> Result<String> {
     Ok(alloc::format!("{ip}/{prefix_len}"))
 }
 
+/// The shape an IPv4 route must have before any substrate is asked to install
+/// it.
+///
+/// Shared rather than restated: the first two rules were written out by hand in
+/// both [`InMemoryKernelNet::add_ipv4_route`] and `LinuxNet::add_ipv4_route`, so
+/// a precondition the kernel enforces and the author did not think of was
+/// missing from *both* copies at once. That is how the third rule went missing.
+///
+/// The third rule is Linux's, from `rtm_to_fib_config()` in
+/// `net/ipv4/fib_frontend.c`:
+///
+/// ```c
+/// if (cfg->fc_dst_len < 32 && (ntohl(cfg->fc_dst) << cfg->fc_dst_len)) {
+///         NL_SET_ERR_MSG(extack, "Invalid prefix for given prefix length");
+///         err = -EINVAL;
+/// ```
+///
+/// It runs on the `RTM_NEWROUTE` path *before* `fib_table_insert`, so a
+/// destination carrying bits below its own prefix — `10.0.0.5/24` — is rejected
+/// outright. It is deliberately **not** masked to `10.0.0.0/24`: masking here
+/// would make this fake accept, and silently rewrite, input a real kernel
+/// refuses, which is precisely the false green the duplicate-rejection test
+/// below exists to prevent. `/32` is exempt from the shift, in the kernel and
+/// here.
+pub fn check_ipv4_route_shape(destination: Option<[u8; 4]>, prefix_len: u8) -> Result<()> {
+    if prefix_len > 32 {
+        return Err(Error::invalid(alloc::format!(
+            "ipv4 route prefix length {prefix_len} out of range 0..=32"
+        )));
+    }
+    if prefix_len > 0 && destination.is_none() {
+        return Err(Error::invalid("non-default IPv4 route needs destination"));
+    }
+    if let Some(dst) = destination
+        && prefix_len < 32
+        && u32::from_be_bytes(dst).wrapping_shl(prefix_len as u32) != 0
+    {
+        return Err(Error::invalid(alloc::format!(
+            "invalid prefix for given prefix length: {}.{}.{}.{}/{prefix_len}",
+            dst[0],
+            dst[1],
+            dst[2],
+            dst[3]
+        )));
+    }
+    Ok(())
+}
+
 /// The duplicate-install failure, in the variant the port's failure contract
 /// requires — the same one the Linux adapter produces from `EEXIST`.
 fn already_exists(what: &str, iface: &str, detail: &str) -> Error {
@@ -304,15 +352,9 @@ impl KernelNet for InMemoryKernelNet {
         metric: u32,
         origin: RouteOrigin,
     ) -> Result<()> {
-        // The two shape checks `LinuxNet::add_ipv4_route` makes before netlink.
-        if prefix_len > 32 {
-            return Err(Error::invalid(alloc::format!(
-                "ipv4 route prefix length {prefix_len} out of range 0..=32"
-            )));
-        }
-        if prefix_len > 0 && destination.is_none() {
-            return Err(Error::invalid("non-default IPv4 route needs destination"));
-        }
+        // The same shape checks `LinuxNet::add_ipv4_route` makes before netlink
+        // — the one function, not a second copy of the rules.
+        check_ipv4_route_shape(destination, prefix_len)?;
         // A route needs its outgoing link to exist, exactly as rtnetlink does.
         self.mutate(iface, |_| ())?;
         let route = FakeRoute {
@@ -465,6 +507,49 @@ mod tests {
         rejects_what_the_kernel_would(&net);
         assert!(net.ipv4_addresses("eth0").unwrap().is_empty());
         assert!(net.routes().is_empty());
+    }
+
+    #[test]
+    fn a_destination_with_host_bits_is_rejected_not_masked() {
+        // `rtm_to_fib_config()` rejects a destination carrying bits below its
+        // prefix before `fib_table_insert` sees the key, so `10.0.0.5/24` and
+        // `10.0.0.6/24` are BOTH EINVAL on Linux — they are not two entries
+        // here, and they are not one entry plus an EEXIST either.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        for host in [5u8, 6] {
+            assert_eq!(
+                net.add_ipv4_route(
+                    "eth0",
+                    Some([10, 0, 0, host]),
+                    24,
+                    None,
+                    1,
+                    RouteOrigin::Boot
+                )
+                .unwrap_err()
+                .kind(),
+                "invalid"
+            );
+        }
+        // Rejected, not normalized: masking to `10.0.0.0/24` would make the
+        // fake looser than the kernel, which is the failure this whole port
+        // exists to prevent.
+        assert!(net.routes().is_empty());
+
+        // The properly-aligned prefix is accepted, and `/32` is exempt from the
+        // rule exactly as the kernel exempts it.
+        net.add_ipv4_route("eth0", Some([10, 0, 0, 0]), 24, None, 1, RouteOrigin::Boot)
+            .unwrap();
+        net.add_ipv4_route(
+            "eth0",
+            Some([169, 254, 0, 1]),
+            32,
+            None,
+            1,
+            RouteOrigin::Boot,
+        )
+        .unwrap();
+        assert_eq!(net.routes().len(), 2);
     }
 
     #[test]
