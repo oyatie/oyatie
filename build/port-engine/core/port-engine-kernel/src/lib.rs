@@ -70,10 +70,11 @@
 //! ## What the three entry points actually decide
 //!
 //! - [`plan`] — pairs a [`SourceModel`] with a [`RulePack`] into an ordered [`TransformPlan`].
-//!   Fails closed on a language mismatch, on a duplicate unit id (which would make plan order
-//!   ambiguous, i.e. non-deterministic), on a rule the pack did not declare, and on declared rules
-//!   handed back in an order that is not the pack's own — the last one because rule order is part
-//!   of the transform, so a plan that depends on which pack answered is not deterministic either.
+//!   Fails closed on a language mismatch, on a duplicate unit id or a duplicate DECLARED rule id
+//!   (either one makes plan order ambiguous, i.e. non-deterministic), on a rule the pack did not
+//!   declare, and on declared rules handed back in an order that is not the pack's own — the last
+//!   one because rule order is part of the transform, so a plan that depends on which pack
+//!   answered is not deterministic either.
 //! - [`emit`] — drives a [`Renderer`] over a [`TargetIr`]. Fails closed on a language mismatch, on
 //!   an IR declaring one region identity twice, and on a renderer whose emitted region set is not
 //!   exactly the IR's region set (a renderer that drops or invents a region has silently changed
@@ -209,6 +210,21 @@ const fn is_identifier_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || byte == b'_'
 }
 
+/// True for the bytes a [`LanguagePair`] slug may contain: ASCII lowercase alphanumeric, `_`, and
+/// `+` (so `c++` stays spellable).
+///
+/// The grammar is derived from what the value IS USED AS — one portable path component under
+/// `specs/port-rules/lang/` — rather than from the bytes some review round happened to name. A
+/// denylist grown one byte at a time is only ever as complete as the last hostile example someone
+/// thought of; an allowlist is complete by construction, and the burden lands on whoever wants to
+/// widen it.
+///
+/// `.` is excluded, which deletes `.`, `..` and the hidden-file forms at once instead of by three
+/// more special cases. A version belongs on the receipt's toolchain axis, not in a language slug.
+const fn is_slug_byte(byte: u8) -> bool {
+    byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'+'
+}
+
 /// Case-insensitive WHOLE-IDENTIFIER search, usable in a `const` context. `word` MUST already be
 /// lowercase.
 ///
@@ -298,15 +314,21 @@ impl LanguagePair {
     /// then reading or overwriting the other's rules with no error anywhere. Refusing the
     /// ambiguity here is the only place it is cheap: after the join the information is gone.
     ///
-    /// The rule is that neither slug may be empty or contain the separator. That keeps the segment
-    /// exactly what the ADR fixes — ONE path component of the form `<source>-<target>` — instead
-    /// of escaping the components into something no reader of the tree could predict.
+    /// The rule is that neither slug may be empty or carry a byte outside [`is_slug_byte`], the
+    /// grammar of ONE portable path component. That is what the ADR fixes the segment to be —
+    /// a single component of the form `<source>-<target>` — and the grammar is derived from that
+    /// USE rather than from the separator collision alone. A slug of `a/b` renders `a/b-c`, which
+    /// is two components, not one; a slug of `..` or a leading `/` is worse than a wrong name,
+    /// because `Path::join` documents that an absolute operand REPLACES the receiver, so the
+    /// namespace root would be discarded rather than descended from. Refusing the whole class here
+    /// costs one predicate; enumerating the hostile bytes costs a review round each.
     ///
     /// # Errors
-    /// [`PortError::AmbiguousLanguagePair`] when either slug is empty or carries a `-`.
+    /// [`PortError::AmbiguousLanguagePair`] when either slug is empty or carries a byte the
+    /// component grammar does not admit (the separator among them).
     pub fn slug(&self) -> Result<String, PortError> {
         for slug in [&self.source, &self.target] {
-            if slug.is_empty() || slug.contains(PAIR_SEPARATOR) {
+            if slug.is_empty() || !slug.bytes().all(is_slug_byte) {
                 return Err(PortError::AmbiguousLanguagePair {
                     source: self.source.clone(),
                     target: self.target.clone(),
@@ -320,6 +342,14 @@ impl LanguagePair {
 /// The byte joining the two slugs of a [`LanguagePair::slug`], and therefore the byte neither slug
 /// may contain.
 pub const PAIR_SEPARATOR: char = '-';
+
+/// The join is injective only while the separator sits OUTSIDE the slug grammar. Asserted at
+/// compile time rather than argued in prose, so widening [`is_slug_byte`] to admit `-` fails the
+/// build instead of silently making two pairs address one rule namespace.
+const _: () = assert!(
+    !is_slug_byte(PAIR_SEPARATOR as u8),
+    "the separator must sit outside the slug grammar or the join stops being injective"
+);
 
 /// A stable identity for one translatable unit of the source model.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -479,6 +509,32 @@ impl Receipt {
         }
         differing
     }
+
+    /// The axes that say NOTHING — an empty pin or an empty digest.
+    ///
+    /// [`Receipt::differing_axes`] answers "did this axis move", which is only a usable answer
+    /// when the axis carries a value on both sides. An unfilled axis makes an apparent difference
+    /// absence of information rather than evidence of a cause, and [`verify`] must not spend it as
+    /// an explanation. Walks [`RECEIPT_AXES`] for the same reason `differing_axes` does: a seventh
+    /// axis cannot be added without this answer being updated alongside it.
+    #[must_use]
+    pub fn incomplete_axes(&self) -> BTreeSet<ReceiptAxis> {
+        let mut incomplete = BTreeSet::new();
+        for axis in RECEIPT_AXES {
+            let empty = match axis {
+                ReceiptAxis::Pin => self.pin.is_empty(),
+                ReceiptAxis::Snapshot => self.snapshot_digest.0.is_empty(),
+                ReceiptAxis::Engine => self.engine_digest.0.is_empty(),
+                ReceiptAxis::RulePack => self.rulepack_digest.0.is_empty(),
+                ReceiptAxis::Toolchain => self.toolchain_digest.0.is_empty(),
+                ReceiptAxis::Formatter => self.formatter_digest.0.is_empty(),
+            };
+            if empty {
+                incomplete.insert(axis);
+            }
+        }
+        incomplete
+    }
 }
 
 /// The classification of an emitted-byte change between two receipts.
@@ -498,6 +554,18 @@ pub enum Delta {
     /// be repaired by editing the generated output.
     Unexplained {
         /// The regions whose bytes changed with no axis to account for them.
+        regions: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
+    },
+    /// Regions changed and at least one receipt cannot be USED to explain them: an axis is empty,
+    /// so an apparent difference on it is absence of information, not evidence of a cause.
+    ///
+    /// The false Green this refuses needs the two receipts to be ASYMMETRICALLY incomplete — a
+    /// populated previous against an all-empty current, say, from an adapter that failed to fill
+    /// one in. Every axis then "differs", and an unfilled receipt has manufactured a six-axis
+    /// explanation for an arbitrary byte change. Two EQUALLY incomplete receipts were never the
+    /// risk: they differ on nothing, so a byte change falls to [`Delta::Unexplained`] already.
+    IncompleteReceipt {
+        /// The regions whose bytes changed while the evidence was unusable.
         regions: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
     },
 }
@@ -574,6 +642,19 @@ pub enum PortError {
         /// The repeated region identity.
         region: RegionId, // data_class: INTERNAL_ONLY
     },
+    /// A [`RulePack`] declared the same rule identity twice.
+    ///
+    /// [`RulePack::rules`] is both the membership set AND the ORDER authority, so a repeated id
+    /// makes the rule's position ambiguous: the plan's step order would depend on which occurrence
+    /// was consulted. Whether that ambiguity ever surfaced also depended on what
+    /// [`RulePack::rules_for`] happened to answer, which is the shape of a defect that hides.
+    /// Refused rather than deduplicated, exactly as [`PortError::DuplicateUnit`] and
+    /// [`PortError::DuplicateRegion`] are — the defect is in the pack, and repairing it here would
+    /// hide it there.
+    DuplicateRule {
+        /// The repeated rule identity.
+        rule: RuleId, // data_class: INTERNAL_ONLY
+    },
     /// A renderer refused for a reason of its own.
     ///
     /// [`Renderer::render`] is contracted to return "whatever the implementation refuses with",
@@ -587,8 +668,10 @@ pub enum PortError {
     },
     /// A [`LanguagePair`] cannot address a rule namespace unambiguously.
     ///
-    /// See [`LanguagePair::slug`] — an empty slug, or one containing [`PAIR_SEPARATOR`], makes the
-    /// joined segment non-injective and two distinct pairs can address one namespace.
+    /// See [`LanguagePair::slug`] — an empty slug, or one carrying a byte outside the component
+    /// grammar, stops the joined segment being ONE addressable path component. Carrying
+    /// [`PAIR_SEPARATOR`] makes it non-injective, so two distinct pairs address one namespace;
+    /// carrying a separator, a traversal or a leading root makes it not a component at all.
     AmbiguousLanguagePair {
         /// The source slug as supplied.
         source: String, // data_class: INTERNAL_ONLY
@@ -638,11 +721,18 @@ impl fmt::Display for PortError {
                 "duplicate declared region `{}`: region identity is ambiguous",
                 region.0
             ),
+            Self::DuplicateRule { rule } => write!(
+                f,
+                "duplicate declared rule `{}`: rule order is ambiguous",
+                rule.0
+            ),
             Self::Render { detail } => write!(f, "renderer refused: {detail}"),
             Self::AmbiguousLanguagePair { source, target } => write!(
                 f,
                 "language pair (`{source}`, `{target}`) cannot address a rule namespace \
-                 unambiguously: neither slug may be empty or contain `{PAIR_SEPARATOR}`"
+                 unambiguously: neither slug may be empty or carry a byte outside the path \
+                 component grammar (`{PAIR_SEPARATOR}` among them), because the joined value is \
+                 ONE path component"
             ),
         }
     }
@@ -665,8 +755,8 @@ impl std::error::Error for PortError {}
 /// would duplicate a step for no stated reason.
 ///
 /// # Errors
-/// [`PortError::LanguageMismatch`], [`PortError::DuplicateUnit`], [`PortError::UndeclaredRule`],
-/// [`PortError::RuleOrderViolation`].
+/// [`PortError::LanguageMismatch`], [`PortError::DuplicateRule`], [`PortError::DuplicateUnit`],
+/// [`PortError::UndeclaredRule`], [`PortError::RuleOrderViolation`].
 pub fn plan(model: &dyn SourceModel, pack: &dyn RulePack) -> Result<TransformPlan, PortError> {
     let pair = pack.pair();
     if pair.source != model.language() {
@@ -676,12 +766,13 @@ pub fn plan(model: &dyn SourceModel, pack: &dyn RulePack) -> Result<TransformPla
         });
     }
 
-    // Declared rules by position, so membership and ORDER are one lookup. A rule the pack declares
-    // twice keeps its first position; that is a pack defect of its own, and one this W0 kernel
-    // does not yet name, so it is recorded here rather than silently relied on.
+    // Declared rules by POSITION, so membership and ORDER are one lookup — and a repeated
+    // declaration is refused here, where the position it would make ambiguous is still visible.
     let mut declared: BTreeMap<RuleId, usize> = BTreeMap::new();
     for (position, rule) in pack.rules().into_iter().enumerate() {
-        declared.entry(rule).or_insert(position);
+        if declared.insert(rule.clone(), position).is_some() {
+            return Err(PortError::DuplicateRule { rule });
+        }
     }
     let mut seen: BTreeSet<UnitId> = BTreeSet::new();
     let mut steps: Vec<PlanStep> = Vec::new();
@@ -767,6 +858,12 @@ pub fn emit(
 /// in full: a region present on one side only is a change, which a key-wise comparison of the
 /// intersection would have missed.
 ///
+/// THE RECEIPT IS CHECKED FOR USABILITY, not only for difference. Removing the changed-set
+/// argument moved trust from the caller to the trees and left the RECEIPTS trusted, which is a
+/// residue of the same defect: an all-empty receipt against a populated one "differs" on all six
+/// axes and would have explained any byte change at all. An empty axis is absence of information,
+/// so it buys no explanation — see [`Delta::IncompleteReceipt`].
+///
 /// This stays a PURE classifier — the trees are values in memory, no filesystem and no hashing,
 /// which is what keeps the receipt seam adapter-free.
 #[must_use]
@@ -792,6 +889,18 @@ pub fn verify(
         return Verification {
             verdict: Verdict::Green,
             delta: Delta::Unchanged,
+        };
+    }
+
+    // The receipts are checked for USABILITY only once the bytes have already been found to move.
+    // Placement is load-bearing: an incomplete receipt that decided nothing must not turn an
+    // identical tree red, so this sits strictly after the unchanged return.
+    if !previous.incomplete_axes().is_empty() || !current.incomplete_axes().is_empty() {
+        return Verification {
+            verdict: Verdict::Red,
+            delta: Delta::IncompleteReceipt {
+                regions: changed_regions,
+            },
         };
     }
 

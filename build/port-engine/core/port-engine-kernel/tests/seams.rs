@@ -173,6 +173,39 @@ fn pair_slug_refuses_a_pair_whose_join_is_not_injective() {
 }
 
 #[test]
+fn pair_slug_refuses_anything_that_is_not_one_path_component() {
+    // The guard is derived from what the value is USED as — one component under the rule namespace
+    // — not from the bytes a review round named. "a/b" renders "a/b-c", which is two components;
+    // an absolute slug is worse still, because Path::join drops the receiver on an absolute
+    // operand, so the namespace root would be discarded rather than descended from.
+    for hostile in ["a/b", "/abs", "a\\b", "..", ".", "", "A", "a b", "a%b"] {
+        let ambiguous = LanguagePair {
+            source: hostile.into(),
+            target: "beta".into(),
+        };
+        assert_eq!(
+            ambiguous.slug(),
+            Err(PortError::AmbiguousLanguagePair {
+                source: hostile.into(),
+                target: "beta".into(),
+            }),
+            "source {hostile:?} must be refused"
+        );
+    }
+
+    // `+` is IN the grammar, so a pair whose slug needs it stays spellable.
+    assert_eq!(
+        LanguagePair {
+            source: "c++".into(),
+            target: "rust".into(),
+        }
+        .slug()
+        .expect("slug"),
+        "c++-rust"
+    );
+}
+
+#[test]
 fn the_model_seam_carries_the_snapshot_axis_of_the_receipt() {
     let model = FakeModel {
         language: "alpha".into(),
@@ -319,6 +352,26 @@ fn plan_refuses_a_duplicate_unit_because_step_order_would_be_ambiguous() {
     assert_eq!(
         plan(&model, &pack),
         Err(PortError::DuplicateUnit { unit: unit("u1") })
+    );
+}
+
+#[test]
+fn plan_refuses_a_pack_that_declares_one_rule_twice() {
+    // rules() is both the membership set and the ORDER authority, so a repeated id leaves the
+    // rule's position ambiguous. Before this refusal, whether the ambiguity was caught depended on
+    // what rules_for happened to answer: [r1, r2, r1] tripped the order check while [r1] sailed
+    // through. Refused at the declaration, the way a duplicate unit and a duplicate region are.
+    let model = FakeModel {
+        language: "alpha".into(),
+        units: vec![unit("u1")],
+    };
+    let mut applies = BTreeMap::new();
+    applies.insert(unit("u1"), vec![rule("r1")]);
+    let pack = pack_with(applies, vec![rule("r1"), rule("r2"), rule("r1")]);
+
+    assert_eq!(
+        plan(&model, &pack),
+        Err(PortError::DuplicateRule { rule: rule("r1") })
     );
 }
 
@@ -556,6 +609,50 @@ fn every_declared_axis_is_actually_compared() {
             "axis {axis:?} is declared but not compared"
         );
     }
+}
+
+#[test]
+fn an_unfilled_receipt_cannot_manufacture_an_explanation() {
+    // The false Green needs ASYMMETRY: a populated previous against an all-empty current — an
+    // adapter that failed to fill one in. Every axis then "differs", so before this refusal the
+    // verdict was Green/Explained over six axes for an arbitrary byte change. An empty axis is
+    // absence of information, so it buys nothing.
+    let previous = receipt();
+    let current = Receipt {
+        pin: String::new(),
+        snapshot_digest: Digest(String::new()),
+        engine_digest: Digest(String::new()),
+        rulepack_digest: Digest(String::new()),
+        toolchain_digest: Digest(String::new()),
+        formatter_digest: Digest(String::new()),
+    };
+    assert_eq!(previous.differing_axes(&current).len(), RECEIPT_AXES.len());
+
+    assert_eq!(
+        verify(
+            &previous,
+            &output(&[("a", b"x")]),
+            &current,
+            &output(&[("a", b"y")])
+        ),
+        Verification {
+            verdict: Verdict::Red,
+            delta: Delta::IncompleteReceipt {
+                regions: [region("a")].into_iter().collect(),
+            },
+        }
+    );
+
+    // ...and an unusable receipt that decided NOTHING must not turn an identical tree red. The
+    // check sits after the unchanged return for exactly this.
+    let bytes = output(&[("a", b"x")]);
+    assert_eq!(
+        verify(&previous, &bytes, &current, &bytes),
+        Verification {
+            verdict: Verdict::Green,
+            delta: Delta::Unchanged,
+        }
+    );
 }
 
 #[test]
