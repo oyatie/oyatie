@@ -301,7 +301,8 @@ edited **as text keyed by name**, never round-tripped through JSON, which reform
 ## 8. Measured baselines — frozen here, re-derived by every unit
 
 All measured on `origin/dev` @ `5e452bd70`, the tree this document was authored against. The lane was
-rebased at Land onto `origin/dev` @ `1d3105277`. Every number in this section was re-run at the new
+rebased at Land onto `origin/dev` @ `1d3105277`, and restacked again onto `origin/dev` @ `8857944`
+after PR #1621 merged. Every number in this section was re-run at the newest
 base; only the `files_scanned` row moved, and that row states the number the gate **observed**, never
 an arithmetic one.
 
@@ -342,18 +343,20 @@ surface.
 | `k8s/` → `os/` dependency edges | 0 | INV-2, with positive control. |
 | `k8s/ports/` incumbent lines | 1,162 | 289 + 386 + 236 + 251. |
 | `divergence-ledger.json` rows | 5 seeds | Growth budget 2 per wave after the seeds. |
-| `adr-citation-closure` `files_scanned` | 16,518 → **16,521** | Equality-pinned, and **observed rather than computed**: `check-adr-citation-closure-gate` asserts equality and passes at 16,521. The base fell 16,519 → 16,518 on the new dev tip — a genuine tracked deletion, not a scan narrowing — and this lane adds exactly three files carrying a scanned extension: this document, `docs/programs/k8s-port/operations/W0-F-20260809-os-overlap-archaeology.md`, and `specs/k8s-port/regenerable-regions.json`. `wave-registry.rdoc` has no scanned extension and `divergence-ledger.json` already existed, so neither is in the delta. |
+| `adr-citation-closure` `files_scanned` | 16,524 → **16,527** | Equality-pinned, and **observed rather than computed**: `check-adr-citation-closure-gate` asserted `observed 16527, frozen 16524` on the restacked tree and the row takes the number it stated. The base rose 16,518 → 16,524 across two later dev tips (PR #1621's port-engine skeleton and its journal), and this lane still adds exactly three files carrying a scanned extension: this document, `docs/programs/k8s-port/operations/W0-F-20260809-os-overlap-archaeology.md`, and `specs/k8s-port/regenerable-regions.json`. `wave-registry.rdoc` has no scanned extension and `divergence-ledger.json` already existed, so neither is in the delta. The tracked-add delta (3) and the observed census delta (+3) agree, which is what distinguishes an ADD from a narrowed scan. |
 | `adr-citation-closure` `citation_lines` | 8,896, unchanged | Only a line carrying an ADR **path** enters this census; a bare id in prose costs nothing. The draft of this document scored +2 purely from the two malformed path placeholders in T-5, and repairing them returned it to the base value. |
 | `adr-citation-closure` `adr_citation_dangling_path` | 2,002, unchanged | Held after repairing the three findings the draft introduced (T-5). Its being *unchanged* is the proof this document adds no citation debt. |
 | `lifecycle-status` `stage_not_declared` | 1,921, unchanged | Shrink-only. Declared `doc_status:` in frontmatter rather than raising it (T-4). |
 
 Two of these numbers were racing other lanes when this section was written: an in-flight census lane
 set `files_scanned` to 16,524 and `citation_lines` to 8,898, and a separate PR set `files_scanned` to
-16,518. **Do not pre-compute the Land value.** That instruction paid: by Land the second had merged
-and is the 16,518 base above, while the first had not, so the arithmetic that looked right when this
-was drafted would have been wrong by six. The equality ratchet stated the observed number and the row
-above takes it. A forge query at Land still shows the census lane open as PR #1625, so whichever of
-the two lands second pays a one-line re-freeze. That is the ratchet working, not a defect.
+16,518. **Do not pre-compute the Land value.** That instruction paid twice. At Land the second had
+merged and the first had not, so the arithmetic that looked right when this was drafted would have
+been wrong by six. Then PR #1621 merged and moved the base again, 16,518 → 16,524, and the restack
+onto that tip moved this lane's own value 16,521 → 16,527 — a delta the branch never computed and
+took from the ratchet's own `observed 16527, frozen 16524`. Each time the equality ratchet stated the
+observed number and the row above took it. Whichever lane lands next pays the same one-line
+re-freeze. That is the ratchet working, not a defect.
 
 ## 9. What this lane does not decide
 
