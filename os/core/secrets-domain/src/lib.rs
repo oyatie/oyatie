@@ -366,27 +366,31 @@ mod tests {
 
     /// No production build target may turn the model on.
     ///
-    /// The source gate is only half the barrier: it is worthless if a target
-    /// hands the crate the feature. Off-feature the crate is empty, so the
-    /// cheapest way to "fix" a build that wants modeled crypto is to add
-    /// `features = ["modeled-crypto"]` to the production library — which
-    /// nothing else in the tree would notice. This is the half that fires when
-    /// someone does that, and it is the half the sibling crates never grew.
+    /// This is the ONE route to the model that the modeled target's restricted
+    /// `visibility` cannot express. Visibility answers "who may depend on the
+    /// modeled target" — mechanically, as a buck2 analysis error. It says
+    /// nothing about the *production* target growing
+    /// `features = ["modeled-crypto"]`, which would hand the model to every
+    /// consumer of `os-secrets-domain` without touching the modeled target at
+    /// all. So this test is not redundant with visibility; it is its complement,
+    /// and it is deliberately the smallest form that covers that one route.
     ///
-    /// Proven to fire, by mutation rather than by argument: adding that
-    /// attribute to the production `rust_library` and running this test gives
+    /// Exactly one occurrence is asserted rather than parsed per target, which
+    /// also makes it anti-vacuous for free: a rename or reshape that loses the
+    /// modeled target drops the count to 0 and turns this red, so it cannot
+    /// silently stop checking anything.
+    ///
+    /// Proven to fire, by mutation rather than by argument. Adding
+    /// `features = ["modeled-crypto"]` to the production `rust_library` gives
     ///
     /// ```text
-    /// the production library `os-secrets-domain` must not enable modeled-crypto
+    /// assertion `left == right` failed: exactly one BUCK target may enable
+    /// modeled-crypto (`os-secrets-domain-modeled`)
+    ///   left: 2
+    ///  right: 1
     /// ```
-    ///
-    /// The trailing `saw_production` assertion is the anti-vacuity guard: a
-    /// renamed target or a reshaped BUCK file would otherwise make the loop
-    /// match nothing and pass for the wrong reason.
     #[test]
     fn no_production_buck_target_enables_the_model() {
-        const FEATURE: &str = "modeled-crypto";
-
         // Comments are stripped first so prose about the feature cannot be read
         // as a target enabling it.
         let buck: String = include_str!("../BUCK")
@@ -395,34 +399,52 @@ mod tests {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let mut saw_production = false;
-        for block in buck.split("\n)\n") {
-            let Some(name) = block
-                .lines()
-                .map(str::trim)
-                .find_map(|l| l.strip_prefix("name = \""))
-                .and_then(|l| l.split('"').next())
-            else {
-                continue;
-            };
-            let enables = block.contains(FEATURE);
-            if name == "os-secrets-domain" {
-                saw_production = true;
-                assert!(
-                    !enables,
-                    "the production library `{name}` must not enable {FEATURE}"
-                );
-            } else if enables {
-                assert!(
-                    name.ends_with("-modeled"),
-                    "target `{name}` enables {FEATURE} but is not a `-modeled` variant"
-                );
-            }
-        }
-        assert!(
-            saw_production,
-            "BUCK no longer declares a target named `os-secrets-domain`; \
-             this test stopped checking anything"
+        assert_eq!(
+            buck.matches("modeled-crypto").count(),
+            1,
+            "exactly one BUCK target may enable modeled-crypto \
+             (`os-secrets-domain-modeled`); a second occurrence means another \
+             target grew the feature, and zero means this guard stopped \
+             checking anything"
+        );
+    }
+
+    /// The feature must never become a DEFAULT feature.
+    ///
+    /// Non-defaultness is the whole load-bearing property: the crate-root
+    /// `cfg` only strips the crate while the feature is off, and a `default`
+    /// entry turns it on for every `cargo build` in the workspace. Before this
+    /// test that property was carried by a comment in `Cargo.toml` and nothing
+    /// else — the sibling guards read `src/lib.rs` and `BUCK`, and neither
+    /// reads the manifest. buck2 stays green through such a change because
+    /// buck2 features come from the target attribute and never consult
+    /// `Cargo.toml` at all, so buck2 alone cannot notice it.
+    ///
+    /// Proven to fire, by mutation: adding `default = ["modeled-crypto"]` to
+    /// the `[features]` section gives
+    ///
+    /// ```text
+    /// Cargo.toml [features] must not declare `default`: modeled-crypto is
+    /// non-default and that is the whole barrier
+    /// ```
+    #[test]
+    fn cargo_manifest_declares_no_default_feature() {
+        let manifest = include_str!("../Cargo.toml");
+
+        let features: Vec<&str> = manifest
+            .lines()
+            .skip_while(|l| l.trim() != "[features]")
+            .skip(1)
+            .take_while(|l| !l.trim_start().starts_with('['))
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+            .collect();
+
+        assert_eq!(
+            features,
+            ["modeled-crypto = []"],
+            "Cargo.toml [features] must not declare `default`: modeled-crypto \
+             is non-default and that is the whole barrier"
         );
     }
 

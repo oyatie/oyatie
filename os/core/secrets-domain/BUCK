@@ -1,7 +1,11 @@
 # The production library. It declares NO features, so the crate-root gate in
 # src/lib.rs strips the whole crate: off-feature there is no modeled key
-# material to reach. `no_production_buck_target_enables_the_model` asserts this
-# target keeps no `features` attribute.
+# material to reach. It has ZERO reverse dependencies today
+# (`buck2 uquery "rdeps(//..., :os-secrets-domain)"` returns only itself); it is
+# kept because ci/facade/crate-catalog-coverage registers the crate.
+# `no_production_buck_target_enables_the_model` asserts this target never grows
+# `features = ["modeled-crypto"]` — the one route to the model that restricting
+# the modeled target's `visibility` cannot express.
 rust_library(
     name = "os-secrets-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -14,16 +18,43 @@ rust_library(
 )
 
 # The model, for TEST TARGETS ONLY. Same crate name, so a test target swaps this
-# in for the production library without touching a single `use`. Depending on
-# this from a non-test target is the thing the gate exists to stop — the name
-# suffix is what the guard test keys on.
+# in for the production library without touching a single `use`.
+#
+# `visibility` is the barrier, not a convention: it is enumerated at the two
+# packages that consume this target today, so a third package depending on it
+# fails buck2 ANALYSIS rather than a test. That is the compile-time
+# impossibility this gate is for. An enumerated `visibility` was chosen over the
+# repo's usual `[]` because `[]` is package-private and both real consumers are
+# in other packages; over `["PUBLIC"]` because PUBLIC is what let a production
+# target reach the model in the first place.
+#
+# Proven to fire, by mutation. Adding this target to the `deps` of
+# `//os/core/runtime-cri-domain:os-runtime-cri-domain` — a package NOT named
+# below — and running `buck2 build //os/core/runtime-cri-domain:os-runtime-cri-domain`
+# gives BUILD FAILED before a single compile action:
+#
+#   Error running analysis for `root//os/core/runtime-cri-domain:os-runtime-cri-domain`
+#   1: `root//os/core/secrets-domain:os-secrets-domain-modeled` is not visible to
+#      `root//os/core/runtime-cri-domain:os-runtime-cri-domain`
+#
+# Pick an unrelated package when re-running this. Mutating a package the modeled
+# target itself depends on (`//os/core/kernel`) reports a configured target CYCLE
+# instead, which is a true failure for the wrong reason and does not prove
+# visibility.
+#
+# The mutation is deliberately NOT committed: a permanently-broken target would
+# redden `buck2 build //...` for every lane, which is what the affected-set FULL
+# tier runs. Same reasoning as trap T2 in the lane mapping.
 rust_library(
     name = "os-secrets-domain-modeled",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "os_secrets_domain",
     crate_root = "src/lib.rs",
     features = ["modeled-crypto"],
-    visibility = ["PUBLIC"],
+    visibility = [
+        "//os/core/kubernetes-domain:",
+        "//os/harness/difftest-app:",
+    ],
     deps = [
         "//os/core/kernel:os-kernel",
     ],

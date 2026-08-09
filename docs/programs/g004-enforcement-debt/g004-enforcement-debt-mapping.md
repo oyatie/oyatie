@@ -195,8 +195,50 @@ have caught them in seconds.
 
 ## 4. TRAPS — where the obvious translation is subtly wrong
 
-**T1 — P2 does not transfer to `os/core/secrets-domain`, and this is the single most important
-trap in the document.** The crate holds a byte-identical twin of the modeled primitives, and unlike
+**T1 — AMENDED 2026-08-09. The original prediction was WRONG and unit 2 disproved it.** The
+correction is recorded here rather than only in the unit table, because a later unit that reads the
+prediction and not the outcome will defend a claim the tree has already falsified.
+
+*What the trap predicted:* that `#[cfg(...)]` could not be applied to `os/core/secrets-domain`
+because the modeled primitives had **five production call sites**, so gating them would break the
+build; and, control-proven, that `git grep -c modeled-crypto` matched **zero** files there.
+
+*What actually happened:* unit 2 applied the gate at the **crate root**
+(`#![cfg(any(test, feature = "modeled-crypto"))]`) and the build stayed green. The five call sites
+were **not production** — every reverse dependency of the crate was test-only, so the correct move
+was to gate the whole crate at once rather than the constructors. The control grep is likewise now
+stale: `git grep -l modeled-crypto -- os/ cloud/` matches **14** files across `os/core/secrets-domain`,
+`os/core/trustd-domain`, `os/core/cluster-mgmt-domain`, `os/core/kubernetes-domain` and
+`os/harness/difftest-app`, and `os/core/secrets-domain` is now among the gated, not the ungated.
+
+*What survives from the trap:* only the finding that the primitives are genuinely broken —
+`KeyPair::from_seed` sets the private key to the seed verbatim, `InMemorySigner` is a keyed FNV MAC
+rather than a signature, and the cluster seed was persisted as plaintext. That is why the crate had
+to be gated at all. What did **not** survive is the mechanism claim.
+
+*The rule this leaves behind:* "gating breaks the build" is a claim about the **reverse-dependency
+cone**, not about call-site line numbers. Measure it with
+`buck2 uquery "rdeps(//..., //<pkg>:<target>)"` before predicting; a call site that precedes its
+file's `#[cfg(test)]` is not thereby a production caller, because the whole *crate* may have only
+test consumers.
+
+*A second, independent correction, same date:* a review of unit 2 reported a byte-identical ungated
+twin at `cloud/cloud-os/crates/oya-cloud-os-secrets-domain/`, with the trustd and cluster-mgmt twins
+alongside it. **No such path exists.** On both `origin/dev` and this branch,
+`git ls-tree -r --name-only origin/dev -- cloud/cloud-os` returns exactly **one** file,
+`cloud/cloud-os/manifest.json`; the crates were migrated into `os/` before this branch rebased. The
+review had read a **stale sibling worktree** still carrying 555 `cloud/cloud-os` files on an old
+branch. The rule: verify a path claim against the **worktree the branch is checked out in**, with
+`git ls-tree <ref>` rather than a bare `ls`, before treating it as a class gap. Note that
+`cloud/cloud-os/manifest.json` still registers 41 `oya-cloud-os-*` crates that no longer exist —
+a dangling registry row inherited from that migration, out of scope here and not introduced by G004.
+
+---
+
+*Original text, retained so the amendment above can be checked against what it corrects:*
+
+~~P2 does not transfer to `os/core/secrets-domain`, and this is the single most important
+trap in the document.~~ The crate holds a byte-identical twin of the modeled primitives, and unlike
 the two gated crates it sits on **production** paths. But applying the `#[cfg(...)]` verbatim
 **breaks the build**, because unlike `Secret::derive` (zero callers outside its own file), the twin
 has real production callers — every one of them before its file's `#[cfg(test)]`:
@@ -218,8 +260,9 @@ the callers are the defect. A unit here must decide, explicitly and in the commi
 gating the whole crate, gating the callers with it, or giving the callers a real implementation.
 **Do not open this unit expecting the cluster-mgmt diff to apply.**
 
-Verified on this branch, control-proven: `git grep -c modeled-crypto` matches **9** files across the
-two gated crates and **zero** in `os/core/secrets-domain`.
+~~Verified on this branch, control-proven: `git grep -c modeled-crypto` matches **9** files across the
+two gated crates and **zero** in `os/core/secrets-domain`.~~ Superseded — see the amendment at the
+head of T1.
 
 **T2 — no test inside the crate can watch the P2 gate bite.** The gate is
 `cfg(any(test, feature = "modeled-crypto"))`, so the test build always has the feature. A test
