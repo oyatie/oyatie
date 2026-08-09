@@ -639,13 +639,16 @@ Plus, and separately:
   ≈330 mentions), `client-go/tools/cache` (reflector/informer/DeltaFIFO), `apimachinery/pkg/watch`
   (Broadcaster/StreamWatcher/FakeWatcher), `apiserver/pkg/storage/cacher`. **These five carry a
   disproportionate share of the concurrency surface** — `wait.*` alone accounts for 27% of named
-  goroutine launches and 22% of the S1 shape. Porting them by hand, once, correctly, is worth more
+  goroutine launches and **65% of the S1 shape** (§1.4's 108 `wait.*` named launches out of §1.5's
+  165 S1 sites = 65.5%; the classifier ladder quoted in §8.3 routes every `wait.*` launch to S1).
+  Porting them by hand, once, correctly, is worth more
   than any rule in the table above, and it *shrinks the rule corpus* rather than adding to it.
 
 - **A residue of 100–160 sites requiring human restructure**, not translation:
-  74 lock-across-blocking sites (§4.2, a floor), 25 blocking-send selects (§3.2a, enumerated in §9),
-  5 closed-check idioms, 8 `WaitGroup.Wait()`-under-lock sites, and the sampled estimate's slack
-  (§3.3). These are enumerable and mostly already enumerated, which is the point: they can be
+  74 lock-across-blocking sites (§4.2, a floor — this total ALREADY CONTAINS the 8
+  `WaitGroup.Wait()`-under-lock sites broken out beneath §4.2's table, so they are not a separate
+  addend), 25 blocking-send selects (§3.2a, enumerated in §9), 5 closed-check idioms, and the
+  sampled estimate's slack (§3.3). These are enumerable and mostly already enumerated, which is the point: they can be
   scheduled as a finite, named work list rather than discovered during a multi-year port.
 
 **Read the whole table as: the concurrency surface is roughly 60–80 mechanical rules, five hand-ported

@@ -26,9 +26,11 @@ count over-counts by roughly 14% because different packages declare interfaces w
 method sets.
 
 **Emitting only pairs the program actually uses instead of every structural match is a 17x–60x
-prune**: 80,042 name-level structural matches collapse to 22,304 exact-signature matches, of which
-5,573 are between packages that can even see each other, and 1,323 are declared outright in the
-source as `var _ Iface = ...`. Structural matching is combinatorial; usage is not. The engine must
+prune**: 80,042 name-level structural matches narrow to 22,304 exact-signature matches (a LOWER
+bound on structural satisfaction, not a ceiling — see §9), 5,573 of those are between packages that
+can even see each other, and the source declares 1,323 outright as `var _ Iface = ...`. Whether the
+declared set sits inside the 22,304 was not computed, so these are separate measurements rather
+than nested ones. Structural matching is combinatorial; usage is not. The engine must
 emit impls from usage.
 
 **The orphan rule is a narrow problem, not a broad one.** Of 1,323 impls Kubernetes declares
@@ -585,7 +587,7 @@ has one gap in it.
 | Basis | Pairs | Status |
 |---|---:|---|
 | Name-only structural matches | 80,042 | upper bound, exact computation |
-| Exact-signature structural matches | 22,304 | **strict upper bound on used pairs** |
+| Exact-signature structural matches | 22,304 | **lower bound on structural satisfaction** — NOT an upper bound on used pairs (see note) |
 | …restricted to pairs whose packages can see each other | 5,573 | **not a bound** — see below |
 | Declared `var _ Iface = T{}` assertions | 1,323 | **strict lower bound on used pairs** |
 | Interface-typed downcast sites | 789, over 229 interfaces | exact; distinct probe surface |
@@ -593,7 +595,14 @@ has one gap in it.
 **The prune is 17x from exact-signature matches to declared impls (22,304 → 1,323), and 60x from
 the name-only ceiling.** That is the difference between bounded and combinatorial.
 
-**What I could not determine: the true used-pair count.** It sits somewhere in [1,323, 22,304]. I
+**Why 22,304 is not the ceiling.** §8's own method makes the exact-signature pass a LOWER bound on
+structural satisfaction: it requires canonical signature strings to match, so it misses every real
+satisfaction where the same type is spelled differently across packages (`v1.Pod` vs `corev1.Pod`).
+A really-used pair can therefore sit outside the 22,304, which means structural satisfaction
+brackets to [22,304, 80,042] and used pairs cannot be capped at 22,304. Nor is the declared set
+shown to be a subset of it — that containment was never computed.
+
+**What I could not determine: the true used-pair count.** It sits somewhere in [1,323, 80,042]. I
 will not narrow it further than the evidence allows, and the reason the obvious tightening fails is
 worth recording:
 
@@ -668,7 +677,7 @@ to port rather than re-source vendored dependencies raises the trait corpus by r
 
 Stated plainly, because an honest gap is more useful than a substituted proxy.
 
-1. **The true used-pair count.** Bracketed to [1,323, 22,304]; see §9. Needs `go/types` plus a
+1. **The true used-pair count.** Bracketed to [1,323, 80,042]; see §9. Needs `go/types` plus a
    whole-program assignability walk. This is the highest-value follow-up.
 2. **Exact structural satisfaction.** Bracketed to [22,304, 80,042]. Same blocker. The brackets are
    3.6x apart, which is wide, but both ends are computed rather than guessed and the *shape* of the
@@ -707,7 +716,7 @@ Read off the measurements, not asserted.
 7. **The orphan rule needs a crate-layering decision, not 22,304 per-site decisions** (§7). Six
    declared impls are blocked; the exposure is concentrated in ~12 high-fan-out probes where the
    trait must sink below both crates.
-8. **Roughly 50 god-interfaces (≥15 methods) and 410 named-empty marker interfaces are hand
+8. **60 god-interfaces (≥15 methods) and 410 named-empty marker interfaces are hand
    decisions, not rules** (§1). Budget them as one-time work; do not attempt to rule them.
 
 ---
