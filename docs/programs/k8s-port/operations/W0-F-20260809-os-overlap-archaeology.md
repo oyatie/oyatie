@@ -15,7 +15,7 @@ terminal_state: no-op
 
 | Authority | Version this document was authored against | Status at authoring (2026-08-09) |
 |---|---|---|
-| Repository baseline | branch `impl/os-k8s-seam-conformance` @ `e70cdecb3a44844231229508f291391210d5d423`, merge-base `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e` | `origin/dev` had advanced to `1d31052774ef580553a5ff81014849bb38d6e327` when this was written; every measurement below is taken on the branch tree, not on that tip. |
+| Repository baseline | branch `impl/os-k8s-seam-conformance` @ `8fd606a658130e29fc94075128ab7977c7775d1e`, merge-base `origin/dev` @ `1d31052774ef580553a5ff81014849bb38d6e327` | Authored at `e70cdecb3a44844231229508f291391210d5d423` over merge-base `5e452bd70449b50cc66e63ffb9253adfcd7fc96e`, while `origin/dev` had already advanced. The Land rebase moved the lane onto that tip and rewrote the authoring commit to the sha above — the id in this row is the one reachable from the landed branch, because the original is not. `git diff --stat 5e452bd70 1d3105277 -- os/` is empty, so the rebase changes no `os/` byte and every measurement below stands as taken. |
 | Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Carried from the seam mapping record. Not re-resolved here; this entry parses no upstream source. |
 | Engine | `build/port-engine/*`, v0 — path absent on this tree | Not in force. This entry emits nothing and wires nothing. |
 | Neutral rule pack | `specs/port-rules/**`, v0 — path absent on this tree | Not in force. No rule ID is touched. |
