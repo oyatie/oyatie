@@ -107,8 +107,8 @@ become optional, and digest pinning on its own does not replace it:
 - **CI** verifies the Sigstore signature and emits an immutable `@sha256:` digest.
 - **CI** projects every digest it verified into an allowlist param resource, by the same
   projection pattern as D-5.
-- **VAP** refuses any pod whose image reference is not digest-pinned **and** whose digest is
-  absent from that allowlist.
+- **VAP** refuses any pod whose image reference is not digest-pinned, **or** whose digest is
+  absent from that allowlist. Either condition alone is a refusal; both must pass to admit.
 
 The allowlist is the load-bearing half, and an earlier draft of this clause omitted it. A digest
 makes bytes immutable; it does not make their provenance authorized. Pinning alone accepts any
