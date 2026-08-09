@@ -1,3 +1,6 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
 // Cloud IAM PDP decision surface (ADR-0559, G004 slice 1).
 //
 // Mirrors the locked PDP contract family in

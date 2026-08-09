@@ -12,11 +12,9 @@ filegroup(
     visibility = ["PUBLIC"],
 )
 
-# Corpus graph extraction (ADR-0541). This top-level package made the cloud YAML corpus a build-
-# graph input; the matching extractor keeps that improvement from becoming an uncovered package.
-genrule(
-    name = "corpus-yaml-facts",
-    srcs = glob(["**/*.yaml", "**/*.yml"]),
-    out = "yaml-facts.json",
-    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//cloud:corpus-yaml-facts --prefix cloud --out $OUT $SRCS",
-)
+# No corpus-yaml-facts extraction target: the waves 25/26 rehome moved the last YAML this package
+# owned into the capability roots, which declare their own extraction (ADR-0541). The extractor
+# fails closed on an empty input set precisely so a drained glob cannot masquerade as a covered
+# corpus, so the target is removed rather than left to extract nothing. This package owns zero YAML
+# and is therefore not an observation of the corpus-index-coverage gate at all — no ceiling moves.
+# Restore an extraction target here if YAML ever lands under cloud/ outside a subpackage again.

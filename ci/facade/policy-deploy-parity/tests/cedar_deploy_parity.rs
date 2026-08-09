@@ -81,20 +81,20 @@ data:
 {{- end }}
 "#;
 const GH_987_CLOUD_PATHS: [&str; 14] = [
-    "cloud/cell-lifecycle/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cell-rebalancer/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-billing-tax/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-billing/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-data/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-iac/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-k8s/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-kms/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-network-dns/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-network/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-secrets/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/cloud-storage/iac/k8s/helm/templates/cedar.yaml",
-    "cloud/tenancy/iac/k8s/helm/templates/cedar.yaml",
+    "cell/cell-lifecycle/iac/k8s/helm/templates/cedar.yaml",
+    "cell/cell-rebalancer/iac/k8s/helm/templates/cedar.yaml",
+    "billing/tax/iac/k8s/helm/templates/cedar.yaml",
+    "billing/iac/k8s/helm/templates/cedar.yaml",
+    "data/cloud-data/iac/k8s/helm/templates/cedar.yaml",
+    "iac/iac/k8s/helm/templates/cedar.yaml",
+    "iam/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
+    "k8s/iac/k8s/helm/templates/cedar.yaml",
+    "secrets/kms/iac/k8s/helm/templates/cedar.yaml",
+    "network/dns/iac/k8s/helm/templates/cedar.yaml",
+    "network/iac/k8s/helm/templates/cedar.yaml",
+    "secrets/iac/k8s/helm/templates/cedar.yaml",
+    "storage/iac/k8s/helm/templates/cedar.yaml",
+    "tenancy/iac/k8s/helm/templates/cedar.yaml",
 ];
 
 const AUTHZ_004_DEAD_CONFIGMAP_PATHS: [&str; 1] =

@@ -118,7 +118,7 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
     // layer vocabulary even while the policy gate was green.
     let root = repo_root();
     let scan_roots = [
-        "cloud/cell-rebalancer/ARCH.md",
+        "cell/cell-rebalancer/ARCH.md",
         "comms/facade/contact-center-voice-routing",
         "data/facade/pipeline-lineage-replay-service",
         "docs/architecture/product-graph.md",
@@ -130,8 +130,8 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
         "marketplace/core/doc-set-scaffold",
         "marketplace/facade/dev-cli/src",
         "marketplace/observability/slos",
-        "oya/marketplace",
-        "oya/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
+        "marketplace",
+        "data/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
         "oya/workplace-integration",
     ];
     let forbidden_needles = [

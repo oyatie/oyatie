@@ -1,0 +1,495 @@
+{
+  "schema_version": "1.0",
+  "microservice": "forms",
+  "tier": "substrate",
+  "tier_subtype": "substrate-orchestration",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S4",
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "intelligence",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy"
+    ],
+    "consumed_by_substrates": []
+  },
+  "version": "0.1.0",
+  "owner": "axis-forms",
+  "bounded_contexts": [
+    {
+      "name": "form-lifecycle",
+      "description": "Forms authoring, rendering, validation, response collection, export, and anti-abuse controls from the form-builder, form-renderer, response-collector, validation, captcha, and export crates.",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "kernel",
+    "domain",
+    "usecase",
+    "adapter",
+    "rest"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/forms/contracts/openapi/forms.openapi.yaml"
+    ],
+    "asyncapi": [
+      "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "workflow/forms/contracts/proto/forms.proto"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "t0-suggest",
+      "file": "microservices/forms/capabilities/T0-suggest.yaml",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "t1-assist",
+      "file": "microservices/forms/capabilities/T1-assist.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "t2-auto",
+      "file": "microservices/forms/capabilities/T2-auto.yaml",
+      "risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-forms-accessibility-wcag-correctness",
+      "target": "1.0",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/accessibility-wcag-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-ai-form-build-latency",
+      "target": "95%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/ai-form-build-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-analytics-render-latency",
+      "target": "95%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/analytics-render-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-bulk-distribute-latency",
+      "target": "95%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/bulk-distribute-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-export-csv-latency",
+      "target": "95%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/export-csv-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-field-validate-latency",
+      "target": "99%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/field-validate-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-form-render-latency",
+      "target": "95%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/form-render-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-pii-encryption-correctness",
+      "target": "100%.",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/pii-encryption-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-submission-latency",
+      "target": "95%",
+      "sli": "total:",
+      "file": "workflow/observability/slos/forms/submission-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-postgres-valkey-meilisearch-clamav-waf-cdn-captcha-iac",
+      "title": "IP-001: Layer-A IaC — Postgres (Citus) + Valkey + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-001-layer-a-postgres-valkey-meilisearch-clamav-waf-cdn-captcha-iac.md"
+    },
+    {
+      "id": "IP-002-form-field-section-response-domain-kernel",
+      "title": "IP-002: Form / Field / Section / Response domain kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-002-form-field-section-response-domain-kernel.md"
+    },
+    {
+      "id": "IP-003-conditional-logic-engine-cel",
+      "title": "IP-003: Conditional-logic engine (CEL declarative DAG)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-003-conditional-logic-engine-cel.md"
+    },
+    {
+      "id": "IP-004-validation-engine",
+      "title": "IP-004: Validation engine (per-field + cross-field)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-004-validation-engine.md"
+    },
+    {
+      "id": "IP-005-versioning-and-changeset-binding",
+      "title": "IP-005: Versioning + ChangeSet binding",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-005-versioning-and-changeset-binding.md"
+    },
+    {
+      "id": "IP-006-postgres-citus-adapter-with-column-encryption",
+      "title": "IP-006: Postgres + Citus adapter with column-level envelope encryption",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-006-postgres-citus-adapter-with-column-encryption.md"
+    },
+    {
+      "id": "IP-007-valkey-adapter",
+      "title": "IP-007: Valkey adapter (RESP3 wire-compatible) (rate-limit + session)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-007-valkey-adapter.md"
+    },
+    {
+      "id": "IP-008-meilisearch-adapter",
+      "title": "IP-008: Meilisearch adapter (response search; PII-redacted)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-008-meilisearch-adapter.md"
+    },
+    {
+      "id": "IP-009-captcha-adapter",
+      "title": "IP-009: Captcha adapter (hCaptcha + Turnstile + Friendly Captcha; reCAPTCHA forbidden in eu/kr/us-hc)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-009-captcha-adapter.md"
+    },
+    {
+      "id": "IP-010-form-builder-leptos-wasm",
+      "title": "IP-010: Form-builder Leptos-WASM authoring UI",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-010-form-builder-leptos-wasm.md"
+    },
+    {
+      "id": "IP-011-form-renderer",
+      "title": "IP-011: Form renderer (Leptos-WASM + plain-HTML fallback)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-011-form-renderer.md"
+    },
+    {
+      "id": "IP-012-response-collector-rest",
+      "title": "IP-012: Response-collector REST surface",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-012-response-collector-rest.md"
+    },
+    {
+      "id": "IP-013-bulk-distribute-worker",
+      "title": "IP-013: Bulk-distribute worker (Kafka-backed)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-013-bulk-distribute-worker.md"
+    },
+    {
+      "id": "IP-014-export-worker",
+      "title": "IP-014: Export worker (CSV / XLSX / JSON / Sheets-bridge; streaming)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-014-export-worker.md"
+    },
+    {
+      "id": "IP-015-hg-forms-registration",
+      "title": "IP-015: HG-FORMS hyperscaler-gate registration + GA cutover",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-015-hg-forms-registration.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "clamav": "1.0.0",
+    "meilisearch": "1.0.0",
+    "postgres": "1.0.0",
+    "prometheus": "2.55",
+    "valkey": "1.0.0",
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
+    },
+    {
+      "id": "ADR-0234",
+      "title": "Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Platform And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
+    },
+    {
+      "id": "ADR-0236",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0238",
+      "title": "Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.forms.t0-suggest",
+      "oya.forms.t1-assist",
+      "oya.forms.t2-auto"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "naming_justifications": "forms is a BNF v4.1 kebab-case microservice slug; generated names follow oya-forms-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+    "per_usage"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "PCI-DSS",
+    "lgpd",
+    "iso27001",
+    "SOC 2 Type 2",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-forms",
+  "tier_classification": "microservice-manifested",
+  "data_classification": "PII_IDENTIFYING, this field, NORMAL for an inferred-PII field is rejected, INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "PCI-DSS",
+    "lgpd",
+    "iso27001",
+    "SOC 2 Type 2",
+    "soc2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "workflow-engine",
+    "audit-chain",
+    "sheets",
+    "governance",
+    "cell",
+    "identity",
+    "tenancy",
+    "observability",
+    "network",
+    "intelligence",
+    "ontology",
+    "detection",
+    "cloud-iac"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.08,
+    "baseline_ram_per_tenant": 256,
+    "storage_per_tenant": 5,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 2,
+      "outbound_http": 5
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-3",
+    "notes": "Form render, validation, submission ingest, analytics, export, and AI-build flows scale with requests and submissions rather than persistent sessions."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 900,
+    "rpo_p99_seconds": 60,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey",
+      "audit_chain_merkle_seal"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "dr_tier": "T1",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Forms is a first-party application that collects tenant response data and PII, but it does not execute tenant-customer code. Because submissions and audit events are product-owned workloads, ADR-0338 Tier 2 and ADR-0340 Tier-3 placement are the valid co-variant declarations.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/forms/PRD.md",
+    "microservices/forms/capacity-model.md",
+    "microservices/forms/IP-006-postgres-citus-adapter-with-column-encryption.md",
+    "microservices/forms/IP-012-response-collector-rest.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-20",
+      "2025-11-20"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/forms/contracts/openapi/forms.openapi.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "opentelemetry",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "vpc",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
+}

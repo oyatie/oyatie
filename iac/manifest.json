@@ -1,0 +1,2110 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-iac",
+  "tier": "substrate",
+  "tier_subtype": "substrate-iac",
+  "dr_tier": "T1",
+  "substrate_dag_position": {
+    "stratum": "S0",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+  },
+  "version": "0.1.0",
+  "owner": "axis-cloud-iac",
+  "bounded_contexts": [
+    {
+      "name": "cloud-iac",
+      "description": "Code-backed Cloud IaC local foundation for metadata-only OpenTofu module release records, in-memory module registry invariants, cell topology planning metadata, GitOps reconciliation evidence, and the existing IaC tier-discipline gate. No live OpenTofu registry API, REST/SDK/worker runtime, provider plan/apply, Argo CD API integration, measured SLO, active-active DR, sharding automation, or audit-chain persistence is claimed by CS-CLOUD-IAC-001. CS-CLOUD-IAC-MODULE-REGISTRY-API-BOUNDARY-001 adds a pure Rust API boundary for OpenTofu module registry discovery, versions, and download DTOs only; no REST server or live endpoint is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-ROUTE-BOUNDARY-001 adds a pure in-process route boundary for the OpenTofu module registry discovery, versions, and download paths only; no HTTP server or live endpoint is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-REST-ROUTER-001 adds a framework-free REST router boundary registered with oya-http-router-kernel for OpenTofu module registry discovery, versions, and download routes only; no live HTTP listener/server/runtime is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001 adds an in-process runtime composition crate that dispatches REST-router matches into the API DTO boundary only; no live HTTP listener/server, deployed endpoint, auth runtime, provider runtime, FD-001 tenant workload hosting, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-HTTP-HANDLER-001 adds a transport-neutral HTTP handler boundary that renders OpenTofu-compatible JSON responses from the runtime dispatcher only; no live HTTP listener/server, deployed endpoint, auth runtime, provider runtime, FD-001 tenant workload hosting, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001 assembles the transport-neutral handler into the canonical Hyper-adapter router/middleware dispatch path only; no socket bind, live listener/server, deployed endpoint, auth runtime, provider runtime, FD-001 tenant workload hosting, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-METHOD-SEAM-001 corrects the canonical router/Hyper-adapter dispatch seam so registered OpenTofu module-registry paths with unsupported methods return 405 while unknown paths remain 404; no socket bind, live listener/server, deployed endpoint, auth runtime, provider runtime, FD-001 tenant workload hosting, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001 adds deterministic one-connection local loopback listener evidence for the assembled module-registry service through Hyper request/response conversion only; no daemonized listener, deployed endpoint, auth runtime, provider runtime, FD-001 tenant workload hosting, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-APP-ENTRYPOINT-001 adds a local app composition root with health/liveness routes, binary entrypoint metadata, Helm cargoPackage alignment, and a bounded loopback daemon harness only; no deployed endpoint, production auth runtime, persistence, FD-001 tenant workload hosting, Argo CD rollout, Kubernetes rollout, measured SLO, DR, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-APP-RELEASE-INDEX-LOAD-001 adds a constrained std-only loader that reads the gate-validated repo-local OpenTofu module release-index into the local app registry at startup; no registry publish path, object-store archive serving, production auth runtime, deployed endpoint, provider runtime, FD-001 tenant workload hosting, or cloud provisioning is claimed. CS-CLOUD-IAC-MODULE-REGISTRY-APP-ARTIFACT-DOWNLOAD-001 aligns the local app download response with repo-local protocol fixtures by returning /artifacts/modules/<archive>.zip locations and serving matching local archive bytes from the deterministic archive root when present; this is local filesystem artifact serving only, with no object store, production auth runtime, deployed endpoint, registry publish path, signed modules, provider runtime, FD-001 tenant workload hosting, or cloud provisioning claim. CS-CLOUD-IAC-MODULE-REGISTRY-APP-ARCHIVE-DIGEST-001 adds request-time SHA-256 verification before the local app serves module archive bytes from the deterministic archive root; this is local filesystem integrity checking only, with no signing/SLSA/VSA attestation verification, object store, production auth runtime, deployed endpoint, registry publish path, provider runtime, FD-001 tenant workload hosting, or cloud provisioning claim. CS-CLOUD-IAC-MODULE-REGISTRY-APP-REQUEST-AUTH-001 adds a local fail-closed bearer-header gate for registered OpenTofu module-registry and artifact routes while keeping /healthz and /livez public; this is a local request-auth seam only, with no production auth/Cedar runtime, tenant identity, token issuance/rotation, TLS termination, deployed endpoint, provider runtime, FD-001 tenant workload hosting, or cloud provisioning claim. CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-SOURCE-001 adds optional OpenTofu s3::https:// and gcs::https:// archive source locations for module-registry download responses; this is a source-location contract only, with no live object-store upload/download serving, bucket provisioning, IAM policy, object versioning/generation enforcement, signed URL, CDN, deployed endpoint, provider runtime, FD-001 tenant workload hosting, or cloud provisioning claim.",
+      "crates": [
+        "oya-check-iac-tier-discipline",
+        "oya-cloud-iac-api",
+        "oya-cloud-iac-app",
+        "oya-cloud-iac-domain",
+        "oya-cloud-iac-rest",
+        "oya-cloud-iac-infrastructure"
+      ]
+    }
+  ],
+  "layers": [
+    "domain",
+    "api",
+    "rest",
+    "runtime"
+  ],
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "iac/contracts/proto/cloud-iac.proto"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "metadata-only-opentofu-module-release",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "in-memory-module-registry-invariants",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cell-topology-plan-metadata",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "gitops-reconciliation-evidence-metadata",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "iac-tier-discipline-gate",
+      "file": "crates/oya-check-iac-tier-discipline/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "local-opentofu-module-catalog",
+      "file": "microservices/cloud-iac/tofu/modules/catalog.json",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "local-opentofu-module-catalog-coherence-invariants",
+      "file": "crates/oya-cloud-iac-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-catalog-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-catalog-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-gitops-evidence-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-cell-topology-gate",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs",
+      "risk_class": "high"
+    },
+    {
+      "file": "cloud/cloud-ci/gates/cloud-iac-opentofu-validation-gate/src/main.rs",
+      "name": "cloud-iac-opentofu-validation-gate",
+      "risk_class": "high",
+      "tier": "T1"
+    },
+    {
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-provenance-gate/src/main.rs",
+      "name": "cloud-iac-module-provenance-gate",
+      "risk_class": "high",
+      "tier": "T1"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-provider-readiness-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-provider-readiness-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-provider-requirements-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-provider-requirements-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-provider-lockfile-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-provider-lockfile-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-provider-signature-review-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-provider-signature-review-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-release-index-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-release-index-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-archive-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-archive-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-protocol-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-api-boundary",
+      "file": "crates/oya-cloud-iac-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-route-boundary",
+      "file": "crates/oya-cloud-iac-api/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-rest-router",
+      "file": "crates/oya-cloud-iac-rest/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-runtime-composition",
+      "file": "crates/oya-cloud-iac-infrastructure/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-http-handler",
+      "file": "crates/oya-cloud-iac-infrastructure/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-service-assembly",
+      "file": "crates/oya-cloud-iac-infrastructure/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-method-seam",
+      "file": "crates/oya-http-runtime-hyper-adapter/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-loopback-listener-harness",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-entrypoint",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-release-index-loader",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-artifact-download",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-archive-digest",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-request-auth",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-object-source",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-app-object-pinning",
+      "file": "crates/oya-cloud-iac-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-release-index-object-pinning-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-release-index-object-pinning-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-module-registry-protocol-object-source-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-object-source-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-cell-topology-gitops-identity-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-cell-topology-gitops-identity-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-gitops-signed-image-param-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-signed-image-param-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-gitops-helm-param-pair-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-helm-param-pair-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-helm-chart-signed-image-wiring-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-helm-chart-signed-image-wiring-gate/src/main.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloud-iac-kubewarden-admission-policy-gate",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+      "risk_class": "high"
+    }
+  ],
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_no_runtime_sli",
+    "owner": "axis-cloud-iac",
+    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover_on": "2026-12-31",
+    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+  },
+  "ips": [
+    {
+      "id": "CS-CLOUD-IAC-001",
+      "title": "Metadata-only OpenTofu module registry, cell topology, and GitOps evidence foundation",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-CATALOG-COHERENCE-001",
+      "title": "Code-backed local OpenTofu module catalog coherence invariants",
+      "acceptance_status": "implemented-local-domain-guard",
+      "file": "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
+      "title": "Cloud-ci governance lane for Cloud IaC OpenTofu module catalog coherence",
+      "acceptance_status": "implemented-local-gate",
+      "file": "cloud/cloud-ci/gates/oya-ci cloud-iac module catalog gate/src/main.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001",
+      "title": "Cloud-ci governance lane for Cloud IaC Argo CD Application template evidence",
+      "acceptance_status": "implemented-local-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001",
+      "title": "Cloud-ci governance lane for Cloud IaC cell topology evidence",
+      "acceptance_status": "implemented-local-gate",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",
+      "title": "Cloud-ci governance lane for OpenTofu module registry protocol fixtures",
+      "acceptance_status": "implemented-local-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-gate/src/main.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-API-BOUNDARY-001",
+      "title": "Pure Rust API boundary for OpenTofu module registry discovery, versions, and download DTOs",
+      "acceptance_status": "implemented-local-api-boundary",
+      "file": "crates/oya-cloud-iac-api/tests/cloud_iac_api.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001",
+      "title": "In-process runtime composition for OpenTofu module registry REST router and API boundary",
+      "acceptance_status": "implemented-local-runtime-composition",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-HTTP-HANDLER-001",
+      "title": "Transport-neutral HTTP handler for OpenTofu module registry responses",
+      "acceptance_status": "implemented-local-http-handler-boundary",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001",
+      "title": "Canonical Hyper-adapter router and middleware assembly for OpenTofu module registry handler",
+      "acceptance_status": "implemented-local-service-assembly",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-METHOD-SEAM-001",
+      "title": "Canonical router and Hyper-adapter method-mismatch seam for OpenTofu module registry dispatch",
+      "acceptance_status": "implemented-local-dispatch-seam",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001",
+      "title": "Deterministic one-connection loopback listener harness for OpenTofu module registry service assembly",
+      "acceptance_status": "implemented-local-loopback-harness",
+      "file": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ENTRYPOINT-001",
+      "title": "Local Cloud IaC app entrypoint for module registry health and bounded loopback serving",
+      "acceptance_status": "implemented-local-app-entrypoint",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-RELEASE-INDEX-LOAD-001",
+      "title": "Local Cloud IaC app release-index loader for OpenTofu module registry startup state",
+      "acceptance_status": "implemented-local-release-index-loader",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ARTIFACT-DOWNLOAD-001",
+      "title": "Local Cloud IaC app artifact download location and filesystem archive serving seam",
+      "acceptance_status": "implemented-local-artifact-download-seam",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ARCHIVE-DIGEST-001",
+      "title": "Local Cloud IaC app request-time SHA-256 verification for module archive bytes",
+      "acceptance_status": "implemented-local-archive-digest-check",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-REQUEST-AUTH-001",
+      "title": "Local Cloud IaC app request bearer gate for module registry and artifact routes",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
+      "acceptance_status": "implemented-local-request-auth-seam"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-SOURCE-001",
+      "title": "Local Cloud IaC app OpenTofu S3/GCS object-source download location seam",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
+      "acceptance_status": "implemented-local-object-source-location-seam"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-PINNING-001",
+      "title": "Local Cloud IaC app object-source integrity and provider pin metadata for S3/GCS module archives",
+      "file": "crates/oya-cloud-iac-app/tests/cloud_iac_app.rs",
+      "acceptance_status": "implemented-local-object-source-metadata-pin"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-OBJECT-PINNING-GATE-001",
+      "title": "Cloud IaC release-index gate guard for optional S3/GCS object-source pin metadata",
+      "acceptance_status": "implemented-local-release-index-object-source-pin-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-release-index-gate/src/main.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-OBJECT-SOURCE-GATE-001",
+      "title": "Cloud IaC module-registry protocol fixture guard for S3/GCS object-source download locations",
+      "acceptance_status": "implemented-local-protocol-object-source-location-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-module-registry-protocol-gate/src/main.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001",
+      "title": "Cloud IaC cell topology to GitOps template identity coherence guard",
+      "acceptance_status": "implemented-local-cell-topology-gitops-identity-gate",
+      "file": "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-GITOPS-SIGNED-IMAGE-PARAM-GATE-001",
+      "title": "Cloud IaC GitOps signed image Helm parameter coherence guard",
+      "acceptance_status": "implemented-local-gitops-signed-image-param-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs"
+    },
+    {
+      "id": "CS-CLOUD-IAC-GITOPS-HELM-PARAM-PAIR-GATE-001",
+      "title": "Cloud IaC GitOps Helm signed-image parameter pair coherence guard",
+      "acceptance_status": "implemented-local-gitops-helm-param-pair-gate",
+      "file": "cloud/cloud-ci/gates/cloud-iac-gitops-evidence-gate/src/main.rs"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0218",
+      "title": "OpenTofu Not Terraform",
+      "scope": "repo",
+      "file": "docs/adr-archive/ADR-0218-tenant-granular-control-surface.md"
+    },
+    {
+      "id": "ADR-0339",
+      "title": "Shared IaC Module Library",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0342",
+      "title": "Api Versioning Hybrid Date Public Semver Sdk",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0346",
+      "title": "Protected Oya-Ci Required Context Must Remain Canonical",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0349",
+      "title": "GitHub Actions oya-ci Argocd Self Hostable Ci Cd Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "not_claimed_cs_cloud_iac_001: no implemented Cloud IaC runtime circuit-breaker/bulkhead or PrometheusRule evidence",
+    "tenant_rate_limit": "not_claimed_cs_cloud_iac_001: no implemented per-tenant Cloud IaC API quota/rate-limit enforcement",
+    "golden_signals": "not_claimed_cs_cloud_iac_001: no implemented metrics/OpenSLO/golden-signal emission evidence",
+    "error_budget_burn": "not_claimed_cs_cloud_iac_001: SLO list is empty because no measured Cloud IaC SLI or burn-rate rule is implemented yet"
+  },
+  "audit_chain": {
+    "enabled": false,
+    "seal_events": [],
+    "non_claim": "CS-CLOUD-IAC-001 creates metadata evidence refs and an evidence bundle but does not implement audit-chain persistence or sealing."
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "SecretReference metadata only through Cloud Secrets; Cloud IaC does not store raw provider credentials, kubeconfigs, tokens, state files, or secret material."
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false,
+    "runtime_evidence_status": "not_measured_cs_cloud_iac_001",
+    "non_claim": "CS-CLOUD-IAC-001 records cell topology metadata and forbids default cross-cell traffic in domain validation, but does not implement or measure live mesh policy enforcement."
+  },
+  "naming_justifications": "Cloud IaC now claims only the implemented oya-cloud-iac-domain foundation crate and the existing oya-check-iac-tier-discipline crate. The previous oya-cloud-iac-iac-* crate roster was removed from this manifest because none of those crates exists in the workspace.",
+  "owner_team": "axis-cloud-iac",
+  "module_library_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "actual_path_root": "microservices/cloud-iac/tofu/modules",
+    "catalog_status": "local-foundation-skeleton-index",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "registry_protocol_fields_modeled": [
+      "namespace",
+      "name",
+      "system",
+      "version",
+      "source_path",
+      "main_file",
+      "release_status",
+      "evidence_ref"
+    ],
+    "canonical_adr_0339_path_not_claimed": "The full ADR-0339 module library has not been materialized; IAC-001 adds only the aws-guest/sg-baseline fixture recorded in adr_0339_module_library_fixture_scope while the pre-existing tofu/modules skeleton catalog remains separate local-foundation evidence.",
+    "non_claims": [
+      "no live private module registry API",
+      "no signed or cosign-attested module release index",
+      "no OpenTofu providers mirror, provider dependency lock, or provider provenance evidence",
+      "no tofu test/plan/apply evidence",
+      "no provider-resource-complete module bodies"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-module-catalog",
+      "runtime_mode": "local-filesystem-json-gate",
+      "types": [
+        "LocalOpenTofuModuleCatalog",
+        "LocalOpenTofuModuleCatalogEntry",
+        "LocalModuleReleaseStatus"
+      ],
+      "enforced_invariants": [
+        "manifest catalog path, source root, module count, module names, and modeled fields must match the catalog",
+        "catalog id and source path root are non-empty repo-relative paths",
+        "every module source_path must stay under the declared source_path_root",
+        "every module main_file must be exactly <source_path>/main.tofu",
+        "every module main_file must exist in the local workspace",
+        "duplicate namespace/name/system/version entries are rejected",
+        "local-foundation-skeleton entries cannot claim provider resources, materialized outputs, or tofu tests"
+      ],
+      "runtime_non_claim": "First-class Oya local filesystem/JSON catalog gate only; no live registry API, provider lockfile, module signing, provider credentials, tofu test/plan/apply, or Argo CD API integration is implemented by this ChangeSet. OpenTofu init/validate evidence is handled separately by CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001."
+    }
+  },
+  "adr_0339_module_library_fixture_scope": {
+    "task_id": "t_be53da65",
+    "status": "implemented-fixture-iac-001",
+    "catalog": "iac/modules/catalog.json",
+    "doc_catalog": "docs/standards/iac-module-catalog.md",
+    "module_count": 1,
+    "module_names": [
+      "aws-guest/sg-baseline"
+    ],
+    "wrapper_fixtures": [
+      "billing/iac/aws-guest/main.tofu"
+    ],
+    "version_pins": [
+      "iac/modules/aws-guest/sg-baseline/v0.1.0"
+    ],
+    "thin_wrapper_line_ceiling": 80,
+    "runtime_non_claim": "IAC-001 materializes one ADR-0339 fixture slice only: a metadata-only aws-guest/sg-baseline OpenTofu module, an in-repo relative-source cloud-billing wrapper, and catalog entries. It does not run OpenTofu init/plan/apply, call provider APIs, or provision cloud resources."
+  },
+  "data_classification": "INTERNAL_ONLY, AUDIT, SECRET",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "hipaa",
+    "iso27001",
+    "soc2",
+    "PCI-DSS",
+    "SOC 2 Type 2",
+    "lgpd",
+    "NIS2",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "tenancy",
+    "identity",
+    "audit-chain",
+    "observability",
+    "cloud-secrets",
+    "cloud-kms"
+  ],
+  "failure_domain": "cloud-iac-metadata-foundation",
+  "criticality_tier": "T1",
+  "layer": "domain",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.0,
+    "baseline_ram_per_tenant": 0,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {},
+    "scaling_dimension": "not_claimed_runtime",
+    "cell_placement_class": "Tier-1",
+    "notes": "CS-CLOUD-IAC-001 is a pure domain/metadata foundation. Runtime OpenTofu execution, module registry service, Argo CD API integration, measured capacity, autoscaling, and SLOs remain explicit non-claims."
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    },
+    "non_claim": "CS-CLOUD-IAC-001 records cell topology metadata only; it does not implement autosharding, auto-rebalance, dynamic-sharding execution, tenant migration, or audit-chain persistence."
+  },
+  "dr": {
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "dr_tier": "not_claimed_runtime",
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No Cloud IaC runtime persistence store, restore drill, active-active replication, or failover evidence is implemented by CS-CLOUD-IAC-001."
+  },
+  "pod_runtime_tier": 1,
+  "pod_runtime_tier_justification": "Cloud IaC controls deployment/cell topology metadata for future high-criticality infrastructure. Runtime pods are not implemented yet; Tier-1 is retained only as intended future isolation class.",
+  "pod_runtime_tier_surface_evidence": [
+    "crates/oya-cloud-iac-domain/src/lib.rs",
+    "crates/oya-cloud-iac-domain/tests/cloud_iac_foundation.rs",
+    "crates/oya-check-iac-tier-discipline/src/lib.rs",
+    "cloud/cloud-iac/tofu/modules/catalog.json",
+    "marketplace/facade/dev-cli/src/cloud_iac_cell_topology_gate.rs",
+    "cloud/cloud-iac/cell-topology/foundation.json"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 0,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
+    "deprecation_calendar": [],
+    "public_surface_files": {}
+  },
+  "consumes_upstream_oss": [
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [],
+  "foundation_non_claims": [
+    "no oya-cloud-iac-iac-* crates exist or are claimed",
+    "no REST, SDK, worker, provider adapter, OpenTofu CLI runner, Argo CD API adapter, Postgres registry adapter, rollback engine, or drift detector runtime is implemented",
+    "no measured SLO, burn-rate, active-active DR, sharding execution, live mesh enforcement, provider lockfile, tofu test/plan/apply, or capacity telemetry evidence exists for Cloud IaC runtime",
+    "legacy microservices/cloud-iac/*.md IP files and capability YAMLs may remain historical planning/prose but are not used as implementation-ready evidence by this manifest",
+    "CS-CLOUD-IAC-MODULE-CATALOG-GATE-001 adds a cloud-ci/oya-ci governance lane for manifest/catalog/main.tofu coherence but does not implement a private module registry, module signing, provider lockfiles, provider-resource-complete modules, or tofu init/validate/plan/apply runtime.",
+    "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001 adds a cloud-ci/oya-ci governance lane for Argo CD Application evidence-template coherence but does not implement ArgoCD API integration, repository credentials, Kubernetes API calls, live sync/diff/health/prune/self-heal execution, cosign verification, provider APIs, or OpenTofu runtime.",
+    "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001 adds a cloud-ci/oya-ci governance lane for Cloud IaC cell topology evidence but does not implement autosharding, auto-rebalance, dynamic sharding, tenant migration, ArgoCD/Kubernetes API calls, OpenTofu CLI execution, provider APIs, live mesh enforcement, capacity telemetry, SLOs, DR, or cloud provisioning runtime.",
+    "CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001 adds first-class local OpenTofu init -backend=false and validate evidence in temporary module copies, but does not implement tofu test, plan, apply, provider APIs, provider credentials, state backends, provider lock/provenance, provider-resource-complete modules, registry APIs, ArgoCD/Kubernetes APIs, drift detection, rollback, SLO, DR, or capacity telemetry runtime.",
+    "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001 adds a first-class local SHA-256 module provenance gate for catalog module source files, but does not implement cosign/Sigstore signing, SLSA attestation generation, provider dependency lockfiles, provider provenance, provider APIs, provider credentials, private module registry APIs, OpenTofu test/plan/apply, provider-resource-complete modules, or cloud provisioning runtime.",
+    "CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001 added a first-class local provider-readiness inventory gate for future provider families and lock/signature/provenance requirements; later CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001 materializes required_providers HCL only, while provider dependency lockfiles inside modules, provider installation in source, provider configuration, provider APIs, provider credentials, provider resources, provider provenance, module signing, SLSA attestations, tofu test/plan/apply, and cloud provisioning runtime remain non-claims.",
+    "CS-CLOUD-IAC-PROVIDER-LOCKFILE-GATE-001 adds a first-class local OpenTofu provider lockfile gate and committed multi-platform .terraform.lock.hcl for the provider-readiness families, but does not implement provider installation in source, provider configuration, provider credentials, provider APIs, provider provenance verification, module signing, SLSA attestations, tofu test/plan/apply, state backend access, provider-resource-complete modules, or cloud provisioning runtime.",
+    "CS-CLOUD-IAC-PROVIDER-SIGNATURE-REVIEW-GATE-001 adds a first-class local OpenTofu provider signer-key review gate for the committed providers.tofu and .terraform.lock.hcl, but does not implement independent provider provenance verification, VSA/SLSA attestation generation or verification, module signing, Sigstore/cosign execution, provider installation in source, provider configuration, provider credentials, provider APIs, tofu test/plan/apply, state backend access, provider-resource-complete modules, or cloud provisioning runtime.",
+    "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001 adds a first-class local OpenTofu module-registry-shaped release index gate for catalog/provenance/provider-lock evidence, but does not implement a private module registry API, module service discovery, download endpoint, module archive build, module signing/Sigstore/cosign, SLSA attestation generation, tofu test/plan/apply, provider-resource-complete modules, provider APIs, or cloud provisioning runtime.",
+    "CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001 adds a first-class local OpenTofu required_providers materialization gate and explicit reusable-module provider requirement HCL matching provider-readiness.json, but does not implement provider configuration, provider resources/data sources, provider lockfiles inside module trees, provider installation in source, provider provenance, module signing, SLSA/VSA attestations, tofu test/plan/apply, provider APIs, credentials, state backend access, private registry runtime, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-ARCHIVE-GATE-001 builds deterministic local module archive ZIP bytes and archive-manifest SHA-256 evidence only; no private registry service/API, service discovery, live download endpoint, module signing/Sigstore/cosign, SLSA/VSA attestation, provider runtime, tofu test/plan/apply, state backend access, provider-resource-complete modules, or cloud provisioning is claimed.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001 materializes repo-local OpenTofu module registry protocol fixtures for service-discovery, versions, and download response shapes only; no private module registry API, live service discovery endpoint, live module download endpoint, registry publish path, module signing/Sigstore/cosign, SLSA/VSA attestation, provider runtime, tofu test/plan/apply, state backend access, provider-resource-complete modules, or cloud provisioning is claimed.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-API-BOUNDARY-001 adds a pure Rust Cloud IaC module-registry API boundary crate and domain version lookup helpers only; no REST server, HTTP router, live service discovery endpoint, live module versions/download endpoint, registry publish path, object-store download serving, authentication runtime, database adapter, module signing/Sigstore/cosign, SLSA/VSA attestation, provider runtime, tofu test/plan/apply, state backend access, provider-resource-complete modules, or cloud provisioning is claimed.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-ROUTE-BOUNDARY-001 adds a pure in-process OpenTofu module registry route boundary for GET discovery, versions, and download paths, but does not implement a REST server, HTTP listener/router runtime, live service discovery endpoint, live versions/download endpoint, auth runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-REST-ROUTER-001 adds a framework-free OpenTofu module registry REST router boundary registered with oya-http-router-kernel, but does not implement a live HTTP listener, Hyper server composition, deployed endpoint, auth runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001 composes the framework-free REST router match with the pure API DTO boundary in-process at the runtime role, but does not implement a live HTTP listener, Hyper server, deployed endpoint, request body handling, auth runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-HTTP-HANDLER-001 adds a transport-neutral HTTP request/response handler for OpenTofu module registry discovery, versions, and download JSON responses, but does not implement a live HTTP listener, Hyper server, deployed endpoint, request authentication runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001 assembles the module-registry HTTP handler into the repo-local Hyper-adapter Router<SyncHandler> plus empty middleware chain and safe ServerConfig metadata, but does not bind sockets, start a live HTTP listener, deploy service discovery/versions/download endpoints, implement request authentication runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-METHOD-SEAM-001 corrects canonical router/Hyper-adapter dispatch semantics for registered-path wrong-method requests (405) versus unknown paths (404), but does not bind sockets, start a live HTTP listener, deploy service discovery/versions/download endpoints, implement request authentication runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001 adds deterministic one-connection local loopback listener evidence through the canonical Hyper request/response conversion boundary, but does not run a daemonized listener, deploy service discovery/versions/download endpoints, implement request authentication runtime, database/object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ENTRYPOINT-001 adds a local app composition root, /healthz and /livez probe handlers, binary name metadata, Helm cargoPackage alignment, and bounded loopback serving evidence only; no production authentication runtime, persistence, module object storage, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 tenant workload hosting, Argo CD rollout, Kubernetes rollout, measured SLO, DR, or cloud provisioning is claimed.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-RELEASE-INDEX-LOAD-001 loads gate-validated repo-local release-index JSON into the local app registry using std-only parsing and domain validation, but does not implement registry publish, database/object-store archive serving, signed modules, production auth, deployed endpoints, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ARTIFACT-DOWNLOAD-001 returns protocol-fixture-aligned /artifacts/modules/<archive>.zip locations and serves local filesystem archive bytes from target/oya-cloud-iac/module-archives when present, but does not implement object-store serving, registry publish, production auth, deployed endpoints, signed modules/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ARCHIVE-DIGEST-001 verifies local filesystem archive bytes against release-index archive_sha256 before serving /artifacts/modules/<archive>.zip, but does not implement object-store serving, registry publish, production auth, deployed endpoints, signed modules/SLSA/VSA verification, tofu plan/apply, provider runtime, FD-001 dogfood tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-REQUEST-AUTH-001 adds a local fail-closed bearer-header middleware gate for registered module-registry and artifact routes while keeping health/liveness public, but does not implement production authentication, Cedar policy evaluation, tenant identity, token issuance/rotation, TLS termination, deployed endpoints, object-store serving, signing/SLSA/VSA, tofu plan/apply, provider runtime, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-SOURCE-001 adds optional OpenTofu s3::https:// and gcs::https:// archive source locations to the local release-index/app download path, but does not implement live object-store upload/download serving, bucket provisioning, IAM policies, object versioning/generation enforcement, signed URLs, CDN, TLS termination, production auth/Cedar, deployed endpoints, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-PINNING-001 requires local release-index object-source rows to carry archive_source_integrity_sha256 plus provider-specific S3 archive_source_version_id or GCS archive_source_generation metadata, but does not implement live S3/GCS object reads, object-store precondition calls, bucket/IAM provisioning, signed URLs, CDN, production auth/Cedar, deployed endpoints, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-OBJECT-PINNING-GATE-001 extends the local module release-index gate so optional archive_source_location rows fail closed unless local archive_source_integrity_sha256 and provider-specific S3 archive_source_version_id or GCS archive_source_generation metadata are present and coherent; it does not implement live S3/GCS reads, object-store precondition calls, bucket/IAM provisioning, signed URLs, CDN, production auth/Cedar, deployed endpoints, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-OBJECT-SOURCE-GATE-001 extends the local module-registry protocol fixture gate so release-index archive_source_location rows must be mirrored by protocol download response locations with object-source fixture metadata; it does not implement live S3/GCS reads, object-store precondition calls, bucket/IAM provisioning, signed URLs, CDN, production auth/Cedar, deployed endpoints, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001 extends the local cell-topology gate so each cell gitops_template must carry topology-derived region/cell-id/tenant-id/isolation-tier/default-cross-cell-traffic-allowed metadata labels; it does not implement ArgoCD API calls, Kubernetes API calls, live sync/diff/health/prune/self-heal, mesh runtime, autosharding, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-GITOPS-SIGNED-IMAGE-PARAM-GATE-001 extends the local GitOps evidence gate so each Argo CD Application template must carry Helm parameters for image.digest={{signed_image_digest}} and image.cosign.required=true; it does not implement cosign verification execution, image signing, admission controllers, ArgoCD API calls, Kubernetes API calls, live sync/diff/health/prune/self-heal, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning.",
+    "CS-CLOUD-IAC-GITOPS-HELM-PARAM-PAIR-GATE-001 extends the local GitOps evidence gate so signed-image Helm parameter names must be immediately paired with their expected values (image.digest={{signed_image_digest}}, image.cosign.required=true); it does not implement cosign verification execution, image signing, admission controllers, ArgoCD API calls, Kubernetes API calls, live sync/diff/health/prune/self-heal, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning."
+  ],
+  "gitops_evidence_scope": {
+    "templates_root": "microservices/cloud-iac/iac",
+    "template_count": 5,
+    "contexts": [
+      "aws-guest",
+      "colo",
+      "oci-guest",
+      "on-prem",
+      "oyatie-cloud-provider"
+    ],
+    "application_kind": "argoproj.io/v1alpha1/Application",
+    "application_fields_modeled": [
+      "apiVersion",
+      "kind",
+      "metadata.namespace",
+      "metadata.labels.oyatie.com/adr",
+      "metadata.labels.oyatie.com/context",
+      "metadata.annotations.cosign.sigstore.dev/required",
+      "metadata.annotations.oyatie.com/audit-chain-event",
+      "metadata.annotations.oyatie.com/fail-open",
+      "spec.project",
+      "spec.source.repoURL",
+      "spec.source.targetRevision",
+      "spec.source.path",
+      "spec.destination.server",
+      "spec.destination.namespace",
+      "spec.syncPolicy.automated.prune",
+      "spec.syncPolicy.automated.selfHeal",
+      "spec.syncPolicy.syncOptions",
+      "spec.source.helm.parameters.image.digest",
+      "spec.source.helm.parameters.image.cosign.required"
+    ],
+    "metadata_only_posture": {
+      "repo_url": "scaffold-only: {{repo_url}}",
+      "target_revision": "scaffold-only: {{target_revision}}",
+      "cluster_api_server": "scaffold-only: {{cluster_api_server}}",
+      "tenant_namespace": "scaffold-only: {{tenant_namespace}}",
+      "credential_storage": "forbidden in templates; repository credentials remain external SecretReference/OpenBao metadata only"
+    },
+    "non_claims": [
+      "no ArgoCD API integration",
+      "no Kubernetes API integration",
+      "no repository credentials, kubeconfigs, tokens, passwords, SSH private keys, or raw secret material stored in templates",
+      "no live sync, diff, health, prune, self-heal, rollout, or rollback execution evidence",
+      "no cosign verification call or image-signature admission execution by this local gate"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-GITOPS-EVIDENCE-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-gitops-evidence",
+      "runtime_mode": "local-filesystem-yaml-template-gate",
+      "enforced_invariants": [
+        "manifest context list and template_count must match repo-local */argocd/apps/template.yaml files",
+        "each template must declare an argoproj.io/v1alpha1 Application",
+        "ADR-0349, ADR-0181, cosign-required, audit-chain-event, and fail-open=false metadata must be present",
+        "repoURL, targetRevision, cluster server, and tenant namespace must remain scaffolds",
+        "automated prune/selfHeal and CreateNamespace/ServerSideApply sync options must be present",
+        "credential-like material markers are rejected"
+      ],
+      "runtime_non_claim": "First-class Oya local filesystem/YAML-template gate only; no ArgoCD API, Kubernetes API, repository credential, live sync, health query, diff, prune, self-heal, rollout, rollback, cosign verification, provider API, or OpenTofu CLI execution is implemented by this ChangeSet."
+    },
+    "signed_image_param_gate_changeset": "CS-CLOUD-IAC-GITOPS-SIGNED-IMAGE-PARAM-GATE-001",
+    "signed_image_required_helm_parameters": {
+      "image.digest": "{{signed_image_digest}}",
+      "image.cosign.required": "true"
+    },
+    "signed_image_param_gate_invariants": [
+      "each Argo CD Application template must keep Helm parameter name image.digest",
+      "each Argo CD Application template must keep image.digest value {{signed_image_digest}} as metadata-only signed-image scaffold",
+      "each Argo CD Application template must keep Helm parameter name image.cosign.required",
+      "each Argo CD Application template must keep image.cosign.required value true",
+      "signed-image parameter validation is local template text validation only; no cosign, admission-controller, Argo CD, or Kubernetes API call is performed"
+    ],
+    "signed_image_param_gate_non_claim": "local-gitops-template-signed-image-parameter-gate-no-cosign-or-argocd-runtime",
+    "helm_param_pair_gate_changeset": "CS-CLOUD-IAC-GITOPS-HELM-PARAM-PAIR-GATE-001",
+    "helm_param_pair_gate_invariants": [
+      "image.digest Helm parameter name must be immediately followed by value {{signed_image_digest}}",
+      "image.cosign.required Helm parameter name must be immediately followed by value true",
+      "orphan value lines or values under wrong parameter names do not satisfy signed-image parameter coherence",
+      "parameter pair validation is local template text validation only; no Helm, cosign, admission-controller, Argo CD, or Kubernetes API call is performed"
+    ],
+    "helm_param_pair_gate_non_claim": "local-gitops-template-helm-parameter-pair-gate-no-helm-cosign-or-argocd-runtime"
+  },
+  "helm_chart_signed_image_wiring_scope": {
+    "changeset": "CS-CLOUD-IAC-HELM-CHART-SIGNED-IMAGE-WIRING-GATE-001",
+    "crate": "marketplace/facade/dev-cli",
+    "gate": "cloud-iac-helm-chart-signed-image-wiring",
+    "gate_file": "marketplace/facade/dev-cli/src/cloud_iac_helm_chart_gate.rs",
+    "chart_root": "cloud/cloud-iac/iac/k8s/helm",
+    "runtime_mode": "local-filesystem-helm-chart-wiring-gate-no-helm-render",
+    "chart_files_checked": [
+      "Chart.yaml",
+      "values.yaml",
+      "templates/deployment.yaml",
+      "templates/configmap.yaml"
+    ],
+    "required_values": [
+      "image.digest",
+      "image.cosign.required",
+      "image.cosign.policy",
+      "config.imagePromotionPolicy"
+    ],
+    "required_template_refs": [
+      "deployment.image.digest-reference",
+      "deployment.cosign-required-annotation",
+      "configmap.cosign-required-output"
+    ],
+    "enforced_invariants": [
+      "Chart.yaml must keep application chart metadata and ADR-0181/ADR-0349 annotations",
+      "values.yaml must keep image.digest as sha256:<64 lowercase non-zero hex>, image.cosign.required=true, image.cosign.policy=ADR-0181, and config.imagePromotionPolicy=cosign-required",
+      "deployment.yaml must use .Values.image.digest in the image reference as @{{ .Values.image.digest }} when a digest is present",
+      "deployment.yaml must expose cosign-required, image-digest, and image-promotion-policy annotations from chart values",
+      "deployment.yaml must preserve non-root hardening markers: allowPrivilegeEscalation=false, readOnlyRootFilesystem=true, seccompProfile, and drop ALL capabilities",
+      "configmap.yaml must surface image_signature_policy and cosign_required from chart values",
+      "validation is local text/filesystem validation only and does not execute Helm, cosign, Argo CD, Kubernetes, or OpenTofu"
+    ],
+    "non_claims": [
+      "no Helm CLI rendering",
+      "no cosign verification execution",
+      "no image signing",
+      "no admission-controller execution",
+      "no Argo CD API integration",
+      "no Kubernetes API integration",
+      "no live sync, diff, health, prune, self-heal, rollout, or rollback execution evidence",
+      "no provider runtime",
+      "no tofu plan/apply",
+      "no FD-001 tenant workload hosting",
+      "no production readiness",
+      "no cloud provisioning"
+    ],
+    "official_sources_consulted": [
+      "https://helm.sh/docs/chart_template_guide/values_files/",
+      "https://argo-cd.readthedocs.io/en/latest/user-guide/helm/",
+      "https://docs.sigstore.dev/cosign/verifying/verify/",
+      "https://kubernetes.io/docs/tasks/administer-cluster/verify-signed-artifacts/"
+    ],
+    "runtime_non_claim": "First-class Oya local Cloud IaC Helm chart signed-image wiring gate only; it checks values/template references without Helm rendering, cosign verification, admission-controller execution, Argo CD/Kubernetes API calls, OpenTofu plan/apply, provider runtime, FD-001 tenant workload hosting, or cloud provisioning."
+  },
+  "cell_topology_scope": {
+    "topology": "cloud/cloud-iac/cell-topology/foundation.json",
+    "topology_id": "cloud-iac-foundation-cell-topology",
+    "module_catalog": "cloud/cloud-iac/tofu/modules/catalog.json",
+    "gitops_templates_root": "cloud/cloud-iac/iac",
+    "runtime_mode": "local-filesystem-json-cell-topology-gate",
+    "context_count": 5,
+    "cell_count": 5,
+    "service_tenant_fixture_count": 1,
+    "contexts": [
+      "aws-guest",
+      "colo",
+      "oci-guest",
+      "on-prem",
+      "oyatie-cloud-provider"
+    ],
+    "regions": [
+      "colo-nyc-1",
+      "kr-seoul-1",
+      "onprem-lab-1",
+      "us-ashburn-1",
+      "us-east-1"
+    ],
+    "module_refs_required": [
+      "oyatie/cloud-account/opentofu/0.1.0",
+      "oyatie/dns/opentofu/0.1.0",
+      "oyatie/k8s-namespace-bootstrap/opentofu/0.1.0",
+      "oyatie/kms/opentofu/0.1.0",
+      "oyatie/secrets-bootstrap/opentofu/0.1.0",
+      "oyatie/vpc/opentofu/0.1.0"
+    ],
+    "topology_fields_modeled": [
+      "topology_id",
+      "runtime_mode",
+      "contexts",
+      "regions",
+      "cells.context",
+      "cells.region",
+      "cells.cell_id",
+      "cells.tenant_id",
+      "cells.isolation_tier",
+      "cells.default_cross_cell_traffic_allowed",
+      "cells.module_refs",
+      "cells.gitops_template",
+      "cells.evidence_ref",
+      "service_tenant_fixtures.microservice",
+      "service_tenant_fixtures.tenant_id",
+      "service_tenant_fixtures.cell_id",
+      "service_tenant_fixtures.cell_tier",
+      "service_tenant_fixtures.residency_class",
+      "service_tenant_fixtures.region_disposition",
+      "service_tenant_fixtures.storage_class",
+      "service_tenant_fixtures.quarterly_isolation_evidence.quarter",
+      "service_tenant_fixtures.quarterly_isolation_evidence.network",
+      "service_tenant_fixtures.quarterly_isolation_evidence.storage",
+      "service_tenant_fixtures.quarterly_isolation_evidence.crypto",
+      "service_tenant_fixtures.quarterly_isolation_evidence.compute",
+      "service_tenant_fixtures.quarterly_isolation_evidence.audit",
+      "cells.gitops_template.labels.oyatie.com/region",
+      "cells.gitops_template.labels.oyatie.com/cell-id",
+      "cells.gitops_template.labels.oyatie.com/tenant-id",
+      "cells.gitops_template.labels.oyatie.com/isolation-tier",
+      "cells.gitops_template.labels.oyatie.com/default-cross-cell-traffic-allowed"
+    ],
+    "non_claims": [
+      "no autosharding runtime",
+      "no auto-rebalance or tenant migration execution",
+      "no dynamic sharding execution",
+      "no ArgoCD API integration",
+      "no Kubernetes API integration",
+      "no OpenTofu CLI execution, tofu init/validate/plan/apply, or state backend access",
+      "no provider API integration or cloud resource provisioning",
+      "no live mesh policy enforcement, capacity telemetry, or measured SLO evidence"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-CELL-TOPOLOGY-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-cell-topology",
+      "runtime_mode": "local-filesystem-json-cell-topology-gate",
+      "enforced_invariants": [
+        "manifest topology path, module catalog, templates root, contexts, regions, and counts must match the topology JSON",
+        "topology schema_version/topology_id/generated_by_changeset/runtime_mode must be explicit and local-only",
+        "each cell must declare context, region, cell_id, tenant_id, isolation_tier, default_cross_cell_traffic_allowed=false, gitops_template, evidence_ref, and module_refs",
+        "cell contexts and regions must match the manifest summaries",
+        "cell gitops_template paths must point at repo-local Argo CD Application templates",
+        "cell module_refs must exist in the local OpenTofu module catalog",
+        "one service/tenant fixture must bind a topology cell to ADR-0009 cell_tier, ADR-0049 residency_class, ADR-0158 region_disposition, ADR-0161 storage_class, and ADR-0009 quarterly isolation evidence refs",
+        "topology and manifest non-claims must preserve no autosharding, ArgoCD API, OpenTofu CLI, provider API, mesh runtime, or capacity telemetry claims"
+      ],
+      "runtime_non_claim": "First-class Oya local filesystem/JSON gate only; no autosharding, auto-rebalance, dynamic sharding, tenant migration, ArgoCD/Kubernetes API, OpenTofu CLI, provider API, live mesh, capacity telemetry, SLO, DR, or cloud provisioning runtime is implemented by this ChangeSet."
+    },
+    "gitops_identity_gate_changeset": "CS-CLOUD-IAC-CELL-TOPOLOGY-GITOPS-IDENTITY-GATE-001",
+    "gitops_identity_required_label_fields": [
+      "oyatie.com/region",
+      "oyatie.com/cell-id",
+      "oyatie.com/tenant-id",
+      "oyatie.com/isolation-tier",
+      "oyatie.com/default-cross-cell-traffic-allowed"
+    ],
+    "gitops_identity_gate_invariants": [
+      "each topology cell gitops_template must carry oyatie.com/region matching cells.region",
+      "each topology cell gitops_template must carry oyatie.com/cell-id matching cells.cell_id",
+      "each topology cell gitops_template must carry oyatie.com/tenant-id matching cells.tenant_id",
+      "each topology cell gitops_template must carry oyatie.com/isolation-tier matching cells.isolation_tier",
+      "each topology cell gitops_template must carry oyatie.com/default-cross-cell-traffic-allowed matching cells.default_cross_cell_traffic_allowed",
+      "identity coherence is validated by local filesystem reads only; no Argo CD or Kubernetes API call is performed"
+    ],
+    "gitops_identity_gate_non_claim": "local-cell-topology-gitops-template-identity-gate-no-argocd-api-runtime"
+  },
+  "opentofu_validation_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "modules_root": "microservices/cloud-iac/tofu/modules",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "temp_copy_required": true,
+    "tofu_cli": {
+      "binary": "tofu",
+      "observed_version": "OpenTofu v1.12.0 on darwin_arm64 during local evidence capture",
+      "version_claim_boundary": "local evidence observation only; production/CI images must pin and re-check OpenTofu before provider-resource or plan/apply claims"
+    },
+    "commands": {
+      "init": "tofu init -backend=false -input=false -no-color",
+      "validate": "tofu validate -no-color"
+    },
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/cli/commands/validate/",
+      "https://opentofu.org/docs/cli/commands/init/",
+      "https://opentofu.org/docs/language/files/dependency-lock/",
+      "https://opentofu.org/docs/cli/commands/test/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-OPENTOFU-VALIDATION-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-opentofu-validation",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_opentofu_validation_gate.rs",
+      "runtime_mode": "temp-copy-opentofu-init-backend-false-validate",
+      "enforced_invariants": [
+        "manifest catalog, modules_root, module_count, and module_names must match the local module catalog",
+        "each catalog module source_path/main_file must exist under the declared modules_root",
+        "each module is copied to a temporary directory before OpenTofu init/validate runs so source tree remains free of .terraform, lock, state, tfvars, and plan artifacts",
+        "tofu init must use -backend=false -input=false -no-color",
+        "tofu validate must pass for every catalog module",
+        "local-foundation-skeleton entries cannot claim provider resources, materialized outputs, or tofu tests",
+        "backend blocks, provider blocks, provider resource/data-source blocks, generated state/lock/tfvars/plan artifacts, and high-confidence raw secret markers are rejected"
+      ],
+      "runtime_non_claim": "First-class Oya local OpenTofu init/validate gate only; no tofu test, plan, apply, destroy, import, provider API, provider credentials, state backend, provider lock/provenance, registry API, ArgoCD/Kubernetes API, module signing, or cloud resource provisioning is implemented by this ChangeSet."
+    },
+    "syntax_repairs": [
+      "microservices/cloud-iac/tofu/modules/dns/main.tofu normalized with tofu fmt after validation probe reported formatting drift",
+      "microservices/cloud-iac/tofu/modules/k8s-namespace-bootstrap/main.tofu variable tags block changed to multi-line HCL",
+      "microservices/cloud-iac/tofu/modules/kms/main.tofu variable rotation_days/tags blocks changed to multi-line HCL",
+      "microservices/cloud-iac/tofu/modules/secrets-bootstrap/main.tofu variable bao_namespace/tags blocks changed to multi-line HCL",
+      "microservices/cloud-iac/tofu/modules/vpc/main.tofu variable az_count/tags blocks changed to multi-line HCL"
+    ],
+    "non_claims": [
+      "no tofu test evidence",
+      "no tofu plan/apply evidence",
+      "no provider API calls, provider credentials, or state backend access",
+      "no provider dependency lockfile or provider provenance evidence",
+      "no provider-resource-complete module bodies",
+      "no private module registry API, module signing, OpenTofu provider mirror, ArgoCD API, Kubernetes API, live drift detection, rollback, SLO, DR, or capacity telemetry runtime"
+    ]
+  },
+  "module_provenance_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
+    "digest_algorithm": "sha256",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/language/files/dependency-lock/",
+      "https://opentofu.org/docs/cli/commands/providers/lock/",
+      "https://opentofu.org/docs/language/providers/requirements/",
+      "https://slsa.dev/spec/v1.2/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-PROVENANCE-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-module-provenance",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_provenance_gate.rs",
+      "runtime_mode": "local-filesystem-sha256-module-provenance-gate",
+      "enforced_invariants": [
+        "manifest provenance, catalog, digest_algorithm, module_count, and module_names must match the local module catalog and provenance file",
+        "provenance source_catalog and source_path_root must match the local module catalog",
+        "provenance module keys must exactly match catalog namespace/name/system/version keys",
+        "each provenance entry must preserve catalog source_path, main_file, release_status, and evidence_ref",
+        "each module provenance entry must include SHA-256 digests for main.tofu and README.md",
+        "each provenance file path must stay under the module source_path and each SHA-256 digest must match current source bytes",
+        "local-foundation-skeleton entries cannot claim provider resources, materialized outputs, or tofu tests"
+      ],
+      "runtime_non_claim": "First-class Oya local filesystem/SHA-256 provenance gate only; no cosign/Sigstore signing, SLSA attestation generation, provider dependency lockfile, provider provenance, provider API, provider credentials, private module registry API, OpenTofu CLI execution, tofu test/plan/apply, or cloud resource provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no cosign or Sigstore signing execution",
+      "no SLSA attestation generation or verification summary",
+      "no provider dependency lockfile or provider provenance evidence",
+      "no live private module registry API",
+      "no tofu test/plan/apply evidence",
+      "no provider-resource-complete module bodies"
+    ]
+  },
+  "provider_readiness_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "readiness": "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+    "status": "required-providers-hcl-materialized-no-provider-lockfile",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "provider_families": [
+      "aws",
+      "cloudflare",
+      "kubernetes",
+      "oci",
+      "vault"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/language/providers/requirements/",
+      "https://opentofu.org/docs/language/files/dependency-lock/",
+      "https://opentofu.org/docs/cli/commands/providers/lock/",
+      "https://slsa.dev/spec/v1.2/",
+      "https://opentofu.org/docs/language/modules/develop/providers/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-PROVIDER-READINESS-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-provider-readiness",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_provider_readiness_gate.rs",
+      "runtime_mode": "local-provider-readiness-inventory-gate",
+      "enforced_invariants": [
+        "manifest catalog, readiness path, status, module count, and module names must match the local module catalog and provider-readiness inventory",
+        "readiness module keys must exactly match catalog namespace/name/system/version keys",
+        "each readiness entry must preserve catalog source_path, main_file, release_status, and evidence_ref",
+        "provider families must use explicit registry.opentofu.org provider source addresses and reusable-module minimum version constraints",
+        "future lock, signature review, and provider provenance flags must remain true for each provider family",
+        "required_providers HCL may be materialized only when policy/status explicitly mark required-providers-hcl-materialized-no-provider-lockfile",
+        "provider lockfiles under the local module tree are forbidden until a later module-lock evidence ChangeSet claims them"
+      ],
+      "runtime_non_claim": "First-class Oya local provider-readiness inventory gate with required_providers HCL materialization allowed only under the explicit materialized status; no provider dependency lockfile inside reusable modules, provider installation, provider mirror/provenance verification, provider configuration, provider API, provider credentials, module signing, SLSA/VSA attestation, tofu test/plan/apply, provider resources, state backend, or cloud provisioning is implemented by this scope."
+    },
+    "non_claims": [
+      "no provider dependency lockfile inside reusable module trees",
+      "no provider installation in source tree",
+      "no provider configuration or credentials",
+      "no provider APIs or cloud resource provisioning",
+      "no provider mirror verification",
+      "no provider provenance verification",
+      "no module signing or Sigstore execution",
+      "no SLSA attestation generation or verification summary",
+      "no tofu test/plan/apply evidence",
+      "no provider-resource-complete module bodies"
+    ]
+  },
+  "provider_lockfile_scope": {
+    "readiness": "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+    "lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
+    "providers_file": "microservices/cloud-iac/tofu/provider-locks/foundation/providers.tofu",
+    "lockfile": "microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
+    "status": "locked-multi-platform-no-provider-install",
+    "runtime_mode": "local-opentofu-provider-lockfile-gate",
+    "platforms": [
+      "darwin_arm64",
+      "linux_amd64",
+      "linux_arm64"
+    ],
+    "provider_sources": [
+      "registry.opentofu.org/cloudflare/cloudflare",
+      "registry.opentofu.org/hashicorp/aws",
+      "registry.opentofu.org/hashicorp/kubernetes",
+      "registry.opentofu.org/hashicorp/vault",
+      "registry.opentofu.org/opentofu/oci"
+    ],
+    "provider_versions_selected": {
+      "registry.opentofu.org/cloudflare/cloudflare": "5.19.1",
+      "registry.opentofu.org/hashicorp/aws": "6.46.0",
+      "registry.opentofu.org/hashicorp/kubernetes": "3.1.0",
+      "registry.opentofu.org/hashicorp/vault": "5.9.0",
+      "registry.opentofu.org/opentofu/oci": "8.15.0"
+    },
+    "minimum_constraints": {
+      "registry.opentofu.org/cloudflare/cloudflare": ">= 4.0.0",
+      "registry.opentofu.org/hashicorp/aws": ">= 5.0.0",
+      "registry.opentofu.org/hashicorp/kubernetes": ">= 2.30.0",
+      "registry.opentofu.org/hashicorp/vault": ">= 4.0.0",
+      "registry.opentofu.org/opentofu/oci": ">= 6.0.0"
+    },
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/language/providers/requirements/",
+      "https://opentofu.org/docs/language/files/dependency-lock/",
+      "https://opentofu.org/docs/cli/commands/providers/lock/",
+      "https://opentofu.org/docs/language/modules/develop/providers/",
+      "https://slsa.dev/spec/v1.2/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-PROVIDER-LOCKFILE-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-provider-lockfile",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_provider_lockfile_gate.rs",
+      "runtime_mode": "local-opentofu-provider-lockfile-gate",
+      "enforced_invariants": [
+        "manifest lock_root, providers_file, lockfile, platforms, provider sources, selected versions, and minimum constraints must match the readiness inventory and local lock root",
+        "provider lock root must stay outside the reusable module tree",
+        "providers.tofu must contain only required_version and required_providers metadata, with no provider configuration, backend, resources, data sources, variables, outputs, or credentials",
+        ".terraform.lock.hcl must contain exactly the provider sources declared by provider-readiness and providers.tofu",
+        "each locked provider must preserve the minimum constraint and select a version satisfying it",
+        "each locked provider must include h1 and multi-platform zh checksums for the required darwin_arm64, linux_amd64, and linux_arm64 lock platforms",
+        "provider installation cache .terraform must not exist in the source tree"
+      ],
+      "runtime_non_claim": "First-class Oya local provider lockfile gate only; no provider installation in source tree, provider configuration, provider credentials, provider API calls, provider provenance verification, module signing, SLSA attestation, tofu test/plan/apply, state backend, or cloud resource provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no provider installation in source tree",
+      "no provider configuration or credentials",
+      "no provider API calls or cloud resource provisioning",
+      "no OpenTofu state backend access",
+      "no tofu test/plan/apply evidence",
+      "no provider mirror verification beyond upstream providers lock checksum retrieval",
+      "no provider provenance verification summary or VSA",
+      "no module signing or Sigstore execution",
+      "no SLSA attestation generation",
+      "no provider-resource-complete module bodies"
+    ]
+  },
+  "provider_signature_review_scope": {
+    "lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
+    "providers_file": "microservices/cloud-iac/tofu/provider-locks/foundation/providers.tofu",
+    "lockfile": "microservices/cloud-iac/tofu/provider-locks/foundation/.terraform.lock.hcl",
+    "review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+    "status": "signed-provider-lock-reviewed-no-vsa",
+    "runtime_mode": "local-opentofu-provider-signature-review-gate",
+    "platforms": [
+      "darwin_arm64",
+      "linux_amd64",
+      "linux_arm64"
+    ],
+    "provider_sources": [
+      "registry.opentofu.org/cloudflare/cloudflare",
+      "registry.opentofu.org/hashicorp/aws",
+      "registry.opentofu.org/hashicorp/kubernetes",
+      "registry.opentofu.org/hashicorp/vault",
+      "registry.opentofu.org/opentofu/oci"
+    ],
+    "provider_versions_selected": {
+      "registry.opentofu.org/cloudflare/cloudflare": "5.19.1",
+      "registry.opentofu.org/hashicorp/aws": "6.46.0",
+      "registry.opentofu.org/hashicorp/kubernetes": "3.1.0",
+      "registry.opentofu.org/hashicorp/vault": "5.9.0",
+      "registry.opentofu.org/opentofu/oci": "8.15.0"
+    },
+    "signing_key_ids": {
+      "registry.opentofu.org/cloudflare/cloudflare": "C76001609EE3B136",
+      "registry.opentofu.org/hashicorp/aws": "0C0AF313E5FD9F80",
+      "registry.opentofu.org/hashicorp/kubernetes": "0C0AF313E5FD9F80",
+      "registry.opentofu.org/hashicorp/vault": "0C0AF313E5FD9F80",
+      "registry.opentofu.org/opentofu/oci": "1533A49284137CEB"
+    },
+    "artifacts": {
+      "providers_file_sha256": "8074d853cc9154550678a00fe6ee8ba81e7b2318483fbcc2ea7e407e51d40c4a",
+      "lockfile_sha256": "1d958707f788a9e29fa49a5995c57b082c5f0ec3b790f564bbda028474f84feb"
+    },
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/cli/commands/providers/lock/",
+      "https://opentofu.org/docs/language/files/dependency-lock/",
+      "https://opentofu.org/docs/cli/plugins/signing/",
+      "https://slsa.dev/spec/v1.2/verification_summary"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-PROVIDER-SIGNATURE-REVIEW-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-provider-signature-review",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_provider_signature_review_gate.rs",
+      "runtime_mode": "local-opentofu-provider-signature-review-gate",
+      "enforced_invariants": [
+        "manifest provider signature review scope paths, status, runtime mode, provider sources, selected versions, signing key IDs, artifact digests, and official-source references must match provider-signature-review.json",
+        "provider signature review root must stay outside the reusable module tree and must not contain a .terraform provider installation cache",
+        "providers.tofu and .terraform.lock.hcl digests recorded by the review must match local bytes",
+        "reviewed providers must exactly match providers.tofu required_providers and .terraform.lock.hcl provider blocks",
+        "each reviewed provider must be marked signed and must record an uppercase OpenTofu signer key ID",
+        "each reviewed provider must include signed retrieval rows for darwin_arm64, linux_amd64, and linux_arm64",
+        "provider provenance VSA, SLSA attestation, module signing, provider installation, tofu plan/apply, state backend, and cloud provisioning flags must remain false"
+      ],
+      "runtime_non_claim": "First-class Oya local provider signer-key review gate only; no independent provider provenance verification, no VSA/SLSA attestation, no module signing or Sigstore/cosign execution, no provider installation in source tree, no provider configuration or credentials, no provider APIs, no tofu test/plan/apply, no state backend, and no cloud resource provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no provider provenance verification summary or VSA",
+      "no independent provider provenance verification summary or VSA",
+      "no SLSA attestation generation",
+      "no module signing or Sigstore execution",
+      "no provider installation in source tree",
+      "no provider configuration or credentials",
+      "no provider API calls",
+      "no tofu test/plan/apply evidence",
+      "no OpenTofu state backend access",
+      "no provider-resource-complete module bodies",
+      "no cloud resource provisioning"
+    ]
+  },
+  "module_release_index_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
+    "release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
+    "provider_lock_root": "microservices/cloud-iac/tofu/provider-locks/foundation",
+    "provider_signature_review": "microservices/cloud-iac/tofu/provider-locks/foundation/provider-signature-review.json",
+    "status": "local-release-index-no-private-registry-api",
+    "runtime_mode": "local-opentofu-module-release-index-gate",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/",
+      "https://opentofu.org/docs/cli/oci_registries/module-package/",
+      "https://opentofu.org/docs/language/modules/develop/providers/",
+      "https://slsa.dev/spec/v1.2/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-module-release-index",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_release_index_gate.rs",
+      "runtime_mode": "local-opentofu-module-release-index-gate",
+      "enforced_invariants": [
+        "manifest release-index scope paths, status, runtime mode, module count, module names, and official-source references must match release-index.json",
+        "release-index modules must exactly match the local module catalog and SHA-256 provenance inventory",
+        "each release row must use OpenTofu module registry namespace/name/system/version metadata and deterministic versions/download endpoint path strings without claiming service implementation",
+        "release-index file digests must match provenance digests and local file bytes",
+        "provider-lock and provider-signature-review evidence paths must exist and must not contain a provider installation cache",
+        "release-index module archive fields must mirror archive-manifest.json deterministic local ZIP artifact paths and SHA-256 digests while private registry API, service discovery, live download endpoint, signing, SLSA, tofu plan/apply, provider-resource-complete modules, and cloud provisioning flags remain non-claims"
+      ],
+      "runtime_non_claim": "First-class Oya local module release index gate with deterministic local archive metadata only; no private module registry service/API, module discovery API, live download endpoint, module signing/Sigstore/cosign, SLSA attestation, provider API, provider credentials, tofu test/plan/apply, state backend, or cloud resource provisioning is implemented by this scope."
+    },
+    "non_claims": [
+      "no private module registry API",
+      "no module service discovery",
+      "no live module download endpoint",
+      "no module signing or Sigstore execution",
+      "no SLSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no cloud resource provisioning"
+    ],
+    "archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+    "object_source_pin_gate_changeset": "CS-CLOUD-IAC-MODULE-RELEASE-INDEX-OBJECT-PINNING-GATE-001",
+    "object_source_location_field": "archive_source_location",
+    "object_source_integrity_field": "archive_source_integrity_sha256",
+    "object_source_s3_version_id_field": "archive_source_version_id",
+    "object_source_gcs_generation_field": "archive_source_generation",
+    "object_source_pin_gate_invariants": [
+      "archive_source_location is optional; existing local-path release-index rows remain valid without object-source pin metadata",
+      "when archive_source_location is present it must use s3::https:// or gcs::https:// and end with the configured archive filename",
+      "archive_source_integrity_sha256 is required for object-source rows and must exactly match archive_sha256 as lowercase SHA-256 hex",
+      "S3 object-source rows require archive_source_version_id and must not set archive_source_generation",
+      "GCS object-source rows require a non-zero decimal archive_source_generation and must not set archive_source_version_id",
+      "object-source location and pin metadata must not contain whitespace, control characters, credential-like markers, userinfo, query strings, or fragments"
+    ],
+    "object_source_pin_gate_non_claim": "local-release-index-object-source-pin-gate-no-live-object-store-preconditions"
+  },
+  "module_provider_requirements_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "readiness": "microservices/cloud-iac/tofu/modules/provider-readiness.json",
+    "status": "required-providers-hcl-materialized-no-provider-lockfile",
+    "runtime_mode": "local-opentofu-required-providers-materialization-gate",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "provider_families": [
+      "aws",
+      "cloudflare",
+      "kubernetes",
+      "oci",
+      "vault"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/language/providers/requirements/",
+      "https://opentofu.org/docs/language/modules/develop/providers/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-PROVIDER-REQUIREMENTS-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-module-provider-requirements",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_provider_requirements_gate.rs",
+      "runtime_mode": "local-opentofu-required-providers-materialization-gate",
+      "enforced_invariants": [
+        "manifest catalog/readiness paths, status, runtime_mode, module count, module names, and provider family summary must match provider-readiness.json and the local module catalog",
+        "each readiness module must mark provider_requirements_hcl_materialized=true while provider_lockfile_materialized=false and provider_resources_implemented=false",
+        "each reusable module main.tofu must declare an explicit required_providers block with provider local names, source addresses, and minimum constraints matching provider-readiness.json",
+        "provider configuration blocks, provider resource blocks, provider data-source blocks, backend blocks, generated state/lock/tfvars/plan/test artifacts, and credential-like markers are rejected",
+        "provider dependency lockfiles remain centralized in the foundation lock root and must not appear inside reusable module trees"
+      ],
+      "runtime_non_claim": "First-class Oya local required_providers materialization gate only; no provider configuration, provider resource/data-source implementation, module-tree lockfiles, provider installation in source, provider provenance VSA, module signing/cosign, SLSA attestation, tofu test/plan/apply, state backend access, provider API, credentials, private module registry runtime, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no provider configuration",
+      "no provider resources or data sources",
+      "no provider lockfiles in reusable modules",
+      "no provider installation in source tree",
+      "no provider provenance verification or VSA",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider APIs, credentials, state backend access, or cloud resource provisioning",
+      "no private module registry runtime",
+      "no tofu plan/apply evidence",
+      "no cloud resource provisioning"
+    ]
+  },
+  "module_archive_scope": {
+    "catalog": "microservices/cloud-iac/tofu/modules/catalog.json",
+    "provenance": "microservices/cloud-iac/tofu/modules/provenance.json",
+    "release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
+    "archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+    "output_root": "target/oya-cloud-iac/module-archives",
+    "status": "deterministic-local-module-archives-no-private-registry-api",
+    "runtime_mode": "local-deterministic-zip-module-archive-gate",
+    "module_count": 6,
+    "archive_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/",
+      "https://opentofu.org/docs/cli/oci_registries/module-package/",
+      "https://slsa.dev/spec/v1.2/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-ARCHIVE-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-module-archive",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_archive_gate.rs",
+      "runtime_mode": "local-deterministic-zip-module-archive-gate",
+      "enforced_invariants": [
+        "manifest archive scope paths, status, runtime mode, module count, archive count, module names, and official-source references must match archive-manifest.json",
+        "archive-manifest module keys and file digests must exactly match the local module catalog and SHA-256 provenance inventory",
+        "deterministic ZIP archives must use store/no-compression, fixed 1980-01-01 timestamp, stable entry ordering, source-root-relative entry names, and SHA-256 archive digests",
+        "release-index module archive fields must mirror archive-manifest.json without claiming private registry publication or live download service implementation",
+        "private registry API, service discovery, live download endpoint, module signing, SLSA provenance, tofu plan/apply, provider-resource-complete modules, and cloud provisioning flags must remain non-claims"
+      ],
+      "runtime_non_claim": "First-class Oya deterministic local module archive gate only; no private module registry service/API, module discovery API, live module download endpoint, module signing/Sigstore/cosign, SLSA attestation, provider API, provider credentials, tofu test/plan/apply, state backend, or cloud resource provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no private module registry API",
+      "no module service discovery",
+      "no live module download endpoint",
+      "no module signing or Sigstore execution",
+      "no SLSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no cloud resource provisioning"
+    ]
+  },
+  "module_registry_protocol_scope": {
+    "release_index": "microservices/cloud-iac/tofu/modules/release-index.json",
+    "archive_manifest": "microservices/cloud-iac/tofu/modules/archive-manifest.json",
+    "protocol_fixtures": "microservices/cloud-iac/tofu/module-registry/protocol-fixtures.json",
+    "status": "local-registry-protocol-fixtures-no-service-runtime",
+    "runtime_mode": "local-opentofu-module-registry-protocol-fixture-gate",
+    "service_discovery_path": "/.well-known/terraform.json",
+    "modules_v1_base_path": "/v1/modules/",
+    "artifact_base_path": "/artifacts/modules/",
+    "module_count": 6,
+    "module_names": [
+      "cloud-account",
+      "dns",
+      "k8s-namespace-bootstrap",
+      "kms",
+      "secrets-bootstrap",
+      "vpc"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/",
+      "https://opentofu.org/docs/cli/oci_registries/module-package/",
+      "https://slsa.dev/spec/v1.2/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-GATE-001",
+      "crate": "cloud-ci/oya-ci controller path",
+      "gate": "cloud-iac-module-registry-protocol",
+      "gate_file": "crates/cloud-ci/oya-ci controller path/src/cloud_iac_module_registry_protocol_gate.rs",
+      "runtime_mode": "local-opentofu-module-registry-protocol-fixture-gate",
+      "enforced_invariants": [
+        "manifest protocol scope paths, status, runtime mode, module count, module names, and official-source references must match protocol-fixtures.json",
+        "service discovery fixture must expose modules.v1 at /.well-known/terraform.json without claiming a live endpoint",
+        "versions and download response fixtures must mirror release-index endpoint path strings and local foundation module versions",
+        "download response locations and artifact metadata must mirror archive-manifest deterministic local ZIP artifacts",
+        "private registry API, live service discovery/download endpoints, registry publish path, module signing, SLSA/VSA, tofu plan/apply, provider runtime, and cloud provisioning flags must remain non-claims"
+      ],
+      "runtime_non_claim": "First-class Oya local OpenTofu module registry protocol fixture gate only; no private registry service/API, live service discovery endpoint, live download endpoint, registry publish path, module signing/Sigstore/cosign, SLSA/VSA attestation, provider runtime, tofu test/plan/apply, state backend access, provider-resource-complete modules, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no private module registry API",
+      "no live service discovery endpoint",
+      "no live module download endpoint",
+      "no registry publish path",
+      "no module signing or Sigstore execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no cloud resource provisioning"
+    ],
+    "object_source_protocol_gate_changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-PROTOCOL-OBJECT-SOURCE-GATE-001",
+    "object_source_download_location_field": "download_response.body.location",
+    "object_source_release_location_field": "archive_source_location",
+    "object_source_fixture_source_kind": "object-source-fixture-no-live-endpoint",
+    "object_source_protocol_gate_invariants": [
+      "local archive release-index rows continue to require protocol download response locations that equal artifact_url_path under /artifacts/modules/",
+      "object-source release-index rows require protocol download response locations that exactly mirror archive_source_location instead of the local artifact_url_path",
+      "object-source protocol fixtures use object-source-fixture-no-live-endpoint source_kind and remain no-live-endpoint fixtures only",
+      "object-source protocol validation accepts only safe s3::https:// or gcs::https:// source locations with release-index integrity/provider pin metadata already present",
+      "live repo-local release-index rows remain local-archive based until a later object-store materialization ChangeSet"
+    ],
+    "object_source_protocol_gate_non_claim": "local-protocol-object-source-fixture-gate-no-live-object-store-endpoint"
+  },
+  "module_registry_api_boundary_scope": {
+    "crate": "crates/oya-cloud-iac-api",
+    "domain_crate": "crates/oya-cloud-iac-domain",
+    "status": "pure-rust-api-boundary-no-rest-runtime",
+    "runtime_mode": "local-module-registry-api-boundary-tests",
+    "module_registry_protocol_surfaces": [
+      "cloud.iac.module_registry.discovery",
+      "cloud.iac.module_registry.versions",
+      "cloud.iac.module_registry.download"
+    ],
+    "service_discovery_path": "/.well-known/terraform.json",
+    "modules_v1_base_path": "/v1/modules/",
+    "response_shapes_modeled": [
+      "discovery modules.v1 document",
+      "single-element versions response modules array",
+      "download response JSON body location field"
+    ],
+    "module_count_fixture_basis": 4,
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/",
+      "https://slsa.dev/spec/v1.2/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-API-BOUNDARY-001",
+      "crate": "oya-cloud-iac-api",
+      "domain_crate": "oya-cloud-iac-domain",
+      "runtime_mode": "pure-rust-api-boundary-no-rest-runtime",
+      "enforced_invariants": [
+        "API boundary validates request IDs, authorization principal/decision identifiers, and authorization surfaces before DTO construction",
+        "Domain ModuleRegistry validates namespace/name/system/version path segments before lookup",
+        "Versions responses expose one module entry and semver-ordered versions for the requested namespace/name/system",
+        "Download responses return the exact pinned module source for the requested version",
+        "Discovery responses model the OpenTofu modules.v1 service identifier without claiming live HTTPS service discovery"
+      ],
+      "runtime_non_claim": "Pure Rust API boundary only; no REST server, HTTP router, live service discovery endpoint, live versions/download endpoint, registry publish path, object-store serving, auth runtime, database adapter, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, or cloud provisioning is implemented by this ChangeSet; FD-001 microservice dogfood tenant workload hosting remains a future substrate proof and is not implemented by this API-boundary ChangeSet."
+    },
+    "non_claims": [
+      "no REST server or HTTP router",
+      "no live service discovery endpoint",
+      "no live module versions endpoint",
+      "no live module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_route_boundary_scope": {
+    "crate": "crates/oya-cloud-iac-api",
+    "domain_crate": "crates/oya-cloud-iac-domain",
+    "status": "pure-rust-route-boundary-no-http-runtime",
+    "runtime_mode": "local-module-registry-route-boundary-tests",
+    "method": "GET",
+    "routes_modeled": [
+      "/.well-known/terraform.json",
+      "/v1/modules/:namespace/:name/:system/versions",
+      "/v1/modules/:namespace/:name/:system/:version/download"
+    ],
+    "response_variants_modelled": [
+      "discovery",
+      "versions",
+      "download"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-ROUTE-BOUNDARY-001",
+      "crate": "oya-cloud-iac-api",
+      "domain_crate": "oya-cloud-iac-domain",
+      "runtime_mode": "pure-rust-route-boundary-no-http-runtime",
+      "enforced_invariants": [
+        "Route boundary rejects non-GET methods before DTO construction",
+        "Discovery route maps /.well-known/terraform.json to the modules.v1 discovery DTO",
+        "Versions route maps /v1/modules/:namespace/:name/:system/versions to the existing authorization/path-validated versions API boundary",
+        "Download route maps /v1/modules/:namespace/:name/:system/:version/download to the existing authorization/path/version-validated download API boundary",
+        "Unknown or incomplete paths are rejected without claiming a live HTTP router or endpoint"
+      ],
+      "runtime_non_claim": "Pure Rust route boundary only; no REST server, HTTP listener/router runtime, live service discovery endpoint, live versions/download endpoint, registry publish path, object-store serving, auth runtime, database adapter, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no REST server or HTTP listener/router runtime",
+      "no live service discovery endpoint",
+      "no live module versions endpoint",
+      "no live module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_rest_router_scope": {
+    "crate": "crates/oya-cloud-iac-rest",
+    "api_crate": "crates/oya-cloud-iac-api",
+    "domain_crate": "crates/oya-cloud-iac-domain",
+    "router_kernel": "crates/oya-http-router-kernel",
+    "status": "framework-free-rest-router-boundary-no-api-or-http-runtime",
+    "runtime_mode": "local-router-kernel-route-table-tests",
+    "method": "GET",
+    "routes_registered": [
+      "/.well-known/terraform.json",
+      "/v1/modules/{namespace}/{name}/{system}/versions",
+      "/v1/modules/{namespace}/{name}/{system}/{version}/download"
+    ],
+    "route_surfaces": [
+      "cloud.iac.module_registry.discovery",
+      "cloud.iac.module_registry.versions",
+      "cloud.iac.module_registry.download"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-REST-ROUTER-001",
+      "crate": "oya-cloud-iac-rest",
+      "api_crate": "oya-cloud-iac-api",
+      "runtime_mode": "framework-free-rest-router-boundary-no-api-or-http-runtime",
+      "enforced_invariants": [
+        "REST router registers exactly three OpenTofu module registry GET templates in oya-http-router-kernel",
+        "Router matches low-cardinality templates and captures namespace/name/system/version without placing captured values in matched_template",
+        "Router rejects wrong methods, incomplete paths, unknown paths, dot-segment captures, and whitespace-mutated paths before any runtime adapter exists",
+        "Matched routes expose route-specific authorization surface metadata for a future architecture-compliant composition layer",
+        "The REST crate intentionally does not depend on the API crate because architecture-boundaries forbids rest -> api dependency edges",
+        "No Hyper server, listener, live endpoint, auth runtime, persistence, signing, provider runtime, or OpenTofu execution is claimed"
+      ],
+      "runtime_non_claim": "Framework-free REST router boundary only; no API crate dispatch, live HTTP listener, Hyper server composition, deployed endpoint, auth runtime, database adapter, object-store serving, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no API crate dependency or API DTO dispatch from rest layer",
+      "no live HTTP listener or Hyper server composition",
+      "no deployed service discovery endpoint",
+      "no deployed module versions endpoint",
+      "no deployed module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_runtime_composition_scope": {
+    "crate": "crates/oya-cloud-iac-infrastructure",
+    "rest_crate": "crates/oya-cloud-iac-rest",
+    "api_crate": "crates/oya-cloud-iac-api",
+    "domain_crate": "crates/oya-cloud-iac-domain",
+    "router_kernel": "crates/oya-http-router-kernel",
+    "status": "in-process-runtime-composition-no-live-http-runtime",
+    "runtime_mode": "local-runtime-composition-tests",
+    "method": "GET",
+    "routes_composed": [
+      "/.well-known/terraform.json",
+      "/v1/modules/{namespace}/{name}/{system}/versions",
+      "/v1/modules/{namespace}/{name}/{system}/{version}/download"
+    ],
+    "route_surfaces": [
+      "cloud.iac.module_registry.discovery",
+      "cloud.iac.module_registry.versions",
+      "cloud.iac.module_registry.download"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-RUNTIME-COMPOSITION-001",
+      "crate": "oya-cloud-iac-infrastructure",
+      "rest_crate": "oya-cloud-iac-rest",
+      "api_crate": "oya-cloud-iac-api",
+      "runtime_mode": "in-process-runtime-composition-no-live-http-runtime",
+      "enforced_invariants": [
+        "Runtime composition lives in a runtime-role crate because architecture-boundaries forbids rest -> api dependency edges",
+        "Dispatch first matches the framework-free REST router so wrong methods, unknown paths, dot-segment captures, and whitespace-mutated paths are rejected before API DTO dispatch",
+        "Matched REST route surface metadata is checked against the API surface contract before dispatch",
+        "API boundary still validates request IDs, authorization principal/decision identifiers, route-specific authorization surfaces, path segments, and module versions",
+        "Runtime responses retain low-cardinality matched templates and captures for future telemetry without exposing captured values as metric labels",
+        "No Hyper server, listener, live endpoint, auth runtime, persistence, signing, provider runtime, OpenTofu execution, FD-001 tenant workload hosting, or cloud provisioning is claimed"
+      ],
+      "runtime_non_claim": "In-process runtime composition only; no live HTTP listener, Hyper server, deployed endpoint, request body handling, auth runtime, database adapter, object-store serving, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no live HTTP listener or Hyper server composition",
+      "no deployed service discovery endpoint",
+      "no deployed module versions endpoint",
+      "no deployed module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_http_handler_scope": {
+    "crate": "crates/oya-cloud-iac-infrastructure",
+    "runtime_composition": "crates/oya-cloud-iac-infrastructure/src/lib.rs::dispatch_module_registry_runtime_request",
+    "http_kernel": "crates/oya-http-middleware-kernel",
+    "status": "transport-neutral-http-handler-boundary-no-live-http-runtime",
+    "runtime_mode": "local-http-handler-tests",
+    "method": "GET",
+    "responses_rendered": [
+      "service discovery JSON document with modules.v1 base path",
+      "versions application/json document with single module entry and semver-ordered versions",
+      "download application/json document with location source string"
+    ],
+    "http_error_statuses_modelled": [
+      "400 invalid request metadata or unexpected GET body",
+      "403 forbidden route-specific authorization surface",
+      "404 unknown route or missing module version",
+      "405 unsupported HTTP method",
+      "500 impossible static router/surface contract mismatch"
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-HTTP-HANDLER-001",
+      "crate": "oya-cloud-iac-infrastructure",
+      "runtime_mode": "transport-neutral-http-handler-boundary-no-live-http-runtime",
+      "enforced_invariants": [
+        "HTTP handler uses transport-neutral oya-http-middleware-kernel HttpRequest/HttpResponse only and does not import Hyper",
+        "GET discovery renders the OpenTofu service discovery document keyed by modules.v1",
+        "GET versions renders the OpenTofu module registry versions response with a single module entry",
+        "GET download renders a JSON location body accepted by OpenTofu before any object-store serving exists",
+        "Wrong method, unknown route, missing module version, forbidden surface, empty request metadata, and unexpected request body map to explicit HTTP status codes",
+        "No live listener, deployed endpoint, auth runtime, persistence, signing, provider runtime, OpenTofu execution, FD-001 tenant workload hosting, or cloud provisioning is claimed"
+      ],
+      "runtime_non_claim": "Transport-neutral HTTP handler boundary only; no live HTTP listener, Hyper server, deployed endpoint, request authentication runtime, database adapter, object-store serving, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no live HTTP listener or Hyper server composition",
+      "no deployed service discovery endpoint",
+      "no deployed module versions endpoint",
+      "no deployed module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond injected in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_service_assembly_scope": {
+    "crate": "crates/oya-cloud-iac-infrastructure",
+    "http_handler": "crates/oya-cloud-iac-infrastructure/src/lib.rs::CloudIacModuleRegistryHttpHandler",
+    "http_runtime_adapter": "crates/oya-http-runtime-hyper-adapter",
+    "http_router_kernel": "crates/oya-http-router-kernel",
+    "http_middleware_kernel": "crates/oya-http-middleware-kernel",
+    "status": "hyper-adapter-router-middleware-assembly-no-bind-no-listen-no-deploy",
+    "runtime_mode": "local-service-assembly-dispatch-tests",
+    "method": "GET",
+    "routes_registered": [
+      "/.well-known/terraform.json",
+      "/v1/modules/{namespace}/{name}/{system}/versions",
+      "/v1/modules/{namespace}/{name}/{system}/{version}/download"
+    ],
+    "server_config_metadata": {
+      "max_body_bytes": 0,
+      "body_policy": "module-registry GET routes accept no request body",
+      "listener_started": false,
+      "socket_bound": false
+    },
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-SERVICE-ASSEMBLY-001",
+      "crate": "oya-cloud-iac-infrastructure",
+      "runtime_mode": "hyper-adapter-router-middleware-assembly-no-bind-no-listen-no-deploy",
+      "enforced_invariants": [
+        "Service assembly registers exactly three official OpenTofu module registry GET routes in oya-http-router-kernel",
+        "Each registered route uses oya-http-runtime-hyper-adapter::handler_to_sync around the typed CloudIacModuleRegistryHttpHandler",
+        "Dispatch tests exercise oya-http-runtime-hyper-adapter::dispatch through Router<SyncHandler> and MiddlewareChain, not only direct handler calls",
+        "ServerConfig metadata sets max_body_bytes to 0 because module-registry GET routes accept no request body",
+        "No serve call, socket bind, live listener, deployed endpoint, auth runtime, persistence, signing, provider runtime, OpenTofu execution, FD-001 tenant workload hosting, or cloud provisioning is claimed"
+      ],
+      "runtime_non_claim": "Canonical Hyper-adapter router/middleware assembly only; no socket bind, live HTTP listener, deployed endpoint, request authentication runtime, database adapter, object-store serving, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no socket bind or live HTTP listener",
+      "no deployed service discovery endpoint",
+      "no deployed module versions endpoint",
+      "no deployed module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond injected in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_method_seam_scope": {
+    "http_router_kernel": "crates/oya-http-router-kernel/src/lib.rs::Router::path_matches_any_method",
+    "http_runtime_adapter": "crates/oya-http-runtime-hyper-adapter/src/lib.rs::dispatch",
+    "cloud_iac_regression_test": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs::service_assembly_preserves_method_not_allowed_through_canonical_adapter_path",
+    "status": "local-canonical-dispatch-method-seam-no-bind-no-listen-no-deploy",
+    "runtime_mode": "router-hyper-adapter-dispatch-tests",
+    "method_mismatch_policy": {
+      "registered_path_wrong_method": "405 method not allowed",
+      "unknown_path": "404 not found"
+    },
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-METHOD-SEAM-001",
+      "enforced_invariants": [
+        "Router can detect whether a path matches any registered template without exposing captured values",
+        "Hyper adapter dispatch returns 405 for registered-path wrong-method requests before falling back to 404 for unknown paths",
+        "Cloud IaC module-registry service assembly proves wrong-method behavior through the canonical adapter path, not only direct handler calls",
+        "No serve call, socket bind, live listener, deployed endpoint, auth runtime, persistence, signing, provider runtime, OpenTofu plan/apply, FD-001 tenant workload hosting, or cloud provisioning is claimed"
+      ],
+      "runtime_non_claim": "Canonical dispatch-seam correction only; no socket bind, live HTTP listener, deployed endpoint, request authentication runtime, database adapter, object-store serving, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no socket bind or live HTTP listener",
+      "no deployed service discovery endpoint",
+      "no deployed module versions endpoint",
+      "no deployed module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond injected in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_loopback_listener_scope": {
+    "http_runtime_adapter": "crates/oya-http-runtime-hyper-adapter/src/lib.rs::serve_one_connection",
+    "cloud_iac_serve_parts": "crates/oya-cloud-iac-infrastructure/src/lib.rs::CloudIacModuleRegistryHttpServiceAssembly::into_serve_parts",
+    "cloud_iac_loopback_test": "crates/oya-cloud-iac-infrastructure/tests/cloud_iac_infrastructure.rs::loopback_listener_serves_discovery_through_hyper_boundary_without_deploy_claim",
+    "status": "one-connection-local-loopback-listener-harness-no-daemon-no-deploy",
+    "runtime_mode": "local-test-only-loopback-http-boundary",
+    "listener_policy": {
+      "bind_address": "127.0.0.1:0 in test harness only",
+      "connections_served": "one per harness invocation",
+      "daemonized": false,
+      "deployed_endpoint": false,
+      "production_readiness_claim": false
+    },
+    "opentofu_routes_proven": [
+      {
+        "method": "GET",
+        "path": "/.well-known/terraform.json",
+        "expected_status": 200,
+        "expected_body": "{\"modules.v1\":\"/v1/modules/\"}"
+      }
+    ],
+    "official_sources_consulted": [
+      "https://opentofu.org/docs/internals/remote-service-discovery/",
+      "https://opentofu.org/docs/internals/module-registry-protocol/",
+      "https://opentofu.org/docs/language/modules/sources/"
+    ],
+    "coherence_guard": {
+      "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-LOOPBACK-LISTENER-001",
+      "enforced_invariants": [
+        "Hyper adapter can serve exactly one accepted local loopback connection for deterministic integration evidence",
+        "Cloud IaC service assembly can be decomposed into router, middleware, and ServerConfig serve parts without exposing a daemonized listener claim",
+        "Loopback test proves OpenTofu discovery response crosses hyper::Request parsing and hyper response serialization, not only transport-neutral dispatch",
+        "No daemonized listener, deployed endpoint, auth runtime, persistence, signing, provider runtime, OpenTofu plan/apply, FD-001 tenant workload hosting, production readiness, or cloud provisioning is claimed"
+      ],
+      "runtime_non_claim": "One-connection local loopback listener harness only; no daemonized server, deployed endpoint, request authentication runtime, database adapter, object-store serving, signing, SLSA/VSA, tofu test/plan/apply, provider runtime, state backend, FD-001 dogfood tenant workload hosting, production readiness, or cloud provisioning is implemented by this ChangeSet."
+    },
+    "non_claims": [
+      "no daemonized HTTP listener",
+      "no deployed service discovery endpoint",
+      "no deployed module versions endpoint",
+      "no deployed module download endpoint",
+      "no registry publish path or object-store serving",
+      "no authentication or Cedar runtime integration beyond injected in-process authorization metadata checks",
+      "no database adapter or persistence",
+      "no module signing or Sigstore/cosign execution",
+      "no SLSA or VSA attestation generation",
+      "no tofu test/plan/apply evidence",
+      "no provider runtime or cloud provisioning",
+      "no production readiness claim",
+      "no FD-001 microservice dogfood tenant workload hosting"
+    ]
+  },
+  "module_registry_app_entrypoint_scope": {
+    "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-ENTRYPOINT-001",
+    "crate": "oya-cloud-iac-app",
+    "binary": "oya-cloud-iac",
+    "helm_cargo_package": "oya-cloud-iac-app",
+    "bind_env": "OYA_CLOUD_IAC_BIND_ADDR",
+    "default_bind_addr": "0.0.0.0:8080",
+    "health_paths": [
+      "/healthz",
+      "/livez"
+    ],
+    "module_registry_paths": [
+      "/.well-known/terraform.json",
+      "/v1/modules/{namespace}/{name}/{system}/versions",
+      "/v1/modules/{namespace}/{name}/{system}/{version}/download"
+    ],
+    "runtime_mode": "local-app-composition-root-plus-bounded-loopback-harness",
+    "dependency_seam": "tokio/hyper remain isolated in oya-http-runtime-hyper-adapter; app crate uses blocking adapter wrappers and declares no tokio/hyper dependency",
+    "non_claims": [
+      "no deployed endpoint",
+      "no production authentication runtime",
+      "no persistence or object-store module serving",
+      "no OpenTofu plan/apply",
+      "no provider runtime",
+      "no FD-001 tenant workload hosting",
+      "no Argo CD or Kubernetes rollout evidence",
+      "no measured SLO or DR",
+      "no cloud provisioning"
+    ]
+  },
+  "module_registry_app_scope": {
+    "changeset": "CS-CLOUD-IAC-MODULE-REGISTRY-APP-OBJECT-PINNING-001",
+    "crate": "oya-cloud-iac-app",
+    "release_index_path_env": "OYA_CLOUD_IAC_RELEASE_INDEX_PATH",
+    "default_release_index_path": "microservices/cloud-iac/tofu/modules/release-index.json",
+    "loaded_module_count_expected_from_current_release_index": 6,
+    "local_only_non_claim": "local app startup registry seeding plus optional OpenTofu S3/GCS object-source download locations, local object-source integrity/provider pin metadata, local filesystem archive serving, request-time SHA-256 verification, and a local bearer-header gate for registered module-registry/artifact routes only; no registry publish API, live object-store upload/download serving, bucket provisioning, IAM policies, object versioning/generation precondition enforcement, signed URLs, CDN, deployed endpoint, production authentication or Cedar runtime, tenant identity, token issuance/rotation, TLS termination, signing/SLSA/VSA verification, provider runtime, tofu plan/apply, FD-001 tenant workload hosting, or cloud provisioning claim",
+    "download_location_from_release_index_archive_file": "/artifacts/modules/<archive_file_basename>",
+    "artifact_route_template": "/artifacts/modules/{archive_file}",
+    "artifact_filesystem_root": "target/oya-cloud-iac/module-archives",
+    "artifact_digest_algorithm": "sha256",
+    "artifact_digest_source": "release-index modules[].archive_sha256",
+    "artifact_digest_mismatch_response": {
+      "status": 409,
+      "body": "{\"error\":\"artifact_digest_mismatch\"}"
+    },
+    "request_auth_env": "OYA_CLOUD_IAC_MODULE_REGISTRY_BEARER",
+    "request_auth_mode": "local-bearer-authorization-header-middleware",
+    "request_auth_required_header": "Authorization: Bearer <configured-local-bearer>",
+    "request_auth_protected_registered_paths": [
+      "/.well-known/terraform.json",
+      "/v1/modules/{namespace}/{name}/{system}/versions",
+      "/v1/modules/{namespace}/{name}/{system}/{version}/download",
+      "/artifacts/modules/{archive_file}"
+    ],
+    "request_auth_public_paths": [
+      "/healthz",
+      "/livez"
+    ],
+    "request_auth_unauthorized_response": {
+      "status": 401,
+      "headers": {
+        "www-authenticate": "Bearer"
+      },
+      "body": "{\"error\":\"unauthorized\"}"
+    },
+    "request_auth_non_claim": "local-request-bearer-gate-no-production-auth-no-cedar",
+    "object_source_location_field": "archive_source_location",
+    "object_source_supported_prefixes": [
+      "s3::https://",
+      "gcs::https://"
+    ],
+    "object_source_validation": [
+      "must use s3::https:// or gcs::https://",
+      "must end with the configured archive filename",
+      "must not contain whitespace, control characters, userinfo, query strings, fragments, or credential-like markers",
+      "when present, registry download location prefers archive_source_location and the local artifact route is not registered for that module"
+    ],
+    "object_source_non_claim": "opentofu-s3-gcs-source-location-no-live-object-store-no-upload",
+    "object_store_runtime_non_claims": [
+      "no live object-store upload/download serving",
+      "no bucket provisioning or IAM policy enforcement",
+      "no object versioning/generation precondition enforcement",
+      "no signed URLs or CDN integration",
+      "local pin metadata validation only; no live S3 version-id or GCS generation request precondition is executed"
+    ],
+    "object_source_integrity_field": "archive_source_integrity_sha256",
+    "object_source_s3_version_id_field": "archive_source_version_id",
+    "object_source_gcs_generation_field": "archive_source_generation",
+    "object_source_pin_validation": [
+      "when archive_source_location is present, archive_source_integrity_sha256 is required and must exactly match archive_sha256 as 64 lowercase hex characters",
+      "S3 object sources require archive_source_version_id and must not set archive_source_generation",
+      "GCS object sources require a non-zero decimal archive_source_generation and must not set archive_source_version_id",
+      "pin metadata values must not contain whitespace, control characters, credential-like markers, or URL/userinfo delimiters",
+      "archive_source_integrity_sha256, archive_source_version_id, and archive_source_generation are rejected when archive_source_location is absent"
+    ],
+    "object_source_pin_non_claim": "object-source-metadata-pin-no-live-object-store-preconditions"
+  },
+  "kubewarden_admission_policy_scope": {
+    "changeset": "CS-CLOUD-IAC-KUBEWARDEN-ADMISSION-POLICY-GATE-001",
+    "crate": "marketplace/facade/dev-cli",
+    "gate": "cloud-iac-kubewarden-admission-policy",
+    "gate_file": "marketplace/facade/dev-cli/src/cloud_iac_kubewarden_admission_gate.rs",
+    "kubewarden_root": "cloud/cloud-iac/iac/k8s/kubewarden",
+    "kyverno_policy": "infra/kyverno/policies/require-signed-images.yaml",
+    "runtime_mode": "local-filesystem-admission-policy-source-gate-no-controller-execution",
+    "default_admission_substrate": "Kubewarden",
+    "first_class_adapters": [
+      "Kyverno"
+    ],
+    "policy_files_checked": [
+      "policy-server.yaml",
+      "verify-image-signatures-policy.yaml",
+      "verification-config.yaml"
+    ],
+    "enforced_invariants": [
+      "Kubewarden is the default admission substrate",
+      "Kyverno remains a first-class adapter, not the default",
+      "signed Oyatie images are required through Kubewarden policy source",
+      "policy source is local filesystem only and does not prove live admission execution"
+    ],
+    "scalability_and_stability_posture": {
+      "policy_server_declares_replicas": true,
+      "versioned_policy_modules_required": true,
+      "latest_tags_forbidden": true,
+      "local_source_gate_fail_closed": true,
+      "adapter_parity_required": true,
+      "credential_material_forbidden": true
+    },
+    "non_claims": [
+      "no Kubewarden controller installation",
+      "no PolicyServer pod scheduling",
+      "no ClusterAdmissionPolicy apply",
+      "no admission-controller execution",
+      "no cosign verification execution",
+      "no Rekor network call",
+      "no image signing",
+      "no Helm rendering",
+      "no Argo CD API integration",
+      "no Kubernetes API integration",
+      "no live sync, diff, health, prune, self-heal, rollout, or rollback execution evidence",
+      "no provider runtime",
+      "no tofu plan/apply",
+      "no FD-001 tenant workload hosting",
+      "no production readiness",
+      "no cloud provisioning"
+    ],
+    "official_sources_consulted": [
+      "https://docs.kubewarden.io/quick-start",
+      "https://docs.kubewarden.io/reference/CRDs",
+      "https://docs.kubewarden.io/howtos/application-collection/verify-images"
+    ],
+    "runtime_non_claim": "First-class Oya local Cloud IaC Kubewarden admission policy source gate only; it checks repo-local Kubewarden policy source and Kyverno adapter parity metadata without installing controllers, applying policies, executing cosign/Rekor verification, calling Argo CD/Kubernetes APIs, running OpenTofu, hosting FD-001 tenant workloads, or proving production readiness."
+  }
+}

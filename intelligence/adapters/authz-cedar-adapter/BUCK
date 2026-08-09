@@ -2,15 +2,15 @@ ADAPTER_ROOT = "intelligence/adapters/authz-cedar-adapter"
 ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"])
 ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
 # Place the shared cedar policy at the path src/lib.rs
-# include_str!("../../../../cloud/cloud-intelligence/policy/...") resolves to inside
-# the hermetic sandbox (cloud/cloud-intelligence/policy/...) — the SAME include-relative
+# include_str!("../../../../intelligence/policy/...") resolves to inside
+# the hermetic sandbox (intelligence/policy/...) — the SAME include-relative
 # path cargo resolves from the real repo tree, so one literal satisfies both build
 # systems (the oya-ci-webhook-gateway-authz-cedar-adapter sibling uses this same
 # pattern). Without this mapping, the export_file source is present in the repo but
 # unmapped to the include-relative location, so rustc cannot read it under buck2
 # (hermetic-build defect), or cargo cannot read it (missing file, since ADAPTER_ROOT's
 # crate-relative "../policy/..." only existed via a buck2-only mapping).
-ADAPTER_MAPPED_SRCS["//cloud/cloud-intelligence/policy:cloud-intelligence.cedar"] = "cloud/cloud-intelligence/policy/cloud-intelligence.cedar"
+ADAPTER_MAPPED_SRCS["//intelligence/policy:cloud-intelligence.cedar"] = "intelligence/policy/cloud-intelligence.cedar"
 
 rust_library(
     name = "intelligence-authz-cedar-adapter",

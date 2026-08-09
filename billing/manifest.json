@@ -1,0 +1,374 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-billing",
+  "tier": "substrate",
+  "tier_subtype": "substrate-marketplace-data",
+  "dr_tier": "T2",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+  },
+  "version": "0.1.0",
+  "owner": "axis-cloud-billing",
+  "bounded_contexts": [
+    {
+      "name": "cloud-billing",
+      "description": "Code-backed Cloud Billing local foundation for billing account, cloud billing event, platform metering handoff, invoice arithmetic, tenant class, billable component, and metering/invoice/tax/audit evidence metadata guardrails. No live billing REST server, SDK, worker, settlement rail, payment processor, tax authority adapter, FOCUS export runtime, database, Kafka, Valkey, measured SLO, active-active DR, OpenTofu plan/apply, provider-live smoke, or audit-chain persistence is claimed by CS-CLOUD-BILLING-TAX-001.",
+      "crates": [
+        "oya-cloud-billing-domain",
+        "oya-cloud-billing-kernel",
+        "oya-metering-domain"
+      ]
+    }
+  ],
+  "layers": [
+    "domain",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "contracts/openapi.yaml"
+    ],
+    "asyncapi": [
+      "contracts/asyncapi.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "billing/contracts/proto/cloud-billing.proto",
+        "contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto",
+        "contracts/proto/platform/metering/v1/metering-event-v1.proto"
+      ]
+    },
+    "contract_status": "service-local billing, metering, invoice, FOCUS export, and settlement contract files exist in this package; they remain planning/validation contracts and do not claim REST, gRPC, broker, settlement, payment, FOCUS export, or provider runtime readiness"
+  },
+  "capabilities": [
+    {
+      "tier": "T2",
+      "name": "billing-account-event-invoice-domain-invariants",
+      "file": "crates/oya-cloud-billing-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "tenant-class-paid-component-metering-invoice-tax-audit-evidence-guardrail-metadata",
+      "file": "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "platform-metering-event-idempotency-and-unit-invariants",
+      "file": "crates/oya-metering-domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "billing-kernel-usage-line-item-tax-profile-admission",
+      "file": "crates/oya-cloud-billing-kernel/src/lib.rs",
+      "risk_class": "medium"
+    }
+  ],
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_no_runtime_sli",
+    "owner": "axis-cloud-billing",
+    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "cutover_on": "2026-12-31",
+    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+  },
+  "ips": [
+    {
+      "id": "CS-CLOUD-BILLING-TAX-001",
+      "title": "Tenant class, paid billing components, metering/invoice/tax/audit evidence guardrail, and Cloud Billing/Tax manifest truth-down",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0337",
+      "title": "Iceberg Canonical Olap Write Path",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0338",
+      "title": "Pod Runtime Tier 0 To 3",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0340",
+      "title": "Capacity Model Per Microservice Manifest",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0342",
+      "title": "Api Versioning Hybrid Date Public Semver Sdk",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0343",
+      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0344",
+      "title": "Sustainability Finops Dimensional Model",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0349",
+      "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "not_claimed_cs_cloud_billing_tax_001: no implemented Cloud Billing runtime circuit-breaker, bulkhead, retry, worker, or provider operation evidence",
+    "tenant_rate_limit": "not_claimed_cs_cloud_billing_tax_001: no implemented per-tenant runtime API quota/rate-limit enforcement beyond local metadata guardrails",
+    "golden_signals": "not_claimed_cs_cloud_billing_tax_001: no implemented metrics/OpenSLO/golden-signal emission evidence",
+    "error_budget_burn": "not_claimed_cs_cloud_billing_tax_001: SLO list is empty because no measured Cloud Billing SLI or burn-rate rule is implemented yet"
+  },
+  "audit_chain": {
+    "runtime_audit_emitter": false,
+    "evidence_refs": [
+      "evidence/multispectrum/cs-cloud-billing-tax-foundation-20260523.json"
+    ],
+    "non_claim": "CS-CLOUD-BILLING-TAX-001 records a multispectrum evidence bundle and audit-chain row only; it does not implement Cloud Billing runtime audit emission, Merkle sealing, or persistence."
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "SecretReference-only future integration",
+    "non_claim": "No raw payment credential, tax authority credential, provider credential, API key, bearer token, database password, or tenant financial payload is introduced or consumed by this local foundation. Evidence refs are validated as non-secret references only."
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false,
+    "runtime_policy_apply": false,
+    "non_claim": "No live Cloud Billing pod, service mesh policy, database proxy, message broker, or network path is deployed by CS-CLOUD-BILLING-TAX-001."
+  },
+  "billing_foundation": {
+    "tenant_classes": [
+      "demo_trial",
+      "paid"
+    ],
+    "paid_billing_components": [
+      "revenue_share",
+      "per_seat",
+      "per_usage"
+    ],
+    "demo_trial_paid_components_allowed": false,
+    "demo_trial_cap_evidence_required": true,
+    "paid_component_set_required": true,
+    "metering_evidence_ref_prefix": "evidence/billing/metering/",
+    "invoice_evidence_ref_prefix": "evidence/billing/invoice/",
+    "tax_evidence_ref_prefix": "evidence/billing/tax/",
+    "audit_chain_ref_prefix": "audit-chain/billing/",
+    "demo_trial_cap_evidence_ref_prefix": "evidence/billing/demo-trial-cap/",
+    "evidence_ref_tenant_region_scope_required": true,
+    "evidence_ref_secret_like_marker_rejection": true,
+    "runtime_metering_outbox": false,
+    "runtime_invoice_transport": false,
+    "runtime_payment_or_settlement_processor": false,
+    "runtime_focus_export": false,
+    "non_claim": "Rust guardrails validate billing/metering/invoice/tax/audit metadata only. They do not ingest live usage, charge customers, settle revenue, export FOCUS datasets, persist invoices, or emit audit-chain events."
+  },
+  "data_classification": "PUBLIC metadata, INTERNAL_ONLY control-plane metadata, FINANCIAL value metadata, AUDIT evidence; no tenant payment credential, raw tax credential, customer PII, settlement payload, or live invoice persistence is implemented by this ChangeSet",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "iso27001",
+    "soc2"
+  ],
+  "depends_on_microservices": [
+    "tenancy",
+    "identity",
+    "audit-chain",
+    "observability",
+    "cloud-iam",
+    "cloud-kms",
+    "cloud-secrets",
+    "cloud-iac",
+    "cloud-network",
+    "cloud-data",
+    "cloud-storage",
+    "cloud-compute"
+  ],
+  "failure_domain": "cloud-billing-local-foundation",
+  "criticality_tier": "T2",
+  "layer": "domain-kernel",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.0,
+    "baseline_ram_per_tenant": 0,
+    "storage_per_tenant": 0,
+    "connections_per_tenant": {},
+    "scaling_dimension": "not_claimed_runtime",
+    "cell_placement_class": "Tier-2-intended-future",
+    "notes": "CS-CLOUD-BILLING-TAX-001 is metadata/domain/kernel validation only. Runtime billing events, invoice workers, databases, brokers, capacity telemetry, autoscaling, and SLOs remain explicit non-claims."
+  },
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    },
+    "non_claim": "No ledger shard split, billing/tax worker migration, tenant migration, or audit-chain persistence is implemented by CS-CLOUD-BILLING-TAX-001."
+  },
+  "dr": {
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "dr_tier": "not_claimed_runtime",
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No live billing ledger replication, tax catalog replication, warm standby, failover, restore drill, or DR measurement evidence is implemented by CS-CLOUD-BILLING-TAX-001."
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Cloud Billing is intended Tier-2 first-party financial application workload. CS-CLOUD-BILLING-TAX-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
+  "pod_runtime_tier_surface_evidence": [
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+    "crates/oya-metering-domain/src/lib.rs",
+    "crates/oya-cloud-billing-kernel/src/lib.rs"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [],
+    "default_version": null,
+    "supported_window_size": 0,
+    "supported_window_minimum_days": 0,
+    "supports_per_tenant_pinning": false,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": [
+        "contracts/openapi/cloud/cloud-billing-invoice-v1.yaml"
+      ],
+      "asyncapi": [
+        "contracts/asyncapi/cloud/cloud-billing-events-v1.yaml",
+        "contracts/asyncapi/platform/metering-events-v1.yaml"
+      ]
+    },
+    "non_claim": "Contracts are schemas for current local metadata behavior, but no per-tenant API version pinning runtime is implemented by CS-CLOUD-BILLING-TAX-001."
+  },
+  "consumes_upstream_oss": [
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "aws-guest",
+      "primitive": "sg-baseline",
+      "version_pin": "v0.1.0",
+      "source": "../../../../iac/modules/aws-guest/sg-baseline",
+      "wrapper": "cloud/cloud-billing/iac/aws-guest/main.tofu",
+      "tenant_class_scope": "both"
+    }
+  ],
+  "data_classes_processed": [],
+  "implemented_source_files": [
+    "crates/oya-cloud-billing-domain/src/lib.rs",
+    "crates/oya-cloud-billing-domain/tests/cloud_billing_foundation.rs",
+    "crates/oya-metering-domain/src/lib.rs",
+    "crates/oya-cloud-billing-kernel/src/lib.rs",
+    "crates/oya-cloud-billing-tax-app/src/lib.rs",
+    "crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs"
+  ],
+  "explicit_non_claims": [
+    "No live billing REST/gRPC server, SDK, worker, message broker, metering outbox, database ledger, payment processor, settlement rail, tax authority adapter, FOCUS export, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
+    "IAC-001 adds only a thin aws-guest wrapper for the shared sg-baseline module; it does not deploy cloud-billing infrastructure or call AWS/OpenTofu runtimes.",
+    "Legacy Markdown benchmark/parity/runbook/implementation-plan files under microservices/cloud-billing remain planning/prose and are not readiness evidence for CS-CLOUD-BILLING-TAX-001."
+  ],
+  "c2a_billing_finops_marketplace_metering_seam": {
+    "schema_version": 1,
+    "seam_kind": "contract_traceability_nonclaim",
+    "metering_contract_refs": [
+      "contracts/openapi.yaml#/paths/~1cloud-billing-event",
+      "contracts/openapi.yaml#/paths/~1meter-aggregate",
+      "contracts/asyncapi.yaml#/channels/cloud_billing.usage.recorded",
+      "billing/contracts/proto/cloud-billing.proto"
+    ],
+    "settlement_contract_refs": [
+      "contracts/openapi.yaml#/paths/~1settlement",
+      "contracts/asyncapi.yaml#/channels/cloud_billing.settlement.computed",
+      "contracts/asyncapi.yaml#/channels/cloud_billing.settlement.payout_initiated"
+    ],
+    "downstream_traceability_refs": [
+      "../../oya/finops-portal/contracts/focus-export-internal.asyncapi.yaml",
+      "../../oya/finops-portal/contracts/tenant-invoice-public.openapi.yaml",
+      "../../oya/marketplace/contracts/openapi-v1.yaml",
+      "../../oya/marketplace/contracts/asyncapi-v1.yaml"
+    ],
+    "non_claim": "Traceability only: this records billing, FinOps, and marketplace contract handoff surfaces. It does not implement live metering ingest, FOCUS export generation, invoice rendering, settlement payout, escrow, entitlement, external marketplace API integration, broker delivery, storage, audit-chain persistence, or production billing readiness."
+  }
+}

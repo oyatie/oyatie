@@ -25,12 +25,12 @@
     "manifest_schema": "specs/microservices/manifest-schema.json",
     "compliance_pack_floors": "specs/compliance-pack-floors.json",
     "dr_business_continuity": "specs/dr-business-continuity.json",
-    "service_runbook": "oya/messenger/runbooks/dr-failover.md"
+    "service_runbook": "comms/messenger/runbooks/dr-failover.md"
   },
   "as_of": "2026-07-09T00:00:00Z",
   "tenant_fixture_id": "tenant-dr-001-healthcare-ai-kr",
   "microservice": "messenger",
-  "microservice_root": "oya/messenger",
+  "microservice_root": "comms/messenger",
   "activated_pack_ids": [
     "HIPAA-2024",
     "SOC2-T2",
@@ -126,7 +126,7 @@
           "multi_region_active_active": true,
           "drill_cadence": "quarterly"
         },
-        "failover_runbook": "oya/messenger/runbooks/dr-failover.md",
+        "failover_runbook": "comms/messenger/runbooks/dr-failover.md",
         "last_drill_evidence_id": "audit:drill:messenger:2026-06-20:quarterly-tabletop",
         "drill_evidence_fresh": true,
         "floor_satisfaction": "satisfied"

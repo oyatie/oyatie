@@ -93,11 +93,39 @@ fn collect_named_files(directory: &Path, name: &str, output: &mut Vec<PathBuf>) 
         let entry = entry.expect("directory entry");
         let path = entry.path();
         if entry.file_type().expect("file type").is_dir() {
+            // A manifest under `tests/` is a FIXTURE, not a service. Widening governed_roots
+            // to 22 pulled cell/core/regional-pack/tests/fixtures/kr/manifest.json into the
+            // governed corpus, where it drifted the reviewed-legacy baseline by one entry.
+            // Widening a corpus without reconciling its new members trades one red for another.
+            if entry.file_name() == "tests" {
+                continue;
+            }
             collect_named_files(&path, name, output);
         } else if entry.file_name() == name {
             output.push(path);
         }
     }
+}
+
+/// Governed capability roots, read from the policy DATA rather than hard-coded here.
+/// The roots are the sole knob a capability rehome has to turn; duplicating them in Rust is what
+/// let the manifest universe silently shrink 100 -> 71 across six re-anchor waves.
+fn governed_roots(policy: &Value) -> Vec<String> {
+    let roots = string_set(policy, "/manifest_inventory/governed_roots");
+    assert!(
+        !roots.is_empty(),
+        "manifest_inventory.governed_roots must not be empty"
+    );
+    roots.into_iter().collect()
+}
+
+fn collect_governed_manifests(root: &Path, policy: &Value) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    for directory in governed_roots(policy) {
+        collect_named_files(&root.join(directory), "manifest.json", &mut paths);
+    }
+    paths.sort();
+    paths
 }
 
 fn collect_extension_files(directory: &Path, extension: &str, output: &mut Vec<PathBuf>) {
@@ -1163,8 +1191,14 @@ fn entire_buck_proto_corpus_is_internal_and_every_service_is_manifest_classified
         &policy,
         "/manifest_inventory/reviewed_legacy_service_manifests",
     );
+    // The proto corpus and the manifest corpus MUST be walked over the same governed_roots: a
+    // manifest found under a root whose protos are not walked reports every one of its own
+    // contracts as "outside the Buck-declared Proto corpus".
     let mut proto_files = Vec::new();
-    for directory in ["oya", "cloud", "contracts"] {
+    for directory in governed_roots(&policy)
+        .into_iter()
+        .chain(std::iter::once("contracts".to_owned()))
+    {
         collect_extension_files(&root.join(directory), "proto", &mut proto_files);
     }
     let declared_proto_paths = proto_files
@@ -1181,10 +1215,7 @@ fn entire_buck_proto_corpus_is_internal_and_every_service_is_manifest_classified
         "Buck-declared Proto corpus must not be empty"
     );
 
-    let mut paths = Vec::new();
-    collect_named_files(&root.join("oya"), "manifest.json", &mut paths);
-    collect_named_files(&root.join("cloud"), "manifest.json", &mut paths);
-    paths.sort();
+    let paths = collect_governed_manifests(&root, &policy);
 
     let mut manifest_contracts = BTreeSet::new();
     let mut findings = Vec::new();
@@ -1422,10 +1453,7 @@ fn entire_governed_manifest_corpus_is_inventoried_and_protocol_compatible() {
         "manifest contract keys must be the closed public/internal carriers plus compatibility metadata"
     );
 
-    let mut paths = Vec::new();
-    collect_named_files(&root.join("oya"), "manifest.json", &mut paths);
-    collect_named_files(&root.join("cloud"), "manifest.json", &mut paths);
-    paths.sort();
+    let paths = collect_governed_manifests(&root, &policy);
 
     let expected_total = policy["manifest_inventory"]["expected_total"]
         .as_u64()
@@ -1565,8 +1593,11 @@ fn entire_governed_manifest_corpus_is_inventoried_and_protocol_compatible() {
             );
         }
     }
+    let expected_live_total = policy["manifest_inventory"]["expected_live_v1_total"]
+        .as_u64()
+        .expect("manifest expected_live_v1_total") as usize;
     assert_eq!(
-        live_count, 57,
+        live_count, expected_live_total,
         "the Buck-declared live v1.0 service manifest corpus changed; classify and migrate every new match"
     );
     assert_eq!(
