@@ -228,7 +228,7 @@ diff-readable.
 |---|---|---|
 | INV-1 | No `os/` crate depends on any `k8s/` crate. | `git grep -nE '^k8s-[a-z-]+ *= *\{ *path' -- 'os/**/Cargo.toml'` exits 1. Positive control: the same pattern over `*/Cargo.toml` lists 13 files. |
 | INV-2 | No `k8s/` crate depends on any `os/` crate. | `git grep -nE '^os-[a-z-]+ *= *\{ *path' -- 'k8s/**/Cargo.toml'` exits 1. Positive control: same pattern over `*/Cargo.toml` lists 43 files. |
-| INV-3 | The count of upstream-Kubernetes `apiVersion:` emit sites in `os/` never rises. **Frozen at 16.** | Section 8 reproducer. Shrink-only: a unit that removes one lowers the number in the same commit. |
+| INV-3 | The count of upstream-Kubernetes `apiVersion:` emit sites in `os/` equals the frozen census. **Frozen at 16.** | Section 8 reproducer. Frozen at equality: growth is the chartered defect, and a unit that retires a site re-freezes the number in the same commit — an unrecorded shrink is red too, because banked headroom lets the site come back. |
 | INV-4 | Every `k8s/ports/upstream-*` crate is a dependency leaf (C1). | `git grep -nE '\{ *path *=' -- 'k8s/ports/upstream-*/Cargo.toml'` matches only other `upstream-` paths. Vacuously true until the first such crate exists. |
 | INV-5 | No file under a registered regenerable region is hand-edited. | Vacuously true until `specs/k8s-port/regenerable-regions.json` exists and is non-empty. Once it does, the diff must touch no listed path. |
 | INV-6 | A unit re-freezes a governed census **only when its own diff moved it**, in the same commit, as a text edit keyed by name. A unit that adds or removes no tracked governed file touches no ceiling. | The assertion itself instructs "re-freeze it in the SAME change", and the corpus axes assert **before** the finding axes — so a stale corpus number silently disables the finding ratchet for every later unit. That is why this is not deferred to Land like other bookkeeping. |
@@ -281,7 +281,7 @@ What is worth doing while the duplication is small — each is one data file, ze
    independent Pod renderers). The budget is exactly two new rows per wave; the five seeds are exempt.
    **Adding a third row in this wave is rejected by the ledger's own growth policy** — if a unit finds
    a third divergence, it records it in the operations journal and waits for the next wave.
-3. The INV-3 shrink-only ratchet, baseline 16.
+3. The INV-3 equality-frozen ratchet, census 16.
 
 Deferred, with the reason: no seam crate, no `os → k8s` dependency (ADR-638 D6 and the closed
 19-tuple substrate DAG), no crate move, no crate deletion.
@@ -309,13 +309,22 @@ an arithmetic one.
 `manifest_controller.rs:200`, whose `mod tests` opens at line 196).
 
 ```
-P='apiVersion: (v1(\\n|"|$)|apps/v1|rbac\.authorization\.k8s\.io/v1|kubelet\.config\.k8s\.io/v1beta1|apiserver\.config\.k8s\.io/v1|audit\.k8s\.io/v1|pod-security\.admission\.config\.k8s\.io/v1)'
+P='apiVersion: (v1(\\n|"|$)|[A-Za-z0-9.-]*\.k8s\.io/|(apps|batch|autoscaling|policy|extensions)/)'
 git grep -cE "$P" -- 'os/**/*.rs' | awk -F: '{s+=$2} END {print s}'    # => 16
 git grep -cE "$P" -- 'os/core/block-domain/src/controller.rs'          # => exit 1 (negative control)
 ```
 
+The discriminator is the API **group shape**, never an enumeration of the groups that happened to
+exist at census time: a value is upstream Kubernetes when it carries a `<group>/<version>` segment
+whose group ends in `.k8s.io` or is one of the five suffix-less upstream groups (`apps`, `batch`,
+`autoscaling`, `policy`, `extensions`). A closed allowlist would have been blind to a first
+`batch/v1` or `networking.k8s.io/v1` — exactly the growth this invariant exists to catch.
+
 The negative control is the point: `os/core/block-domain/src/controller.rs` carries 16 `apiVersion:`
-lines of its own and matches none of them (trap T-1).
+lines of its own and matches none of them (trap T-1). The exclusion is structural, not incidental:
+all 168 `v1alpha1` occurrences in `os/**/*.rs` are **bare**, carrying no group segment, while every
+slashed value in the tree is an upstream group — so a slash-shaped predicate cannot swallow Talos
+surface.
 
 | Quantity | Value | Note |
 |---|---|---|
@@ -447,7 +456,7 @@ from the diff.
 1. **Scope.** The diff advances exactly one row of section 3.2, one item of section 7, or one
    invariant of section 5 — and the commit message says which by id.
 2. **Charter.** It does not add hand-written upstream-Kubernetes surface. INV-3 count is shown in the
-   commit message and is ≤ 16.
+   commit message and equals 16.
 3. **No unauthorized edge.** INV-1 and INV-2 hold, each shown with its positive control.
 4. **No unauthorized structure.** No crate created, moved or deleted. If one is, T-10 and INV-9 are
    both satisfied *in this commit* and a whole-graph buck2 result is quoted with its `Commands:` line.

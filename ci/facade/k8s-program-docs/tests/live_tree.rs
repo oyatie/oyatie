@@ -50,8 +50,8 @@ fn live_os_tree_holds_the_frozen_upstream_emit_site_ceiling() {
         corpus.os_rust_files
     );
     assert!(
-        corpus.upstream_emit_sites <= ci_k8s_program_docs::UPSTREAM_EMIT_SITE_CEILING,
-        "os/ hand-writes {} upstream-Kubernetes apiVersion emit sites, above the shrink-only ceiling of {}",
+        corpus.upstream_emit_sites == ci_k8s_program_docs::UPSTREAM_EMIT_SITE_CEILING,
+        "os/ hand-writes {} upstream-Kubernetes apiVersion emit sites, which does not equal the frozen census of {}",
         corpus.upstream_emit_sites,
         ci_k8s_program_docs::UPSTREAM_EMIT_SITE_CEILING
     );
