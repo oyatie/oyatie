@@ -1,0 +1,206 @@
+{
+  "schema_version": "1.0",
+  "microservice": "data",
+  "_comment": "Capability-root manifest for data/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 23 crates directly under data/ that belonged to NO manifest: the sub-service manifests under data/*/manifest.json cover their own services only. Every crate, service and SLO path below was read off the tree, not transcribed.",
+  "tier": "substrate",
+  "tier_subtype": "substrate-data",
+  "dr_tier": "T1",
+  "dr_tier_derivation": "Strictest dr_tier declared by any absorbed service of this capability (analytics=T1, cloud-data=T1, data-pipeline=T2, data-warehouse=T2, ontology=T1). The shared crates sit in the failure path of the strictest consumer, so the capability root may not claim a weaker DR class than the service that depends on it.",
+  "substrate_dag_position": {
+    "stratum": "S3",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "ADR-0562 capability-registry declares data tier=substrate stratum=S3; all five absorbed services declare the same value."
+  },
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "purpose": "Data substrate capability root. The crates directly under data/ are the capability-level analytics, ontology, ontology-query-engine and search (crawler, parser, index, rank, RAG, SERP) model, its port boundaries and its tenant-facing facade services. The deployed data services (analytics, cloud-data, data-pipeline, data-warehouse, ontology) carry their own manifests and SLOs.",
+  "bounded_contexts": [
+    {
+      "name": "data-core",
+      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under data/core/. Covered by no service manifest before this file existed.",
+      "crates": [
+        "data-analytics-domain",
+        "data-analytics-usecase",
+        "data-cloud-domain",
+        "data-cloud-kernel",
+        "data-ontology-domain",
+        "data-ontology-kernel",
+        "data-ontology-query-engine-domain",
+        "data-ontology-query-engine-usecase",
+        "data-search-crawler",
+        "data-search-index-inverted",
+        "data-search-index-vector",
+        "data-search-parser",
+        "data-search-query",
+        "data-search-rag",
+        "data-search-rank",
+        "data-search-serp"
+      ]
+    },
+    {
+      "name": "data-facade",
+      "description": "Capability-level composition, app and evidence crates under data/facade/. Covered by no service manifest before this file existed.",
+      "crates": [
+        "data-analytics-app",
+        "data-analytics-tenant-bootstrap",
+        "data-ontology-scorecards-resolver",
+        "data-pipeline-lineage-replay-service",
+        "data-warehouse-tenant-olap-service"
+      ]
+    },
+    {
+      "name": "data-ports",
+      "description": "Capability-level port + API boundary crates under data/ports/. Covered by no service manifest before this file existed.",
+      "crates": [
+        "data-analytics-api",
+        "data-ontology-api"
+      ]
+    }
+  ],
+  "layers": [
+    "core",
+    "facade",
+    "ports"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 23,
+    "crates_by_layer": {
+      "core": 16,
+      "facade": 5,
+      "ports": 2
+    },
+    "covered_by_no_other_manifest": true,
+    "absorbed_services": [
+      {
+        "service": "analytics",
+        "manifest": "data/analytics/manifest.json"
+      },
+      {
+        "service": "cloud-data",
+        "manifest": "data/cloud-data/manifest.json"
+      },
+      {
+        "service": "data-pipeline",
+        "manifest": "data/data-pipeline/manifest.json"
+      },
+      {
+        "service": "data-warehouse",
+        "manifest": "data/data-warehouse/manifest.json"
+      },
+      {
+        "service": "ontology",
+        "manifest": "data/ontology/manifest.json"
+      }
+    ],
+    "absorbed_service_facet_divergence": false,
+    "absorbed_service_facets": [
+      {
+        "service": "analytics",
+        "tier_subtype": "substrate-data",
+        "dr_tier": "T1",
+        "stratum": "S3"
+      },
+      {
+        "service": "cloud-data",
+        "tier_subtype": "substrate-data",
+        "dr_tier": "T1",
+        "stratum": "S3"
+      },
+      {
+        "service": "data-pipeline",
+        "tier_subtype": "substrate-data",
+        "dr_tier": "T2",
+        "stratum": "S3"
+      },
+      {
+        "service": "data-warehouse",
+        "tier_subtype": "substrate-data",
+        "dr_tier": "T2",
+        "stratum": "S3"
+      },
+      {
+        "service": "ontology",
+        "tier_subtype": "substrate-data",
+        "dr_tier": "T1",
+        "stratum": "S3"
+      }
+    ]
+  },
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    }
+  },
+  "contracts_non_claim": "This capability root serves no endpoint of its own, so all three carrier arrays are EMPTY rather than populated: every OpenAPI, AsyncAPI and proto contract under data/ belongs to one of the absorbed services listed above and is declared by that service's manifest. The internal_grpc block is present-and-empty, not omitted, because the H2/proto3 posture binds any internal gRPC this capability may later expose (ADR-0056/0105 zero-GraphQL, internal-only Protobuf); an omitted block would read as an unruled surface.",
+  "adrs": [
+    {
+      "id": "ADR-0562",
+      "title": "Closed Capability Registry And Deterministic Placement",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0245",
+      "title": "Tier As Manifest Facet",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0280",
+      "title": "Substrate Dependency DAG",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo"
+    }
+  ],
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    },
+    "non_claim": "A capability root of library crates has no tenant shards to split, merge or rebalance. Sharding automation is claimed by the absorbed services that actually run, in their own manifests; ADR-0348 automation is declared disabled here rather than omitted so the absence is a measured statement instead of a gap."
+  },
+  "dr": {
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No runtime store, failover drill or DR evidence belongs to this capability root; DR is exercised by the absorbed services. `dr_tier` above is the inherited obligation, not a measured result."
+  },
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this manifest describes the 23 crates directly under data/ and does NOT restate, aggregate or supersede the 5 absorbed service manifests listed above",
+    "no deployed process, served endpoint, measured benchmark, capacity telemetry or audit-chain writer is claimed for the capability root itself"
+  ],
+  "slos": [
+    {
+      "name": "operator-reconciliation-latency",
+      "file": "data/observability/slos/data-substrate/operator-reconciliation-latency.openslo.yaml"
+    }
+  ],
+  "slos_note": "These OpenSLO files measure crates that live directly under this capability root and belong to no absorbed service manifest, so this root is their only manifest home."
+}
