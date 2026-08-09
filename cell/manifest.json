@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "microservice": "cell",
-  "_comment": "Capability-root manifest for cell/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 8 crates directly under cell/ that belonged to NO manifest: the sub-service manifests under cell/*/manifest.json cover their own services only. Every crate, service and SLO path below was read off the tree, not transcribed.",
+  "_comment": "Capability-root manifest for cell/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 8 of the 8 crates directly under cell/ belonging to NO manifest: the sub-service manifests under cell/*/manifest.json cover their own services only. Every crate, service, count and SLO path below was read off the tree, not transcribed.",
   "tier": "substrate",
   "tier_subtype": "substrate-infra",
   "dr_tier": "T1",
@@ -18,7 +18,7 @@
   "bounded_contexts": [
     {
       "name": "cell-core",
-      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under cell/core/. Covered by no service manifest before this file existed.",
+      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under cell/core/.",
       "crates": [
         "cell-capacity",
         "cell-capacity-commercial",
@@ -29,7 +29,7 @@
     },
     {
       "name": "cell-ports",
-      "description": "Capability-level port + API boundary crates under cell/ports/. Covered by no service manifest before this file existed.",
+      "description": "Capability-level port + API boundary crates under cell/ports/.",
       "crates": [
         "cell-bind-api",
         "cell-region-api",
@@ -47,7 +47,9 @@
       "core": 5,
       "ports": 3
     },
-    "covered_by_no_other_manifest": true,
+    "crates_covered_by_no_other_manifest": 8,
+    "crates_also_declared_by_an_absorbed_service": [],
+    "_overlap_note": "COMPUTED, not asserted. No crate under this capability root is declared by any absorbed service manifest, so the whole crate set below was unowned before this file.",
     "absorbed_services": [
       {
         "service": "cell-lifecycle",

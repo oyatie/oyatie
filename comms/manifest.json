@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "microservice": "comms",
-  "_comment": "Capability-root manifest for comms/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 24 crates directly under comms/ that belonged to NO manifest: the sub-service manifests under comms/*/manifest.json cover their own services only. Every crate, service and SLO path below was read off the tree, not transcribed.",
+  "_comment": "Capability-root manifest for comms/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 24 of the 24 crates directly under comms/ belonging to NO manifest: the sub-service manifests under comms/*/manifest.json cover their own services only. Every crate, service, count and SLO path below was read off the tree, not transcribed.",
   "tier": "substrate",
   "tier_subtype": "substrate-comms",
   "dr_tier": "T0",
@@ -18,7 +18,7 @@
   "bounded_contexts": [
     {
       "name": "comms-adapters",
-      "description": "Capability-level driven adapters (storage, transport, provider) under comms/adapters/. Covered by no service manifest before this file existed.",
+      "description": "Capability-level driven adapters (storage, transport, provider) under comms/adapters/.",
       "crates": [
         "comms-mail-mailbox-postgres",
         "comms-messenger-stream-postgres"
@@ -26,7 +26,7 @@
     },
     {
       "name": "comms-core",
-      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under comms/core/. Covered by no service manifest before this file existed.",
+      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under comms/core/.",
       "crates": [
         "comms-calendar-domain",
         "comms-calendar-usecase",
@@ -44,7 +44,7 @@
     },
     {
       "name": "comms-facade",
-      "description": "Capability-level composition, app and evidence crates under comms/facade/. Covered by no service manifest before this file existed.",
+      "description": "Capability-level composition, app and evidence crates under comms/facade/.",
       "crates": [
         "comms-contact-center-voice-routing",
         "comms-mail-mailbox-grpc",
@@ -55,7 +55,7 @@
     },
     {
       "name": "comms-ports",
-      "description": "Capability-level port + API boundary crates under comms/ports/. Covered by no service manifest before this file existed.",
+      "description": "Capability-level port + API boundary crates under comms/ports/.",
       "crates": [
         "comms-calendar-api",
         "comms-mail-mailbox-api",
@@ -79,7 +79,9 @@
       "facade": 5,
       "ports": 5
     },
-    "covered_by_no_other_manifest": true,
+    "crates_covered_by_no_other_manifest": 24,
+    "crates_also_declared_by_an_absorbed_service": [],
+    "_overlap_note": "COMPUTED, not asserted. No crate under this capability root is declared by any absorbed service manifest, so the whole crate set below was unowned before this file.",
     "absorbed_services": [
       {
         "service": "comms-email",
