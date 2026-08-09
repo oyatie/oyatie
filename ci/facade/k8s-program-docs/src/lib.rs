@@ -22,22 +22,17 @@ const SIX_AXIS_TOKENS: [&str; 6] = [
 /// Root scanned for INV-3. Every Rust file below it is read; nothing below it is written.
 const OS_ROOT: &str = "os";
 /// INV-3, frozen on `origin/dev` @ `5e452bd70`: 15 production sites plus one test fixture at
-/// `os/core/k8s-control-domain/src/manifest_controller.rs:200`. Shrink-only — a unit that retires a
-/// site lowers this constant in the same commit; no unit raises it. Hand-writing upstream Kubernetes
-/// wire surface is what ADR-0704 charters as generated, so growth here is the defect.
+/// `os/core/k8s-control-domain/src/manifest_controller.rs:200`. Frozen at equality — a unit that
+/// retires a site re-freezes this constant in the same commit, and no unit raises it. A bare `<=`
+/// would let a retirement bank silent headroom for the site to come back, so the gate reds on any
+/// drift in either direction. Hand-writing upstream Kubernetes wire surface is what ADR-0704
+/// charters as generated, so growth here is the defect and an unrecorded shrink is a lie.
 pub const UPSTREAM_EMIT_SITE_CEILING: usize = 16;
-/// The discriminator is the **API group**, never the token `apiVersion` (trap T-1): Talos emits
-/// `apiVersion: v1alpha1` correctly in dozens of places, and those are Talos surface, not Kubernetes
-/// surface. Bare `v1` is handled separately because it must not swallow `v1alpha1`/`v1beta1`.
-const UPSTREAM_API_GROUPS: [&str; 6] = [
-    "apps/v1",
-    "rbac.authorization.k8s.io/v1",
-    "kubelet.config.k8s.io/v1beta1",
-    "apiserver.config.k8s.io/v1",
-    "audit.k8s.io/v1",
-    "pod-security.admission.config.k8s.io/v1",
-];
 const API_VERSION_MARKER: &str = "apiVersion: ";
+/// The five upstream Kubernetes API groups that carry no `.k8s.io` suffix. Every other upstream
+/// group is recognised structurally by that suffix rather than by enumeration.
+const SUFFIXLESS_UPSTREAM_GROUPS: [&str; 5] =
+    ["apps", "batch", "autoscaling", "policy", "extensions"];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum FindingCode {
@@ -239,12 +234,12 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
         }
     }
 
-    if corpus.upstream_emit_sites > UPSTREAM_EMIT_SITE_CEILING {
+    if corpus.upstream_emit_sites != UPSTREAM_EMIT_SITE_CEILING {
         findings.push(finding(
             FindingCode::UpstreamKubernetesSurfaceGrowth,
             OS_ROOT,
             &format!(
-                "{} upstream-Kubernetes apiVersion emit sites across {} Rust files exceeds the shrink-only ceiling of {}; the surface is chartered as generated, so consume the seam instead of hand-writing it",
+                "{} upstream-Kubernetes apiVersion emit sites across {} Rust files does not equal the frozen census of {}; the surface is chartered as generated, so growth means consume the seam instead of hand-writing it, and a retirement must lower this constant in the same commit",
                 corpus.upstream_emit_sites, corpus.os_rust_files, UPSTREAM_EMIT_SITE_CEILING
             ),
         ));
@@ -326,13 +321,25 @@ pub fn upstream_emit_sites(contents: &str) -> usize {
     contents.lines().filter(|line| emits_upstream_group(line)).count()
 }
 
+/// The discriminator is the **API group SHAPE**, never the token `apiVersion` (trap T-1) and never a
+/// closed allowlist of the groups that happened to exist at census time. A value is upstream
+/// Kubernetes when it carries a group segment — `<group>/<version>` — whose group either ends in
+/// `.k8s.io` or is one of the five suffix-less upstream groups. Talos is excluded structurally: it
+/// emits bare `v1alpha1` with no group segment at all, so nothing slash-shaped can swallow it. Bare
+/// `v1` is handled separately below because it must not swallow `v1alpha1`/`v1beta1`.
 fn emits_upstream_group(line: &str) -> bool {
     line.match_indices(API_VERSION_MARKER).any(|(index, marker)| {
         let group = &line[index + marker.len()..];
-        UPSTREAM_API_GROUPS
-            .iter()
-            .any(|candidate| group.starts_with(candidate))
-            || group.strip_prefix("v1").is_some_and(|tail| {
+        group.split_once('/').is_some_and(|(segment, _)| {
+            // A group is a DNS-subdomain-shaped token. Bounding the charset stops a trailing
+            // comment such as `apiVersion: v1alpha1 // see rbac.authorization.k8s.io/v1` from
+            // being read as a group segment.
+            !segment.is_empty()
+                && segment
+                    .chars()
+                    .all(|character| character.is_ascii_alphanumeric() || character == '.' || character == '-')
+                && (segment.ends_with(".k8s.io") || SUFFIXLESS_UPSTREAM_GROUPS.contains(&segment))
+        }) || group.strip_prefix("v1").is_some_and(|tail| {
                 // Bare core/v1 only: end of line, the closing quote of a Rust literal, or the
                 // literal two-character `\n` escape inside one. `v1alpha1` and `v1beta1` fall out
                 // here, which is the whole of trap T-1.
@@ -988,8 +995,15 @@ mod tests {
     fn true_zero_document_scan_is_red_and_counters_are_distinct() {
         let evaluation = evaluate(&Corpus::default());
         assert_eq!(evaluation.counters.scanned_population, 0);
-        assert_eq!(evaluation.counters.finding_count, 1);
+        // Two, not one: a default corpus scanned nothing AND reports zero emit sites, and zero is
+        // no longer under a ceiling — it is a drift from the frozen census of 16. Both are red,
+        // which is the point of freezing at equality.
+        assert_eq!(evaluation.counters.finding_count, 2);
         assert!(has_code(&evaluation, FindingCode::EmptyProgramCorpus));
+        assert!(has_code(
+            &evaluation,
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
     }
 
     #[test]
@@ -1001,14 +1015,16 @@ mod tests {
     }
 
     #[test]
-    fn upstream_emit_site_ceiling_is_shrink_only() {
+    fn upstream_emit_site_census_is_frozen_at_equality() {
         let mut corpus = live_fixture();
         assert!(!has_code(
             &evaluate(&corpus),
             FindingCode::UpstreamKubernetesSurfaceGrowth
         ));
+        // An unrecorded reduction is red too: a retirement that does not re-freeze the constant
+        // would otherwise bank silent headroom for the site to come back.
         corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING - 1;
-        assert!(!has_code(
+        assert!(has_code(
             &evaluate(&corpus),
             FindingCode::UpstreamKubernetesSurfaceGrowth
         ));
@@ -1033,8 +1049,12 @@ mod tests {
             "apiVersion: apiserver.config.k8s.io/v1\n",
             "apiVersion: audit.k8s.io/v1\n",
             "apiVersion: pod-security.admission.config.k8s.io/v1\n",
+            // The exact regression the closed six-entry allowlist missed: upstream groups nobody
+            // enumerated during the census. Both are counted because the group SHAPE decides.
+            "apiVersion: batch/v1\n",
+            "apiVersion: networking.k8s.io/v1\n",
         );
-        assert_eq!(upstream_emit_sites(upstream), 9);
+        assert_eq!(upstream_emit_sites(upstream), 11);
 
         // Talos's own machine-config surface. These are correct Talos output, chartered by the port
         // of siderolabs/talos, and must never enter the count (trap T-1).
@@ -1044,6 +1064,9 @@ mod tests {
             "apiVersion: v1beta1\n",
             "apiVersion:\n",
             "let field = \"apiVersion\";\n",
+            // A trailing reference to an upstream group is not a group segment: the token between
+            // the marker and the first `/` is not DNS-subdomain-shaped, so the charset bound holds.
+            "apiVersion: v1alpha1 // see rbac.authorization.k8s.io/v1\n",
         );
         assert_eq!(upstream_emit_sites(talos), 0);
     }
