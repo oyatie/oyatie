@@ -4,13 +4,114 @@ doc_status: published
 
 # Apex gist repair — pattern mapping (oyatie-5ad)
 
-Binding mapping for every unit on `impl/5ad-apex-truncation`. A reviewer holding only a unit's diff
-applies §7 to accept or reject it. Where this document and a unit's own judgement disagree, this
-document wins; amend it in the same commit that departs from it, so the departure is reviewable.
+**What this document is, and is not.** It is a CONVENTION mapping for the units on
+`impl/5ad-apex-truncation`: a reviewer holding only a unit's diff applies §7 to accept or reject it.
+It binds DIFF REVIEW on this branch and nothing else. It is **not** a plan authority, it creates no
+work-item id namespace (`MPV2-*` in `specs/masterplan.json` is the only live one), and it approves
+no dispatch. Where it and a unit's judgement disagree, it wins for review purposes; amend it in the
+same commit that departs from it, so the departure is reviewable. Where it is WRONG ON ITS FACTS,
+say so in `refused` rather than obeying it — see §9.
 
 Scope: the ten live apex ADRs `docs/decisions/ADR-0700..0709`, their 386 archived members under
 `docs/adr-archive/`, the gate `governance/check/apex-gist-integrity` (already landed at c091256e7),
 and the equality-pinned censuses that the repair moves.
+
+## 0. Amendment log — review threads on PR #1630, by GraphQL id
+
+Threads are addressed by ID, never by position; two agents' numbering of the same set drifts.
+
+| Thread id | Verdict | Where answered |
+|---|---|---|
+| `PRRT_kwDOSbSl2s6XsXdV` (Cargo.toml:2, lock) | ACCEPTED | U-LOCK, §5; D1 |
+| `PRRT_kwDOSbSl2s6XsM51` (BUCK:29, gate never selected) | ACCEPTED | U-WIRE, §5; D2; T18 |
+| `PRRT_kwDOSbSl2s6XsM5y` (lib.rs:175, punctuation cuts) | ACCEPTED | U-DET, §5; D3; T17 |
+| `PRRT_kwDOSbSl2s6XsM54` (tests:157, title discarded) | ACCEPTED | U-DET, §5; D3; T17 |
+| `PRRT_kwDOSbSl2s6XsXdU` (mapping:233, U1/U2 share a file) | ACCEPTED | §3 module split; D5; I10 |
+| `PRRT_kwDOSbSl2s6XsXdX` (mapping:142, needle set) | ACCEPTED IN FORM, its count REFUTED | P7; D6 |
+| `PRRT_kwDOSbSl2s6XsXdR` (mapping:8, masterplan) | PARTIAL — demotion yes, registration REFUTED | header; D8 |
+| `PRRT_kwDOSbSl2s6XsM50` (tests:349, pin identities) | DECLINED with a substitute | D4 |
+| `PRRT_kwDOSbSl2s6XsXdT` (mapping:219, per-unit PR) | REFUTED | D7 |
+
+## 0.1 Decisions (each is a ruling, not a preference)
+
+Every question two units could answer differently is answered here, once.
+
+**D1 — the Cargo.lock fix is its own unit, first, alone.** `check-apex-gist-integrity` is a workspace
+member only via the `governance/check/*` glob in root `Cargo.toml:46`, and no lock entry exists. Run
+`cargo metadata >/dev/null` (allowed; `cargo build/test/check/clippy` are hook-blocked), then
+`git commit -- Cargo.lock`. **If the resulting diff touches any package other than
+`check-apex-gist-integrity`, do NOT commit the extra drift — report it in `refused`**, because an
+unattributed lock movement is indistinguishable from a dependency change nobody reviewed. Then
+re-materialize both faces (T19). Reason it is alone: it is the entire red-to-green step for
+`oya-ci-required`, which is a pure fan-in — bundling it behind repair work keeps the PR red for no
+reason.
+
+**D2 — wire the gate with `synthetic_dependencies` seeds; do NOT touch `inert_selection_classes`.**
+Seeds are the UNION over EVERY matching pattern
+(`ci/facade/affected-target-set/src/lib.rs:779`), so a specific key coexists with `"docs/**": []`
+rather than conflicting with it — the `docs/decisions/ADR-0704-k8s-port-live-apex.md` entry at lines
+202-206 is the standing precedent for exactly this shape. `inert_selection_classes` is a licence for
+an EMPTY selection, not a bar on selection, and the policy's own note says growing it is a
+merge-authority change; adding a seed is not. Keys to add:
+`"docs/decisions/ADR-07*.md"` and `"docs/adr-archive/**"` →
+`root//governance/check/apex-gist-integrity:check-apex-gist-integrity-gate`.
+
+**D3 — fix the two detector false negatives BEFORE any corpus repair, and re-derive the ceilings in
+the same commit.** Both reviewer findings reproduce on disk: `ADR-0701:54` ends `…PRD-frontmatter
+field,` (cut landing on punctuation, invisible to a mid-word predicate) and `ADR-0700:73` carries the
+title `docs/policies/foundr):` whose closing delimiter survived, then ends its row on
+`…Monitoring/observability systems, r`. A detector fix RAISES counts above the equality pins, so the
+commit that fixes detection re-freezes the pins from the gate's own `observed N` (T17). Order is
+load-bearing, not taste: repairing a corpus while the ratchet is blind to a defect class means the
+repair's own ceiling movements are measured by an instrument that cannot see what it missed — the
+`_parse_recovery_attribution` failure, restaged.
+
+**D4 — DECLINE identity pinning; drive the ceilings to ZERO instead.** The thread is right that
+per-code equality cancels a removal against a same-code addition. But a ceiling of `0` cannot
+cancel: you cannot remove one finding, add another, and still observe zero. So U5 lands each code it
+repairs at `0`, and only a code that provably cannot reach 0 gets per-`(apex, member, site)` identity
+pinning, in that code's own commit with the reason stated. A 639-row frozen manifest rewritten by
+every repair commit buys nothing that `0` does not.
+
+**D5 — one file, one owning unit, enforced by splitting the module.** U1 and U2 both owning
+`src/lib.rs` is a real defect against the branch's file-granular commit rule. Split:
+`src/segment.rs` (U1), `src/render.rs` (U2), `src/lib.rs` retained by U-DET. See §3.
+
+**D6 — the needle set is written out, not described.** Measured in this worktree at e07b090c9:
+
+```
+sev-snp|sev_snp|tdx|confidential comput|confidential-comput|confidential_comput
+```
+
+`grep -rniE` over `docs/adr-archive/*.md` → **9 files, 58 lines**; over `docs/decisions/ADR-07*.md`
+→ **0**. That is the positive control, and it is what licenses the negative claim. The three
+spellings are all required: spaced-only gives 6 (ADR-0297 writes "Confidential compute"),
+hyphen-only gives 7 (loses ADR-0297, gains ADR-0128 and ADR-0352), and ADR-0308 is reached by
+`confidential_comput` at line 1153 — **not** by an `nvidia_*` needle, contra the thread's second
+clause. Three readers produced 6, 7 and 9 from the same claim purely by varying one spelling, which
+is why prose describing a needle set is not a needle set.
+
+**D7 — one PR, at the end, by the LAND phase. REFUTED: per-unit branches and PRs.** Every unit here
+moves the same equality-pinned ceilings in `apex-gist-integrity-policy.json`, so N PRs serialise
+against one another and cannot all merge — the second to arrive is red by construction. The measured
+precedent is 23 draft PRs opened for one logical change, all stale, all conflicted, all superseded by
+a single consolidation PR. Units commit DIRECTLY to `impl/5ad-apex-truncation`.
+
+**D8 — do NOT register this in `masterplan_v2`; demote the document instead.**
+`masterplan_v2.planning_entry_contract` is `state: "open"` with `binding_plan_approval_allowed:
+false` and `dispatch_allowed: false`. Registering a work item there IS the binding plan approval the
+contract currently forbids, so the thread's remedy would breach the authority it invokes. The half
+of the thread that is right is cheap and is applied: this document no longer claims to be binding
+plan authority (see the header). If the entry contract is later reopened, registration becomes the
+correct follow-up — file it, do not do it here.
+
+**D9 — scope of the PR this branch opens.** `U-LOCK`, `U-WIRE`, `U-DET` and this mapping are the
+green-and-landable set and are the PR's floor. `U1`–`U5` (the generator and the corpus rewrite)
+continue on the same branch; the LAND phase opens ONE PR over whatever has converged. If the
+generator has not converged at the land gate, the branch lands the green set and the corpus repair
+carries to a successor branch on the same mapping — **because the equality ratchet makes a PARTIAL
+corpus repair RED**, so the repair is atomic or it is not landed. This is a sequencing ruling, not a
+cancellation: D3 and D2 are hard prerequisites of a repair that can be measured at all.
 
 ## 1. The defect, stated mechanically
 
@@ -43,7 +144,7 @@ standing over a missing table is not a decision anyone made.
 
 **No generator produces the apex bodies.** `git grep -l 'Preserved member gists'` matches the ten
 `.md` files and nothing else. The standard remedy cited for `docs/ADR-INDEX.md` ("use the
-generator") is unavailable here, and §6.9 records why that warning does not transfer.
+generator") is unavailable here, and T14 records why that warning does not transfer.
 
 ## 2. Pattern → replacement
 
@@ -136,11 +237,13 @@ cannot be re-truncated by a re-run, and the gate proves it if one is.
 ### P7. Uncorrected needle set → measured needle set
 
 `apex-gist-integrity-policy.json` `topics[0].needles` is `["sev-snp","sev_snp","tdx","confidential
-comput"]`. The literal space cannot match `confidential-computing`. Corrected set sees 9 archived
-files where the current set sees 6; the three misses are ADR-0128 (which carries a named invariant
-`INV-CONFIDENTIAL-COMPUTE` no apex mentions), ADR-0308, and ADR-0352. Currently harmless for the
-frozen count — all three close onto ADR-0700/ADR-0709, already counted — so this is a latent
-under-detection, corrected as DATA.
+comput"]`. The literal space cannot match `confidential-computing` or `confidential_computing`. The
+corrected set is written out in **D6** and is the only form a unit may implement — the three misses
+are ADR-0128 (which carries a named invariant `INV-CONFIDENTIAL-COMPUTE` no apex mentions), ADR-0352
+(hyphenated) and ADR-0308 (underscored, line 1153). Currently harmless for the frozen count — all
+three close onto ADR-0700/ADR-0709, already counted — so this is a latent under-detection, corrected
+as DATA. **P8 still applies to the correction:** ADR-0352 is `status: Rejected`, so its absence from
+every apex is RETIRED, not loss, and widening the needles must not silently reclassify it.
 
 ### P8. Loss claim → ratified-or-retired disposition
 
@@ -170,9 +273,21 @@ what was ratified**.
 `governance/check/apex-gist-integrity`. No new crate. The generator and the gate must share one
 parser, or they can disagree about what a block is and both be green.
 
-- pure kernel (no I/O): `src/lib.rs`
-- generator entry point: `src/main.rs`, target `//governance/check/apex-gist-integrity:apex-gist-repair`
-- live-tree gate test: `tests/apex_gist_integrity.rs` (existing)
+**One file, exactly one owning unit per run** (I10). The module split exists for that reason and for
+no other; do not consolidate it back:
+
+| File | Owner | Contents |
+|---|---|---|
+| `src/lib.rs` | U-DET | detector predicates, findings, policy load; re-exports the two modules |
+| `src/segment.rs` | U1 | normative-section resolution + block segmentation (pure, no I/O) |
+| `src/render.rs` | U2 | FULL / ELIDED-WHOLE / marker rendering (pure, no I/O) |
+| `src/main.rs` | U3 | generator entry point, target `//governance/check/apex-gist-integrity:apex-gist-repair` |
+| `tests/apex_gist_integrity.rs` | U-DET, then U5 | live-tree gate (existing) |
+| `apex-gist-integrity-policy.json` | U-DET, then U5 | ceilings and needles; TEXT edits keyed by name |
+
+`tests/` and the policy JSON are held SEQUENTIALLY by two units, never concurrently: U-DET releases
+both before U5 starts. If you find another unit's uncommitted hunk in a file you own, do not commit
+that file — name the hunk and its line and let the owning unit carry it.
 
 **Policy is DATA.** All repo-specifics — budgets, heading aliases, needles, ceilings — live in
 `apex-gist-integrity-policy.json`. Edit it as TEXT keyed by name. Round-tripping it through a JSON
@@ -213,24 +328,45 @@ These hold after EVERY unit, so any unit is checkable in isolation.
 - **I8 — char boundaries.** All slicing is on `char_indices`, never byte indices. See T1.
 - **I9 — order preserved.** Existing gist and residual entries keep their existing order; new
   entries append. Re-sorting turns a reviewable diff into 100% churn.
+- **I10 — one file, one owning unit.** Per §3. A unit that commits a file it does not own has
+  committed a neighbour's mid-edit hunk under the wrong authorship; git records no provenance for
+  uncommitted work, so this is asserted, never checked.
+- **I11 — the ratchet sees before it judges.** No corpus-repair commit lands while a KNOWN detector
+  false-negative class is unfixed (D3). A ceiling lowered by an instrument that cannot see the defect
+  it is ratcheting is a fake green, and it is the exact shape the gate's own
+  `_parse_recovery_attribution` already records.
+- **I12 — the gate is selected by the corpus it polices.** After U-WIRE, a diff touching only
+  `docs/decisions/ADR-07*.md` or `docs/adr-archive/**` seeds
+  `//governance/check/apex-gist-integrity:check-apex-gist-integrity-gate`. Prove it by running the
+  affected-set tool over such a diff and reading the target out of its selection, not by reading the
+  policy back.
 
 ## 5. Unit decomposition
 
 Every unit commits DIRECTLY to `impl/5ad-apex-truncation`. No per-unit branch, no per-unit PR.
 
-| Unit | Deliverable | Depends on |
-|---|---|---|
-| U0 | this mapping | — |
-| U1 | normative-section extractor + block segmenter (pure, `src/lib.rs`) | U0 |
-| U2 | block renderer: FULL / ELIDED-WHOLE / marker (pure, `src/lib.rs`) | U0 |
-| U3 | generator binary `src/main.rs` + BUCK target | U1, U2 |
-| U4 | inventory artifact (deliverable 1) | U1 |
-| U5 | apply repairs to the ten apexes + re-freeze apex ceilings (deliverable 2) | U3 |
-| U6 | P7 needle correction + red-fixture proof of the gate (deliverable 3 completion) | U0 |
-| U7 | LAND: batched bookkeeping, one PR | all |
+| Unit | Deliverable | Owns | Depends on |
+|---|---|---|---|
+| U0 | this mapping | this file | — |
+| U-LOCK | `cargo metadata` → lock the new workspace member (D1) | `Cargo.lock` | U0 |
+| U-WIRE | affected-set seeds so the gate runs on corpus edits (D2) | `ci/facade/affected-target-set/affected-set-policy.json` | U0 |
+| U-DET | punctuation + title detector fixes, ceilings re-derived (D3) | `src/lib.rs`, `tests/`, policy JSON | U0 |
+| U1 | normative-section extractor + block segmenter | `src/segment.rs` | U0 |
+| U2 | block renderer: FULL / ELIDED-WHOLE / marker | `src/render.rs` | U0 |
+| U3 | generator binary + BUCK target | `src/main.rs`, `BUCK` | U1, U2 |
+| U4 | inventory artifact (deliverable 1) | `_disposition/apex-gist-loss-inventory.json` | U1 |
+| U5 | rewrite the ten apexes + drive ceilings to 0 (deliverable 2) | `docs/decisions/ADR-070*.md`, `tests/`, policy JSON | U3, U-DET |
+| U6 | P7 needle correction per D6 + red-then-green fixture proof | policy JSON (needles only) | U-DET |
+| U7 | LAND: batched bookkeeping, ONE PR | — | all |
 
-U1/U2/U6 are parallel-safe (disjoint concerns, no shared frozen number). U5 alone rewrites the ten
-apexes and alone moves the apex ceilings — it does not parallelise against itself.
+**Parallel-safe:** `U-LOCK`, `U-WIRE`, `U1`, `U2` — disjoint files, no shared frozen number.
+**Serialised on the policy JSON and `tests/`:** `U-DET` → `U6` → `U5`, in that order, because all
+three write ceilings or needles into one file and the second writer would clobber the first's
+re-derived `observed N`. **U5 does not parallelise against itself**: it alone rewrites the ten
+apexes and alone moves the apex ceilings.
+
+Units commit DIRECTLY to `impl/5ad-apex-truncation` with a pathspec (`git commit -- <paths>`), open
+no PR (D7), and create no per-unit merge commit. All integrator-only bookkeeping batches into U7.
 
 ## 6. Traps
 
@@ -321,6 +457,49 @@ replaced whole by its structural placeholder. That trades fidelity for a bounded
 trading away honesty, because the placeholder declares itself. The constant is chosen in U2 from
 this distribution and not before — see §8.
 
+**T17 — fixing a detector RAISES the count, and the equality pin goes red.** This looks exactly like
+a regression and the tempting "fix" is to narrow the detector back until the pin is satisfied, which
+restores the blind spot. The correct move is to re-derive the pin in the SAME commit from the gate's
+own `observed N`, and to state in the commit message that the rise is attributable to newly-visible
+findings — naming the class and one exhibit (`ADR-0701:54`, `ADR-0700:73`).
+
+**T18 — `synthetic_dependencies` seeds UNION; `inert_selection_classes` is a different statement.**
+`src/lib.rs:779` unions the seeds of EVERY matching pattern, so a specific `docs/...` key does not
+conflict with `"docs/**": []` — the ADR-0704 entry proves the shape lives. But the two lists mean
+different things: `synthetic_dependencies[X] = []` says "X contributes no seed";
+`inert_selection_classes` says "X may be the ENTIRE selection and still pass". Growing the second is
+a merge-authority change (PR #1389: `.github/**` declared inert let a workflow-only PR resolve to
+`NoGraphTargets` and walk past the no-new-shell ratchet). **Add seeds. Do not touch the inert list.**
+Note also `src/lib.rs:1889` — a seed list carries an accountability check, so U-WIRE must RUN the
+affected-set gate, not merely edit its policy.
+
+**T19 — generated faces go stale the instant you commit.** They are generated from the tree, so a
+face materialized before your commit describes the tree BEFORE it. Re-materialize after every commit
+you intend to measure, with BOTH invocations:
+`buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .`
+then the same with `--historical-merge-base $(git rev-parse HEAD)`. **The flag is misnamed:** despite
+its name it demands HEAD EXACTLY — passing the real merge-base sha exits 1 AFTER writing only
+scm-facts, leaving every other face stale, which inside a chained command silently leaves you
+measuring a half-materialized tree. State in your evidence when the faces were generated relative to
+the commit under test.
+
+**T20 — `cargo metadata` may move more of `Cargo.lock` than your crate.** Read the hunks. An
+unattributed lock movement is indistinguishable from a dependency change nobody reviewed; if
+anything but `check-apex-gist-integrity` moved, report it rather than committing it (D1).
+
+**T21 — `affected-set-policy.json` already carries a duplicate key** (`docs/decisions/ADR-0704-k8s-port-live-apex.md`
+at lines 202 and 205), resolving last-wins with identical values, so it is inert. It is PRE-EXISTING
+and not this branch's. Do not fix it here — an unrelated fix smuggled into a policy diff is how a
+reviewer loses track of what the diff was for. Report it.
+
+**T22 — a needle set described in prose is not a needle set.** Three readers derived 6, 7 and 9 from
+the same claim by varying one spelling. Any pattern this branch relies on is written out literally
+(D6) with its measured file and line counts and its positive control, or it is not relied on.
+
+**T23 — `oya-ci-required` is a fan-in with no independent cause.** It prints one line per constituent
+lane and exits 1 if any is not green. Never debug it directly; read the lane it names. Two red checks
+here were one defect.
+
 ## 7. Definition of done — one unit
 
 A reviewer holding only the diff applies this list. Any NO rejects the unit.
@@ -357,6 +536,17 @@ A reviewer holding only the diff applies this list. Any NO rejects the unit.
     removed to green, both shown.
 12. **No placeholders.** Neither `PLACEHOLDER_DEBT_TOKENS` marker (T11), no `test.skip`, no
     `unimplemented!`/`todo!` branch. A placeholder is a blocker to report, not evidence of progress.
+13. **Ownership.** Every file in the diff is owned by this unit per §3/§5 (I10). A diff carrying a
+    file another unit owns is rejected on sight, regardless of how correct the hunk is.
+14. **Observed red, then green.** For any GUARD the unit adds or repairs: mutate the thing it is
+    meant to catch, watch it fail, restore, watch it pass, and paste BOTH. A passing equality check
+    cannot distinguish "the values are equal" from "the comparison never ran" — a collapsed scan, a
+    skipped test and a correct tree all look identical from green. Run the mutation in a tree nobody
+    else is writing; if you cannot get one, report the proof as unattributable rather than reporting
+    it as a result.
+15. **Face timing stated.** If the unit's evidence depends on a generated face, the commit message
+    says when the faces were materialized relative to the commit under test (T19). A face older than
+    the commit it describes is a stale-face false green.
 
 ## 8. What this document does not decide
 
@@ -373,3 +563,49 @@ A reviewer holding only the diff applies this list. Any NO rejects the unit.
 - The 46-file gap between 432 archived files with `status: Superseded` and 386 members claimed
   across the ten `supersedes:` lists. ADR-0183 proves at least some are legitimate chains through
   non-apex successors; the rest are uncharacterised and out of scope for this repair.
+- Whether U1–U5 converge in time to ride this branch's single PR. D9 rules the sequencing; it does
+  not predict the outcome.
+
+## 9. Evidence grade — challenge the inferences, obey the measurements
+
+A wrong ruling here propagates to every unit and each will defend it in turn. So each ruling is
+graded, and a unit that finds a MEASURED claim false should say so in `refused` rather than obey it.
+
+**MEASURED in this worktree at e07b090c9** — re-run these before disputing them:
+
+- The needle set and its counts (D6): 9 files / 58 lines over the archive, 0 over the ten apexes.
+  Both the brief's figure of 37 and the thread's 7 fail to reproduce at any granularity.
+- The truncations: `ADR-0701:83` ends `…a hosted-contr`, `:319` ends `…Kam`, `:54` ends `…field,`;
+  `ADR-0700` contains `docs/policies/foundr):` and line 73 ends `…systems, r`.
+- The block census: 254 gist bullets + 385 residual sections = 639, matching the gate's frozen
+  `blocks`. ADR-0700 carries 60 gists against 126 residuals and ADR-0709 60 against 125 — which is
+  what `apex_member_without_gist 132` and `apex_member_without_residual 1` are made of. **Correcting
+  a claim in circulation:** those 132 members are missing a GIST, not missing all content; they
+  retain residual sections. "132 members with zero carried content" is too strong.
+- The seed-union semantics (D2/T18) at `ci/facade/affected-target-set/src/lib.rs:779`, and the
+  ADR-0704 precedent at lines 200-230 of the policy coexisting with `"docs/**": []` at 238.
+- `masterplan_v2.planning_entry_contract`: `state: open`, `binding_plan_approval_allowed: false`,
+  `dispatch_allowed: false` (D8).
+- The duplicate policy key (T21), at lines 202 and 205, values identical.
+
+**INFERRED — worth challenging, and cheap to settle by running something:**
+
+- That `cargo metadata >/dev/null` alone turns `freshness` green (D1). It is the remedy the gate
+  itself prints and the manifest glob already covers the crate, but nobody has run it. U-LOCK
+  settles it.
+- That the D2 seed keys actually produce the selection (I12). Glob syntax and the accountability
+  check at `src/lib.rs:1889` are both unverified; U-WIRE must prove selection by RUNNING the tool
+  over a docs-only diff, not by re-reading the policy.
+- That driving ceilings to 0 is reachable for every code (D4). If a code cannot reach 0, that code
+  falls back to identity pinning — the ruling anticipates the failure but has not measured it.
+- That a body-only apex edit leaves `docs/ADR-INDEX.md`, `docs/machine-readable/decisions.json` and
+  `ci/facade/lifecycle-status` unmoved (T14, T7). Both project from FRONTMATTER, and the apexes
+  already declare `doc_status`, so the inference is strong — but it is an inference from module
+  docs, and U5 owes the measurement.
+- The whole of §2's P1/P2 rendering contract. It is a design ruling, not an observation; it is
+  binding because it must be decided ONCE, not because it was measured.
+
+**NOT COVERED by this mapping:** no buck2 target was run to produce it. Every count above comes from
+git, grep, file reads and CI logs. No gate has been observed passing or failing locally at this head,
+and no assertion in the landed gate has been proved to fire by mutation. The first unit to run one
+owes the branch that evidence.
