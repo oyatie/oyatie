@@ -1,0 +1,17 @@
+context: build
+role: kernel
+capability: apex-gist-integrity
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: governance/check/apex-gist-integrity/Cargo.toml
+non_claims:
+  - decides that a carried block was CUT, never that its content is correct; a block that finishes its sentence is clean here however wrong it is
+  - reads the apex supersedes list and the archived member bodies only; it does not re-derive the consolidation that produced the apexes and cannot say what the generator intended to keep
+  - the topic check is keyword DATA over lowercased text, so a topic discussed without any configured needle is invisible and a needle appearing in an unrelated sense is a false positive
+  - shrink-only ratchet pinned by equality; it blocks new truncation and forces a repaired corpus to lower the ceiling, but does not itself restore any dropped content

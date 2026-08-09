@@ -1,0 +1,37 @@
+rust_library(
+    name = "check-apex-gist-integrity",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "check_apex_gist_integrity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+# Pure-kernel unit tests: a finished sentence is clean, a byte-budget cut is caught at both carry
+# sites and through trailing whitespace, an odd fence run is an unclosed fence, a member named in
+# supersedes but never carried is caught, a topic only the members carry is reported ONCE with its
+# evidence, and a collapsed walk fails closed instead of reporting a clean corpus. All proven
+# WITHOUT a filesystem, on fixtures whose ids carry no governed ADR shape.
+rust_test(
+    name = "check-apex-gist-integrity-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "check_apex_gist_integrity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+# Live-tree gate: parses the ten live apexes and the archived member corpus, pins the census by
+# EQUALITY before any finding count, and carries the RED fixture that injects each of the four
+# defect shapes into the REAL observation set — so the gate is demonstrated capable of failing
+# rather than merely observed green.
+rust_test(
+    name = "check-apex-gist-integrity-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "check_apex_gist_integrity_gate",
+    crate_root = "tests/apex_gist_integrity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-apex-gist-integrity",
+        "third-party//:serde_json",
+    ],
+)
