@@ -3031,6 +3031,29 @@
           "last_modified_at": "2026-08-05T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "k8s-port-regenerable-regions",
+      "artifact_path": "/specs/k8s-port/regenerable-regions.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-platform + council-architecture",
+      "purpose_short": "Registered regenerable regions for the Kubernetes Go-to-Rust port plus first-party origin classification of every crate leaf across the os/<->k8s seam; the empty region set is the denominator until a producer exists.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "ci/facade/canonical-json",
+          "command": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate"
+        },
+        "validation": {
+          "validator": "Canonical JSON is live; region-population validation is blocked on build/port-engine and specs/port-rules, both absent from this tree, and is not claimed here."
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending independent review",
+          "last_modified_at": "2026-08-09T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"
