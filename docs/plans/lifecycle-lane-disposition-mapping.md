@@ -115,8 +115,73 @@ Presumptive-binding. A unit may overturn one **only** by recording contradicting
 | `migration-status-lifecycle` | DELETE | Same gitignored root. Nearest tracked corpus is 27 `*/migration-playbooks/*.md` scattered across ~15 capability dirs: unreachable by one glob (§2.2), needing ~15 hand-listed sources, and none carries frontmatter — it would baseline 27 fabricated `stage_not_declared`. The ledger's own recorded resolution names `docs/migration-playbooks/`, which has **0 tracked files**. |
 | `capability-status-lifecycle` | DELETE | `specs/**/*.capability.json` matches **0** files while `specs/` resolves — the vacuous green named in the goal. Candidate A `specs/capability-registry.json` = 1 file. Candidate B `*/capabilities/*.yaml` = **378 files across 66 distinct directories**, of which only **16** declare any `status:` and **1** is fenced. Both are vacuity or fabrication. |
 | `dependency-status-lifecycle` | DELETE | `docs/dependencies/` has 0 tracked files. Both recorded alternatives (`registry/dependency-rationales.json`, `oya-deps.toml`) are single aggregate files → 1 artifact. |
-| `crate-status-lifecycle` | DELETE | **The brief's priority order should flip: this is the WEAKEST lane, not the strongest.** `crates/` does not exist; the glob was never satisfiable (§2.2); `git grep -c lifecycle_stage -- '*.toml'` matches **zero files**; `registry/catalog/*.yaml` carries no lifecycle-stage field; the declared reader does not exist. A re-root needs 895 authored stage declarations AND new kernel code. Re-introducing this lane requires a crate-level declaration surface to exist FIRST — record that in the deletion rationale so the lane is re-openable. |
+| `crate-status-lifecycle` | DELETE — **re-affirmed, on different evidence; two claims below are RETRACTED** | `crates/*-domain/Cargo.toml` does not exist and was never satisfiable (§2.2); `git grep -c lifecycle_stage -- '*.toml'` matches **zero files**; the declared `cargo_metadata_table` reader does not exist. RETRACTED: "`registry/catalog/*.yaml` carries no lifecycle-stage field" (it carries `status:` on 56/750) and "a re-root needs new kernel code" (`c4925c55d` removed that constraint). The registry/catalog option — the only one that mattered — is answered on its merits in **§3.1.1**, not on the retracted premises. |
 | `feature-flag-status-lifecycle` | DELETE **+ 3 reference repairs** | `docs/feature-flags/` has 0 tracked files. `flags/catalog/*.yaml` is a **crate** catalog (`oya-feature-flags-*`), not a per-flag artifact class; no per-flag corpus exists anywhere in the tree. Blast radius, all three repaired in the same commit: `ci/facade/contract-slice-conformance/contract-slice-policy.json:1670`, `ci/facade/contract-slice-conformance/slices/release-001-runtime-safety-policy.json:164`, `flags/release/runtime-safety-policy.json:94` (`status_lifecycle_ref`). |
+
+#### 3.1.1 `crate-status-lifecycle` vs `registry/catalog/*.yaml` — the re-litigation, answered directly
+
+The first DELETE ruling for this lane argued only about `crates/*-domain/Cargo.toml`. That is not
+the option that mattered. The ledger's own recorded resolution named **`registry/catalog/*.yaml`**,
+which is 750 separate one-record YAML files — neither "a single file holding many records" nor
+"JSON/TOML that cannot carry a `---` fence", the two shapes the deletion rested on. It is the
+identical surface the `api-stability-tier` lane was successfully RE-ROOTED onto in §3.2, on this
+same branch, after `c4925c55d` made fence-less documents readable whole. So the re-root deserved
+an answer on its merits. Here it is, and the ruling still lands on DELETE — for three reasons that
+did not appear in the original rationale.
+
+**Measured at this tree** (`registry/catalog/`, 750 `*.yaml`, one per crate):
+
+| Fact | Command | Result |
+|---|---|---|
+| Corpus size | `ls registry/catalog/*.yaml \| wc -l` | **750** |
+| `status:` present | `grep -l '^status:' registry/catalog/*.yaml \| wc -l` | **56** |
+| `status:` values | `grep -h '^status:' registry/catalog/*.yaml \| sort \| uniq -c` | `2 active`, `34 designed-ahead-row-no-crate`, `20 retired-compatibility-row-no-crate` |
+| Config vocabulary | `specs/lifecycle-configs/crate-status-lifecycle.json` (deleted) | `{scaffolded, live, quiescent, archived}` |
+| Intersection of the two vocabularies | — | **∅** |
+
+So a re-root reports **750 of 750 artifacts violating**: 694 `stage_not_declared` (field absent —
+`evaluate()` step 1) plus 56 `unknown_stage` (present, not in the vocabulary — step 2). It cannot
+be narrowed to the 56: `SourceFilter` (kernel `lib.rs:155`) offers only `kind_field_value` (an
+EXACT value match) and `filename_contains_any`, and neither can express "the field is present".
+
+**R1 — `status` is a different AXIS, not merely a different vocabulary.** The `api-stability-tier`
+fix worked because `[preview, stable, GA]` is *the same property* the config named, spelled
+differently, with three independent canonical confirmations. Here the corpus vocabulary is
+row-provenance — every one of the five canonical values asserts *"no crate exists for this row"*
+(`ci/facade/artifact-inventory-registry/src/main.rs:1082`, `NON_LIVE_STATUS_MARKERS`). Adopting it
+does not fix `crate-status`; it renames the lane to `catalog-row-non-liveness`.
+
+**R2 — absence is CONTRACTUALLY CORRECT for the 694, so the debt is not retirable by any edit this
+lane can make.** The field's owning gate states the contract verbatim: *"A LIVE record needs no
+marker (the gate checks live OR marked)"* (`catalog_non_live_marker`, same file, ~`:1147`). The
+lifecycle kernel has no "absence is legal" mode — absent is `StageNotDeclared`. The 694 rows would
+therefore be simultaneously **correct** under `cloud-ci-catalog-liveness` and **violating** under
+`cloud-ci-lifecycle-status`. Retiring the 694 means either declaring 694 live crates non-existent
+(false), or introducing a sixth value into a closed vocabulary that belongs to another gate — an
+edit outside this lane. This is the same failure mode as the retracted `unknown_stage: 750`
+api-stability baseline whose only remedy the claim-ceiling gate rejected (§3.2), one hop further
+out: **not forbidden, but not retirable by anything this lane owns.** `status: active` on 2 rows
+is the live proof — it is outside `NON_LIVE_STATUS_MARKERS`, so the owning gate silently ignores it.
+
+**R3 — the property is already enforced twice, born-blocking, with zero authoring.** Row↔crate
+correspondence is closed in *both* directions today: `ci/facade/crate-catalog-coverage` (crate→row)
+and `cloud-ci-catalog-liveness` (row→crate), both computed mechanically from the workspace member
+set. A frozen count of 694 undeclared rows adds no property those two do not already prove, at the
+cost of 694 hand-authored declarations of a fact derivable from disk. Contrast `doc-status`, which
+IS kept with 1921 `stage_not_declared`: that count is the **only** measurement of doc lifecycle
+anywhere in the repo, which is exactly why it is a ratchet and this one would be a third copy.
+
+**R4 — coverage, for completeness.** `ci/facade/crate-catalog-coverage/crate-catalog-coverage-policy.json`
+declares `min_expected_crates: 800` with **197** live crates carrying no row at all. The catalog is
+not the crate universe, so this surface structurally cannot govern the ~895 crates the lane claims.
+
+**THE RE-OPENING CONDITION, which is the part worth keeping.** This lane becomes correct the moment
+a per-crate maturity declaration exists **whose absence is not already meaningful to another gate** —
+concretely, a `lifecycle_stage:` key in the catalog record schema that
+`libs/oya-crate-registrar-app/src/lib.rs` `catalog_yaml::compute` **emits**, so new crates are born
+declaring it. Until the producer emits it, any lane rooted on a catalog field reds on the next
+`register_crate`; that is not a hypothetical, it is the defect this branch fixed for `api_stability`
+in the same change that records this section.
 
 ### 3.2 RE-ROOT — one lane
 
