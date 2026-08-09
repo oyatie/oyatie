@@ -190,7 +190,7 @@ use 745.
 
 | Shape | Sites | Share | Cum. | What it is |
 |---|---:|---:|---:|---|
-| **S7** fire-and-forget named call | 173 | 23.2% | 23.2% | `go x.Method(args)` where the shape is in the callee |
+| **S7** *(unresolved residue, not a shape — see §1.6)* | 173 | 23.2% | 23.2% | `go x.Method(args)` whose callee is not recognisable from the call site; the shape is in the callee body and is not measured here |
 | **S1** background loop | 165 | 22.1% | 45.4% | periodic work + shutdown channel/ctx (`wait.Until`, `for { select { tick, done } }`) |
 | **S2** long-lived service task | 141 | 18.9% | 64.3% | `go c.Run(ctx)`, `go srv.Serve(l)`, unbounded `for` body |
 | **S3** fan-out / worker pool | 74 | 9.9% | 74.2% | launch inside a `for`, joined by `WaitGroup` or reporting on a channel |
@@ -199,7 +199,11 @@ use 745.
 | **S4** joined parallel sub-task | 37 | 5.0% | 95.4% | `WaitGroup`-joined, not in a loop (errgroup-shaped) |
 | **S5** request/response bridge | 34 | 4.6% | 100.0% | runs work, returns result or error on a channel |
 
-**Top 3 cover 64.3%. Top 5 cover 83.2%. There are only 8 shapes and no tail beyond them.**
+**Seven resolved shapes cover 76.8% of launch sites; the remaining 23.2% (S7) is unclassified — see
+§1.6 — and may contain further shapes.** Among the resolved shapes the concentration is real: the
+top 3 of them (S1 165, S2 141, S3 74) cover 51.0% of all 745 sites and the top 5 cover 67.2%. An earlier draft read the
+table as "there are only 8 shapes and no tail beyond them", which cannot be true of a table whose
+largest row is a residue bucket: the tail, if there is one, is inside S7.
 
 That is the finding the programme should be sized on: the launch-site vocabulary is *small and
 closed*, not long-tailed. The candidate vocabulary in the brief maps onto it as follows — worker pool
@@ -355,11 +359,33 @@ awk -f sel_sig.awk select-census.txt | sort | uniq -c | sort -rn
 | `cancel+default+send` | 1 | 0.2% | 99.8% |
 | `cancel+default+recv` | 1 | 0.2% | 100.0% |
 
-**17 signatures cover all 425 selects. Top 3 cover 43.5%, top 6 cover 74.1%, top 10 cover 94.1%.**
+**17 role-sets cover all 425 selects. Top 3 cover 43.5%, top 6 cover 74.1%, top 10 cover 94.1%.**
 
-The tail is *not* long. This is the headline: the `select` rule corpus is bounded at roughly
-17 shapes, of which 10 carry 94% of the mass, and 5 of the remaining 7 occur ≤3 times each and can
-be handled by hand.
+**These 17 are role-SETS, and the key discards branch multiplicity.** `sel_sig.awk` reduces each
+select to the canonical *set* of its branch roles, so a two-branch select racing two ordinary data
+receives and a one-branch select that just receives collapse onto the same `recv` key. **17 is
+therefore not a bound on the select rule corpus**, because a two-way receive race and a single
+receive are different translation problems, and an earlier draft used it as one. §6's
+"select translation 17–22" row carries the same qualifier: its `+3–5 for arity variants above 2
+branches` does not reach this, because the collapse happens *within* the 86.4% of selects that have
+exactly two branches.
+
+**Measured, using the multiplicity `sel_sig.awk` already computes in `cnt[key "|" c]` and then
+discards** (the variant is `sel_mult.awk`, §8.5a):
+
+| | Selects | Distinct signatures |
+|---|---:|---:|
+| role-**set** key (the table above) | 425 | **17** |
+| role-**multiset** key (`recv*2`, `cancel*2+timer`, …) | 425 | **25** |
+
+**70 of 425 selects (16.5%) carry a duplicated role**, so 8 signatures are hidden by the set key.
+The worked instance is the `recv` row: it holds 34 selects, but §2.2 records only 2 selects with
+exactly one branch, and the multiset split confirms it — `recv` 2, `recv*2` 25, `recv*3` 6,
+`recv*8` 1. **32 of the 34 are multi-receive races collapsed onto a one-case key.** The largest
+hidden shapes elsewhere are `cancel+recv*2` (10) and `cancel+recv*2+timer` (9).
+
+The tail is still *not* long: 25 multiset signatures over 425 selects, with the same concentration.
+That is the number to size the select rule corpus against, not 17.
 
 Caveat on this table: the `cancel` vs `recv` split is heuristic — it keys on channel *names*
 (`ctx.Done()`, `*stopCh`, `done`, `stop`, `quit`, `*.stopped`). A shutdown channel with an unusual
@@ -470,12 +496,23 @@ Result: **22 mechanical, 3 restructure — 12%.** The three:
    select in Rust at all; it is a `Notify` or an `AtomicBool` + `oneshot`. Idiom rewrite, not translation.
 3. `test/integration/scheduler_perf/executor.go:587` — blocking send racing `tCtx.Done()` (§3.2a again).
 
-Confidence: n=25, 3 hits. Point estimate 12%; a Wilson 95% interval is roughly **4%–30%**, i.e.
-**17–128 of 425 selects, best estimate ≈51**. That interval is wide and I am not going to pretend
-otherwise. It brackets the mechanical figure (25 blocking-send selects + 5 closed-check-idiom
-selects = 30) comfortably, and the two methods agreeing to within a factor of two is the main reason
-to believe either. **If a single number is needed for planning, use 30–55 selects requiring hand
-restructure, with 25 of them already enumerated by name in §9.**
+**3 of 25 is an indicative hit rate, and no confidence interval is computed from it.** An earlier
+draft attached a Wilson 95% interval of roughly 4%–30% and extrapolated it to "17–128 of 425
+selects, best estimate ≈51". Both are withdrawn. "Reproducible, not cherry-picked" answers selection
+bias; it does not supply the **independence** a binomial interval needs. This is a *systematic*
+every-17th draw over a frame sorted by file path, so the frame is ordered **by subsystem** — and
+§3.2(a) states that the relevant population is subsystem-**clustered**: the restructure-needing
+selects "are not scattered: they are concentrated almost entirely in watch-event delivery"
+(`mux.go`, `streamwatcher.go`, `cache_watcher.go`, `etcd3/watcher.go`, `shared_informer.go`,
+`retrywatcher.go`). Systematic sampling over a clustered, cluster-ordered frame is precisely where a
+binomial interval is unlicensed.
+
+**The planning range does not depend on the interval and is unchanged.** It comes from the
+independent mechanical enumeration — 25 blocking-send selects (§3.2a, listed by file and line in §9)
+plus 5 closed-check-idiom selects = 30. **If a single number is needed for planning, use 30–55
+selects requiring hand restructure, with 25 of them already enumerated by name in §9.** The sample's
+3-of-25 remains useful as a qualitative cross-check that the enumeration is not missing a whole
+class; it is not a basis for a rate.
 
 The `close`-check idiom was counted mechanically as a cross-check:
 `rg --multiline 'select \{\n[^\n]*case <-[^\n]*:\n[^\n]*\n?[ \t]*default:\n[^\n]*close\('` → **5**.
@@ -751,13 +788,13 @@ single number here would be false precision.
 
 | Rule family | Rules | Derived from |
 |---|---:|---|
-| Goroutine launch shapes | **10–14** | 8 measured shapes (§1.5) + the N-identical-worker sub-shape (§1.8) + join/no-join and ctx/stopCh variants on S1/S3/S4 |
-| `select` translation | **17–22** | 17 measured branch-set signatures (§2.4); +3–5 for arity variants above 2 branches and for nested selects |
+| Goroutine launch shapes | **10–14** | 7 resolved measured shapes (§1.5 — S7 is an unresolved residue, not a shape) + the N-identical-worker sub-shape (§1.8) + join/no-join and ctx/stopCh variants on S1/S3/S4. The residue is 23.2% of launch sites and is the largest single uncertainty in this table (§1.6, §7 item 2) |
+| `select` translation | **25–30** | 25 measured branch-*multiset* signatures (§2.4 — the 17 role-*sets* discard branch multiplicity, and 70 of 425 selects carry a duplicated role); +3–5 for arity variants above 2 branches and for nested selects |
 | `select` idiom rewrites (not translations) | **3–5** | `select{}`-forever (11 sites), closed-check (5), blocking-send-with-cancel (25), non-blocking try-send/try-recv (135 `default` sites collapse to 2 rules) |
 | Channel construction & lifecycle | **8–12** | bidirectional/send-only/recv-only × buffered/unbuffered × `struct{}`-signal, plus `close()` broadcast, plus range-over-channel |
 | Sync primitives | **12–16** | Mutex, RWMutex, Once, WaitGroup, Cond, Map, Pool, and 5–6 `atomic.*` families (§5.1) |
 | Context / cancellation | **6–9** | `ctx` threading, `WithCancel`/`WithTimeout`/`WithDeadline`/`WithValue`, `TODO`/`Background` root-minting, `stopCh`↔`ctx` bridging |
-| **Mechanical subtotal** | **56–78** | |
+| **Mechanical subtotal** | **64–86** | (was 56–78; the select row moved by 8 when branch multiplicity was measured, §2.4) |
 
 Plus, and separately:
 
@@ -781,7 +818,7 @@ Plus, and separately:
   earlier draft for exactly that reason. These are enumerable and mostly already enumerated, which is the point: they can be
   scheduled as a finite, named work list rather than discovered during a multi-year port.
 
-**Read the whole table as: the concurrency surface is roughly 60–80 mechanical rules, five hand-ported
+**Read the whole table as: the concurrency surface is roughly 65–85 mechanical rules, five hand-ported
 libraries, and ~110 named exceptions.** It is not open-ended. The single largest uncertainty in that
 statement is not any of the counts — it is §1.6 (23% of launch sites unclassified) and §4.1 (the
 async-colouring fixpoint), both of which are closed by the same follow-up: a type-checked Go call graph.
@@ -803,7 +840,7 @@ Stated plainly, because an honest "could not determine" is the point:
 2. **The shape of 173 of 745 goroutine launches (23.2%).** The shape is in the callee body. Needs
    `go/packages` + `callgraph`. §1.6.
 3. **Actual `context.Context` propagation *depth*** — the mean/max number of hops a context is
-   threaded through. §5.2 measures the complement (1367 propagation breaks) because depth needs a call
+   threaded through. §5.2 measures the complement (1367 root-minting sites, an unknown fraction of them legitimate) because depth needs a call
    graph. The complement is arguably the more actionable metric, but it is not the metric asked for
    and is not presented as if it were.
 4. **Whether any select branch body mutates shared state in a way that a mis-designed port would
@@ -815,7 +852,7 @@ Stated plainly, because an honest "could not determine" is the point:
 
 ---
 
-## 8. Instruments (verbatim, for re-derivation)
+## 8. Instruments (reproduced in full, for re-derivation)
 
 The six `awk` programs are reproduced here rather than referenced, because the lane scratchpad is
 ephemeral and every figure above depends on them. Each is run as
@@ -969,8 +1006,62 @@ FNR == 1 { depth = 0; nfor = 0; open = 0; delete fi; delete fordepth }
 }
 ```
 
-`go_taxonomy.awk` collapses vectors to shapes with this
-priority ladder (the two `// fixed` lines are the §1.7 corrections):
+`go_taxonomy.awk` collapses vectors to shapes. **An earlier draft printed only its priority ladder
+— a bare top-level `if` with no `BEGIN{FS}`, no `$1=="GO"` guard, no field parsing and no `print` —
+under a §8 header claiming the instruments were reproduced "verbatim, for re-derivation". That block
+was not a program: `awk -f <it> /dev/null` fails with `syntax error … context is >>> if <<<` and
+exit 2, so the §1.5 taxonomy had no receipt.** The complete runnable program is below.
+
+**Provenance, stated exactly, because it matters here.** The original file lived in an ephemeral
+lane scratchpad and is gone; this is a **re-derivation**, not a recovered artifact. What licenses
+publishing it is that it reproduces §1.5's table to the digit — all eight rows, not a total — from
+`go_shape.awk`'s output over the pinned corpus. Eight independent counts agreeing exactly is the
+evidence; see the receipt at §8.4a.
+
+```awk
+#!/usr/bin/awk -f
+# go_taxonomy.awk -- collapse go_shape.awk's feature vectors to named shapes.
+#   awk -f go_shape.awk <files> | awk -f go_taxonomy.awk
+# Input:  GO<TAB>file<TAB>line<TAB>kind<TAB>features<TAB>bodylines<TAB>callee
+# Output: file<TAB>line<TAB>shape
+# The ladder below is priority-ordered: the first branch that matches wins.
+# The two `# fixed, §1.7` lines are the corrections the stratified sample forced.
+BEGIN { FS = "\t" }
+$1 == "GO" {
+  file = $2; line = $3; kind = $4; features = $5; callee = $7;
+
+  # features is a `+`-joined subset; bracket it so `+name+` matches exactly.
+  f = "+" features "+";
+  has_loop   = (index(f, "+bodyloop+")   > 0);
+  has_sel    = (index(f, "+bodyselect+") > 0);
+  has_tick   = (index(f, "+ticker+")     > 0);
+  has_ctx    = (index(f, "+ctxdone+")    > 0);
+  has_inloop = (index(f, "+inloop+")     > 0);
+  has_wg     = (index(f, "+wgadd+") > 0 || index(f, "+wgdone+") > 0);
+  has_send   = (index(f, "+bodysend+") > 0 || index(f, "+errch+") > 0);
+  has_recv   = (index(f, "+bodyrecv+")   > 0);
+
+  if (kind == "named") {
+    if (callee ~ /^wait\.(Until|UntilWithContext|Forever|Jitter|Poll)/)        n = "S1-background-loop";
+    else if (callee ~ /\.?[Rr]un$|\.?[Ss]erve$|\.?[Rr]unLoop$|RunReloadLoop$/) n = "S2-long-lived-service-task";
+    else                                                                       n = "S7-fire-and-forget-named-call";
+  }
+  else if (has_loop && (has_sel || has_tick || has_ctx)) n = "S1-background-loop";
+  else if (has_tick)                                     n = "S1-background-loop";        # fixed, §1.7
+  else if (has_loop)                                     n = "S2-long-lived-service-task";
+  else if (has_inloop && (has_wg || has_send))           n = "S3-fanout-worker-pool";     # fixed, §1.7
+  else if (has_wg)                                       n = "S4-joined-parallel-subtask";
+  else if (has_send && has_recv)                         n = "S5-request-response-bridge";
+  else if (has_send)                                     n = "S6-producer-into-channel";
+  else if (has_recv)                                     n = "S8-consumer-drain";
+  else                                                   n = "S9-fire-and-forget-closure";
+
+  print file "\t" line "\t" n;
+}
+```
+
+The ladder, for readers who want it without the scaffolding (the two `# fixed` lines are the §1.7
+corrections):
 
 ```awk
 if (kind == "named") {
@@ -1068,10 +1159,10 @@ FNR == 1 { depth = 0; held = 0; deferred = 0; gdepth = -1 }
 }
 ```
 
-### 8.4a Re-derivation receipt for the two restored instruments
+### 8.4a Re-derivation receipt for the three restored instruments
 
-Both were re-run against the pinned corpus **after** being restored to this document, so what is
-printed above is what produced the figures — not a description of it:
+All three were re-run against the pinned corpus **after** being restored to this document, so what
+is printed above is what produced the figures — not a description of it:
 
 ```
 $ git -C "$CORPUS" rev-parse HEAD
@@ -1094,7 +1185,27 @@ $ ... | awk -F'\t' '$1=="LOCKBLOCK" && $4=="wait"{print $6}' | sort | uniq -c
 
 $ rg --files -g '*.go' -g '!vendor/**' -g '!*_test.go' . | xargs awk -f go_shape.awk | grep -c '^GO'
 745                                               # §1.4 "extracted 745 of the 751 sites"
+
+$ ... | xargs awk -f go_shape.awk | awk -f go_taxonomy.awk | cut -f3 | sort | uniq -c | sort -rn
+ 173 S7-fire-and-forget-named-call
+ 165 S1-background-loop
+ 141 S2-long-lived-service-task
+  74 S3-fanout-worker-pool
+  67 S9-fire-and-forget-closure
+  54 S8-consumer-drain
+  37 S4-joined-parallel-subtask
+  34 S5-request-response-bridge
+                                                  # every row of §1.5, and 745 in total
+
+$ awk -f go_taxonomy.awk /dev/null; echo $?
+0                                                 # it is a program; the block it replaced
+                                                  # exited 2 with "syntax error ... >>> if <<<"
 ```
+
+The taxonomy run is the receipt §1.5 previously lacked. It is also the whole warrant for
+`go_taxonomy.awk`'s restored source: the file itself is gone, so the program above is a
+re-derivation, and eight independent counts reproducing to the digit is the evidence that it is the
+right one. A total alone would not have been.
 
 ### 8.4b Receipt: what the block-scoped `defer` model costs
 
@@ -1184,10 +1295,74 @@ END {
 }
 ```
 
-**The §8 heading now holds.** Before this revision it read "Instruments (verbatim, for
-re-derivation)" over a section in which two of the six programs were prose descriptions and a third
-was a five-line excerpt. All six are now present in full: `select_census.awk`, `case_shape.awk`,
-`go_shape.awk`, `go_taxonomy.awk`, `lock_block.awk` and `sel_sig.awk`.
+### 8.5a `sel_mult.awk` — the multiplicity `sel_sig.awk` discards
+
+`sel_sig.awk` accumulates `cnt[key "|" c]++` and then never reads it: the `END` block emits the
+role **set**. This variant emits the role **multiset**, which is the whole difference, and is why
+§2.4 reports 25 signatures where the set key reports 17.
+
+```awk
+# sel_mult.awk -- same joins as sel_sig.awk, but reports the MULTISET signature
+# (role counts) instead of the role SET, so branch multiplicity survives.
+BEGIN { FS = "\t" }
+$1 == "SEL" { key = $2 ":" $3; nb[key] = $4 }
+$1 == "CASE" {
+  key = $2 ":" $4;
+  t = $0; sub(/^([^\t]*\t){4}/, "", t); gsub(/^[ \t]+/, "", t);
+  if (t ~ /^default/) { c = "default" }
+  else {
+    sub(/^case[ \t]*/, "", t); sub(/:[ \t]*$/, "", t);
+    if (t ~ /^<-/) { subj = substr(t, 3); kind = "recv" }
+    else if (t ~ /=[ \t]*<-/) { subj = t; sub(/^.*=[ \t]*<-[ \t]*/, "", subj); kind = "recv" }
+    else if (t ~ /<-/) { subj = t; sub(/[ \t]*<-.*$/, "", subj); kind = "send" }
+    else { subj = t; kind = "recv" }
+    gsub(/^[ \t]+|[ \t]+$/, "", subj);
+    if (kind == "send") c = "send";
+    else if (subj ~ /\.Done\(\)$/ || subj ~ /^(stopCh|stopChan|done|doneCh|stop|quit|c\.stopCh|w\.stopCh|q\.stopCh|m\.stopped|sw\.done)$/ || subj ~ /[Ss]top[Cc]h$/ || subj ~ /^.*\.stopped$/) c = "cancel";
+    else if (subj ~ /^time\.After\(/ || subj ~ /\.C$/ || subj ~ /\.C\(\)$/ || subj ~ /After\(/ || subj ~ /^tick$/ || subj ~ /[Tt]imeout/ || subj ~ /^timer$/) c = "timer";
+    else c = "recv";
+  }
+  cnt[key "|" c]++;
+  if (!seen[key "|" c]++) sig[key] = sig[key] "," c;
+}
+END {
+  for (k in nb) {
+    s = sig[k]; sub(/^,/, "", s); n = split(s, a, ",");
+    for (i = 1; i < n; i++) for (j = i + 1; j <= n; j++) if (a[j] < a[i]) { tmp=a[i]; a[i]=a[j]; a[j]=tmp }
+    o = ""; dup = 0;
+    for (i = 1; i <= n; i++) {
+      m = cnt[k "|" a[i]];
+      if (m > 1) dup = 1;
+      o = o (i > 1 ? "+" : "") a[i] (m > 1 ? "*" m : "");
+    }
+    if (o == "") o = "(empty select{})";
+    print (dup ? "DUP" : "UNI") "\t" o;
+  }
+}
+```
+
+```
+$ awk -f sel_mult.awk select-census.txt | wc -l
+425                                               # same population
+$ awk -f sel_mult.awk select-census.txt | grep -c '^DUP'
+70                                                # selects carrying a duplicated role (16.5%)
+$ awk -f sel_mult.awk select-census.txt | cut -f2 | sort -u | wc -l
+25                                                # vs 17 role-sets in §2.4
+$ awk -f sel_mult.awk select-census.txt | awk -F'\t' '$2 ~ /^recv(\*[0-9]+)?$/' | cut -f2 | sort | uniq -c
+   2 recv        25 recv*2        6 recv*3        1 recv*8
+                                                  # the 34-select `recv` row of §2.4:
+                                                  # 32 of it is multi-receive races
+```
+
+**The §8 heading now holds.** Two earlier revisions were needed to make it true. The first read
+"Instruments (verbatim, for re-derivation)" over a section in which two of the six programs were
+prose descriptions and a third was a five-line excerpt. The second restored `go_shape.awk` and
+`lock_block.awk` but left `go_taxonomy.awk` as a bare priority ladder — not a runnable program, and
+so the §1.5 taxonomy still had no receipt. All six are now present as programs that run:
+`select_census.awk`, `case_shape.awk`, `go_shape.awk`, `go_taxonomy.awk`, `lock_block.awk` and
+`sel_sig.awk`. One carries a weaker provenance than the others and says so at §8.3:
+`go_taxonomy.awk` is a re-derivation whose warrant is that it reproduces §1.5's eight rows exactly,
+not a file recovered from the lane.
 
 ---
 
