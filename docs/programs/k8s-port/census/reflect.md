@@ -30,7 +30,7 @@ non-`_test.go` Go files in this corpus, **3,384 (35.4%) are already machine-gene
 are genuine reflection machinery**, and **6,151 (64.3%) are hand-written non-reflective control logic**.
 By lines the generated share is larger still: **43.5% of all non-vendor non-test Go lines are generated**.
 The transpiler's real target is about two-thirds of the file count, and the reflection problem is
-**899 call sites in 38 files** — not a pervasive property of the corpus.
+**891 call sites in 38 files** — not a pervasive property of the corpus.
 
 ---
 
@@ -198,13 +198,29 @@ LC_ALL=C sort -u "$S/gen-nvnt.txt" "$S/swagger.txt" > "$S/gen-nvnt-refined.txt"
 wc -l < "$S/gen-nvnt-refined.txt"                                               # 3384
 ```
 
-| Bound | Basis | D3 count | % of D3 |
+| Basis | What it counts | D3 count | % of D3 |
 | --- | --- | ---: | ---: |
-| Lower | canonical marker only | 3,326 | 34.75% |
-| **Best** | canonical marker ∪ swagger-doc | **3,384** | **35.35%** |
-| Upper | any generation phrase (≈43 known false positives) | 3,427 | 35.80% |
+| Canonical marker only | files bearing the canonical marker | 3,326 | 34.75% |
+| **Best estimate** | canonical marker ∪ swagger-doc | **3,384** | **35.35%** |
+| Marker-bearing candidate set | any generation phrase (≈43 known false positives) | 3,427 | 35.80% |
 
-The bound is tight: best and upper differ by 1.3% relative. This number is reliable.
+**These are marker-derived proxies, not bounds on the generated population.** An earlier draft
+labelled the third row an upper bound and concluded "the bound is tight … this number is
+reliable"; both are withdrawn. "Any generation phrase" can only ever bound files that *contain* a
+generation phrase — a generated file carrying no such phrase matches nothing and is invisible to
+every row of this table. **The demonstration is in this very section:** the canonical marker missed
+58 `types_swagger_doc_generated.go` files, and they were recovered by *name*, not by any phrase
+search. A method already caught missing 58 unmarked generated files cannot then be declared a tight
+bound on the generated population.
+
+The closure is bounded and does not need prose grep at all: the generated-file population is
+enumerable from the corpus's own generator manifest — the generator list driven by
+`hack/update-codegen.sh`, cross-checked against `make verify-generated`, which by construction
+names every file the build regenerates whether or not it carries a marker. Until that is run,
+**every generated/hand-written split downstream of this section is marker-derived** — the 6,247
+hand-written figure in §2.x, the 251 hand-written `reflect` importers of §5, and the 113-of-129
+`unsafe.Pointer` split in §7 all inherit the label, and it is stated here once rather than repeated
+at each derivation.
 
 ### 2.3 By lines, not files — generated code is bigger than average
 
@@ -523,17 +539,40 @@ unstructured converter rather than through a file named "dynamic".
 
 ### 5.1 Shape distribution — the rule corpus is sized by shapes, not sites
 
-Across the 251 hand-written reflect importers there are **1,511 `reflect.X` sites, 49 distinct
-symbols, and 73 distinct per-file symbol-set shapes**:
+Across the 251 hand-written reflect importers there are **1,487 executing `reflect.X` sites, 49
+distinct symbols, and 73 distinct per-file symbol-set shapes**. An earlier draft reported 1,511
+sites from an unfiltered text match; that figure counted comment text as reflection, and it is
+corrected here by re-running the extraction through the comment filter §3.3 already uses:
 
 ```sh
-tr '\n' '\0' < "$S/refl-hand.txt" | xargs -0 /usr/bin/grep -hoE '\breflect\.[A-Za-z_][A-Za-z0-9_]*' \
-  | sort | uniq -c | sort -rn > "$S/sym-occ.txt"
-awk '{s+=$1} END{print s}' "$S/sym-occ.txt"    # 1511
-wc -l < "$S/sym-occ.txt"                       #   49
-awk '{ $1=""; sub(/^ /,""); print }' "$S/file-syms.txt" | sort -u | wc -l   # 73
+# -Hn so the line prefix exists, then §3.3's whole-line-comment filter, then extract symbols
+tr '\n' '\0' < "$S/refl-hand.txt" | xargs -0 /usr/bin/grep -HnE '\breflect\.[A-Za-z_][A-Za-z0-9_]*' \
+  | /usr/bin/grep -vE ':[0-9]+:[[:space:]]*(//|\*|/\*)' > "$S/keep.txt"
+wc -l < "$S/keep.txt"                                                          # 1183 source lines
+cut -d: -f3- "$S/keep.txt" | /usr/bin/grep -oE '\breflect\.[A-Za-z_][A-Za-z0-9_]*' \
+  | sort | uniq -c | sort -rn > "$S/occ-f.txt"
+awk '{s+=$1} END{print s}' "$S/occ-f.txt"    # 1487   (unfiltered: 1511)
+wc -l < "$S/occ-f.txt"                       #   49   (unfiltered:   49)
+# per-file symbol sets from the kept lines -> "$S/fs-f.txt"
+awk '{ $1=""; sub(/^ /,""); print }' "$S/fs-f.txt" | sort -u | wc -l   # 73   (unfiltered: 73)
 awk '{ $1=""; sub(/^ /,""); print }' "$S/file-syms.txt" | sort | uniq -c | sort -rn | head -8
 ```
+
+**Why the filter is needed, and how much it moves.** The original extraction was a raw text match
+with no comment stripping, and §3.3 of this same document is the in-document demonstration that the
+class is real: over files that do *not* import `reflect`, the identical kind of match found that
+**exactly 1 of 27 was real executing code** — the other 26 were line comments (`// We don't use
+reflect.DeepEqual here because …`), block-comment doc text, `//go:linkname` directives, string
+literals (`strings.Contains(fn, "reflect.Value")`), a map key, and generator template text.
+Importing `reflect` does not stop a file commenting about `reflect`, so the import filter cannot
+remove this. The filter reused here is §3.3's own rather than a new one.
+
+**Measured effect: 24 of 1,511 sites (1.6%) were whole-line comment text.** §3.3's 26-of-27 rate is
+over non-importers and does not transfer — inside actual importers the contamination is small, as
+the re-run confirms. Neither the 49 symbols nor the 73 shapes moves, and no file drops out of the
+251, so the shape distribution below is unaffected. **1,487 remains an upper bound on executing
+selector sites**: this filter removes whole-line comments only, not trailing comments, string
+literals or `//go:linkname` directives, all three of which §3.3 found in the wild.
 
 | Rank | Shape (the complete set of `reflect.*` symbols the file uses) | Files | Cum. % of 251 |
 | ---: | --- | ---: | ---: |
@@ -649,7 +688,9 @@ Two categorisations were checked rather than assumed, because the path name woul
 
 ```sh
 tr '\n' '\0' < "$S/reflective-core.txt" | xargs -0 cat | wc -l                                 # 20158
-tr '\n' '\0' < "$S/reflective-core.txt" | xargs -0 /usr/bin/grep -hoE '\breflect\.[A-Za-z_][A-Za-z0-9_]*' | wc -l   # 899
+tr '\n' '\0' < "$S/reflective-core.txt" | xargs -0 /usr/bin/grep -HnE '\breflect\.[A-Za-z_][A-Za-z0-9_]*' \
+  | /usr/bin/grep -vE ':[0-9]+:[[:space:]]*(//|\*|/\*)' | cut -d: -f3- \
+  | /usr/bin/grep -oE '\breflect\.[A-Za-z_][A-Za-z0-9_]*' | wc -l                              # 891 (unfiltered 899)
 ```
 
 **The 20,158-line figure is a bad metric and I am not using it as the answer.** File-level LOC
@@ -657,19 +698,22 @@ over-attributes badly: the largest core file, `kubectl/pkg/describe/describe.go`
 contains **20** reflect sites — 27% of the core's lines for 2% of its reflection. It qualifies only
 because it holds one `map[reflect.Type]` dispatch table.
 
-The defensible size is the site count:
+The defensible size is the site count, filtered as in §5.1:
 
-| Population | Files | `reflect.X` sites |
-| --- | ---: | ---: |
-| Reflective core | 38 | **899** |
-| Shallow reflect users | 213 | 612 |
-| — of which `DeepEqual` | — | 226 |
-| **Hand-written total** | **251** | **1,511** |
+| Population | Files | `reflect.X` sites (filtered) | (unfiltered) |
+| --- | ---: | ---: | ---: |
+| Reflective core | 38 | **891** | 899 |
+| Shallow reflect users | 213 | 596 | 612 |
+| — of which `DeepEqual` | — | 226 | 226 |
+| **Hand-written total** | **251** | **1,487** | 1,511 |
 
-899 + 612 = 1,511, matching §5.1 independently.
+891 + 596 = 1,487, matching §5.1 independently. The unfiltered column is kept because the earlier
+revision published it and because the reconciliation holds on both bases — which checks the
+partition, not the filtering. Both columns are upper bounds on executing sites for the residual
+reason §5.1 gives.
 
-**The entire reflection problem in hand-written, non-vendor, non-`_test.go` Kubernetes is 899 call
-sites in 38 files.** The other 612 sites in 213 files are equality checks, error strings and nil
+**The entire reflection problem in hand-written, non-vendor, non-`_test.go` Kubernetes is 891 call
+sites in 38 files.** The other 596 sites in 213 files are equality checks, error strings and nil
 tests that require no reflection facility in Rust whatsoever.
 
 ---
@@ -722,7 +766,19 @@ out.Items = *(*[]v1.PartialObjectMetadata)(unsafe.Pointer(&in.Items))
 
 That is a zero-copy reinterpretation of two types the generator knows to be layout-identical. In
 Rust this is a generated `From` impl over identical field sets — **safe, and generated from the same
-schema.** All 113 vanish with the generator.
+schema.** All 113 leave the `unsafe` surface with the generator.
+
+**They leave it at a cost this record priced at zero, and should not have.** The Go form
+reinterprets a slice header: `O(1)`, no allocation, and the two versions share backing storage. A
+safe Rust `From` over `Vec<A>` → `Vec<B>` cannot do that — it copies element-wise, so the rewrite
+is `O(n)` where the original is `O(1)`. `conversion-gen` emits exactly the API version-conversion
+paths that every apiserver request crosses, so this is a real cost on a hot path, not a
+micro-optimisation. The safety conclusion is unchanged and unconditional — a safe `From` always
+compiles and is always memory-safe, and nothing in `conversion-gen`'s contract makes the aliasing
+observable, since these are one-way conversions whose input is discarded. What is conditional is
+the **performance**. The programme has to say which it intends: give the two API versions a single
+Rust representation, so no conversion is emitted at all; or accept an `O(n)` copy per conversion.
+That choice is not made here and is recorded as open in §8.
 
 The 22 hand-written sites, by symbol:
 
@@ -743,7 +799,8 @@ They fall into three clusters, all of which shrink rather than grow the programm
 2. **Hand-written layout-punning conversions — 6 files.** `pkg/apis/resource/v1beta1/conversion.go`,
    `apiextensions/v1/conversion.go`, `meta/v1beta1/conversion.go`, `apidiscovery/v2/conversion.go`,
    `controller-manager/config/v1/conversion.go`, `dynamic-resource-allocation/api/v1beta1/conversion.go`.
-   Same idiom as the generated 113, written by hand. Same Rust answer: safe `From` impls.
+   Same idiom as the generated 113, written by hand. Same Rust answer, and the same unpriced `O(n)`
+   copy stated above: safe `From` impls.
 3. **Zero-copy `[]byte` ↔ `string` — 5 files.** The cache and envelope files under `apiserver/pkg`:
    `return unsafe.String(unsafe.SliceData(b), len(b))`. An earlier draft called this
    `std::str::from_utf8` and is WITHDRAWN: **Go strings hold arbitrary bytes and `unsafe.String`
@@ -766,7 +823,7 @@ hand-written files, which is D3 minus the generated files.
 | | Population | Files | % of D3 | Lines | % of lines |
 | --- | --- | ---: | ---: | ---: | ---: |
 | **(a)** | **Already generated** — regenerate from schema in Rust, never transpile | **3,384** | **35.35%** | 929,168 | **43.48%** |
-| **(b)** | **Reflection-heavy core** — schema-codegen and interpreter territory | **38** | **0.40%** | (899 sites) | — |
+| **(b)** | **Reflection-heavy core** — schema-codegen and interpreter territory | **38** | **0.40%** | (891 sites) | — |
 | **(c)** | **Hand-written non-reflective control logic** — the actual transpile target | **6,151** | **64.25%** | ≈1,208,022 | ≈56.5% |
 
 3,384 + 38 + 6,151 = 9,573.
@@ -806,11 +863,11 @@ moves the percentage by 0.9 points.
    of them derive macros), not 3,384 translations. The top 5 generators — applyconfiguration, client,
    informer, lister, deepcopy — produce 77.8% of that and are precisely the client-side surface a
    Rust client would generate from OpenAPI anyway.
-2. **Reflection is not a transpile problem; it is 38 files.** 899 call sites. Of the nine categories,
+2. **Reflection is not a transpile problem; it is 38 files.** 891 call sites. Of the nine categories,
    six map onto `serde`, derive macros, traits, or generated registries. **One does not: JSONPath and
    Go-template evaluation (4 files) is genuine dynamic interpretation over a dynamic value tree, and
    it stays an interpreter in Rust** — that is the residue, and it is 4 files.
-3. **The 213 shallow reflect users are a non-problem.** 612 sites, 226 of them `reflect.DeepEqual`.
+3. **The 213 shallow reflect users are a non-problem.** 596 sites, 226 of them `reflect.DeepEqual`.
    Every one is a Go workaround for a missing language feature — no generics-era equality derive, no
    `Option`, no compile-time type names. Rust deletes the need rather than translating the code.
 4. **`unsafe` is 22 hand-written files and shrinks to 11.**
@@ -831,22 +888,35 @@ Stated plainly, because a wrong number here is expensive.
    a **type-checked** question. My §5.2 claim that the 115 `DeepEqual`-only files are trivial is a
    claim about the *shape*, not a proof about each site.
    *To answer:* run `go/packages` in `LoadAllSyntax` mode over the corpus and inspect the static type
-   of each `DeepEqual` argument. Blocked here — see item 5.
+   of each `DeepEqual` argument. Blocked here — see item 7.
 2. **Whether the 38-file core is complete.** It is the union of two idioms I chose (Kind-switching,
    `map[reflect.Type]`). A third idiom would add files. I found the second only by noticing
    `scheme.go` was missing from the first (§4.3), which is direct evidence that **one such blind spot
    existed and was caught; I cannot prove a third does not.** Treat 38 as a **lower bound**.
    Candidate misses: `reflect.MakeFunc` dispatch, `reflect.Value.MethodByName`, embedded-field
    traversal without Kind switches.
-3. **Reflection reached through wrappers.** Code calling
+3. **Whether the 113 generated conversions can keep their zero-copy property.** §6 cluster 2 shows
+   the safe Rust `From` is unconditional on safety and `O(n)` on cost, against the Go form's `O(1)`
+   slice-header reinterpretation, on the API version-conversion path every apiserver request
+   crosses. Whether the port gives the two API versions a single Rust representation — which
+   removes the conversion rather than pricing it — is a programme decision, not a measurement, and
+   it is not made here.
+4. **The true generated-file population.** §2.2's three rows are marker-derived: they can only see
+   files containing a generation phrase, and that method was already caught missing 58 unmarked
+   `types_swagger_doc_generated.go` files in this corpus. Every generated/hand-written split in this
+   record inherits the label.
+   *To answer:* enumerate from the corpus's own generator manifest — the generator list driven by
+   `hack/update-codegen.sh`, cross-checked against `make verify-generated` — rather than from any
+   phrase search.
+5. **Reflection reached through wrappers.** Code calling
    `apimachinery/third_party/forked/golang/reflect` or `k8s.io/apimachinery/pkg/api/equality`
    is reflecting without importing `reflect`. My counts attribute reflection to the wrapper, not the
    caller — correct for sizing the *implementation*, wrong for sizing the *blast radius*. §3.3 shows
    at least one such wrapper exists and is aliased to the name `reflect`.
-4. **Line-level attribution of reflection.** I can count files and sites, not "lines of reflective
+6. **Line-level attribution of reflection.** I can count files and sites, not "lines of reflective
    logic". §5.4 shows why the file-LOC proxy fails by an order of magnitude on `describe.go`. The
-   899-site count is offered instead; it is a count of call sites, not of the code around them.
-5. **Exact package-level import facts from the Go toolchain.** Go 1.26.5 is installed and I attempted
+   891-site count is offered instead; it is a count of call sites, not of the code around them.
+7. **Exact package-level import facts from the Go toolchain.** Go 1.26.5 is installed and I attempted
    `go list -mod=vendor ./...` to get authoritative per-package imports. It fails on this checkout:
 
    ```
@@ -860,9 +930,9 @@ Stated plainly, because a wrong number here is expensive.
    `system-validators`, `utils`) where the module graph expects the full staging set. Every
    type-aware question above is blocked on this same cause.
    *To unblock:* re-create the staging symlinks, or run `go list` per staging module. Cost: hours,
-   not weeks — and it would convert items 1–3 from bounds into exact answers. **I recommend it before
-   anyone commits budget against these numbers.**
-6. **Build-tag variance.** Counts include files excluded on every platform. For `unsafe` this
+   not weeks — and it would convert items 1, 2 and 5 from bounds into exact answers. **I recommend it
+   before anyone commits budget against these numbers.**
+8. **Build-tag variance.** Counts include files excluded on every platform. For `unsafe` this
    inflates the hand-written count — 11 of 22 are Windows/darwin/BSD-only, so a Linux-only build sees
    roughly half. Deliberate: a port must cover the tree, not one build.
 
@@ -876,12 +946,12 @@ Stated plainly, because a wrong number here is expensive.
 | `reflect` importers (D3) | 355 | exact | two independent parsers agree file-for-file (§3.1) |
 | — generated | 104 | exact | set intersection; generator attribution sums to 104 |
 | — hand-written | 251 | exact | set difference |
-| Generated files (D3) | 3,384 | best estimate, bounds 3,326 / 3,427 | marker is a lower bound; upper has ≈43 known false positives |
+| Generated files (D3) | 3,384 | **marker-derived estimate; not a bound** (§2.2) | every row of the §2.2 table can only see files bearing a generation phrase; the +58 swagger recovery in that section is the demonstration that unmarked generated files exist and are invisible to it |
 | Generated lines (D3) | 929,168 | exact given the file set | `cat | wc -l` over the set |
 | Reflective core | 38 | **lower bound** | union of two chosen idioms; a third would add (§8.2) |
-| `reflect.X` sites, core | 899 | slight over-count | includes occurrences in comments within those files |
-| `reflect.X` sites, hand-written | 1,511 | slight over-count | same; 899 + 612 reconciles independently |
-| Distinct symbol-set shapes | 73 | exact for the 251 | derived from the same extraction |
+| `reflect.X` sites, core | 891 (was 899) | **upper bound on executing sites** | §3.3's comment filter applied (§5.1); residual over-count from trailing comments, string literals and `//go:linkname`, which that filter does not catch |
+| `reflect.X` sites, hand-written | 1,487 (was 1,511) | **upper bound on executing sites** | same filter; 891 + 596 reconciles independently, which checks the partition, not the filtering |
+| Distinct symbol-set shapes | 73 | exact for the extraction, unchanged by filtering | no symbol and no file is comment-only, so the shape distribution does not move |
 | `unsafe` importers (D3) | 154 | exact | same parser as `reflect`, same guarantees |
 | — hand-written | 22 | exact | set difference against the generated set |
 | Transpile target (c) | 6,151 files | derived | D3 − generated − core; disjoint by construction |
