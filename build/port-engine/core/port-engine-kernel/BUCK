@@ -1,0 +1,41 @@
+# tests/seams.rs is an INPUT to the library, not a module of it: src/lib.rs include_str!s it so the
+# compile-time corpus scan covers the seam test too. Without it in srcs the include_str! has no
+# file to read and the library fails to build, which is the fail-closed direction.
+rust_library(
+    name = "port-engine-kernel",
+    srcs = glob(["src/**/*.rs", "tests/seams.rs"]),
+    crate = "port_engine_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+# Seam tests: each of the three entry points is proven inhabitable by in-memory fakes alone, and
+# every fail-closed refusal (language mismatch, duplicate unit, undeclared rule, region-set
+# mismatch, unexplained delta) is exercised. No filesystem, no front end, no corpus.
+rust_test(
+    name = "port-engine-kernel-seams",
+    srcs = glob(["tests/seams.rs"]),
+    crate = "port_engine_kernel_seams",
+    crate_root = "tests/seams.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-kernel",
+    ],
+)
+
+# Corpus-neutrality (ADR-0637 D1). ENFORCEMENT is the const-assertion block in src/lib.rs — a
+# forbidden token or an unscanned-code keyword fails the LIBRARY build, which is why the rule
+# also holds for anything that merely depends on this crate. This target proves the same predicates
+# and the same needle sets go RED on planted defects, which a const assertion cannot show without
+# breaking the build. src/** and tests/seams.rs are in srcs because the test include_str!s both
+# scanned files, so it certifies the same bytes the compile-time assertion evaluated.
+rust_test(
+    name = "port-engine-kernel-neutrality",
+    srcs = glob(["tests/neutrality.rs", "tests/seams.rs", "src/**/*.rs"]),
+    crate = "port_engine_kernel_neutrality",
+    crate_root = "tests/neutrality.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-kernel",
+    ],
+)

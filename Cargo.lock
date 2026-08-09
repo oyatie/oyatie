@@ -9957,6 +9957,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-engine-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "portable-atomic"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
