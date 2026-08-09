@@ -1,3 +1,8 @@
+---
+purpose: "Unit mapping for goal G004 burn-down-enforcement-debt: the binding conventions, invariants and traps every unit on impl/g004-enforcement-debt converges on."
+doc_status: published
+---
+
 # G004 burn-down-enforcement-debt — unit mapping
 
 Binding for every unit committed to `impl/g004-enforcement-debt`. A unit that disagrees with this
@@ -312,6 +317,23 @@ correct citations. Re-opening it contradicts a recorded design decision.
   itself is still wrong in the corpus — it is the gate's *visibility* that was repaired, not the
   document. Do not re-implement the oracle fix.
 
+**T15 — a new `docs/**/*.md` file owes a SECOND corpus, and this document forgot it.** T8 covers the
+citation census and stops there. `ci/facade/lifecycle-status` also observes `docs/**/*.md`, through
+`specs/lifecycle-configs/doc-status-lifecycle.json`, and its baseline is *shrink-only*: any file
+without a `doc_status` scalar in its YAML frontmatter grows `doc-status-lifecycle/stage_not_declared`
+and the growth **is** the finding. This document, added with no frontmatter at all, reddened it:
+
+```
+- lifecycle_status_baseline_regression: doc-status-lifecycle/stage_not_declared grew 1921 -> 1922
+```
+
+The right answer is the **opposite** of a census re-freeze: declare the stage
+(`doc_status: published`) and leave 1921 alone. Raising the baseline to 1922 would buy green by
+weakening the exact ratchet that measures the 72% of docs which declare nothing — DoD rule 3.
+Corollary for the citation census: frontmatter is free there as long as it names no ADR ids, since
+`scan_line` only fills `cited` behind a `decisions/` or `adr-archive/` prefix (T8). Verified: the
+frontmatter added here left `files_scanned` at 16519 and `citation_lines` at 8906.
+
 ---
 
 ## 5. Unit ledger
@@ -319,8 +341,8 @@ correct citations. Re-opening it contradicts a recorded design decision.
 | # | bead | status | remaining work |
 |---|---|---|---|
 | 1 | `oyatie-ln1` | **DONE** `8d86245cb` | — pattern P1, landed exemplar |
-| 2 | `oyatie-qnf` | **PARTIAL** `e355e7f59` `deeda0c8b` `6a7fe09f6` | `os/core/secrets-domain` twin still ungated — see **T1** |
-| 3 | `oyatie-9xj` / `9xj.1` | mostly already on dev | only `docs/AGENTS-OPERATING-CONTRACT.md` as a 4th authority surface — see **T7**; item 1 refused — see **T13** |
+| 2 | `oyatie-qnf` | **DONE** `e355e7f59` `deeda0c8b` `6a7fe09f6` `bfcd937b6` | `os/core/secrets-domain` gated at the crate root, not per item — **T1 was right that the cluster-mgmt diff does not transfer, and wrong about why**: the blocker is that this crate has no real backend to keep, so `#![cfg(any(test, feature = "modeled-crypto"))]` empties it and the five rdeps were all test-only |
+| 3 | `oyatie-9xj` / `9xj.1` | **DONE** `cb9d454f6` | `docs/AGENTS-OPERATING-CONTRACT.md` declared, and the hand-curated list replaced by a `doc_class: Operating-Contract` self-declaration walk so the next surface cannot be forgotten; both numbers **T7** predicted moved, upward, re-frozen in the same commit; item 1 refused — see **T13** |
 | 4 | `oyatie-zng` | **REFUSED** | blocked at an authorization gate — see **T12**; refusal is the deliverable |
 | 5 | `oyatie-whk` | headline refuted | P3 pre-emption on `slo-coverage` + `policy-deploy-parity` only — see **T14** |
 
