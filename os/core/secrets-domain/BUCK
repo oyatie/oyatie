@@ -1,3 +1,7 @@
+# The production library. It declares NO features, so the crate-root gate in
+# src/lib.rs strips the whole crate: off-feature there is no modeled key
+# material to reach. `no_production_buck_target_enables_the_model` asserts this
+# target keeps no `features` attribute.
 rust_library(
     name = "os-secrets-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -9,9 +13,29 @@ rust_library(
     ],
 )
 
+# The model, for TEST TARGETS ONLY. Same crate name, so a test target swaps this
+# in for the production library without touching a single `use`. Depending on
+# this from a non-test target is the thing the gate exists to stop — the name
+# suffix is what the guard test keys on.
+rust_library(
+    name = "os-secrets-domain-modeled",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "os_secrets_domain",
+    crate_root = "src/lib.rs",
+    features = ["modeled-crypto"],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//os/core/kernel:os-kernel",
+    ],
+)
+
+# `BUCK` is in srcs because the guard test reads this file: the barrier is half
+# source (the crate-root cfg) and half build graph (no production target turning
+# the feature on), and a test that only checked the source half would miss the
+# way the barrier actually gets removed.
 rust_test(
     name = "os-secrets-domain-unittest",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]),
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt", "testdata/**"]) + ["BUCK"],
     crate = "os_secrets_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

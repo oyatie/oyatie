@@ -19,6 +19,38 @@
 //! This crate also surfaces the **secret status resources** ([`SecretStatus`])
 //! that Talos publishes as it generates certs, and a [`BundlePersistence`]
 //! boundary for loading/storing the bundle on disk.
+//!
+//! # This crate is a MODEL, and production cannot link it
+//!
+//! Nothing here performs cryptography. It is modeled end to end, and the model
+//! is not weak crypto, it is *no* crypto:
+//!
+//! * `KeyPair::from_seed` sets the private key to the seed **verbatim**, and
+//!   the public key to a reversible byte transform of it, so the public half
+//!   recovers the private half.
+//! * `InMemorySigner` "signs" with an 8-byte keyed FNV hash, and it is the only
+//!   signer `CertificateAuthority` has — `bootstrap` builds one from whatever
+//!   key pair it is handed, so even real key material yields a forgeable MAC
+//!   where a signature should be, and `verify` accepts it.
+//! * `SecretsBundle::generate` derives all four CAs, the service-account key,
+//!   the cluster secret and both tokens from one seed string, and
+//!   `FsBundleStore::save` writes that seed to disk in **plaintext**, so every
+//!   key in the cluster is regenerable from one line of one file.
+//!
+//! Unlike `os-trustd-domain`, there is no real backend beside the model to
+//! prefer: gating the modeled constructors and leaving the rest would gate
+//! everything reachable from them, which is this crate. So the gate sits at the
+//! crate root. Off-feature the crate is **empty**, and any production reference
+//! to any of it is E0432 (unresolved import) rather than a doc comment nobody
+//! reads. Real PKI for the OS port is a separate piece of work; until it lands,
+//! the build graph says so out loud instead of shipping a model that looks like
+//! an implementation.
+//!
+//! Measured on this tree: the production `os-secrets-domain` library has five
+//! reverse dependencies and **no binary** among them, and neither consuming
+//! library uses it outside `#[cfg(test)]`, so this gate removes no production
+//! behaviour — it removes the ability to acquire some.
+#![cfg(any(test, feature = "modeled-crypto"))]
 
 pub mod api;
 pub mod bundle;
@@ -299,6 +331,100 @@ impl<F: FileSystem> BundlePersistence for FsBundleStore<F> {
 mod tests {
     use super::*;
     use os_kernel::os::MemoryFs;
+
+    /// The crate-root gate must stay on a line of its own in `src/lib.rs`.
+    ///
+    /// The barrier itself is the `cfg`, not this test — no test can watch the
+    /// gate bite from inside a build where the gate is open, which every test
+    /// build is. What this test buys is that the gate cannot leave *quietly*:
+    /// deleting it, editing it, or commenting it out all turn this red.
+    ///
+    /// Matching at the *start* of a line rather than anywhere in the file is
+    /// deliberate. A `contains` check passes on a gate that has been commented
+    /// out — a `//`-prefixed line still contains the string — which is the
+    /// known hole in the sibling guards in `os-trustd-domain` and
+    /// `os-cluster-mgmt-domain`. Prefix-matching a whole line closes it while
+    /// still allowing a trailing comment on the gate itself. It also stops the
+    /// test satisfying itself: `GATE` below is written with escaped quotes, so
+    /// its own source line does not begin with the value it holds.
+    ///
+    /// Proven to fire: commenting the gate out and running this test gives
+    ///
+    /// ```text
+    /// src/lib.rs must carry the crate-root modeled-crypto gate on a line of its own
+    /// ```
+    #[test]
+    fn crate_root_gate_is_present() {
+        const GATE: &str = "#![cfg(any(test, feature = \"modeled-crypto\"))]";
+        assert!(
+            include_str!("lib.rs")
+                .lines()
+                .any(|l| l.trim_start().starts_with(GATE)),
+            "src/lib.rs must carry the crate-root modeled-crypto gate on a line of its own"
+        );
+    }
+
+    /// No production build target may turn the model on.
+    ///
+    /// The source gate is only half the barrier: it is worthless if a target
+    /// hands the crate the feature. Off-feature the crate is empty, so the
+    /// cheapest way to "fix" a build that wants modeled crypto is to add
+    /// `features = ["modeled-crypto"]` to the production library — which
+    /// nothing else in the tree would notice. This is the half that fires when
+    /// someone does that, and it is the half the sibling crates never grew.
+    ///
+    /// Proven to fire, by mutation rather than by argument: adding that
+    /// attribute to the production `rust_library` and running this test gives
+    ///
+    /// ```text
+    /// the production library `os-secrets-domain` must not enable modeled-crypto
+    /// ```
+    ///
+    /// The trailing `saw_production` assertion is the anti-vacuity guard: a
+    /// renamed target or a reshaped BUCK file would otherwise make the loop
+    /// match nothing and pass for the wrong reason.
+    #[test]
+    fn no_production_buck_target_enables_the_model() {
+        const FEATURE: &str = "modeled-crypto";
+
+        // Comments are stripped first so prose about the feature cannot be read
+        // as a target enabling it.
+        let buck: String = include_str!("../BUCK")
+            .lines()
+            .filter(|l| !l.trim_start().starts_with('#'))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let mut saw_production = false;
+        for block in buck.split("\n)\n") {
+            let Some(name) = block
+                .lines()
+                .map(str::trim)
+                .find_map(|l| l.strip_prefix("name = \""))
+                .and_then(|l| l.split('"').next())
+            else {
+                continue;
+            };
+            let enables = block.contains(FEATURE);
+            if name == "os-secrets-domain" {
+                saw_production = true;
+                assert!(
+                    !enables,
+                    "the production library `{name}` must not enable {FEATURE}"
+                );
+            } else if enables {
+                assert!(
+                    name.ends_with("-modeled"),
+                    "target `{name}` enables {FEATURE} but is not a `-modeled` variant"
+                );
+            }
+        }
+        assert!(
+            saw_production,
+            "BUCK no longer declares a target named `os-secrets-domain`; \
+             this test stopped checking anything"
+        );
+    }
 
     #[test]
     fn secret_status_version_bumps_on_change() {
