@@ -719,8 +719,9 @@ size of the resuming set.**
 **13 is not, however, the number that decides the panic strategy** — an earlier
 draft said it was, in this section and in §9. R4's 5 sites do not resume, but
 their compensation runs *during* unwinding and is skipped entirely under
-`panic = abort`, so they constrain the same choice. The deciding set is **18**.
-See the corrected programme-level consequence under §7.4.
+`panic = abort`, so they constrain the same choice; R7's 3 sites are the same
+case, since their typed payload only exists while unwinding. The deciding set is
+**21**. See the corrected programme-level consequence under §7.4.
 
 Those 13 are the ones that cannot be translated by a syntactic rule, because
 each encodes a judgement that *this* subsystem's failure is not the process's
@@ -785,14 +786,28 @@ earlier draft conflated them.
 |---|---:|---|
 | R3 + R5 + R6 (resuming) | 13 | control returns to the caller after the panic |
 | R4 (cleanup-then-rethrow) | 5 — **3 outside test trees** (`draplugin.go`, `nonblockinggrpcserver.go`, `audit.go`), 2 under `test/` | compensation runs only while unwinding |
-| **Total** | **18** (16 excluding the two test-tree sites) | |
+| R7 (typed panic as non-local control flow) | 3 — **1 outside test trees** (`deep_equal.go`), 2 under `test/` | the recover type-asserts an owned payload and acts on it; under abort no recover runs and payload identity does not exist |
+| **Total** | **21** (17 excluding the four test-tree sites) | |
 
-So the corpus can be built `panic=abort` only if the port re-expresses **18**
-sites — the 13 as process or thread boundaries, *and* each R4 compensation as an
-explicit action taken before an abort rather than as a `Drop` guard. That is
-still a tractable, countable decision, and still a decision, which is why it
-belongs to the programme and not to the engine. It is simply 18 rather than 13,
-and the five it was missing are the ones where getting it wrong is silent.
+**R7 was omitted for the same reason R4 was, and it is admitted on the same
+criterion.** The table's test for R4 is "compensation runs only while
+unwinding"; R7 meets that identically and adds a second, stronger one — its
+entire mechanism requires *both* that the recover runs *and* that the
+package-private payload type survives to be type-asserted, and under
+`panic = abort` neither exists, because no recover runs at all. Whether a class
+resumes is not the criterion; whether the class's behaviour depends on unwinding
+is. This is the second instance of the defect the section already records once
+(13 → 18 by adding R4), and the note that "the smaller number was the more
+attractive one, which is exactly why it needed checking" applies to it again.
+
+So the corpus can be built `panic=abort` only if the port re-expresses **21**
+sites — the 13 as process or thread boundaries, each R4 compensation as an
+explicit action taken before an abort rather than as a `Drop` guard, *and* each
+R7 protocol as an ordinary typed error return rather than as a payload carried
+through an unwind. That is still a tractable, countable decision, and still a
+decision, which is why it belongs to the programme and not to the engine. It is
+simply 21 rather than 13, and the eight it was missing are the ones where
+getting it wrong is silent.
 
 ---
 
@@ -839,7 +854,7 @@ engine needs, which is the number that sizes the programme.
 | `defer` mutating named result | 24 (19 + 5) | 2 channels | Restructure, no analogue — but 0.56 % of defers, **not** the common case the brief anticipated. |
 | `defer` argument capture that matters | 2 verified (6 syntactic) | 1 | One unconditional rule (bind args into locals at the defer) makes all 4 294 correct. |
 | `panic(` | 1 339 | top 3 = 70.1 % | 512 vanish with the type system (generator rule); ~400 map one-to-one; ~200 wait on the error model. |
-| `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | **18 sites decide `panic=unwind` vs `panic=abort` for the whole port** — 13 resuming (R3/R5/R6) plus 5 cleanup-then-rethrow (R4), whose compensation runs only during unwinding. See §7.5; an earlier draft said 13 and omitted R4. |
+| `recover()` + packaged | 283 (35 + 162 + 2 + 84) | **7 policy classes** | **21 sites decide `panic=unwind` vs `panic=abort` for the whole port** — 13 resuming (R3/R5/R6), 5 cleanup-then-rethrow (R4) whose compensation runs only during unwinding, and 3 typed-payload control-flow protocols (R7) whose recover and payload identity exist only while unwinding. See §7.5/§7.6; an earlier draft said 13, then 18. |
 
 The headline for programme sizing: on this surface the corpus is far more
 uniform than its size suggests. `defer` is 78 % six callee shapes, `panic` is
