@@ -14,11 +14,11 @@ authority_tier: 3
 | Authority | Version this document was authored against | Status at authoring (2026-08-09) |
 |---|---|---|
 | Repository baseline | `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e` | Lane base for branch `impl/os-k8s-seam-conformance`. |
-| Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Read from `specs/k8s-port/upstream-pin.json`. Not re-verified against upstream by this document. |
+| Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Read from `specs/k8s-port/upstream-pin.json` and **re-resolved against upstream**: `git ls-remote --tags https://github.com/kubernetes/kubernetes.git 'refs/tags/v1.36.1' 'refs/tags/v1.36.1^{}'` returns annotated tag object `5b824a493a7ca248b726b6ea09d53842b9b992c2` and this peeled commit, matching the pin file. |
 | Engine | `build/port-engine/*`, v0 — the path does not exist on the base tree | Not in force. Nothing in this lane emits. |
 | Neutral rule pack | `specs/port-rules/**`, v0 — the path does not exist on the base tree | Not in force. No rule is authored or implied here. |
 | Corpus rule policy | `specs/k8s-port/rules/**`, v0 — unauthored | Not in force. |
-| Go front end | None. Every measurement below is `git grep` / `git ls-tree` over the base tree | Measurement instrument only; not an admitted extractor. |
+| Go front end | None. Repository measurements are `git grep` / `git ls-tree` over the base tree; the section 3.2 module column is `git ls-tree` / `git grep` over a blob-less fetch of the pin | Measurement instrument only; not an admitted extractor. No Go was parsed — only paths and top-level `type`/`const` declarations were read. |
 | Reproducibility tuple / receipt schema | `pin`, `snapshot_digest`, `engine_digest`, `rulepack_digest`, `toolchain_digest`, `formatter_digest` | Six required axes; not in force. This document emits no receipt. |
 | Program authority | ADR-0704 (live apex). ADR-0637 and ADR-0638 are archived provenance | Mapping record only; authorizes no runtime edge and no ADR change. |
 
@@ -122,27 +122,65 @@ inside the same glob — which is the whole reason the incumbents do not need to
 
 ### 3.2 The seam demands — the 16 sites, and what each one becomes
 
-Measured on the base tree. Reproducer, with its positive control, in section 8.
+Two measurement sources, kept separate on purpose. Columns 1–3 and 5 are measured on the **base
+tree** — reproducer, with its negative control, in section 8. Column 4 is measured on the **upstream
+pin** — reproducer, with two `MISSING` controls, immediately below the table.
 
-| # | Site | Emitted upstream group | Candidate upstream module (unconfirmed) | Becomes |
+| # | Site | Emitted upstream group | Upstream module at the pin (**measured**) | Becomes |
 |---|---|---|---|---|
-| 1 | `os/core/k8s-control-domain/src/admission.rs:96` | `pod-security.admission.config.k8s.io/v1` | `k8s.io/pod-security-admission/admission/api/v1` | consume `k8s/ports/upstream-pod-security-admission-admission-api-v1` |
-| 2 | `os/core/k8s-control-domain/src/admission.rs:173` | `apiserver.config.k8s.io/v1` | `k8s.io/apiserver/pkg/apis/apiserver/v1` | consume `k8s/ports/upstream-apiserver-apiserver-v1` |
-| 3 | `os/core/k8s-control-domain/src/admission.rs:234` | `audit.k8s.io/v1` | `k8s.io/apiserver/pkg/apis/audit/v1` | consume `k8s/ports/upstream-apiserver-audit-v1` |
-| 4 | `os/core/k8s-control-domain/src/admission.rs:338` | `apiserver.config.k8s.io/v1` | as #2 | as #2 |
+| 1 | `os/core/k8s-control-domain/src/admission.rs:96` | `pod-security.admission.config.k8s.io/v1`, `PodSecurityConfiguration` | `k8s.io/pod-security-admission/admission/api/v1` | consume `k8s/ports/upstream-pod-security-admission-admission-api-v1` |
+| 2 | `os/core/k8s-control-domain/src/admission.rs:173` | `apiserver.config.k8s.io/v1`, `AdmissionConfiguration` | `k8s.io/apiserver/pkg/apis/apiserver/v1` | consume `k8s/ports/upstream-apiserver-apiserver-v1` |
+| 3 | `os/core/k8s-control-domain/src/admission.rs:234` | `audit.k8s.io/v1`, `Policy` | `k8s.io/apiserver/pkg/apis/audit/v1` | consume `k8s/ports/upstream-apiserver-audit-v1` |
+| 4 | `os/core/k8s-control-domain/src/admission.rs:338` | `apiserver.config.k8s.io/v1`, **`EncryptionConfiguration`** — a different kind from #2 | as #2 — `types_encryption.go` sits in that same module at this pin; the historical separate home `k8s.io/apiserver/pkg/apis/config/v1` does **not** exist at `v1.36.1` (0 files) | as #2 |
 | 5 | `os/core/k8s-control-domain/src/manifest_controller.rs:200` | core/v1 `ConfigMap` | `k8s.io/api/core/v1` | **test fixture** (inside `mod tests`, which opens at line 196) — becomes a fixture over the seam type, not a production call site |
 | 6 | `os/core/k8s-control-domain/src/static_pod_controller.rs:128` | core/v1 `Pod` | `k8s.io/api/core/v1` | consume `k8s/ports/upstream-api-core-v1` |
-| 7 | `os/core/kubelet-domain/src/spec.rs:120` | `kubelet.config.k8s.io/v1beta1` | `k8s.io/kubelet/config/v1beta1` | consume `k8s/ports/upstream-kubelet-config-v1beta1` |
-| 8 | `os/core/kubernetes-domain/src/kubeconfig.rs:117` | core/v1 `Config` (kubeconfig) | `k8s.io/client-go/clientcmd/api/v1` | consume `k8s/ports/upstream-client-go-clientcmd-api-v1` |
+| 7 | `os/core/kubelet-domain/src/spec.rs:120` | `kubelet.config.k8s.io/v1beta1`, `KubeletConfiguration` | `k8s.io/kubelet/config/v1beta1` | consume `k8s/ports/upstream-kubelet-config-v1beta1` |
+| 8 | `os/core/kubernetes-domain/src/kubeconfig.rs:117` | `v1` `Config` (kubeconfig; clientcmd's own scheme, **not** the core API group) | `k8s.io/client-go/tools/clientcmd/api/v1` — **corrected**, see below | consume `k8s/ports/upstream-client-go-clientcmd-api-v1` (unchanged) |
 | 9 | `os/core/kubernetes-domain/src/static_pod.rs:137` | core/v1 `Pod` | `k8s.io/api/core/v1` | as #6 — **second independent Pod renderer**, see T-7 |
-| 10–11 | `os/core/kubernetes-domain/src/templates.rs:21,34` | `rbac.authorization.k8s.io/v1` | `k8s.io/api/rbac/v1` | consume `k8s/ports/upstream-api-rbac-v1` |
-| 12–13 | `os/core/kubernetes-domain/src/templates.rs:56,93` | `apps/v1` | `k8s.io/api/apps/v1` | consume `k8s/ports/upstream-api-apps-v1` |
+| 10–11 | `os/core/kubernetes-domain/src/templates.rs:21,34` | `rbac.authorization.k8s.io/v1`, `ClusterRoleBinding` ×2 | `k8s.io/api/rbac/v1` | consume `k8s/ports/upstream-api-rbac-v1` |
+| 12–13 | `os/core/kubernetes-domain/src/templates.rs:56,93` | `apps/v1`, `DaemonSet` and `Deployment` | `k8s.io/api/apps/v1` | consume `k8s/ports/upstream-api-apps-v1` |
 | 14–16 | `os/core/kubernetes-domain/src/templates.rs:115,129,148` | core/v1 `Service`, `ConfigMap`, `Namespace` | `k8s.io/api/core/v1` | as #6 |
 
-The *Candidate upstream module* column is a reading of upstream layout, **not** measured against the
-pinned SourceModel — no enumeration has run (`specs/k8s-port/scope.json`
-`enumeration_state.state = "pending_source_model_manifest"`). A unit that needs the exact module must
-confirm it at the pin and correct this table in the same commit.
+**The module column is measured at the pin**, peeled commit
+`756939600b9a7180fc2df6550a4585b638875e67` (`v1.36.1`). Each of the eight distinct modules was
+confirmed to exist there, and the kind each `os/` site emits was confirmed to be declared inside it.
+This is a *path-and-declaration* confirmation and nothing more: no package enumeration has run
+(`specs/k8s-port/scope.json` `enumeration_state.state = "pending_source_model_manifest"`), so no row
+claims a scope disposition, a package boundary, an emitted crate, or field-level fidelity.
+
+Reproducer — a blob-less fetch is enough, and it checks the whole column rather than a sample:
+
+```
+git init k8s-pin && git -C k8s-pin remote add origin https://github.com/kubernetes/kubernetes.git
+git -C k8s-pin fetch --depth 1 --filter=blob:none origin 756939600b9a7180fc2df6550a4585b638875e67
+for m in api/core/v1 api/rbac/v1 api/apps/v1 kubelet/config/v1beta1 \
+         apiserver/pkg/apis/apiserver/v1 apiserver/pkg/apis/audit/v1 \
+         pod-security-admission/admission/api/v1 client-go/tools/clientcmd/api/v1 \
+         client-go/clientcmd/api/v1 apiserver/pkg/apis/config/v1 ; do
+  n=$(git -C k8s-pin ls-tree -r --name-only FETCH_HEAD -- "staging/src/k8s.io/$m/" | wc -l | tr -d ' ')
+  [ "$n" -gt 0 ] && echo "OK      $n	$m" || echo "MISSING	$m"
+done
+```
+
+The eight rows of the column print `OK` with 20, 9, 9, 6, 9, 9, 8 and 9 files. The last two entries
+are the controls and both print `MISSING`: `client-go/clientcmd/api/v1` is the pre-correction row 8,
+and `apiserver/pkg/apis/config/v1` is the module row 4 was *suspected* of needing. Group identity was
+read the same way — the `GroupName` const in each module's `register.go` equals column 3's group —
+except kubeconfig, which declares no `GroupName` and instead carries
+`SchemeGroupVersion = schema.GroupVersion{Group: "", Version: "v1"}` in `register.go` and
+`type Config struct` in `types.go`.
+
+**Row 8 was wrong and is corrected: the module is `k8s.io/client-go/tools/clientcmd/api/v1`.** The
+`tools/` segment was missing. The *Becomes* cell did not change, and that is the instructive part —
+section 3.1 step 2 drops any `tools/` segment, so the wrong source path derives the *right* crate
+name. A correct derived name is therefore no evidence at all about the path it came from (T-11).
+
+**Row 4 was suspected wrong and is not.** `EncryptionConfiguration` shares the group
+`apiserver.config.k8s.io/v1` with `AdmissionConfiguration` but is a different kind, and in earlier
+minors it lived in a separate package. At this pin it does not:
+`staging/src/k8s.io/apiserver/pkg/apis/apiserver/v1/types_encryption.go:70` declares it and
+`staging/src/k8s.io/apiserver/pkg/apis/config/v1/` has zero files. "as #2" holds — but it holds
+*because it was measured at this pin*, not because the group matched, and it is pin-dependent.
 
 **Direction evidence, recorded not ruled.** Sixteen concrete demands `os → k8s`; zero demands
 `k8s → os`; zero dependency edges in either direction today. This is the measured dependency evidence
@@ -384,6 +422,17 @@ this. Note also that `os/` crates appear in **no** `registry/catalog/` row (41 c
 41 frozen as shrink-only `uncatalogued` debt) — so an `os/` move has no catalog obligation *and* no
 catalog coverage, which is worse, not better.
 
+**T-11 — neither the derived crate name nor the API group can confirm an upstream module path.** The
+section 3.1 `<dashed>` function is deliberately **lossy**: it drops `pkg/apis/`, `pkg/` and `tools/`
+segments. So `k8s.io/client-go/clientcmd/api/v1` — a path that does not exist at the pin — and
+`k8s.io/client-go/tools/clientcmd/api/v1` — the one that does — derive the *identical* crate name
+`upstream-client-go-clientcmd-api-v1`. A plausible-looking generated name is zero evidence about its
+source path, and that is exactly how the original row 8 read as fine. The API group is no better a
+witness in the other direction: `apiserver.config.k8s.io/v1` carries at least two kinds whose home
+package has moved between minors (row 4). **Confirm the module by `ls-tree` at the pin, and confirm
+the kind by its `type` declaration inside that module.** Both are cheap; a blob-less `--depth 1`
+fetch of the pin costs under a second.
+
 ## 11. Definition of done for one unit
 
 A reviewer holding only the diff applies this. All eleven must hold; any "N/A" must be visibly N/A
@@ -415,7 +464,15 @@ from the diff.
 ## 12. Non-claims
 
 This document does not claim that the engine exists, that a seam crate exists, that any dependency
-edge is authorized, that the four product APIs were reviewed for product correctness, that the
-`os/` three-way overlap is safe to collapse, or that any gate was run. No buck2 build, test or gate
-run backs any number here; every measurement is `git grep` / `git ls-tree` over
-`origin/dev` @ `5e452bd70`, and each carries its reproducer.
+edge is authorized, that the four product APIs were reviewed for product correctness, or that the
+`os/` three-way overlap is safe to collapse. No buck2 build, test or gate run backs any number here;
+every repository measurement is `git grep` / `git ls-tree` over `origin/dev` @ `5e452bd70`, and each
+carries its reproducer.
+
+Section 3.2's module column is the one measurement taken **outside** this repository: `git ls-tree`
+and `git grep` over a blob-less fetch of the upstream pin. It confirms that each module path exists
+at the pin and that the kind each site emits is declared inside it. It does **not** claim a
+SourceModel enumeration has run, that these modules are the complete set the seam needs, that any of
+them resolves to `PORT` under `specs/k8s-port/scope.json`, or that the fields the `os/` string
+builders emit match the upstream struct fields — that last is a per-field comparison this document
+did not make and which T-8 says will move difftest vectors when someone does.
