@@ -221,7 +221,9 @@ mod tests {
     /// Every constructor in this crate that mints *modeled* key material must
     /// stay behind the non-default `modeled-crypto` gate, so a production build
     /// cannot link it. The barrier is the `cfg`; this test only proves the
-    /// `cfg` does not silently disappear.
+    /// `cfg` does not silently disappear — by deletion OR by being commented
+    /// out, which are the two quiet ways an item goes unconditional. See
+    /// [`gated`] for why the second one needs saying.
     ///
     /// `JoinToken::derive` mints a token fully predictable from the cluster
     /// seed. `KeyPair::from_seed` stands in for a real keygen. `InMemorySigner`
@@ -292,10 +294,38 @@ mod tests {
     const GATE: &str = "#[cfg(any(test, feature = \"modeled-crypto\"))]";
 
     /// True if some occurrence of `signature` in `src` is immediately preceded
-    /// (ignoring whitespace) by [`GATE`].
+    /// by a LINE that starts with [`GATE`].
+    ///
+    /// Prefix-matching the last non-blank preceding line, rather than
+    /// suffix-matching the text before the signature, is the whole point. The
+    /// earlier `src[..i].trim_end().ends_with(GATE)` was satisfied by
+    /// `// #[cfg(any(test, feature = "modeled-crypto"))]` — a commented-out
+    /// gate still *ends with* the gate string — so the quiet way to remove the
+    /// barrier left this test green while the item became unconditional and
+    /// linkable by production. Deletion was caught; commenting out was not.
+    /// This is the same shape already used by
+    /// `os_secrets_domain::tests::crate_root_gate_is_present`, which is where
+    /// the hole was first closed.
+    ///
+    /// A trailing comment on the gate line itself is still allowed, and the
+    /// `GATE` const above cannot satisfy the check from its own source line
+    /// because it is written with escaped quotes.
+    ///
+    /// Proven to fire, by mutation rather than argument: commenting out the
+    /// gate above `pub struct InMemorySigner {` in `signer.rs` gives
+    ///
+    /// ```text
+    /// `pub struct InMemorySigner {` must be immediately preceded by
+    /// #[cfg(any(test, feature = "modeled-crypto"))]
+    /// ```
     fn gated(src: &str, signature: &str) -> bool {
-        src.match_indices(signature)
-            .any(|(i, _)| src[..i].trim_end().ends_with(GATE))
+        src.match_indices(signature).any(|(i, _)| {
+            src[..i]
+                .lines()
+                .rev()
+                .find(|l| !l.trim().is_empty())
+                .is_some_and(|l| l.trim_start().starts_with(GATE))
+        })
     }
 
     #[test]
