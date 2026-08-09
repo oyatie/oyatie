@@ -40,12 +40,15 @@ pub enum RouteOrigin {
 /// | the address/route is already installed | [`Error::InvalidState`] |
 /// | the caller may not perform the operation | [`Error::PermissionDenied`] |
 /// | the substrate does not implement the operation | [`Error::Unsupported`] |
+/// | input the substrate cannot represent | [`Error::Invalid`] / [`Error::Parse`] |
 ///
 /// This exists because PID 1 classifies these outcomes. It previously did so by
 /// scanning the Linux adapter's `"errno N"` display text, which silently
 /// returns "unexpected" for any substrate that does not spell its errors the
 /// Linux way — a false seam. Implementations may still carry an `errno N`
-/// suffix in the message for diagnostics; nothing may *depend* on it.
+/// suffix in the message for diagnostics; no *correctness* decision may depend
+/// on it, but a consumer may use it to sharpen a diagnostic label when it is
+/// present.
 ///
 /// Adds are deliberately **not** idempotent: the Linux adapter issues
 /// `NLM_F_CREATE | NLM_F_EXCL` and the kernel answers a duplicate with
@@ -219,9 +222,37 @@ impl InMemoryKernelNet {
     }
 }
 
-/// Format an address plus prefix the way the kernel read-back path does.
-fn cidr(addr: &str, prefix_len: u8) -> String {
-    alloc::format!("{addr}/{prefix_len}")
+/// Format an IPv4 address plus prefix the way the kernel read-back path does,
+/// rejecting first what `LinuxNet::add_ipv4` rejects before it reaches netlink.
+///
+/// The parsed value — not the input string — is formatted, so equivalent
+/// spellings canonicalize to one entry rather than defeating the duplicate
+/// rejection below by respelling.
+fn v4_cidr(addr: &str, prefix_len: u8) -> Result<String> {
+    if prefix_len > 32 {
+        return Err(Error::invalid(alloc::format!(
+            "ipv4 prefix length {prefix_len} out of range 0..=32"
+        )));
+    }
+    let ip = addr
+        .parse::<core::net::Ipv4Addr>()
+        .map_err(|_| Error::parse(alloc::format!("invalid IPv4 address '{addr}'")))?;
+    Ok(alloc::format!("{ip}/{prefix_len}"))
+}
+
+/// The IPv6 half of [`v4_cidr`]. Canonicalization matters more here: Linux
+/// resolves `fd00::5` and `fd00:0:0:0:0:0:0:5` to one address and answers the
+/// second add with `EEXIST`.
+fn v6_cidr(addr: &str, prefix_len: u8) -> Result<String> {
+    if prefix_len > 128 {
+        return Err(Error::invalid(alloc::format!(
+            "ipv6 prefix length {prefix_len} out of range 0..=128"
+        )));
+    }
+    let ip = addr
+        .parse::<core::net::Ipv6Addr>()
+        .map_err(|_| Error::parse(alloc::format!("invalid IPv6 address '{addr}'")))?;
+    Ok(alloc::format!("{ip}/{prefix_len}"))
 }
 
 /// The duplicate-install failure, in the variant the port's failure contract
@@ -238,7 +269,12 @@ impl KernelNet for InMemoryKernelNet {
     }
 
     fn add_ipv4_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
-        let entry = cidr(addr, prefix_len);
+        // Validate before touching state, as the adapter validates before
+        // touching netlink. For an unknown interface *and* a malformed address
+        // the fake reports `parse` where `LinuxNet` reports `not_found` first;
+        // that is the safe direction — a stricter fake cannot let a bad test
+        // pass — so the adapter's exact check order is deliberately not copied.
+        let entry = v4_cidr(addr, prefix_len)?;
         self.mutate(iface, |l| {
             if l.ipv4.contains(&entry) {
                 return Err(already_exists("address", iface, &entry));
@@ -249,7 +285,7 @@ impl KernelNet for InMemoryKernelNet {
     }
 
     fn add_ipv6_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
-        let entry = cidr(addr, prefix_len);
+        let entry = v6_cidr(addr, prefix_len)?;
         self.mutate(iface, |l| {
             if l.ipv6.contains(&entry) {
                 return Err(already_exists("address", iface, &entry));
@@ -268,6 +304,15 @@ impl KernelNet for InMemoryKernelNet {
         metric: u32,
         origin: RouteOrigin,
     ) -> Result<()> {
+        // The two shape checks `LinuxNet::add_ipv4_route` makes before netlink.
+        if prefix_len > 32 {
+            return Err(Error::invalid(alloc::format!(
+                "ipv4 route prefix length {prefix_len} out of range 0..=32"
+            )));
+        }
+        if prefix_len > 0 && destination.is_none() {
+            return Err(Error::invalid("non-default IPv4 route needs destination"));
+        }
         // A route needs its outgoing link to exist, exactly as rtnetlink does.
         self.mutate(iface, |_| ())?;
         let route = FakeRoute {
@@ -374,6 +419,70 @@ mod tests {
         let err = net.add_ipv6_address("eth0", "fd00::5", 64).unwrap_err();
         assert_eq!(err.kind(), "invalid_state");
         assert_eq!(net.ipv6_addresses("eth0").len(), 1);
+    }
+
+    /// The inputs `LinuxNet` rejects before it reaches netlink. Written against
+    /// `impl KernelNet` for the same reason `boot_sequence` is: the body is the
+    /// contract, and it would run unchanged against the real adapter.
+    fn rejects_what_the_kernel_would(net: &impl KernelNet) {
+        assert_eq!(
+            net.add_ipv4_address("eth0", "10.0.0.5", 33)
+                .unwrap_err()
+                .kind(),
+            "invalid"
+        );
+        assert_eq!(
+            net.add_ipv6_address("eth0", "fd00::5", 129)
+                .unwrap_err()
+                .kind(),
+            "invalid"
+        );
+        assert_eq!(
+            net.add_ipv4_address("eth0", "10.0.0.999", 24)
+                .unwrap_err()
+                .kind(),
+            "parse"
+        );
+        assert_eq!(
+            net.add_ipv6_address("eth0", "not-an-address", 64)
+                .unwrap_err()
+                .kind(),
+            "parse"
+        );
+        assert_eq!(
+            net.add_ipv4_route("eth0", None, 24, None, 1, RouteOrigin::Boot)
+                .unwrap_err()
+                .kind(),
+            "invalid"
+        );
+    }
+
+    #[test]
+    fn the_fake_rejects_inputs_the_linux_adapter_rejects() {
+        // A fake that records junk lets a test pass over code that fails on a
+        // real kernel — the one property this fake exists to prove.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        rejects_what_the_kernel_would(&net);
+        assert!(net.ipv4_addresses("eth0").unwrap().is_empty());
+        assert!(net.routes().is_empty());
+    }
+
+    #[test]
+    fn equivalent_ipv6_spellings_are_one_address() {
+        // Compared as raw strings these were two entries here and one EEXIST on
+        // Linux, so a respelling defeated the duplicate rejection entirely.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+        assert_eq!(
+            net.add_ipv6_address("eth0", "fd00:0:0:0:0:0:0:5", 64)
+                .unwrap_err()
+                .kind(),
+            "invalid_state"
+        );
+        assert_eq!(
+            net.ipv6_addresses("eth0"),
+            alloc::vec!["fd00::5/64".to_string()]
+        );
     }
 
     #[test]

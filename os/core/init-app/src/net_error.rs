@@ -20,17 +20,25 @@ use os_kernel::error::Error;
 /// it fell through to `-1` and was reported as an unexpected failure, which
 /// silently made the sandbox-skip behavior Linux-only.
 ///
-/// The errno scan is kept as the fallback for the paths that still build
-/// `Error::Other` with an `errno N` suffix by hand.
+/// The variant is the *fallback*, not the first cut: four variants cannot carry
+/// the five causes `privileged_op_skip_reason` deliberately separates, so a
+/// variant-first match records `EPERM` for an `EACCES` and `EOPNOTSUPP` for an
+/// `ENOTTY`, and `skip_log` prints an errno the kernel never returned.
 pub fn net_skip_reason(e: &Error) -> Option<&'static str> {
+    // Prefer the exact errno when the adapter retained it. `errno_error` keeps
+    // `errno N` in the message precisely so this stays available, and boot.rs
+    // relies on the distinction to tell a Sentry ioctl gap from a denial.
+    if let Some(reason) =
+        os_machined_domain::boot::privileged_op_skip_reason(net_errno(&e.to_string()))
+    {
+        return Some(reason);
+    }
+    // No usable errno — a substrate that reports in the port's vocabulary only.
+    // Precision degrades to the variant; the skip decision does not.
     match e {
-        // The substrate said so in the port's own vocabulary. Which specific
-        // errno produced it is a diagnostic detail already in the message.
         Error::PermissionDenied(_) => Some("EPERM"),
         Error::Unsupported(_) => Some("EOPNOTSUPP"),
-        // Everything else keeps the historical errno-text classification, so
-        // adapters that have not been migrated behave exactly as before.
-        other => os_machined_domain::boot::privileged_op_skip_reason(net_errno(&other.to_string())),
+        _ => None,
     }
 }
 
@@ -119,6 +127,28 @@ mod tests {
         assert_eq!(
             net_skip_reason(&Error::Other("socket(AF_NETLINK): errno 13".to_string())),
             Some("EACCES")
+        );
+    }
+
+    #[test]
+    fn a_retained_errno_beats_the_coarser_variant() {
+        // `errno_error` folds {EPERM, EACCES} into one variant and
+        // {ENOSYS, EOPNOTSUPP, ENOTTY} into another, so a variant-first match
+        // logged an errno the kernel never returned. The errno is still in the
+        // message; read it first.
+        assert_eq!(
+            net_skip_reason(&Error::permission_denied("socket(AF_NETLINK): errno 13")),
+            Some("EACCES")
+        );
+        assert_eq!(
+            net_skip_reason(&Error::unsupported("ioctl(SIOCSIFFLAGS): errno 25")),
+            Some("ENOTTY")
+        );
+        // A non-skippable errno must not become a skip via the probe: EEXIST is
+        // handled by `net_already_exists`, not tolerated as a sandbox gap.
+        assert_eq!(
+            net_skip_reason(&Error::invalid_state("netlink request failed: errno 17")),
+            None
         );
     }
 
