@@ -534,8 +534,22 @@ pub mod discovery {
         NaiveDate::checked_ymd(y, m, d)
     }
 
+    /// Read one top-level scalar out of a document's declaration surface.
+    ///
+    /// A document that carries a `---` line delimits its declarations with a
+    /// front-matter fence and only the fenced region is read. A document with
+    /// NO `---` line anywhere is a bare declaration record (a plain YAML file
+    /// such as `registry/catalog/*.yaml`) and is read whole — without this the
+    /// reader returns `None` for every field of every fence-less file, and a
+    /// lane rooted on such a corpus certifies a reader bug as corpus debt.
+    ///
+    /// The fence-less admission is keyed on the ABSENCE of any `---` line, so
+    /// no input that resolves today can change: a file that yields `Some` must
+    /// contain a fence, and every fenced file takes the identical code path it
+    /// took before. The only behaviour delta is `None` -> `Some` on fence-less
+    /// files.
     pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
-        let mut in_fm = false;
+        let mut in_fm = !raw.lines().any(|line| line.trim() == "---");
         let mut started = false;
         for line in raw.lines() {
             if line.trim() == "---" {
@@ -1703,6 +1717,37 @@ mod tests {
         assert!(discovery::expand_glob(&shallow).is_err());
         assert!(discovery::expand_glob(&recursive).is_err());
     }
+    #[test]
+    fn fenceless_document_is_read_whole_without_widening_fenced_documents() {
+        // A bare declaration record — the shape of every `registry/catalog/*.yaml`.
+        // Before the fence-less admission this returned None for every field.
+        let bare = "context: audit\nrole: domain\napi_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(bare, "api_stability").as_deref(),
+            Some("preview"),
+            "fence-less record must be read whole"
+        );
+
+        // A fenced document must NOT widen: a field that appears only in the
+        // BODY stays invisible. This is the half that fails if the fence-less
+        // admission is implemented as `in_fm = true` unconditionally.
+        // NOTE: the body scalar deliberately carries no `ADR-<digits>` token.
+        // `.rs` is in adr-citation-closure's scan_extensions and its
+        // citation_lines census is pinned by EQUALITY, so a realistic-looking
+        // ADR id in a test fixture reddens that gate.
+        let fenced = "---\nstatus: Accepted\n---\n\nsuperseded_by: replacement-doc\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "status").as_deref(),
+            Some("Accepted"),
+            "fenced front matter still resolves"
+        );
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "superseded_by"),
+            None,
+            "a body line below the closing fence must stay unread"
+        );
+    }
+
     #[test]
     fn empty_input_is_clean() {
         let cfg = cfg_adr_status();
