@@ -103,9 +103,11 @@ ceiling until full verification. Anonymous signup is the thing to refuse outrigh
 **IN:** one region, one AZ. Managed Kubernetes only. Confidential worker nodes on SEV-SNP.
 An attestation verification flow a customer's auditor can actually follow, with **secret
 release gated on that verification** (see below). Dedicated hosts, so no two tenants share a
-physical machine. Three contracted design partners, invoiced. Upstream Linux, KVM, containerd
-and Kata **as transitional adapters behind stable interfaces**, in the sense ADR-0510 already
-establishes for upstream Kubernetes and Talos. VAP/CEL for tier admission.
+physical machine. Three contracted design partners, invoiced. Upstream host Linux + KVM, upstream
+guest Linux, Cloud Hypervisor, containerd and Kata **as transitional adapters behind stable
+interfaces**, in the sense ADR-0510 already establishes for upstream Kubernetes and Talos — the
+host and guest kernels are separate layers with separate destinations, and the table below keeps
+them apart. VAP/CEL for tier admission.
 
 **OUT:** anonymous self-serve, IaaS, functions, multi-region, autoscaling, the port
 engine, the owned kernel, our own SDN controller.
@@ -117,11 +119,28 @@ into a second, permanent, unowned stack contract that competes with the owned-Ru
 Each upstream piece therefore enters named as a transient adapter behind a seam, with the thing
 that replaces it and the parity test that authorises the swap:
 
+Rows are indexed by **layer**, not by the name of a dependency — a single named dependency can
+straddle two layers, and indexing by name is how a layer silently loses its destination.
+
 | Upstream in MVP | Seam it sits behind | Owned destination | Deletion criterion |
 | --- | --- | --- | --- |
 | containerd + Kata | CRI + RuntimeClass | owned runtime | tier-0 parity on the ADR-0338 tier contract |
-| KVM | VMM interface Cloud Hypervisor already occupies | owned VMM | boot + attest a confidential guest at parity overhead |
-| Linux (guest kernel) | guest ABI | Asterinas track | full ABI coverage for tier-0 syscall surface |
+| Cloud Hypervisor | VMM interface | owned VMM | boot + attest a confidential guest at parity overhead |
+| Linux / KVM (**host** kernel + virtualization API) | the `/dev/kvm` ioctl surface | **none named yet** — see below | undefined until a destination is named |
+| Linux (**guest** kernel — a different layer from the host row above) | guest ABI | Asterinas track | full ABI coverage for tier-0 syscall surface |
+
+The first draft collapsed rows two and three into a single "KVM" row whose seam read "VMM
+interface Cloud Hypervisor already occupies". That pairing is wrong, and the error is exactly
+the one this table was added to prevent, reproduced one layer down: **Cloud Hypervisor is the
+VMM; KVM is the host-kernel virtualization API the VMM calls through `/dev/kvm`.** Shipping an
+owned VMM replaces Cloud Hypervisor and deletes nothing about KVM, so that row's deletion
+criterion could pass while host virtualization stayed permanently unowned.
+
+**The host row has no destination, and that is a live gap rather than a decision.** The
+Asterinas track targets the *guest* kernel and does not reach it. By this table's own closing
+rule the host layer would therefore not enter the MVP at all — so it enters as a named,
+unresolved exception that must be given a destination and a parity test before the MVP is
+committed, not as a row that looks satisfied because a neighbouring layer has a plan.
 
 This is why the owned kernel is **out of this MVP rather than absent from the plan** — it has a
 track, not an exemption. Anything that cannot name its seam, its destination and its parity test
