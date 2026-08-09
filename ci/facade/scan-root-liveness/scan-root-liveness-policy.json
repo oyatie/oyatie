@@ -11,7 +11,9 @@
     ],
     "declared_roots_total": 200,
     "key_format": "<policy_file>::<json_pointer>::<declared_value>",
-    "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired"
+    "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired",
+    "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate — build/port-engine/core/port-engine-kernel, PR #1621 — which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. The three sibling roots app/, base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
+    "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them — the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three — so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies."
   },
   "min_expected_roots": 150,
   "coverage_bearing_keys": [
@@ -40,10 +42,6 @@
       "value": "base",
       "reason": "Same pre-widening as app/ above. base/ is the ADR-0562 shared floor (>=3 capability consumers); a primitive there can carry an authorization DTO, so the class-fix must see it from the moment it lands. Created by the first libs/ consolidation move."
     },
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::build": {
-      "value": "build",
-      "reason": "Same pre-widening as app/ above. Completes the meta-root set already represented here by kernel/ and governance/, so no destination root of the reorg is outside this gate's scan universe. Created when build/ lands its first crate."
-    },
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::policy": {
       "value": "policy",
       "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands — the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
@@ -56,10 +54,6 @@
       "value": "base",
       "reason": "Same pre-widening as app/ above; base/ is the ADR-0562 shared floor and an embedded asset there must be BUCK-srcs-mapped like any other. Created by the first libs/ consolidation move."
     },
-    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::build": {
-      "value": "build",
-      "reason": "Same pre-widening as app/ above; completes the meta-root set alongside the os/ entry this policy already carries. Created when build/ lands its first crate."
-    },
     "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::policy": {
       "value": "policy",
       "reason": "Same pre-widening as app/ above; the policy capability (ADR-0615, extracted from iam) will embed Cedar/policy assets, exactly the include_str! class this gate maps. Created when the policy capability lands its first crate."
@@ -71,10 +65,6 @@
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::base": {
       "value": "base",
       "reason": "Same pre-widening as app/ above. A shared-floor primitive can expose an HTTP control plane; new-surface detection must cover base/ before it holds code."
-    },
-    "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::build": {
-      "value": "build",
-      "reason": "Same pre-widening as app/ above. Completes the meta-root set already represented here by kernel/ and governance/. Created when build/ lands its first crate."
     },
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::policy": {
       "value": "policy",
