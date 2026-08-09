@@ -166,6 +166,10 @@
       "prefix": "docs/programs/k8s-port/"
     },
     {
+      "anchor": "ADR-0701 §pod runtime tier (the live apex carrying the archived ADR-0338 Kata + Cloud Hypervisor decision statement): founder-reserved kernel-track decision support. Measurement packs that gather and present evidence for the OSDK-greenfield versus Asterinas-adoption question WITHOUT ruling on it; the ruling is founder-reserved and no ADR is authored from this tree. Non-crate program doc tree parallel to docs/programs/k8s-port/, homed in its own subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
+      "prefix": "docs/programs/kernel-track/"
+    },
+    {
       "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",
       "prefix": "docs/runbooks/cloud/root-of-trust-ceremony.md"
     },
