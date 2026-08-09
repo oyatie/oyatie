@@ -19,6 +19,26 @@ const SIX_AXIS_TOKENS: [&str; 6] = [
     "formatter_digest",
 ];
 
+/// Root scanned for INV-3. Every Rust file below it is read; nothing below it is written.
+const OS_ROOT: &str = "os";
+/// INV-3, frozen on `origin/dev` @ `5e452bd70`: 15 production sites plus one test fixture at
+/// `os/core/k8s-control-domain/src/manifest_controller.rs:200`. Shrink-only — a unit that retires a
+/// site lowers this constant in the same commit; no unit raises it. Hand-writing upstream Kubernetes
+/// wire surface is what ADR-0704 charters as generated, so growth here is the defect.
+pub const UPSTREAM_EMIT_SITE_CEILING: usize = 16;
+/// The discriminator is the **API group**, never the token `apiVersion` (trap T-1): Talos emits
+/// `apiVersion: v1alpha1` correctly in dozens of places, and those are Talos surface, not Kubernetes
+/// surface. Bare `v1` is handled separately because it must not swallow `v1alpha1`/`v1beta1`.
+const UPSTREAM_API_GROUPS: [&str; 6] = [
+    "apps/v1",
+    "rbac.authorization.k8s.io/v1",
+    "kubelet.config.k8s.io/v1beta1",
+    "apiserver.config.k8s.io/v1",
+    "audit.k8s.io/v1",
+    "pod-security.admission.config.k8s.io/v1",
+];
+const API_VERSION_MARKER: &str = "apiVersion: ";
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum FindingCode {
     EmptyProgramCorpus,
@@ -27,6 +47,7 @@ pub enum FindingCode {
     RuleWithoutJournalReference,
     DoctrineWithoutAdr,
     PrescriptionStarvation,
+    UpstreamKubernetesSurfaceGrowth,
 }
 
 impl FindingCode {
@@ -38,6 +59,7 @@ impl FindingCode {
             Self::RuleWithoutJournalReference => "R-DOC-RULE-JOURNAL-REFERENCE-MISSING",
             Self::DoctrineWithoutAdr => "R-DOC-DOCTRINE-ADR-OVERDUE",
             Self::PrescriptionStarvation => "R-DOC-PRESCRIPTION-STARVATION",
+            Self::UpstreamKubernetesSurfaceGrowth => "R-DOC-OS-UPSTREAM-K8S-SURFACE-GROWTH",
         }
     }
 }
@@ -125,6 +147,11 @@ pub struct Corpus {
     pub rules: Vec<RuleRecord>,
     pub doctrine: Vec<DoctrineRecord>,
     pub prescription_count: usize,
+    /// INV-3 observed value: upstream-Kubernetes `apiVersion:` emit sites across `os/**/*.rs`.
+    pub upstream_emit_sites: usize,
+    /// Denominator for the line above. A zero here means the scan found nothing to read, which is a
+    /// false green, so the loader refuses it rather than reporting `0 <= 16`.
+    pub os_rust_files: usize,
 }
 
 pub fn evaluate(corpus: &Corpus) -> Evaluation {
@@ -212,6 +239,17 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
         }
     }
 
+    if corpus.upstream_emit_sites > UPSTREAM_EMIT_SITE_CEILING {
+        findings.push(finding(
+            FindingCode::UpstreamKubernetesSurfaceGrowth,
+            OS_ROOT,
+            &format!(
+                "{} upstream-Kubernetes apiVersion emit sites across {} Rust files exceeds the shrink-only ceiling of {}; the surface is chartered as generated, so consume the seam instead of hand-writing it",
+                corpus.upstream_emit_sites, corpus.os_rust_files, UPSTREAM_EMIT_SITE_CEILING
+            ),
+        ));
+    }
+
     findings.sort_by(|left, right| {
         left.code
             .cmp(&right.code)
@@ -223,7 +261,8 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             + corpus.completed_waves.len()
             + corpus.rules.len()
             + corpus.doctrine.len()
-            + corpus.prescription_count,
+            + corpus.prescription_count
+            + corpus.os_rust_files,
         finding_count: findings.len(),
     };
     Evaluation { counters, findings }
@@ -246,12 +285,59 @@ fn load_repository_inner(repo_root: &Path) -> Result<Corpus, LoadError> {
     let rules = load_rule_records(repo_root)?;
     let doctrine = load_doctrine_records(repo_root, &program_root)?;
     let prescription_count = count_lane_entries(repo_root, &program_root.join("prescriptions"))?;
+    let (upstream_emit_sites, os_rust_files) = scan_os_upstream_emit_sites(repo_root)?;
     Ok(Corpus {
         documents,
         completed_waves,
         rules,
         doctrine,
         prescription_count,
+        upstream_emit_sites,
+        os_rust_files,
+    })
+}
+
+/// Counts INV-3 emit sites over `os/**/*.rs`, returning `(sites, files_read)`.
+///
+/// One line counts at most once, matching the section-8 `git grep -cE` reproducer, which counts
+/// matching lines rather than matches.
+fn scan_os_upstream_emit_sites(repo_root: &Path) -> Result<(usize, usize), LoadError> {
+    let root = repo_root.join(OS_ROOT);
+    let mut sites = 0;
+    let mut files = 0;
+    for path in collect_files(&root, "R-DOC-OS-TREE-UNREADABLE")? {
+        if path.extension().is_some_and(|extension| extension == "rs") {
+            sites += upstream_emit_sites(&read_utf8(&path, "R-DOC-OS-SOURCE-UNREADABLE")?);
+            files += 1;
+        }
+    }
+    if files == 0 {
+        return Err(load_error(
+            "R-DOC-OS-TREE-EMPTY",
+            &root,
+            "no Rust sources were scanned; a zero denominator would report the INV-3 ceiling as satisfied without reading anything",
+        ));
+    }
+    Ok((sites, files))
+}
+
+/// Number of lines emitting an upstream-Kubernetes `apiVersion:`.
+pub fn upstream_emit_sites(contents: &str) -> usize {
+    contents.lines().filter(|line| emits_upstream_group(line)).count()
+}
+
+fn emits_upstream_group(line: &str) -> bool {
+    line.match_indices(API_VERSION_MARKER).any(|(index, marker)| {
+        let group = &line[index + marker.len()..];
+        UPSTREAM_API_GROUPS
+            .iter()
+            .any(|candidate| group.starts_with(candidate))
+            || group.strip_prefix("v1").is_some_and(|tail| {
+                // Bare core/v1 only: end of line, the closing quote of a Rust literal, or the
+                // literal two-character `\n` escape inside one. `v1alpha1` and `v1beta1` fall out
+                // here, which is the whole of trap T-1.
+                tail.is_empty() || tail.starts_with('"') || tail.starts_with("\\n")
+            })
     })
 }
 
@@ -787,6 +873,8 @@ mod tests {
             }],
             doctrine: Vec::new(),
             prescription_count: 1,
+            upstream_emit_sites: UPSTREAM_EMIT_SITE_CEILING,
+            os_rust_files: 373,
         }
     }
 
@@ -910,6 +998,62 @@ mod tests {
         assert!(evaluation.is_green());
         assert!(evaluation.counters.scanned_population > 0);
         assert_eq!(evaluation.counters.finding_count, 0);
+    }
+
+    #[test]
+    fn upstream_emit_site_ceiling_is_shrink_only() {
+        let mut corpus = live_fixture();
+        assert!(!has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+        corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING - 1;
+        assert!(!has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+        corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING + 1;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+    }
+
+    #[test]
+    fn the_api_group_is_the_discriminator_not_the_token_api_version() {
+        // Every group in the section-3.2 table, one per line, plus the two bare-`v1` spellings the
+        // reproducer admits: end of line and the `\n` escape inside a Rust string literal.
+        let upstream = concat!(
+            "apiVersion: v1\n",
+            "    \"apiVersion: v1\\n\",\n",
+            "        writeln!(out, \"apiVersion: v1\")?;\n",
+            "apiVersion: apps/v1\n",
+            "apiVersion: rbac.authorization.k8s.io/v1\n",
+            "apiVersion: kubelet.config.k8s.io/v1beta1\n",
+            "apiVersion: apiserver.config.k8s.io/v1\n",
+            "apiVersion: audit.k8s.io/v1\n",
+            "apiVersion: pod-security.admission.config.k8s.io/v1\n",
+        );
+        assert_eq!(upstream_emit_sites(upstream), 9);
+
+        // Talos's own machine-config surface. These are correct Talos output, chartered by the port
+        // of siderolabs/talos, and must never enter the count (trap T-1).
+        let talos = concat!(
+            "apiVersion: v1alpha1\n",
+            "    \"apiVersion: v1alpha1\\n\",\n",
+            "apiVersion: v1beta1\n",
+            "apiVersion:\n",
+            "let field = \"apiVersion\";\n",
+        );
+        assert_eq!(upstream_emit_sites(talos), 0);
+    }
+
+    #[test]
+    fn one_line_counts_once_like_the_line_oriented_reproducer() {
+        assert_eq!(
+            upstream_emit_sites("apiVersion: apps/v1 apiVersion: audit.k8s.io/v1"),
+            1
+        );
     }
 
     #[test]
