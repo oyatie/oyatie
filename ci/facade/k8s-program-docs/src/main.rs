@@ -18,8 +18,11 @@ fn main() -> ExitCode {
                     "RED"
                 };
                 println!(
-                    "ci-k8s-program-docs status={status} scanned_population={} finding_count={}",
-                    evaluation.counters.scanned_population, evaluation.counters.finding_count
+                    "ci-k8s-program-docs status={status} scanned_population={} finding_count={} upstream_emit_sites={}/{}",
+                    evaluation.counters.scanned_population,
+                    evaluation.counters.finding_count,
+                    corpus.upstream_emit_sites,
+                    ci_k8s_program_docs::UPSTREAM_EMIT_SITE_CEILING
                 );
                 for finding in &evaluation.findings {
                     println!(
