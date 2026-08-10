@@ -2681,7 +2681,7 @@ mod tests {
         let baseline = set(&[
             "root//third-party:blake3",
             "root//libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest",
-            "root//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller",
+            "root//ci/controller/app:oya-ci-controller",
             "root//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter-build-script-run",
         ]);
         let head = baseline.clone();
