@@ -13,7 +13,7 @@ info:
     the request context (per `policy/cedar/public-read.cedar`).
   contact:
     name: axis-recordings
-    url: https://oyatie.internal/microservices/recordings
+    url: https://oyatie.internal/storage/recordings
 servers:
   - url: https://recordings.{tenant}.oyatie.com/v1
     variables:

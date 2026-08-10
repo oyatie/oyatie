@@ -11,8 +11,8 @@ related_artifacts:
   - microservices/recordings/compliance.md (SEC 17a-4 + FINRA + HIPAA + KR 전자문서법)
   - storage/recordings/policy/cedar/legal-hold.cedar
   - microservices/recordings/decisions/ADR-RECORDINGS-0002-retention-and-legal-hold-policy.md
-  - microservices/recordings/slos/legal-hold-engagement-latency.openslo.yaml
-  - microservices/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml
+  - storage/observability/slos/legal-hold-engagement-latency.openslo.yaml
+  - storage/observability/slos/legal-hold-chain-of-custody-correctness.openslo.yaml
 doc_status: published
 ---
 

@@ -45,3 +45,25 @@ Nearest envelope for noun **media** (no `integ/media` rail) = `integ/storage` ne
 - Scope: path/manifest/SLO/contract/capability/catalog high-value only; missing homes deferred.
 - Product unblock: forever cites for nested faces + observability prometheusrule alias.
 - No hubs / Cargo.lock / merge / #1661 / cloud-os absorb.
+
+## Seat A keep_forever interior (wave-6) — 2026-08-10
+
+PREP only (no merge). Tip base `17afaecea`. Envelope `storage/**`.
+
+### Retargeted (verified)
+
+- Chart/home owner URLs (dest trees exist):
+  - `storage/drive/iac/helm/Chart.yaml` home `…/microservices/drive` → `…/storage/drive`
+  - `storage/recordings/iac/helm/recordings/Chart.yaml` maintainer url `…/microservices/recordings` → `…/storage/recordings`
+  - `storage/recordings/contracts/openapi/recordings.yaml` contact url `…/microservices/recordings` → `…/storage/recordings`
+- OpenSLO cites (dest `storage/observability/slos/<NAME>` exists):
+  - `storage/recordings/runbooks/legal-hold-court-order-receipt.md`:
+    - `microservices/recordings/slos/legal-hold-engagement-latency.openslo.yaml` → `storage/observability/slos/legal-hold-engagement-latency.openslo.yaml`
+    - `microservices/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml` → `storage/observability/slos/legal-hold-chain-of-custody-correctness.openslo.yaml`
+
+### Deferred (do not invent / out of this slice)
+
+- Missing IP-001..015 / PRD / ARCHITECTURE / compliance / historical ADR-RECORDINGS-* under drive/recordings/imaging (leave manifest + runbook legacy cites)
+- AUDIT-FINDINGS historical MISSING lists (incl. `microservices/drive/slos/file-list-latency.openslo.yaml`)
+- Cross-cap observability prometheusrule remaps
+- Hubs / Cargo.lock / merge / #1661
