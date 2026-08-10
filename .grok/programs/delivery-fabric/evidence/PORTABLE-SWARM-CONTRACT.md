@@ -114,3 +114,18 @@ bd recompute-blocked   # if ready looks wrong after bulk dep edits
 .grok/bin/live-law-publish --check   # exit 0 FRESH / 1 STALE
 # Then MCP hindsight sync_retain from payloads if available (see live-law-hindsight-experiment.latest.json)
 ```
+
+## Northstar — daemon hot-set + advisory perimeter
+
+Policy-as-data (do not re-state max / channel lists as a second SSOT):
+
+- **Daemon hot-set:** `.grok/harness/daemon-hotset.v1.json` + `.grok/swarm/check-daemon-hotset`
+  — run `buck2 //...[check]` on at most `merge_windows.hot_set_max` durable
+  `.worktrees/integ-*` stations for early feedback; main checkout remains a valid
+  orchestrator+daemon home. Cite `specs/integ-branch-envelopes.json#merge_windows`.
+- **LSP carve-out:** rust-analyzer / IDE LSP is read-only feedback ≠ build ≠ merge
+  authority (see harness `lsp_carve_out`).
+- **Advisory perimeter:** `.grok/harness/perimeter.v1.json` — `omx`/`omc`/`gjc`/`grok`
+  MUST run in scratch worktrees/clones and MUST NOT write the main checkout; never
+  merge authority. `hotfix/*` requires founder ack or incident evidence (Phase B gate)
+  — prose alone is not a trunk backdoor.
