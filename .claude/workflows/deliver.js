@@ -9,8 +9,8 @@ export const meta = {
     { title: 'Map', detail: 'the PORTING.md-equivalent: write the pattern mapping BEFORE any code' },
     { title: 'Trial', detail: 'do 2-3 units first and prove the process, before spending on scale' },
     { title: 'Scale', detail: '1 implementer : N adversarial reviewers per unit, onto ONE integration branch' },
-    { title: 'Converge', detail: 'errors and failing tests as the work queue, until green' },
-    { title: 'Claim', detail: 'envelope verify + merge-tree preflight + hub exclusivity + reorg-target debt freeze before integ push' },
+    { title: 'Claim', detail: 'envelope verify + merge-tree + hub exclusivity + assemble approved unit commits onto integ tip BEFORE Converge' },
+    { title: 'Converge', detail: 'errors and failing tests as the work queue on the ASSEMBLED tip, until green' },
     { title: 'Land', detail: 'upsert exactly ONE PR per integ/<root>; server-side reset after squash-merge' },
   ],
 }
@@ -43,8 +43,12 @@ const TRIAL_N = A.trial || 2
 const REPO = A.repo || require('child_process')
   .execSync('git rev-parse --show-toplevel', { encoding: 'utf8' })
   .trim()
-const INTEG = A.integration || 'integ/deliver-run'
+const INTEG = A.integration || ''
 const ENVELOPES = `${REPO}/specs/integ-branch-envelopes.json`
+
+if (!INTEG) {
+  throw new Error('deliver.js requires args.integration matching a root/plane branch in specs/integ-branch-envelopes.json (e.g. integ/specs). The former default integ/deliver-run is not an envelope and would fail Claim.')
+}
 
 // PLANNER/WORKER MODEL ASYMMETRY, adopted from Cursor's measured swarm economics: the same quality
 // cost 8x more with a frontier model in BOTH roles ($10,565) than with a frontier PLANNER and a
@@ -906,67 +910,6 @@ const approvedUnits = all.filter(u => u.approved)
 log(`Scale: ${approvedUnits.length}/${all.length} units approved`)
 
 // ---------------------------------------------------------------------------
-phase('Converge')
-
-// Failing gates and tests ARE the work queue. Loop until dry rather than to a fixed count,
-// because the size of the remaining work is not knowable up front — BUT the TWO-ROUND RULE applies:
-// after two rounds fixing the SAME failure class, halt and fix the process instead.
-let round = 0
-let converged = false
-let processThrash = false
-const failureClassRounds = new Map()
-while (round < 3 && !converged && !processThrash) {
-  round++
-  const fix = await agent(`${CTX}
-
-CONVERGENCE ROUND ${round} on branch \`${INTEG}\`.
-PRIOR FAILURE-CLASS ROUNDS THIS RUN: ${failureClassRounds.size ? [...failureClassRounds.entries()].map(([c, n]) => `${c}=${n}`).join(', ') : '(none yet)'}
-
-Everything is committed. Now make it GREEN, using the failures themselves as the work queue.
-
-1. Build and test the affected targets with buck2. Collect EVERY failure.
-2. Group failures into CLASSES. One root cause explaining several failures is worth far more than
-   several individual patches, and a class fix is what keeps this from being whack-a-mole. Name each
-   class explicitly (e.g. "semantic census pin", "stale generated face", "mapping ambiguity").
-3. Fix them. Run the gates governing every touched path — including the corpus census obligations
-   described above, which fire on ADDED files even when nothing was repaired. If any fix touches an
-   equality-pinned policy file, follow the EQUALITY-PINNED CENSUS MERGE PROTOCOL even when git
-   reported no conflict.
-4. Do not delete, skip or \`#[ignore]\` a test to reach green. That is the one forbidden move.
-
-TWO-ROUND RULE CHECK: if this is round 2 or 3 and the dominant failure CLASS matches a class you
-already attempted to fix in a prior round, STOP patching output. Report the class, what process/oracle
-change is needed, and set blocked to that class name — do not attempt a third output patch.
-
-Report what is still red and why. List failure classes attempted this round. If nothing is red, say
-so explicitly and paste the output that shows it.`,
-    { label: `converge:${round}`, phase: 'Converge' })
-
-  converged = /\b(all green|nothing is red|0 failed|Fail 0)\b/i.test(String(fix))
-  const blockedClass = fix && fix.blocked
-  if (blockedClass) {
-    const prev = failureClassRounds.get(blockedClass) || 0
-    failureClassRounds.set(blockedClass, prev + 1)
-    if (failureClassRounds.get(blockedClass) >= 2) {
-      processThrash = true
-      log(`TWO-ROUND RULE: failure class "${blockedClass}" hit ${failureClassRounds.get(blockedClass)} rounds — halting output patches`)
-    }
-  }
-  log(`Round ${round}: ${converged ? 'green' : processThrash ? 'process thrash — fix oracle/spec' : 'still red — another round'}`)
-}
-
-if (processThrash && !converged) {
-  return {
-    goal: GOAL,
-    integration_branch: INTEG,
-    halted_at: 'converge:two-round-rule',
-    failure_class_rounds: Object.fromEntries(failureClassRounds),
-    remedy: 'Same failure class failed twice. Edit the unit spec, process step, or oracle — then re-dispatch. Do not patch output again.',
-    prs_opened: 0,
-  }
-}
-
-// ---------------------------------------------------------------------------
 phase('Claim')
 
 // Swarm Delivery Law (ADR-0711): check-before-push onto durable integ/<root>.
@@ -1050,6 +993,67 @@ if (!claimOk) {
 }
 
 // ---------------------------------------------------------------------------
+phase('Converge')
+
+// Failing gates and tests ARE the work queue. Loop until dry rather than to a fixed count,
+// because the size of the remaining work is not knowable up front — BUT the TWO-ROUND RULE applies:
+// after two rounds fixing the SAME failure class, halt and fix the process instead.
+let round = 0
+let converged = false
+let processThrash = false
+const failureClassRounds = new Map()
+while (round < 3 && !converged && !processThrash) {
+  round++
+  const fix = await agent(`${CTX}
+
+CONVERGENCE ROUND ${round} on branch \`${INTEG}\` (ASSEMBLED tip — Claim already cherry-picked approved unit commits).
+PRIOR FAILURE-CLASS ROUNDS THIS RUN: ${failureClassRounds.size ? [...failureClassRounds.entries()].map(([c, n]) => `${c}=${n}`).join(', ') : '(none yet)'}
+
+The tree already contains every approved unit commit (Claim assembled them). Now make THAT tip GREEN — do not converge an empty integ shell.
+
+1. Build and test the affected targets with buck2. Collect EVERY failure.
+2. Group failures into CLASSES. One root cause explaining several failures is worth far more than
+   several individual patches, and a class fix is what keeps this from being whack-a-mole. Name each
+   class explicitly (e.g. "semantic census pin", "stale generated face", "mapping ambiguity").
+3. Fix them. Run the gates governing every touched path — including the corpus census obligations
+   described above, which fire on ADDED files even when nothing was repaired. If any fix touches an
+   equality-pinned policy file, follow the EQUALITY-PINNED CENSUS MERGE PROTOCOL even when git
+   reported no conflict.
+4. Do not delete, skip or \`#[ignore]\` a test to reach green. That is the one forbidden move.
+
+TWO-ROUND RULE CHECK: if this is round 2 or 3 and the dominant failure CLASS matches a class you
+already attempted to fix in a prior round, STOP patching output. Report the class, what process/oracle
+change is needed, and set blocked to that class name — do not attempt a third output patch.
+
+Report what is still red and why. List failure classes attempted this round. If nothing is red, say
+so explicitly and paste the output that shows it.`,
+    { label: `converge:${round}`, phase: 'Converge' })
+
+  converged = /\b(all green|nothing is red|0 failed|Fail 0)\b/i.test(String(fix))
+  const blockedClass = fix && fix.blocked
+  if (blockedClass) {
+    const prev = failureClassRounds.get(blockedClass) || 0
+    failureClassRounds.set(blockedClass, prev + 1)
+    if (failureClassRounds.get(blockedClass) >= 2) {
+      processThrash = true
+      log(`TWO-ROUND RULE: failure class "${blockedClass}" hit ${failureClassRounds.get(blockedClass)} rounds — halting output patches`)
+    }
+  }
+  log(`Round ${round}: ${converged ? 'green' : processThrash ? 'process thrash — fix oracle/spec' : 'still red — another round'}`)
+}
+
+if (processThrash && !converged) {
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    halted_at: 'converge:two-round-rule',
+    failure_class_rounds: Object.fromEntries(failureClassRounds),
+    remedy: 'Same failure class failed twice. Edit the unit spec, process step, or oracle — then re-dispatch. Do not patch output again.',
+    prs_opened: 0,
+  }
+}
+
+// ---------------------------------------------------------------------------
 phase('Land')
 
 // Exactly one PR per integ/<root>, upserted (create-or-update), and only if Claim passed and
@@ -1068,8 +1072,9 @@ UPSERT RULE:
   - If none exists: \`gh pr create\` once.
   - If more than one open PR shares this head: REFUSE and report — human must close duplicates.
 
-ASSEMBLE (if Claim left any unit tip not yet on \`${INTEG}\`): cherry-pick remaining approved unit
-commits in order. A conflict here is real information — STOP and report rather than guessing.
+RESIDUAL ASSEMBLE ONLY (Claim already assembled before Converge): if any approved unit tip is
+still absent from \`${INTEG}\`, cherry-pick it now. A conflict here is real information — STOP
+and report rather than guessing. Never treat Land as the first assemble.
 
 THE ORDER IS: PREVENT, then CATCH LOCALLY AND FIX, then — only then — upsert the PR. A PR is where a
 defect turns expensive: it costs a 30-70 minute CI round trip to learn what a local gate run answers
