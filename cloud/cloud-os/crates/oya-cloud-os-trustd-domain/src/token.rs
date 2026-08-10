@@ -55,11 +55,11 @@ impl JoinToken {
     /// Real cluster tokens come from the machine config via [`JoinToken::new`].
     #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn derive(cluster_seed: &[u8]) -> Self {
-        let id = base36(fnv64(cluster_seed, 0x01));
+        let id = base36(fnv64(b"join-token-id", cluster_seed));
         let secret = format!(
             "{}{}",
-            base36(fnv64(cluster_seed, 0x02)),
-            base36(fnv64(cluster_seed, 0x03))
+            base36(fnv64(b"join-token-secret-a", cluster_seed)),
+            base36(fnv64(b"join-token-secret-b", cluster_seed))
         );
         // `id`/`secret` are always non-empty base36, so the format is valid.
         JoinToken {
@@ -81,7 +81,7 @@ impl JoinToken {
     /// A non-secret fingerprint of the whole token, safe to log, that still lets
     /// operators correlate which token a node presented.
     pub fn fingerprint(&self) -> String {
-        crate::x509::hex_encode(&fnv64(self.value.as_bytes(), 0x10).to_be_bytes())
+        crate::x509::hex_encode(&fnv64(b"join-token-fingerprint", self.value.as_bytes()).to_be_bytes())
     }
 
     /// Constant-time equality against a presented token string. Returns
@@ -105,9 +105,16 @@ impl JoinToken {
     }
 }
 
-/// FNV-1a 64-bit over `data` mixed with a domain-separation `salt`.
-fn fnv64(data: &[u8], salt: u64) -> u64 {
-    let mut hash: u64 = 0xcbf2_9ce4_8422_2325 ^ salt;
+/// FNV-1a 64-bit over a domain tag then `data` (domain separation without a salt).
+fn fnv64(domain: &[u8], data: &[u8]) -> u64 {
+    let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
+    for &b in domain {
+        hash ^= u64::from(b);
+        hash = hash.wrapping_mul(0x0100_0000_01b3);
+    }
+    // Domain/data boundary so a suffix of `domain` cannot collide with a prefix of `data`.
+    hash ^= 0xff;
+    hash = hash.wrapping_mul(0x0100_0000_01b3);
     for &b in data {
         hash ^= u64::from(b);
         hash = hash.wrapping_mul(0x0100_0000_01b3);

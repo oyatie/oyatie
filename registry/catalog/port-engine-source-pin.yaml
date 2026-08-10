@@ -1,5 +1,5 @@
 context: build
-role: adapters
+role: adapter
 capability: port-engine
 plane: control
 slo: cataloged-no-runtime-claim

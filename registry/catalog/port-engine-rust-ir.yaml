@@ -1,5 +1,5 @@
 context: build
-role: core
+role: domain
 capability: port-engine
 plane: control
 slo: cataloged-no-runtime-claim
