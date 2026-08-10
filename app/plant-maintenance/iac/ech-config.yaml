@@ -1,0 +1,9 @@
+apiVersion: oyatie.dev/v1
+kind: EchConfig
+metadata:
+  name: oya-plant-maintenance-ech
+spec:
+  rotationCadenceDays: 90
+  httpsRecord: true
+  gracefulFallback: true
+  auditEventClass: EVT-PLANT_MAINTENANCE-EQUIPMENT_MASTER-ECH_ROTATED

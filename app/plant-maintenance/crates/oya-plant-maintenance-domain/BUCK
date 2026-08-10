@@ -1,0 +1,22 @@
+rust_library(
+    name = "oya-plant-maintenance-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_plant_maintenance_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-plant-maintenance-domain-plant-maintenance",
+    srcs = ["tests/plant_maintenance.rs"],
+    crate = "oya_plant_maintenance_domain_plant_maintenance",
+    crate_root = "tests/plant_maintenance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-plant-maintenance-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
