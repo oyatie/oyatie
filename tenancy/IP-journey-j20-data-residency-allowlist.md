@@ -806,10 +806,10 @@ Trace shape:
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-journey-j20-data-residency-allowlist.md` matched `openapi, asyncapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-journey-j20-data-residency-allowlist.md` matched `openapi, asyncapi`; contract files `tenancy/contracts/openapi/tenancy.yaml, tenancy/contracts/asyncapi/tenant-events.yaml, tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Sustainability emission (per ADR-0344)
 - Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
 - Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
-- Surface evidence: `microservices/tenancy/IP-journey-j20-data-residency-allowlist.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-journey-j20-data-residency-allowlist.md` matched `emission`; anchors `tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

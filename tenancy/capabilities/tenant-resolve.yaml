@@ -17,10 +17,10 @@ created_at: 2026-05-17
 related_adrs: [ADR-0018, ADR-0028, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
-  - microservices/tenancy/PRD.md (FR-01)
-  - microservices/tenancy/contracts/openapi/tenancy.yaml
-  - microservices/tenancy/policy/rls-isolation.md (JWT Invariants)
-  - microservices/tenancy/policy/tenant-scope.cedar
+  - tenancy/PRD.md (FR-01)
+  - tenancy/contracts/openapi/tenancy.yaml
+  - tenancy/policy/rls-isolation.md (JWT Invariants)
+  - tenancy/policy/tenant-scope.cedar
 
 autonomy_tier: T1
 # T1 = pure read; cryptographic validation only; no state mutation.
@@ -80,9 +80,9 @@ cost_profile:
     - Local pubkey cache lookup (constant-time)
 
 cedar_policy_fragments:
-  - microservices/tenancy/policy/tenant-scope.cedar
-  - microservices/tenancy/policy/ci-scope.cedar
-  - microservices/tenancy/policy/auditor-scope.cedar
+  - tenancy/policy/tenant-scope.cedar
+  - tenancy/policy/ci-scope.cedar
+  - tenancy/policy/auditor-scope.cedar
 
 eval_set:
   golden_inputs_path: microservices/tenancy/capabilities/eval/tenant-resolve-golden.jsonl

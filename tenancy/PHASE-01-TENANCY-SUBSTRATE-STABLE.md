@@ -68,7 +68,7 @@ Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 - `docs/standards/multi-tenant-isolation.md` (NEW) — cross-cutting tenant-isolation invariants (per-µservice contract).
 - `registry/catalog/oya-tenancy-*.yaml` — 35 catalog records (one per crate).
 
-Naming justifications for the new crate families are in `microservices/tenancy/PRD.md` §"Bounded Contexts".
+Naming justifications for the new crate families are in `tenancy/PRD.md` §"Bounded Contexts".
 
 ### Out-of-scope
 
@@ -204,7 +204,7 @@ Every IP emits a ChangeSet per ADR-0110 (claimable + verifiable + bundleable + p
   "phase": "P01-tenancy-substrate-stable",
   "claim_paths": ["microservices/tenancy/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/tenancy/PRD.md§<section>", "Bominal ADR-0018"],
+  "spec_refs": ["tenancy/PRD.md§<section>", "Bominal ADR-0018"],
   "acceptance_lanes_green": [
     "cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny",
     "lean-a1", "lean-a2", "lean-a3", "lean-a4",
@@ -321,7 +321,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0131 Per-microservice flat layout.
 - ADR-0140 Cedar policy enforcement.
 - `/specs/per-microservice-flat-layout.json`; `/specs/agentic-slo-gated-promotion.json`.
-- `microservices/tenancy/PRD.md`.
+- `tenancy/PRD.md`.
 - Memory: `feedback_milestone_phase_hierarchy.md`, `feedback_naming_justification.md`, `feedback_oya_vcs_canonical_2026_05_16.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.
 - Google SRE Workbook ch. 4–5 (SLO); ch. 11–14 (operational; postmortem).
 - AWS Well-Architected Framework (Reliability + Security + Operational Excellence).

@@ -74,7 +74,7 @@ doc_status: published
 18. Inspect feature flags: `oya flags get oya.tenancy.cross_tenant_data_leak_containment.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status tenancy-cross-tenant-data-leak-containment-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n tenancy rollout history deploy/tenancy-cross-tenant-data-leak-containment-worker | tail -20`.
-21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f microservices/tenancy/policy/rls-isolation.md`.
+21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f tenancy/policy/rls-isolation.md`.
 22. Check SLO files: `ls microservices/tenancy/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|cross"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_tenancy_cross_tenant_data_leak_containment_error_ratio --window 30m --threshold 0.02`.
@@ -116,7 +116,7 @@ Cross Tenant Data Leak Containment incident decision tree
 12. Raise HPA cap if saturation: `kubectl -n tenancy patch hpa tenancy-cross-tenant-data-leak-containment-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface tenancy.cross-tenant-data-leak-containment --rps 25 --ttl 30m`.
 14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/tenancy/runbooks/cross-tenant-data-leak-containment.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths tenancy/runbooks/cross-tenant-data-leak-containment.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice tenancy --incident $INCIDENT_ID --channel #inc-tenancy-boundary`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-tenancy --incident $INCIDENT_ID --summary cross-tenant-data-leak-containment`.
 18. Confirm breaker effect: `oya ops breaker status tenancy-cross-tenant-data-leak-containment-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -150,7 +150,7 @@ Cross Tenant Data Leak Containment incident decision tree
 6. Add regression test: `cargo test -p oya-tenancy-domain cross_tenant_data_leak_containment_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-cross-tenant-data-leak-containment --fixture incident-cross-tenant-data-leak-containment.json`.
 8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyCrossTenantDataLeakContainmentCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/tenancy/dashboards/cell-utilization.json with oya_tenancy_cross_tenant_data_leak_containment_error_ratio, oya_tenancy_cross_tenant_data_leak_containment_lag_seconds, and oya_tenancy_cross_tenant_data_leak_containment_queue_depth`.
+9. Add dashboard panel: `update tenancy/dashboards/cell-utilization.json with oya_tenancy_cross_tenant_data_leak_containment_error_ratio, oya_tenancy_cross_tenant_data_leak_containment_lag_seconds, and oya_tenancy_cross_tenant_data_leak_containment_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate tenancy-policy --microservice tenancy`.
@@ -168,7 +168,7 @@ Cross Tenant Data Leak Containment incident decision tree
 - `oya-tenancy-kernel`: inspect for cross_tenant_data_leak_containment invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-tenancy-api`: inspect for cross_tenant_data_leak_containment invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/tenancy/contracts/`: verify this surface only when the incident evidence points there.
-- `microservices/tenancy/dashboards/cell-utilization.json`: verify this surface only when the incident evidence points there.
+- `tenancy/dashboards/cell-utilization.json`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/slos/`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/policy/rls-isolation.*`: verify this surface only when the incident evidence points there.
 

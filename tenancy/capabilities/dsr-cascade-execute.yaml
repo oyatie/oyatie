@@ -23,10 +23,10 @@ maturity: stable
 created_at: 2026-05-17
 related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/PRD.md (FR-05, FR-09)
-  - microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md
-  - microservices/tenancy/policy/data-residency.md (DSR Cascade section)
-  - microservices/tenancy/contracts/asyncapi/tenant-events.yaml (TenantDeletionRequested + ErasureReceipt + TenantDeletionCompleted)
+  - tenancy/PRD.md (FR-05, FR-09)
+  - tenancy/runbooks/tenant-deletion-dsr-cascade.md
+  - tenancy/policy/data-residency.md (DSR Cascade section)
+  - tenancy/contracts/asyncapi/tenant-events.yaml (TenantDeletionRequested + ErasureReceipt + TenantDeletionCompleted)
 
 autonomy_tier: T3
 # T3 = irreversible mutation across multi-µservice fan-out; 2-person rule + DPO sign-off +
@@ -116,8 +116,8 @@ cost_profile:
     - Tenant + regulator notification
 
 cedar_policy_fragments:
-  - microservices/tenancy/policy/tenant-scope.cedar (PERMIT 3)
-  - microservices/tenancy/policy/auditor-scope.cedar (regulator/auditor read)
+  - tenancy/policy/tenant-scope.cedar (PERMIT 3)
+  - tenancy/policy/auditor-scope.cedar (regulator/auditor read)
 
 eval_set:
   golden_inputs_path: microservices/tenancy/capabilities/eval/dsr-cascade-golden.jsonl

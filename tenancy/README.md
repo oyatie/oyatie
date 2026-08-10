@@ -3,8 +3,8 @@ doc_class: Reference
 shape: Reference
 microservice: tenancy
 companion_docs:
-  - microservices/tenancy/ARCHITECTURE.md
-  - microservices/tenancy/PRD.md
+  - tenancy/ARCHITECTURE.md
+  - tenancy/PRD.md
 related_adrs:
   - ADR-0244
   - ADR-0242

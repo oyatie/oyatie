@@ -25,7 +25,7 @@ Implement the `tenant-pack-scope` slice for `tenancy` so j80 can satisfy `KR-PIP
 
 ## PRD row alignment
 
-- PRD anchor: microservices/tenancy/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
+- PRD anchor: tenancy/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
 - Journey anchor: docs/user-journeys/j80-kr-pipa-personal-info-cross-border-transfer/.
 - Regulator article focus: KR-PIPA Art 23 sensitive information.
 - Rigor row: documentation-rigor.md section 2 IP row; one service, one single-PR-sized implementation plan.
@@ -432,4 +432,4 @@ Review: doc-style, privacy, security, and compliance reviewers can map this row 
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-journey-j80-tenant-pack-scope.md` matched `openapi, asyncapi, .proto`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-journey-j80-tenant-pack-scope.md` matched `openapi, asyncapi, .proto`; contract files `tenancy/contracts/openapi/tenancy.yaml, tenancy/contracts/asyncapi/tenant-events.yaml, tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
