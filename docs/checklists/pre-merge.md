@@ -21,6 +21,7 @@ doc_status: published
 5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record, and includes the review/fix evidence packet: exact failing/fixed checks, review-thread resolution, reviewer approval state, local-CLI non-authority, and generated-face no-hand-edit status
 6. ☐ Dogfood tenant invariant evidence is present when a cloud/product boundary changes: tenant identity, tenancy boundary, policy/RBAC, residency/isolation, audit/evidence, and lifecycle remain first-class contract surfaces consumed through APIs/controllers/GitOps/admission/policy/frontends, with no privileged product shortcut into cloud internals.
 7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker), with APPROVE bound to the current PR head and all review threads resolved
+7a. ☐ **Land admission (F-PR5-06 / observation≠APPROVE):** hot-set auto-merge REQUIRES reviewer≠author APPROVE **or** a recorded programme Land packet — even when GH `required_approving_review_count` is null. TIP-GREEN + threads-resolved alone is observation, never APPROVE. Babysit MUST NOT enable squash auto-merge without that gate.
 8. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
    - cross-axis-contract → all affected axis teams
    - flat-crates-move → merge-queue serialization on root Cargo.toml
