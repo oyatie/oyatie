@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
-  "description": "Multi-model role→preset priors informed by CursorBench 3.2 score/cost. Cursor Task slugs authoritative. No *-fast. Terra/Luna are cost tiers, not quality escalations.",
+  "version": "1.3.0",
+  "description": "Multi-model role→preset priors informed by CursorBench 3.2. Task slugs primary; Cursor side-panel omx/omc/gjc allowed as advisory peers. Shell gjc/omc/omx CLIs still forbidden in lanes. No *-fast. Terra/Luna are cost tiers.",
   "source": {
     "cursorbench": {
       "url": "https://cursor.com/cursorbench",
@@ -14,6 +14,18 @@
     }
   },
   "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "forbidden_clis_scope": "shell_worker_lanes_only",
+  "forbidden_clis_reason": "Legacy brand wrappers confused merge authority; not the Cursor side panel",
+  "side_panel_channels": {
+    "allowed": true,
+    "authority": "advisory_only_never_merge",
+    "channels": {
+      "omx": { "backend": "codex", "maps_to_roles": ["EXECUTOR_PEER", "VERIFIER"], "use_when": "codex_peer_review_or_sol_shaped_diversity" },
+      "omc": { "backend": "claude", "maps_to_roles": ["CRITIC", "SECURITY", "ARCHITECT", "PLANNER", "MAX_STAKES_QUALITY"], "use_when": "opus_fable_critic_or_architect_second_pass" },
+      "gjc": { "backend": "multi_model", "maps_to_roles": ["CRITIC", "VERIFIER"], "use_when": "parallel_multi_provider_deliberation_dual_critic_ralplan" }
+    },
+    "prefer_task_slugs_first": true
+  },
   "forbidden_model_slug_substrings": ["-fast"],
   "presets": {
     "cursor-grok-4.5-high": {
