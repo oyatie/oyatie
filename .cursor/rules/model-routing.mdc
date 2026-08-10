@@ -1,5 +1,5 @@
 ---
-description: Oyatie multi-model routing — CursorBench why for whole stake ladder. Planner=Opus5 Max, architect=Fable5 Max, impl=Grok. Narrow prefer Luna-max / Composer fallback. Bans *-fast.
+description: Oyatie multi-model routing — CursorBench why for whole stake ladder. Planner=Opus5 Max, architect=Fable5 Max, impl=Grok, critic MAY Grok (Opus/Sol escalate). Narrow prefer Luna-max / Composer fallback. Bans *-fast.
 alwaysApply: true
 ---
 
@@ -11,12 +11,12 @@ alwaysApply: true
 
 | Preset | Cursor Task `model` slug | CursorBench 3.2 | Role |
 |--------|--------------------------|-----------------|------|
-| **Cursor Grok 4.5 High** | `cursor-grok-4.5-high` | 66.7%* · $1.51 · 33 steps | **Default implementation** — absorb / Seat A\|B / envelopes / judgments / code / hub |
+| **Cursor Grok 4.5 High** | `cursor-grok-4.5-high` | 66.7%* · $1.51 · 33 steps | **Default implementation** + **/critic MAY (default-ok)** — absorb / Seat A\|B / envelopes / judgments / code / hub |
 | **Composer 2.5** | `composer-2.5` | 56.1% · $0.44 · 33 steps | **Fallback** for narrow/bound/non-critical if Luna-max unavailable — **not** implement |
-| **Fable 5 Max** | `claude-fable-5-thinking-max` | **70.5%** · $17.32 · 72 steps | **/architect** (CursorBench architect stake) · max-stakes quality · critic may use |
-| **Opus 5 Max** | `claude-opus-5-thinking-max` | plan-stake Max | **/planner** (CursorBench plan stake) · critic may use |
-| **Opus 5 High** | `claude-opus-5-thinking-high` | 66.7% · $3.91 · 48 steps | Critic / security / adversarial (provider ≠ Grok executor) |
-| **GPT-5.6 Sol High** | `gpt-5.6-sol-high` | 63.5% · $2.79 · 32 steps | Multi-model executor / verifier peer · critic may use |
+| **Fable 5 Max** | `claude-fable-5-thinking-max` | **70.5%** · $17.32 · 72 steps | **/architect** (CursorBench architect stake) · max-stakes quality · critic escalate optional |
+| **Opus 5 Max** | `claude-opus-5-thinking-max` | plan-stake Max | **/planner** (CursorBench plan stake) · critic escalate optional |
+| **Opus 5 High** | `claude-opus-5-thinking-high` | 66.7% · $3.91 · 48 steps | Critic escalate / security / adversarial (cross-provider; not banned) |
+| **GPT-5.6 Sol High** | `gpt-5.6-sol-high` | 63.5% · $2.79 · 32 steps | Multi-model executor / verifier peer · critic escalate optional (cross-provider) |
 | **GPT-5.6 Terra Extra High** | `gpt-5.6-terra-xhigh` | 59.2% · $1.15 · 29 steps | **Cost-aware mid tier** — mechanical/bulk when lower quality bar is OK |
 | **GPT-5.6 Luna Max** | `gpt-5.6-luna-max` | 61.1% · $0.39 · 61 steps | **Prefer** narrow/bound/non-critical — **not** implement / **not** max-stakes |
 
@@ -27,7 +27,7 @@ Quality (for hard judgment) goes **up** cost, not down:
 1. **Narrow / bound / non-critical** → prefer Luna Max (Composer 2.5 fallback)
 2. **Default implement** → Grok 4.5 High*
 3. **Peer / diversity** → Sol High (or Grok)
-4. **Critic / security** → Opus 5 High (or Opus/Sol/Fable per stake)
+4. **Critic** → **Grok 4.5 High MAY (default-ok)**; escalate Opus 5 High / Sol High / Fable for adversarial/cross-provider (esp. when implementer is also Grok)
 5. **Planner** → **Opus 5 Max** (`claude-opus-5-thinking-max`) — founder override; **not** Fable
 6. **Architect / max-stakes quality** → **Fable 5 Max** (`claude-fable-5-thinking-max`)
 
@@ -41,7 +41,7 @@ Quality (for hard judgment) goes **up** cost, not down:
 2. **Scout / light recon** → **`composer-2.5`** (`.cursor/agents/scout.md`) only when Luna-max path does not apply. Scout→edit → re-dispatch to Grok (or architect/planner if design-shaped). Never let scout edit.
 3. **Planner / ralplan** → **`claude-opus-5-thinking-max`** (Opus5 Max — CursorBench plan stake).
 4. **Architect** → **`claude-fable-5-thinking-max`** (Fable5 Max — CursorBench architect stake).
-5. **Critic / security** → **`claude-opus-5-thinking-high`** (or Opus/Sol/Fable per stake). Independence ⇒ critic provider ≠ executor provider.
+5. **Critic** → **MAY `cursor-grok-4.5-high` (default-ok)**. Opus High (`claude-opus-5-thinking-high`) / Sol High / Fable remain **optional escalate** for adversarial/cross-provider — **do not ban**. **Escalate-when (same-provider blindness):** if implementer is also Grok, escalate critic to Sol/Opus when adversarial/security, merge-admission/Claim APPROVE, contested SSOT/doctrine, or prior Grok-critic returned a thin ACCEPT.
 6. **Narrow / bounded / minimal-reasoning / non-critical** → **prefer `gpt-5.6-luna-max`**; Composer (`composer-2.5`) = **fallback if Luna-max unavailable**.
 7. **Cost-sensitive mechanical** bulk → Terra Extra High or Luna Max **only** when wrong answers are cheap to catch.
 8. **BAN all `*-fast` model slugs** (incl. `composer-2.5-fast`).
