@@ -41,8 +41,8 @@ deliverables:
     exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + judgment_files.dir (naming_sweep lives under governance/check/integ-envelope/judgments/, not inlined); no mass rename without taxonomy instance."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D7
-    description: "Amendment C — Gaebal-gajae 137-entry distillation synthesized as clustered Gaebal operating patterns (KEEP/BAN), not 137 paraphrases; machine-readable specs/gaebal-agentic-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
-    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/gaebal-agentic-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
+    description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
+    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D8
     description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…8); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
@@ -244,14 +244,14 @@ historical ADRs are provenance only.
 
 #### Swarm operating lessons (carried, still binding)
 
-Kept from Bun / Cursor swarm / Gaebal-gajae practice and already encoded in Claim/Land /
+Kept from Bun / Cursor swarm / Amendment C archive practice and already encoded in Claim/Land /
 PORTABLE-SWARM-CONTRACT: one implementer + adversarial reviewers; planner ≠ implementer;
 fix the process not the output; batch same-subsystem work into one lane; green CI is not
 authorization — re-verify at the moment of action; never delete a git lock without checking the
 owning process; automation stops at the edge of its authority; design cleanup/ownership for
 replicated state before scaling parallelism.
 
-Full clustered KEEP/BAN from the 137-entry Gaebal archive distillation: **Amendment C**.
+Full clustered KEEP/BAN from the 137-entry Amendment C archive distillation: **Amendment C**.
 
 ### Amendment A (2026-08-10)
 
@@ -606,13 +606,12 @@ source does **not** authorize births or blind moves there.
 
 First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`), not path shuffles.
 
-### Amendment C (2026-08-10) — Gaebal operating patterns
+### Amendment C (2026-08-10) — operating-patterns catalog
 
-Binding amendment. Distilled from **all 137** entries at
-https://blog.gaebal-gajae.dev/archive.html (14 batch distillers, entries 000–136). Encode
-**clusters**, not 137 paraphrases. Portable mirror:
-`.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
-Policy-as-data: `specs/gaebal-agentic-patterns.json`.
+Binding amendment. Distilled from **all 137** archive entries (14 batch distillers,
+000–136) into the operating-patterns catalog. Encode **clusters**, not 137 paraphrases.
+Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
+Policy-as-data: `specs/agentic-operating-patterns.json`.
 
 These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment B.
 
@@ -735,12 +734,12 @@ corpus; does not authorize mass ADR renames. Drift-grep: `tools/swarm/self-check
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 - **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
 - **Keep `oya-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
-- **Keep forever name `oya-ci-required` because Gaebal distill notes said so** — OVERRULED (Amendment C-3); forever name is `merge-admission-required`; distill is operating-pattern evidence, not naming authority.
+- **Keep forever name `oya-ci-required` because Amendment C distill notes said so** — OVERRULED (Amendment C-3); forever name is `merge-admission-required`; distill is operating-pattern evidence, not naming authority.
 
 ## References
 
 - Naming taxonomy: `specs/naming-taxonomy.json`
-- Gaebal operating patterns: `specs/gaebal-agentic-patterns.json`
+- operating-patterns catalog: `specs/agentic-operating-patterns.json`
 - Policy: `specs/integ-branch-envelopes.json`
 - Portable rule text: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
 - Harness: `.claude/workflows/deliver.js` (Claim + Land)

@@ -167,7 +167,7 @@ agent-swarm folklore. Full text: ADR-0711 D-9. Machine notes:
 **Swarm lessons (carried):** Bun one-implementer + adversarial reviewers; planner ≠ implementer;
 fix process not output; batch same-subsystem into one lane; re-verify at moment of action;
 never delete git locks blindly; automation stops at authority edge. Full KEEP/BAN clusters:
-Amendment C + `specs/gaebal-agentic-patterns.json`.
+Amendment C + `specs/agentic-operating-patterns.json`.
 
 ### Amendment A (2026-08-10) — imperative rules
 
@@ -224,10 +224,10 @@ Mirror of ADR-0711 Amendment B.
    follow anti-patterns.
 
 
-### Amendment C (2026-08-10) — Gaebal operating patterns
+### Amendment C (2026-08-10) — operating-patterns catalog
 
-Mirror of ADR-0711 Amendment C. Corpus: 137/137 Gaebal-gajae archive entries distilled into
-clusters (not paraphrases). Machine copy: `specs/gaebal-agentic-patterns.json`.
+Mirror of ADR-0711 Amendment C. Corpus: 137/137 Amendment C archive entries distilled into
+clusters (not paraphrases). Machine copy: `specs/agentic-operating-patterns.json`.
 
 **KEEP**
 
