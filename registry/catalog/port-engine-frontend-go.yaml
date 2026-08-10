@@ -1,0 +1,16 @@
+context: build
+role: adapters
+capability: port-engine
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: build/port-engine/adapters/port-engine-frontend-go/Cargo.toml
+non_claims:
+  - W0-B Slice 1 skeleton only; no SourceModel snapshot decode or Go firewall tests exist yet
+  - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1)
+  - never invokes Go in-process; that invariant is proven in Slice 4, not claimed here

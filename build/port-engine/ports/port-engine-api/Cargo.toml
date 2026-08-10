@@ -1,0 +1,21 @@
+[package]
+name = "port-engine-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Neutral seam types for the owned deterministic port engine (ADR-0637 D1, archived; live via
+# apex ADR-0704). W0-B Slice 1 skeleton only — SourceModel, RulePack, TransformPlan, TargetIr,
+# Renderer, and Receipt land in Slice 2. Zero dependencies by design at this slice.
+
+[dependencies]
+
+[lib]
+name = "port_engine_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
