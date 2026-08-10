@@ -58,7 +58,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/calendar/contracts/proto/calendar.proto"
+        "app/calendar/contracts/proto/calendar.proto"
       ]
     }
   },
@@ -87,55 +87,55 @@
       "name": "calendar-agenda-render-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_calendar_agenda_render_seconds_bucket[5m])) by (le))",
-      "file": "oya/calendar/slos/agenda-render-latency.openslo.yaml"
+      "file": "app/calendar/slos/agenda-render-latency.openslo.yaml"
     },
     {
       "name": "calendar-caldav-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_calendar_caldav_request_total{status_class=~\"2..|4..\"}[5m]))",
-      "file": "oya/calendar/slos/caldav-availability.openslo.yaml"
+      "file": "app/calendar/slos/caldav-availability.openslo.yaml"
     },
     {
       "name": "calendar-freebusy-query-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.99, sum(rate(oya_calendar_freebusy_query_seconds_bucket{attendee_count_bucket=\"1k\"}[5m])) by (le))",
-      "file": "oya/calendar/slos/freebusy-query-latency.openslo.yaml"
+      "file": "app/calendar/slos/freebusy-query-latency.openslo.yaml"
     },
     {
       "name": "calendar-ics-import-throughput",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_calendar_ics_import_seconds_bucket{event_count_bucket=\"10k\"}[15m])) by (le))",
-      "file": "oya/calendar/slos/ics-import-throughput.openslo.yaml"
+      "file": "app/calendar/slos/ics-import-throughput.openslo.yaml"
     },
     {
       "name": "calendar-notification-delivery-freshness",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_calendar_notification_delivery_seconds_bucket[5m])) by (le))",
-      "file": "oya/calendar/slos/notification-delivery-freshness.openslo.yaml"
+      "file": "app/calendar/slos/notification-delivery-freshness.openslo.yaml"
     },
     {
       "name": "calendar-room-conflict-detection-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_calendar_room_double_booking_refused_total[5m]))",
-      "file": "oya/calendar/slos/room-conflict-detection-correctness.openslo.yaml"
+      "file": "app/calendar/slos/room-conflict-detection-correctness.openslo.yaml"
     },
     {
       "name": "calendar-rsvp-fanout-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_calendar_rsvp_fanout_seconds_bucket[5m])) by (le))",
-      "file": "oya/calendar/slos/rsvp-fanout-latency.openslo.yaml"
+      "file": "app/calendar/slos/rsvp-fanout-latency.openslo.yaml"
     },
     {
       "name": "calendar-scheduling-convergence-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_calendar_scheduling_poll_convergence_seconds_bucket[5m])) by (le))",
-      "file": "oya/calendar/slos/scheduling-convergence-latency.openslo.yaml"
+      "file": "app/calendar/slos/scheduling-convergence-latency.openslo.yaml"
     },
     {
       "name": "calendar-tzdb-staleness-bound",
       "target": "1.0",
       "sli": "max(oya_calendar_tzdb_cluster_default_staleness_days)",
-      "file": "oya/calendar/slos/tzdb-staleness-bound.openslo.yaml"
+      "file": "app/calendar/slos/tzdb-staleness-bound.openslo.yaml"
     }
   ],
   "ips": [
