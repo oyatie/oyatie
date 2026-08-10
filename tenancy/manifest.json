@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
-  "microservice": "tenancy",
+  "capability": "tenancy",
+  "_comment": "Capability-root manifest for tenancy/ (ADR-0562). Every crate name, capability file path, contract path, IP path and accounting count below was read off the tenancy/ tree at authoring time (tip equals origin/dev tenancy tree), not transcribed from legacy microservices/tenancy/ or libs/oya-tenancy-* dump paths. Catalog rows cite only registry/catalog/tenancy-*.yaml files that exist; two in-tree crates lack registry catalog rows and are not invented here.",
   "tier": "substrate",
   "tier_subtype": "substrate-tenancy",
   "dr_tier": "T1",
@@ -17,36 +18,106 @@
       "ontology",
       "policy-engine",
       "workflow-engine"
-    ]
+    ],
+    "_note": "specs/capability-registry.json name=tenancy dag_node=tenancy stratum=S2"
   },
+  "_tier_source": "specs/capability-registry.json name=tenancy dag_node=tenancy stratum=S2; tier_subtype=substrate-tenancy retained from grounded legacy service manifest",
   "version": "0.1.0",
   "owner": "axis-tenancy",
+  "purpose": "Tenant lifecycle + home-cell resolution + tenant-as-universal-scoping-primitive (ADR-0562 capability-registry charter). Structural multi-tenancy substrate: isolation policy / RLS, DSR cascade, cell assignment, DR pairing, KYB/KYC, quotas, and tenant resolve hot-path \u2014 libraries and control-plane surfaces under tenancy/{core,adapters,ports,facade}/.",
   "bounded_contexts": [
     {
-      "name": "tenancy",
-      "description": "Bounded context 'tenancy' within tenancy (control plane)",
+      "name": "tenancy-adapters",
+      "description": "Transient-infra driven adapters under tenancy/adapters/.",
       "crates": [
-        "oya-tenancy-tenant-lifecycle-kernel"
+        "tenancy-data-residency-enforcer",
+        "tenancy-tenant-lifecycle-authz-pdp",
+        "tenancy-tenant-lifecycle-store-inmemory",
+        "tenancy-tenant-lifecycle-store-postgres"
+      ]
+    },
+    {
+      "name": "tenancy-core",
+      "description": "Pure kernel/domain/usecase surfaces under tenancy/core/.",
+      "crates": [
+        "tenancy-cell-assignment",
+        "tenancy-domain",
+        "tenancy-dr-pairing",
+        "tenancy-dsr-cascade",
+        "tenancy-isolation-policy",
+        "tenancy-kernel",
+        "tenancy-kyb-kyc-verifier",
+        "tenancy-lifecycle-locks",
+        "tenancy-per-tenant-quota",
+        "tenancy-reserved-namespace",
+        "tenancy-sub-scope-registry",
+        "tenancy-tenant-lifecycle-domain",
+        "tenancy-tenant-lifecycle-kernel",
+        "tenancy-tenant-lifecycle-usecase"
+      ]
+    },
+    {
+      "name": "tenancy-facade",
+      "description": "Composition/app facade surfaces under tenancy/facade/.",
+      "crates": [
+        "tenancy-tenant-lifecycle-app"
+      ]
+    },
+    {
+      "name": "tenancy-ports",
+      "description": "API/CLI/authz port boundaries under tenancy/ports/.",
+      "crates": [
+        "tenancy-api",
+        "tenancy-cli",
+        "tenancy-tenant-lifecycle-authz-port"
       ]
     }
   ],
   "layers": [
-    "adapter",
-    "api",
-    "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "adapters",
+    "core",
+    "facade",
+    "ports"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 22,
+    "crates_by_layer": {
+      "adapters": 4,
+      "core": 14,
+      "facade": 1,
+      "ports": 3
+    },
+    "crates_covered_by_no_other_manifest": 22,
+    "catalog_rows": [
+      "registry/catalog/tenancy-api.yaml",
+      "registry/catalog/tenancy-cell-assignment.yaml",
+      "registry/catalog/tenancy-cli.yaml",
+      "registry/catalog/tenancy-data-residency-enforcer.yaml",
+      "registry/catalog/tenancy-domain.yaml",
+      "registry/catalog/tenancy-dr-pairing.yaml",
+      "registry/catalog/tenancy-dsr-cascade.yaml",
+      "registry/catalog/tenancy-isolation-policy.yaml",
+      "registry/catalog/tenancy-kernel.yaml",
+      "registry/catalog/tenancy-kyb-kyc-verifier.yaml",
+      "registry/catalog/tenancy-lifecycle-locks.yaml",
+      "registry/catalog/tenancy-per-tenant-quota.yaml",
+      "registry/catalog/tenancy-reserved-namespace.yaml",
+      "registry/catalog/tenancy-sub-scope-registry.yaml",
+      "registry/catalog/tenancy-tenant-lifecycle-app.yaml",
+      "registry/catalog/tenancy-tenant-lifecycle-authz-pdp.yaml",
+      "registry/catalog/tenancy-tenant-lifecycle-authz-port.yaml",
+      "registry/catalog/tenancy-tenant-lifecycle-kernel.yaml",
+      "registry/catalog/tenancy-tenant-lifecycle-store-inmemory.yaml",
+      "registry/catalog/tenancy-tenant-lifecycle-store-postgres.yaml"
+    ],
+    "_overlap_note": "All 22 workspace members under tenancy/ are owned exclusively by this capability root; no absorbed sub-service manifests exist under tenancy/. 20 registry/catalog rows match package names; missing catalog rows (not invented): ['tenancy-tenant-lifecycle-domain', 'tenancy-tenant-lifecycle-usecase']."
+  },
   "contracts": {
     "openapi": [
-      "microservices/tenancy/contracts/openapi/tenancy.yaml"
+      "tenancy/contracts/openapi/tenancy.yaml"
     ],
     "asyncapi": [
-      "microservices/tenancy/contracts/asyncapi/tenant-events.yaml"
+      "tenancy/contracts/asyncapi/tenant-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -59,20 +130,38 @@
   "capabilities": [
     {
       "tier": "T3",
+      "name": "dr-pair-promote",
+      "file": "tenancy/capabilities/dr-pair-promote.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T3",
       "name": "dsr-cascade-execute",
-      "file": "microservices/tenancy/capabilities/dsr-cascade-execute.yaml",
+      "file": "tenancy/capabilities/dsr-cascade-execute.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T3",
       "name": "isolation-policy-emit",
-      "file": "microservices/tenancy/capabilities/isolation-policy-emit.yaml",
+      "file": "tenancy/capabilities/isolation-policy-emit.yaml",
       "risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "kyb-kyc-complete",
+      "file": "tenancy/capabilities/kyb-kyc-complete.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "quota-update",
+      "file": "tenancy/capabilities/quota-update.yaml",
+      "risk_class": "medium"
     },
     {
       "tier": "T1",
       "name": "tenant-resolve",
-      "file": "microservices/tenancy/capabilities/tenant-resolve.yaml",
+      "file": "tenancy/capabilities/tenant-resolve.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -97,7 +186,7 @@
     },
     {
       "name": "tenancy-latency",
-      "target": "≤",
+      "target": "\u2264",
       "sli": "sum(rate(http_request_duration_seconds_bucket{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",le=\"0.005\"}[5m]))",
       "file": "tenancy/observability/slos/latency.openslo.yaml"
     }
@@ -107,91 +196,91 @@
       "id": "IP-001-layer-a-postgres-citus-patroni-iac",
       "title": "IP-001: Layer-A Postgres + Citus + Patroni IaC",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-001-layer-a-postgres-citus-patroni-iac.md"
+      "file": "tenancy/IP-001-layer-a-postgres-citus-patroni-iac.md"
     },
     {
       "id": "IP-002-tenant-lifecycle-kernel",
       "title": "IP-002: oya-tenancy-tenant-lifecycle-kernel",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-002-tenant-lifecycle-kernel.md"
+      "file": "tenancy/IP-002-tenant-lifecycle-kernel.md"
     },
     {
       "id": "IP-003-tenant-lifecycle-domain",
       "title": "IP-003: oya-tenancy-tenant-lifecycle-domain",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-003-tenant-lifecycle-domain.md"
+      "file": "tenancy/IP-003-tenant-lifecycle-domain.md"
     },
     {
       "id": "IP-004-tenant-lifecycle-usecase",
       "title": "IP-004: oya-tenancy-tenant-lifecycle-usecase",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-004-tenant-lifecycle-usecase.md"
+      "file": "tenancy/IP-004-tenant-lifecycle-usecase.md"
     },
     {
       "id": "IP-005-tenant-lifecycle-adapter-postgres",
       "title": "IP-005: oya-tenancy-tenant-lifecycle-adapter-postgres",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-005-tenant-lifecycle-adapter-postgres.md"
+      "file": "tenancy/IP-005-tenant-lifecycle-adapter-postgres.md"
     },
     {
       "id": "IP-006-isolation-policy-rls-generator",
       "title": "IP-006: Isolation-policy RLS generator + enforcement",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-006-isolation-policy-rls-generator.md"
+      "file": "tenancy/IP-006-isolation-policy-rls-generator.md"
     },
     {
       "id": "IP-007-isolation-policy-jwt-issuer",
       "title": "IP-007: Isolation-policy JWT issuer + verifier",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-007-isolation-policy-jwt-issuer.md"
+      "file": "tenancy/IP-007-isolation-policy-jwt-issuer.md"
     },
     {
       "id": "IP-008-cell-assignment-controller",
       "title": "IP-008: Cell-assignment controller (Citus + Patroni-aware)",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-008-cell-assignment-controller.md"
+      "file": "tenancy/IP-008-cell-assignment-controller.md"
     },
     {
       "id": "IP-009-dsr-cascade-runner",
       "title": "IP-009: DSR cascade runner + proof-of-erasure",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-009-dsr-cascade-runner.md"
+      "file": "tenancy/IP-009-dsr-cascade-runner.md"
     },
     {
       "id": "IP-010-tenancy-rest-and-sdk",
       "title": "IP-010: Tenancy REST surface + Rust SDK",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-010-tenancy-rest-and-sdk.md"
+      "file": "tenancy/IP-010-tenancy-rest-and-sdk.md"
     },
     {
       "id": "IP-011-audit-chain-integration",
       "title": "IP-011: Audit-chain Ed25519 seal integration",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-011-audit-chain-integration.md"
+      "file": "tenancy/IP-011-audit-chain-integration.md"
     },
     {
       "id": "IP-012-branch-protection-and-release-pointers",
       "title": "IP-012: branch-protection.yaml + release pointers for tenancy",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-012-branch-protection-and-release-pointers.md"
+      "file": "tenancy/IP-012-branch-protection-and-release-pointers.md"
     },
     {
       "id": "IP-013-canary-cohort-and-rollback-wiring",
       "title": "IP-013: Canary cohort wiring + production-tier rollback for tenancy",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-013-canary-cohort-and-rollback-wiring.md"
+      "file": "tenancy/IP-013-canary-cohort-and-rollback-wiring.md"
     },
     {
       "id": "IP-014-tests-load-drills-observability-slos",
       "title": "IP-014: Tests + load drills + OpenSLO manifests for tenancy",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-014-tests-load-drills-observability-slos.md"
+      "file": "tenancy/IP-014-tests-load-drills-observability-slos.md"
     },
     {
       "id": "IP-015-legacy-crates-migration",
-      "title": "IP-015: Migrate legacy crates to microservices/tenancy/ flat layout",
+      "title": "IP-015: Migrate legacy crates to tenancy/ flat layout",
       "acceptance_status": "ga",
-      "file": "microservices/tenancy/IP-015-legacy-crates-migration.md"
+      "file": "tenancy/IP-015-legacy-crates-migration.md"
     }
   ],
   "regulatory_packs": [
@@ -208,9 +297,9 @@
     "ksa"
   ],
   "lts_pins": {
-    "citus": "12.1.0\"  # Citus LTS line per docs/standards/observability-slo.md",
-    "patroni": "3.3.0\"  # Patroni LTS line",
-    "postgres": "16.3\"  # Postgres LTS line per docs/standards/observability-slo.md",
+    "citus": "12.1.0",
+    "patroni": "3.3.0",
+    "postgres": "16.3",
     "rust": "1.97.1"
   },
   "adrs": [
@@ -276,10 +365,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -313,7 +402,7 @@
     "ambient_waypoint": false,
     "north_south_only": false
   },
-  "naming_justifications": "tenancy is a BNF v4.1 kebab-case microservice slug; generated names follow oya-tenancy-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "tenancy is a BNF v4.1 kebab-case capability slug (ADR-0562); package names follow tenancy-<bounded-context-or-concern> under tenancy/{adapters,core,ports,facade}/.",
   "tenant_class_eligibility": [
     "demo_trial",
     "paid"
@@ -345,7 +434,7 @@
     "fedramp-high",
     "eu-ai-act"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; sre_signal_set: four-primary-service-signals \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals",
   "owner_team": "axis-tenancy",
   "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
   "compliance_packs_applicable": [
@@ -374,7 +463,7 @@
     "fedramp-high",
     "eu-ai-act"
   ],
-  "depends_on_microservices": [
+  "depends_on_capabilities": [
     "application",
     "audit-chain",
     "docs",
@@ -466,11 +555,11 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Tenancy is the shared tenant isolation and placement substrate. It touches tenant metadata, jurisdiction codes, cell assignment, and policy routing state, so it is Tier 1 even though it does not run tenant-supplied code.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/tenancy/PRD.md",
-    "microservices/tenancy/ARCHITECTURE.md",
-    "microservices/tenancy/IP-008-cell-assignment-controller.md",
-    "microservices/tenancy/IP-009-dsr-cascade-runner.md",
-    "microservices/tenancy/runbooks/dr-pair-promotion-drill.md"
+    "tenancy/PRD.md",
+    "tenancy/ARCHITECTURE.md",
+    "tenancy/IP-008-cell-assignment-controller.md",
+    "tenancy/IP-009-dsr-cascade-runner.md",
+    "tenancy/runbooks/dr-pair-promotion-drill.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -488,19 +577,20 @@
         "deprecated_at": "2026-05-21",
         "sunset_at": "2026-11-21",
         "breaking_change_adr": "docs/decisions/ADR-0709-general-live-apex.md",
-        "migration_doc": "microservices/tenancy/MIGRATION-2026-05-21.md"
+        "migration_doc": "tenancy/IP-015-legacy-crates-migration.md",
+        "_migration_doc_note": "tenancy/MIGRATION-2026-05-21.md is absent on origin/dev; cited IP-015 instead of inventing a migration doc"
       }
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/tenancy/contracts/openapi/tenancy.yaml",
-        "2026-02-21": "microservices/tenancy/contracts/openapi/tenancy.yaml",
-        "2025-11-21": "microservices/tenancy/contracts/openapi/tenancy.yaml"
+        "2026-05-21": "tenancy/contracts/openapi/tenancy.yaml",
+        "2026-02-21": "tenancy/contracts/openapi/tenancy.yaml",
+        "2025-11-21": "tenancy/contracts/openapi/tenancy.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/tenancy/contracts/asyncapi/tenant-events.yaml",
-        "2026-02-21": "microservices/tenancy/contracts/asyncapi/tenant-events.yaml",
-        "2025-11-21": "microservices/tenancy/contracts/asyncapi/tenant-events.yaml"
+        "2026-05-21": "tenancy/contracts/asyncapi/tenant-events.yaml",
+        "2026-02-21": "tenancy/contracts/asyncapi/tenant-events.yaml",
+        "2025-11-21": "tenancy/contracts/asyncapi/tenant-events.yaml"
       }
     }
   },
@@ -540,5 +630,28 @@
       "version_pin": "v1",
       "tenant_class_scope": "paid"
     }
+  ],
+  "implemented_source_files": [
+    "tenancy/adapters/data-residency-enforcer/src/lib.rs",
+    "tenancy/adapters/tenant-lifecycle-authz-pdp/src/lib.rs",
+    "tenancy/adapters/tenant-lifecycle-store-inmemory/src/lib.rs",
+    "tenancy/adapters/tenant-lifecycle-store-postgres/src/lib.rs",
+    "tenancy/core/cell-assignment/src/lib.rs",
+    "tenancy/core/domain/src/lib.rs",
+    "tenancy/core/dr-pairing/src/lib.rs",
+    "tenancy/core/dsr-cascade/src/lib.rs",
+    "tenancy/core/isolation-policy/src/lib.rs",
+    "tenancy/core/kernel/src/lib.rs",
+    "tenancy/core/kyb-kyc-verifier/src/lib.rs",
+    "tenancy/core/lifecycle-locks/src/lib.rs",
+    "tenancy/core/per-tenant-quota/src/lib.rs",
+    "tenancy/core/reserved-namespace/src/lib.rs",
+    "tenancy/core/sub-scope-registry/src/lib.rs",
+    "tenancy/core/tenant-lifecycle-domain/src/lib.rs",
+    "tenancy/core/tenant-lifecycle-kernel/src/lib.rs",
+    "tenancy/core/tenant-lifecycle-usecase/src/lib.rs",
+    "tenancy/facade/tenant-lifecycle-app/src/lib.rs",
+    "tenancy/ports/api/src/lib.rs",
+    "tenancy/ports/tenant-lifecycle-authz/src/lib.rs"
   ]
 }
