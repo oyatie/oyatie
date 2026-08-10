@@ -40,8 +40,8 @@ need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
 missing_inv = [x for x in need_inv if x not in inv]
 if missing_inv:
     raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
-if e.get("_meta", {}).get("version") != "1.16.8":
-    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.8")
+if e.get("_meta", {}).get("version") != "1.16.10":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.10")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
@@ -85,13 +85,33 @@ want3d = {
     "oya/payroll/": "integ/payroll",
     "oya/workplace-integration/": "integ/workplace-integration",
     "oya/incident-management/": "integ/incident-management",
+    "oya/warehouse/": "integ/warehouse",
+    "oya/treasury/": "integ/treasury",
+    "oya/supply-chain-planning/": "integ/supply-chain-planning",
+    "oya/real-estate/": "integ/real-estate",
+    "oya/quality-management/": "integ/quality-management",
+    "oya/plant-maintenance/": "integ/plant-maintenance",
+    "oya/global-trade/": "integ/global-trade",
+    "oya/contract-lifecycle-management/": "integ/contract-lifecycle-management",
+    "oya/social/": "integ/social",
+    "oya/healthcare-integration/": "integ/healthcare",
+    "oya/emr/": "integ/healthcare",
+    "oya/pharmacy/": "integ/healthcare",
+    "oya/patient-monitoring/": "integ/healthcare",
+}
+root_key_overrides = {
+    "oya/docs/": "app-docs",
+    "oya/healthcare-integration/": "healthcare",
+    "oya/emr/": "healthcare",
+    "oya/pharmacy/": "healthcare",
+    "oya/patient-monitoring/": "healthcare",
 }
 for rail, want in want3d.items():
     pr = (nb.get("product_rails") or {}).get(rail) or {}
     got = pr.get("destination_integ")
     if got != want:
         raise SystemExit(f"rule3d {rail} destination_integ={got!r} want {want!r}")
-    root_key = "app-docs" if rail == "oya/docs/" else rail[len("oya/"):-1]
+    root_key = root_key_overrides.get(rail) or rail[len("oya/"):-1]
     root = e.get("roots", {}).get(root_key) or {}
     if root.get("branch") != want:
         raise SystemExit(f"roots.{root_key}.branch={root.get('branch')!r} want {want!r}")

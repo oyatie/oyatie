@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.8",
+    "version": "1.16.10",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -465,6 +465,22 @@
         "app/calendar/**"
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/calendar/**; rehome from oya/calendar. OVERRULE 1.16.7 scaffold-misclassified-as-dump.",
+      "forward_declared": true
+    },
+    "healthcare": {
+      "branch": "integ/healthcare",
+      "envelope_globs": [
+        "app/healthcare/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/healthcare/** with ADR-0615 §6 contexts (emr, pharmacy, patient-monitoring, healthcare-integration, …). OVERRULE #1611 scaffold delete → reclaim (1.16.9).",
+      "forward_declared": true
+    },
+    "social": {
+      "branch": "integ/social",
+      "envelope_globs": [
+        "app/social/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/social/** (SEPARATE app product per ADR-0615 — not a healthcare context; community crates remain oya/community). OVERRULE #1611 scaffold delete → reclaim (1.16.9).",
       "forward_declared": true
     }
   },
@@ -2466,34 +2482,402 @@
         "land_when": "After this judgment: integ/calendar absorbs oya/calendar/** → app/calendar/** (destination-owned rule 3e); do NOT undelete on integ/oya first; Phase 2 shrink-only delete oya/calendar/** on integ/oya after absorb verify; hub retargets only on tip-free integ/specs — not this judgment commit"
       },
       {
-        "path": "oya/governance/",
-        "action": "delete_permanently",
-        "greenfield_destination": "(none)",
-        "destination": "(none)",
-        "shape": "(removed) — product dump colliding with META governance/",
-        "redesign": "delete",
-        "disposition": "delete-permanently",
-        "rationale": "1) 152 files, 0 rust — catalog of oya-governance-*/oya-check-* YAML. 2) Collides with keep_forever META governance/. 3) Historical dump. 4) Must not exist; gates live under ci/facade + governance/check. 5) Antipattern: dual-home vs META. 6) delete-permanently — do NOT merge into governance/. 7) Greenfield: zero oya/governance/.",
-        "evidence": [
-          "origin/dev oya/governance: 152 paths, rust=0",
-          "governance/ keep_forever META"
+        "path": "oya/social/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/social/",
+        "destination": "app/social/",
+        "destination_integ": "integ/social",
+        "shape": "zero-crate product scaffold (manifest/catalog/contracts/slos/iac/cedar) rewrite into app/social/; OVERRULE #1611 delete; NOT delete_permanently; community crates stay oya/community; product kit → app/social",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/social/",
+        "name_forever": "app/social/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "overrule": {
+          "from_action": "delete_permanently",
+          "at_version": "pre-freeze/#1611",
+          "reason": "MERGED #1611 deleted oya/social/ scaffold kit with NO land to app/; same forever faces as payments/calendar; reclaim → app/social/ via integ/social",
+          "evidence_scouts": [
+            "8b935833",
+            "census-reclaim-1611",
+            "339743f8"
+          ],
+          "rule": "3d/3e destination-owned reorg_now",
+          "pre_delete_sha": "4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "merge_commit": "79903afddea88ed99df893da2dedf87789b5c29d"
+        },
+        "challenges": [
+          "chestertons_fence: #1611 deleted oya/social/ as unregistered zero-crate orphan but left a full product kit with no land to app/social/",
+          "cartesian_doubt: 0 rust ≠ dump when catalog+contracts+slos+iac+cedar present (110 files at 4aa692919b12) — same scaffold class as payments/calendar",
+          "essentialism_yagni: forever home is app/social/ per ADR-0615 app_products; greenfield is not no-social",
+          "contrarian: reject #1611 delete disposition — OVERRULE scaffold-as-orphan without absorb",
+          "pragmatism: reclaim from pre-delete SHA 4aa692919b12 onto integ/social; never resurrect under oya/",
+          "systems_thinking: integ/social owns app/social/**; rule 3e destination-owned reorg_now",
+          "blast_radius_cell: MERGED #1611 recoverable from merge parent; PARKED reclaim only — no merge to dev",
+          "opportunity_cost: regenerating 110-file kit costs more than reclaim",
+          "red_team: zero-crate delete without forever home smuggles product-face loss",
+          "operability_day2: runbooks/slos/iac must land under app/social/",
+          "socratic: why payments/calendar reorg_now but these delete? No durable distinction",
+          "outside_the_box: census reclaim #1611 — scaffold vs junk; exclude AUDIT-FINDINGS",
+          "zero_trust: catalog YAML ≠ live crates; still preserve product faces",
+          "finops_unit_cost: reclaim beats regenerating paid-for kits",
+          "shared_nothing: product cell is app/social/",
+          "constant_work: OVERRULE+destination absorb now"
         ],
-        "destination_integ": "integ/oya",
-        "land_status": "ready_for_integ_oya",
-        "land_when": "integ/oya deletes oya/governance/**; forbid absorb into governance/",
-        "kind": "product-dump",
-        "grammar_compliant": false,
+        "rationale": "OVERRULE #1611 delete→reorg_now. 1) 110-file zero-crate product scaffold under oya/social/. 2) Brand-prefixed oya/ nest vs ADR-0615 app product forever home. 3) Product faces must survive. 4) Must exist at app/social/. 5) Fit: integ/social → app/social/**. 6) rewrite from pre-delete SHA; exclude AUDIT-FINDINGS. 7) Forever: app/social/.",
+        "evidence": [
+          "#1611 merge 79903afddea8 deleted oya/social/ (110 files)",
+          "pre-delete tree at 4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "payments/calendar same zero-crate scaffold class already reorg_now"
+        ],
+        "land_status": "ready_for_integ_social",
+        "land_when": "integ/social reclaims oya/social/** from 4aa692919b12 → app/social/; PARKED PR; shrink N/A (already deleted on trunk)",
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/healthcare-integration/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/healthcare/healthcare-integration/",
+        "destination": "app/healthcare/healthcare-integration/",
+        "destination_integ": "integ/healthcare",
+        "shape": "zero-crate product scaffold (manifest/catalog/contracts/slos/iac/cedar) rewrite into app/healthcare/healthcare-integration/; OVERRULE #1611 delete; NOT delete_permanently",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/healthcare-integration/",
+        "name_forever": "app/healthcare/healthcare-integration/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "overrule": {
+          "from_action": "delete_permanently",
+          "at_version": "pre-freeze/#1611",
+          "reason": "MERGED #1611 deleted oya/healthcare-integration/ scaffold kit with NO land to app/; same forever faces as payments/calendar; reclaim → app/healthcare/healthcare-integration/ via integ/healthcare",
+          "evidence_scouts": [
+            "8b935833",
+            "census-reclaim-1611",
+            "339743f8"
+          ],
+          "rule": "3d/3e destination-owned reorg_now",
+          "pre_delete_sha": "4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "merge_commit": "79903afddea88ed99df893da2dedf87789b5c29d"
+        },
+        "challenges": [
+          "chestertons_fence: #1611 deleted oya/healthcare-integration/ as unregistered zero-crate orphan but left a full product kit with no land to app/healthcare/healthcare-integration/",
+          "cartesian_doubt: 0 rust ≠ dump when catalog+contracts+slos+iac+cedar present (122 files at 4aa692919b12) — same scaffold class as payments/calendar",
+          "essentialism_yagni: forever home is app/healthcare/healthcare-integration/ per ADR-0615 app_products; greenfield is not no-healthcare-integration",
+          "contrarian: reject #1611 delete disposition — OVERRULE scaffold-as-orphan without absorb",
+          "pragmatism: reclaim from pre-delete SHA 4aa692919b12 onto integ/healthcare; never resurrect under oya/",
+          "systems_thinking: integ/healthcare owns app/healthcare/healthcare-integration/**; rule 3e destination-owned reorg_now",
+          "blast_radius_cell: MERGED #1611 recoverable from merge parent; PARKED reclaim only — no merge to dev",
+          "opportunity_cost: regenerating 122-file kit costs more than reclaim",
+          "red_team: zero-crate delete without forever home smuggles product-face loss",
+          "operability_day2: runbooks/slos/iac must land under app/healthcare/healthcare-integration/",
+          "socratic: why payments/calendar reorg_now but these delete? No durable distinction",
+          "outside_the_box: census reclaim #1611 — scaffold vs junk; exclude AUDIT-FINDINGS",
+          "zero_trust: catalog YAML ≠ live crates; still preserve product faces",
+          "finops_unit_cost: reclaim beats regenerating paid-for kits",
+          "shared_nothing: product cell is app/healthcare/healthcare-integration/",
+          "constant_work: OVERRULE+destination absorb now",
+          "systems_thinking: ADR-0615 §6 — ONE app/healthcare product; nest contexts under app/healthcare/<context>/"
+        ],
+        "rationale": "OVERRULE #1611 delete→reorg_now. 1) 122-file zero-crate product scaffold under oya/healthcare-integration/. 2) Brand-prefixed oya/ nest vs ADR-0615 app product forever home. 3) Product faces must survive. 4) Must exist at app/healthcare/healthcare-integration/. 5) Fit: integ/healthcare → app/healthcare/healthcare-integration/**. 6) rewrite from pre-delete SHA; exclude AUDIT-FINDINGS. 7) Forever: app/healthcare/healthcare-integration/.",
+        "evidence": [
+          "#1611 merge 79903afddea8 deleted oya/healthcare-integration/ (122 files)",
+          "pre-delete tree at 4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "payments/calendar same zero-crate scaffold class already reorg_now"
+        ],
+        "land_status": "ready_for_integ_healthcare",
+        "land_when": "integ/healthcare reclaims oya/healthcare-integration/** from 4aa692919b12 → app/healthcare/healthcare-integration/; PARKED PR; shrink N/A (already deleted on trunk)",
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/emr/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/healthcare/emr/",
+        "destination": "app/healthcare/emr/",
+        "destination_integ": "integ/healthcare",
+        "shape": "zero-crate product scaffold (manifest/catalog/contracts/slos/iac/cedar) rewrite into app/healthcare/emr/; OVERRULE #1611 delete; NOT delete_permanently",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/emr/",
+        "name_forever": "app/healthcare/emr/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "overrule": {
+          "from_action": "delete_permanently",
+          "at_version": "pre-freeze/#1611",
+          "reason": "MERGED #1611 deleted oya/emr/ scaffold kit with NO land to app/; same forever faces as payments/calendar; reclaim → app/healthcare/emr/ via integ/healthcare",
+          "evidence_scouts": [
+            "8b935833",
+            "census-reclaim-1611",
+            "339743f8"
+          ],
+          "rule": "3d/3e destination-owned reorg_now",
+          "pre_delete_sha": "4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "merge_commit": "79903afddea88ed99df893da2dedf87789b5c29d"
+        },
+        "challenges": [
+          "chestertons_fence: #1611 deleted oya/emr/ as unregistered zero-crate orphan but left a full product kit with no land to app/healthcare/emr/",
+          "cartesian_doubt: 0 rust ≠ dump when catalog+contracts+slos+iac+cedar present (45 files at 4aa692919b12) — same scaffold class as payments/calendar",
+          "essentialism_yagni: forever home is app/healthcare/emr/ per ADR-0615 app_products; greenfield is not no-emr",
+          "contrarian: reject #1611 delete disposition — OVERRULE scaffold-as-orphan without absorb",
+          "pragmatism: reclaim from pre-delete SHA 4aa692919b12 onto integ/healthcare; never resurrect under oya/",
+          "systems_thinking: integ/healthcare owns app/healthcare/emr/**; rule 3e destination-owned reorg_now",
+          "blast_radius_cell: MERGED #1611 recoverable from merge parent; PARKED reclaim only — no merge to dev",
+          "opportunity_cost: regenerating 45-file kit costs more than reclaim",
+          "red_team: zero-crate delete without forever home smuggles product-face loss",
+          "operability_day2: runbooks/slos/iac must land under app/healthcare/emr/",
+          "socratic: why payments/calendar reorg_now but these delete? No durable distinction",
+          "outside_the_box: census reclaim #1611 — scaffold vs junk; exclude AUDIT-FINDINGS",
+          "zero_trust: catalog YAML ≠ live crates; still preserve product faces",
+          "finops_unit_cost: reclaim beats regenerating paid-for kits",
+          "shared_nothing: product cell is app/healthcare/emr/",
+          "constant_work: OVERRULE+destination absorb now",
+          "systems_thinking: ADR-0615 §6 — ONE app/healthcare product; nest contexts under app/healthcare/<context>/"
+        ],
+        "rationale": "OVERRULE #1611 delete→reorg_now. 1) 45-file zero-crate product scaffold under oya/emr/. 2) Brand-prefixed oya/ nest vs ADR-0615 app product forever home. 3) Product faces must survive. 4) Must exist at app/healthcare/emr/. 5) Fit: integ/healthcare → app/healthcare/emr/**. 6) rewrite from pre-delete SHA; exclude AUDIT-FINDINGS. 7) Forever: app/healthcare/emr/.",
+        "evidence": [
+          "#1611 merge 79903afddea8 deleted oya/emr/ (45 files)",
+          "pre-delete tree at 4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "payments/calendar same zero-crate scaffold class already reorg_now"
+        ],
+        "land_status": "ready_for_integ_healthcare",
+        "land_when": "integ/healthcare reclaims oya/emr/** from 4aa692919b12 → app/healthcare/emr/; PARKED PR; shrink N/A (already deleted on trunk)",
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/pharmacy/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/healthcare/pharmacy/",
+        "destination": "app/healthcare/pharmacy/",
+        "destination_integ": "integ/healthcare",
+        "shape": "zero-crate product scaffold (manifest/catalog/contracts/slos/iac/cedar) rewrite into app/healthcare/pharmacy/; OVERRULE #1611 delete; NOT delete_permanently",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/pharmacy/",
+        "name_forever": "app/healthcare/pharmacy/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "overrule": {
+          "from_action": "delete_permanently",
+          "at_version": "pre-freeze/#1611",
+          "reason": "MERGED #1611 deleted oya/pharmacy/ scaffold kit with NO land to app/; same forever faces as payments/calendar; reclaim → app/healthcare/pharmacy/ via integ/healthcare",
+          "evidence_scouts": [
+            "8b935833",
+            "census-reclaim-1611",
+            "339743f8"
+          ],
+          "rule": "3d/3e destination-owned reorg_now",
+          "pre_delete_sha": "4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "merge_commit": "79903afddea88ed99df893da2dedf87789b5c29d"
+        },
+        "challenges": [
+          "chestertons_fence: #1611 deleted oya/pharmacy/ as unregistered zero-crate orphan but left a full product kit with no land to app/healthcare/pharmacy/",
+          "cartesian_doubt: 0 rust ≠ dump when catalog+contracts+slos+iac+cedar present (45 files at 4aa692919b12) — same scaffold class as payments/calendar",
+          "essentialism_yagni: forever home is app/healthcare/pharmacy/ per ADR-0615 app_products; greenfield is not no-pharmacy",
+          "contrarian: reject #1611 delete disposition — OVERRULE scaffold-as-orphan without absorb",
+          "pragmatism: reclaim from pre-delete SHA 4aa692919b12 onto integ/healthcare; never resurrect under oya/",
+          "systems_thinking: integ/healthcare owns app/healthcare/pharmacy/**; rule 3e destination-owned reorg_now",
+          "blast_radius_cell: MERGED #1611 recoverable from merge parent; PARKED reclaim only — no merge to dev",
+          "opportunity_cost: regenerating 45-file kit costs more than reclaim",
+          "red_team: zero-crate delete without forever home smuggles product-face loss",
+          "operability_day2: runbooks/slos/iac must land under app/healthcare/pharmacy/",
+          "socratic: why payments/calendar reorg_now but these delete? No durable distinction",
+          "outside_the_box: census reclaim #1611 — scaffold vs junk; exclude AUDIT-FINDINGS",
+          "zero_trust: catalog YAML ≠ live crates; still preserve product faces",
+          "finops_unit_cost: reclaim beats regenerating paid-for kits",
+          "shared_nothing: product cell is app/healthcare/pharmacy/",
+          "constant_work: OVERRULE+destination absorb now",
+          "systems_thinking: ADR-0615 §6 — ONE app/healthcare product; nest contexts under app/healthcare/<context>/"
+        ],
+        "rationale": "OVERRULE #1611 delete→reorg_now. 1) 45-file zero-crate product scaffold under oya/pharmacy/. 2) Brand-prefixed oya/ nest vs ADR-0615 app product forever home. 3) Product faces must survive. 4) Must exist at app/healthcare/pharmacy/. 5) Fit: integ/healthcare → app/healthcare/pharmacy/**. 6) rewrite from pre-delete SHA; exclude AUDIT-FINDINGS. 7) Forever: app/healthcare/pharmacy/.",
+        "evidence": [
+          "#1611 merge 79903afddea8 deleted oya/pharmacy/ (45 files)",
+          "pre-delete tree at 4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "payments/calendar same zero-crate scaffold class already reorg_now"
+        ],
+        "land_status": "ready_for_integ_healthcare",
+        "land_when": "integ/healthcare reclaims oya/pharmacy/** from 4aa692919b12 → app/healthcare/pharmacy/; PARKED PR; shrink N/A (already deleted on trunk)",
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/patient-monitoring/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/healthcare/patient-monitoring/",
+        "destination": "app/healthcare/patient-monitoring/",
+        "destination_integ": "integ/healthcare",
+        "shape": "zero-crate product scaffold (manifest/catalog/contracts/slos/iac/cedar) rewrite into app/healthcare/patient-monitoring/; OVERRULE #1611 delete; NOT delete_permanently",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/patient-monitoring/",
+        "name_forever": "app/healthcare/patient-monitoring/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "overrule": {
+          "from_action": "delete_permanently",
+          "at_version": "pre-freeze/#1611",
+          "reason": "MERGED #1611 deleted oya/patient-monitoring/ scaffold kit with NO land to app/; same forever faces as payments/calendar; reclaim → app/healthcare/patient-monitoring/ via integ/healthcare",
+          "evidence_scouts": [
+            "8b935833",
+            "census-reclaim-1611",
+            "339743f8"
+          ],
+          "rule": "3d/3e destination-owned reorg_now",
+          "pre_delete_sha": "4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "merge_commit": "79903afddea88ed99df893da2dedf87789b5c29d"
+        },
+        "challenges": [
+          "chestertons_fence: #1611 deleted oya/patient-monitoring/ as unregistered zero-crate orphan but left a full product kit with no land to app/healthcare/patient-monitoring/",
+          "cartesian_doubt: 0 rust ≠ dump when catalog+contracts+slos+iac+cedar present (47 files at 4aa692919b12) — same scaffold class as payments/calendar",
+          "essentialism_yagni: forever home is app/healthcare/patient-monitoring/ per ADR-0615 app_products; greenfield is not no-patient-monitoring",
+          "contrarian: reject #1611 delete disposition — OVERRULE scaffold-as-orphan without absorb",
+          "pragmatism: reclaim from pre-delete SHA 4aa692919b12 onto integ/healthcare; never resurrect under oya/",
+          "systems_thinking: integ/healthcare owns app/healthcare/patient-monitoring/**; rule 3e destination-owned reorg_now",
+          "blast_radius_cell: MERGED #1611 recoverable from merge parent; PARKED reclaim only — no merge to dev",
+          "opportunity_cost: regenerating 47-file kit costs more than reclaim",
+          "red_team: zero-crate delete without forever home smuggles product-face loss",
+          "operability_day2: runbooks/slos/iac must land under app/healthcare/patient-monitoring/",
+          "socratic: why payments/calendar reorg_now but these delete? No durable distinction",
+          "outside_the_box: census reclaim #1611 — scaffold vs junk; exclude AUDIT-FINDINGS",
+          "zero_trust: catalog YAML ≠ live crates; still preserve product faces",
+          "finops_unit_cost: reclaim beats regenerating paid-for kits",
+          "shared_nothing: product cell is app/healthcare/patient-monitoring/",
+          "constant_work: OVERRULE+destination absorb now",
+          "systems_thinking: ADR-0615 §6 — ONE app/healthcare product; nest contexts under app/healthcare/<context>/"
+        ],
+        "rationale": "OVERRULE #1611 delete→reorg_now. 1) 47-file zero-crate product scaffold under oya/patient-monitoring/. 2) Brand-prefixed oya/ nest vs ADR-0615 app product forever home. 3) Product faces must survive. 4) Must exist at app/healthcare/patient-monitoring/. 5) Fit: integ/healthcare → app/healthcare/patient-monitoring/**. 6) rewrite from pre-delete SHA; exclude AUDIT-FINDINGS. 7) Forever: app/healthcare/patient-monitoring/.",
+        "evidence": [
+          "#1611 merge 79903afddea8 deleted oya/patient-monitoring/ (47 files)",
+          "pre-delete tree at 4aa692919b12f556f68147a2efa1906fa39ab0f4",
+          "payments/calendar same zero-crate scaffold class already reorg_now"
+        ],
+        "land_status": "ready_for_integ_healthcare",
+        "land_when": "integ/healthcare reclaims oya/patient-monitoring/** from 4aa692919b12 → app/healthcare/patient-monitoring/; PARKED PR; shrink N/A (already deleted on trunk)",
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/governance/",
+        "action": "reorg_now",
+        "greenfield_destination": "governance/ (authority) + ci|gateway|cell/observability/slos/ + iac/",
+        "destination": "governance/+ci|gateway|cell+iac/",
+        "destination_integ": "integ/governance",
+        "shape": "multi-home 0-crate scaffold decompose — NOT delete_permanently; NOT wholesale into META governance/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
         "judgment_status": "done",
         "name_now": "oya/governance/",
-        "name_forever": "(none)",
-        "lenses_applied": "scoped",
+        "name_forever": "governance/ + ci|gateway|cell SLOs + iac/",
+        "kind": "multi-home-scaffold",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "overrule": {
+          "from_action": "delete_permanently",
+          "at_version": "1.16.3",
+          "reason": "misclassified scaffold-as-META-collision-delete; ADR-0615 §2 Q13 requires multi-destination decompose (authority→governance/, SLOs→ci|gateway|cell, iac→iac/); live cedar-deploy-parity cite; scout 339743f8 OVERRULES peer 6544bb51 KEEP-delete",
+          "evidence_scouts": [
+            "339743f8",
+            "expand-scaffold-vs-dump-audit",
+            "6544bb51"
+          ],
+          "rule": "3e destination-owned reorg_now decompose; forbid wholesale META fold"
+        },
+        "decompose_plan": [
+          {
+            "slice": "authority",
+            "globs": [
+              "contracts/**",
+              "cedar/**",
+              "policy/**",
+              "packs/**",
+              "scorecards/**",
+              "capabilities/**",
+              "catalog/**",
+              "IPs/**",
+              "dashboards/**",
+              "dpia/**"
+            ],
+            "destination": "governance/",
+            "destination_integ": "integ/governance",
+            "note": "authority/policy-as-data slice first; do NOT dump entire oya/governance tree into META governance/"
+          },
+          {
+            "slice": "slos-ci",
+            "globs": [
+              "slos/gate-validate-latency.openslo.yaml",
+              "slos/per-lane-runtime-budget.openslo.yaml",
+              "slos/aspirational-enforcement-correctness.openslo.yaml",
+              "slos/check-crate-availability.openslo.yaml",
+              "slos/placeholder-debt-coverage-correctness.openslo.yaml",
+              "slos/conformance-evidence-freshness.openslo.yaml"
+            ],
+            "destination": "ci/observability/slos/",
+            "destination_integ": "integ/ci"
+          },
+          {
+            "slice": "slos-gateway",
+            "globs": [
+              "slos/envoy-wasm-filter-latency-p99.openslo.yaml"
+            ],
+            "destination": "gateway/observability/slos/",
+            "destination_integ": "integ/gateway"
+          },
+          {
+            "slice": "slos-cell",
+            "globs": [
+              "slos/autosharding-events.openslo.yaml"
+            ],
+            "destination": "cell/observability/slos/",
+            "destination_integ": "integ/cell"
+          },
+          {
+            "slice": "iac",
+            "globs": [
+              "iac/**"
+            ],
+            "destination": "iac/",
+            "destination_integ": "integ/iac",
+            "note": "includes live cedar-deploy-parity path iac/k8s/helm/templates/cedar.yaml; lane-runner-pool is ADR-0630 legacy — dispose carefully"
+          }
+        ],
         "challenges": [
-          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
-          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
-          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
-          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
-          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
-        ]
+          "chestertons_fence: evidence/reorg/rr-dual-governance-residual-20260806.json + ADR-0615 §2 Q13 already forbade delete-now and wholesale META fold — fence was Batch-5 multi-destination decompose",
+          "cartesian_doubt: 0 rust ≠ dump when contracts+cedar+policy+packs+iac+slos present and cedar-deploy-parity still cites oya/governance/iac/k8s/helm/templates/cedar.yaml",
+          "essentialism_yagni: greenfield is decomposed homes (governance authority + ci|gateway|cell SLOs + iac/), not 'zero oya/governance via delete'",
+          "contrarian: reject KEEP-delete for META name collision — name collision is why we decompose, not why we discard unique packs",
+          "pragmatism: reclaim unique contracts/cedar/iac from 9755cf50e / 4bebc4766^ onto destination tips; shrink oya/governance only after absorb verified",
+          "systems_thinking: destination_integ=integ/governance for authority slice first; parallel integ/iac + integ/ci|gateway|cell for other slices; integ/oya shrink-only (rule 3e)",
+          "blast_radius_cell: #1661 tip delete is PARKED unmerged — hold land until calendar+gov OVERRULEs absorbed; do not merge delete",
+          "opportunity_cost: losing live-cited cedar.yaml + contracts/cedar packs forces re-authoring already-paid kit and breaks cedar-deploy-parity baseline path",
+          "red_team: peer 6544bb51 KEEP-delete stamped META-collision without testing live cites or Q13 decompose map",
+          "operability_day2: SLOs/runbooks/iac must land under operated capability homes, not vanish",
+          "socratic: why calendar (0 crates, same scaffold faces) reorg_now but governance delete? Only durable distinction is multi-home vs app_product — still reorg_now decompose, not delete",
+          "outside_the_box: scout 339743f8 — OVERRULE peer KEEP-delete; decompose not META dump",
+          "zero_trust: catalog YAML stubs are not live crates; still preserve unique contracts/cedar/iac with live cites",
+          "finops_unit_cost: reclaim unique packs beats regenerating 152-file kit + repairing cedar baseline orphans",
+          "shared_nothing: authority cell is governance/; SLOs are ci|gateway|cell; iac is iac/ — never one META dump",
+          "constant_work: OVERRULE+sliced absorb now; no reactive mega undelete on integ/oya"
+        ],
+        "rationale": "OVERRULE delete_permanently→reorg_now (decompose). 1) 152-file zero-crate multi-home scaffold (contracts/cedar/policy/packs/iac/slos/catalog). 2) Brand oya/ nest + META name collision with keep_forever governance/ — collision argues decompose, not discard. 3) ADR-0615 §2 Q13 + rr-dual-governance-residual: authority→governance/, SLOs→ci|gateway|cell, iac→iac/; live cedar-deploy-parity cite. 4) Must exist at decomposed homes; must not wholesale into META; must not delete while cites live. 5) Fit: destination_integ=integ/governance (authority first) + integ/iac + integ/ci|gateway|cell. 6) rewrite-into-durable-shape per slice; source shrink only after absorbs. 7) Forever: governance/ + ci|gateway|cell SLOs + iac/ (oya/governance gone).",
+        "evidence": [
+          "git ls-tree -r 4bebc4766^ -- oya/governance → 152 files; Cargo.toml count 0; contracts+cedar+iac+slos+policy+packs present",
+          "ci/facade/policy-deploy-parity/cedar-deploy-parity-policy.json baselines oya/governance/iac/k8s/helm/templates/cedar.yaml",
+          "evidence/reorg/rr-dual-governance-residual-20260806.json decomposition_map + safe_delete_now=false",
+          "ADR-0615 §2 Q13: oya/governance does NOT belong in compliance absorb — decomposes to governance/ + ci/gateway/cell + iac/",
+          "scout 339743f8 OVERRULE: scaffold kit not true delete; OVERRULE peer 6544bb51 KEEP-delete"
+        ],
+        "shrink_source_integ": "integ/oya",
+        "land_status": "ready_for_integ_governance",
+        "land_when": "Phase 1a: integ/governance absorbs authority slice (contracts/cedar/policy/packs/…) into governance/ WITHOUT wholesale tree dump; Phase 1b: integ/iac absorbs iac/ (esp. cedar.yaml for cedar-deploy-parity); Phase 1c: integ/ci|gateway|cell absorb SLO slices; Phase 2: integ/oya shrink-only delete oya/governance/** after absorbs verified; forbid wholesale fold into META governance/; hold #1661 land"
       },
       {
         "path": "oya/translate/",
@@ -4296,6 +4680,18 @@
         "two_phase_note": "Phase 1: integ/calendar absorb oya/calendar/** → app/calendar/**; Phase 2: integ/oya shrink-only delete"
       },
       {
+        "id": "W-oya-leaf-governance",
+        "path": "oya/governance/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/governance",
+        "land_status": "ready_for_integ_governance",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_overrule_1_16_10_decompose",
+        "two_phase_note": "Phase 1: destination tips absorb per decompose_plan (authority→integ/governance first; iac→integ/iac; SLOs→integ/ci|gateway|cell); Phase 2: integ/oya shrink-only delete. Forbid wholesale META dump."
+      },
+      {
         "id": "W-oya-leaf-office",
         "path": "oya/office/",
         "judgment_status": "done",
@@ -5008,6 +5404,42 @@
           "forever": "app/calendar/**",
           "shrink_source_integ": "integ/oya",
           "note": "OVERRULE 1.16.7: was delete_permanently; scaffold reclaim on integ/calendar before source shrink"
+        },
+        "oya/social/": {
+          "destination_integ": "integ/social",
+          "forever": "app/social/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "OVERRULE 1.16.9 #1611: scaffold reclaim on integ/social; community crates stay oya/community"
+        },
+        "oya/healthcare-integration/": {
+          "destination_integ": "integ/healthcare",
+          "forever": "app/healthcare/healthcare-integration/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "OVERRULE 1.16.9 #1611: ADR-0615 §6 healthcare context reclaim on integ/healthcare"
+        },
+        "oya/emr/": {
+          "destination_integ": "integ/healthcare",
+          "forever": "app/healthcare/emr/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "OVERRULE 1.16.9 #1611: ADR-0615 §6 healthcare context reclaim on integ/healthcare"
+        },
+        "oya/pharmacy/": {
+          "destination_integ": "integ/healthcare",
+          "forever": "app/healthcare/pharmacy/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "OVERRULE 1.16.9 #1611: ADR-0615 §6 healthcare context reclaim on integ/healthcare"
+        },
+        "oya/patient-monitoring/": {
+          "destination_integ": "integ/healthcare",
+          "forever": "app/healthcare/patient-monitoring/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "OVERRULE 1.16.9 #1611: ADR-0615 §6 healthcare context reclaim on integ/healthcare"
+        },
+        "oya/governance/": {
+          "destination_integ": "integ/governance",
+          "forever": "governance/ + ci|gateway|cell/observability/slos/ + iac/",
+          "shrink_source_integ": "integ/oya",
+          "note": "OVERRULE 1.16.10: was delete_permanently; multi-destination decompose — authority reclaim on integ/governance before source shrink; NOT wholesale META dump"
         }
       },
       "process_kit": {
@@ -5176,7 +5608,12 @@
       "tools/oya-governance-banned-primitives-app/",
       "scripts/ci/",
       "scripts/tests/",
-      "templates-audit-rewrite"
+      "templates-audit-rewrite",
+      "oya/social/",
+      "oya/healthcare-integration/",
+      "oya/emr/",
+      "oya/pharmacy/",
+      "oya/patient-monitoring/"
     ],
     "banned_operations": [
       "git_mv_only_without_judgment",
@@ -5266,6 +5703,36 @@
             "challenge": "chestertons_fence: app_products + #1611 defer + live fixtures"
           }
         ]
+      },
+      {
+        "scout_id": "census-reclaim-1611",
+        "absorbed_at_version": "1.16.9",
+        "accepted": [
+          "OVERRULE #1611 deleted scaffolds social+healthcare contexts → reorg_now app/",
+          "destination rails integ/social + integ/healthcare",
+          "pre-delete SHA reclaim 4aa692919b12"
+        ],
+        "rejected": []
+      },
+      {
+        "scout_id": "339743f8",
+        "absorbed_at_version": "1.16.10",
+        "accepted": [
+          "OVERRULE oya/governance/ delete_permanently → reorg_now multi-destination decompose (authority→governance/, SLOs→ci|gateway|cell, iac→iac/)",
+          "destination_integ=integ/governance for authority slice first; reclaim unique contracts/cedar/iac with live cites",
+          "forbid wholesale dump into META governance/; hold #1661 land until calendar+gov OVERRULEs absorbed"
+        ],
+        "rejected": [
+          {
+            "recommendation": "KEEP oya/governance/ delete_permanently (META name collision; not app_product)",
+            "reason": "META name collision is the decompose signal, not a delete warrant; ADR-0615 §2 Q13 + live cedar-deploy-parity cite + scaffold faces",
+            "challenge": "chestertons_fence: rr-dual-governance-residual safe_delete_now=false; peer 6544bb51 KEEP-delete OVERRULED"
+          }
+        ],
+        "overrules": [
+          "6544bb51+expand-scaffold-vs-dump KEEP oya/governance/ delete_permanently"
+        ],
+        "note": "Folds unpublished concurrent 1.16.9 WIP product_rails (social/healthcare #1611) into this tip; bumps past that WIP to 1.16.10"
       }
     ]
   },
