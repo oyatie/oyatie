@@ -1,0 +1,146 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-J Slice 2 per ADR-0064)
+{{- range tuple "websocketGateway" "userProfile" "followGraph" "postCompositionRest" "postCompositionWorker" "feedTimeline" "reactions" "mentions" "hashtags" "trendingTopics" "notifications" "contentModeration" "search" "profileVerification" "ageVerification" "bookmarks" "lists" }}
+{{- $c := index $.Values . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-{{ . | kebabcase }}
+  namespace: social
+  labels:
+    app.kubernetes.io/name: social
+    app.kubernetes.io/component: {{ . | kebabcase }}
+    app.kubernetes.io/part-of: oya-social
+    oyatie/microservice: social
+spec:
+  replicas: {{ $c.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: social
+      app.kubernetes.io/component: {{ . | kebabcase }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: social
+        app.kubernetes.io/component: {{ . | kebabcase }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9091"
+    spec:
+      serviceAccountName: social-{{ . | kebabcase }}
+      securityContext:
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
+      containers:
+        - name: social-{{ . | kebabcase }}
+          image: "{{ $.Values.global.imageRegistry }}/{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          args: ["--component={{ . | kebabcase }}", "--pack={{ $.Values.global.pack }}"]
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: metrics
+              containerPort: 9091
+            - name: ws
+              containerPort: 8443
+          resources:
+            requests: {{- toYaml $c.resources.requests | nindent 14 }}
+            limits: {{- toYaml $c.resources.limits | nindent 14 }}
+          livenessProbe:
+            {{- include "oya.probes.httpHealthLiveness8080" $ | nindent 12 }}
+          readinessProbe:
+            {{- include "oya.probes.httpHealthReadiness8080" $ | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: social-openbao-injected
+          securityContext:
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
+{{- end }}
+
+# =============================================================================
+# Federation-gateway deployment — conditional (off by default per ADR-SOC-0004)
+# =============================================================================
+{{- if .Values.federationGateway.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-federation-gateway
+  namespace: social
+  labels:
+    app.kubernetes.io/name: social
+    app.kubernetes.io/component: federation-gateway
+    app.kubernetes.io/part-of: oya-social
+    oyatie/microservice: social
+spec:
+  replicas: {{ .Values.federationGateway.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: social
+      app.kubernetes.io/component: federation-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: social
+        app.kubernetes.io/component: federation-gateway
+    spec:
+      serviceAccountName: social-federation-gateway
+      securityContext:
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
+      containers:
+        - name: social-federation-gateway
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          args: ["--component=federation-gateway", "--pack={{ .Values.global.pack }}"]
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: metrics
+              containerPort: 9091
+          resources:
+            requests: {{- toYaml .Values.federationGateway.resources.requests | nindent 14 }}
+            limits: {{- toYaml .Values.federationGateway.resources.limits | nindent 14 }}
+          securityContext:
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}
+{{- end }}
+
+# =============================================================================
+# Media transcode worker (sandboxed via gVisor per threat-model T-E-05)
+# =============================================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-media-transcode-worker
+  namespace: social
+  labels:
+    app.kubernetes.io/name: social
+    app.kubernetes.io/component: media-transcode-worker
+    app.kubernetes.io/part-of: oya-social
+    oyatie/microservice: social
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: social
+      app.kubernetes.io/component: media-transcode-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: social
+        app.kubernetes.io/component: media-transcode-worker
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"  # ADR-0147 untrusted-content sandbox
+    spec:
+      {{- /* ffmpeg media transcode = untrusted-content per ADR-0147 */}}
+      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
+      serviceAccountName: social-media-transcode-worker
+      securityContext:
+        {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}
+      containers:
+        - name: social-media-transcode-worker
+          image: "{{ .Values.global.imageRegistry }}/oya-community-social-media-transcode:{{ .Values.image.tag }}"
+          args: ["--pack={{ .Values.global.pack }}"]
+          resources:
+            requests: {cpu: 1000m, memory: 2Gi}
+            limits: {cpu: 4000m, memory: 8Gi}
+          securityContext:
+            {{- include "oya.securityContext.restrictedContainerInline" $ | nindent 12 }}

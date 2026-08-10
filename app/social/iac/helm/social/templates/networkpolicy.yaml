@@ -1,0 +1,104 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: social-default-deny
+  namespace: social
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: social-allow-ingress-from-gateway
+  namespace: social
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: social
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-edge
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: social
+      ports:
+        - {protocol: TCP, port: 8080}
+        - {protocol: TCP, port: 8443}
+        - {protocol: TCP, port: 9091}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: social-allow-egress-to-substrate
+  namespace: social
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: social
+  policyTypes: [Egress]
+  egress:
+    # Postgres
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: social-postgres}}
+      ports: [{protocol: TCP, port: 5432}]
+    # Valkey (cache + streams)
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: social-valkey}}
+      ports: [{protocol: TCP, port: 6379}]
+    # Meilisearch
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: social-meilisearch}}
+      ports: [{protocol: TCP, port: 7700}]
+    # Cross-µservice: observability, audit-chain, ontology, tenancy, messenger, mail, foundry-runtime
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}
+      ports: [{protocol: TCP, port: 4317}, {protocol: TCP, port: 9090}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: audit-chain}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ontology}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: tenancy}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: messenger}}
+      ports: [{protocol: TCP, port: 50051}]
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: foundry-runtime}}
+      ports: [{protocol: TCP, port: 50051}]
+    # OPSWAT scan endpoint
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: security-scanners}}
+      ports: [{protocol: TCP, port: 8008}]
+    # DNS
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+---
+# Federation egress (Professional-tier only, when activated per ADR-SOC-0004)
+{{- if .Values.federationGateway.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: social-federation-egress
+  namespace: social
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: social
+      app.kubernetes.io/component: federation-gateway
+  policyTypes: [Egress]
+  egress:
+    # ActivityPub federation peers — restricted by peer allowlist enforced at app layer
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0  # peer allowlist enforced at Cedar layer; this is L3 fallback
+      ports: [{protocol: TCP, port: 443}, {protocol: TCP, port: 80}]
+{{- end }}

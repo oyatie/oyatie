@@ -1,0 +1,121 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:social:t1-assist:v1
+name: caption-and-alt-text-and-summary
+namespace: social
+display_name: Caption Generation + Alt-Text Auto-Draft + Thread Summary
+description: |
+  T1 assist capability: invoked by user action ("/draft-caption", "/auto-alt-text",
+  "/summarise-thread"). Produces a structured caption draft / alt-text draft /
+  summary bound to the post or thread. User retains final approval before any
+  cross-µservice artifact (e.g., publish, alt-text-store) is created. Output
+  is a draft the user can edit or discard.
+
+  Three sub-capabilities under one T1 envelope:
+  1. Caption generation — for image / video posts; emits human-readable caption draft.
+  2. Alt-text auto-draft — for accessibility; emits image-description draft (WCAG 2.2 Level AA aware).
+  3. Thread summary — for long comment threads; emits ≤ 8 bullet summary.
+
+owner_team: axis-social + axis-foundry-runtime
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133]
+related_artifacts:
+  - microservices/social/PRD.md (FR-19 alt-text accessibility)
+  - microservices/social/policy/dual-context-isolation.md
+
+autonomy_tier: T1
+# T1 = user-invoked, human-in-loop; no autonomous write.
+
+inputs:
+  - name: invoking_user_ref
+    type: string
+    required: true
+  - name: command
+    type: enum
+    values: [draft_caption, auto_alt_text, summarise_thread]
+    required: true
+  - name: context_kind
+    type: enum
+    values: [Personal, Professional]
+    required: true
+  - name: target_ref
+    type: string
+    description: post_id or thread_id depending on command
+    required: true
+  - name: locale
+    type: string
+    pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+    required: true
+
+outputs:
+  - name: caption_draft
+    type: object
+    properties:
+      text: {type: string, maxLength: 280}
+      tone: {type: string, enum: [neutral, enthusiastic, professional, casual]}
+      content_hash: {type: string}
+    description: emitted only when command=draft_caption
+  - name: alt_text_draft
+    type: object
+    properties:
+      text: {type: string, maxLength: 1000}
+      detected_objects: {type: array, items: {type: string}}
+      detected_text: {type: string, description: OCR'd text in image}
+      wcag_2_2_level_aa_compliant: {type: boolean}
+    description: emitted only when command=auto_alt_text
+  - name: thread_summary
+    type: object
+    properties:
+      bullet_points: {type: array, items: {type: string}, max_items: 8}
+      key_participants: {type: array, items: {type: string}}
+      sentiment: {type: string, enum: [neutral, positive, negative, mixed]}
+      content_hash: {type: string}
+    description: emitted only when command=summarise_thread
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - PHI  # pack-us-healthcare professional posts; disabled by default
+
+context_kind_constraint:
+  Personal: server-side allowed on user's own content; refused on others' protected content
+  Professional: server-side via tenant-DEK; tenant-admin entitlement required to enable for org-wide assists
+  enforcement: oya-check-dual-context-isolation + Cedar permit when entitlement present
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+
+pack_overrides:
+  pack-us-healthcare:
+    requires: signed BAA + explicit per-account opt-in
+    reason: HIPAA 45 CFR §164.502(b) — minimum necessary
+  pack-eu:
+    risk_classification: limited_risk
+    transparency_obligation: must-label-as-AI-generated; must store evidence_topic record per Art. 13
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in required
+
+evidence_topic: oya.social.capability.t1_assist.evidence
+
+cost_profile:
+  type: per-invocation
+  estimated_cost_usd_per_call: 0.015
+  cost_drivers:
+    - LLM inference (medium open-weights model for text)
+    - Vision model inference (caption + alt-text from image)
+    - Per-thread retrieval over Postgres + Meilisearch
+
+cedar_policy_fragments:
+  - microservices/social/policy/tenant-scope.cedar
+
+eval_set:
+  reference_inputs_path: microservices/social/capabilities/eval/t1-assist-reference.jsonl
+  pass_threshold: 0.92
+  eval_metric: |
+    caption faithfulness (Likert vs human rater);
+    alt-text WCAG 2.2 conformance + human accessibility-rater eval;
+    summary-faithfulness (ROUGE-Lsum + human eval per HELM benchmark)
+  cadence: per-release
+  reference: ROUGE-Lsum + human evaluation per HELM benchmark; WCAG 2.2 Level AA
+
+sunset:
+  status: none

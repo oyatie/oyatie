@@ -1,0 +1,30 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v2
+name: oya-social
+description: |
+  Helm chart for the social µservice — user-profile / follow-graph /
+  post-composition / feed-timeline / reactions / mentions / hashtags /
+  trending-topics / notifications / content-moderation / bookmarks /
+  lists / search / profile-verification / age-verification / federation-
+  gateway BCs deployed as horizontally-scaled, tenant-sharded workloads.
+  Per ADR-0131 flat layout + ADR-0139 SLO-gated promotion.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: axis-social
+    email: axis-social@oyatie.com
+keywords:
+  - social
+  - microblog
+  - feed
+  - follow-graph
+  - reactions
+  - moderation
+  - federation
+  - activitypub
+dependencies:
+  - name: meilisearch
+    version: "0.10.0"  # Meilisearch LTS
+    repository: https://meilisearch.github.io/meilisearch-kubernetes
+    condition: meilisearch.enabled

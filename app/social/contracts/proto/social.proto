@@ -1,0 +1,508 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
+// oya-social — gRPC contract
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/social.yaml.
+// Per ADR-0135 + ADR-0131 + ADR-0132.
+
+syntax = "proto3";
+
+package oya.social.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// =========================================================================
+// Service: UserProfile
+// =========================================================================
+
+service UserProfile {
+  rpc CreateProfile(CreateProfileRequest) returns (Profile);
+  rpc GetMyProfile(google.protobuf.Empty) returns (Profile);
+  rpc UpdateMyProfile(UpdateMyProfileRequest) returns (Profile);
+  rpc GetProfileByHandle(GetProfileByHandleRequest) returns (Profile);
+  rpc DeleteMyProfile(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+// =========================================================================
+// Service: FollowGraph
+// =========================================================================
+
+service FollowGraph {
+  rpc Follow(FollowRequest) returns (FollowEdge);
+  rpc Unfollow(UnfollowRequest) returns (google.protobuf.Empty);
+  rpc Block(BlockRequest) returns (google.protobuf.Empty);
+  rpc Unblock(BlockRequest) returns (google.protobuf.Empty);
+  rpc Mute(MuteRequest) returns (google.protobuf.Empty);
+  rpc Unmute(MuteRequest) returns (google.protobuf.Empty);
+  rpc ListFollowers(ListFollowersRequest) returns (ListFollowersResponse);
+  rpc ListFollowing(ListFollowingRequest) returns (ListFollowingResponse);
+}
+
+// =========================================================================
+// Service: PostComposition
+// =========================================================================
+
+service PostComposition {
+  rpc PublishPost(PublishPostRequest) returns (Post);
+  rpc GetPost(GetPostRequest) returns (Post);
+  rpc EditPost(EditPostRequest) returns (Post);
+  rpc DeletePost(DeletePostRequest) returns (google.protobuf.Empty);
+  rpc Repost(RepostRequest) returns (Post);
+  rpc QuotePost(QuotePostRequest) returns (Post);
+  rpc Comment(CommentRequest) returns (Post);
+  rpc InitiateMediaUpload(InitiateMediaUploadRequest) returns (MediaUploadSession);
+  rpc FinalizeMediaUpload(FinalizeMediaUploadRequest) returns (Media);
+}
+
+// =========================================================================
+// Service: FeedTimeline
+// =========================================================================
+
+service FeedTimeline {
+  rpc RenderFeed(RenderFeedRequest) returns (FeedResponse);
+  rpc StreamFeed(StreamFeedRequest) returns (stream Post);
+}
+
+// =========================================================================
+// Service: Reactions
+// =========================================================================
+
+service Reactions {
+  rpc AddReaction(AddReactionRequest) returns (google.protobuf.Empty);
+  rpc RemoveReaction(RemoveReactionRequest) returns (google.protobuf.Empty);
+}
+
+// =========================================================================
+// Service: Search
+// =========================================================================
+
+service Search {
+  rpc SearchPeople(SearchPeopleRequest) returns (SearchPeopleResponse);
+  rpc SearchContent(SearchContentRequest) returns (SearchContentResponse);
+  rpc GetTrending(GetTrendingRequest) returns (GetTrendingResponse);
+}
+
+// =========================================================================
+// Service: Notifications
+// =========================================================================
+
+service Notifications {
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse);
+  rpc MarkRead(MarkReadRequest) returns (google.protobuf.Empty);
+  rpc StreamNotifications(StreamNotificationsRequest) returns (stream Notification);
+}
+
+// =========================================================================
+// Service: Moderation (abuse-report + appeal)
+// =========================================================================
+
+service Moderation {
+  rpc FileAbuseReport(FileAbuseReportRequest) returns (AbuseReport);
+  rpc OpenAppeal(OpenAppealRequest) returns (Appeal);
+  rpc GetAppealStatus(GetAppealStatusRequest) returns (Appeal);
+}
+
+// =========================================================================
+// Service: Bookmarks
+// =========================================================================
+
+service Bookmarks {
+  rpc Bookmark(BookmarkRequest) returns (google.protobuf.Empty);
+  rpc Unbookmark(BookmarkRequest) returns (google.protobuf.Empty);
+  rpc ListBookmarks(ListBookmarksRequest) returns (ListBookmarksResponse);
+}
+
+// =========================================================================
+// Service: Lists
+// =========================================================================
+
+service Lists {
+  rpc CreateList(CreateListRequest) returns (List);
+  rpc AddToList(AddToListRequest) returns (google.protobuf.Empty);
+  rpc RemoveFromList(RemoveFromListRequest) returns (google.protobuf.Empty);
+  rpc RenderListFeed(RenderListFeedRequest) returns (FeedResponse);
+}
+
+// =========================================================================
+// Common types
+// =========================================================================
+
+enum ContextKind {
+  CONTEXT_KIND_UNSPECIFIED = 0;
+  CONTEXT_KIND_PERSONAL = 1;
+  CONTEXT_KIND_PROFESSIONAL = 2;
+}
+
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  VISIBILITY_PUBLIC = 1;
+  VISIBILITY_FOLLOWERS = 2;
+  VISIBILITY_LIST = 3;
+  VISIBILITY_PRIVATE = 4;
+}
+
+enum PostKind {
+  POST_KIND_UNSPECIFIED = 0;
+  POST_KIND_POST = 1;
+  POST_KIND_REPOST = 2;
+  POST_KIND_QUOTE_POST = 3;
+  POST_KIND_COMMENT = 4;
+}
+
+enum VerificationBadge {
+  VERIFICATION_BADGE_UNSPECIFIED = 0;
+  VERIFICATION_BADGE_NONE = 1;
+  VERIFICATION_BADGE_BLUE = 2;
+  VERIFICATION_BADGE_ORGANISATION = 3;
+  VERIFICATION_BADGE_GOVERNMENT = 4;
+}
+
+enum ContentWarning {
+  CONTENT_WARNING_UNSPECIFIED = 0;
+  CONTENT_WARNING_NONE = 1;
+  CONTENT_WARNING_SENSITIVE = 2;
+  CONTENT_WARNING_SPOILER = 3;
+  CONTENT_WARNING_NSFW = 4;
+  CONTENT_WARNING_VIOLENCE = 5;
+}
+
+enum ScanStatus {
+  SCAN_STATUS_UNSPECIFIED = 0;
+  SCAN_STATUS_PENDING = 1;
+  SCAN_STATUS_CLEAN = 2;
+  SCAN_STATUS_INFECTED = 3;
+  SCAN_STATUS_ERROR = 4;
+}
+
+enum ModerationVerdict {
+  MODERATION_VERDICT_UNSPECIFIED = 0;
+  MODERATION_VERDICT_OK = 1;
+  MODERATION_VERDICT_SPAM = 2;
+  MODERATION_VERDICT_ABUSE = 3;
+  MODERATION_VERDICT_HATE_SPEECH = 4;
+  MODERATION_VERDICT_CSAM_SUSPECT = 5;
+  MODERATION_VERDICT_SELF_HARM_SUSPECT = 6;
+  MODERATION_VERDICT_HARASSMENT = 7;
+  MODERATION_VERDICT_SENSITIVE_MEDIA_UNFLAGGED = 8;
+}
+
+message Profile {
+  string profile_id = 1;
+  string tenant_id = 2;
+  ContextKind context_kind = 3;
+  string handle = 4;
+  string display_name = 5;
+  string bio = 6;
+  string avatar_url = 7;
+  string header_url = 8;
+  VerificationBadge verification_badge = 9;
+  int32 follower_count = 10;
+  int32 following_count = 11;
+  int32 post_count = 12;
+  bool is_protected = 13;
+  bool federation_opt_in = 14;
+  google.protobuf.Timestamp created_at = 15;
+}
+
+message Post {
+  string post_id = 1;
+  string author_ref = 2;
+  string tenant_id = 3;
+  ContextKind context_kind = 4;
+  PostKind kind = 5;
+  string parent_post_id = 6;
+  string body = 7;
+  repeated string media_refs = 8;
+  repeated string mention_refs = 9;
+  repeated string hashtag_refs = 10;
+  Visibility visibility = 11;
+  string visibility_list_id = 12;
+  ContentWarning content_warning = 13;
+  string data_class = 14;
+  map<string, int32> reaction_counts = 15;
+  int32 comment_count = 16;
+  int32 repost_count = 17;
+  int32 bookmark_count = 18;
+  google.protobuf.Timestamp edited_at = 19;
+  google.protobuf.Timestamp deleted_at = 20;
+  google.protobuf.Timestamp posted_at = 21;
+  string content_hash = 22;
+  string signature = 23;
+}
+
+message FollowEdge {
+  string follower_ref = 1;
+  string followee_ref = 2;
+  google.protobuf.Timestamp established_at = 3;
+}
+
+message Media {
+  string media_id = 1;
+  string blob_ref = 2;
+  string digest_sha256 = 3;
+  int64 size_bytes = 4;
+  string mime_type = 5;
+  ScanStatus scan_status = 6;
+  string alt_text = 7;
+  repeated MediaTranscodeVariant transcode_variants = 8;
+}
+
+message MediaTranscodeVariant {
+  string variant = 1;
+  string url = 2;
+}
+
+message MediaUploadSession {
+  string media_id = 1;
+  repeated string upload_urls = 2;
+  string finalize_url = 3;
+}
+
+message TrendingTopic {
+  string topic = 1;
+  string pack = 2;
+  google.protobuf.Timestamp window_start = 3;
+  google.protobuf.Timestamp window_end = 4;
+  double score = 5;
+  repeated string related_hashtags = 6;
+}
+
+message Notification {
+  string notification_id = 1;
+  string recipient_ref = 2;
+  string kind = 3;
+  string actor_ref = 4;
+  string post_id = 5;
+  string preview = 6;
+  bool read = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message AbuseReport {
+  string report_id = 1;
+  string reporter_ref = 2;
+  string target_post_id = 3;
+  string category = 4;
+  string reason = 5;
+  google.protobuf.Timestamp created_at = 6;
+  string status = 7;
+}
+
+message Appeal {
+  string appeal_id = 1;
+  string appellant_ref = 2;
+  string target_verdict_id = 3;
+  string reason = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string status = 6;
+  string reviewer_ref = 7;
+  google.protobuf.Timestamp resolution_at = 8;
+}
+
+message List {
+  string list_id = 1;
+  string owner_ref = 2;
+  string name = 3;
+  string description = 4;
+  string visibility = 5;
+  repeated string member_refs = 6;
+}
+
+// =========================================================================
+// Request / Response
+// =========================================================================
+
+message CreateProfileRequest {
+  ContextKind context_kind = 1;
+  string handle = 2;
+  string display_name = 3;
+  string bio = 4;
+  string age_attestation_bracket = 5;
+  string parental_consent_token = 6;
+}
+
+message UpdateMyProfileRequest {
+  string display_name = 1;
+  string bio = 2;
+  string avatar_url = 3;
+  string header_url = 4;
+  bool is_protected = 5;
+  bool federation_opt_in = 6;
+}
+
+message GetProfileByHandleRequest { string handle = 1; }
+
+message FollowRequest { string followee_handle = 1; }
+message UnfollowRequest { string followee_handle = 1; }
+message BlockRequest { string target_handle = 1; }
+message MuteRequest { string target_handle = 1; }
+
+message ListFollowersRequest {
+  string profile_handle = 1;
+  string cursor = 2;
+  int32 limit = 3;
+}
+message ListFollowersResponse {
+  repeated Profile followers = 1;
+  string next_cursor = 2;
+}
+message ListFollowingRequest {
+  string profile_handle = 1;
+  string cursor = 2;
+  int32 limit = 3;
+}
+message ListFollowingResponse {
+  repeated Profile following = 1;
+  string next_cursor = 2;
+}
+
+message PublishPostRequest {
+  string body = 1;
+  repeated string media_refs = 2;
+  Visibility visibility = 3;
+  string visibility_list_id = 4;
+  ContentWarning content_warning = 5;
+  string parent_post_id = 6;
+  PostKind kind = 7;
+}
+
+message GetPostRequest { string post_id = 1; }
+
+message EditPostRequest {
+  string post_id = 1;
+  string body = 2;
+}
+
+message DeletePostRequest { string post_id = 1; }
+
+message RepostRequest { string original_post_id = 1; }
+message QuotePostRequest {
+  string quoted_post_id = 1;
+  string body = 2;
+}
+message CommentRequest {
+  string parent_post_id = 1;
+  string body = 2;
+}
+
+message InitiateMediaUploadRequest {
+  string filename = 1;
+  int64 size_bytes = 2;
+  string mime_type = 3;
+  string alt_text = 4;
+}
+
+message FinalizeMediaUploadRequest {
+  string media_id = 1;
+  repeated string etags = 2;
+}
+
+message RenderFeedRequest {
+  string feed_mode = 1;  // chronological | algorithmic
+  string cursor = 2;
+  int32 limit = 3;
+}
+
+message FeedResponse {
+  repeated Post posts = 1;
+  string next_cursor = 2;
+  string ranking_explanation = 3;  // EU AI Act Art. 27 transparency (JSON)
+}
+
+message StreamFeedRequest {
+  google.protobuf.Timestamp since = 1;
+}
+
+message AddReactionRequest {
+  string post_id = 1;
+  string emoji = 2;
+}
+message RemoveReactionRequest {
+  string post_id = 1;
+  string emoji = 2;
+}
+
+message SearchPeopleRequest {
+  string query = 1;
+  int32 limit = 2;
+}
+message SearchPeopleResponse {
+  repeated Profile results = 1;
+  int32 total_hits = 2;
+  int32 took_ms = 3;
+}
+message SearchContentRequest {
+  string query = 1;
+  int32 limit = 2;
+}
+message SearchContentResponse {
+  repeated Post results = 1;
+  int32 total_hits = 2;
+  int32 took_ms = 3;
+}
+message GetTrendingRequest {
+  string window = 1;
+  int32 limit = 2;
+}
+message GetTrendingResponse {
+  repeated TrendingTopic topics = 1;
+}
+
+message GetNotificationsRequest {
+  bool unread_only = 1;
+  int32 limit = 2;
+}
+message GetNotificationsResponse {
+  repeated Notification notifications = 1;
+}
+message MarkReadRequest {
+  string notification_id = 1;
+}
+message StreamNotificationsRequest {
+  google.protobuf.Timestamp since = 1;
+}
+
+message FileAbuseReportRequest {
+  string target_post_id = 1;
+  string category = 2;
+  string reason = 3;
+}
+message OpenAppealRequest {
+  string target_verdict_id = 1;
+  string reason = 2;
+}
+message GetAppealStatusRequest {
+  string appeal_id = 1;
+}
+
+message BookmarkRequest {
+  string post_id = 1;
+}
+message ListBookmarksRequest {
+  string cursor = 1;
+  int32 limit = 2;
+}
+message ListBookmarksResponse {
+  repeated Post posts = 1;
+  string next_cursor = 2;
+}
+
+message CreateListRequest {
+  string name = 1;
+  string description = 2;
+  string visibility = 3;
+}
+message AddToListRequest {
+  string list_id = 1;
+  string profile_handle = 2;
+}
+message RemoveFromListRequest {
+  string list_id = 1;
+  string profile_handle = 2;
+}
+message RenderListFeedRequest {
+  string list_id = 1;
+  int32 limit = 2;
+}

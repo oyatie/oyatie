@@ -1,0 +1,662 @@
+asyncapi: 3.1.0
+info:
+  title: oya-social — events
+  version: 1.0.0
+  summary: Real-time + Workflow events emitted by the social µservice
+  description: |
+    Two channel families:
+    - **Real-time WebSocket** (`wss://social-{pack}.oyatie.com/ws/v1`):
+      client-facing events delivered to authenticated session connections.
+      Per-event Cedar evaluation; payloads scoped to the consumer's visibility.
+    - **Workflow event bus** (cluster-internal AMQP / NATS):
+      cross-µservice events consumed by ontology, audit-chain, messenger, mail, workflow-engine, foundry-runtime.
+
+defaultContentType: application/json
+
+servers:
+  websocket-gateway:
+    host: social-{pack}.oyatie.com
+    protocol: wss
+    description: Per-pack WebSocket gateway
+    variables:
+      pack:
+        enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+  workflow-events-bus:
+    host: workflow-events.social.svc.cluster.local
+    protocol: amqp
+    description: Internal AMQP bus
+
+channels:
+  post-published:
+    address: workflow-events/social.post.published
+    messages:
+      PostPublishedMessage:
+        $ref: '#/components/messages/PostPublished'
+    description: A new post was published
+
+  post-edited:
+    address: workflow-events/social.post.edited
+    messages:
+      PostEditedMessage:
+        $ref: '#/components/messages/PostEdited'
+
+  post-deleted:
+    address: workflow-events/social.post.deleted
+    messages:
+      PostDeletedMessage:
+        $ref: '#/components/messages/PostDeleted'
+
+  repost-created:
+    address: workflow-events/social.repost.created
+    messages:
+      RepostCreatedMessage:
+        $ref: '#/components/messages/RepostCreated'
+
+  quote-post-created:
+    address: workflow-events/social.quote_post.created
+    messages:
+      QuotePostCreatedMessage:
+        $ref: '#/components/messages/QuotePostCreated'
+
+  comment-published:
+    address: workflow-events/social.comment.published
+    messages:
+      CommentPublishedMessage:
+        $ref: '#/components/messages/CommentPublished'
+
+  reaction-added:
+    address: workflow-events/social.reaction.added
+    messages:
+      ReactionAddedMessage:
+        $ref: '#/components/messages/ReactionAdded'
+
+  reaction-removed:
+    address: workflow-events/social.reaction.removed
+    messages:
+      ReactionRemovedMessage:
+        $ref: '#/components/messages/ReactionRemoved'
+
+  follow-edge-added:
+    address: workflow-events/social.follow_edge.added
+    messages:
+      FollowEdgeAddedMessage:
+        $ref: '#/components/messages/FollowEdgeAdded'
+
+  follow-edge-removed:
+    address: workflow-events/social.follow_edge.removed
+    messages:
+      FollowEdgeRemovedMessage:
+        $ref: '#/components/messages/FollowEdgeRemoved'
+
+  block-edge-added:
+    address: workflow-events/social.block_edge.added
+    messages:
+      BlockEdgeAddedMessage:
+        $ref: '#/components/messages/BlockEdgeAdded'
+
+  mute-edge-added:
+    address: workflow-events/social.mute_edge.added
+    messages:
+      MuteEdgeAddedMessage:
+        $ref: '#/components/messages/MuteEdgeAdded'
+
+  mention-emitted:
+    address: workflow-events/social.mention.emitted
+    messages:
+      MentionEmittedMessage:
+        $ref: '#/components/messages/MentionEmitted'
+
+  hashtag-emission:
+    address: workflow-events/social.hashtag.emission
+    messages:
+      HashtagEmissionMessage:
+        $ref: '#/components/messages/HashtagEmission'
+
+  moderation-verdict-emitted:
+    address: workflow-events/social.moderation.verdict_emitted
+    messages:
+      ModerationVerdictEmittedMessage:
+        $ref: '#/components/messages/ModerationVerdictEmitted'
+
+  appeal-opened:
+    address: workflow-events/social.appeal.opened
+    messages:
+      AppealOpenedMessage:
+        $ref: '#/components/messages/AppealOpened'
+
+  appeal-resolved:
+    address: workflow-events/social.appeal.resolved
+    messages:
+      AppealResolvedMessage:
+        $ref: '#/components/messages/AppealResolved'
+
+  abuse-report-filed:
+    address: workflow-events/social.abuse_report.filed
+    messages:
+      AbuseReportFiledMessage:
+        $ref: '#/components/messages/AbuseReportFiled'
+
+  verification-badge-issued:
+    address: workflow-events/social.verification.badge_issued
+    messages:
+      VerificationBadgeIssuedMessage:
+        $ref: '#/components/messages/VerificationBadgeIssued'
+
+  profile-created:
+    address: workflow-events/social.profile.created
+    messages:
+      ProfileCreatedMessage:
+        $ref: '#/components/messages/ProfileCreated'
+
+  profile-updated:
+    address: workflow-events/social.profile.updated
+    messages:
+      ProfileUpdatedMessage:
+        $ref: '#/components/messages/ProfileUpdated'
+
+  profile-deleted:
+    address: workflow-events/social.profile.deleted
+    messages:
+      ProfileDeletedMessage:
+        $ref: '#/components/messages/ProfileDeleted'
+
+  ediscovery-hold:
+    address: workflow-events/social.ediscovery.hold
+    messages:
+      EDiscoveryHoldMessage:
+        $ref: '#/components/messages/EDiscoveryHold'
+
+  four-eyes-disclosure:
+    address: workflow-events/social.disclosure.executed
+    messages:
+      FourEyesDisclosureMessage:
+        $ref: '#/components/messages/FourEyesDisclosure'
+
+  federation-opt-in:
+    address: workflow-events/social.federation.opt_in
+    messages:
+      FederationOptInMessage:
+        $ref: '#/components/messages/FederationOptIn'
+
+  federation-activity-ingested:
+    address: workflow-events/social.federation.activity_ingested
+    messages:
+      FederationActivityIngestedMessage:
+        $ref: '#/components/messages/FederationActivityIngested'
+
+  federation-activity-egressed:
+    address: workflow-events/social.federation.activity_egressed
+    messages:
+      FederationActivityEgressedMessage:
+        $ref: '#/components/messages/FederationActivityEgressed'
+
+  # WebSocket frames (real-time delivery)
+  ws-feed-update:
+    address: ws/feed
+    messages:
+      FeedFrame:
+        $ref: '#/components/messages/PostPublished'
+
+  ws-notification:
+    address: ws/notification
+    messages:
+      NotificationFrame:
+        $ref: '#/components/messages/Notification'
+
+  ws-reaction-frame:
+    address: ws/reaction
+    messages:
+      ReactionFrame:
+        $ref: '#/components/messages/ReactionAdded'
+
+operations:
+  emitPostPublished:
+    action: send
+    channel: {$ref: '#/channels/post-published'}
+  emitPostEdited:
+    action: send
+    channel: {$ref: '#/channels/post-edited'}
+  emitPostDeleted:
+    action: send
+    channel: {$ref: '#/channels/post-deleted'}
+  emitRepostCreated:
+    action: send
+    channel: {$ref: '#/channels/repost-created'}
+  emitQuotePostCreated:
+    action: send
+    channel: {$ref: '#/channels/quote-post-created'}
+  emitCommentPublished:
+    action: send
+    channel: {$ref: '#/channels/comment-published'}
+  emitReactionAdded:
+    action: send
+    channel: {$ref: '#/channels/reaction-added'}
+  emitReactionRemoved:
+    action: send
+    channel: {$ref: '#/channels/reaction-removed'}
+  emitFollowEdgeAdded:
+    action: send
+    channel: {$ref: '#/channels/follow-edge-added'}
+  emitFollowEdgeRemoved:
+    action: send
+    channel: {$ref: '#/channels/follow-edge-removed'}
+  emitBlockEdgeAdded:
+    action: send
+    channel: {$ref: '#/channels/block-edge-added'}
+  emitMuteEdgeAdded:
+    action: send
+    channel: {$ref: '#/channels/mute-edge-added'}
+  emitMentionEmitted:
+    action: send
+    channel: {$ref: '#/channels/mention-emitted'}
+  emitHashtagEmission:
+    action: send
+    channel: {$ref: '#/channels/hashtag-emission'}
+  emitModerationVerdictEmitted:
+    action: send
+    channel: {$ref: '#/channels/moderation-verdict-emitted'}
+  emitAppealOpened:
+    action: send
+    channel: {$ref: '#/channels/appeal-opened'}
+  emitAppealResolved:
+    action: send
+    channel: {$ref: '#/channels/appeal-resolved'}
+  emitAbuseReportFiled:
+    action: send
+    channel: {$ref: '#/channels/abuse-report-filed'}
+  emitVerificationBadgeIssued:
+    action: send
+    channel: {$ref: '#/channels/verification-badge-issued'}
+  emitProfileCreated:
+    action: send
+    channel: {$ref: '#/channels/profile-created'}
+  emitProfileUpdated:
+    action: send
+    channel: {$ref: '#/channels/profile-updated'}
+  emitProfileDeleted:
+    action: send
+    channel: {$ref: '#/channels/profile-deleted'}
+  emitEDiscoveryHold:
+    action: send
+    channel: {$ref: '#/channels/ediscovery-hold'}
+  emitFourEyesDisclosure:
+    action: send
+    channel: {$ref: '#/channels/four-eyes-disclosure'}
+  emitFederationOptIn:
+    action: send
+    channel: {$ref: '#/channels/federation-opt-in'}
+  emitFederationActivityIngested:
+    action: send
+    channel: {$ref: '#/channels/federation-activity-ingested'}
+  emitFederationActivityEgressed:
+    action: send
+    channel: {$ref: '#/channels/federation-activity-egressed'}
+
+  # Consumed events
+  consumeMessengerDeepLinkRequested:
+    action: receive
+    channel:
+      address: workflow-events/messenger.deeplink.requested
+    description: messenger requests deep-link metadata for a post
+  consumeOntologyEntityChanged:
+    action: receive
+    channel:
+      address: workflow-events/ontology.entity.changed
+    description: ontology entity update refreshes mention-resolution cache
+  consumeTenantRetentionPolicyUpdated:
+    action: receive
+    channel:
+      address: workflow-events/tenancy.retention_policy.updated
+  consumeAuditChainSealed:
+    action: receive
+    channel:
+      address: workflow-events/audit_chain.sealed
+  consumeMailActionCardEmitted:
+    action: receive
+    channel:
+      address: workflow-events/mail.action_card.emitted
+
+components:
+  messages:
+    PostPublished:
+      name: PostPublished
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/PostPublishedPayload'}
+    PostEdited:
+      name: PostEdited
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/PostEditedPayload'}
+    PostDeleted:
+      name: PostDeleted
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/PostDeletedPayload'}
+    RepostCreated:
+      name: RepostCreated
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/RepostCreatedPayload'}
+    QuotePostCreated:
+      name: QuotePostCreated
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/QuotePostCreatedPayload'}
+    CommentPublished:
+      name: CommentPublished
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/CommentPublishedPayload'}
+    ReactionAdded:
+      name: ReactionAdded
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/ReactionPayload'}
+    ReactionRemoved:
+      name: ReactionRemoved
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/ReactionPayload'}
+    FollowEdgeAdded:
+      name: FollowEdgeAdded
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/FollowEdgePayload'}
+    FollowEdgeRemoved:
+      name: FollowEdgeRemoved
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/FollowEdgePayload'}
+    BlockEdgeAdded:
+      name: BlockEdgeAdded
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/BlockEdgePayload'}
+    MuteEdgeAdded:
+      name: MuteEdgeAdded
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/MuteEdgePayload'}
+    MentionEmitted:
+      name: MentionEmitted
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/MentionEmittedPayload'}
+    HashtagEmission:
+      name: HashtagEmission
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/HashtagEmissionPayload'}
+    ModerationVerdictEmitted:
+      name: ModerationVerdictEmitted
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/ModerationVerdictPayload'}
+    AppealOpened:
+      name: AppealOpened
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/AppealPayload'}
+    AppealResolved:
+      name: AppealResolved
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/AppealPayload'}
+    AbuseReportFiled:
+      name: AbuseReportFiled
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/AbuseReportPayload'}
+    VerificationBadgeIssued:
+      name: VerificationBadgeIssued
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/VerificationBadgePayload'}
+    ProfileCreated:
+      name: ProfileCreated
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/ProfilePayload'}
+    ProfileUpdated:
+      name: ProfileUpdated
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/ProfilePayload'}
+    ProfileDeleted:
+      name: ProfileDeleted
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/ProfilePayload'}
+    EDiscoveryHold:
+      name: EDiscoveryHold
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/EDiscoveryHoldPayload'}
+    FourEyesDisclosure:
+      name: FourEyesDisclosure
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/FourEyesDisclosurePayload'}
+    FederationOptIn:
+      name: FederationOptIn
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/FederationOptInPayload'}
+    FederationActivityIngested:
+      name: FederationActivityIngested
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/FederationActivityPayload'}
+    FederationActivityEgressed:
+      name: FederationActivityEgressed
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/FederationActivityPayload'}
+    Notification:
+      name: Notification
+      contentType: application/json
+      payload: {$ref: '#/components/schemas/NotificationPayload'}
+
+  schemas:
+    PostPublishedPayload:
+      type: object
+      required: [post_id, author_ref, tenant_id, context_kind, visibility, posted_at, content_hash]
+      properties:
+        post_id: {type: string, format: ulid}
+        author_ref: {type: string}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Personal, Professional]}
+        kind: {type: string, enum: [post, repost, quote_post, comment]}
+        parent_post_id: {type: string, format: ulid, nullable: true}
+        visibility: {type: string, enum: [public, followers, list, private]}
+        data_class: {type: string}
+        body_present: {type: boolean}
+        media_count: {type: integer}
+        mention_count: {type: integer}
+        hashtag_count: {type: integer}
+        posted_at: {type: string, format: date-time}
+        content_hash: {type: string}
+        signature: {type: string}
+    PostEditedPayload:
+      type: object
+      required: [post_id, edited_at, content_hash]
+      properties:
+        post_id: {type: string}
+        editor_ref: {type: string}
+        edited_at: {type: string, format: date-time}
+        content_hash: {type: string}
+        edit_kind: {type: string, enum: [body, media, mentions, hashtags]}
+    PostDeletedPayload:
+      type: object
+      required: [post_id, deleted_at]
+      properties:
+        post_id: {type: string}
+        deleter_ref: {type: string}
+        deleted_at: {type: string, format: date-time}
+        tombstone_only: {type: boolean, default: true}
+    RepostCreatedPayload:
+      type: object
+      required: [repost_id, original_post_id, reposter_ref, created_at]
+      properties:
+        repost_id: {type: string}
+        original_post_id: {type: string}
+        reposter_ref: {type: string}
+        created_at: {type: string, format: date-time}
+    QuotePostCreatedPayload:
+      type: object
+      required: [quote_post_id, quoted_post_id, author_ref, body, created_at]
+      properties:
+        quote_post_id: {type: string}
+        quoted_post_id: {type: string}
+        author_ref: {type: string}
+        body: {type: string}
+        created_at: {type: string, format: date-time}
+    CommentPublishedPayload:
+      type: object
+      required: [comment_id, parent_post_id, author_ref, created_at]
+      properties:
+        comment_id: {type: string}
+        parent_post_id: {type: string}
+        author_ref: {type: string}
+        created_at: {type: string, format: date-time}
+    ReactionPayload:
+      type: object
+      required: [post_id, user_ref, emoji, action]
+      properties:
+        post_id: {type: string}
+        user_ref: {type: string}
+        emoji: {type: string}
+        action: {type: string, enum: [added, removed]}
+    FollowEdgePayload:
+      type: object
+      required: [follower_ref, followee_ref, action, at]
+      properties:
+        follower_ref: {type: string}
+        followee_ref: {type: string}
+        action: {type: string, enum: [added, removed]}
+        at: {type: string, format: date-time}
+    BlockEdgePayload:
+      type: object
+      required: [blocker_ref, blocked_ref, action, at]
+      properties:
+        blocker_ref: {type: string}
+        blocked_ref: {type: string}
+        action: {type: string, enum: [added, removed]}
+        at: {type: string, format: date-time}
+    MuteEdgePayload:
+      type: object
+      required: [muter_ref, muted_ref, action, at]
+      properties:
+        muter_ref: {type: string}
+        muted_ref: {type: string}
+        action: {type: string, enum: [added, removed]}
+        at: {type: string, format: date-time}
+    MentionEmittedPayload:
+      type: object
+      required: [post_id, target_kind, target_ref, mention_kind]
+      properties:
+        post_id: {type: string}
+        target_kind: {type: string, enum: [Person, Team, Topic, Hashtag]}
+        target_ref: {type: string}
+        mention_kind: {type: string, enum: [direct, broadcast]}
+    HashtagEmissionPayload:
+      type: object
+      required: [post_id, hashtag, emitted_at]
+      properties:
+        post_id: {type: string}
+        hashtag: {type: string}
+        pack: {type: string}
+        emitted_at: {type: string, format: date-time}
+    ModerationVerdictPayload:
+      type: object
+      required: [verdict_id, target_post_id, verdict, classifier_version, emitted_at]
+      properties:
+        verdict_id: {type: string}
+        target_post_id: {type: string}
+        verdict: {type: string, enum: [ok, spam, abuse, hate_speech, csam_suspect, self_harm_suspect, harassment, sensitive_media_unflagged]}
+        confidence: {type: number, minimum: 0, maximum: 1}
+        classifier_version: {type: string}
+        statement_of_reasons:
+          type: object
+          description: EU DSA Art. 17 Statement of Reasons
+          properties:
+            grounds: {type: string}
+            facts_and_circumstances: {type: string}
+            automated_means: {type: boolean}
+            redress: {type: string}
+        eu_ai_act_label:
+          type: string
+          enum: [ai_generated_assessment, human_assessment, hybrid]
+          description: EU AI Act Art. 50 transparency obligation
+        emitted_at: {type: string, format: date-time}
+    AppealPayload:
+      type: object
+      required: [appeal_id, appellant_ref, target_verdict_id, status, at]
+      properties:
+        appeal_id: {type: string}
+        appellant_ref: {type: string}
+        target_verdict_id: {type: string}
+        status: {type: string, enum: [open, under_review, upheld, overturned]}
+        reviewer_ref: {type: string, nullable: true}
+        at: {type: string, format: date-time}
+    AbuseReportPayload:
+      type: object
+      required: [report_id, reporter_ref, target_post_id, category, at]
+      properties:
+        report_id: {type: string}
+        reporter_ref: {type: string}
+        target_post_id: {type: string}
+        category: {type: string}
+        reason: {type: string}
+        at: {type: string, format: date-time}
+    VerificationBadgePayload:
+      type: object
+      required: [badge_id, target_profile_id, badge_kind, action, at]
+      properties:
+        badge_id: {type: string}
+        target_profile_id: {type: string}
+        badge_kind: {type: string, enum: [blue, organisation, government]}
+        action: {type: string, enum: [issued, revoked]}
+        actor_ref: {type: string}
+        at: {type: string, format: date-time}
+    ProfilePayload:
+      type: object
+      required: [profile_id, tenant_id, context_kind, handle, action, at]
+      properties:
+        profile_id: {type: string}
+        tenant_id: {type: string}
+        context_kind: {type: string, enum: [Personal, Professional]}
+        handle: {type: string}
+        action: {type: string, enum: [created, updated, deleted]}
+        at: {type: string, format: date-time}
+    EDiscoveryHoldPayload:
+      type: object
+      required: [hold_id, tenant_id, scope, action, executed_at]
+      properties:
+        hold_id: {type: string}
+        tenant_id: {type: string}
+        scope: {type: object}
+        reason: {type: string}
+        action: {type: string, enum: [opened, closed]}
+        executed_by: {type: string}
+        executed_at: {type: string, format: date-time}
+    FourEyesDisclosurePayload:
+      type: object
+      required: [disclosure_id, tenant_id, post_ids, primary_approver, paired_approver, executed_at]
+      properties:
+        disclosure_id: {type: string}
+        tenant_id: {type: string}
+        post_ids: {type: array, items: {type: string}}
+        reason: {type: string}
+        primary_approver: {type: string}
+        paired_approver: {type: string}
+        executed_at: {type: string, format: date-time}
+        signature_primary: {type: string}
+        signature_paired: {type: string}
+    FederationOptInPayload:
+      type: object
+      required: [tenant_id, action, at]
+      properties:
+        tenant_id: {type: string}
+        action: {type: string, enum: [granted, revoked]}
+        granted_by: {type: string}
+        peer_allowlist:
+          type: array
+          items: {type: string}
+        at: {type: string, format: date-time}
+    FederationActivityPayload:
+      type: object
+      required: [activity_id, activity_type, peer_ref, context_kind, direction, at]
+      properties:
+        activity_id: {type: string}
+        activity_type: {type: string, enum: [Create, Update, Delete, Follow, Like, Announce, Undo]}
+        peer_ref: {type: string}
+        context_kind: {type: string, enum: [Professional]}  # Personal NEVER federates
+        direction: {type: string, enum: [inbox, outbox]}
+        http_signature_valid: {type: boolean}
+        at: {type: string, format: date-time}
+    NotificationPayload:
+      type: object
+      required: [notification_id, recipient_ref, kind, created_at]
+      properties:
+        notification_id: {type: string}
+        recipient_ref: {type: string}
+        kind: {type: string, enum: [mention, reply, repost, quote_post, follow, like, milestone, moderation_verdict, appeal_resolved, system]}
+        actor_ref: {type: string, nullable: true}
+        post_id: {type: string, nullable: true}
+        preview: {type: string}
+        created_at: {type: string, format: date-time}

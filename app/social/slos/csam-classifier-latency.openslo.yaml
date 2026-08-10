@@ -1,0 +1,35 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: social-csam-classifier-latency
+  displayName: Social CSAM classifier latency
+  labels:
+    microservice: social
+    binding_adr: ADR-SOC-0003
+spec:
+  service: social
+  description: |
+    CSAM classifier returns a verdict within 500ms P99. Detection latency directly bounds
+    the window in which CSAM is publicly visible. Hyperscaler precedent: Microsoft PhotoDNA
+    SLA at parity.
+  objectives:
+    - displayName: Classifier verdict ≤500ms
+      target: 0.999
+      sliRef:
+        ratioMetric:
+          counter: true
+          good:
+            metricSource:
+              type: prometheus
+              spec: 'sum(rate(oya_social_csam_classifier_duration_seconds_bucket{le="0.5"}[5m]))'
+          total:
+            metricSource:
+              type: prometheus
+              spec: 'sum(rate(oya_social_csam_classifier_total[5m]))'
+  alertPolicy:
+    burnRate:
+      - threshold: 14
+        lookback: 1h
+        runbook: microservices/social/runbooks/csam-detect-and-ncmec-report.md
+      - threshold: 6
+        lookback: 6h

@@ -1,0 +1,29 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-community-social-content-moderation-kernel
+role: kernel
+context: social
+plane: data
+slo: hero-product
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-SOC-0003]
+allowed_dependency_edges: []
+data_classes_owned: [INTERNAL_ONLY, AUDIT, PII_IDENTIFYING]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+ports_declared:
+  - ModerationClassifier
+  - MalwareScanner
+  - AbuseReportRepository
+  - AppealRepository
+entities:
+  - ModerationVerdict
+  - AbuseReport
+  - Appeal
+  - ClassifierVersion
+  - StatementOfReasons  # EU DSA Art. 17
+risk_classification: high_risk  # ADR-SOC-0003
