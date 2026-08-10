@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 12
 - **Numbering:** contiguous ADR-0700..ADR-0711 (gap-free)
 - **Next ADR number:** 0712
-- **Status counts:** Accepted 10, Proposed 2
+- **Status counts:** Accepted 11, Proposed 1
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -32,7 +32,7 @@ doc_status: published
 | ADR-0708 | Accepted | Live platform foundations: cells, residency, workflow, plugins, search | council-architecture | [`ADR-0708-platform-foundations-live-apex.md`](decisions/ADR-0708-platform-foundations-live-apex.md) |
 | ADR-0709 | Accepted | Live general architecture and remaining accepted doctrine | council-architecture | [`ADR-0709-general-live-apex.md`](decisions/ADR-0709-general-live-apex.md) |
 | ADR-0710 | Proposed | Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook | council-architecture | [`ADR-0710-kubernetes-admission-substrate-is-the-api-server.md`](decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md) |
-| ADR-0711 | Proposed | Swarm Delivery Law: integration branch topology and command discipline | council-architecture | [`ADR-0711-swarm-delivery-law-integ-branch-topology.md`](decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md) |
+| ADR-0711 | Accepted | Swarm Delivery Law — integration branch topology and command discipline | council-architecture | [`ADR-0711-swarm-delivery-law-integ-branch-topology.md`](decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md) |
 
 ## Update protocol
 
@@ -43,6 +43,6 @@ doc_status: published
 
 ## Sources scanned
 
-- `decisions/` directory listing — 11 ADR files (sorted ascending)
+- `decisions/` directory listing — 12 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

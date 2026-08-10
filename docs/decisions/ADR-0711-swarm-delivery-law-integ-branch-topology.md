@@ -2,7 +2,7 @@
 doc_status: published
 id: ADR-0711
 title: "Swarm Delivery Law: integration branch topology and command discipline"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-08-10
@@ -53,10 +53,12 @@ deliverables:
 
 ## Status
 
-**Proposed.** Phase A of the Swarm Delivery Law rollout (advisory doctrine + policy-as-data +
-harness). Phase B lands a hermetic CI envelope check under `oya-ci-required`. Phase C (branch
-protection restricting `dev` PRs to `integ/*` + `hotfix/*`) is founder-paired and deliberately
-out of this ADR's acceptance criteria.
+**Accepted** (founder 2026-08-10). Phase A doctrine + policy-as-data + Claim/Land harness are
+live and already enforced; leaving this ADR `Proposed` while Claim treated it as binding law
+violated END-STATE-POLICY (Proposed carries no implement authority). Remaining rollout work is
+deliverable completion, not a status gate: Phase B hermetic CI envelope check under
+`oya-ci-required`, and Phase C (branch protection restricting `dev` PRs to `integ/*` +
+`hotfix/*`) which stays founder-paired and out of this ADR's acceptance criteria.
 
 ## Context
 

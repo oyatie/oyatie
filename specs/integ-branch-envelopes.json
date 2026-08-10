@@ -6,15 +6,15 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.13",
-    "status": "Proposed",
+    "version": "1.16.14",
+    "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
-    "prior_version": "1.16.12"
+    "prior_version": "1.16.13"
   },
   "admission": {
     "trunk": "dev",
@@ -604,6 +604,13 @@
       },
       {
         "branch": "integ/specs",
+        "hub": "docs/CHANGELOG.md",
+        "reason": "Changelog row for ADR-0711 Proposed→Accepted on the same integ/specs wave (sole-owner hub waiver).",
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-changelog-adr-0711-accept.yaml",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "branch": "integ/specs",
         "hub": "governance/check/adr-citation-closure/adr-citation-closure-policy.json",
         "reason": "Absorb #1628+#1629 leaf residuals: files_scanned freeze coupled to lifecycle-config deletions on integ/specs (ADR-0711 dual-trunk closeout).",
         "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-citation-closure-1628-1629.yaml",
@@ -650,6 +657,12 @@
         "claiming_branch": "integ/specs",
         "reason": "Single PR preference: ADR-0711 co-lands with envelopes self-owner rather than splitting integ/docs for this bootstrap wave.",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      },
+      {
+        "path_glob": "docs/machine-readable/decisions.json",
+        "claiming_branch": "integ/specs",
+        "reason": "Regenerate ADR-INDEX machine mirror with ADR-0711 Accept on the same wave (Codex P1: dual projection must move together).",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       },
       {
         "path_glob": "registry/vcs/concurrent-safe-paths.yaml",
