@@ -2,7 +2,7 @@
 //!
 //! Transport-neutral, serializable request/response shapes for the workload
 //! authorize + token-validation + principal-lifecycle surface promised by
-//! `microservices/identity/workload-identity/PRD.md` §1.2. The DTOs convert
+//! `iam/identity/workload-identity/PRD.md` §1.2. The DTOs convert
 //! into (and out of) the pure [`iam_identity_workload_domain`] values; this
 //! crate persists nothing, performs no crypto, evaluates no policy, and does no
 //! I/O. The axum surface (`oya-identity-workload-rest`) and the use-case core

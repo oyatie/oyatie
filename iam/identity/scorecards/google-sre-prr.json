@@ -7,12 +7,12 @@
   "checklist": {
     "architecture": {
       "documented": true,
-      "evidence": "microservices/identity/PRD.md + multi-region.md + 16 IPs"
+      "evidence": "iam/identity/PRD.md + multi-region.md + 16 IPs"
     },
     "slos_defined": {
       "documented": true,
       "count": 9,
-      "evidence": "microservices/identity/slos/*.openslo.yaml"
+      "evidence": "iam/observability/slos/identity/*.openslo.yaml"
     },
     "monitoring_complete": {
       "documented": true,
@@ -25,7 +25,7 @@
     "runbooks_complete": {
       "documented": true,
       "count": 8,
-      "evidence": "microservices/identity/runbooks/*.md"
+      "evidence": "iam/identity/runbooks/*.md"
     },
     "capacity_plan": {
       "documented": true,

@@ -17,9 +17,9 @@ maturity: stable
 created_at: 2026-05-18
 related_adrs: [ADR-0145, ADR-0187]
 related_artifacts:
-  - microservices/identity/PRD.md
-  - microservices/identity/contracts/openapi/identity.yaml
-  - microservices/identity/contracts/proto/identity.proto
+  - iam/identity/PRD.md
+  - iam/identity/contracts/openapi/identity.yaml
+  - iam/identity/contracts/proto/identity.proto
 
 autonomy_tier: T0
 # T0 = hot-path operation; sub-80ms p99; called by every consumer.

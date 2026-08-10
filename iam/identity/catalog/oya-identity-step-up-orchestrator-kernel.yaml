@@ -4,8 +4,8 @@ context: identity
 bounded_context: step-up-orchestrator
 plane: control
 slo: oya-identity-step-up-grant-latency
-contracts_consumed: [microservices/identity/contracts/openapi/identity.yaml#/paths/webauthn]
-contracts_exposed: [microservices/identity/contracts/openapi/identity.yaml#/paths/step-up]
+contracts_consumed: [iam/identity/contracts/openapi/identity.yaml#/paths/webauthn]
+contracts_exposed: [iam/identity/contracts/openapi/identity.yaml#/paths/step-up]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: { state: incubating, preview_since: 2026-05-18, stable_since: null, deprecated_since: null }
 traceability:

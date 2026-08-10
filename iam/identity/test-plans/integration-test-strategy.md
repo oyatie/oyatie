@@ -353,20 +353,20 @@ The plan uses named tenant fixtures from `registry/sample-tenants/` and explicit
 
 ## Cross-References
 
-- Unit companion: `microservices/identity/test-plans/unit-test-strategy.md`.
-- Contract companion: `microservices/identity/test-plans/contract-test-strategy.md`.
-- Manifest: `microservices/identity/manifest.json`.
+- Unit companion: `iam/identity/test-plans/unit-test-strategy.md`.
+- Contract companion: `iam/identity/test-plans/contract-test-strategy.md`.
+- Manifest: `iam/identity/manifest.json`.
 - Architecture: `microservices/identity/ARCHITECTURE.md`.
-- PRD: `microservices/identity/PRD.md`.
+- PRD: `iam/identity/PRD.md`.
 - Failure catalog: `microservices/identity/failure-modes.md`.
-- Runbook directory: `microservices/identity/runbooks/`.
-- SLO directory: `microservices/identity/slos/`.
-- OpenAPI contract: `microservices/identity/contracts/openapi/identity.yaml`.
-- OpenAPI contract: `microservices/identity/contracts/openapi/multi-context-split.yaml`.
-- AsyncAPI contract: `microservices/identity/contracts/asyncapi/identity-events.yaml`.
-- AsyncAPI contract: `microservices/identity/contracts/asyncapi/multi-context-events.yaml`.
-- Proto contract: `microservices/identity/contracts/proto/identity.proto`.
-- Proto contract: `microservices/identity/contracts/proto/multi_context_split.proto`.
+- Runbook directory: `iam/identity/runbooks/`.
+- SLO directory: `iam/observability/slos/identity/`.
+- OpenAPI contract: `iam/identity/contracts/openapi/identity.yaml`.
+- OpenAPI contract: `iam/identity/contracts/openapi/multi-context-split.yaml`.
+- AsyncAPI contract: `iam/identity/contracts/asyncapi/identity-events.yaml`.
+- AsyncAPI contract: `iam/identity/contracts/asyncapi/multi-context-events.yaml`.
+- Proto contract: `iam/identity/contracts/proto/identity.proto`.
+- Proto contract: `iam/identity/contracts/proto/multi_context_split.proto`.
 - Fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
 - Standard: `docs/standards/documentation-rigor.md`.

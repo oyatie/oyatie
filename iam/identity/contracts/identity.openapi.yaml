@@ -33,7 +33,7 @@ info:
     unreachable, malformed token, suspended principal — the service denies.
   contact:
     name: axis-identity
-    url: https://github.com/oyatie/oyatie/blob/dev/microservices/identity/README.md
+    url: https://github.com/oyatie/oyatie/blob/dev/iam/identity/README.md
   license:
     name: Internal
 servers:
@@ -85,7 +85,7 @@ paths:
       operationId: authorize
       description: |
         Evaluate the Cedar PARC tuple against the tenant-scoped policy set
-        (`microservices/identity/policy/identity.cedar`). Mirrors AVP
+        (`iam/identity/policy/identity.cedar`). Mirrors AVP
         `IsAuthorized` (brief §2). Default-deny + forbid-overrides-permit are
         guaranteed by the Cedar evaluator (Cedar formal properties, brief §10).
 

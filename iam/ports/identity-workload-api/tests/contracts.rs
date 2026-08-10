@@ -2,7 +2,7 @@
 //!
 //! These pin the serialized JSON shape (camelCase keys + stable enum strings)
 //! the OpenAPI 3.2.0 contract in
-//! `microservices/identity/contracts/openapi/workload.yaml` describes, and the
+//! `iam/identity/contracts/openapi/workload.yaml` describes, and the
 //! round-trip from the domain decision types into the response DTOs. They are
 //! the executable half of the OpenAPI/asyncapi/proto contract surface.
 

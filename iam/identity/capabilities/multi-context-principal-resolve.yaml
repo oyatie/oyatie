@@ -11,9 +11,9 @@ maturity: scaffolded
 created_at: 2026-05-18
 related_adrs: [ADR-0215]
 related_artifacts:
-  - microservices/identity/contracts/openapi/multi-context-split.yaml
-  - microservices/identity/contracts/proto/multi_context_split.proto
-  - microservices/identity/policy/context-split.cedar
+  - iam/identity/contracts/openapi/multi-context-split.yaml
+  - iam/identity/contracts/proto/multi_context_split.proto
+  - iam/identity/policy/context-split.cedar
 
 autonomy_tier: T1
 inputs:
@@ -44,7 +44,7 @@ data_classes_touched:
   - AUDIT
 
 cedar_policy_fragments:
-  - microservices/identity/policy/context-split.cedar
+  - iam/identity/policy/context-split.cedar
 
 evidence_topic: oya.identity.context.resolved
 eval_set:

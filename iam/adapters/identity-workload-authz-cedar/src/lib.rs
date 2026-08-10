@@ -10,8 +10,8 @@
 //!
 //! Authorization is delegated to the upstream **`cedar-policy`** crate
 //! (AWS, Apache-2.0): the same formally-verified engine named in
-//! `microservices/identity/manifest.json#consumes_upstream_oss` and exercised
-//! by `microservices/identity/policy/identity.cedar`. There is no hand-rolled
+//! `iam/identity/manifest.json#consumes_upstream_oss` and exercised
+//! by `iam/identity/policy/identity.cedar`. There is no hand-rolled
 //! decision algorithm here — Cedar's own [`cedar_policy::Authorizer`] decides.
 //!
 //! Cedar's properties (arXiv 2403.04651) hold natively and we rely on them:
@@ -382,7 +382,7 @@ impl CedarWorkloadAuthorizer {
     }
 
     /// Build from raw Cedar policy text (the production path — e.g. the
-    /// contents of `microservices/identity/policy/identity.cedar`).
+    /// contents of `iam/identity/policy/identity.cedar`).
     ///
     /// # Errors
     /// Returns [`CedarAuthzError::PolicyParse`] if the text is not a valid

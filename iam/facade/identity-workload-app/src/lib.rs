@@ -2,7 +2,7 @@
 //!
 //! This crate is the *application* that wires the three workload-identity
 //! crates into the end-to-end machine-to-machine identity flow described by
-//! `microservices/identity/workload-identity/PRD.md`:
+//! `iam/identity/workload-identity/PRD.md`:
 //!
 //! ```text
 //! raw workload JWT ─validate─▶ verified WorkloadPrincipal ─lifecycle/denylist─▶ authorize ─▶ AuthorizationDecision

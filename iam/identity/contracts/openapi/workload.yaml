@@ -5,7 +5,7 @@ info:
   summary: Workload (machine-to-machine) identity authorize + token-validation + principal-lifecycle surface
   description: |
     The workload-identity service surface per ADR-0002 (tenant+identity kernel)
-    and `microservices/identity/workload-identity/PRD.md` §1.2. It authenticates
+    and `iam/identity/workload-identity/PRD.md` §1.2. It authenticates
     workload OIDC tokens (RS256/384/512, ES256 via ring; RFC 8725 hardened) and
     authorizes PARC requests through the real Cedar engine (deny-by-default,
     forbid-wins).

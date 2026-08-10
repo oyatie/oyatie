@@ -21,7 +21,7 @@ related_oyatie_adrs:
 
 This plan defines the unit-test corpus for the identity microservice.
 It targets pure Rust behavior before any database, network, Zitadel, WebAuthn authenticator, SCIM client, or audit-chain adapter is invoked.
-The bar is deterministic, mutation-resistant, property-rich unit coverage for every ADR-0105 layer represented in `microservices/identity/manifest.json`.
+The bar is deterministic, mutation-resistant, property-rich unit coverage for every ADR-0105 layer represented in `iam/identity/manifest.json`.
 
 ## Test Scope
 
@@ -371,22 +371,22 @@ The bar is deterministic, mutation-resistant, property-rich unit coverage for ev
 
 ## Cross-References
 
-- Manifest: `microservices/identity/manifest.json`.
+- Manifest: `iam/identity/manifest.json`.
 - Architecture: `microservices/identity/ARCHITECTURE.md`.
 - Failure catalog: `microservices/identity/failure-modes.md`.
-- Runbook: `microservices/identity/runbooks/jwks-rotation.md`.
-- Runbook: `microservices/identity/runbooks/passkey-replay-attack-response.md`.
-- Runbook: `microservices/identity/runbooks/passkey-reset.md`.
-- Runbook: `microservices/identity/runbooks/scim-provisioning-debug.md`.
-- Runbook: `microservices/identity/runbooks/idp-failover-drill.md`.
-- SLO: `microservices/identity/slos/oidc-token-issue-latency.openslo.yaml`.
-- SLO: `microservices/identity/slos/oidc-token-verify-latency.openslo.yaml`.
-- SLO: `microservices/identity/slos/webauthn-authenticate-latency.openslo.yaml`.
-- SLO: `microservices/identity/slos/scim-availability.openslo.yaml`.
-- SLO: `microservices/identity/slos/audit-emit-completeness.openslo.yaml`.
-- Contract: `microservices/identity/contracts/openapi/identity.yaml`.
-- Contract: `microservices/identity/contracts/asyncapi/identity-events.yaml`.
-- Contract: `microservices/identity/contracts/proto/identity.proto`.
+- Runbook: `iam/identity/runbooks/jwks-rotation.md`.
+- Runbook: `iam/identity/runbooks/passkey-replay-attack-response.md`.
+- Runbook: `iam/identity/runbooks/passkey-reset.md`.
+- Runbook: `iam/identity/runbooks/scim-provisioning-debug.md`.
+- Runbook: `iam/identity/runbooks/idp-failover-drill.md`.
+- SLO: `iam/observability/slos/identity/oidc-token-issue-latency.openslo.yaml`.
+- SLO: `iam/observability/slos/identity/oidc-token-verify-latency.openslo.yaml`.
+- SLO: `iam/observability/slos/identity/webauthn-authenticate-latency.openslo.yaml`.
+- SLO: `iam/observability/slos/identity/scim-availability.openslo.yaml`.
+- SLO: `iam/observability/slos/identity/audit-emit-completeness.openslo.yaml`.
+- Contract: `iam/identity/contracts/openapi/identity.yaml`.
+- Contract: `iam/identity/contracts/asyncapi/identity-events.yaml`.
+- Contract: `iam/identity/contracts/proto/identity.proto`.
 - Sample tenant fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Sample tenant fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
 - ADR: `docs/decisions/ADR-0709-general-live-apex.md`.

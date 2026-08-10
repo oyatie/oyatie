@@ -29,7 +29,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/elevation?orgId=1&var-cell=prod-us-east-1`.
 - Session dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/session-recording?orgId=1&var-surface=jit`.
 - Loki query: `{namespace="cloud-iam",runbook="just-in-time-elevation-misuse"}`.
-- Canonical FAQ: `microservices/cloud-iam/faqs/iam-engineer-faq.md`.
+- Canonical FAQ: `iam/cloud-iam/faqs/iam-engineer-faq.md`.
 - Related action: `cloud_iam::Action::EmergencyBreakGlass`.
 - Related action: `cloud_iam::Action::IssueCrossTenantToken`.
 - Related action: `cloud_iam::Action::TranslateToAwsIam`.

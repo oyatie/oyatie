@@ -27,7 +27,7 @@ spec:
     - name: ADR-0131 flat layout
       score: 5
       max: 5
-      evidence: directory under microservices/consent-graph/; no nested suite
+      evidence: directory under iam/consent-graph/; no nested suite
     - name: ADR-0132 no-grouping policy
       score: 5
       max: 5

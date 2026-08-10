@@ -29,9 +29,9 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/federation?orgId=1&var-cell=prod-us-east-1`.
 - JIT dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/jit-provisioning?orgId=1&var-cell=prod-us-east-1`.
 - Loki query: `{namespace="cloud-iam",runbook="federated-identity-provider-stall"}`.
-- Canonical docs: `microservices/cloud-iam/tutorials/federate-okta-saml-and-issue-scoped-token.md`.
-- Related FAQ: `microservices/cloud-iam/faqs/iam-engineer-faq.md`.
-- Related migration guide: `microservices/cloud-iam/migration-playbooks/from-okta-and-aws-iam.md`.
+- Canonical docs: `iam/cloud-iam/tutorials/federate-okta-saml-and-issue-scoped-token.md`.
+- Related FAQ: `iam/cloud-iam/faqs/iam-engineer-faq.md`.
+- Related migration guide: `iam/cloud-iam/migration-playbooks/from-okta-and-aws-iam.md`.
 
 ## Trigger Conditions
 - Alert `CloudIamFederationLoginSuccessBurn` fires for any production cell.

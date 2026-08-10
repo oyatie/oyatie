@@ -1,5 +1,5 @@
 //! Acceptance tests for the workload-identity service core, grounded in
-//! `microservices/identity/workload-identity/PRD.md` §6.
+//! `iam/identity/workload-identity/PRD.md` §6.
 //!
 //! These drive the FULL flow through the REAL adapters — a genuine ES256 JWT is
 //! minted with `ring`, validated by the real OIDC adapter, and authorized by the

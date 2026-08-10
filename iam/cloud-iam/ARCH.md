@@ -17,9 +17,9 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-iam/manifest.json
-  - microservices/cloud-iam/PRD.md
-  - microservices/cloud-iam/README.md
+  - iam/cloud-iam/manifest.json
+  - iam/cloud-iam/PRD.md
+  - iam/cloud-iam/README.md
 ---
 
 # Architecture: Cloud IAM

@@ -92,13 +92,13 @@ Every SCIM operation that mutates emits an audit event to the audit-emitter:
 
 - Counterpart class: workforce lifecycle.
 - ServiceNow workforce workflows and GitHub enterprise SSO show the baseline for enterprise identity lifecycle; this IP keeps Oyatie stronger by routing lifecycle changes through SCIM/HRIS contracts, tenant-scoped Cedar, and audit-chain evidence instead of relying on tenant-admin convention.
-- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `iam/identity/PRD.md`, `iam/identity/manifest.json`, and the contract/policy files cited above.
 
 ## Sustainability emission (per ADR-0344)
 
 - Authority: ADR-0344.
-- Trigger evidence: `microservices/identity/IP-008-scim-adapter-zitadel.md` matched `emission`.
+- Trigger evidence: `iam/identity/IP-008-scim-adapter-zitadel.md` matched `emission`.
 - Per-call audit row fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`.
-- Emission evidence: `microservices/identity/manifest.json` plus this IP's metered trigger text.
+- Emission evidence: `iam/identity/manifest.json` plus this IP's metered trigger text.
 - Carbon-aware scheduling: eligible only when ADR-0344 D-9 compliance-pack exclusions do not bar deferral; otherwise the Cedar scheduler rejects delay while still emitting carbon fields.
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell.

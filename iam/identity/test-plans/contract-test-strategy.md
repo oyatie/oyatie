@@ -274,12 +274,12 @@ Every conformance set ties back to consumer-driven pacts and explicit SemVer gat
 ## CI Pipeline Integration
 
 - GitHub Actions job: `identity-contract-test-strategy`.
-- Command: `oya contract openapi validate microservices/identity/contracts/openapi/identity.yaml --version 3.2.0`.
-- Command: `oya contract openapi validate microservices/identity/contracts/openapi/multi-context-split.yaml --version 3.2.0`.
-- Command: `oya contract asyncapi validate microservices/identity/contracts/asyncapi/identity-events.yaml --version 3.1.0`.
-- Command: `oya contract asyncapi validate microservices/identity/contracts/asyncapi/multi-context-events.yaml --version 3.1.0`.
-- Command: `buf lint microservices/identity/contracts/proto`.
-- Command: `buf breaking microservices/identity/contracts/proto --against .git#branch=dev`.
+- Command: `oya contract openapi validate iam/identity/contracts/openapi/identity.yaml --version 3.2.0`.
+- Command: `oya contract openapi validate iam/identity/contracts/openapi/multi-context-split.yaml --version 3.2.0`.
+- Command: `oya contract asyncapi validate iam/identity/contracts/asyncapi/identity-events.yaml --version 3.1.0`.
+- Command: `oya contract asyncapi validate iam/identity/contracts/asyncapi/multi-context-events.yaml --version 3.1.0`.
+- Command: `buf lint iam/identity/contracts/proto`.
+- Command: `buf breaking iam/identity/contracts/proto --against .git#branch=dev`.
 - Command: `cargo test -p oya-identity-contract-tests --all-features`.
 - Command: `cargo test -p oya-identity-consumer-pacts --all-features`.
 - Governance crate enforcement: `oya-governance-substance-bar`.
@@ -321,21 +321,21 @@ Every conformance set ties back to consumer-driven pacts and explicit SemVer gat
 
 ## Cross-References
 
-- Unit companion: `microservices/identity/test-plans/unit-test-strategy.md`.
-- Integration companion: `microservices/identity/test-plans/integration-test-strategy.md`.
-- Manifest: `microservices/identity/manifest.json`.
+- Unit companion: `iam/identity/test-plans/unit-test-strategy.md`.
+- Integration companion: `iam/identity/test-plans/integration-test-strategy.md`.
+- Manifest: `iam/identity/manifest.json`.
 - Architecture: `microservices/identity/ARCHITECTURE.md`.
-- Contract: `microservices/identity/contracts/openapi/identity.yaml`.
-- Contract: `microservices/identity/contracts/openapi/multi-context-split.yaml`.
-- Contract: `microservices/identity/contracts/asyncapi/identity-events.yaml`.
-- Contract: `microservices/identity/contracts/asyncapi/multi-context-events.yaml`.
-- Contract: `microservices/identity/contracts/proto/identity.proto`.
-- Contract: `microservices/identity/contracts/proto/multi_context_split.proto`.
-- Runbook: `microservices/identity/runbooks/jwks-rotation.md`.
-- Runbook: `microservices/identity/runbooks/passkey-replay-attack-response.md`.
-- Runbook: `microservices/identity/runbooks/scim-provisioning-debug.md`.
-- SLO: `microservices/identity/slos/jwks-availability.openslo.yaml`.
-- SLO: `microservices/identity/slos/audit-emit-completeness.openslo.yaml`.
+- Contract: `iam/identity/contracts/openapi/identity.yaml`.
+- Contract: `iam/identity/contracts/openapi/multi-context-split.yaml`.
+- Contract: `iam/identity/contracts/asyncapi/identity-events.yaml`.
+- Contract: `iam/identity/contracts/asyncapi/multi-context-events.yaml`.
+- Contract: `iam/identity/contracts/proto/identity.proto`.
+- Contract: `iam/identity/contracts/proto/multi_context_split.proto`.
+- Runbook: `iam/identity/runbooks/jwks-rotation.md`.
+- Runbook: `iam/identity/runbooks/passkey-replay-attack-response.md`.
+- Runbook: `iam/identity/runbooks/scim-provisioning-debug.md`.
+- SLO: `iam/observability/slos/identity/jwks-availability.openslo.yaml`.
+- SLO: `iam/observability/slos/identity/audit-emit-completeness.openslo.yaml`.
 - Consumer surface: `microservices/messenger/contracts/openapi/messenger.yaml`.
 - Consumer surface: `microservices/drive/contracts/openapi/drive.yaml`.
 - Consumer surface: `microservices/payments/contracts/openapi-v1.yaml`.

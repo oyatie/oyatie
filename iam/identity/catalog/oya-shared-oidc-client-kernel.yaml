@@ -4,7 +4,7 @@ context: shared
 bounded_context: oidc-client
 plane: control
 slo: oya-identity-oidc-token-verify-latency
-contracts_consumed: [microservices/identity/contracts/openapi/identity.yaml#/components/schemas/Jwks]
+contracts_consumed: [iam/identity/contracts/openapi/identity.yaml#/components/schemas/Jwks]
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: { state: stable, preview_since: 2026-05-18, stable_since: 2026-05-18 }

@@ -129,5 +129,5 @@ The kernel distinguishes failure classes so consumers can choose response code:
 
 - Counterpart class: issuer / federation.
 - GitHub enterprise SSO and ServiceNow external IdP federation are the counterpart baseline for workforce login; this IP keeps Oyatie differentiated by preserving per-pack issuer boundaries, JWKS evidence, and provider-BYOK separation.
-- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `iam/identity/PRD.md`, `iam/identity/manifest.json`, and the contract/policy files cited above.
 

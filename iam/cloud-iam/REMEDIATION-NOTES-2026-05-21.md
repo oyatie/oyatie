@@ -10,7 +10,7 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- None; inventory found no Redis references in `microservices/cloud-iam/`.
+- None; inventory found no Redis references in `iam/cloud-iam/`.
 
 Counterpart-fact preservations:
 - None.
@@ -20,7 +20,7 @@ Files renamed (git mv):
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
-D3-BUCKET-1 did not modify `PRD.md` because `microservices/cloud-iam/PRD.md` and `microservices/cloud-iam/manifest.json` are absent. The D-3 procedure requires the current PRD, manifest, and representative IPs before writing manifest-bound doctrine.
+D3-BUCKET-1 did not modify `PRD.md` because `iam/cloud-iam/PRD.md` and `iam/cloud-iam/manifest.json` are absent. The D-3 procedure requires the current PRD, manifest, and representative IPs before writing manifest-bound doctrine.
 
 Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_version_pinning, or OSS stewardship declarations were available. ADRs implicated once artifacts exist: ADR-0338, ADR-0340, ADR-0342, ADR-0343, ADR-0344, and ADR-0345; ADR-0341 likely applies because identity is cellular placement-sensitive; ADR-0339 applies only if `iac/<context>/` wrappers exist. Alternatives considered: infer from identity criticality or from cloud-k8s/cloud-iac substrate values; rejected because cloud-iam is likely a Tier-0 identity surface and wrong DR/capacity numbers would be unsafe. Cost: PRD and manifest authoring must precede doctrine propagation.
 
@@ -62,7 +62,7 @@ Follow-ups:
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md, microservices/cloud-iam/feature-parity-matrix-2026-05-20.md, crates/oya-cloud-iam-api/src/lib.rs.
+- Values: pod_runtime_tier=1; evidence=iam/cloud-iam/performance-benchmark-numbers-2026-05-20.md, iam/cloud-iam/feature-parity-matrix-2026-05-20.md, crates/oya-cloud-iam-api/src/lib.rs.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-0.
 - Why: Foundation identity substrate: cloud-iam handles tenant principals, authorization, STS, and provider projection data, matching ADR-0338's Tier-1 floor for cloud-iam and ADR-0340's Tier-0 cellular class.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

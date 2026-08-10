@@ -8,7 +8,7 @@ info:
     Authority: ADR-0214 Cross-Tenant Real-Time Visibility.
   contact:
     name: axis-consent-graph
-    url: https://docs.oya.dev/microservices/consent-graph/
+    url: https://docs.oya.dev/iam/consent-graph/
   license:
     name: oyatie Proprietary
 servers:

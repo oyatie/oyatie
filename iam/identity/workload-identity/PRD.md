@@ -29,7 +29,7 @@ research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
 > Scope note. This PRD covers the **workload-identity** bounded context only —
 > machine-to-machine (non-human) identity and authorization, per ADR-0002 and
 > the `oya-identity-workload-*` crates. It is deliberately distinct from the
-> human-identity PRD at `microservices/identity/PRD.md` (OIDC issuer, WebAuthn,
+> human-identity PRD at `iam/identity/PRD.md` (OIDC issuer, WebAuthn,
 > SCIM, step-up), which it does not modify. Every recommendation here is grounded
 > in the cited hyperscaler research brief
 > (`microservices/identity/design/hyperscaler-best-practice-brief.md`).

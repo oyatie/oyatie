@@ -72,7 +72,7 @@ permit (
 
 // =============================================================================
 // (3) Forbid demo_trial principals that exceed the cap shape.
-//     Caps load from microservices/identity/capabilities/tenant-class-caps.yaml
+//     Caps load from iam/identity/capabilities/tenant-class-caps.yaml
 //     and reach Cedar via the per-µservice context resolver
 //     (ADR-0243 §D-1).
 // =============================================================================

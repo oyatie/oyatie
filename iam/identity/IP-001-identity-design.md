@@ -17,7 +17,7 @@ research_brief: microservices/identity/design/hyperscaler-best-practice-brief.md
 
 # IP-001 — Workload-Identity Design Implementation Plan
 
-> Implements the design in `microservices/identity/workload-identity/PRD.md`.
+> Implements the design in `iam/identity/workload-identity/PRD.md`.
 > Distinct from `IP-001-zitadel-helm-per-pack.md` (human-identity Zitadel
 > deployment); this IP lands the machine-to-machine workload-identity slice
 > (ADR-0002 task T3). Grounded in `design/hyperscaler-best-practice-brief.md`.
@@ -109,7 +109,7 @@ pub trait WorkloadAuthorizer: Send + Sync {
 
 The evaluator enforces: default-deny; forbid-overrides-permit; the lifecycle
 precondition (non-`Active` → deny via `forbid-suspended-principal`); tenant ==
-trust-domain. It loads `microservices/identity/policy/identity.cedar`. The
+trust-domain. It loads `iam/identity/policy/identity.cedar`. The
 upstream `cedar-policy` crate is the documented drop-in swap behind the same trait.
 
 Tests (≥10): explicit permit; explicit forbid wins over permit; implicit deny
@@ -151,5 +151,5 @@ Maps to PRD §6 (AC-W-01 … AC-W-18). The slice is complete when:
 ## Test plan reference
 
 Unit + contract + integration strategy mirrors the existing identity test-plans
-(`microservices/identity/test-plans/`); the threat matrix in
+(`iam/identity/test-plans/`); the threat matrix in
 `threat-model.md#workload-identity-threat-model` is the source of the verifier test cases.

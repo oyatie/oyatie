@@ -4,14 +4,14 @@
 
 1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md` D-15 through D-20, especially D-20.152 requiring benchmark disclosure by OS, architecture, deployment context, and tenant class.
 2. Machine-readable direction: `specs/master-plan-sequencing.json` lines 704-867 for all six deployment contexts, OpenTofu, OS support, Rust-only build policy, and OCI Always Free.
-3. Service-local tenant_class policy targets: ADR-0329 + ADR-0330 + ADR-0331 lines 12-78 and `microservices/cloud-iam/benchmarks/cloud-iam-vs-aws-iam-vs-gcp-iam-vs-okta-vs-entra.md` lines 1-88.
+3. Service-local tenant_class policy targets: ADR-0329 + ADR-0330 + ADR-0331 lines 12-78 and `iam/cloud-iam/benchmarks/cloud-iam-vs-aws-iam-vs-gcp-iam-vs-okta-vs-entra.md` lines 1-88.
 4. Product-level SLO: `docs/products/cloud/PRD.md` line 172 states IAM plus STS p99 <= 100 ms and 99.99% availability.
 5. Counterpart public numbers: AWS IAM/STS quotas at `https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html`, Google IAM quotas at `https://docs.cloud.google.com/iam/quotas`, Microsoft Graph throttling at `https://learn.microsoft.com/en-us/graph/throttling-limits`, and Microsoft access-token lifetime docs at `https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens`.
 
 ## Explicit Methodology Disclosure
 
 These are target numbers and sourced comparator limits, not fresh measured Oyatie benchmark results.
-The existing service benchmark document claims measurements from 2026-04-22 through 2026-05-14, but this audit found no signed benchmark evidence under `microservices/cloud-iam/`.
+The existing service benchmark document claims measurements from 2026-04-22 through 2026-05-14, but this audit found no signed benchmark evidence under `iam/cloud-iam/`.
 Measured benchmarks must be added in the build phase under ADR-0212 with signed evidence, reproducible harnesses, hardware/context disclosures, and CI retention.
 Counterpart "numbers" below are public quotas, limits, documented token lifetimes, and publicly documented throughput ceilings where official docs publish them.
 When counterpart latency is not published, this report does not invent measured latency.

@@ -4,7 +4,7 @@
 
 1. Canonical service direction: `docs/decisions/ADR-0700-ci-admission-live-apex.md` D-15 through D-20, plus `docs/standards/brief-template.md` lines 746-758 requiring `cloud-iam` across all six contexts.
 2. Machine-readable direction: `specs/master-plan-sequencing.json` deployment contexts lines 704-745, OpenTofu substrate lines 747-775, supported OSes lines 777-815, language policy lines 817-855, and OCI Always Free lines 856-867.
-3. Service-local purpose: ADR-0329 + ADR-0330 + ADR-0331 lines 7-91, `microservices/cloud-iam/faqs/iam-engineer-faq.md` lines 7-182, and `microservices/cloud-iam/reference-implementations/issue-scoped-token-rust-sdk.md` lines 1-182.
+3. Service-local purpose: ADR-0329 + ADR-0330 + ADR-0331 lines 7-91, `iam/cloud-iam/faqs/iam-engineer-faq.md` lines 7-182, and `iam/cloud-iam/reference-implementations/issue-scoped-token-rust-sdk.md` lines 1-182.
 4. Product-level cloud contract: `docs/products/cloud/PRD.md` lines 117-120 and 172-204; historical coverage inventory at `docs/DOC-COVERAGE.md` lines 130-136 is provenance only and is not current product-state evidence.
 5. Counterpart sources: AWS IAM docs at `https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html`, AWS IAM Identity Center docs at `https://docs.aws.amazon.com/en_en/singlesignon/latest/userguide/what-is.html`, Google Cloud IAM docs at `https://docs.cloud.google.com/iam/docs/overview`, and Microsoft Entra docs at `https://learn.microsoft.com/en-us/entra/fundamentals/what-is-entra`.
 

@@ -5,7 +5,7 @@ bounded_context: webauthn-relying-party
 plane: control
 slo: oya-identity-webauthn-authenticate-latency
 contracts_consumed: []
-contracts_exposed: [microservices/identity/contracts/openapi/identity.yaml#/paths/webauthn]
+contracts_exposed: [iam/identity/contracts/openapi/identity.yaml#/paths/webauthn]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: { state: incubating, preview_since: 2026-05-18, stable_since: null, deprecated_since: null }
 traceability:

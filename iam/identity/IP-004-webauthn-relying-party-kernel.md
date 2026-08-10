@@ -134,5 +134,5 @@ IP remains the kernel-level ceremony state machine and adapter-boundary anchor.
 
 - Counterpart class: passkey / recovery assurance.
 - GitHub account security and Twilio Verify show the user-facing recovery and step-up baseline; this IP keeps Oyatie stronger by binding the credential or recovery decision to tenant context, ACR, and sealed identity audit events rather than treating MFA as an app-local add-on.
-- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `iam/identity/PRD.md`, `iam/identity/manifest.json`, and the contract/policy files cited above.
 

@@ -5,7 +5,7 @@ ip_id: IP-001
 microservice: identity
 status: ga
 related_adrs: [ADR-0117, ADR-0179, ADR-0187, ADR-0148]
-related_iac: [microservices/identity/iac/helm/zitadel/]
+related_iac: [iam/identity/iac/helm/zitadel/]
 date: 2026-05-18
 owner_team: axis-identity + ops-platform
 ---
@@ -20,28 +20,28 @@ Deploy Zitadel v2.55.0 via Helm chart v9.34.1 to each regulatory pack with full 
 
 | File | Purpose | Size estimate |
 |---|---|---|
-| `microservices/identity/iac/helm/zitadel/Chart.yaml` | Helm chart metadata + Zitadel dependency pin v9.34.1 | 25 lines |
-| `microservices/identity/iac/helm/zitadel/values.yaml` | Default values: 3 replicas, image tag v2.55.0, Postgres DSN via SecretReference | 180 lines |
-| `microservices/identity/iac/helm/zitadel/templates/deployment.yaml` | Deployment with SecretReference env + Istio sidecar annotations | 95 lines |
-| `microservices/identity/iac/helm/zitadel/templates/service.yaml` | ClusterIP service exposing 8080 (admin) + 8443 (OIDC) | 30 lines |
-| `microservices/identity/iac/helm/zitadel/templates/ingress.yaml` | Istio Ambient ingress binding to `identity-<pack>.oyatie.com` | 45 lines |
-| `microservices/identity/iac/helm/zitadel/templates/hpa.yaml` | HPA: min 3, max 20, 70% CPU + 80% memory target | 35 lines |
-| `microservices/identity/iac/helm/zitadel/templates/pdb.yaml` | PodDisruptionBudget: minAvailable=2 | 15 lines |
-| `microservices/identity/iac/helm/zitadel/templates/networkpolicy.yaml` | Restrict ingress to Envoy waypoint + Postgres egress only | 55 lines |
-| `microservices/identity/iac/helm/zitadel/templates/serviceaccount.yaml` | SPIFFE identity binding | 20 lines |
-| `microservices/identity/iac/helm/zitadel/templates/configmap.yaml` | Zitadel runtime config (OIDC issuer, RP-ID, FIDO settings) | 70 lines |
-| `microservices/identity/iac/kustomize/overlays/pack-kr/values.yaml` | KR overlay: KR-FSS HSM partition, KR-Seoul region | 35 lines |
-| `microservices/identity/iac/kustomize/overlays/pack-eu/values.yaml` | EU overlay: EU-Frankfurt region, GDPR residency labels | 30 lines |
+| `iam/identity/iac/helm/zitadel/Chart.yaml` | Helm chart metadata + Zitadel dependency pin v9.34.1 | 25 lines |
+| `iam/identity/iac/helm/zitadel/values.yaml` | Default values: 3 replicas, image tag v2.55.0, Postgres DSN via SecretReference | 180 lines |
+| `iam/identity/iac/helm/zitadel/templates/deployment.yaml` | Deployment with SecretReference env + Istio sidecar annotations | 95 lines |
+| `iam/identity/iac/helm/zitadel/templates/service.yaml` | ClusterIP service exposing 8080 (admin) + 8443 (OIDC) | 30 lines |
+| `iam/identity/iac/helm/zitadel/templates/ingress.yaml` | Istio Ambient ingress binding to `identity-<pack>.oyatie.com` | 45 lines |
+| `iam/identity/iac/helm/zitadel/templates/hpa.yaml` | HPA: min 3, max 20, 70% CPU + 80% memory target | 35 lines |
+| `iam/identity/iac/helm/zitadel/templates/pdb.yaml` | PodDisruptionBudget: minAvailable=2 | 15 lines |
+| `iam/identity/iac/helm/zitadel/templates/networkpolicy.yaml` | Restrict ingress to Envoy waypoint + Postgres egress only | 55 lines |
+| `iam/identity/iac/helm/zitadel/templates/serviceaccount.yaml` | SPIFFE identity binding | 20 lines |
+| `iam/identity/iac/helm/zitadel/templates/configmap.yaml` | Zitadel runtime config (OIDC issuer, RP-ID, FIDO settings) | 70 lines |
+| `iam/identity/iac/kustomize/overlays/pack-kr/values.yaml` | KR overlay: KR-FSS HSM partition, KR-Seoul region | 35 lines |
+| `iam/identity/iac/kustomize/overlays/pack-eu/values.yaml` | EU overlay: EU-Frankfurt region, GDPR residency labels | 30 lines |
 | `microservices/identity/iac/kustomize/overlays/pack-us/values.yaml` | US standard pack overlay | 25 lines |
-| `microservices/identity/iac/kustomize/overlays/pack-us-healthcare/values.yaml` | HIPAA-eligible HSM, 6-year audit retention env | 40 lines |
-| `microservices/identity/iac/kustomize/overlays/pack-ksa/values.yaml` | Sovereign KSA-Riyadh; Thales Luna HSM | 35 lines |
-| `microservices/identity/iac/kustomize/overlays/pack-ae/values.yaml` | UAE-Dubai overlay | 30 lines |
+| `iam/identity/iac/kustomize/overlays/pack-us-healthcare/values.yaml` | HIPAA-eligible HSM, 6-year audit retention env | 40 lines |
+| `iam/identity/iac/kustomize/overlays/pack-ksa/values.yaml` | Sovereign KSA-Riyadh; Thales Luna HSM | 35 lines |
+| `iam/identity/iac/kustomize/overlays/pack-ae/values.yaml` | UAE-Dubai overlay | 30 lines |
 
 ## Tests to write
 
 | Test | Type | Acceptance |
 |---|---|---|
-| `helm lint microservices/identity/iac/helm/zitadel` | static | exit 0, no warnings beyond known-acceptable |
+| `helm lint iam/identity/iac/helm/zitadel` | static | exit 0, no warnings beyond known-acceptable |
 | `helm template ... | kubectl apply --dry-run=server -f -` | server-side dry-run | every K8s resource validates |
 | `kyverno-cli scan helm-rendered.yaml` against `policy/kyverno/zitadel-baseline.yaml` | admission | required-labels, image-pin, no-root, no-privileged-escalation pass |
 | Cilium NetworkPolicy compile-check | static | policy renders to valid CiliumNetworkPolicy |
@@ -88,7 +88,7 @@ Every secret consumed via OpenBao SecretReference per ADR-0117:
 
 ## Promotion path
 
-1. `helm install zitadel ./microservices/identity/iac/helm/zitadel --namespace identity-dev --values overlays/dev/values.yaml`.
+1. `helm install zitadel ./iam/identity/iac/helm/zitadel --namespace identity-dev --values overlays/dev/values.yaml`.
 2. Smoke test: verify discovery + introspect.
 3. Promote to staging.
 4. Promote to pack-eu (bellwether) per ADR-0130.
@@ -102,5 +102,5 @@ Every secret consumed via OpenBao SecretReference per ADR-0117:
 
 - Counterpart class: identity substrate.
 - Palantir Foundry and GitHub Enterprise are the counterpart baseline for governed multi-tenant identity surfaces; this IP ties the slice to Oyatie identity contracts, Cedar, and audit-chain evidence rather than leaving the behavior as generic application authentication.
-- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `iam/identity/PRD.md`, `iam/identity/manifest.json`, and the contract/policy files cited above.
 

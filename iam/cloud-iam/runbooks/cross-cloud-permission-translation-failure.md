@@ -29,7 +29,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/translation?orgId=1&var-cell=prod-us-east-1`.
 - Audit dashboard: `https://grafana.dev.oyatie.internal/d/cloud-iam-substrate/audit-chain?orgId=1&var-surface=translation`.
 - Loki query: `{namespace="cloud-iam",runbook="cross-cloud-permission-translation-failure"}`.
-- Canonical docs: `microservices/cloud-iam/faqs/iam-engineer-faq.md`.
+- Canonical docs: `iam/cloud-iam/faqs/iam-engineer-faq.md`.
 - Related policy path: `crates/oya-cloud-iam-domain`.
 - Related API tests: `crates/oya-cloud-iam-api/tests/cloud_iam_api.rs`.
 

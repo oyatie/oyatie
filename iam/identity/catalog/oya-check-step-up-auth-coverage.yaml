@@ -4,7 +4,7 @@ context: governance
 bounded_context: step-up-auth-coverage
 plane: control
 slo: null
-contracts_consumed: [microservices/identity/contracts/openapi/identity.yaml]
+contracts_consumed: [iam/identity/contracts/openapi/identity.yaml]
 contracts_exposed: []
 regulatory_packs_consumed: []
 lifecycle: { state: stable, preview_since: 2026-05-18, stable_since: 2026-05-18 }

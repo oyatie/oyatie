@@ -1,4 +1,4 @@
-# microservices/identity/capabilities/tenant-class-caps.yaml
+# iam/identity/capabilities/tenant-class-caps.yaml
 # Per ADR-0331 §D-5. tenant_class quota declarations for the identity µservice.
 # Per ADR-0322 substance bar: every numeric value below is bespoke for identity.
 

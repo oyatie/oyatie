@@ -8,11 +8,11 @@ owner_team: axis-identity
 created_at: 2026-05-26
 related_adrs: [ADR-0002, ADR-0131, ADR-0183]
 related_artifacts:
-  - microservices/identity/workload-identity/PRD.md
-  - microservices/identity/contracts/identity.openapi.yaml
-  - microservices/identity/contracts/identity.asyncapi.yaml
-  - microservices/identity/contracts/identity.proto
-  - microservices/identity/policy/identity.cedar
+  - iam/identity/workload-identity/PRD.md
+  - iam/identity/contracts/identity.openapi.yaml
+  - iam/identity/contracts/identity.asyncapi.yaml
+  - iam/identity/contracts/identity.proto
+  - iam/identity/policy/identity.cedar
 
 capabilities:
   - id: cap:identity:workload-authorize:v1

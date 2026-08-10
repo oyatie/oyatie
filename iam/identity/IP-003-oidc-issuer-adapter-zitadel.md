@@ -76,23 +76,23 @@ Wire the `oya-shared-oidc-client-kernel` trait to a concrete Zitadel-talking ada
 
 - Counterpart class: issuer / federation.
 - GitHub enterprise SSO and ServiceNow external IdP federation are the counterpart baseline for workforce login; this IP keeps Oyatie differentiated by preserving per-pack issuer boundaries, JWKS evidence, and provider-BYOK separation.
-- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `iam/identity/PRD.md`, `iam/identity/manifest.json`, and the contract/policy files cited above.
 
 ## DR posture (per ADR-0343)
 
 - Authority: ADR-0343.
-- Trigger evidence: `microservices/identity/IP-003-oidc-issuer-adapter-zitadel.md` matched `p99`.
+- Trigger evidence: `iam/identity/IP-003-oidc-issuer-adapter-zitadel.md` matched `p99`.
 - Numeric target: `rto_p99_seconds=30`, `rpo_p99_seconds=0` from manifest.json#rpo_rto.
-- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), PCI-DSS-L1-v4(86400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/identity/manifest.json`.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), PCI-DSS-L1-v4(86400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `iam/identity/manifest.json`.
 - Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
 - Backup substrate: `postgres_wal_g`, `valkey_cluster`, `openbao_seal_unseal`, `audit_chain_merkle_seal`.
-- Runtime evidence: `microservices/identity/slos/oidc-token-issue-latency.openslo.yaml`, `microservices/identity/slos/oidc-token-verify-latency.openslo.yaml`, `microservices/identity/slos/webauthn-authenticate-latency.openslo.yaml`, `microservices/identity/slos/scim-availability.openslo.yaml`, `microservices/identity/policy/cedar-acr-predicates.cedar`.
+- Runtime evidence: `iam/observability/slos/identity/oidc-token-issue-latency.openslo.yaml`, `iam/observability/slos/identity/oidc-token-verify-latency.openslo.yaml`, `iam/observability/slos/identity/webauthn-authenticate-latency.openslo.yaml`, `iam/observability/slos/identity/scim-availability.openslo.yaml`, `iam/identity/policy/cedar-acr-predicates.cedar`.
 
 ## Sustainability emission (per ADR-0344)
 
 - Authority: ADR-0344.
-- Trigger evidence: `microservices/identity/IP-003-oidc-issuer-adapter-zitadel.md` matched `emission`.
+- Trigger evidence: `iam/identity/IP-003-oidc-issuer-adapter-zitadel.md` matched `emission`.
 - Per-call audit row fields: `cost_usd_minor_units`, `co2_grams`, `watt_hours`.
-- Emission evidence: `microservices/identity/manifest.json` plus this IP's metered trigger text.
+- Emission evidence: `iam/identity/manifest.json` plus this IP's metered trigger text.
 - Carbon-aware scheduling: not deferrable for runtime placement; carbon fields still emit, but ADR-0344 D-9 compliance-pack and realtime exclusions block carbon-aware delay.
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell.

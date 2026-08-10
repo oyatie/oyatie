@@ -129,7 +129,7 @@
       "id": "IP-001-wave-d-iam-baseline",
       "title": "Wave-D IAM baseline from feature and performance matrices",
       "acceptance_status": "ga",
-      "file": "microservices/cloud-iam/feature-parity-matrix-2026-05-20.md"
+      "file": "iam/cloud-iam/feature-parity-matrix-2026-05-20.md"
     }
   ],
   "regulatory_packs": [
@@ -291,8 +291,8 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Foundation identity substrate: cloud-iam handles tenant principals, authorization, STS, and provider projection data, matching ADR-0338's Tier-1 floor for cloud-iam and ADR-0340's Tier-0 cellular class.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/cloud-iam/performance-benchmark-numbers-2026-05-20.md",
-    "microservices/cloud-iam/feature-parity-matrix-2026-05-20.md",
+    "iam/cloud-iam/performance-benchmark-numbers-2026-05-20.md",
+    "iam/cloud-iam/feature-parity-matrix-2026-05-20.md",
     "crates/oya-cloud-iam-api/src/lib.rs"
   ],
   "tenant_version_pinning": {

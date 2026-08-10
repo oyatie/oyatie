@@ -74,9 +74,9 @@ doc_status: published
 18. Inspect feature flags: `oya flags get oya.identity.tenant_admin_onboard.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status identity-tenant-admin-onboard-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n identity rollout history deploy/identity-tenant-admin-onboard-worker | tail -20`.
-21. Check policy file: `test -f microservices/identity/policy/operator-recovery.cedar || test -f microservices/identity/policy/operator-recovery.md`.
-22. Check SLO files: `ls microservices/identity/slos/*.openslo.yaml | sort`.
-23. Check catalog components: `find microservices/identity/catalog -maxdepth 1 -type f | sort | rg "identity|tenant"`.
+21. Check policy file: `test -f iam/identity/policy/operator-recovery.cedar || test -f microservices/identity/policy/operator-recovery.md`.
+22. Check SLO files: `ls iam/observability/slos/identity/*.openslo.yaml | sort`.
+23. Check catalog components: `find iam/identity/catalog -maxdepth 1 -type f | sort | rg "identity|tenant"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_identity_tenant_admin_onboard_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice identity --runbook tenant-admin-onboard --output evidence/incidents/$INCIDENT_ID.json`.
 
@@ -116,7 +116,7 @@ Tenant Admin Onboard incident decision tree
 12. Raise HPA cap if saturation: `kubectl -n identity patch hpa identity-tenant-admin-onboard-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface identity.tenant-admin-onboard --rps 25 --ttl 30m`.
 14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/identity/runbooks/tenant-admin-onboard.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths iam/identity/runbooks/tenant-admin-onboard.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice identity --incident $INCIDENT_ID --channel #inc-identity-security`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-identity --incident $INCIDENT_ID --summary tenant-admin-onboard`.
 18. Confirm breaker effect: `oya ops breaker status identity-tenant-admin-onboard-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -142,15 +142,15 @@ Tenant Admin Onboard incident decision tree
   - Required audit: emit `EVT-IDENTITY-TENANT_ADMIN_ONBOARD-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "tenant_admin_onboard|IdentityTenantAdminOnboardCritical|identity.tenant_admin_onboard.incident_state" crates microservices/identity -g "!microservices/identity/runbooks/**"`.
+1. Identify code owner path: `rg "tenant_admin_onboard|IdentityTenantAdminOnboardCritical|identity.tenant_admin_onboard.incident_state" crates microservices/identity -g "!iam/identity/runbooks/**"`.
 2. Patch domain invariant: `edit oya-identity-domain where tenant_admin_onboard state transition is validated`.
 3. Patch API guard: `edit microservices/identity/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
-4. Patch policy: `edit microservices/identity/policy/operator-recovery.cedar or .md with explicit deny/permit branch`.
+4. Patch policy: `edit iam/identity/policy/operator-recovery.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/identity/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-identity-domain tenant_admin_onboard_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate identity-tenant-admin-onboard --fixture incident-tenant-admin-onboard.json`.
-8. Add SLO assertion: `update microservices/identity/slos/* with alert IdentityTenantAdminOnboardCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/identity/dashboards/identity-overview.json with oya_identity_tenant_admin_onboard_error_ratio, oya_identity_tenant_admin_onboard_lag_seconds, and oya_identity_tenant_admin_onboard_queue_depth`.
+8. Add SLO assertion: `update iam/observability/slos/identity/* with alert IdentityTenantAdminOnboardCritical when this was a missing alert`.
+9. Add dashboard panel: `update iam/identity/dashboards/identity-overview.json with oya_identity_tenant_admin_onboard_error_ratio, oya_identity_tenant_admin_onboard_lag_seconds, and oya_identity_tenant_admin_onboard_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-identity-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-identity-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate identity-policy --microservice identity`.
@@ -167,9 +167,9 @@ Tenant Admin Onboard incident decision tree
 - `oya-identity-domain`: inspect for tenant_admin_onboard invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
 - `oya-cloud-iam-domain`: inspect for tenant_admin_onboard invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-cloud-iam-api`: inspect for tenant_admin_onboard invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
-- `microservices/identity/contracts/`: verify this surface only when the incident evidence points there.
-- `microservices/identity/dashboards/identity-overview.json`: verify this surface only when the incident evidence points there.
-- `microservices/identity/slos/`: verify this surface only when the incident evidence points there.
+- `iam/identity/contracts/`: verify this surface only when the incident evidence points there.
+- `iam/identity/dashboards/identity-overview.json`: verify this surface only when the incident evidence points there.
+- `iam/observability/slos/identity/`: verify this surface only when the incident evidence points there.
 - `microservices/identity/policy/operator-recovery.*`: verify this surface only when the incident evidence points there.
 
 ## Verification Checklist
@@ -264,8 +264,8 @@ evidence_hash: <sha256>
 - Close only after EVT-IDENTITY-TENANT_ADMIN_ONBOARD-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/identity/dashboards/` for dashboard names and operational panels.
-- `microservices/identity/slos/` for OpenSLO alert vocabulary and threshold alignment.
-- `microservices/identity/policy/` for named policy and authorization surfaces.
-- `microservices/identity/catalog/` for component and owner vocabulary.
+- `iam/identity/dashboards/` for dashboard names and operational panels.
+- `iam/observability/slos/identity/` for OpenSLO alert vocabulary and threshold alignment.
+- `iam/identity/policy/` for named policy and authorization surfaces.
+- `iam/identity/catalog/` for component and owner vocabulary.
 - Existing thin runbook topic `tenant-admin-onboard` was preserved as the scenario anchor while replacing generic steps with concrete commands.

@@ -112,14 +112,14 @@ Each event carries: `event_id (UUID v7)`, `tenant_id`, `pack`, `user_id` (when a
 
 - Counterpart class: audit and regulated evidence.
 - ServiceNow GRC and Palantir Foundry demonstrate the enterprise expectation that identity actions produce reviewable evidence; this IP requires sealed identity events and regulator/auditor-safe context rather than a flat admin log.
-- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `microservices/identity/PRD.md`, `microservices/identity/manifest.json`, and the contract/policy files cited above.
+- Verification anchor: this row intentionally includes a named counterpart from the Wave 15 grep allowlist while keeping the implementation reference service-local: `microservices/identity/competitor-parity-matrix.md`, `iam/identity/PRD.md`, `iam/identity/manifest.json`, and the contract/policy files cited above.
 
 ## DR posture (per ADR-0343)
 
 - Authority: ADR-0343.
-- Trigger evidence: `microservices/identity/IP-012-audit-emitter.md` matched `SLO`.
+- Trigger evidence: `iam/identity/IP-012-audit-emitter.md` matched `SLO`.
 - Numeric target: `rto_p99_seconds=30`, `rpo_p99_seconds=0` from manifest.json#rpo_rto.
-- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), PCI-DSS-L1-v4(86400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/identity/manifest.json`.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), PCI-DSS-L1-v4(86400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `iam/identity/manifest.json`.
 - Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
 - Backup substrate: `postgres_wal_g`, `valkey_cluster`, `openbao_seal_unseal`, `audit_chain_merkle_seal`.
-- Runtime evidence: `microservices/identity/slos/oidc-token-issue-latency.openslo.yaml`, `microservices/identity/slos/oidc-token-verify-latency.openslo.yaml`, `microservices/identity/slos/webauthn-authenticate-latency.openslo.yaml`, `microservices/identity/slos/scim-availability.openslo.yaml`, `microservices/identity/policy/cedar-acr-predicates.cedar`.
+- Runtime evidence: `iam/observability/slos/identity/oidc-token-issue-latency.openslo.yaml`, `iam/observability/slos/identity/oidc-token-verify-latency.openslo.yaml`, `iam/observability/slos/identity/webauthn-authenticate-latency.openslo.yaml`, `iam/observability/slos/identity/scim-availability.openslo.yaml`, `iam/identity/policy/cedar-acr-predicates.cedar`.
