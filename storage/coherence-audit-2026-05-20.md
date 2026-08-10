@@ -1,7 +1,7 @@
 # cloud-storage ownership-coherence audit - 2026-05-20
 
 Audit owner: single-agent cloud-storage lane.
-Scope: `/Users/jasonlee/oyatie/microservices/cloud-storage/` only for write output.
+Scope: `/Users/jasonlee/oyatie/storage/` only for write output.
 Target counterparts: AWS S3, Google Cloud Storage, Azure Blob Storage.
 Deployable contexts assumed in scope unless contradicted: oyatie-public-cloud, guest-on-aws, guest-on-oci, on-prem, colo, oyatie-as-cloud-provider.
 Audit date: 2026-05-20.
@@ -10,8 +10,8 @@ Audit date: 2026-05-20.
 
 1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2214` for §D-15 multi-context and cloud-storage ownership; `:2241-2494` for §D-16 OpenTofu; `:3441-3754` for §D-19 OCI Always Free; `:3756-4146` for §D-20 audit decision tree.
 2. Machine-readable plan: `specs/master-plan-sequencing.json:704-867` for six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
-3. Service PRD citation: service-local `microservices/cloud-storage/PRD.md` is absent; closest product-purpose evidence read is `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` plus root cloud PRD capability records `docs/products/cloud/PRD.md:1587-1665`.
-4. Service architecture citation: service-local `microservices/cloud-storage/ARCHITECTURE.md` is absent; closest architecture evidence read is root crate map `docs/products/cloud/PRD.md:131-137` and local backend explanation `microservices/cloud-storage/faqs/storage-engineer-faq.md:15-22`.
+3. Service PRD citation: service-local `storage/PRD.md` is absent; closest product-purpose evidence read is `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` plus root cloud PRD capability records `docs/products/cloud/PRD.md:1587-1665`.
+4. Service architecture citation: service-local `microservices/cloud-storage/ARCHITECTURE.md` is absent; closest architecture evidence read is root crate map `docs/products/cloud/PRD.md:131-137` and local backend explanation `storage/faqs/storage-engineer-faq.md:15-22`.
 5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` sets full-platform requirements and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability and hyperscaler-grade tests.
 
 ## §1 µservice Purpose Summary
@@ -379,7 +379,7 @@ Dimension verdict: P1 multi-context gap.
 ### §3.7 Dimension 7 - OpenTofu IaC Coverage
 
 Canonical citation: ADR-0328 §D-16 requires OpenTofu and forbids Terraform/Pulumi/CloudFormation/ARM/Bicep/shell bootstrapping.
-IaC directory inventory: no `microservices/cloud-storage/iac/` directory exists.
+IaC directory inventory: no `storage/iac/` directory exists.
 Expected directory missing: `iac/oyatie-public-cloud/`.
 Expected directory missing: `iac/guest-on-aws/`.
 Expected directory missing: `iac/oci-guest/`.
@@ -599,9 +599,9 @@ P3 findings are low-severity cleanup and future-proofing items.
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-storage
   deliverables_landed:
-    - /Users/jasonlee/oyatie/microservices/cloud-storage/coherence-audit-2026-05-20.md (617 lines)
-    - /Users/jasonlee/oyatie/microservices/cloud-storage/feature-parity-matrix-2026-05-20.md (412 lines)
-    - /Users/jasonlee/oyatie/microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md (355 lines)
+    - /Users/jasonlee/oyatie/storage/coherence-audit-2026-05-20.md (617 lines)
+    - /Users/jasonlee/oyatie/storage/feature-parity-matrix-2026-05-20.md (412 lines)
+    - /Users/jasonlee/oyatie/storage/performance-benchmark-numbers-2026-05-20.md (355 lines)
     - /Users/jasonlee/oyatie/microservices/cloud-storage/tenant-class-deltas-vs-counterparts-2026-05-20.md (397 lines)
   inventory_files_seen: 7
   inventory_lines_read: 1340

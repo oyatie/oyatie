@@ -9,7 +9,7 @@ Purpose: identify union-required object-storage capabilities and classify curren
 1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2214`, `:2241-2494`, `:3441-3754`, and `:3756-4146`.
 2. Machine-readable direction: `specs/master-plan-sequencing.json:704-867`.
 3. Service PRD citation: service-local `PRD.md` is absent; substitute purpose evidence is `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` and root cloud PRD `docs/products/cloud/PRD.md:1587-1665`.
-4. Service architecture citation: service-local `ARCHITECTURE.md` is absent; substitute architecture evidence is `microservices/cloud-storage/faqs/storage-engineer-faq.md:15-22` and root crate map `docs/products/cloud/PRD.md:131-137`.
+4. Service architecture citation: service-local `ARCHITECTURE.md` is absent; substitute architecture evidence is `storage/faqs/storage-engineer-faq.md:15-22` and root crate map `docs/products/cloud/PRD.md:131-137`.
 5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` and `docs/standards/documentation-rigor.md:133-156`.
 
 ## Source Notes

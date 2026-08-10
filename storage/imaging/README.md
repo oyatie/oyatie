@@ -214,7 +214,7 @@ See `PRD.md` §14.
 
 ## Wave 15M-G Completion Note
 
-Authored 2026-05-21 as the sole-owner imaging-µservice artifact. Supersedes the imaging portions of the concurrently-authored `diagnostics` µservice (bundled lab + imaging + pathology). No commits made. No scripting. No stamping (the anti-pattern under review). Writes restricted to `microservices/imaging/*`.
+Authored 2026-05-21 as the sole-owner imaging-µservice artifact. Supersedes the imaging portions of the concurrently-authored `diagnostics` µservice (bundled lab + imaging + pathology). No commits made. No scripting. No stamping (the anti-pattern under review). Writes restricted to `storage/imaging/*`.
 
 ---
 

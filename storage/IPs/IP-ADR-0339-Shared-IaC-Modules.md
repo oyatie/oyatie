@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `cloud-storage` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `cloud-storage` until the service-owned wrapper files under `microservices/cloud-storage/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `cloud-storage` until the service-owned wrapper files under `storage/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `cloud-storage`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -47,8 +47,8 @@ DOSSIER-CRATE-003: Existing crate `oya-cloud-storage-block-api` remains untouche
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: contracts/openapi/cloud/cloud-storage-object-v1.yaml, contracts/openapi/cloud/cloud-storage-block-v1.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: no public asyncapi file declared in manifest.
 DOSSIER-CONTRACT-003: proto3: no public proto file declared in manifest.
-DOSSIER-CAPABILITY-001: T? object-storage risk=high file=microservices/cloud-storage/feature-parity-matrix-2026-05-20.md.
-DOSSIER-CAPABILITY-002: T? block-storage risk=high file=microservices/cloud-storage/performance-benchmark-numbers-2026-05-20.md.
+DOSSIER-CAPABILITY-001: T? object-storage risk=high file=storage/feature-parity-matrix-2026-05-20.md.
+DOSSIER-CAPABILITY-002: T? block-storage risk=high file=storage/performance-benchmark-numbers-2026-05-20.md.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -296,7 +296,7 @@ ALT-004: Delay `cloud-storage` manifest declaration until implementation; reject
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/cloud-storage/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `storage/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.
