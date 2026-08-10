@@ -162,7 +162,8 @@ agent-swarm folklore. Full text: ADR-0711 D-9. Machine notes:
 
 **Swarm lessons (carried):** Bun one-implementer + adversarial reviewers; planner ≠ implementer;
 fix process not output; batch same-subsystem into one lane; re-verify at moment of action;
-never delete git locks blindly; automation stops at authority edge.
+never delete git locks blindly; automation stops at authority edge. Full KEEP/BAN clusters:
+Amendment C + `specs/gaebal-agentic-patterns.json`.
 
 ### Amendment A (2026-08-10) — imperative rules
 
@@ -217,6 +218,37 @@ Mirror of ADR-0711 Amendment B.
    `challenges[]` (Chesterton's fence: why it existed, then still replace if indefensible).
    Never a subset. If not defensible under the full battery → delete or reshape; do not silently
    follow anti-patterns.
+
+
+### Amendment C (2026-08-10) — Gaebal operating patterns
+
+Mirror of ADR-0711 Amendment C. Corpus: 137/137 Gaebal-gajae archive entries distilled into
+clusters (not paraphrases). Machine copy: `specs/gaebal-agentic-patterns.json`.
+
+**KEEP**
+
+1. **Replicated-state budget** — cleanup/ownership before scale; size by replicated mass, not lane count.
+2. **Observation ≠ authority** — denser watching does not grant intervene/APPROVE/own rights.
+3. **Verified-empty / honest halt** — completed ops; record them; do not invent filler work.
+4. **Evidence-before-done / receipt WAL** — HEAD-keyed receipts; multi-signal done; new HEAD → new evidence.
+5. **Fail-closed blockers** — name the gate + next action; silence only when proven idle.
+6. **Subsystem batch + role separation** — one lane per subsystem wave; planner ≠ implementer; accelerate on owner-hook, brake on verified empty.
+7. **Git-lock pid check** — check owning pid + retry; never blind-delete locks.
+8. **Green ≠ go** — green admits the *next* gate only; re-verify at action time; same-author APPROVE banned.
+9. **Live smoke** — build ≠ publish; post-merge until live surface is green.
+10. **Sharp labels / pattern-first** — forever names from `specs/naming-taxonomy.json`.
+
+**BAN**
+
+1. Inventing work into verified empty; activity theater; observing = intervening.
+2. Dual-home / dual-truth; sticky yesterday-green as today’s proof.
+3. Second build path / cargo revival; slow commands in lanes; shared-WD destructive git; PID kill without identity.
+4. Brand / opaque / ADR-in-title durable names (`oya-*` / `cloud-*` / ADR-in-job-title).
+5. Silent blocked “success”; rubber-stamp thread resolve; merge ego after green; observation-density scoreboards.
+
+**OVERRULE (naming):** distill notes that said keep name `oya-ci-required` are **overturned**.
+Forever name is **`merge-admission-required`**. Brand/ADR-in-title bans stand. Legacy protection
+pin is dual-emit cutover only.
 
 
 ## Auth preflight (carry-forward)
