@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
-# W0-B Slice 9 — engine identity + dual-home toolchain digests + pipeline. No Cargo.lock absorb.
+# W0-B Slice 10 — fixture-gated rulepack. No Cargo.lock absorb.
 
 [[bin]]
 name = "port-engine-app"

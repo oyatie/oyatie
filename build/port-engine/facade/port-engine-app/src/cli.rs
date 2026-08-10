@@ -1,4 +1,4 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 9).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 10).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
@@ -9,7 +9,7 @@ use crate::driver;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 9)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 10)
 
 Usage:
   port-engine-app <command> [args]
@@ -21,7 +21,7 @@ Commands:
   emit-stub         Smoke empty-renderer emit via kernel
   emit-syn          Smoke syn/quote typed emit
   digest <text>     SHA-256 digest of UTF-8 text (Slice 7 hash adapter)
-  rulepack          Load embedded rulepack v0; print content digest
+  rulepack          Load fixture-gated rulepack v0; print digest + fixture count
   plan              Plan embedded rulepack against example units
   admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture
   engine            Print Slice 9 engine identity digest
@@ -127,8 +127,11 @@ fn cmd_digest(text: Option<&str>) -> ExitCode {
 
 fn cmd_rulepack() -> ExitCode {
     match driver::smoke_rulepack() {
-        Ok(digest) => {
-            println!("rulepack=ok digest={}", digest.0);
+        Ok((digest, fixtures)) => {
+            println!(
+                "rulepack=ok digest={} selecting_fixtures={}",
+                digest.0, fixtures
+            );
             ExitCode::SUCCESS
         }
         Err(err) => {
@@ -238,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn slice9_commands_succeed() {
+    fn slice10_commands_succeed() {
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
