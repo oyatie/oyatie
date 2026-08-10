@@ -6,9 +6,9 @@ date: 2026-05-21
 related_adrs:
   - ADR-0330
 companion_docs:
-  - microservices/sites/PRD.md
-  - microservices/sites/ARCHITECTURE.md
-  - microservices/sites/manifest.json
+  - app/sites/PRD.md
+  - app/sites/ARCHITECTURE.md
+  - app/sites/manifest.json
 ---
 
 # Sites
