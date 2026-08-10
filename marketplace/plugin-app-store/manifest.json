@@ -90,10 +90,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/plugin-app-store/contracts/openapi/plugin-app-store.yaml"
+      "marketplace/plugin-app-store/contracts/openapi/plugin-app-store.yaml"
     ],
     "asyncapi": [
-      "microservices/plugin-app-store/contracts/asyncapi/plugin-app-store-events.yaml"
+      "marketplace/plugin-app-store/contracts/asyncapi/plugin-app-store-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -107,19 +107,19 @@
     {
       "tier": "T2",
       "name": "plugin-install",
-      "file": "microservices/plugin-app-store/capabilities/plugin-install.yaml",
+      "file": "marketplace/plugin-app-store/capabilities/plugin-install.yaml",
       "risk_class": "limited"
     },
     {
       "tier": "T3",
       "name": "plugin-revoke",
-      "file": "microservices/plugin-app-store/capabilities/plugin-revoke.yaml",
+      "file": "marketplace/plugin-app-store/capabilities/plugin-revoke.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "plugin-vetting-decide",
-      "file": "microservices/plugin-app-store/capabilities/plugin-vetting-decide.yaml",
+      "file": "marketplace/plugin-app-store/capabilities/plugin-vetting-decide.yaml",
       "risk_class": "high"
     }
   ],
@@ -592,7 +592,7 @@
     "microservices/plugin-app-store/PRD.md",
     "microservices/plugin-app-store/capacity-model.md",
     "microservices/plugin-app-store/implementation-plans/IP-008-vetting-pipeline-cosign-trivy-wasmtime.md",
-    "microservices/plugin-app-store/runbooks/wasmtime-sandbox-escape-suspected.md"
+    "marketplace/plugin-app-store/runbooks/wasmtime-sandbox-escape-suspected.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -607,10 +607,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/plugin-app-store/contracts/openapi/plugin-app-store.yaml"
+        "2026-05-21": "marketplace/plugin-app-store/contracts/openapi/plugin-app-store.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/plugin-app-store/contracts/asyncapi/plugin-app-store-events.yaml"
+        "2026-05-21": "marketplace/plugin-app-store/contracts/asyncapi/plugin-app-store-events.yaml"
       }
     }
   },

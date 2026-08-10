@@ -1,5 +1,5 @@
 // plugin-app-store pack-kr policy overlay
-// Cedar v4 fragment applied AFTER canonical microservices/plugin-app-store/policy/tenant-scope.cedar
+// Cedar v4 fragment applied AFTER canonical marketplace/plugin-app-store/policy/tenant-scope.cedar
 
 // pack-kr specific constraints
 permit (

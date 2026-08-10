@@ -16,7 +16,7 @@
     "regulatory_constraints": "pack-eu regulatory profile applies",
     "data_residency_region": "eu-central-1",
     "audit_chain_seal_locale": "eu",
-    "cedar_policy_pack_overlay": "microservices/plugin-app-store/packs/eu/policy-overlay.cedar"
+    "cedar_policy_pack_overlay": "marketplace/plugin-app-store/packs/eu/policy-overlay.cedar"
   },
   "related_adrs": [
     "ADR-0064 (canonical-base + localization)",

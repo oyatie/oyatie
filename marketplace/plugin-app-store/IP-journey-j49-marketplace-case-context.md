@@ -421,16 +421,16 @@ IP check 150: plugin-app-store/marketplace-case-context satisfies code quality f
 
 ## DR posture (per ADR-0343)
 
-- Target source: `microservices/plugin-app-store/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Target source: `marketplace/plugin-app-store/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
 - Applicable compliance pack floor: `HIPAA-2024` from `specs/compliance-pack-floors.json` with drill cadence `quarterly`.
 - RTO/RPO target: RTO p99 <= `3600` seconds; RPO p99 <= `300` seconds.
 - Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `true`, so this declaration is equal to or stronger than the floor.
 - backup_substrate: [`postgres_wal_g`, `valkey`, `audit_chain_merkle_seal`].
-- Surface evidence: `microservices/plugin-app-store/runbooks/subscription-billing-aggregation-mismatch.md`, `microservices/plugin-app-store/runbooks/install-failure-spike.md`, `microservices/plugin-app-store/manifest.json`, `microservices/plugin-app-store/IP-journey-j49-marketplace-case-context.md`.
+- Surface evidence: `marketplace/plugin-app-store/runbooks/subscription-billing-aggregation-mismatch.md`, `marketplace/plugin-app-store/runbooks/install-failure-spike.md`, `marketplace/plugin-app-store/manifest.json`, `marketplace/plugin-app-store/IP-journey-j49-marketplace-case-context.md`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - `pod_runtime_tier: 0`.
 - Justification: tenant-customer code is present in this IP's execution path; Tier 0 requires Kata plus Cloud Hypervisor isolation.
-- Surface evidence: `microservices/plugin-app-store/runbooks/wasmtime-sandbox-escape-suspected.md`, `microservices/plugin-app-store/manifest.json`, `microservices/plugin-app-store/IP-journey-j49-marketplace-case-context.md`; matched trigger term(s): `plugin`.
+- Surface evidence: `marketplace/plugin-app-store/runbooks/wasmtime-sandbox-escape-suspected.md`, `marketplace/plugin-app-store/manifest.json`, `marketplace/plugin-app-store/IP-journey-j49-marketplace-case-context.md`; matched trigger term(s): `plugin`.
 - Admission expectation: spawned workloads for this path use `kata-cloud-hypervisor`; first-party helpers may only run outside Tier 0 when split into a separate non-tenant-customer IP.

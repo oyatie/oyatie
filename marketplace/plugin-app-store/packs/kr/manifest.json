@@ -16,7 +16,7 @@
     "regulatory_constraints": "pack-kr regulatory profile applies",
     "data_residency_region": "ap-northeast-2",
     "audit_chain_seal_locale": "kr",
-    "cedar_policy_pack_overlay": "microservices/plugin-app-store/packs/kr/policy-overlay.cedar"
+    "cedar_policy_pack_overlay": "marketplace/plugin-app-store/packs/kr/policy-overlay.cedar"
   },
   "related_adrs": [
     "ADR-0064 (canonical-base + localization)",

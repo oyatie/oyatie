@@ -421,16 +421,16 @@ IP check 151: developer-sdk/sandbox-deploy satisfies maintainability for j41-b2b
 
 ## DR posture (per ADR-0343)
 
-- Target source: `microservices/developer-sdk/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Target source: `marketplace/developer-sdk/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
 - Applicable compliance pack floor: `HIPAA-2024` from `specs/compliance-pack-floors.json` with drill cadence `quarterly`.
 - RTO/RPO target: RTO p99 <= `3600` seconds; RPO p99 <= `300` seconds.
 - Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `true`, so this declaration is equal to or stronger than the floor.
 - backup_substrate: [`postgres_wal_g`, `object_storage_versioned`, `audit_chain_merkle_seal`].
-- Surface evidence: `microservices/developer-sdk/runbooks/dev-portal-down.md`, `microservices/developer-sdk/runbooks/signing-key-issuance-timeout.md`, `microservices/developer-sdk/manifest.json`, `microservices/developer-sdk/IP-journey-j41-sandbox-deploy.md`.
+- Surface evidence: `marketplace/developer-sdk/runbooks/dev-portal-down.md`, `marketplace/developer-sdk/runbooks/signing-key-issuance-timeout.md`, `marketplace/developer-sdk/manifest.json`, `marketplace/developer-sdk/IP-journey-j41-sandbox-deploy.md`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - `pod_runtime_tier: 0`.
 - Justification: tenant-customer code is present in this IP's execution path; Tier 0 requires Kata plus Cloud Hypervisor isolation.
-- Surface evidence: `microservices/developer-sdk/runbooks/sandbox-provision-slow.md`, `microservices/developer-sdk/manifest.json`, `microservices/developer-sdk/IP-journey-j41-sandbox-deploy.md`; matched trigger term(s): `sandbox`.
+- Surface evidence: `marketplace/developer-sdk/runbooks/sandbox-provision-slow.md`, `marketplace/developer-sdk/manifest.json`, `marketplace/developer-sdk/IP-journey-j41-sandbox-deploy.md`; matched trigger term(s): `sandbox`.
 - Admission expectation: spawned workloads for this path use `kata-cloud-hypervisor`; first-party helpers may only run outside Tier 0 when split into a separate non-tenant-customer IP.

@@ -9,7 +9,7 @@ date: 2026-05-18
 related_artifacts:
   - microservices/plugin-app-store/PRD.md §catalog-browse-latency
   - microservices/plugin-app-store/slos/catalog-browse-latency.openslo.yaml
-  - microservices/plugin-app-store/dashboards/catalog-perf.json
+  - marketplace/plugin-app-store/dashboards/catalog-perf.json
 doc_status: published
 ---
 
