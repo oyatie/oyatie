@@ -7,9 +7,11 @@ rust_library(
     deps = [
         "//build/port-engine/adapters/port-engine-frontend-go:port-engine-frontend-go",
         "//build/port-engine/adapters/port-engine-hash:port-engine-hash",
+        "//build/port-engine/adapters/port-engine-identity:port-engine-identity",
         "//build/port-engine/adapters/port-engine-rulepack:port-engine-rulepack",
         "//build/port-engine/adapters/port-engine-snapshot:port-engine-snapshot",
         "//build/port-engine/adapters/port-engine-source-pin:port-engine-source-pin",
+        "//build/port-engine/adapters/port-engine-toolchain:port-engine-toolchain",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
         "//build/port-engine/core/port-engine-rust-ir:port-engine-rust-ir",
         "//build/port-engine/ports/port-engine-api:port-engine-api",
@@ -25,9 +27,11 @@ rust_test(
     deps = [
         "//build/port-engine/adapters/port-engine-frontend-go:port-engine-frontend-go",
         "//build/port-engine/adapters/port-engine-hash:port-engine-hash",
+        "//build/port-engine/adapters/port-engine-identity:port-engine-identity",
         "//build/port-engine/adapters/port-engine-rulepack:port-engine-rulepack",
         "//build/port-engine/adapters/port-engine-snapshot:port-engine-snapshot",
         "//build/port-engine/adapters/port-engine-source-pin:port-engine-source-pin",
+        "//build/port-engine/adapters/port-engine-toolchain:port-engine-toolchain",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
         "//build/port-engine/core/port-engine-rust-ir:port-engine-rust-ir",
         "//build/port-engine/ports/port-engine-api:port-engine-api",
