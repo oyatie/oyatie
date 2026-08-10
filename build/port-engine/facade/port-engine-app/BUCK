@@ -14,6 +14,7 @@ rust_library(
         "//build/port-engine/adapters/port-engine-toolchain:port-engine-toolchain",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
         "//build/port-engine/core/port-engine-rust-ir:port-engine-rust-ir",
+        "//build/port-engine/core/port-engine-transform:port-engine-transform",
         "//build/port-engine/ports/port-engine-api:port-engine-api",
     ],
 )
@@ -34,6 +35,7 @@ rust_test(
         "//build/port-engine/adapters/port-engine-toolchain:port-engine-toolchain",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
         "//build/port-engine/core/port-engine-rust-ir:port-engine-rust-ir",
+        "//build/port-engine/core/port-engine-transform:port-engine-transform",
         "//build/port-engine/ports/port-engine-api:port-engine-api",
     ],
 )

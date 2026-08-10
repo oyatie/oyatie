@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
-# W0-B Slice 10 — fixture-gated rulepack. No Cargo.lock absorb.
+# W0-B Slice 11 — plan→IR transform. No Cargo.lock absorb.
 
 [[bin]]
 name = "port-engine-app"
@@ -24,6 +24,7 @@ port-engine-rulepack = { path = "../../adapters/port-engine-rulepack" }
 port-engine-snapshot = { path = "../../adapters/port-engine-snapshot" }
 port-engine-identity = { path = "../../adapters/port-engine-identity" }
 port-engine-toolchain = { path = "../../adapters/port-engine-toolchain" }
+port-engine-transform = { path = "../../core/port-engine-transform" }
 
 [lib]
 name = "port_engine_app"

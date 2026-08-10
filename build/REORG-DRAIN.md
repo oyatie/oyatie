@@ -21,6 +21,8 @@
   corpus → `toolchain_digest`; cell remap still PARKED) + facade `pipeline|receipt|engine|toolchain`.
 - W0-B Slice 10: fixture-gated `port-engine-rulepack` (object rules + ≥1 `selecting_fixtures` each;
   missing/omitted fixtures refuse load) — hermetic mirror only; forever tree still integ/specs.
+- W0-B Slice 11: `port-engine-transform` applies plan constructions/preconditions → `RustIr`;
+  facade `transform` + pipeline pin→admit→plan→transform→emit→receipt.
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink. Slice 9 mirrors those bytes
@@ -41,8 +43,8 @@
 3. **Forever port-rules materializer** — land live `specs/port-rules/**` on integ/specs; replace
    package-local mirror with ADR-0597 materializer relationship (build tip keeps hermetic copy
    until then). Bootstrap Go extractor remains out-of-band only (Slice 8 admits artifacts only).
-4. **Rule transform execution** — apply construction/precondition from fixture-gated rules to IR
-   (currently plan+emit stubs; fixtures gate load only).
+4. **Richer constructions** — expand beyond `pass_through` / `empty_canary` once forever
+   `specs/port-rules/**` lands; keep kernel free of construction vocabulary.
 
 ## Out of envelope (do not touch from `integ/build`)
 

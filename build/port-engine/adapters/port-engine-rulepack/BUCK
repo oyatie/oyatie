@@ -8,6 +8,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//build/port-engine/adapters/port-engine-hash:port-engine-hash",
+        "//build/port-engine/core/port-engine-transform:port-engine-transform",
         "//build/port-engine/ports/port-engine-api:port-engine-api",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -23,6 +24,7 @@ rust_test(
     deps = [
         "//build/port-engine/adapters/port-engine-hash:port-engine-hash",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
+        "//build/port-engine/core/port-engine-transform:port-engine-transform",
         "//build/port-engine/ports/port-engine-api:port-engine-api",
         "third-party//:serde",
         "third-party//:serde_json",

@@ -12,6 +12,7 @@ use std::fmt;
 
 use port_engine_api::{Digest, LanguagePair, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
+use port_engine_transform::RuleConstruction;
 use serde::Deserialize;
 
 /// Embedded v0 mirror of forever `specs/port-rules/**` (integ/specs owns the live tree).
@@ -33,13 +34,17 @@ pub struct SelectingFixture {
     pub selects: bool,
 }
 
-/// One loaded rule record (identity + fixture gate; semantics remain data).
+/// One loaded rule record (identity + fixture gate + construction data).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LoadedRule {
     /// Rule id.
     pub id: RuleId,
     /// Rule version string.
     pub version: String,
+    /// Precondition id (Slice 11 transform evaluates this).
+    pub precondition: String,
+    /// Construction id (Slice 11 transform applies this into RustIr).
+    pub construction: String,
     /// Selecting fixtures (≥1 after load validation).
     pub selecting_fixtures: Vec<SelectingFixture>,
 }
@@ -106,26 +111,30 @@ struct PairFields {
     target: String,
 }
 
-/// Wire shape for one rule. Optional W0-B §5.3 fields are accepted for forward schema
-/// compatibility; selection gating only requires `id` / `version` / `selecting_fixtures`.
+/// Wire shape for one rule. Selection gating requires `id` / `version` / `selecting_fixtures`;
+/// Slice 11 also requires non-empty `precondition` + `construction` for transform apply.
 #[derive(Deserialize)]
-#[allow(dead_code)]
 struct RuleDocument {
     id: String,
     version: String,
     #[serde(default)]
     precondition: String,
     #[serde(default)]
+    #[allow(dead_code)]
     captures: Vec<String>,
     #[serde(default)]
     construction: String,
     #[serde(default)]
+    #[allow(dead_code)]
     precedence: i64,
     #[serde(default)]
+    #[allow(dead_code)]
     conflict: String,
     #[serde(default)]
+    #[allow(dead_code)]
     required_diagnostics: Vec<String>,
     #[serde(default)]
+    #[allow(dead_code)]
     proof_obligations: Vec<String>,
     #[serde(default)]
     selecting_fixtures: Vec<SelectingFixture>,
@@ -188,6 +197,16 @@ impl LoadedRulePack {
                     field: "rules[].version",
                 });
             }
+            if rule.precondition.is_empty() {
+                return Err(RulepackError::Schema {
+                    field: "rules[].precondition",
+                });
+            }
+            if rule.construction.is_empty() {
+                return Err(RulepackError::Schema {
+                    field: "rules[].construction",
+                });
+            }
             if rule.selecting_fixtures.is_empty() {
                 return Err(RulepackError::MissingSelectingFixture {
                     rule: rule.id,
@@ -214,6 +233,8 @@ impl LoadedRulePack {
             loaded_rules.push(LoadedRule {
                 id: id.clone(),
                 version: rule.version,
+                precondition: rule.precondition,
+                construction: rule.construction,
                 selecting_fixtures: rule.selecting_fixtures,
             });
             rules.push(id);
@@ -272,6 +293,22 @@ impl LoadedRulePack {
             .iter()
             .map(|r| r.selecting_fixtures.len())
             .sum()
+    }
+
+    /// Look up a loaded rule by id.
+    #[must_use]
+    pub fn rule(&self, id: &RuleId) -> Option<&LoadedRule> {
+        self.loaded_rules.iter().find(|r| &r.id == id)
+    }
+}
+
+impl RuleConstruction for LoadedRulePack {
+    fn construction(&self, rule: &RuleId) -> Option<&str> {
+        self.rule(rule).map(|r| r.construction.as_str())
+    }
+
+    fn precondition(&self, rule: &RuleId) -> Option<&str> {
+        self.rule(rule).map(|r| r.precondition.as_str())
     }
 }
 
@@ -374,6 +411,8 @@ mod tests {
   "rules": [{
     "id": "identity",
     "version": "0",
+    "precondition": "unit_present",
+    "construction": "pass_through",
     "selecting_fixtures": [{"id": "f", "unit": "u", "selects": true}]
   }],
   "applies": {"u": ["missing"]}
@@ -389,6 +428,8 @@ mod tests {
   "rules": [{
     "id": "orphan",
     "version": "0",
+    "precondition": "unit_present",
+    "construction": "pass_through",
     "selecting_fixtures": []
   }],
   "applies": {}
@@ -404,7 +445,12 @@ mod tests {
     fn refuses_rule_with_omitted_selecting_fixtures_field() {
         let json = r#"{
   "pair": {"source": "go", "target": "rust"},
-  "rules": [{"id": "bare", "version": "0"}],
+  "rules": [{
+    "id": "bare",
+    "version": "0",
+    "precondition": "unit_present",
+    "construction": "pass_through"
+  }],
   "applies": {}
 }"#;
         let err = LoadedRulePack::load_from_str(json).expect_err("omitted fixtures must refuse");

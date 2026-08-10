@@ -1,4 +1,4 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 10).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 11).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
@@ -9,7 +9,7 @@ use crate::driver;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 10)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 11)
 
 Usage:
   port-engine-app <command> [args]
@@ -24,9 +24,10 @@ Commands:
   rulepack          Load fixture-gated rulepack v0; print digest + fixture count
   plan              Plan embedded rulepack against example units
   admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture
+  transform         Admit→plan→apply constructions → RustIr region count
   engine            Print Slice 9 engine identity digest
   toolchain         Print Slice 9 dual-home toolchain corpus digest
-  pipeline          pin→admit→plan→emit→six-axis receipt
+  pipeline          pin→admit→plan→transform→emit→six-axis receipt
   receipt           Alias for pipeline (print receipt axes)
   verify-e2e        Run six-axis receipt end-to-end scenarios
 
@@ -50,6 +51,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "rulepack" => cmd_rulepack(),
         "plan" => cmd_plan(),
         "admit-snapshot" => cmd_admit_snapshot(),
+        "transform" => cmd_transform(),
         "engine" => cmd_engine(),
         "toolchain" => cmd_toolchain(),
         "pipeline" | "receipt" => cmd_pipeline(),
@@ -67,10 +69,10 @@ fn cmd_ready() -> ExitCode {
         eprintln!("port-engine-app: driver not ready");
         return ExitCode::from(1);
     }
-    let (pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain) =
+    let (pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform) =
         driver::adapter_readiness();
     println!(
-        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot} identity={identity} toolchain={toolchain}"
+        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot} identity={identity} toolchain={toolchain} transform={transform}"
     );
     ExitCode::SUCCESS
 }
@@ -172,6 +174,19 @@ fn cmd_admit_snapshot() -> ExitCode {
     }
 }
 
+fn cmd_transform() -> ExitCode {
+    match driver::smoke_transform() {
+        Ok(regions) => {
+            println!("transform=ok regions={regions}");
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: transform failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn cmd_engine() -> ExitCode {
     let digest = driver::smoke_engine_digest();
     println!("engine=ok digest={}", digest.0);
@@ -241,11 +256,12 @@ mod tests {
     }
 
     #[test]
-    fn slice10_commands_succeed() {
+    fn slice11_commands_succeed() {
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["transform"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["toolchain"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["pipeline"])), ExitCode::SUCCESS);

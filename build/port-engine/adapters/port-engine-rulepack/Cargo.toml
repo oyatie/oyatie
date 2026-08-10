@@ -7,12 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 # Neutral RulePack loader for the owned deterministic port engine (ADR-0637 D1).
-# W0-B Slice 7 — package-local v0 mirror of forever home `specs/port-rules/**` (integ/specs).
+# Slice 10 fixture-gated + Slice 11 RuleConstruction for transform. Hermetic v0 mirror.
 # No Cargo.lock absorb this tip.
 
 [dependencies]
 port-engine-api = { path = "../../ports/port-engine-api" }
 port-engine-hash = { path = "../port-engine-hash" }
+port-engine-transform = { path = "../../core/port-engine-transform" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
