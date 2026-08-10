@@ -1044,16 +1044,13 @@ Foundry and the pipeline docs explain how agentic work is claimed, verified, rev
 3. [ADR-0112](decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md) - webhook-driven Foundry agent invocation.
 4. [ADR-0113](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) - end-to-end VCS orchestrator.
 5. [ADR-0116](decisions/ADR-0116-retire-external-agent-coordination-tooling.md) - retirement of external agent coordination tooling.
-6. [Foundry product PRD](products/foundry/PRD.md) - Foundry product PRD.
-7. [Foundry Phase 00 spec](products/foundry/PHASE-00-SPEC.md) - Foundry Phase 00 spec.
-8. [Foundry supervisor README](foundry/supervisor/README.md) - Foundry supervisor documentation entry.
-9. [Foundry supervisor architecture](foundry/supervisor/architecture.md) - Foundry supervisor architecture.
-10. [Foundry supervisor operations](foundry/supervisor/operations.md) - Foundry supervisor operations guide.
-11. [microservices Foundry PRD](../microservices/intelligence/PRD.md) - microservice PRD for Foundry implementation.
-12. [microservices Foundry architecture](../microservices/intelligence/ARCHITECTURE.md) - microservice architecture for Foundry.
-13. [Foundry manifest](../microservices/intelligence/manifest.json) - Foundry microservice manifest.
-14. [claim done verify promote tutorial](../microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md) - tutorial for claim / done / verify / promote cycle.
-15. [Foundry service ADR](../microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md) - service ADR for claim isolation and Cedar gate.
+6. [Foundry product PRD](products/foundry/PRD.md) - Foundry product PRD (historical brand surface; prefer intelligence ADRs).
+7. [Foundry Phase 00 spec](products/foundry/PHASE-00-SPEC.md) - Foundry Phase 00 spec (historical).
+8. [microservices Foundry PRD](../microservices/intelligence/PRD.md) - microservice PRD for Foundry implementation.
+9. [microservices Foundry architecture](../microservices/intelligence/ARCHITECTURE.md) - microservice architecture for Foundry.
+10. [Foundry manifest](../microservices/intelligence/manifest.json) - Foundry microservice manifest.
+11. [claim done verify promote tutorial](../microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md) - tutorial for claim / done / verify / promote cycle.
+12. [Foundry service ADR](../microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md) - service ADR for claim isolation and Cedar gate.
 
 ### Related Sections
 
@@ -1068,23 +1065,19 @@ Related sections: [§2 Decisions](#section-2-decisions), [§3 Products](#section
 
 ### Foundry Docs And Microservice Entry Points
 
-1. [docs/foundry/governance-pipeline-substrate-checkpoint-2026-05-20.md](foundry/governance-pipeline-substrate-checkpoint-2026-05-20.md) - Foundry Pipeline Substrate Checkpoint 2026 05 20: Foundry implementation, operations, policy, catalog, or rollout artifact.
-2. [docs/foundry/supervisor/README.md](foundry/supervisor/README.md) - Supervisor: Foundry implementation, operations, policy, catalog, or rollout artifact.
-3. [docs/foundry/supervisor/architecture.md](foundry/supervisor/architecture.md) - Architecture: Foundry implementation, operations, policy, catalog, or rollout artifact.
-4. [docs/foundry/supervisor/operations.md](foundry/supervisor/operations.md) - Operations: Foundry implementation, operations, policy, catalog, or rollout artifact.
-5. [docs/foundry/supervisor/sample-payloads.md](foundry/supervisor/sample-payloads.md) - Sample Payloads: Foundry implementation, operations, policy, catalog, or rollout artifact.
-6. [docs/foundry/supervisor/security.md](foundry/supervisor/security.md) - Security: Foundry implementation, operations, policy, catalog, or rollout artifact.
-7. [microservices/intelligence/PRD.md](../microservices/intelligence/PRD.md) - PRD: Foundry implementation, operations, policy, catalog, or rollout artifact.
-8. [microservices/intelligence/ARCHITECTURE.md](../microservices/intelligence/ARCHITECTURE.md) - Architecture: Foundry implementation, operations, policy, catalog, or rollout artifact.
-9. [microservices/intelligence/manifest.json](../microservices/intelligence/manifest.json) - Manifest: Foundry implementation, operations, policy, catalog, or rollout artifact.
-10. [microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md](../microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md) - Phase 01 Foundry Foundation: Foundry implementation, operations, policy, catalog, or rollout artifact.
-11. [microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md](../microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md) - Phase 02 Foundry Data Substrate Addendum: Foundry implementation, operations, policy, catalog, or rollout artifact.
-12. [microservices/intelligence/capability-tiers/tier-matrix.md](../microservices/intelligence/capability-tiers/tier-matrix.md) - Tier Matrix: Foundry implementation, operations, policy, catalog, or rollout artifact.
-13. [microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md](../microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md) - Claim Work Done Verify Promote Cycle: Foundry implementation, operations, policy, catalog, or rollout artifact.
-14. [microservices/intelligence/reference-implementations/claim-protocol-rust-sdk.md](../microservices/intelligence/reference-implementations/claim-protocol-rust-sdk.md) - Claim Protocol Rust Sdk: Foundry implementation, operations, policy, catalog, or rollout artifact.
-15. [microservices/intelligence/benchmarks/foundry-vs-github-merge-queue-vs-bors-vs-spr-vs-shipit.md](../microservices/intelligence/benchmarks/foundry-vs-github-merge-queue-vs-bors-vs-spr-vs-shipit.md) - Foundry Vs Github Merge Queue Vs Bors Vs Spr Vs Shipit: Foundry implementation, operations, policy, catalog, or rollout artifact.
-16. [microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md](../microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md) - ADR Fnd 001 Agentic Claim Isolation Vs Shared Lock Cedar Gate: Foundry implementation, operations, policy, catalog, or rollout artifact.
-17. [microservices/intelligence/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md](../microservices/intelligence/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md) - Svc ADR Wasm 001 Wasmtime Canonical Foundry: Foundry implementation, operations, policy, catalog, or rollout artifact.
+> `docs/foundry/` deleted permanently (Amendment B) — brand residue; live authority is intelligence ADRs / microservice docs below.
+
+1. [microservices/intelligence/PRD.md](../microservices/intelligence/PRD.md) - PRD: Foundry implementation, operations, policy, catalog, or rollout artifact.
+2. [microservices/intelligence/ARCHITECTURE.md](../microservices/intelligence/ARCHITECTURE.md) - Architecture: Foundry implementation, operations, policy, catalog, or rollout artifact.
+3. [microservices/intelligence/manifest.json](../microservices/intelligence/manifest.json) - Manifest: Foundry implementation, operations, policy, catalog, or rollout artifact.
+4. [microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md](../microservices/intelligence/PHASE-01-FOUNDRY-FOUNDATION.md) - Phase 01 Foundry Foundation: Foundry implementation, operations, policy, catalog, or rollout artifact.
+5. [microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md](../microservices/intelligence/PHASE-02-FOUNDRY-DATA-SUBSTRATE-ADDENDUM.md) - Phase 02 Foundry Data Substrate Addendum: Foundry implementation, operations, policy, catalog, or rollout artifact.
+6. [microservices/intelligence/capability-tiers/tier-matrix.md](../microservices/intelligence/capability-tiers/tier-matrix.md) - Tier Matrix: Foundry implementation, operations, policy, catalog, or rollout artifact.
+7. [microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md](../microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md) - Claim Work Done Verify Promote Cycle: Foundry implementation, operations, policy, catalog, or rollout artifact.
+8. [microservices/intelligence/reference-implementations/claim-protocol-rust-sdk.md](../microservices/intelligence/reference-implementations/claim-protocol-rust-sdk.md) - Claim Protocol Rust Sdk: Foundry implementation, operations, policy, catalog, or rollout artifact.
+9. [microservices/intelligence/benchmarks/foundry-vs-github-merge-queue-vs-bors-vs-spr-vs-shipit.md](../microservices/intelligence/benchmarks/foundry-vs-github-merge-queue-vs-bors-vs-spr-vs-shipit.md) - Foundry Vs Github Merge Queue Vs Bors Vs Spr Vs Shipit: Foundry implementation, operations, policy, catalog, or rollout artifact.
+10. [microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md](../microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md) - ADR Fnd 001 Agentic Claim Isolation Vs Shared Lock Cedar Gate: Foundry implementation, operations, policy, catalog, or rollout artifact.
+11. [microservices/intelligence/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md](../microservices/intelligence/decisions/SVC-ADR-WASM-001-wasmtime-canonical-foundry.md) - Svc ADR Wasm 001 Wasmtime Canonical Foundry: Foundry implementation, operations, policy, catalog, or rollout artifact.
 
 ### Foundry Implementation Plan Index
 
