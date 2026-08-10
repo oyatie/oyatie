@@ -7,8 +7,8 @@ status: Accepted
 owner_team: axis-cloud + ops-sre-reliability
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-11)
-  - microservices/cloud-k8s/policy/cluster-isolation.md
+  - k8s/failure-modes.md (FM-11)
+  - k8s/policy/cluster-isolation.md
   - docs/decisions/ADR-0709-general-live-apex.md
 doc_status: published
 ---
@@ -104,8 +104,8 @@ Every upgrade emits a `KubeadmUpgraded` event with:
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-11.
-- `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`.
+- `k8s/failure-modes.md` FM-11.
+- `k8s/runbooks/etcd-quorum-recovery.md`.
 - ADR-0121.
 - kubeadm upgrade — `kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/`.
 - Kubernetes deprecation policy — `kubernetes.io/docs/reference/using-api/deprecation-policy/`.

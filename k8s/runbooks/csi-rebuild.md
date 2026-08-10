@@ -7,7 +7,7 @@ status: Accepted
 owner_team: ops-sre-reliability + axis-cloud + cloud-iac
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-10, FM-15)
+  - k8s/failure-modes.md (FM-10, FM-15)
 doc_status: published
 ---
 
@@ -76,7 +76,7 @@ Sev-1 (backend outage; stateful workloads cannot bind new PVs) / Sev-2 (controll
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-10, FM-15.
-- `microservices/cloud-k8s/multi-region.md` (DR failover for backend outage).
+- `k8s/failure-modes.md` FM-10, FM-15.
+- `k8s/multi-region.md` (DR failover for backend outage).
 - Kubernetes CSI — `kubernetes-csi.github.io/docs/`.
 - OCI Block Volume CSI — `docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengcreatingpersistentvolumeclaim.htm`.

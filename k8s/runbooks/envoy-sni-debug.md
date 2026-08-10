@@ -7,8 +7,8 @@ status: Accepted
 owner_team: ops-sre-reliability + axis-cloud
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-09)
-  - microservices/cloud-k8s/threat-model.md (T-S-03, T-I-03)
+  - k8s/failure-modes.md (FM-09)
+  - k8s/threat-model.md (T-S-03, T-I-03)
 doc_status: published
 ---
 
@@ -73,8 +73,8 @@ ECH is rolling out across the ecosystem; oyatie tracks Envoy + Cloudflare ECH su
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-09.
-- `microservices/cloud-k8s/threat-model.md` T-S-03, T-I-03.
+- `k8s/failure-modes.md` FM-09.
+- `k8s/threat-model.md` T-S-03, T-I-03.
 - Envoy TLS — `envoyproxy.io/docs/envoy/latest/intro/arch_overview/security/tls`.
 - Istio Gateway / VirtualService — `istio.io/latest/docs/concepts/traffic-management/`.
 - cert-manager — `cert-manager.io/docs/troubleshooting/`.

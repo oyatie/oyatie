@@ -7,8 +7,8 @@ status: Accepted
 owner_team: ops-sre-reliability + axis-cloud + ops-security
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-02)
-  - microservices/cloud-k8s/runbooks/control-plane-restore.md
+  - k8s/failure-modes.md (FM-02)
+  - k8s/runbooks/control-plane-restore.md
 doc_status: published
 ---
 
@@ -71,6 +71,6 @@ After restore: replay audit-chain records emitted between snapshot-time and rest
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-02.
-- `microservices/cloud-k8s/runbooks/control-plane-restore.md`.
+- `k8s/failure-modes.md` FM-02.
+- `k8s/runbooks/control-plane-restore.md`.
 - etcd disaster recovery — `etcd.io/docs/v3.5/op-guide/recovery/`.

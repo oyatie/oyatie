@@ -7,8 +7,8 @@ status: Accepted
 owner_team: ops-sre-reliability + ops-security + axis-cloud
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-08)
-  - microservices/cloud-k8s/threat-model.md (T-D-06)
+  - k8s/failure-modes.md (FM-08)
+  - k8s/threat-model.md (T-D-06)
 doc_status: published
 ---
 
@@ -79,8 +79,8 @@ Sev-1 — external tenant availability impacted; reputational + SLA risk.
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-08.
-- `microservices/cloud-k8s/threat-model.md` T-D-06.
+- `k8s/failure-modes.md` FM-08.
+- `k8s/threat-model.md` T-D-06.
 - Envoy rate-limit — `envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter`.
 - Istio ingress security — `istio.io/latest/docs/tasks/security/`.
 - Cloudflare DDoS — `developers.cloudflare.com/ddos-protection/`.

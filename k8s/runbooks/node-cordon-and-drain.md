@@ -7,7 +7,7 @@ status: Accepted
 owner_team: ops-sre-reliability + axis-cloud
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-04, FM-05)
+  - k8s/failure-modes.md (FM-04, FM-05)
 doc_status: published
 ---
 
@@ -69,6 +69,6 @@ If drain fails because evicting would violate PDB:
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-04, FM-05.
+- `k8s/failure-modes.md` FM-04, FM-05.
 - Kubernetes node drain — `kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/`.
 - PodDisruptionBudget — `kubernetes.io/docs/concepts/workloads/pods/disruptions/`.

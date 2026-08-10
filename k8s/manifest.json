@@ -15,7 +15,7 @@
   "bounded_contexts": [
     {
       "name": "cloud-compute",
-      "description": "Code-backed Cloud Compute local foundation for provider-neutral VM, managed Kubernetes, and function metadata invariants plus tenant/cell workload identity, runtime isolation, scheduling, and audit-evidence guardrail. The repository directory remains microservices/cloud-k8s for compatibility, but CS-CLOUD-COMPUTE-001 does not implement live Kubernetes bootstrap, EKS, OKE, EC2, OCI Compute, Lambda, service mesh, CNI, REST server, SDK, worker, OpenTofu plan/apply, measured SLO, active-active DR, provider-live smoke, or audit-chain persistence.",
+      "description": "Code-backed Cloud Compute local foundation for provider-neutral VM, managed Kubernetes, and function metadata invariants plus tenant/cell workload identity, runtime isolation, scheduling, and audit-evidence guardrail. Capability-colocated docs/contracts live under k8s/ (formerly microservices/cloud-k8s); CS-CLOUD-COMPUTE-001 does not implement live Kubernetes bootstrap, EKS, OKE, EC2, OCI Compute, Lambda, service mesh, CNI, REST server, SDK, worker, OpenTofu plan/apply, measured SLO, active-active DR, provider-live smoke, or audit-chain persistence.",
       "crates": [
         "oya-cloud-compute-domain",
         "oya-cloud-compute-functions-api",
@@ -46,8 +46,8 @@
       ]
     },
     "service_local_contract_scaffolds": [
-      "microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml",
-      "microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml",
+      "k8s/contracts/openapi/cloud-k8s.yaml",
+      "k8s/contracts/asyncapi/cloud-k8s-events.yaml",
       "k8s/contracts/proto/cloud-k8s.proto"
     ],
     "contract_status": "root cloud-compute OpenAPI contracts are code-tested; service-local cloud-k8s contract files are compatibility/planning scaffolds and are not runtime-readiness evidence"
@@ -343,7 +343,7 @@
   ],
   "explicit_non_claims": [
     "No live Kubernetes cluster bootstrap, kubeadm, EKS, OKE, EC2, OCI Compute, Lambda, function execution runtime, CNI, CSI, service mesh, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
-    "Legacy Markdown benchmark/parity/runbook/IP files under microservices/cloud-k8s remain planning/prose and are not readiness evidence for CS-CLOUD-COMPUTE-001.",
+    "Legacy Markdown benchmark/parity/runbook/IP files under k8s/ remain planning/prose and are not readiness evidence for CS-CLOUD-COMPUTE-001.",
     "The service-local cloud-k8s OpenAPI/AsyncAPI/proto files are compatibility scaffolds; root contracts/openapi/cloud/cloud-compute-*-v1.yaml files are the code-tested API evidence for this slice."
   ],
   "status": "retired",
