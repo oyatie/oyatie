@@ -36,3 +36,17 @@ Retargeted verified nested faces:
 
 - Missing PRD/ARCHITECTURE/`src/` dump cites; remaining historical IP stems
 - No hubs, no `Cargo.lock`, no merge.
+
+## Seat A search tranche (2026-08-10)
+
+Nearest envelope for noun **search** (no `integ/search` rail) = `integ/data` → `data/core/search-*`.
+
+### Verified clean
+
+- `search-crawler` · `search-index-inverted` · `search-index-vector` · `search-parser` · `search-query` · `search-rag` · `search-rank` · `search-serp` — zero residual `microservices/` path cites
+- Root `data/manifest.json` already enumerates the eight `data-search-*` crates under capability accounting
+
+### Deferred
+
+- Cross-cap scorecard resolver paths under `data/facade/**` that still cite `microservices/<ms>/scorecards` (facade concern; not search-core)
+- Invented `integ/search` rail (elevate via NO_RAIL/specs tip-free only — out of Seat A envelope)
