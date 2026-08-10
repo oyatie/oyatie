@@ -18,12 +18,12 @@ Do not invent missing IP/PRD/ARCHITECTURE homes; defer with this note.
 
 ## Retargeted (verified)
 
-- `microservices/audit-chain/capabilities/audit-emit.yaml` → `audit/capabilities/audit-emit.yaml`
-- `microservices/audit-chain/capabilities/seal-mint.yaml` → `audit/capabilities/seal-mint.yaml`
-- `microservices/audit-chain/capabilities/verify-merkle.yaml` → `audit/capabilities/verify-merkle.yaml`
-- `microservices/audit-chain/contracts/asyncapi/audit-events.yaml` → `audit/contracts/asyncapi/audit-events.yaml`
-- `microservices/audit-chain/contracts/openapi/audit-chain.yaml` → `audit/contracts/openapi/audit-chain.yaml`
-- `microservices/audit-chain/runbooks/chain-replay-from-snapshot-protocol.md` → `audit/runbooks/chain-replay-from-snapshot-protocol.md`
+- `audit/capabilities/audit-emit.yaml` → `audit/capabilities/audit-emit.yaml`
+- `audit/capabilities/seal-mint.yaml` → `audit/capabilities/seal-mint.yaml`
+- `audit/capabilities/verify-merkle.yaml` → `audit/capabilities/verify-merkle.yaml`
+- `audit/contracts/asyncapi/audit-events.yaml` → `audit/contracts/asyncapi/audit-events.yaml`
+- `audit/contracts/openapi/audit-chain.yaml` → `audit/contracts/openapi/audit-chain.yaml`
+- `audit/runbooks/chain-replay-from-snapshot-protocol.md` → `audit/runbooks/chain-replay-from-snapshot-protocol.md`
 
 ## Deferred (missing legal homes or cross-capability)
 
@@ -53,3 +53,10 @@ Do not invent missing IP/PRD/ARCHITECTURE homes; defer with this note.
 - `microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x;`
 - `microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct;`
 - `microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge;`
+
+## Wave-3 follow-through (verified interiors)
+
+Retargeted additional verified `microservices/audit-chain/**` cites to `audit/**` across
+catalog/contracts/proto/dashboards/policy/runbooks/IP-journey docs/test-plans where files exist.
+Deferred IP-001..015 / PRD / ARCHITECTURE / MIGRATION / cross-cap observability prometheusrule cites remain as listed above.
+

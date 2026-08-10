@@ -19,7 +19,7 @@ related_oyatie_adrs:
 
 This plan defines the pure-unit test corpus for audit-chain emission, sealing, verification, query, and retention-cascade code.
 The target is mutation-resistant proof that audit-chain preserves tenant scope, chain-of-custody, Merkle correctness, signature integrity, and redaction discipline before any HSM, object store, broker, or database is reached.
-The plan is written against the `microservices/audit-chain/manifest.json` layer roster and ADR-0105 layer semantics.
+The plan is written against the `audit/manifest.json` layer roster and ADR-0105 layer semantics.
 
 ## Test Scope
 
@@ -324,22 +324,22 @@ The plan is written against the `microservices/audit-chain/manifest.json` layer 
 
 ## Cross-References
 
-- Manifest: `microservices/audit-chain/manifest.json`.
+- Manifest: `audit/manifest.json`.
 - Architecture: `microservices/audit-chain/ARCHITECTURE.md`.
 - Failure catalog: `microservices/audit-chain/failure-modes.md`.
-- Runbook: `microservices/audit-chain/runbooks/hsm-key-rotation.md`.
-- Runbook: `microservices/audit-chain/runbooks/signature-verification-failure.md`.
-- Runbook: `microservices/audit-chain/runbooks/merkle-root-discrepancy-investigation.md`.
-- Runbook: `microservices/audit-chain/runbooks/merkle-seal-recovery.md`.
-- Runbook: `microservices/audit-chain/runbooks/audit-export.md`.
-- Runbook: `microservices/audit-chain/runbooks/retention-cascade.md`.
+- Runbook: `audit/runbooks/hsm-key-rotation.md`.
+- Runbook: `audit/runbooks/signature-verification-failure.md`.
+- Runbook: `audit/runbooks/merkle-root-discrepancy-investigation.md`.
+- Runbook: `audit/runbooks/merkle-seal-recovery.md`.
+- Runbook: `audit/runbooks/audit-export.md`.
+- Runbook: `audit/runbooks/retention-cascade.md`.
 - SLO: `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
 - SLO: `microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml`.
 - SLO: `microservices/audit-chain/slos/merkle-chain-verification-latency.openslo.yaml`.
 - SLO: `microservices/audit-chain/slos/seal-write-latency.openslo.yaml`.
-- Contract: `microservices/audit-chain/contracts/openapi/audit-chain.yaml`.
-- Contract: `microservices/audit-chain/contracts/asyncapi/audit-events.yaml`.
-- Contract: `microservices/audit-chain/contracts/proto/audit-chain.proto`.
+- Contract: `audit/contracts/openapi/audit-chain.yaml`.
+- Contract: `audit/contracts/asyncapi/audit-events.yaml`.
+- Contract: `audit/contracts/proto/audit-chain.proto`.
 - Fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
 - ADR: `docs/decisions/ADR-0709-general-live-apex.md`.

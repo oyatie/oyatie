@@ -61,12 +61,12 @@ DOSSIER-CRATE-017: Existing crate `oya-audit-chain-retention-cascade-adapter` re
 DOSSIER-CRATE-018: Existing crate `oya-audit-chain-retention-cascade-api` remains untouched by this document-stage IP.
 DOSSIER-CRATE-019: Existing crate `oya-audit-chain-retention-cascade-domain` remains untouched by this document-stage IP.
 DOSSIER-CRATE-020: Existing crate `oya-audit-chain-retention-cascade-kernel` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/audit-chain/contracts/openapi/audit-chain.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/audit-chain/contracts/asyncapi/audit-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/audit-chain/contracts/proto/audit-chain.proto.
-DOSSIER-CAPABILITY-001: T2 audit-emit risk=limited file=microservices/audit-chain/capabilities/audit-emit.yaml.
-DOSSIER-CAPABILITY-002: T3 seal-mint risk=high file=microservices/audit-chain/capabilities/seal-mint.yaml.
-DOSSIER-CAPABILITY-003: T0 verify-merkle risk=none file=microservices/audit-chain/capabilities/verify-merkle.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: audit/contracts/openapi/audit-chain.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: audit/contracts/asyncapi/audit-events.yaml.
+DOSSIER-CONTRACT-003: proto3: audit/contracts/proto/audit-chain.proto.
+DOSSIER-CAPABILITY-001: T2 audit-emit risk=limited file=audit/capabilities/audit-emit.yaml.
+DOSSIER-CAPABILITY-002: T3 seal-mint risk=high file=audit/capabilities/seal-mint.yaml.
+DOSSIER-CAPABILITY-003: T0 verify-merkle risk=none file=audit/capabilities/verify-merkle.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -288,9 +288,9 @@ LEADER-018: `audit-chain` leader-scale posture keeps primitive selection explici
 
 ## 12. API And Contract Documentation Impact
 API-001: `audit-chain` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `audit-chain` remain: OpenAPI 3.2.0: microservices/audit-chain/contracts/openapi/audit-chain.yaml
-API-003: AsyncAPI 3.1.0 references for `audit-chain` remain: AsyncAPI 3.1.0: microservices/audit-chain/contracts/asyncapi/audit-events.yaml
-API-004: proto3 references for `audit-chain` remain: proto3: microservices/audit-chain/contracts/proto/audit-chain.proto
+API-002: OpenAPI 3.2.0 references for `audit-chain` remain: OpenAPI 3.2.0: audit/contracts/openapi/audit-chain.yaml
+API-003: AsyncAPI 3.1.0 references for `audit-chain` remain: AsyncAPI 3.1.0: audit/contracts/asyncapi/audit-events.yaml
+API-004: proto3 references for `audit-chain` remain: proto3: audit/contracts/proto/audit-chain.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -314,7 +314,7 @@ ALT-004: Delay `audit-chain` manifest declaration until implementation; rejected
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/audit-chain/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `audit/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

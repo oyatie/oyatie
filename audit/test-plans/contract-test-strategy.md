@@ -245,8 +245,8 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 ## CI Pipeline Integration
 
 - GitHub Actions job: `audit-chain-contract-test-strategy`.
-- Command: `oya contract openapi validate microservices/audit-chain/contracts/openapi/audit-chain.yaml --version 3.2.0`.
-- Command: `oya contract asyncapi validate microservices/audit-chain/contracts/asyncapi/audit-events.yaml --version 3.1.0`.
+- Command: `oya contract openapi validate audit/contracts/openapi/audit-chain.yaml --version 3.2.0`.
+- Command: `oya contract asyncapi validate audit/contracts/asyncapi/audit-events.yaml --version 3.1.0`.
 - Command: `buf lint microservices/audit-chain/contracts/proto`.
 - Command: `buf breaking microservices/audit-chain/contracts/proto --against .git#branch=dev`.
 - Command: `cargo test -p oya-audit-chain-contract-tests --all-features`.
@@ -289,16 +289,16 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 
 ## Cross-References
 
-- Unit companion: `microservices/audit-chain/test-plans/unit-test-strategy.md`.
-- Integration companion: `microservices/audit-chain/test-plans/integration-test-strategy.md`.
-- Manifest: `microservices/audit-chain/manifest.json`.
+- Unit companion: `audit/test-plans/unit-test-strategy.md`.
+- Integration companion: `audit/test-plans/integration-test-strategy.md`.
+- Manifest: `audit/manifest.json`.
 - Architecture: `microservices/audit-chain/ARCHITECTURE.md`.
-- Contract: `microservices/audit-chain/contracts/openapi/audit-chain.yaml`.
-- Contract: `microservices/audit-chain/contracts/asyncapi/audit-events.yaml`.
-- Contract: `microservices/audit-chain/contracts/proto/audit-chain.proto`.
-- Runbook: `microservices/audit-chain/runbooks/audit-export.md`.
-- Runbook: `microservices/audit-chain/runbooks/signature-verification-failure.md`.
-- Runbook: `microservices/audit-chain/runbooks/retention-cascade.md`.
+- Contract: `audit/contracts/openapi/audit-chain.yaml`.
+- Contract: `audit/contracts/asyncapi/audit-events.yaml`.
+- Contract: `audit/contracts/proto/audit-chain.proto`.
+- Runbook: `audit/runbooks/audit-export.md`.
+- Runbook: `audit/runbooks/signature-verification-failure.md`.
+- Runbook: `audit/runbooks/retention-cascade.md`.
 - SLO: `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
 - SLO: `microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml`.
 - Consumer contract: `microservices/identity/contracts/asyncapi/identity-events.yaml`.

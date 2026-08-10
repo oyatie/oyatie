@@ -18,8 +18,8 @@ related_adrs: [ADR-0028, ADR-0131]
 related_specs: [/specs/audit-chain-merkle-ed25519.json]
 related_artifacts:
   - microservices/audit-chain/policy/seal-integrity.md §"SI-14"
-  - microservices/audit-chain/contracts/openapi/audit-chain.yaml /verify path
-  - microservices/audit-chain/policy/public-read.cedar
+  - audit/contracts/openapi/audit-chain.yaml /verify path
+  - audit/policy/public-read.cedar
 
 autonomy_tier: T0
 # T0: pure-function; no state read of restricted data; no state write.
@@ -76,9 +76,9 @@ cost_profile:
     - Rate-limited at WAF (anonymous: 10 req/s per IP)
 
 cedar_policy_fragments:
-  - microservices/audit-chain/policy/public-read.cedar
-  - microservices/audit-chain/policy/tenant-scope.cedar
-  - microservices/audit-chain/policy/auditor-scope.cedar
+  - audit/policy/public-read.cedar
+  - audit/policy/tenant-scope.cedar
+  - audit/policy/auditor-scope.cedar
 
 eval_set:
   golden_inputs_path: microservices/audit-chain/capabilities/eval/verify-merkle-golden.jsonl
