@@ -22,10 +22,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/slides/contracts/openapi/slides.yaml"
+      "app/slides/contracts/openapi/slides.yaml"
     ],
     "asyncapi": [
-      "microservices/slides/contracts/asyncapi/slides-events.yaml"
+      "app/slides/contracts/asyncapi/slides-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -39,19 +39,19 @@
     {
       "tier": "T1",
       "name": "T0-suggest",
-      "file": "microservices/slides/capabilities/T0-suggest.yaml",
+      "file": "app/slides/capabilities/T0-suggest.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T1-assist",
-      "file": "microservices/slides/capabilities/T1-assist.yaml",
+      "file": "app/slides/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T2-auto",
-      "file": "microservices/slides/capabilities/T2-auto.yaml",
+      "file": "app/slides/capabilities/T2-auto.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -122,91 +122,91 @@
       "id": "IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac",
       "title": "IP-001: Layer-A IaC — CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md"
+      "file": "app/slides/IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md"
     },
     {
       "id": "IP-002-presentation-slide-kernel-domain",
       "title": "IP-002: presentation + slide BCs — kernel + domain",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-002-presentation-slide-kernel-domain.md"
+      "file": "app/slides/IP-002-presentation-slide-kernel-domain.md"
     },
     {
       "id": "IP-003-slide-layout-text-box-shape-kernel-domain",
       "title": "IP-003: slide-layout + text-box + shape + table + equation BCs — kernel + domain",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-003-slide-layout-text-box-shape-kernel-domain.md"
+      "file": "app/slides/IP-003-slide-layout-text-box-shape-kernel-domain.md"
     },
     {
       "id": "IP-004-asset-bcs-image-video-audio-adapters",
       "title": "IP-004: image + video-embed + audio-embed BCs — adapters (S3 + ImageMagick + ffmpeg + ClamAV + OPSWAT)",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-004-asset-bcs-image-video-audio-adapters.md"
+      "file": "app/slides/IP-004-asset-bcs-image-video-audio-adapters.md"
     },
     {
       "id": "IP-005-real-time-collaboration-loro-kernel-domain-adapter",
       "title": "IP-005: real-time-collaboration with Loro CRDT — kernel + domain + adapter + adapter-valkey + adapter-loro",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md"
+      "file": "app/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md"
     },
     {
       "id": "IP-006-real-time-collaboration-worker-sdk",
       "title": "IP-006: real-time-collaboration worker + SDK",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-006-real-time-collaboration-worker-sdk.md"
+      "file": "app/slides/IP-006-real-time-collaboration-worker-sdk.md"
     },
     {
       "id": "IP-007-chart-embed-bridge-to-sheets",
       "title": "IP-007: chart BC with live-link to sheets µservice",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-007-chart-embed-bridge-to-sheets.md"
+      "file": "app/slides/IP-007-chart-embed-bridge-to-sheets.md"
     },
     {
       "id": "IP-008-themes-templates-master-slide-editor",
       "title": "IP-008: themes + templates + master-slide-editor + slide-sorter + layout-engine",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-008-themes-templates-master-slide-editor.md"
+      "file": "app/slides/IP-008-themes-templates-master-slide-editor.md"
     },
     {
       "id": "IP-009-animations-transitions-reduced-motion",
       "title": "IP-009: animations + transitions + reduced-motion fallback",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-009-animations-transitions-reduced-motion.md"
+      "file": "app/slides/IP-009-animations-transitions-reduced-motion.md"
     },
     {
       "id": "IP-010-presenter-audience-view-broadcast-mode-livekit",
       "title": "IP-010: presenter-view + audience-view + broadcast-mode (LiveKit reuse via messenger)",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md"
+      "file": "app/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md"
     },
     {
       "id": "IP-011-import-export-pptx-pdf-mp4-pipeline",
       "title": "IP-011: import-export BC — PPTX + ODP + PDF + Keynote + MP4 + PNG pipeline (gVisor sandboxed)",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-011-import-export-pptx-pdf-mp4-pipeline.md"
+      "file": "app/slides/IP-011-import-export-pptx-pdf-mp4-pipeline.md"
     },
     {
       "id": "IP-012-accessibility-ai-design-ai-content-generation",
       "title": "IP-012: accessibility + ai-design + ai-content-generation — T0/T1/T2 + EU AI Act risk-class",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-012-accessibility-ai-design-ai-content-generation.md"
+      "file": "app/slides/IP-012-accessibility-ai-design-ai-content-generation.md"
     },
     {
       "id": "IP-013-acl-comments-version-history-embed-bridge",
       "title": "IP-013: acl + comments + version-history + embed-bridge",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-013-acl-comments-version-history-embed-bridge.md"
+      "file": "app/slides/IP-013-acl-comments-version-history-embed-bridge.md"
     },
     {
       "id": "IP-014-visual-canvas-leptos-wasm-rest-sdk-app",
       "title": "IP-014: Composition: rest + app + adapter-leptos-wasm wiring",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-014-visual-canvas-leptos-wasm-rest-sdk-app.md"
+      "file": "app/slides/IP-014-visual-canvas-leptos-wasm-rest-sdk-app.md"
     },
     {
       "id": "IP-015-hg-slides-registration-and-branch-protection",
       "title": "IP-015: HG-SLIDES registration + branch protection + competitor-parity-matrix evidence pinning",
       "acceptance_status": "ga",
-      "file": "microservices/slides/IP-015-hg-slides-registration-and-branch-protection.md"
+      "file": "app/slides/IP-015-hg-slides-registration-and-branch-protection.md"
     }
   ],
   "regulatory_packs": [
@@ -448,10 +448,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Slides is a first-party presentation authoring and delivery service. Broadcast and export paths touch tenant decks but do not execute tenant code or run edge packet paths, so ADR-0338 Tier 2 with ADR-0340 Tier-3 cell placement is the correct pair.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/slides/PRD.md",
-    "microservices/slides/capacity-model.md",
-    "microservices/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md",
-    "microservices/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md"
+    "app/slides/PRD.md",
+    "app/slides/capacity-model.md",
+    "app/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md",
+    "app/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -466,10 +466,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/slides/contracts/openapi/slides.yaml"
+        "2026-05-21": "app/slides/contracts/openapi/slides.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/slides/contracts/asyncapi/slides-events.yaml"
+        "2026-05-21": "app/slides/contracts/asyncapi/slides-events.yaml"
       }
     }
   },

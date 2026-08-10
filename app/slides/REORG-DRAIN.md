@@ -9,6 +9,8 @@
 
 ## Completed
 
+- Hygiene deepen: retargeted `oya/slides/` + `microservices/slides/` path cites → `app/slides/` in README/manifest (forever-home authority).
+
 - Slice 1: product metadata absorb — `manifest.json`, `README.md`, `slos/**`.
 - Wave-1 full absorb: copied remaining `oya/slides/**` → `app/slides/**` (93 files, 1 `.rs`) from `origin/dev`.
 - In-tree cites retargeted `oya/slides` → `app/slides` and `//oya/slides` → `//app/slides`.
