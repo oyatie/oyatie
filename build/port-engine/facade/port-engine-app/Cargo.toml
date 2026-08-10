@@ -7,13 +7,18 @@ publish = false
 license = "Apache-2.0"
 
 # Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
-# W0-B Slice 1 skeleton only — CLI wiring and six-axis end-to-end receipts land in Slice 6.
+# W0-B Slice 3 — driver wiring present; CLI and six-axis end-to-end receipts land in Slice 6.
 
 [[bin]]
 name = "port-engine-app"
 path = "src/main.rs"
 
 [dependencies]
+port-engine-api = { path = "../../ports/port-engine-api" }
+port-engine-kernel = { path = "../../core/port-engine-kernel" }
+port-engine-rust-ir = { path = "../../core/port-engine-rust-ir" }
+port-engine-source-pin = { path = "../../adapters/port-engine-source-pin" }
+port-engine-frontend-go = { path = "../../adapters/port-engine-frontend-go" }
 
 [lib]
 name = "port_engine_app"

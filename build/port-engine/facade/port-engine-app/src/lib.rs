@@ -1,18 +1,13 @@
-//! # port-engine-app — driver facade for the owned deterministic port engine (W0-B Slice 1).
+//! # port-engine-app — driver facade for the owned deterministic port engine (W0-B Slice 3).
 //!
 //! ADR-0637 D1 facade face: entrypoints `plan`, `render`, `verify`, `delta`, and `receipt`.
-//! Slice 6 lands end-to-end six-axis receipt wiring. This crate is an empty, fail-closed shell.
+//! Slice 3 wires kernel + adapter stubs; CLI subcommands and six-axis end-to-end receipts land
+//! in Slice 6.
 #![forbid(unsafe_code)]
 
-/// Fail-closed readiness gate. Remains `false` until Slice 6 lands the driver pipeline.
-pub const fn w0_ready() -> bool {
-    false
-}
+pub mod driver;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn slice1_does_not_claim_readiness() {
-        assert!(!super::w0_ready());
-    }
+/// Fail-closed readiness gate. `true` once Slice 3 adapter/facade wiring is present.
+pub const fn w0_ready() -> bool {
+    driver::w0_ready()
 }
