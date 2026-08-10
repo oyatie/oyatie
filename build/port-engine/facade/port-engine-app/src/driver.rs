@@ -1,9 +1,11 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 10 consumes the fixture-gated rulepack (every rule ≥1 selecting fixture). Slice 9 wired
-//! engine/toolchain digests + pin→admit→plan→emit→receipt. Cell remap remains PARKED.
+//! Slice 11 wires plan→RustIr transform (construction/precondition apply) into the pipeline.
+//! Cell remap remains PARKED.
 
-use port_engine_api::{Digest, Receipt, RulePack, SourceModel, UnitId, w0_ready as api_ready};
+use port_engine_api::{
+    Digest, Receipt, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
+};
 use port_engine_frontend_go::w0_ready as frontend_ready;
 use port_engine_hash::{digest_str, w0_ready as hash_ready};
 use port_engine_identity::{engine_digest, w0_ready as identity_ready};
@@ -14,8 +16,9 @@ use port_engine_snapshot::{
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::{toolchain_digest, w0_ready as toolchain_ready};
+use port_engine_transform::{apply, TransformError, w0_ready as transform_ready};
 
-/// Slice 10 readiness: prior adapters + fixture-gated rulepack load path.
+/// Slice 11 readiness: prior adapters + transform apply path.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -26,6 +29,7 @@ pub const fn w0_ready() -> bool {
         && snapshot_ready()
         && identity_ready()
         && toolchain_ready()
+        && transform_ready()
 }
 
 /// Load the fleet upstream pin (adapter boundary).
@@ -122,7 +126,7 @@ pub struct PipelineReport {
     pub emit_regions: usize,
 }
 
-/// Typed refusal from the Slice 9 pipeline.
+/// Typed refusal from the Slice 11 pipeline.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PipelineError {
     /// Fleet pin could not load.
@@ -133,6 +137,8 @@ pub enum PipelineError {
     Rulepack(RulepackError),
     /// Kernel plan refused.
     Plan(port_engine_api::PortError),
+    /// Construction/precondition transform refused.
+    Transform(TransformError),
     /// Syn/quote emit refused.
     Emit(port_engine_api::PortError),
 }
@@ -144,6 +150,7 @@ impl std::fmt::Display for PipelineError {
             Self::Admit(err) => write!(f, "pipeline admit: {err}"),
             Self::Rulepack(err) => write!(f, "pipeline rulepack: {err}"),
             Self::Plan(err) => write!(f, "pipeline plan: {err}"),
+            Self::Transform(err) => write!(f, "pipeline transform: {err}"),
             Self::Emit(err) => write!(f, "pipeline emit: {err}"),
         }
     }
@@ -151,7 +158,19 @@ impl std::fmt::Display for PipelineError {
 
 impl std::error::Error for PipelineError {}
 
-/// Run pin → admit → plan → syn emit → six-axis receipt (all digests content-addressed).
+/// Admit → plan → transform → RustIr (Slice 11 smoke without emit/receipt).
+///
+/// # Errors
+/// [`PipelineError`] on admit/rulepack/plan/transform refusal.
+pub fn smoke_transform() -> Result<usize, PipelineError> {
+    let admitted = smoke_admit_snapshot().map_err(PipelineError::Admit)?;
+    let pack = LoadedRulePack::load_embedded().map_err(PipelineError::Rulepack)?;
+    let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
+    let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
+    Ok(ir.regions().len())
+}
+
+/// Run pin → admit → plan → transform → syn emit → six-axis receipt.
 ///
 /// # Errors
 /// [`PipelineError`] on any stage refusal.
@@ -160,11 +179,9 @@ pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
     let admitted = smoke_admit_snapshot().map_err(PipelineError::Admit)?;
     let pack = LoadedRulePack::load_embedded().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
+    let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
 
-    let mut ir = RustIr::new(&["stub"]);
-    ir.set_file_from_str("stub", "pub fn stub() {}")
-        .map_err(PipelineError::Emit)?;
-    let formatter_label = "fmt-pipeline-syn-v0";
+    let formatter_label = "fmt-pipeline-transform-v0";
     let renderer = SynQuoteRenderer::new(formatter_label);
     let emitted = renderer
         .render_rust_ir(&ir)
@@ -238,9 +255,9 @@ pub use port_engine_kernel::{emit, plan, verify, Verdict};
 
 /// Adapter readiness snapshot for diagnostics.
 ///
-/// Order: `(pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain)`.
+/// Order: `(pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform)`.
 #[must_use]
-pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool, bool, bool) {
+pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool, bool, bool, bool) {
     (
         port_engine_source_pin::w0_ready(),
         port_engine_rust_ir::w0_ready(),
@@ -250,6 +267,7 @@ pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool, bool, bool) {
         snapshot_ready(),
         identity_ready(),
         toolchain_ready(),
+        transform_ready(),
     )
 }
 
@@ -258,7 +276,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice10_driver_wiring_is_ready() {
+    fn slice11_driver_wiring_is_ready() {
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
@@ -279,14 +297,18 @@ mod tests {
             tc.0,
             "sha256:419e00d0e9c4d25f07431224dc50f89083d772adb9c59751a9a7d78c28f01cbd"
         );
+        let regions = smoke_transform().expect("transform must succeed");
+        assert_eq!(regions, 3);
         let report = smoke_pipeline().expect("pipeline must succeed");
         assert_eq!(report.plan_steps, 3);
-        assert_eq!(report.emit_regions, 1);
+        assert_eq!(report.emit_regions, 3);
         assert!(report.receipt.incomplete_axes().is_empty());
         assert_eq!(report.receipt.engine_digest, eng);
         assert_eq!(report.receipt.toolchain_digest, tc);
-        let (_pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain) =
+        let (_pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform) =
             adapter_readiness();
-        assert!(rust_ir && frontend && hash && rulepack && snapshot && identity && toolchain);
+        assert!(
+            rust_ir && frontend && hash && rulepack && snapshot && identity && toolchain && transform
+        );
     }
 }
