@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "capability": "compute",
+  "tier": "substrate",
+  "substrate_dag_position": {
+    "stratum": "forward-declared"
+  },
+  "_tier_source": "specs/capability-registry.json name=compute dag_node=compute — capability entry carries no tier/substrate_dag_position (deliberately undeclared among the nine pending founder/architecture ruling). Historical classify-capability-roots authored tier=substrate with forward-declared stratum; retained rather than inventing an S-rank.",
+  "_tier_subtype_note": "UNGROUNDED — capability-registry declares no tier_subtype and no absorbed legacy service manifest provides one. Deliberately ABSENT rather than invented; it lands when a grounded subtype exists.",
+  "_stratum_note": "forward-declared retained: ADR-0562 capability-registry still leaves compute undeclared for stratum (unlike messaging, which now carries grounded S0). Restores compute/manifest.json authored on fix/tier-classify-capability-roots (blob 48d13cc8) but never landed on dev; R4 (TDA-S-RANK-INVERSION) treats forward-declared as rank-exempt and cannot manufacture a false GREEN.",
+  "_openslo_note": "No compute/observability/slos/*.openslo.yaml exists in-tree. OpenSLO refs are omitted rather than invented; SLO authoring lands with a runtime SLI, not this root-manifest slice."
+}
