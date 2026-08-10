@@ -14,7 +14,8 @@ Doctrine: ADR-0711 D-9 and
 | `git-shim` | Allowlisted `git` for workers |
 | `toolguard` | Denies `cargo` / `buck2` in lanes |
 | `check-daemon` | Orchestrator `buck2 build //...[check]` → `err.txt` + `.check/errors.json` |
-| `claim-push.sh` | Blessed push of `HEAD` → `integ/<root>` with lease |
+| `self-check.sh` | Hermetic local drift-grep + kit invariants (opt-in) |
+| `claim-push.sh` | Blessed push of `HEAD` → `integ/<root>` with lease + merge-tree |
 | `integ-reset-remote.sh` | Server-side reset: `origin/dev` → `integ/<root>` |
 | `lane-shell.sh` | Worker shell with `shim-bin/` first on `PATH` |
 | `shim-bin/` | Generated wrappers named `git`, `cargo`, `buck2` |
@@ -33,7 +34,8 @@ Doctrine: ADR-0711 D-9 and
 `commit`, and `push` only when `SWARM_BLESSED_PUSH=1` (blessed scripts).
 
 **Git denylist:** `stash`, `reset`, `clean`, `restore`, `checkout`, `rebase`,
-`merge`, `branch -D/-d/-f`, `update-ref`, `reflog`, `gc`, bare `push --force`.
+`merge`, `branch -D/-d/-f`, `update-ref`, `reflog`, `gc`, bare `push --force`,
+`commit --no-verify`/`-n`, `push --no-verify`.
 
 **Build denylist:** `cargo` and `buck2` fail fast with:
 
