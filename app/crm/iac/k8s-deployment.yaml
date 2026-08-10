@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oya-crm
+  labels:
+    app: oya-crm
+    sap-code: "CRM"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: oya-crm
+  template:
+    metadata:
+      labels:
+        app: oya-crm
+    spec:
+      containers:
+        - name: service
+          image: registry.example/oya-crm:0.1.0
+          ports:
+            - name: h3
+              containerPort: 8443
+          env:
+            - name: OYA_HTTP_DEFAULT
+              value: HTTP/3
+            - name: OYA_ECH_ENABLED
+              value: "true"
+            - name: OYA_PQC_HYBRID
+              value: X25519MLKEM768

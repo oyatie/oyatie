@@ -41,3 +41,7 @@ Source dual-home remains under `oya/crm/crates/` until `integ/oya` shrink-only d
 - Procurement forever-home writes — procurement rail only.
 - Other products under `oya/*` or `app/*`.
 - Hub retargets (`specs/**`) — tip-free `integ/specs` only.
+
+## Reclaim (scaffold-vs-dump audit)
+- Completed remaining oya/crm → app/crm absorb after premature integ/oya shrink (`2a3dc1ebb`).
+- Source still on origin/dev; destination tip now holds full scaffold.
