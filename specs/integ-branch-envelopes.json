@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.12",
+    "version": "1.16.13",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
-    "prior_version": "1.16.11"
+    "prior_version": "1.16.12"
   },
   "admission": {
     "trunk": "dev",
@@ -505,6 +505,14 @@
         "app/social/**"
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/social/** (SEPARATE app product per ADR-0615 — not a healthcare context; community crates remain oya/community). OVERRULE #1611 scaffold delete → reclaim (1.16.9).",
+      "forward_declared": true
+    },
+    "procurement": {
+      "branch": "integ/procurement",
+      "envelope_globs": [
+        "app/procurement/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/procurement/**; source-to-pay reclaim from CRM-misplaced oya-procurement-source-to-pay-domain (NOT marketplace). Holding absorb #1672 tip f810bd811 DONE.",
       "forward_declared": true
     }
   },
@@ -2402,6 +2410,49 @@
         "land_when": "After this judgment: integ/crm rewrites CRM product to app/crm/**; evict oya-procurement-source-to-pay-domain to procurement forever home (coordinate owning integ); rewrite stale microservices/crm refs; hub retargets only on tip-free integ/specs — not this judgment commit",
         "land_status": "ready_for_integ_crm",
         "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/crm/crates/oya-procurement-source-to-pay-domain/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/procurement/crates/oya-procurement-source-to-pay-domain/",
+        "destination": "app/procurement/",
+        "destination_integ": "integ/procurement",
+        "shape": "misplaced CRM domain crate rewrite into app/procurement/; source-to-pay ≠ marketplace; PARKED #1672 holding absorb DONE",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/crm/crates/oya-procurement-source-to-pay-domain/",
+        "name_forever": "app/procurement/crates/oya-procurement-source-to-pay-domain/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: crate lived under oya/crm/crates by accident — specs/microservices/procurement.json owns source-to-pay; CRM is not forever home",
+          "cartesian_doubt: marketplace was proposed and rejected — source-to-pay ≠ marketplace product boundary",
+          "essentialism_yagni: forever home is app/procurement/** via integ/procurement; greenfield is not 'keep under CRM' or 'fold into marketplace'",
+          "contrarian: reject marketplace absorb and CRM dual-home — OVERRULE any marketplace destination for this crate",
+          "pragmatism: #1672 tip f810bd811 already holds app/procurement/crates/oya-procurement-source-to-pay-domain; hub retarget on integ/specs only",
+          "systems_thinking: integ/procurement owns app/procurement/**; integ/crm shrinks leftover procurement crate after verify; integ/marketplace must not claim it",
+          "blast_radius_cell: PARKED #1672 reclaim only — no merge to dev from this hub commit",
+          "opportunity_cost: leaving crate under CRM guarantees wrong ms:crm classification forever",
+          "red_team: git-mv into marketplace or app/crm smuggles wrong product boundary",
+          "operability_day2: procurement Day-2 under app/procurement; CRM Day-2 under app/crm",
+          "socratic: is source-to-pay a CRM or marketplace bounded context? No — procurement microservice owns it",
+          "outside_the_box: scout eviction packet from CRM judgment + #1672 REORG-DRAIN",
+          "zero_trust: do not treat CRM catalog stubs as proof procurement belongs under CRM",
+          "finops_unit_cost: one product rail avoids dual homes + stale microservices/procurement paths",
+          "shared_nothing: procurement product cell is app/procurement; distinct from CRM and marketplace",
+          "constant_work: register root+judgment+hub retarget now; path absorb already on #1672"
+        ],
+        "rationale": "1) Domain crate oya-procurement-source-to-pay-domain was misplaced under oya/crm/crates (CRM judgment eviction). 2) Brand/CRM nest vs ADR-0562 app product forever home. 3) specs/microservices/procurement.json owns source-to-pay; marketplace rejected. 4) Must exist at app/procurement/** via integ/procurement. 5) Fit: roots.procurement forward_declared integ/procurement → app/procurement/**. 6) rewrite/reclaim (#1672 f810bd811 DONE). 7) Forever: app/procurement/.",
+        "evidence": [
+          "#1672 tip f810bd81113a1c2af01a5c965ea2c2510394530d holds app/procurement/crates/oya-procurement-source-to-pay-domain",
+          "CRM judgment on oya/crm/ requires eviction of oya-procurement-source-to-pay-domain to procurement forever home",
+          "marketplace destination rejected (source-to-pay ≠ marketplace)"
+        ],
+        "land_when": "integ/procurement holds app/procurement/** (#1672 DONE); integ/specs retargets specs/microservices/procurement.json primary_crate+test_ref; integ/crm shrink-only removes leftover crate after verify; do not absorb into marketplace",
+        "land_status": "ready_for_integ_procurement",
+        "shrink_source_integ": "integ/crm"
       },
       {
         "path": "oya/itsm/",
@@ -5506,6 +5557,12 @@
           "forever": "governance/ + ci|gateway|cell/observability/slos/ + iac/",
           "shrink_source_integ": "integ/oya",
           "note": "OVERRULE 1.16.10: was delete_permanently; multi-destination decompose — authority reclaim on integ/governance before source shrink; NOT wholesale META dump"
+        },
+        "oya/crm/crates/oya-procurement-source-to-pay-domain/": {
+          "destination_integ": "integ/procurement",
+          "forever": "app/procurement/**",
+          "shrink_source_integ": "integ/crm",
+          "note": "CRM-misplaced source-to-pay crate → app/procurement/** via integ/procurement (#1672 DONE); NOT marketplace"
         }
       },
       "process_kit": {
@@ -5818,6 +5875,23 @@
           }
         ],
         "note": "Fills gap vs 31bcccb2 integ/healthcare reclaim: content preserved but re-homed to per-product rails"
+      },
+      {
+        "scout_id": "60520855+procurement-holding-1672",
+        "absorbed_at_version": "1.16.13",
+        "accepted": [
+          "roots.procurement → integ/procurement / app/procurement/**",
+          "reorg_now judgment for CRM-misplaced oya-procurement-source-to-pay-domain → app/procurement/",
+          "retarget specs/microservices/procurement.json off microservices/procurement/… toward app/procurement/crates/…",
+          "marketplace rejected for source-to-pay"
+        ],
+        "rejected": [
+          {
+            "recommendation": "absorb procurement under marketplace",
+            "reason": "source-to-pay ≠ marketplace product boundary",
+            "challenge": "cartesian_doubt: marketplace charter is not procurement S2P"
+          }
+        ]
       }
     ]
   },
