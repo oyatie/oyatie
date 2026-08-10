@@ -46,6 +46,27 @@ const REPO = A.repo || require('child_process')
 const INTEG = A.integration || ''
 const ENVELOPES = `${REPO}/specs/integ-branch-envelopes.json`
 
+// Claim↔diff bind must read the assembled integ tip, not a stale unit/main checkout.
+// Prefer explicit candidate, then `.worktrees/integ-<root>`, else REPO when HEAD is on INTEG.
+function resolveClaimRepo() {
+  const fs = require('fs')
+  const path = require('path')
+  const cp = require('child_process')
+  const explicit = (A.claim_repo || process.env.SWARM_CANDIDATE_ROOT || '').trim()
+  if (explicit && fs.existsSync(path.join(explicit, '.git'))) return path.resolve(explicit)
+  const root = String(INTEG || '').replace(/^integ\//, '')
+  if (root) {
+    const station = path.join(REPO, '.worktrees', `integ-${root}`)
+    if (fs.existsSync(path.join(station, '.git'))) return station
+  }
+  try {
+    const headBranch = cp.execFileSync('git', ['-C', REPO, 'rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim()
+    if (INTEG && headBranch === INTEG) return REPO
+  } catch (_) { /* fall through */ }
+  return REPO
+}
+const CLAIM_REPO = resolveClaimRepo()
+
 if (!INTEG) {
   throw new Error('deliver.js requires args.integration matching a root/plane branch in specs/integ-branch-envelopes.json (e.g. integ/specs). The former default integ/deliver-run is not an envelope and would fail Claim.')
 }
@@ -454,11 +475,11 @@ function bindPathsToDiff(declared, changedPaths, fieldName) {
   return errors
 }
 
-function gitDiffNameOnly(range) {
+function gitDiffNameOnly(range, repoRoot = CLAIM_REPO) {
   try {
     const out = require('child_process').execFileSync(
       'git',
-      ['-C', REPO, 'diff', '--name-only', range],
+      ['-C', repoRoot, 'diff', '--name-only', range],
       { encoding: 'utf8' },
     )
     return out.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
@@ -1038,8 +1059,10 @@ phase('Claim')
 const integRoot = INTEG.replace(/^integ\//, '')
 const claimed = await agent(`${CTX}
 
-CLAIM (ADR-0711 / specs/integ-branch-envelopes.json) for integration branch \`${INTEG}\`.
+CLAIM (ADR-0711 Accepted / specs/integ-branch-envelopes.json) for integration branch \`${INTEG}\`.
 Policy file: \`${ENVELOPES}\`.
+Claim↔diff bind repo (assembled tip): \`${CLAIM_REPO}\` — run all \`git diff\` / cherry-pick
+inventory commands with \`-C ${CLAIM_REPO}\` (not a unit worktree or stale main checkout).
 
 This phase is a GATE. First line of summary must be exactly "CLAIM" or "REFUSE".
 
@@ -1204,17 +1227,58 @@ if (processThrash && !converged) {
 }
 
 // ---------------------------------------------------------------------------
+phase('Re-Claim')
+
+// Converge may commit repairs that change the tip. The pre-Converge Claim packet no longer
+// authorizes Land — bind + envelope checks must pass again on CLAIM_REPO's HEAD.
+log(`Re-Claim bind against CLAIM_REPO=${CLAIM_REPO} (post-Converge tip)`)
+const reClaimDiff = gitDiffNameOnly(`${BASE}...HEAD`)
+const reClaimPacket = parseClaimPacket(claimed && claimed.summary, {
+  bindDiff: true,
+  changedPaths: Array.isArray(reClaimDiff) ? reClaimDiff : undefined,
+})
+if (reClaimDiff && reClaimDiff.error) {
+  reClaimPacket.errors.push(`Re-Claim git diff failed in CLAIM_REPO: ${reClaimDiff.error}`)
+  reClaimPacket.ok = false
+}
+const reClaimOk = !!(claimOk && reClaimPacket.ok)
+if (reClaimPacket.errors.length) {
+  log(`Re-Claim packet errors: ${reClaimPacket.errors.join('; ')}`)
+}
+log(reClaimOk
+  ? 'Re-Claim passed — post-Converge tip still binds to Claim packet'
+  : 'REFUSED — Converge changed the tip; re-run Claim before Land')
+if (!reClaimOk) {
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    refused: 're-claim gate failed after converge',
+    claim: claimed,
+    claim_packet: claimPacket,
+    re_claim_packet: reClaimPacket,
+    remedy: 'Converge repaired the tip. Re-run the Claim phase on the assembled integ worktree (CLAIM_REPO / .worktrees/integ-<root>) and produce a fresh CLAIM packet bound to the new HEAD before Land.',
+    prs_opened: 0,
+  }
+}
+
+// ---------------------------------------------------------------------------
 phase('Land')
 
 // Exactly one PR per integ/<root>, upserted (create-or-update), and only if Claim passed and
 // the tree is already green. After squash-merge, reset is SERVER-SIDE (ADR-0711 D-4).
 const landed = await agent(`${CTX}
 
-LAND (ADR-0711). Claim already passed for \`${INTEG}\`. Open or UPDATE exactly ONE pull request
-from \`${INTEG}\` into ${BASE}. Never open a second PR for the same integ. Never open a trunk PR
-from a unit/lane branch. One writer queue per integ tip (hyperscaler CODEOWNERS / envelope
-discipline). After squash-merge, document server-side integ reset — small frequent lands, not
-mega-branches.
+LAND (ADR-0711). Claim + post-Converge Re-Claim passed for \`${INTEG}\` (CLAIM_REPO=${CLAIM_REPO}).
+Open or UPDATE exactly ONE pull request from \`${INTEG}\` into ${BASE}. Never open a second PR
+for the same integ. Never open a trunk PR from a unit/lane branch. One writer queue per integ tip
+(hyperscaler CODEOWNERS / envelope discipline). After squash-merge, document server-side integ
+reset — small frequent lands, not mega-branches.
+
+PAUSE-AND-PAIR (Land protocol / F-PR5-06): when GitHub branch protection
+\`required_approving_review_count\` is null/0, observation≠APPROVE. You MUST REFUSE
+\`gh pr merge --auto\` / enable-auto-merge unless (a) an independent APPROVE exists from a
+reviewer ≠ PR author, OR (b) a tip-bound programme Land packet is recorded for THIS HEAD SHA.
+Tide floor may land on integ/ci before trunk — do not treat partial Tide harden as trunk authority.
 
 UPSERT RULE:
   - \`gh pr list --head ${INTEG} --base ${BASE.replace(/^origin\\//, '')} --state open --json number,url\`

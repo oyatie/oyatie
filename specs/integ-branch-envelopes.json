@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.14",
+    "version": "1.16.15",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
-    "prior_version": "1.16.13"
+    "prior_version": "1.16.14"
   },
   "admission": {
     "trunk": "dev",
@@ -711,6 +711,60 @@
         "claiming_branch": "integ/specs",
         "reason": "Exclude non-crate governance/check/integ-envelope from workspace members glob so freshness can resolve (ADR-0538 carve-out).",
         "expires_at_or_wave": "wave-after-integ-envelope-gate"
+      },
+      {
+        "path_glob": ".grok/harness/model-routing.v1.json",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap: model-routing harness pin co-lands with Swarm Delivery Law optional-channel doctrine (advisory channels ≠ merge authority).",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": ".omc/ultragoal/**",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap: delete tracked .omc/ultragoal residue per reorg_debt_freeze delete_permanently; friction ledger retargeted to ci/facade/action-item-accounting/.",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "ci/facade/action-item-accounting/friction-accounting-policy.json",
+        "claiming_branch": "integ/specs",
+        "reason": "Codex P1: retarget friction ledger_path off deleted .omc/ultragoal onto CI-colocated forever path in the same wave as the delete.",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "ci/facade/action-item-accounting/friction-ledger.jsonl",
+        "claiming_branch": "integ/specs",
+        "reason": "Codex P1: land retargeted friction ledger bytes next to friction-accounting-policy (ADR-0544 forever home).",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "ci/facade/action-item-accounting/friction-accounting-baseline.json",
+        "claiming_branch": "integ/specs",
+        "reason": "Codex P1: update baseline provenance ledger_path to match friction-accounting-policy retarget.",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "ci/facade/contract-slice-conformance/**",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap residual: lifecycle-config absorption coupled contract-slice policy/slice edits on integ/specs closeout wave.",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "ci/facade/lifecycle-status/**",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap residual: lifecycle-status policy edits coupled to specs/lifecycle-configs absorption on integ/specs.",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "flags/release/runtime-safety-policy.json",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap residual: runtime-safety policy cite coupled to lifecycle-config absorption (#1628/#1629 closeout).",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "libs/oya-governance-lifecycle-kernel/src/lib.rs",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap residual: lifecycle-kernel consumer update coupled to specs/lifecycle-configs absorption on integ/specs.",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       }
     ]
   },

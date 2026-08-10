@@ -40,8 +40,8 @@ need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
 missing_inv = [x for x in need_inv if x not in inv]
 if missing_inv:
     raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
-if e.get("_meta", {}).get("version") != "1.16.14":
-    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.14")
+if e.get("_meta", {}).get("version") != "1.16.15":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.15")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
