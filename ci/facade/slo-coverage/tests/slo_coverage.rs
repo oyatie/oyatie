@@ -100,7 +100,12 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  Regenerate the face after any rebase before trusting a census
 ///                                  pin locally; a green local census gate proves nothing about a
 ///                                  stale face.
-const SLO_CATALOG_CENSUS: usize = 750;
+///
+///   2026-08-10  750 -> pin 757     Re-measured after the kernel and os SLO-home retargets
+///                                  added seven catalog rows. This updates only the exact live
+///                                  corpus pin; the kernel/os manifest fallback contract remains
+///                                  unchanged.
+const SLO_CATALOG_CENSUS: usize = 757;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

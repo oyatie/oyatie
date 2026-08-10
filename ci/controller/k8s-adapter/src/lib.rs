@@ -13,7 +13,7 @@
 //!   `oya.io/ci-pr-number=<N>`, `oya.io/ci-head-sha=<sha>`,
 //!   `oya.io/ci-delivery-id=<id>`, `app.kubernetes.io/part-of=oyatie-microservices`
 //! - `backoffLimit: 0` — fail-closed, no silent retry
-//! - `activeDeadlineSeconds` — from spec (mirrors 60 min Jenkins timeout)
+//! - `activeDeadlineSeconds` — from spec (mirrors the legacy CI 60 min timeout)
 //! - `ttlSecondsAfterFinished` — GC (Prow sinker equivalent)
 //! - `restartPolicy: Never`
 //!
@@ -87,7 +87,7 @@ pub const WATCHER_LABEL_SELECTOR: &str = "oya.io/ci-controller=oya-ci-gate";
 ///   ref as untrusted candidate data, snapshots trusted build/test target
 ///   inventories, then runs the candidate tree against those immutable
 ///   inventories.
-/// - Sets `HOME=/home/jenkins/agent` (matches rust-ci image expectations).
+/// - Sets `HOME=/home/ci/agent` (matches rust-ci image expectations).
 pub fn build_gate_job(spec: &GateRunSpec) -> Job {
     let job_name = spec.run.job_name();
     let sha = &spec.run.head_sha;
@@ -170,12 +170,12 @@ xargs -a /workspace/trusted-test-targets.txt buck2 test"#,
         // commit statuses. Only the controller (crier) holds the token.
         env: Some(vec![EnvVar {
             name: "HOME".to_owned(),
-            value: Some("/home/jenkins/agent".to_owned()),
+            value: Some("/home/ci/agent".to_owned()),
             ..Default::default()
         }]),
         security_context: Some(k8s_openapi::api::core::v1::SecurityContext {
             allow_privilege_escalation: Some(false),
-            read_only_root_filesystem: Some(false), // gate needs /tmp, /home/jenkins/agent
+            read_only_root_filesystem: Some(false), // gate needs /tmp, /home/ci/agent
             run_as_non_root: Some(true),
             capabilities: Some(k8s_openapi::api::core::v1::Capabilities {
                 drop: Some(vec!["ALL".to_owned()]),

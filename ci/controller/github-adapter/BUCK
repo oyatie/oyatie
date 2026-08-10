@@ -24,3 +24,16 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "github-status-poster-tests",
+    srcs = ["tests/github_status_poster.rs"],
+    crate = "github_status_poster",
+    crate_root = "tests/github_status_poster.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-controller-github-adapter",
+        "//ci/controller/kernel:ci-controller-kernel",
+        "third-party//:httpmock",
+    ],
+)

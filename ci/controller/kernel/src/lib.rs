@@ -446,7 +446,7 @@ pub struct GateRunSpec {
     pub image: String, // data_class: INTERNAL_ONLY
     /// Git clone URL (e.g. `"https://github.com/jason931225/oyatie.git"`).
     pub forge_clone_url: String, // data_class: INTERNAL_ONLY
-    /// Gate deadline in seconds (mirrors Jenkinsfile 60 min timeout).
+    /// Gate deadline in seconds (mirrors the legacy CI 60 min timeout).
     pub active_deadline_seconds: i64, // data_class: INTERNAL_ONLY
     /// TTL after finished for GC (sinker equivalent).
     pub ttl_seconds_after_finished: i32, // data_class: INTERNAL_ONLY

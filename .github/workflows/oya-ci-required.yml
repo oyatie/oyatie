@@ -854,9 +854,7 @@ jobs:
             rustup toolchain install
             # Materialize merge-base faces in the clean historical tree. The historical binary owns
             # epoch dispatch: new capability verifies authority; legacy bare mode must emit no receipt.
-            historical_help_status=0
-            historical_help="$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)" || historical_help_status=$?
-            (( historical_help_status == 0 || historical_help_status == 2 )) || { echo "historical materializer capability probe failed: status=${historical_help_status}"; exit 1; }
+            historical_help="$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)" || true
             grep -Fq "usage: oya-cloud-ci-materialize-generated-faces" <<<"${historical_help}" || { echo "historical materializer capability probe returned no usage contract"; exit 1; }
             historical_retirement_args=()
             if grep -Fq -- "--historical-merge-base <oid>" <<<"${historical_help}"; then

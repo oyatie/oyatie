@@ -80,8 +80,8 @@ rust_test(
     ],
 )
 
-# ADR-0711 hub-exclusivity live producer: loads #hubs.paths + open-PR changed files (fixture or
-# GitHub REST) and REFUSEs multi-own. Invoked from the oya-ci-required affected-set admission path.
+# ADR-0711 hub-exclusivity producer: loads #hubs.paths + hermetic open-PR fixture facts and
+# REFUSEs multi-own. Invoked from the oya-ci-required affected-set admission path.
 rust_binary(
     name = "oya-cloud-ci-hub-exclusivity-bin",
     srcs = glob(["src/**/*.rs"]),
@@ -89,7 +89,6 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
-        "third-party//:reqwest",
         "third-party//:serde_json",
     ],
 )
@@ -102,7 +101,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
-        "third-party//:reqwest",
         "third-party//:serde_json",
     ],
 )

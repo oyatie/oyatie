@@ -590,7 +590,7 @@ pub struct GateSpecConfig {
     pub image: String,
     /// Git clone URL for the gate Job init container (GitHub forge of record).
     pub forge_clone_url: String,
-    /// Gate Job active deadline in seconds (mirrors Jenkins 60 min timeout).
+    /// Gate Job active deadline in seconds (mirrors the legacy CI 60 min timeout).
     pub active_deadline_seconds: i64,
     /// TTL after finished for GC (sinker equivalent).
     pub ttl_seconds_after_finished: i32,
