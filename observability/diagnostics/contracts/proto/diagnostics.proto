@@ -5,7 +5,7 @@ syntax = "proto3";
 
 package oyatie.diagnostics.v1;
 
-option go_package = "github.com/oyatie/oyatie/microservices/diagnostics/contracts/proto;diagnosticspb";
+option go_package = "github.com/oyatie/oyatie/observability/diagnostics/contracts/proto;diagnosticspb";
 
 service LabOrderService {
   rpc CreateLabOrder(CreateLabOrderRequest) returns (LabOrderResponse);

@@ -144,7 +144,7 @@ Tail Sampling Buffer Saturated incident decision tree
 ## Resolution Steps
 1. Identify code owner path: `rg "tail_sampling_buffer_saturated|ObservabilityTailSamplingBufferSaturatedCritical|observability.tail_sampling_buffer_saturated.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where tail_sampling_buffer_saturated state transition is validated`.
-3. Patch API guard: `edit microservices/observability/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
+3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-observability-domain tail_sampling_buffer_saturated_incident_regression -- --nocapture`.

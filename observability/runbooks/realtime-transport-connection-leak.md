@@ -144,7 +144,7 @@ Realtime Transport Connection Leak incident decision tree
 ## Resolution Steps
 1. Identify code owner path: `rg "realtime_transport_connection_leak|ObservabilityRealtimeTransportConnectionLeakCritical|observability.realtime_transport_connection_leak.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where realtime_transport_connection_leak state transition is validated`.
-3. Patch API guard: `edit microservices/observability/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
+3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-observability-domain realtime_transport_connection_leak_incident_regression -- --nocapture`.

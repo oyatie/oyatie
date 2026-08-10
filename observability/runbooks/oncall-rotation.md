@@ -144,7 +144,7 @@ Oncall Rotation incident decision tree
 ## Resolution Steps
 1. Identify code owner path: `rg "oncall_rotation|ObservabilityOncallRotationCritical|observability.oncall_rotation.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where oncall_rotation state transition is validated`.
-3. Patch API guard: `edit microservices/observability/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
+3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-observability-domain oncall_rotation_incident_regression -- --nocapture`.
