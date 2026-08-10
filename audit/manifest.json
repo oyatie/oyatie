@@ -1,5 +1,7 @@
 {
   "schema_version": "1.0",
+  "capability": "audit",
+  "_comment": "Capability-root manifest for audit/ (ADR-0562; registry name=audit, dag_node=audit-chain, stratum=S0). Crate names, layer accounting, and in-tree file paths below were verified against the audit/** tree at authoring time. Legacy microservice slug audit-chain is retained as `microservice` for absorbed-service continuity; do not invent missing IP/PRD/ARCHITECTURE/MIGRATION homes.",
   "microservice": "audit-chain",
   "tier": "substrate",
   "tier_subtype": "substrate-audit",
@@ -18,50 +20,92 @@
       "observability",
       "ontology",
       "workflow-engine"
-    ]
+    ],
+    "_note": "specs/capability-registry.json name=audit dag_node=audit-chain stratum=S0. depends_on/consumed_by_substrates retained from absorbed audit-chain service manifest (microservice-era names); registry entry declares stratum only."
   },
+  "_tier_source": "specs/capability-registry.json name=audit dag_node=audit-chain stratum=S0; tier_subtype=substrate-audit retained from absorbed audit-chain service manifest",
   "version": "0.1.0",
   "owner": "axis-audit-chain",
+  "purpose": "Tamper-evident Merkle audit log; always-on, no kill switch. Seals the emitting principal + tenant scope (capability-registry charter). Tree hosts emission/sealing/verification/query/retention-cascade domain+port crates plus a file adapter, OpenAPI/AsyncAPI/proto contracts, Cedar policy, OpenSLO files under audit/observability/slos/, and runbooks.",
   "bounded_contexts": [
     {
-      "name": "audit-chain",
-      "description": "Bounded context 'audit-chain' within audit-chain (control plane)",
+      "name": "audit-adapters",
+      "description": "Driven adapters under audit/adapters/.",
       "crates": [
-        "oya-audit-chain-emission-api",
-        "oya-audit-chain-emission-domain",
-        "oya-audit-chain-emission-kernel",
-        "oya-audit-chain-query-api",
-        "oya-audit-chain-query-domain",
-        "oya-audit-chain-query-kernel",
-        "oya-audit-chain-retention-cascade-api",
-        "oya-audit-chain-retention-cascade-domain",
-        "oya-audit-chain-retention-cascade-kernel",
-        "oya-audit-chain-sealing-api",
-        "oya-audit-chain-sealing-domain",
-        "oya-audit-chain-sealing-kernel",
-        "oya-audit-chain-verification-api",
-        "oya-audit-chain-verification-domain",
-        "oya-audit-chain-verification-kernel"
+        "audit-file-adapter"
+      ]
+    },
+    {
+      "name": "audit-core",
+      "description": "Pure domain/usecase kernels under audit/core/.",
+      "crates": [
+        "audit-chain-domain",
+        "audit-emission-domain",
+        "audit-query-domain",
+        "audit-retention-cascade-domain",
+        "audit-sealing-domain",
+        "audit-usecase",
+        "audit-verification-domain"
+      ]
+    },
+    {
+      "name": "audit-ports",
+      "description": "API + kernel port boundaries under audit/ports/.",
+      "crates": [
+        "audit-emission-api",
+        "audit-emission-kernel",
+        "audit-query-api",
+        "audit-query-kernel",
+        "audit-retention-cascade-api",
+        "audit-retention-cascade-kernel",
+        "audit-sealing-api",
+        "audit-sealing-kernel",
+        "audit-verification-api",
+        "audit-verification-kernel"
       ]
     }
   ],
   "layers": [
-    "adapter",
-    "api",
-    "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "adapters",
+    "core",
+    "ports"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 18,
+    "crates_by_layer": {
+      "adapters": 1,
+      "core": 7,
+      "ports": 10
+    },
+    "crates_covered_by_no_other_manifest": 18,
+    "_overlap_note": "All eighteen workspace members under audit/ are owned exclusively by this capability root; catalog/*.yaml rows still use legacy oya-audit-chain-* service names and are not re-declared here.",
+    "path_verification": {
+      "verified_retargeted": [
+        "audit/capabilities/audit-emit.yaml",
+        "audit/capabilities/seal-mint.yaml",
+        "audit/capabilities/verify-merkle.yaml",
+        "audit/contracts/openapi/audit-chain.yaml",
+        "audit/contracts/asyncapi/audit-events.yaml",
+        "audit/contracts/proto/audit-chain.proto",
+        "audit/runbooks/chain-replay-from-snapshot-protocol.md",
+        "audit/observability/slos/*.openslo.yaml (7 declared SLOs)",
+        "observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml"
+      ],
+      "deferred_missing_homes": [
+        "IP-001..IP-015 markdown (only audit/IPs/IP-ADR-0339 + IP-WAVE-15 present)",
+        "audit/PRD.md",
+        "audit/ARCHITECTURE.md",
+        "audit/MIGRATION-2026-05-21.md"
+      ],
+      "_note": "Verified paths retargeted microservices/audit-chain/** \u2192 audit/**. Missing homes keep legacy microservices/audit-chain/** cites rather than inventing files (Seat A path-verification doctrine)."
+    }
+  },
   "contracts": {
     "openapi": [
-      "microservices/audit-chain/contracts/openapi/audit-chain.yaml"
+      "audit/contracts/openapi/audit-chain.yaml"
     ],
     "asyncapi": [
-      "microservices/audit-chain/contracts/asyncapi/audit-events.yaml"
+      "audit/contracts/asyncapi/audit-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -75,19 +119,19 @@
     {
       "tier": "T2",
       "name": "audit-emit",
-      "file": "microservices/audit-chain/capabilities/audit-emit.yaml",
+      "file": "audit/capabilities/audit-emit.yaml",
       "risk_class": "limited"
     },
     {
       "tier": "T3",
       "name": "seal-mint",
-      "file": "microservices/audit-chain/capabilities/seal-mint.yaml",
+      "file": "audit/capabilities/seal-mint.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T0",
       "name": "verify-merkle",
-      "file": "microservices/audit-chain/capabilities/verify-merkle.yaml",
+      "file": "audit/capabilities/verify-merkle.yaml",
       "risk_class": "none"
     }
   ],
@@ -140,91 +184,106 @@
       "id": "IP-001-storage-backend-iac",
       "title": "IP-001: Storage backend IaC (Postgres + S3 WORM + HSM operator)",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-001-storage-backend-iac.md"
+      "file": "microservices/audit-chain/IP-001-storage-backend-iac.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-002-self-slo-manifest",
       "title": "IP-002: Self-SLO manifests for audit-chain",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-002-self-slo-manifest.md"
+      "file": "microservices/audit-chain/IP-002-self-slo-manifest.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-003-emission-kernel",
       "title": "IP-003: oya-audit-chain-emission-kernel",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-003-emission-kernel.md"
+      "file": "microservices/audit-chain/IP-003-emission-kernel.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-004-emission-domain",
       "title": "IP-004: oya-audit-chain-emission-domain",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-004-emission-domain.md"
+      "file": "microservices/audit-chain/IP-004-emission-domain.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-005-emission-usecase-and-adapter",
       "title": "IP-005: emission-usecase + emission-api + emission-adapter + emission-rest + emission-sdk + emission-app",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-005-emission-usecase-and-adapter.md"
+      "file": "microservices/audit-chain/IP-005-emission-usecase-and-adapter.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-006-sealing-kernel",
       "title": "IP-006: oya-audit-chain-sealing-kernel",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-006-sealing-kernel.md"
+      "file": "microservices/audit-chain/IP-006-sealing-kernel.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-007-sealing-domain-merkle",
       "title": "IP-007: oya-audit-chain-sealing-domain (Merkle math)",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-007-sealing-domain-merkle.md"
+      "file": "microservices/audit-chain/IP-007-sealing-domain-merkle.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-008-sealing-adapter-hsm",
       "title": "IP-008: oya-audit-chain-sealing-adapter-hsm",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-008-sealing-adapter-hsm.md"
+      "file": "microservices/audit-chain/IP-008-sealing-adapter-hsm.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-009-sealing-adapter-postgres-s3",
       "title": "IP-009: sealing-adapter-postgres + sealing-adapter-s3",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-009-sealing-adapter-postgres-s3.md"
+      "file": "microservices/audit-chain/IP-009-sealing-adapter-postgres-s3.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-010-sealing-worker-app",
       "title": "IP-010: sealing-usecase + sealing-api + sealing-adapter + sealing-worker + sealing-app",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-010-sealing-worker-app.md"
+      "file": "microservices/audit-chain/IP-010-sealing-worker-app.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-011-verification-stack",
       "title": "IP-011: verification BC (7 crates)",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-011-verification-stack.md"
+      "file": "microservices/audit-chain/IP-011-verification-stack.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-012-query-stack",
       "title": "IP-012: query BC (8 crates)",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-012-query-stack.md"
+      "file": "microservices/audit-chain/IP-012-query-stack.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-013-retention-cascade",
       "title": "IP-013: retention-cascade BC (6 crates)",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-013-retention-cascade.md"
+      "file": "microservices/audit-chain/IP-013-retention-cascade.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-014-cross-microservice-emission-adapter",
-      "title": "IP-014: Cross-µservice emission SDK adoption",
+      "title": "IP-014: Cross-\u00b5service emission SDK adoption",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-014-cross-microservice-emission-adapter.md"
+      "file": "microservices/audit-chain/IP-014-cross-microservice-emission-adapter.md",
+      "path_verification": "deferred_missing_home"
     },
     {
       "id": "IP-015-self-observability-slo-wiring",
       "title": "IP-015: Self-observability SLO + HG-AUDIT registration",
       "acceptance_status": "ga",
-      "file": "microservices/audit-chain/IP-015-self-observability-slo-wiring.md"
+      "file": "microservices/audit-chain/IP-015-self-observability-slo-wiring.md",
+      "path_verification": "deferred_missing_home"
     }
   ],
   "regulatory_packs": [
@@ -301,10 +360,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -338,7 +397,7 @@
     "ambient_waypoint": true,
     "north_south_only": false
   },
-  "naming_justifications": "audit-chain is a BNF v4.1 kebab-case microservice slug; generated names follow oya-audit-chain-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "capability root `audit` (registry name); absorbed microservice slug `audit-chain` retained for seal-event / catalog continuity. Workspace crate names follow audit-<bounded-context>-<face> under adapters/core/ports (ADR-0562 faces); legacy oya-audit-chain-* catalog rows remain until a catalog retarget slice.",
   "tenant_class_eligibility": [
     "demo_trial",
     "paid"
@@ -369,7 +428,7 @@
     "il5",
     "DORA"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; golden_signals: INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; golden_signals: INV-FOUR-GOLDEN-SIGNALS \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-audit-chain",
   "data_classification": "AUDIT, INTERNAL_ONLY, PII_QUASI",
   "compliance_packs_applicable": [
@@ -411,7 +470,7 @@
   ],
   "failure_domain": "north-south edge admission and routing plane",
   "criticality_tier": "T0",
-  "layer": "rest",
+  "layer": "ports",
   "doc_class": "Machine-Readable-Spec",
   "capacity_model": {
     "baseline_cpu_per_tenant": 0.22,
@@ -454,18 +513,19 @@
       "audit_chain_merkle_seal",
       "openbao_seal_unseal"
     ],
-    "failover_runbook": "runbooks/chain-replay-from-snapshot-protocol.md",
+    "failover_runbook": "audit/runbooks/chain-replay-from-snapshot-protocol.md",
     "dr_tier": "T1",
     "replication_shape": "active-active-multi-az-cross-region-warm"
   },
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Audit-chain is a tenant-data-touching foundation substrate that receives, seals, and replays audit events for regulated tenants. It does not execute tenant code, but its data plane is sensitive enough to require Tier 1 runtime isolation.",
   "pod_runtime_tier_surface_evidence": [
+    "audit/README.md",
     "microservices/audit-chain/PRD.md",
     "microservices/audit-chain/ARCHITECTURE.md",
     "microservices/audit-chain/IP-006-sealing-kernel.md",
     "microservices/audit-chain/IP-011-verification-stack.md",
-    "microservices/audit-chain/runbooks/chain-replay-from-snapshot-protocol.md"
+    "audit/runbooks/chain-replay-from-snapshot-protocol.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -483,19 +543,20 @@
         "deprecated_at": "2026-05-21",
         "sunset_at": "2026-11-21",
         "breaking_change_adr": "docs/decisions/ADR-0709-general-live-apex.md",
-        "migration_doc": "microservices/audit-chain/MIGRATION-2026-05-21.md"
+        "migration_doc": "microservices/audit-chain/MIGRATION-2026-05-21.md",
+        "path_verification": "deferred_missing_home"
       }
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/audit-chain/contracts/openapi/audit-chain.yaml",
-        "2026-02-21": "microservices/audit-chain/contracts/openapi/audit-chain.yaml",
-        "2025-11-21": "microservices/audit-chain/contracts/openapi/audit-chain.yaml"
+        "2026-05-21": "audit/contracts/openapi/audit-chain.yaml",
+        "2026-02-21": "audit/contracts/openapi/audit-chain.yaml",
+        "2025-11-21": "audit/contracts/openapi/audit-chain.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/audit-chain/contracts/asyncapi/audit-events.yaml",
-        "2026-02-21": "microservices/audit-chain/contracts/asyncapi/audit-events.yaml",
-        "2025-11-21": "microservices/audit-chain/contracts/asyncapi/audit-events.yaml"
+        "2026-05-21": "audit/contracts/asyncapi/audit-events.yaml",
+        "2026-02-21": "audit/contracts/asyncapi/audit-events.yaml",
+        "2025-11-21": "audit/contracts/asyncapi/audit-events.yaml"
       }
     }
   },
