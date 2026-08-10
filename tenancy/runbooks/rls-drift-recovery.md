@@ -74,7 +74,7 @@ doc_status: published
 18. Inspect feature flags: `oya flags get oya.tenancy.rls_drift_recovery.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status tenancy-rls-drift-recovery-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n tenancy rollout history deploy/tenancy-rls-drift-recovery-worker | tail -20`.
-21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f microservices/tenancy/policy/rls-isolation.md`.
+21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f tenancy/policy/rls-isolation.md`.
 22. Check SLO files: `ls microservices/tenancy/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|rls"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_tenancy_rls_drift_recovery_error_ratio --window 30m --threshold 0.02`.
@@ -116,7 +116,7 @@ RLS Drift Recovery incident decision tree
 12. Raise HPA cap if saturation: `kubectl -n tenancy patch hpa tenancy-rls-drift-recovery-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface tenancy.rls-drift-recovery --rps 25 --ttl 30m`.
 14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/tenancy/runbooks/rls-drift-recovery.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths tenancy/runbooks/rls-drift-recovery.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice tenancy --incident $INCIDENT_ID --channel #inc-tenancy-boundary`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-tenancy --incident $INCIDENT_ID --summary rls-drift-recovery`.
 18. Confirm breaker effect: `oya ops breaker status tenancy-rls-drift-recovery-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -150,7 +150,7 @@ RLS Drift Recovery incident decision tree
 6. Add regression test: `cargo test -p oya-tenancy-domain rls_drift_recovery_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-rls-drift-recovery --fixture incident-rls-drift-recovery.json`.
 8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyRlsDriftRecoveryCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/tenancy/dashboards/quota-utilisation.json with oya_tenancy_rls_drift_recovery_error_ratio, oya_tenancy_rls_drift_recovery_lag_seconds, and oya_tenancy_rls_drift_recovery_queue_depth`.
+9. Add dashboard panel: `update tenancy/dashboards/quota-utilisation.json with oya_tenancy_rls_drift_recovery_error_ratio, oya_tenancy_rls_drift_recovery_lag_seconds, and oya_tenancy_rls_drift_recovery_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate tenancy-policy --microservice tenancy`.
@@ -168,7 +168,7 @@ RLS Drift Recovery incident decision tree
 - `oya-tenancy-kernel`: inspect for rls_drift_recovery invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-tenancy-api`: inspect for rls_drift_recovery invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/tenancy/contracts/`: verify this surface only when the incident evidence points there.
-- `microservices/tenancy/dashboards/quota-utilisation.json`: verify this surface only when the incident evidence points there.
+- `tenancy/dashboards/quota-utilisation.json`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/slos/`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/policy/rls-isolation.*`: verify this surface only when the incident evidence points there.
 

@@ -509,7 +509,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Postgres role attributes
 - Likelihood: L / Impact: H / Risk: **H (CRITICAL)**
 - Mitigations:
-  - Postgres roles managed via declarative IaC in `microservices/tenancy/iac/terraform/postgres-rbac.tf`; PR-reviewed; CI lane validates declared-vs-live state.
+  - Postgres roles managed via declarative IaC in `tenancy/iac/terraform/postgres-rbac.tf`; PR-reviewed; CI lane validates declared-vs-live state.
   - Continuous DB-state validator: weekly role-attribute audit; alerts on any role with `bypassrls=true` outside expected JIT state.
   - Role creation requires DBA-JIT elevation via OpenBao (2-person rule).
 - Owner: ops-security + axis-tenancy
@@ -624,7 +624,7 @@ Additional considerations:
 - **KR PIPA Art. 23-2 (sensitive data outside-of-KR transfer)**: pack-kr tenant data stays in KR Postgres cluster; cross-pack replication forbidden by default. Enforced in `multi-region.md`.
 - **KR PIPA Art. 29 (technical safeguards)**: every T-*-NN mitigation cross-maps to one of the 12 prescribed safeguards in Art. 29.
 - **KR PIPA Art. 29-2 (encryption)**: TLS 1.3 in transit + AES-256-GCM at rest + Ed25519 audit-chain seals.
-- **KR PIPA Art. 33 (DPIA)**: tenancy DPIA at `microservices/tenancy/dpia.md` satisfies; engaged.
+- **KR PIPA Art. 33 (DPIA)**: tenancy DPIA at `tenancy/dpia.md` satisfies; engaged.
 - **KR PIPA Art. 33-2 (DPO appointment)**: council-privacy chair registered with PIPC.
 - **KR PIPA Art. 34 (breach notification)**: 72h to PIPC + 72h to data subjects per `incident-response.md`.
 - **KR PIPA Art. 36 (right-to-deletion)**: DSR cascade fulfils within 30d.
@@ -671,9 +671,9 @@ Per-pack overlays at `regional-packs/<pack>/tenancy-overlay.md` follow this docu
 
 | Framework | Coverage | Mapping doc |
 |---|---|---|
-| SOC 2 Type 2 | CC1–CC9 covered; cited inline | `microservices/tenancy/compliance.md` |
-| ISO 27001:2022 | Annex A.5–A.8 covered; cited inline | `microservices/tenancy/compliance.md` |
-| GDPR | Arts. 5, 6, 9, 13, 14, 17, 22, 25, 26, 28, 30, 32, 33, 34, 35, 44 cited inline | `microservices/tenancy/dpia.md` + `compliance.md` |
+| SOC 2 Type 2 | CC1–CC9 covered; cited inline | `tenancy/compliance.md` |
+| ISO 27001:2022 | Annex A.5–A.8 covered; cited inline | `tenancy/compliance.md` |
+| GDPR | Arts. 5, 6, 9, 13, 14, 17, 22, 25, 26, 28, 30, 32, 33, 34, 35, 44 cited inline | `tenancy/dpia.md` + `compliance.md` |
 
 ## Re-review Triggers
 
@@ -696,12 +696,12 @@ This threat model re-reviews on:
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
-- `microservices/tenancy/PRD.md`.
-- `microservices/tenancy/dpia.md`.
-- `microservices/tenancy/compliance.md`.
-- `microservices/tenancy/policy/rls-isolation.md`.
-- `microservices/tenancy/policy/data-residency.md`.
-- `microservices/tenancy/incident-response.md`.
+- `tenancy/PRD.md`.
+- `tenancy/dpia.md`.
+- `tenancy/compliance.md`.
+- `tenancy/policy/rls-isolation.md`.
+- `tenancy/policy/data-residency.md`.
+- `tenancy/incident-response.md`.
 - Microsoft Threat Modeling methodology (STRIDE).
 - LINDDUN privacy-threat methodology — Wuyts et al., KU Leuven.
 - OWASP Top 10 (2021) + OWASP API Top 10 (2023).

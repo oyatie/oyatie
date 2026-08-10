@@ -9,7 +9,7 @@ owner_team: axis-tenancy + council-architecture
 deciders: axis-tenancy, council-architecture, gtm-customer-success
 related_adrs: [ADR-0018, ADR-0123, ADR-0139]
 related_artifacts:
-  - microservices/tenancy/PRD.md (§Competitive Benchmark)
+  - tenancy/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-TEN gate)
 review_cadence: bi-annually + on every new competitor entrant
 doc_status: published
@@ -133,7 +133,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 
 ## References
 
-- `microservices/tenancy/PRD.md` §Competitive Benchmark.
+- `tenancy/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-TEN gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0018 (tenancy + RLS posture).

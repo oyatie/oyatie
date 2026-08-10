@@ -15,7 +15,7 @@ related_adrs: [ADR-0244, ADR-0248, ADR-0252, ADR-0263]
 
 ## B. Approach
 
-Create `oya-tenancy-dr-pairing-usecase` to assign a same-jurisdiction home/DR pair, evaluate promotion eligibility, and emit auditable promotion/restoration events. The usecase composes existing `CellAssignment` data from `microservices/tenancy/contracts/openapi/tenancy.yaml`, residency policy from `microservices/tenancy/policy/data-residency.cedar`, and SLO signals from tenancy dashboards.
+Create `oya-tenancy-dr-pairing-usecase` to assign a same-jurisdiction home/DR pair, evaluate promotion eligibility, and emit auditable promotion/restoration events. The usecase composes existing `CellAssignment` data from `tenancy/contracts/openapi/tenancy.yaml`, residency policy from `tenancy/policy/data-residency.cedar`, and SLO signals from tenancy dashboards.
 
 ## C. Deliverables
 
@@ -26,8 +26,8 @@ Create `oya-tenancy-dr-pairing-usecase` to assign a same-jurisdiction home/DR pa
 | `src/promote.rs` | create | Promotion eligibility and command handler. |
 | `src/restore.rs` | create | Restore home cell after exercise or incident. |
 | `src/ports.rs` | create | `CellAssignmentReadPort`, `ResidencyPolicyPort`, `BurnRateReadPort`, `AuditEmitPort`. |
-| `microservices/tenancy/capabilities/dr-pair-promote.yaml` | align | Capability points to this usecase. |
-| `microservices/tenancy/catalog/oya-tenancy-dr-pairing-usecase.yaml` | update/create | Catalog evidence. |
+| `tenancy/capabilities/dr-pair-promote.yaml` | align | Capability points to this usecase. |
+| `tenancy/catalog/oya-tenancy-dr-pairing-usecase.yaml` | update/create | Catalog evidence. |
 
 ## D. Implementation
 
@@ -45,14 +45,14 @@ Create `oya-tenancy-dr-pairing-usecase` to assign a same-jurisdiction home/DR pa
 - Same-jurisdiction invariant tested for KR, EU, US-HC, and BR packs.
 - Split-brain test refuses promotion unless quorum and current pair version match.
 - RPO <= 30s and RTO <= 5min remain capability targets, not claimed measured results until drill evidence lands.
-- `microservices/tenancy/runbooks/dr-pair-promotion-drill.md` references the command path and rollback evidence.
+- `tenancy/runbooks/dr-pair-promotion-drill.md` references the command path and rollback evidence.
 
 ## F. Evidence
 
-- `microservices/tenancy/PRD.md` identifies cell assignment and blast-radius bounding as tenant outcomes.
-- `microservices/tenancy/contracts/openapi/tenancy.yaml` defines `CellAssignment` with `tenant_id`, `cell_id`, `shard_key`, `pack`, and `cell_health`.
-- `microservices/tenancy/policy/data-residency.cedar` is the residency policy gate.
-- `microservices/tenancy/dashboards/dr-pairing-state.json` and `runbooks/dr-pair-promotion-drill.md` are the operational evidence surfaces.
+- `tenancy/PRD.md` identifies cell assignment and blast-radius bounding as tenant outcomes.
+- `tenancy/contracts/openapi/tenancy.yaml` defines `CellAssignment` with `tenant_id`, `cell_id`, `shard_key`, `pack`, and `cell_health`.
+- `tenancy/policy/data-residency.cedar` is the residency policy gate.
+- `tenancy/dashboards/dr-pairing-state.json` and `runbooks/dr-pair-promotion-drill.md` are the operational evidence surfaces.
 
 ## G. Counterparts
 
@@ -66,11 +66,11 @@ Create `oya-tenancy-dr-pairing-usecase` to assign a same-jurisdiction home/DR pa
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-019-dr-pairing-controller.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-019-dr-pairing-controller.md` matched `openapi`; contract files `tenancy/contracts/openapi/tenancy.yaml, tenancy/contracts/asyncapi/tenant-events.yaml, tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## DR posture (per ADR-0343)
-- Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Manifest target source: `tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-019-dr-pairing-controller.md` matched `SLO, multi-region, payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-019-dr-pairing-controller.md` matched `SLO, multi-region, payment`; anchors `tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

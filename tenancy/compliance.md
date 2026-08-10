@@ -9,11 +9,11 @@ owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-tenancy, council-architecture, ops-compliance
 related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
-  - microservices/tenancy/threat-model.md
-  - microservices/tenancy/dpia.md
-  - microservices/tenancy/policy/rls-isolation.md
-  - microservices/tenancy/policy/data-residency.md
-  - microservices/tenancy/incident-response.md
+  - tenancy/threat-model.md
+  - tenancy/dpia.md
+  - tenancy/policy/rls-isolation.md
+  - tenancy/policy/data-residency.md
+  - tenancy/incident-response.md
 review_cadence: annually + on every enforced-framework version update
 doc_status: published
 ---
@@ -34,7 +34,7 @@ The canonical control-to-framework mapping for the tenancy µservice. Tells an e
 | CC1.2 | Board oversight | Council-architecture quarterly review | `docs/teams/council-architecture.md` |
 | CC1.3 | Organizational structure | RACI matrix per µservice | `microservices/tenancy/CODEOWNERS` |
 | CC1.4 | Commitment to competence | Onboarding + training | `docs/standards/onboarding.md` |
-| CC1.5 | Accountability for performance | Per-µservice SLO targets + on-call rotation | `microservices/tenancy/PRD.md` §Performance + `incident-response.md` |
+| CC1.5 | Accountability for performance | Per-µservice SLO targets + on-call rotation | `tenancy/PRD.md` §Performance + `incident-response.md` |
 | CC2.1 | Communication of information | Status page + tenant comms | `runbooks/jwt-key-rotation.md` + `incident-response.md` |
 | CC2.2 | Internal communication | Slack + incident channels | `incident-response.md` §"Escalation" |
 | CC2.3 | Communication with external parties | DPA + BAA + tenant onboarding | `legal/dpa-template.md` |
@@ -261,11 +261,11 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 
 ## References
 
-- `microservices/tenancy/threat-model.md`.
-- `microservices/tenancy/dpia.md`.
+- `tenancy/threat-model.md`.
+- `tenancy/dpia.md`.
 - `microservices/tenancy/policy/{rls-isolation, data-residency}.md`.
 - `microservices/tenancy/policy/*.cedar`.
-- `microservices/tenancy/incident-response.md`.
+- `tenancy/incident-response.md`.
 - ADR-0018 (Bominal); ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (hyperscaler maturity claim gate); ADR-0139 (SLO gate); ADR-0131 (per-microservice flat layout); ADR-0140 (Cedar policy).
 - SOC 2 Type 2: TSC 2017 + 2022 PoF — `aicpa.org`.
 - ISO/IEC 27001:2022 + ISO/IEC 27002:2022 — `iso.org/standard/27001`.
@@ -290,7 +290,7 @@ This anchor is closed for `tenancy` against ADR-0250 §D-1: certification-ready 
 ### Service-specific answer
 - Certification scope for `tenancy` covers packs `kr`, `eu`, `us`, `us-healthcare`, `jp`, `sg`; +5 more.
 - Evidence collector classes: policy decision log, audit event seal, SLO burn-rate report, contract-schema validation, dependency/SBOM attestation, and runbook drill record.
-- Primary evidence files: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +12 more.
+- Primary evidence files: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +12 more.
 - Example: `dsr-cascade-execute` readiness requires a signed audit event, an OpenAPI/AsyncAPI schema, an SLO target, and a pack-specific retention statement before launch.
 - Retrofit is forbidden: controls land before certification audit, and audit artifacts are generated continuously rather than assembled after an incident.
 - SOC 2 maps to access, change, logging, and incident controls; ISO 27001 maps to Annex A domains; regional packs add local regulator timing.
@@ -300,20 +300,20 @@ This anchor is closed for `tenancy` against ADR-0250 §D-1: certification-ready 
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -351,7 +351,7 @@ This anchor is closed for `tenancy` against ADR-0251 §D-2: pack activation, ove
 
 ### Service-specific answer
 - Active/expected pack roster: `kr`, `eu`, `us`, `us-healthcare`, `jp`, `sg`; +5 more.
-- Pack overlays modify Cedar fragments `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more without changing domain code.
+- Pack overlays modify Cedar fragments `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more without changing domain code.
 - Data classes under pack control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Higher-restriction-wins: if GDPR conflicts with another pack, the stricter storage, transfer, notice, or access rule applies until legal workflow resolves it.
 - CN-PIPL-2021 is activated on CN `jurisdiction_code`; KR packs pin data to KR cells; EU sovereign packs prevent non-EU failover unless explicitly allowed.
@@ -362,20 +362,20 @@ This anchor is closed for `tenancy` against ADR-0251 §D-2: pack activation, ove
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -413,7 +413,7 @@ This anchor is closed for `tenancy` against ADR-0247 §D-3: Foundry-touching sel
 
 ### Service-specific answer
 - Foundry-touch status is determined by whether `tenancy` publishes policy, contract, IaC, catalog, or generated code artifacts.
-- Mutable artifacts in scope: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +19 more.
+- Mutable artifacts in scope: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +19 more.
 - Attestation chain: proposed artifact hash, Foundry agent SVID, two-human approval where required, 60s soak for Cedar, audit-chain seal, and rollback pointer.
 - Self-modification cannot alter certification claims, ADR status, or production IaC without human approval and a promotion gate.
 - Example: a generated `tenancy` Cedar update for `dsr-cascade-execute` includes fragment hash, signer SVID, tenant/pack scope, and activation/sunset timestamps.
@@ -424,20 +424,20 @@ This anchor is closed for `tenancy` against ADR-0247 §D-3: Foundry-touching sel
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -476,7 +476,7 @@ This anchor is closed for `tenancy` against ADR-0293 §D-1: meta-trust-root chai
 ### Service-specific answer
 - `tenancy` trusts meta-trust-root only for signing policy/contract/IaC promotion attestations, not for normal tenant data access.
 - Root keys use 5-of-9 Shamir across at least three jurisdictions for platform roots; tenant operational keys can use narrower tenant-controlled ceremonies.
-- Attested artifacts: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +19 more.
+- Attested artifacts: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +19 more.
 - Every attestation records root key id, signer SVID, artifact hash, policy decision hash, and transparency-log pointer.
 - Example: `dsr-cascade-execute` policy publish is invalid unless the meta-trust attestation references the exact fragment hash loaded by policy evaluation.
 - Revocation is targeted: revoke the compromised signer/root version, quarantine affected artifact versions, replay policy evaluation with previous accepted version.
@@ -486,20 +486,20 @@ This anchor is closed for `tenancy` against ADR-0293 §D-1: meta-trust-root chai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -548,20 +548,20 @@ This anchor is closed for `tenancy` against ADR-0295 §D-2: Tier-1 bootstrap SPI
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -600,7 +600,7 @@ This anchor is closed for `tenancy` against ADR-0284 §D-1: platform_owner indir
 ### Service-specific answer
 - Runtime platform-owner string is configured as `platform_owner.display_name`; `tenancy` does not hard-code user-visible owner names in API or UI output.
 - Internal principal names may retain `oyatie.*` because ADR-0242 treats `oyatie` as the platform tenant, not as user-visible branding.
-- Surfaces audited for display strings: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`, `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`; +17 more.
+- Surfaces audited for display strings: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`, `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`; +17 more.
 - API responses expose owner references as opaque ids or config-resolved display names; logs keep stable tenant/platform ids for auditability.
 - Example: `dsr-cascade-execute` error text says `platform owner` or config-resolved name, while audit event principal remains `oyatie.tenancy.runtime`.
 - Grep-audit evidence records exceptions: principal slugs, ADR citations, internal package names, and provenance fields are allowed when not user-visible.
@@ -610,20 +610,20 @@ This anchor is closed for `tenancy` against ADR-0284 §D-1: platform_owner indir
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -662,7 +662,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.6.A: de
 ### Service-specific answer
 - `tenancy` emits detection signals through ADR-0263 audit pipeline, not an ungoverned side channel.
 - Detection families applicable here: policy violation, insider risk, account-takeover, content/transaction abuse where `dsr-cascade-execute` touches those data classes.
-- Signal sources: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +14 more.
+- Signal sources: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +14 more.
 - Example event class: `oya.tenancy.dsr.cascade.execute.risk_signal_emitted` with risk score, reason code, and tenant-safe dimensions.
 - Routing topology: µservice audit event -> observability collector -> detection substrate -> investigation workflow when threshold and policy allow.
 - False positives feed back through investigation labels; thresholds are versioned and auditable.
@@ -672,20 +672,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.6.A: de
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -734,20 +734,20 @@ This anchor is closed for `tenancy` against ADR-0310 §D-1: detection-to-investi
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -786,7 +786,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Service-specific answer
 - Operators of `tenancy` have no standing unredacted tenant-data access; JIT elevation uses identity step-up and Cedar approval.
 - Break-glass access requires reason, scope, expiry, reviewer where required, and post-hoc audit review.
-- Sensitive surfaces: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`, `tenancy.tenancy`.
+- Sensitive surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`, `tenancy.tenancy`.
 - UEBA signals include unusual export volume, after-hours privileged reads, cross-cell access, pack-boundary reads, and repeated denied Cedar decisions.
 - Example: reading `tenancy.tenancy` outside declared incident purpose creates a high-risk insider signal and routes to investigation.
 - Privileged-access review cadence is monthly for Tier 0/1, quarterly otherwise, and after every SEV/security incident.
@@ -796,20 +796,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -848,7 +848,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Service-specific answer
 - `tenancy` consumes central threat intelligence for IP/domain reputation, credential stuffing, bot fingerprints, sanctions/abuse lists where applicable, and malicious package indicators.
 - Feed freshness SLOs: ≤1h for IP/domain/bot reputation, ≤24h for credential corpus, immediate for emergency blocklists and compromised provider credentials.
-- Enforcement points: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +16 more.
+- Enforcement points: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +16 more.
 - Example: `dsr-cascade-execute` with malicious IP reputation receives stricter quota/challenge; high-risk legal/financial flows can halt pending investigation.
 - Feed outage degraded mode raises sensitivity only on suspicious paths and never adds default friction to clean traffic.
 - Feed source, version, checksum, and last refresh timestamp are emitted in audit evidence.
@@ -858,20 +858,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -912,7 +912,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - OpenBao dynamic credentials rotate at TTL ≤60s for provider/API secrets unless sidecar keeps the raw secret isolated.
 - Encryption/data keys rotate at ≤1 year or pack-specific shorter cadence; ECH keys rotate at ≤90 days; PQC cert chains follow signing-key cadence.
 - Secret paths use `${openbao:secret/<tenant_id>/tenancy/<key-class>}` and never embed raw tenant ids in metrics labels.
-- Runbook evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 - Example: `dsr-cascade-execute` credential rotation drains in-flight requests with old key id, validates new key id, then retires old leases after audit-chain seal.
 - Rotation failure alerts within 5 minutes for Tier 0/1 and within 15 minutes otherwise.
 - Rollback uses previous active key version only inside the documented grace window and emits an exception event.
@@ -920,20 +920,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -973,7 +973,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 - `tenancy` uses algorithm policy from sidecar/config; domain code never hard-codes cipher or signature choices.
 - Current floor: TLS 1.3, AEAD-only suites, X25519, hybrid X25519MLKEM768 where supported, Ed25519 plus ML-DSA-65 for new platform-rooted chains.
 - Forbidden: SHA-1, MD5, RSA-1024/2048 for new signatures, static DH, CBC-only TLS, self-signed production certs, and bespoke crypto.
-- Affected surfaces: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`, `microservices/tenancy/iac/ech-config.yaml`, `microservices/tenancy/iac/edge-waf.yaml`, `microservices/tenancy/iac/helm/citus/Chart.yaml`; +9 more.
+- Affected surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`, `tenancy/iac/ech-config.yaml`, `tenancy/iac/edge-waf.yaml`, `tenancy/iac/helm/citus/Chart.yaml`; +9 more.
 - Migration trigger: NIST/IETF/browser deprecation notice, active exploit, pack regulator requirement, or platform crypto policy update.
 - Migration window: 90 days for normal deprecation, 24h emergency block for actively exploited algorithms, with compatibility fallback only when safe.
 - Example: `dsr-cascade-execute` accepts classical TLS during PQC migration but prefers hybrid when both peers support it and records negotiated group in telemetry.
@@ -982,20 +982,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -1033,7 +1033,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 
 ### Service-specific answer
 - `tenancy` is in annual full-scope pentest and every major `dsr-cascade-execute` launch adds targeted test scope before production promotion.
-- In-scope assets: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`, `microservices/tenancy/iac/ech-config.yaml`, `microservices/tenancy/iac/edge-waf.yaml`, `microservices/tenancy/iac/helm/citus/Chart.yaml`; +19 more.
+- In-scope assets: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`, `tenancy/iac/ech-config.yaml`, `tenancy/iac/edge-waf.yaml`, `tenancy/iac/helm/citus/Chart.yaml`; +19 more.
 - Bug bounty intake accepts auth, tenant-isolation, policy bypass, data exposure, abuse-defence false positive/negative, supply-chain, and crypto findings.
 - Critical findings block promotion; remediation SLO is 24h containment, 7d fix for critical/high, 30d medium unless regulator pack is stricter.
 - Example: a researcher bypassing `tenancy` tenant scoping gets safe-harbor handling and an investigation case, not abuse-defence friction by default.
@@ -1044,20 +1044,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -1106,20 +1106,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -1157,7 +1157,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 
 ### Service-specific answer
 - `tenancy` dependency inventory spans crates/catalog, containers, Helm/Kustomize/OpenTofu, Cedar fragments, contracts, and generated SDKs.
-- Inventory artifacts: `microservices/tenancy/catalog/oya-tenancy-cell-assignment-adapter-citus.yaml`, `microservices/tenancy/catalog/oya-tenancy-dr-pairing-usecase.yaml`, `microservices/tenancy/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml`, `microservices/tenancy/catalog/oya-tenancy-lifecycle-locks-kernel.yaml`, `microservices/tenancy/catalog/oya-tenancy-per-tenant-quota-usecase.yaml`, `microservices/tenancy/catalog/oya-tenancy-reserved-namespace-usecase.yaml`; +21 more.
+- Inventory artifacts: `tenancy/catalog/oya-tenancy-cell-assignment-adapter-citus.yaml`, `tenancy/catalog/oya-tenancy-dr-pairing-usecase.yaml`, `tenancy/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml`, `tenancy/catalog/oya-tenancy-lifecycle-locks-kernel.yaml`, `tenancy/catalog/oya-tenancy-per-tenant-quota-usecase.yaml`, `tenancy/catalog/oya-tenancy-reserved-namespace-usecase.yaml`; +21 more.
 - Every build emits SBOM, provenance, source commit, builder identity, dependency digests, and signature/transparency-log pointers.
 - Dependencies are pinned to exact versions/digests; unpinned charts/images/crates block promotion.
 - Example: `dsr-cascade-execute` image promotion requires cosign signature, SLSA provenance, vulnerability scan, license check, and matching manifest/catalog record.
@@ -1168,20 +1168,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -1230,20 +1230,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.5: appl
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.
@@ -1292,20 +1292,20 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.4 Domai
 ### Concrete inventory used
 - Service: `tenancy`; owner `axis-tenancy`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `tenancy`.
-- Capability records cited: `microservices/tenancy/capabilities/dr-pair-promote.yaml`, `microservices/tenancy/capabilities/dsr-cascade-execute.yaml`, `microservices/tenancy/capabilities/isolation-policy-emit.yaml`, `microservices/tenancy/capabilities/kyb-kyc-complete.yaml`, `microservices/tenancy/capabilities/quota-update.yaml`, `microservices/tenancy/capabilities/tenant-resolve.yaml`.
-- API surfaces cited: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar/policy artifacts cited: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `microservices/tenancy/dashboards/cell-utilization.json`, `microservices/tenancy/dashboards/dr-pairing-state.json`; +4 more.
-- Runbook/IaC evidence: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
+- Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
+- API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
+- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`, `microservices/tenancy/contracts/openapi/tenancy.yaml`, `microservices/tenancy/contracts/proto/tenancy.proto`.
-- Cedar binding: `microservices/tenancy/policy/abuse-defence.cedar`, `microservices/tenancy/policy/action-authorization.cedar`, `microservices/tenancy/policy/auditor-scope.cedar`, `microservices/tenancy/policy/ci-scope.cedar`, `microservices/tenancy/policy/data-residency.cedar`, `microservices/tenancy/policy/data-residency.md`; +4 more.
+- API surface binding: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
+- Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
 - SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
-- Runbook binding: `microservices/tenancy/runbooks/citus-rebalance.md`, `microservices/tenancy/runbooks/dr-pair-promotion-drill.md`, `microservices/tenancy/runbooks/jwt-key-rotation.md`, `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `microservices/tenancy/runbooks/rls-drift-recovery.md`, `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
+- Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `tenancy`.

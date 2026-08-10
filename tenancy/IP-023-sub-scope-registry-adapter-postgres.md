@@ -48,10 +48,10 @@ Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel
 
 ## F. Evidence
 
-- `microservices/tenancy/IP-016-sub-scope-registry-kernel.md` owns the pure hierarchy rules consumed here.
-- `microservices/tenancy/policy/rls-isolation.md` describes the RLS pattern.
-- `microservices/tenancy/IP-005-tenant-lifecycle-adapter-postgres.md` gives the existing `SET LOCAL app.current_tenant_id` adapter pattern.
-- `microservices/tenancy/competitor-parity-matrix.md` positions Citus as the multi-tenant Postgres substrate.
+- `tenancy/IP-016-sub-scope-registry-kernel.md` owns the pure hierarchy rules consumed here.
+- `tenancy/policy/rls-isolation.md` describes the RLS pattern.
+- `tenancy/IP-005-tenant-lifecycle-adapter-postgres.md` gives the existing `SET LOCAL app.current_tenant_id` adapter pattern.
+- `tenancy/competitor-parity-matrix.md` positions Citus as the multi-tenant Postgres substrate.
 
 ## G. Counterparts
 
@@ -62,8 +62,8 @@ Create `oya-tenancy-sub-scope-registry-adapter-postgres` implementing the kernel
 | Stripe | Connected account hierarchy | Gives payments and marketplace flows durable child-scope lookup under a tenant. |
 
 ## DR posture (per ADR-0343)
-- Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Manifest target source: `tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-023-sub-scope-registry-adapter-postgres.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-023-sub-scope-registry-adapter-postgres.md` matched `payment`; anchors `tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

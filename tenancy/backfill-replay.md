@@ -9,10 +9,10 @@ owner_team: axis-tenancy
 deciders: axis-tenancy, council-architecture, ops-sre-reliability
 related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/PRD.md
-  - microservices/tenancy/capacity-model.md
-  - microservices/tenancy/policy/rls-isolation.md
-  - microservices/tenancy/policy/data-residency.md
+  - tenancy/PRD.md
+  - tenancy/capacity-model.md
+  - tenancy/policy/rls-isolation.md
+  - tenancy/policy/data-residency.md
 review_cadence: annually
 doc_status: published
 ---
@@ -112,10 +112,10 @@ Per `runbooks/tenant-deletion-dsr-cascade.md` Path A: a missing receipt may be b
 
 ## References
 
-- `microservices/tenancy/PRD.md`.
-- `microservices/tenancy/capacity-model.md`.
-- `microservices/tenancy/policy/data-residency.md` (retention windows).
-- `microservices/tenancy/runbooks/tenant-deletion-dsr-cascade.md` (DSR receipt backfill).
-- `microservices/tenancy/contracts/asyncapi/tenant-events.yaml`.
+- `tenancy/PRD.md`.
+- `tenancy/capacity-model.md`.
+- `tenancy/policy/data-residency.md` (retention windows).
+- `tenancy/runbooks/tenant-deletion-dsr-cascade.md` (DSR receipt backfill).
+- `tenancy/contracts/asyncapi/tenant-events.yaml`.
 - ADR-0028 audit-chain.
 - Stripe Events API (idempotent webhook precedent) — `stripe.com/docs/webhooks`.

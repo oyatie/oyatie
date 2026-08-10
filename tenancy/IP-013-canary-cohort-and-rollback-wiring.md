@@ -23,7 +23,7 @@ Wire tenancy canary cohort weighting (per ADR-0139 §canary_cohort_weighting; 1�
 |---|---|
 | `microservices/tenancy/iac/kustomize/base/istio/virtualservice.yaml` | create — per-pack VirtualService with canary cohort |
 | `microservices/tenancy/iac/kustomize/base/istio/destinationrule.yaml` | create — subsets for primary + canary |
-| `microservices/tenancy/runbooks/rls-drift-recovery.md` | already authored | references rollback path |
+| `tenancy/runbooks/rls-drift-recovery.md` | already authored | references rollback path |
 
 ## Code Shape
 

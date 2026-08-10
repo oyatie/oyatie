@@ -9,9 +9,9 @@ owner_team: ops-sre-reliability + axis-tenancy
 deciders: ops-sre-reliability, axis-tenancy, council-architecture
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/cost-budget.md
-  - microservices/tenancy/multi-region.md
-  - microservices/tenancy/policy/rls-isolation.md (per-tenant limits)
+  - tenancy/cost-budget.md
+  - tenancy/multi-region.md
+  - tenancy/policy/rls-isolation.md (per-tenant limits)
 review_cadence: quarterly + on every component-replica-set change
 doc_status: published
 ---
@@ -173,6 +173,6 @@ Excess returns HTTP 429 + emits `oya_tenancy_rate_limit_exceeded_total{tenant_id
 - Valkey docs — `valkey.io/docs/`.
 - PgBouncer docs — `pgbouncer.github.io`.
 - OCI compute + storage pricing — `oracle.com/cloud/pricing/`.
-- `microservices/tenancy/cost-budget.md`.
-- `microservices/tenancy/multi-region.md`.
-- `microservices/tenancy/policy/rls-isolation.md` (per-tenant limits).
+- `tenancy/cost-budget.md`.
+- `tenancy/multi-region.md`.
+- `tenancy/policy/rls-isolation.md` (per-tenant limits).

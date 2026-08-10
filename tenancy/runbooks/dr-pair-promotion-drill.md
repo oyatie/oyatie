@@ -74,7 +74,7 @@ doc_status: published
 18. Inspect feature flags: `oya flags get oya.tenancy.dr_pair_promotion_drill.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status tenancy-dr-pair-promotion-drill-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n tenancy rollout history deploy/tenancy-dr-pair-promotion-drill-worker | tail -20`.
-21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f microservices/tenancy/policy/rls-isolation.md`.
+21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f tenancy/policy/rls-isolation.md`.
 22. Check SLO files: `ls microservices/tenancy/slos/*.openslo.yaml | sort`.
 23. Check catalog components: `find microservices/tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|dr"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_tenancy_dr_pair_promotion_drill_error_ratio --window 30m --threshold 0.02`.
@@ -116,7 +116,7 @@ Dr Pair Promotion Drill incident decision tree
 12. Raise HPA cap if saturation: `kubectl -n tenancy patch hpa tenancy-dr-pair-promotion-drill-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface tenancy.dr-pair-promotion-drill --rps 25 --ttl 30m`.
 14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/tenancy/runbooks/dr-pair-promotion-drill.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths tenancy/runbooks/dr-pair-promotion-drill.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice tenancy --incident $INCIDENT_ID --channel #inc-tenancy-boundary`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-tenancy --incident $INCIDENT_ID --summary dr-pair-promotion-drill`.
 18. Confirm breaker effect: `oya ops breaker status tenancy-dr-pair-promotion-drill-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -150,7 +150,7 @@ Dr Pair Promotion Drill incident decision tree
 6. Add regression test: `cargo test -p oya-tenancy-domain dr_pair_promotion_drill_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-dr-pair-promotion-drill --fixture incident-dr-pair-promotion-drill.json`.
 8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyDrPairPromotionDrillCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/tenancy/dashboards/quota-utilisation.json with oya_tenancy_dr_pair_promotion_drill_error_ratio, oya_tenancy_dr_pair_promotion_drill_lag_seconds, and oya_tenancy_dr_pair_promotion_drill_queue_depth`.
+9. Add dashboard panel: `update tenancy/dashboards/quota-utilisation.json with oya_tenancy_dr_pair_promotion_drill_error_ratio, oya_tenancy_dr_pair_promotion_drill_lag_seconds, and oya_tenancy_dr_pair_promotion_drill_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate tenancy-policy --microservice tenancy`.
@@ -168,7 +168,7 @@ Dr Pair Promotion Drill incident decision tree
 - `oya-tenancy-kernel`: inspect for dr_pair_promotion_drill invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-tenancy-api`: inspect for dr_pair_promotion_drill invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
 - `microservices/tenancy/contracts/`: verify this surface only when the incident evidence points there.
-- `microservices/tenancy/dashboards/quota-utilisation.json`: verify this surface only when the incident evidence points there.
+- `tenancy/dashboards/quota-utilisation.json`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/slos/`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/policy/rls-isolation.*`: verify this surface only when the incident evidence points there.
 

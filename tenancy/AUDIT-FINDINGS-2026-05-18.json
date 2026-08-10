@@ -8,7 +8,7 @@
       "severity": "soft",
       "file_hits": [
         {
-          "file": "microservices/tenancy/PRD.md",
+          "file": "tenancy/PRD.md",
           "hits": [
             {
               "line": 158,
@@ -26,7 +26,7 @@
           "hits_total": 5
         },
         {
-          "file": "microservices/tenancy/sdk-plan.md",
+          "file": "tenancy/sdk-plan.md",
           "hits": [
             {
               "line": 143,
@@ -41,47 +41,47 @@
   },
   "ip_files_thin": [
     {
-      "file": "microservices/tenancy/IP-013-canary-cohort-and-rollback-wiring.md",
+      "file": "tenancy/IP-013-canary-cohort-and-rollback-wiring.md",
       "lines": 71
     },
     {
-      "file": "microservices/tenancy/IP-007-isolation-policy-jwt-issuer.md",
+      "file": "tenancy/IP-007-isolation-policy-jwt-issuer.md",
       "lines": 90
     },
     {
-      "file": "microservices/tenancy/IP-015-legacy-crates-migration.md",
+      "file": "tenancy/IP-015-legacy-crates-migration.md",
       "lines": 77
     },
     {
-      "file": "microservices/tenancy/IP-005-tenant-lifecycle-adapter-postgres.md",
+      "file": "tenancy/IP-005-tenant-lifecycle-adapter-postgres.md",
       "lines": 75
     },
     {
-      "file": "microservices/tenancy/IP-010-tenancy-rest-and-sdk.md",
+      "file": "tenancy/IP-010-tenancy-rest-and-sdk.md",
       "lines": 93
     },
     {
-      "file": "microservices/tenancy/IP-011-audit-chain-integration.md",
+      "file": "tenancy/IP-011-audit-chain-integration.md",
       "lines": 58
     },
     {
-      "file": "microservices/tenancy/IP-003-tenant-lifecycle-domain.md",
+      "file": "tenancy/IP-003-tenant-lifecycle-domain.md",
       "lines": 68
     },
     {
-      "file": "microservices/tenancy/IP-004-tenant-lifecycle-usecase.md",
+      "file": "tenancy/IP-004-tenant-lifecycle-usecase.md",
       "lines": 68
     },
     {
-      "file": "microservices/tenancy/IP-012-branch-protection-and-release-pointers.md",
+      "file": "tenancy/IP-012-branch-protection-and-release-pointers.md",
       "lines": 72
     },
     {
-      "file": "microservices/tenancy/IP-006-isolation-policy-rls-generator.md",
+      "file": "tenancy/IP-006-isolation-policy-rls-generator.md",
       "lines": 85
     },
     {
-      "file": "microservices/tenancy/IP-008-cell-assignment-controller.md",
+      "file": "tenancy/IP-008-cell-assignment-controller.md",
       "lines": 88
     }
   ],

@@ -21,7 +21,7 @@ Scaffold the `kernel` layer crate per ADR-0105: port traits (sealed) + entity ty
 
 ## ChangeSet boundary
 
-One new Rust crate at `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/tenancy/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml`. No downstream consumers in this IP.
+One new Rust crate at `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `tenancy/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml`. No downstream consumers in this IP.
 
 ## Concrete File Targets
 
@@ -33,7 +33,7 @@ One new Rust crate at `microservices/tenancy/src/crates/oya-tenancy-tenant-lifec
 | `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/src/ports.rs` | create — `TenantRepository`, `TenantContextResolver` traits |
 | `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-kernel/src/errors.rs` | create |
 | `Cargo.toml` (workspace) | update — register member |
-| `microservices/tenancy/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml` | create |
+| `tenancy/catalog/oya-tenancy-tenant-lifecycle-kernel.yaml` | create |
 
 ## Crate Naming
 

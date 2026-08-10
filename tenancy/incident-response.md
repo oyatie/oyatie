@@ -9,11 +9,11 @@ owner_team: ops-sre-reliability + ops-security + council-privacy
 deciders: ops-sre-reliability, ops-security, council-privacy, axis-tenancy, council-architecture
 related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/threat-model.md
-  - microservices/tenancy/dpia.md
-  - microservices/tenancy/compliance.md
-  - microservices/tenancy/failure-modes.md
-  - microservices/tenancy/multi-region.md
+  - tenancy/threat-model.md
+  - tenancy/dpia.md
+  - tenancy/compliance.md
+  - tenancy/failure-modes.md
+  - tenancy/multi-region.md
   - microservices/tenancy/runbooks/
 review_cadence: quarterly + after every Sev-1 / Sev-2 incident
 doc_status: published
@@ -249,7 +249,7 @@ Per `docs/templates/incident-postmortem-template.md`:
 | council-privacy chair | named role; permanent | always-on-call for breach-suspect |
 | Executive Sponsor | named role; permanent | Sev-1 only |
 
-On-call compensation + handoff per `microservices/tenancy/runbooks/jwt-key-rotation.md` §"On-call notes" (rotation-related).
+On-call compensation + handoff per `tenancy/runbooks/jwt-key-rotation.md` §"On-call notes" (rotation-related).
 
 ## Verification
 
@@ -259,12 +259,12 @@ On-call compensation + handoff per `microservices/tenancy/runbooks/jwt-key-rotat
 
 ## References
 
-- `microservices/tenancy/failure-modes.md` (FM-IDs + severity classification).
-- `microservices/tenancy/compliance.md` §"Regulatory Notifications" (per-pack timelines).
-- `microservices/tenancy/multi-region.md` (DR failover).
+- `tenancy/failure-modes.md` (FM-IDs + severity classification).
+- `tenancy/compliance.md` §"Regulatory Notifications" (per-pack timelines).
+- `tenancy/multi-region.md` (DR failover).
 - `microservices/tenancy/runbooks/*` (per-scenario procedures).
-- `microservices/tenancy/dpia.md` (data-subject impact assessment).
-- `microservices/tenancy/threat-model.md` (security-incident threat IDs).
+- `tenancy/dpia.md` (data-subject impact assessment).
+- `tenancy/threat-model.md` (security-incident threat IDs).
 - `docs/standards/incident-severity.md`.
 - `docs/templates/incident-postmortem-template.md`.
 - ADR-0028 (audit-chain).

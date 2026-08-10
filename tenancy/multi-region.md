@@ -9,10 +9,10 @@ owner_team: ops-sre-reliability + axis-tenancy + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-tenancy, council-architecture, council-privacy
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/policy/data-residency.md
-  - microservices/tenancy/capacity-model.md
-  - microservices/tenancy/cost-budget.md
-  - microservices/tenancy/failure-modes.md
+  - tenancy/policy/data-residency.md
+  - tenancy/capacity-model.md
+  - tenancy/cost-budget.md
+  - tenancy/failure-modes.md
 review_cadence: annually + on every regional-pack activation
 doc_status: published
 ---
@@ -176,11 +176,11 @@ Per-pack BCDR specifics at `regional-packs/<pack>/tenancy-multi-region-overlay.m
 
 ## References
 
-- `microservices/tenancy/policy/data-residency.md`.
-- `microservices/tenancy/capacity-model.md`.
-- `microservices/tenancy/cost-budget.md`.
-- `microservices/tenancy/failure-modes.md`.
-- `microservices/tenancy/incident-response.md`.
+- `tenancy/policy/data-residency.md`.
+- `tenancy/capacity-model.md`.
+- `tenancy/cost-budget.md`.
+- `tenancy/failure-modes.md`.
+- `tenancy/incident-response.md`.
 - `regional-packs/<pack>/tenancy-multi-region-overlay.md`.
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Patroni HA documentation — `patroni.readthedocs.io`.

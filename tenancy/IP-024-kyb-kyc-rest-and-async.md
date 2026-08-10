@@ -15,18 +15,18 @@ related_adrs: [ADR-0253, ADR-0258, ADR-0263, ADR-0243]
 
 ## B. Approach
 
-Extend `microservices/tenancy/contracts/openapi/tenancy.yaml` and `contracts/asyncapi/tenant-events.yaml` with KYB/KYC operations and events backed by `oya-tenancy-kyb-kyc-verifier-domain`. The REST layer enforces Cedar, size limits, data-class labels, audit-chain emission, and HTTP/3 transport posture.
+Extend `tenancy/contracts/openapi/tenancy.yaml` and `contracts/asyncapi/tenant-events.yaml` with KYB/KYC operations and events backed by `oya-tenancy-kyb-kyc-verifier-domain`. The REST layer enforces Cedar, size limits, data-class labels, audit-chain emission, and HTTP/3 transport posture.
 
 ## C. Deliverables
 
 | Artifact | Action | Purpose |
 |---|---|---|
-| `microservices/tenancy/contracts/openapi/tenancy.yaml` | update | Add KYB/KYC routes and schemas. |
-| `microservices/tenancy/contracts/asyncapi/tenant-events.yaml` | update | Add completion/decline/escalation channels. |
+| `tenancy/contracts/openapi/tenancy.yaml` | update | Add KYB/KYC routes and schemas. |
+| `tenancy/contracts/asyncapi/tenant-events.yaml` | update | Add completion/decline/escalation channels. |
 | `microservices/tenancy/src/crates/oya-tenancy-kyb-kyc-rest/Cargo.toml` | create | REST crate. |
 | `src/routes.rs` | create | Route handlers for start, documents, status, decision. |
 | `src/document_upload.rs` | create | Size, content-type, and data-class guard. |
-| `microservices/tenancy/capabilities/kyb-kyc-complete.yaml` | align | REST and AsyncAPI evidence. |
+| `tenancy/capabilities/kyb-kyc-complete.yaml` | align | REST and AsyncAPI evidence. |
 
 ## D. Implementation
 
@@ -48,10 +48,10 @@ Extend `microservices/tenancy/contracts/openapi/tenancy.yaml` and `contracts/asy
 
 ## F. Evidence
 
-- `microservices/tenancy/contracts/openapi/tenancy.yaml` is the existing tenant REST surface.
-- `microservices/tenancy/contracts/asyncapi/tenant-events.yaml` is the existing tenant event contract.
-- `microservices/tenancy/IP-018-kyb-kyc-verifier-domain.md` owns the domain decision model.
-- `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md` is the operational runbook for stuck verification.
+- `tenancy/contracts/openapi/tenancy.yaml` is the existing tenant REST surface.
+- `tenancy/contracts/asyncapi/tenant-events.yaml` is the existing tenant event contract.
+- `tenancy/IP-018-kyb-kyc-verifier-domain.md` owns the domain decision model.
+- `tenancy/runbooks/kyb-kyc-pipeline-stalled.md` is the operational runbook for stuck verification.
 
 ## G. Counterparts
 
@@ -65,10 +65,10 @@ Extend `microservices/tenancy/contracts/openapi/tenancy.yaml` and `contracts/asy
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-024-kyb-kyc-rest-and-async.md` matched `openapi, asyncapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-024-kyb-kyc-rest-and-async.md` matched `openapi, asyncapi`; contract files `tenancy/contracts/openapi/tenancy.yaml, tenancy/contracts/asyncapi/tenant-events.yaml, tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Sustainability emission (per ADR-0344)
 - Per-call audit row emission: populate `cost_usd_minor_units`, `co2_grams`, and `watt_hours` with provider and region on every audit-chain row.
 - Carbon-aware scheduling eligibility: opt-in only; do not defer Tier 0/1 workloads or realtime-mandated compliance-pack workloads (`eu-ai-act-annex-iii`, `hipaa-em-incident-response`, `pci-dss-realtime-fraud-detection`).
 - finops-portal rollup axes affected: tenant / product / capability / provider / cell / compliance_pack.
-- Surface evidence: `microservices/tenancy/IP-024-kyb-kyc-rest-and-async.md` matched `emission`; anchors `microservices/tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-024-kyb-kyc-rest-and-async.md` matched `emission`; anchors `tenancy/manifest.json, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

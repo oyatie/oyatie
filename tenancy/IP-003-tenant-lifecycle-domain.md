@@ -26,7 +26,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, lean-a
 | `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/fsm.rs` | create — state machine |
 | `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/plan_tier.rs` | create |
 | `microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-domain/src/jurisdiction_validator.rs` | create |
-| `microservices/tenancy/catalog/oya-tenancy-tenant-lifecycle-domain.yaml` | create |
+| `tenancy/catalog/oya-tenancy-tenant-lifecycle-domain.yaml` | create |
 
 ## Code Shape
 

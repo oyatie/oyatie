@@ -27,15 +27,15 @@ Author Helm + Kustomize manifests for Postgres 16 + Citus 12.x + Patroni HA + Va
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/tenancy/iac/helm/postgres/Chart.yaml` | create | upstream dep on bitnami/postgresql or zalando/postgres-operator at pinned LTS |
-| `microservices/tenancy/iac/helm/postgres/values.yaml` | create | Postgres 16; replication setup; OpenBao SecretRef for passwords |
-| `microservices/tenancy/iac/helm/citus/Chart.yaml` | create | Citus 12.x; multi-tenant sharding extension |
-| `microservices/tenancy/iac/helm/citus/values.yaml` | create | Coordinator + worker count per capacity-model.md XS tier; shard placement strategy |
-| `microservices/tenancy/iac/helm/patroni/Chart.yaml` | create | Patroni HA manager |
-| `microservices/tenancy/iac/helm/patroni/values.yaml` | create | DCS=etcd; cluster topology 1 primary + 2 sync replicas |
-| `microservices/tenancy/iac/kustomize/base/kustomization.yaml` | create | base referencing all 3 charts + Valkey |
-| `microservices/tenancy/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (initial active) |
-| `microservices/tenancy/iac/terraform/postgres-rbac.tf` | create | Terraform-managed Postgres roles (tenancy_app, tenancy-admin-jit, auditor-jit) |
+| `tenancy/iac/helm/postgres/Chart.yaml` | create | upstream dep on bitnami/postgresql or zalando/postgres-operator at pinned LTS |
+| `tenancy/iac/helm/postgres/values.yaml` | create | Postgres 16; replication setup; OpenBao SecretRef for passwords |
+| `tenancy/iac/helm/citus/Chart.yaml` | create | Citus 12.x; multi-tenant sharding extension |
+| `tenancy/iac/helm/citus/values.yaml` | create | Coordinator + worker count per capacity-model.md XS tier; shard placement strategy |
+| `tenancy/iac/helm/patroni/Chart.yaml` | create | Patroni HA manager |
+| `tenancy/iac/helm/patroni/values.yaml` | create | DCS=etcd; cluster topology 1 primary + 2 sync replicas |
+| `tenancy/iac/kustomize/base/kustomization.yaml` | create | base referencing all 3 charts + Valkey |
+| `tenancy/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (initial active) |
+| `tenancy/iac/terraform/postgres-rbac.tf` | create | Terraform-managed Postgres roles (tenancy_app, tenancy-admin-jit, auditor-jit) |
 
 ## Crate Naming
 
@@ -128,11 +128,11 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 
 ## DR posture (per ADR-0343)
-- Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Manifest target source: `tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-001-layer-a-postgres-citus-patroni-iac.md` matched `multi-region`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-001-layer-a-postgres-citus-patroni-iac.md` matched `multi-region`; anchors `tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
 
 ## Next IP
 

@@ -5,8 +5,8 @@
     "microservice": "tenancy",
     "owner_team": "axis-tenancy",
     "related_artifacts": [
-      "microservices/tenancy/contracts/openapi/tenancy.yaml",
-      "microservices/tenancy/policy/tenant-scope.cedar"
+      "tenancy/contracts/openapi/tenancy.yaml",
+      "tenancy/policy/tenant-scope.cedar"
     ],
     "audience": "tenant operators + platform operators",
     "tenant_scoped": true,

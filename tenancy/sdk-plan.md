@@ -9,9 +9,9 @@ owner_team: axis-tenancy + gtm-customer-success
 deciders: axis-tenancy, council-architecture
 related_adrs: [ADR-0018, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/contracts/openapi/tenancy.yaml
-  - microservices/tenancy/contracts/proto/tenancy.proto
-  - microservices/tenancy/PRD.md
+  - tenancy/contracts/openapi/tenancy.yaml
+  - tenancy/contracts/proto/tenancy.proto
+  - tenancy/PRD.md
 review_cadence: per-SDK-language-launch
 doc_status: published
 ---
@@ -133,9 +133,9 @@ Defer per-SDK open-source decision until SDK API has been stable for ≥ 6mo. De
 
 ## References
 
-- `microservices/tenancy/contracts/openapi/tenancy.yaml`.
-- `microservices/tenancy/contracts/proto/tenancy.proto`.
-- `microservices/tenancy/PRD.md` BC layer mapping (`-sdk` crate per ADR-0105).
+- `tenancy/contracts/openapi/tenancy.yaml`.
+- `tenancy/contracts/proto/tenancy.proto`.
+- `tenancy/PRD.md` BC layer mapping (`-sdk` crate per ADR-0105).
 - ADR-0105 (13-layer enum).
 - OpenAPI Generator — `openapi-generator.tech`.
 - gRPC tooling — `grpc.io`.

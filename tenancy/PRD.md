@@ -461,7 +461,7 @@ Scale-out policy:
 
 Cross-region story:
 - M01 launch: pack-kr (OCI ap-seoul-1) — single-region; data + RLS + cell-assignment co-located.
-- Post-M01 expansion: per-pack residency per ADR-0117; no cross-pack movement default (residency contract at `microservices/tenancy/policy/data-residency.md`).
+- Post-M01 expansion: per-pack residency per ADR-0117; no cross-pack movement default (residency contract at `tenancy/policy/data-residency.md`).
 - DR-pair packs (pack-eu, pack-us, pack-au, pack-in, pack-br, pack-ae, pack-ksa): Patroni streaming replication to warm-standby region within-pack.
 
 Sharding:
