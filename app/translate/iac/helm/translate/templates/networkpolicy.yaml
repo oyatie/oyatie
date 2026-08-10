@@ -1,0 +1,124 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: translate-default-deny
+  namespace: translate
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: translate-allow-ingress-from-gateway
+  namespace: translate
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/name: translate}}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ingress-edge}}
+        - podSelector: {matchLabels: {app.kubernetes.io/name: translate}}
+        # Cross-µservice callers: any oyatie product (mail/messenger/social/docs/sheets/slides/meet/shorts/workflow-studio)
+        - namespaceSelector: {matchLabels: {oyatie.dev/cross-product-translate-caller: "true"}}
+      ports:
+        - {protocol: TCP, port: 8080}
+        - {protocol: TCP, port: 8443}
+        - {protocol: TCP, port: 9091}
+        - {protocol: TCP, port: 50051}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: translate-allow-egress-to-substrate
+  namespace: translate
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/name: translate}}
+  policyTypes: [Egress]
+  egress:
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-postgres}}}]
+      ports: [{protocol: TCP, port: 5432}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-valkey}}}]
+      ports: [{protocol: TCP, port: 6379}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/name: translate-meilisearch}}}]
+      ports: [{protocol: TCP, port: 7700}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}}]
+      ports: [{protocol: TCP, port: 4317}, {protocol: TCP, port: 9090}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: audit-chain}}}]
+      ports: [{protocol: TCP, port: 50051}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: foundry-evidence}}}]
+      ports: [{protocol: TCP, port: 50051}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ontology}}}]
+      ports: [{protocol: TCP, port: 50051}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: tenancy}}}]
+      ports: [{protocol: TCP, port: 50051}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: foundry-runtime}}}]
+      ports: [{protocol: TCP, port: 50051}]  # in-house MT / QE / langdetect
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cloud-secrets}}}]
+      ports: [{protocol: TCP, port: 8200}]   # OpenBao agent socket
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}}]
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+---
+# DATA-RESIDENCY INVARIANT (HARD; per ADR-TRANSLATE-0004).
+# Sovereign-tenant pods (kr / eu / jp / us-healthcare / cn-stub / in / br / ae / ksa / au / sg)
+# NEVER reach cross-region foundry-providers. Per-pack overlays SHOULD restrict
+# the `foundry-providers` egress to the resident region's external-egress proxy ONLY.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: translate-residency-allow-egress-resident-providers
+  namespace: translate
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: translate
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: foundry-providers
+              oyatie.dev/region-resident: "true"   # ONLY resident-region providers
+      ports: [{protocol: TCP, port: 50051}]
+---
+# DATA-RESIDENCY INVARIANT continuation: explicitly DENY cross-region foundry-providers.
+# Implemented via a sibling default-deny + permit only namespaceSelector match above.
+# Per ADR-TRANSLATE-0004 §"network policy enforcement": cross-region foundry-providers
+# pods are in distinct namespaces lacking `oyatie.dev/region-resident=true` so the above
+# permit excludes them. This NetworkPolicy is intentionally a NO-OP placeholder to make
+# the invariant visible in overlay patches.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: translate-residency-deny-cross-region-providers
+  namespace: translate
+  annotations:
+    oyatie.dev/invariant: "data-residency-bound-inference"
+    oyatie.dev/adr: "ADR-TRANSLATE-0004"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: translate
+  policyTypes: [Egress]
+  egress: []   # default-deny extension — only the resident permit above applies
+---
+# Document worker (gVisor sandbox) — minimal egress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: translate-document-worker-minimal-egress
+  namespace: translate
+  annotations:
+    oyatie.dev/adr: "ADR-TRANSLATE-0005"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: translate
+      app.kubernetes.io/component: document-localization-worker
+  policyTypes: [Egress]
+  egress:
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: translate}}}]
+      ports: [{protocol: TCP, port: 50051}]   # in-cluster engine-router only
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}}]
+      ports: [{protocol: UDP, port: 53}]

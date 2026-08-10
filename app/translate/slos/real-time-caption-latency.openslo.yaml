@@ -1,0 +1,44 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: translate-real-time-caption-latency
+  displayName: "translate: real-time caption-translate per-chunk latency p99"
+  labels:
+    microservice: translate
+    bc: real-time-stream
+    sli_class: latency
+    service_classification: hero-and-substrate
+    owner_team: axis-translate + axis-meet
+    pack_scope: all
+    accessibility_critical: "true"
+spec:
+  description: |
+    Real-time caption-translate per-chunk latency p99 SLO. A chunk is "good" when
+    the sentence-piece chunked translation egresses within ≤ 400 ms p99 from
+    STT chunk arrival (per ADR-TRANSLATE-0006). PRD §"Performance" FR-12.
+    Accessibility-critical: ties to WCAG 2.2 AA + ITU-T G.107 audio-quality MOS.
+  service: translate
+  indicator:
+    metadata: {name: translate-real-time-caption-p99}
+    spec:
+      thresholdMetric:
+        metricSource:
+          type: Prometheus
+          spec:
+            query: |
+              histogram_quantile(0.99,
+                sum by (le) (rate(oya_translate_caption_stream_chunk_duration_seconds_bucket[5m])))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Timeslices
+  objectives:
+    - target: 0.999
+      op: lte
+      value: 0.400
+      displayName: "30d rolling p99 per-chunk ≤ 400 ms"
+  alertPolicies:
+    - alertPolicyRef: translate-caption-stream-fast-burn-1h-14x
+    - alertPolicyRef: translate-caption-stream-slow-burn-6h-6x
+    - alertPolicyRef: translate-caption-stream-correction-replay-drop

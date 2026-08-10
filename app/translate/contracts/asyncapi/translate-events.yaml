@@ -1,0 +1,406 @@
+asyncapi: 3.1.0
+info:
+  title: oya-translate — translation lifecycle + governance events
+  version: 1.0.0
+  summary: TranslationCompleted, BatchProgress, RealTimeCaption, GlossaryUpdated, TermbaseChanged, SovereignTenantLeakDetected
+  description: |
+    Workflow events emitted + consumed by the translate µservice per PRD §"Audit + Compliance".
+    All events are Ed25519-sealed via audit-chain µservice.
+
+    Producers:
+      - oya-translate-router-worker (emits TranslationCompleted, EngineRouted)
+      - oya-translate-bulk-worker (BatchTranslationProgress, BulkJobStarted/Completed/Failed)
+      - oya-translate-stream-gateway (RealTimeCaptionEmitted)
+      - oya-translate-tm-worker (TmUpdated)
+      - oya-translate-termbase-worker (TermbaseChanged, GlossaryUpdated, TermbaseConflictResolved)
+      - oya-translate-qe-worker (QualityEstimated)
+      - oya-translate-doc-worker (DocumentTranslateCompleted, DocumentAdapterPinned)
+      - oya-translate-residency-monitor (SovereignTenantLeakDetected, EngineRouted)
+
+    Consumers:
+      - audit-chain (every event sealed)
+      - workflow-engine (tenant-subscribed workflows)
+      - foundry-evidence (BLAKE3 content hashing + Ed25519 envelope)
+      - ontology (Language / Project / Segment / TmUnit / Term / Termbase writes)
+      - observability (SLI + burn-rate)
+      - council-privacy (residency / AI-act disclosure stream)
+
+    Standards: OASIS XLIFF 2.1, LISA TMX 1.4, ISO 30042 (TBX), RFC 5646 BCP 47.
+
+  contact:
+    name: axis-translate
+    email: axis-translate@oyatie.com
+
+defaultContentType: application/json
+
+servers:
+  workflow-events-bus:
+    host: workflow-events.translate.svc.cluster.local
+    protocol: amqp
+    description: Internal AMQP bus consumed by audit-chain + tenant workflow handlers
+  github-actions:
+    host: api.github.com
+    protocol: https
+    description: GitHub repository_dispatch for cross-µservice notifications (e.g., engine-demoted → ops dashboard)
+
+channels:
+  translation-completed:
+    address: workflow-events/translate.translation.completed
+    messages:
+      TranslationCompletedMessage:
+        $ref: '#/components/messages/TranslationCompleted'
+    description: A single-segment or per-segment translation completed (success or fallback)
+
+  batch-translation-progress:
+    address: workflow-events/translate.batch.progress
+    messages:
+      BatchTranslationProgressMessage:
+        $ref: '#/components/messages/BatchTranslationProgress'
+
+  bulk-job-started:
+    address: workflow-events/translate.bulk.started
+    messages:
+      BulkJobStartedMessage:
+        $ref: '#/components/messages/BulkJobStarted'
+
+  bulk-job-completed:
+    address: workflow-events/translate.bulk.completed
+    messages:
+      BulkJobCompletedMessage:
+        $ref: '#/components/messages/BulkJobCompleted'
+
+  bulk-job-failed:
+    address: workflow-events/translate.bulk.failed
+    messages:
+      BulkJobFailedMessage:
+        $ref: '#/components/messages/BulkJobFailed'
+
+  real-time-caption-emitted:
+    address: workflow-events/translate.realtime.caption_emitted
+    messages:
+      RealTimeCaptionEmittedMessage:
+        $ref: '#/components/messages/RealTimeCaptionEmitted'
+
+  glossary-updated:
+    address: workflow-events/translate.glossary.updated
+    messages:
+      GlossaryUpdatedMessage:
+        $ref: '#/components/messages/GlossaryUpdated'
+
+  termbase-changed:
+    address: workflow-events/translate.termbase.changed
+    messages:
+      TermbaseChangedMessage:
+        $ref: '#/components/messages/TermbaseChanged'
+
+  tm-updated:
+    address: workflow-events/translate.tm.updated
+    messages:
+      TmUpdatedMessage:
+        $ref: '#/components/messages/TmUpdated'
+
+  quality-estimated:
+    address: workflow-events/translate.qe.estimated
+    messages:
+      QualityEstimatedMessage:
+        $ref: '#/components/messages/QualityEstimated'
+
+  engine-routed:
+    address: workflow-events/translate.engine.routed
+    messages:
+      EngineRoutedMessage:
+        $ref: '#/components/messages/EngineRouted'
+
+  engine-demoted:
+    address: workflow-events/translate.engine.demoted
+    messages:
+      EngineDemotedMessage:
+        $ref: '#/components/messages/EngineDemoted'
+
+  sovereign-tenant-leak-detected:
+    address: workflow-events/translate.sovereign.leak_detected
+    messages:
+      SovereignTenantLeakDetectedMessage:
+        $ref: '#/components/messages/SovereignTenantLeakDetected'
+
+  document-translate-completed:
+    address: workflow-events/translate.document.completed
+    messages:
+      DocumentTranslateCompletedMessage:
+        $ref: '#/components/messages/DocumentTranslateCompleted'
+
+operations:
+  receiveTranslationCompleted:
+    action: receive
+    channel:
+      $ref: '#/channels/translation-completed'
+
+  receiveBatchProgress:
+    action: receive
+    channel:
+      $ref: '#/channels/batch-translation-progress'
+
+  receiveRealTimeCaption:
+    action: receive
+    channel:
+      $ref: '#/channels/real-time-caption-emitted'
+
+  receiveGlossaryUpdated:
+    action: receive
+    channel:
+      $ref: '#/channels/glossary-updated'
+
+  receiveTermbaseChanged:
+    action: receive
+    channel:
+      $ref: '#/channels/termbase-changed'
+
+  receiveSovereignLeak:
+    action: receive
+    channel:
+      $ref: '#/channels/sovereign-tenant-leak-detected'
+
+components:
+  messages:
+    TranslationCompleted:
+      name: TranslationCompleted
+      title: Translation completed (success or fallback)
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TranslationCompletedPayload'
+
+    BatchTranslationProgress:
+      name: BatchTranslationProgress
+      title: Bulk-translate job progress tick
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BatchTranslationProgressPayload'
+
+    BulkJobStarted:
+      name: BulkJobStarted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BulkJobLifecyclePayload'
+
+    BulkJobCompleted:
+      name: BulkJobCompleted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BulkJobLifecyclePayload'
+
+    BulkJobFailed:
+      name: BulkJobFailed
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BulkJobLifecyclePayload'
+
+    RealTimeCaptionEmitted:
+      name: RealTimeCaptionEmitted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/RealTimeCaptionEmittedPayload'
+
+    GlossaryUpdated:
+      name: GlossaryUpdated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/GlossaryUpdatedPayload'
+
+    TermbaseChanged:
+      name: TermbaseChanged
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TermbaseChangedPayload'
+
+    TmUpdated:
+      name: TmUpdated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TmUpdatedPayload'
+
+    QualityEstimated:
+      name: QualityEstimated
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/QualityEstimatedPayload'
+
+    EngineRouted:
+      name: EngineRouted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/EngineRoutedPayload'
+
+    EngineDemoted:
+      name: EngineDemoted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/EngineDemotedPayload'
+
+    SovereignTenantLeakDetected:
+      name: SovereignTenantLeakDetected
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SovereignTenantLeakDetectedPayload'
+
+    DocumentTranslateCompleted:
+      name: DocumentTranslateCompleted
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/DocumentTranslateCompletedPayload'
+
+  schemas:
+    AuditEnvelope:
+      type: object
+      required: [event_id, tenant_id, pack, ts, ed25519_signature]
+      properties:
+        event_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        pack: {type: string}
+        principal: {type: string}
+        ts: {type: string, format: date-time}
+        ed25519_signature: {type: string}
+        prev_event_id: {type: string, format: ulid, nullable: true}
+
+    TranslationCompletedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [source_lang, target_lang, content_class, engine, segment_hash, translation_hash, latency_ms]
+          properties:
+            source_lang: {type: string}
+            target_lang: {type: string}
+            content_class: {type: string}
+            engine: {type: string, enum: [in-house, anthropic, openai, google-translate, deepl]}
+            engine_region: {type: string}
+            model_id: {type: string}
+            jurisdiction_code: {type: string}
+            segment_hash: {type: string, description: BLAKE3 of source segment}
+            translation_hash: {type: string, description: BLAKE3 of target}
+            qe_score: {type: number, nullable: true}
+            cost_usd: {type: number}
+            latency_ms: {type: integer}
+            tm_leverage: {type: string, enum: [exact, ice, fuzzy, none]}
+            evidence_ref: {type: string, format: ulid}
+
+    BatchTranslationProgressPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            job_id: {type: string, format: ulid}
+            segments_completed: {type: integer}
+            segments_total: {type: integer}
+            progress_pct: {type: number}
+
+    BulkJobLifecyclePayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            job_id: {type: string, format: ulid}
+            project_id: {type: string, format: ulid, nullable: true}
+            segment_count: {type: integer, nullable: true}
+            error_code: {type: string, nullable: true}
+            duration_ms: {type: integer, nullable: true}
+
+    RealTimeCaptionEmittedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            session_id: {type: string, format: ulid}
+            chunk_id: {type: string}
+            source_lang: {type: string}
+            target_lang: {type: string}
+            chunk_text_hash: {type: string}
+            translation_hash: {type: string}
+            correction_replay_applied: {type: boolean}
+            latency_ms: {type: integer}
+
+    GlossaryUpdatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            entry_id: {type: string, format: ulid}
+            project_id: {type: string, format: ulid}
+            op: {type: string, enum: [create, update, delete]}
+
+    TermbaseChangedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            termbase_id: {type: string, format: ulid}
+            op: {type: string, enum: [create, import_tbx, export_tbx, conflict_resolved, delete]}
+            concept_count: {type: integer}
+
+    TmUpdatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            project_id: {type: string, format: ulid}
+            segment_hash: {type: string}
+            new_target_hash: {type: string}
+            leverage_match: {type: string, enum: [exact, ice, fuzzy, none]}
+
+    QualityEstimatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            segment_hash: {type: string}
+            translation_hash: {type: string}
+            qe_score: {type: number, minimum: 0, maximum: 100}
+            qe_model_version: {type: string}
+            eu_ai_act_disclosure_id: {type: string, format: ulid, nullable: true}
+
+    EngineRoutedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [engine, engine_region, residency_compliant]
+          properties:
+            engine: {type: string}
+            engine_region: {type: string}
+            pack_region: {type: string}
+            residency_compliant: {type: boolean}
+            cross_border_consent_ref: {type: string, format: ulid, nullable: true}
+            routing_decision_reason: {type: string}
+
+    EngineDemotedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            engine: {type: string}
+            reason: {type: string}
+            scope: {type: string, enum: [pack, all]}
+            ttl_seconds: {type: integer}
+
+    SovereignTenantLeakDetectedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          required: [violation_count, pack, engine, engine_region, inc_id]
+          properties:
+            inc_id: {type: string, format: ulid}
+            violation_count: {type: integer}
+            engine: {type: string}
+            engine_region: {type: string}
+            window_start: {type: string, format: date-time}
+            window_end: {type: string, format: date-time}
+            regulator_notification_clock_started_at: {type: string, format: date-time}
+
+    DocumentTranslateCompletedPayload:
+      allOf:
+        - $ref: '#/components/schemas/AuditEnvelope'
+        - type: object
+          properties:
+            job_id: {type: string, format: ulid}
+            format: {type: string}
+            fidelity_tier_achieved: {type: string, enum: [A, B, C]}
+            segment_count: {type: integer}
+            duration_ms: {type: integer}
+            sandbox_panic: {type: boolean, default: false}

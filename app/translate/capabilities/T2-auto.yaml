@@ -1,0 +1,177 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:translate:t2-auto:v1
+name: translate-auto-translate-content-class
+namespace: translate
+display_name: Auto-Translate by Content-Class (with high-risk regional AI-risk gates)
+description: |
+  T2 autonomous capability: translates content without per-invocation user
+  confirmation. Bounded by content-class + per-tenant entitlement. Original
+  content is always preserved (no destructive ops). Tenant-admin opt-in
+  required per channel / per content-class.
+
+  HIGH-RISK CONTENT-CLASS HANDLING (employment-context high-risk auto-decision):
+    employment, credit-scoring, legal-decisioning, medical-diagnosis:
+      - classified HIGH-RISK regardless of pack.
+      - tenant attestation required (per-tenant-admin signed attestation in
+        OpenBao at `openbao://<pack>/<tenant>/translate/high-risk-attestation`).
+      - Art. 9-15 risk-management + Art. 13 transparency-to-deployer +
+        Art. 50 transparency-to-end-user obligations apply.
+      - human-in-the-loop required for final acceptance: T2 emits "draft +
+        QE score"; tenant workflow approver MUST confirm before published.
+    employment + credit-scoring + legal-decisioning in pack-eu:
+      employment-context high-risk auto-decision lit. (a) (b) (c) (d) → conformity-assessment trail required.
+
+  STANDARD CONTENT-CLASS HANDLING:
+    marketing, ui_string, technical, code_comment, generic:
+      - low-risk (limited_risk in regional AI-risk terms); Art. 50 transparency only.
+
+owner_team: axis-translate + axis-foundry-runtime + council-privacy + legal-counsel
+maturity: preview
+created_at: 2026-05-18
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004]
+related_artifacts:
+  - microservices/translate/PRD.md
+  - microservices/translate/policy/ai-act-overlay.md
+  - microservices/translate/decisions/ADR-TRANSLATE-0003-quality-estimation-and-eu-ai-act-bounds.md
+  - microservices/translate/decisions/ADR-TRANSLATE-0004-data-residency-bound-inference.md
+
+autonomy_tier: T2
+# T2 = autonomous classification + side-effect bounded to derived overlay;
+# original preserved; no destructive ops; full audit-chain trail.
+
+inputs:
+  - name: segment_text
+    type: string
+    maxLength: 50000
+    required: true
+  - name: source_locale
+    type: string
+    required: false
+  - name: target_locale
+    type: string
+    required: true
+  - name: content_class
+    type: enum
+    values:
+      - marketing
+      - ui_string
+      - technical
+      - code_comment
+      - generic
+      - legal             # HIGH-RISK if pack=eu + decisioning context
+      - medical           # HIGH-RISK across all packs
+      - employment        # HIGH-RISK across all packs
+      - credit_scoring    # HIGH-RISK across all packs
+    required: true
+  - name: tenant_id
+    type: string
+    required: true
+  - name: pack
+    type: string
+    required: true
+  - name: high_risk_attestation_ref
+    type: string
+    required: false  # required when content_class ∈ {employment, credit_scoring, legal, medical}
+
+outputs:
+  - name: translation
+    type: object
+    properties:
+      target_text: {type: string}
+      engine: {type: string}
+      tm_leverage: {type: string, enum: [exact, ice, fuzzy, none]}
+      content_hash: {type: string}
+      ai_disclosure_label: {type: string, description: visible AI-disclosure string per active pack transparency}
+  - name: quality_estimation
+    type: object
+    properties:
+      score: {type: number}
+      review_required: {type: boolean, description: true when high-risk content_class}
+  - name: high_risk_flag
+    type: object
+    properties:
+      is_high_risk: {type: boolean}
+      high_risk_auto_decision_class: {type: string, enum: [employment, credit, legal, medical, none]}
+      tenant_attestation_present: {type: boolean}
+      human_review_required: {type: boolean}
+      conformity_assessment_ref: {type: string, nullable: true}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - PHI                  # only when explicitly opted-in + BAA on file
+  - SENSITIVE_PIPA_ART23 # KR PIPA sensitive data classes
+
+context_kind_constraint:
+  Tenant: server-side via tenant-DEK
+  enforcement: oya-check-translate-tenant-isolation + Cedar permit + high-risk-attestation gate
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa, pack-cn-stub]
+
+pack_overrides:
+  pack-eu:
+    risk_classification:
+      employment: high_risk_auto_decision_employment
+      credit_scoring: high_risk_auto_decision_credit
+      legal: high_risk_auto_decision_legal
+      medical: high_risk_auto_decision_medical
+      marketing: limited_risk
+      ui_string: minimal_risk
+      technical: minimal_risk
+      generic: minimal_risk
+    transparency_obligation: must-label-as-AI-generated per active pack transparency; must store evidence_topic record per Art. 13
+    conformity_assessment_required_for_high_risk: true
+    art_9_risk_management: true
+    art_15_accuracy_robustness: true
+  pack-us-healthcare:
+    auto_translate_disabled_for_phi: true
+    reason: HIPAA — third-party translation provider not BAA-covered for autonomous PHI translate
+    in_house_only: true
+    human_review_required_always: true
+  pack-kr:
+    kr_pipa_art29_2_automated_decision_disclosure: required
+    high_risk_tenant_consent_record: required
+  pack-cn-stub:
+    forbidden_engines_all_external: true
+    in_house_only: true
+  pack-in:
+    dpdpa_significant_data_fiduciary_obligations: when scale > threshold
+  pack-br:
+    lgpd_art20_automated_decision_review_right: required
+  pack-jp:
+    appi_art23_automated_decision_obligations: required
+  pack-ksa:
+    sdaia_high_impact_ai_attestation: required for high-risk content_class
+  pack-ae:
+    uae_ai_office_high_impact_attestation: required for high-risk
+
+evidence_topic: oya.translate.capability.t2_auto.evidence
+
+cost_profile:
+  type: per-segment
+  estimated_cost_usd_per_call: 0.0008
+  cost_drivers:
+    - In-house MT (small batched model)
+    - QE inference (always-on for T2; required for review-gate decision)
+    - Audit-chain seal (Ed25519 envelope)
+
+cedar_policy_fragments:
+  - microservices/translate/policy/translate-tenant-scope.cedar
+  - microservices/translate/policy/ai-act-overlay.md
+
+eval_set:
+  reference_inputs_path: microservices/translate/capabilities/eval/t2-auto-reference.jsonl
+  pass_threshold: 0.93
+  eval_metric: |
+    BLEU + chrF + COMET per (source, target, content_class);
+    high-risk-flag precision: 100 % (HARD; no false-negatives on high-risk auto-decision categories);
+    regional AI-risk disclosure-emission rate: 100 % on jurisdiction=EU invocations
+  cadence: per-release
+  reference: WMT-24 + COMET-Kiwi + Unbabel TowerEval
+
+rollback:
+  ttl_seconds: 0  # T2 outputs are overlays alongside original; "rollback" = stop emitting
+  audit_trail: every invocation emits to evidence_topic with hash + reasoning_token + eu_ai_act_disclosure_ref
+
+sunset:
+  status: none

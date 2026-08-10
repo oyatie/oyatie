@@ -1,0 +1,18 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-translate-router-usecase
+role: usecase
+context: translate
+bc: translate-router
+plane: data
+slo: hero-and-substrate-data-plane
+contracts_consumed: [tenancy/contracts, foundry-evidence/contracts]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa, oya-pack-cn-stub]
+lifecycle: {state: incubating, preview_since: 2026-05-18}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0106, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004]
+allowed_dependency_edges: [kernel, domain]
+data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, AUDIT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
