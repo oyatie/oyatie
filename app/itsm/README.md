@@ -75,7 +75,7 @@ The legacy aggregate domain (incident-ticket / problem / change / service-reques
 | Sustained workflow throughput | 800 workflows/sec | 120 workflows/sec | 7× |
 | CMDB 3-hop traversal p99 | 380 ms | 1,400 ms | 3.7× |
 
-Source: `microservices/itsm/performance-benchmark-numbers-2026-05-20.md` §3 + §8.
+Source: `app/itsm/performance-benchmark-numbers-2026-05-20.md` §3 + §8.
 
 ## First 30 minutes — running ITSM locally
 

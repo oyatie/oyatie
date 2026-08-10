@@ -261,10 +261,10 @@
       "colo",
       "oyatie-as-cloud-provider"
     ],
-    "iac_root": "microservices/itsm/iac/<context>/",
+    "iac_root": "app/itsm/iac/<context>/",
     "iac_engine": "OpenTofu (NOT Terraform) per feedback_zero_handroll_opentofu_only_2026_05_20"
   },
-  "supported_oses_manifest": "microservices/itsm/supported-oses.json",
+  "supported_oses_manifest": "app/itsm/supported-oses.json",
   "language_policy": {
     "authority": "feedback_rust_strict_only_no_python_2026_05_20 + ADR-0328 §D-18",
     "backend": "Rust 2024 edition; rust-version 1.97.1; deny clippy::unwrap_used/expect_used/panic",
@@ -368,9 +368,9 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "ITSM handles tenant operational data, change workflows, and regulated service records as a first-party app. It does not host tenant code or key material, so Tier 2 avoids over-classifying it as substrate while retaining strong isolation.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/itsm/PRD.md",
-    "microservices/itsm/ARCHITECTURE.md",
-    "microservices/itsm/IP-030-sla-breach-remediation-loop.md"
+    "app/itsm/PRD.md",
+    "app/itsm/ARCHITECTURE.md",
+    "app/itsm/IP-030-sla-breach-remediation-loop.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -383,10 +383,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/itsm/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/itsm/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/itsm/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/itsm/contracts/asyncapi-v1.yaml"
       }
     }
   },
