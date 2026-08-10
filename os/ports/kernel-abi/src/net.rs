@@ -499,15 +499,104 @@ mod tests {
 
     #[test]
     fn a_duplicate_ipv6_address_is_rejected_the_same_way() {
+        // Arrange
         let net = InMemoryKernelNet::new().with_link("eth0");
         net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+
+        // Act — exact replay
         let err = net.add_ipv6_address("eth0", "fd00::5", 64).unwrap_err();
+
+        // Assert
         assert_eq!(err.kind(), "invalid_state");
         assert_eq!(net.ipv6_addresses("eth0").len(), 1);
-        // Same address, different prefix — still EEXIST on Linux.
+    }
+
+    #[test]
+    fn ipv6_duplicate_key_is_address_not_cidr() {
+        // Arrange — Linux ifaddrmsg keys IPv6 by interface+address; prefix is
+        // not part of the identity under NLM_F_CREATE|NLM_F_EXCL.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+
+        // Act
         let err = net.add_ipv6_address("eth0", "fd00::5", 128).unwrap_err();
+
+        // Assert — EEXIST, not a second row
+        assert_eq!(err.kind(), "invalid_state");
+        assert_eq!(
+            net.ipv6_addresses("eth0"),
+            alloc::vec!["fd00::5/64".to_string()]
+        );
+    }
+
+    #[test]
+    fn ipv6_address_key_survives_respelling_and_prefix_change() {
+        // Arrange — the two seams that independently used to defeat EEXIST
+        // must fail together too: uncompressed spelling + different prefix.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+
+        // Act
+        let err = net
+            .add_ipv6_address("eth0", "fd00:0:0:0:0:0:0:5", 128)
+            .unwrap_err();
+
+        // Assert
         assert_eq!(err.kind(), "invalid_state");
         assert_eq!(net.ipv6_addresses("eth0").len(), 1);
+    }
+
+    #[test]
+    fn distinct_ipv6_addresses_on_one_iface_are_both_kept() {
+        // Arrange — address-keying must not over-collapse unrelated rows.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+
+        // Act
+        net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+        net.add_ipv6_address("eth0", "fd00::6", 64).unwrap();
+
+        // Assert
+        assert_eq!(
+            net.ipv6_addresses("eth0"),
+            alloc::vec!["fd00::5/64".to_string(), "fd00::6/64".to_string()]
+        );
+    }
+
+    #[test]
+    fn same_ipv6_address_on_different_ifaces_is_not_a_duplicate() {
+        // Arrange — key is interface+address, not address alone.
+        let net = InMemoryKernelNet::new().with_link("eth0").with_link("eth1");
+
+        // Act
+        net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+        net.add_ipv6_address("eth1", "fd00::5", 64).unwrap();
+
+        // Assert
+        assert_eq!(
+            net.ipv6_addresses("eth0"),
+            alloc::vec!["fd00::5/64".to_string()]
+        );
+        assert_eq!(
+            net.ipv6_addresses("eth1"),
+            alloc::vec!["fd00::5/64".to_string()]
+        );
+    }
+
+    #[test]
+    fn ipv4_duplicate_key_remains_full_cidr() {
+        // Arrange — intentional asymmetry with IPv6: IPv4 still keys on the
+        // canonical CIDR string, so the same host under a new prefix is allowed.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        net.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap();
+
+        // Act
+        net.add_ipv4_address("eth0", "10.0.0.5", 32).unwrap();
+
+        // Assert
+        assert_eq!(
+            net.ipv4_addresses("eth0").unwrap(),
+            alloc::vec!["10.0.0.5/24".to_string(), "10.0.0.5/32".to_string()]
+        );
     }
 
     /// The inputs `LinuxNet` rejects before it reaches netlink. Written against

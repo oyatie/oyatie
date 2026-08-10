@@ -1426,15 +1426,36 @@ mod tests {
     fn both_substrates_report_the_same_class_for_a_duplicate_add() {
         use os_kernel_abi::{InMemoryKernelNet, KernelNet};
 
+        // Arrange
         let fake = InMemoryKernelNet::new().with_link("eth0");
         fake.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap();
-        let fake_err = fake.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap_err();
 
+        // Act
+        let fake_err = fake.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap_err();
         // EEXIST is what the kernel answers the adapter's NLM_F_EXCL with.
         let linux_err = errno_error("netlink request failed", -17);
 
+        // Assert
         assert_eq!(fake_err.kind(), linux_err.kind());
         assert_eq!(fake_err.kind(), "invalid_state");
+    }
+
+    #[test]
+    fn both_substrates_agree_on_ipv6_address_keyed_duplicate() {
+        use os_kernel_abi::{InMemoryKernelNet, KernelNet};
+
+        // Arrange — address-keyed, not CIDR-keyed: same host, new prefix.
+        let fake = InMemoryKernelNet::new().with_link("eth0");
+        fake.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
+
+        // Act
+        let fake_err = fake.add_ipv6_address("eth0", "fd00::5", 128).unwrap_err();
+        let linux_err = errno_error("netlink request failed", -17);
+
+        // Assert — fake InvalidState ↔ Linux EEXIST class
+        assert_eq!(fake_err.kind(), linux_err.kind());
+        assert_eq!(fake_err.kind(), "invalid_state");
+        assert_eq!(fake.ipv6_addresses("eth0").len(), 1);
     }
 
     #[test]
@@ -1453,6 +1474,24 @@ mod tests {
         assert_eq!(errno_error("op", -2).kind(), "not_found"); // ENOENT
         assert_eq!(errno_error("op", -19).kind(), "not_found"); // ENODEV
         assert_eq!(errno_error("op", -99).kind(), "other");
+    }
+
+    #[test]
+    fn eafnosupport_and_eprotonosupport_are_unsupported_either_sign() {
+        // Arrange / Act / Assert — netlink often negates errno; socket(2)
+        // returns the positive form. unsigned_abs must classify both.
+        for errno in [-93, 93, -97, 97] {
+            let err = errno_error("socket", errno);
+            assert_eq!(
+                err.kind(),
+                "unsupported",
+                "errno {errno} must be Unsupported"
+            );
+            assert!(
+                err.to_string().contains(&format!("errno {errno}")),
+                "diagnostic text must preserve the signed value callers parse"
+            );
+        }
     }
 
     #[test]
