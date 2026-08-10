@@ -10,7 +10,7 @@
 
 ## Evidence basis
 
-- Target µservice path audited: `microservices/cloud-network/`.
+- Target µservice path audited: `network/`.
 - Total files seen before this audit: 10.
 - Total pre-existing lines audited in target path: 1,942.
 - Chat history source searched: `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/8f603fc7-eb0e-4752-ab03-f8ab63ce113d.jsonl`.
@@ -44,7 +44,7 @@
 - The OpenAPI VPC contract exposes a tenant-scoped VPC creation surface at `/v1/cloud/network/vpcs/{vpc_id}` (`network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml:1-12`).
 - The current µservice folder itself does not contain the PRD, architecture, OpenAPI contracts, SLOs, source tree, test tree, manifest, OS manifest, or IaC tree that would let a cold reader traverse from the ownership folder to those implementation artifacts.
 - Product purpose is therefore coherent in the broader repo, but only partially coherent inside the µservice ownership path.
-- The audit treats the ownership folder as the deliverable boundary because the user assigned `/Users/jasonlee/oyatie/microservices/cloud-network/` and required every file under that path to be inventoried.
+- The audit treats the ownership folder as the deliverable boundary because the user assigned `/Users/jasonlee/oyatie/network/` and required every file under that path to be inventoried.
 - The highest-risk gap is not that network semantics are absent from the repo.
 - The highest-risk gap is that the µservice ownership path does not own or link the authoritative product, architecture, OpenTofu, OS, and contract artifacts needed to build and govern those semantics.
 - In current form, `cloud-network` reads like a documentation supplement folder plus three runbooks, not a complete µservice ownership package.
@@ -432,7 +432,7 @@
 
 - D7-01 ADR-0328 D-16 mandates OpenTofu as the only IaC substrate for in-scope cloud deployment modules (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2249`).
 - D7-02 ADR-0328 D-16 requires per-service/per-context directories and required files such as `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, and README (`docs/decisions/ADR-0700-ci-admission-live-apex.md:2275-2309`).
-- D7-03 Directory inventory: no `iac/` directory exists under `microservices/cloud-network/`.
+- D7-03 Directory inventory: no `iac/` directory exists under `network/`.
 - D7-04 `iac/oyatie-public-cloud/`: absent.
 - D7-05 `iac/guest-on-aws/`: absent.
 - D7-06 `iac/guest-on-oci/`: absent.

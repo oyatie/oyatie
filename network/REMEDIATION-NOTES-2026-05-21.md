@@ -1,7 +1,7 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- None; inventory found no Redis references in `microservices/cloud-network/`.
+- None; inventory found no Redis references in `network/`.
 
 Counterpart-fact preservations:
 - None.

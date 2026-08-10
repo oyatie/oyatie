@@ -23,7 +23,7 @@
 - Azure Network Watcher: https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview.
 - Oyatie local tenant_class source: `microservices/cloud-network/retired tenant_class adoption artifact:7-95`.
 - Oyatie local FAQ source: `network/faqs/network-engineer-faq.md:7-175`.
-- Oyatie local runbook source: `microservices/cloud-network/runbooks/*.md`.
+- Oyatie local runbook source: `network/runbooks/*.md`.
 - Oyatie Rust source: `network/core/domain/src/lib.rs:1-240`.
 
 ## §1 Counterpart 1 — AWS VPC capability surface
