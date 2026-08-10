@@ -1523,6 +1523,60 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-controller-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "ci-controller-github-adapter",
+ "ci-controller-k8s-adapter",
+ "ci-controller-kernel",
+ "futures",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ci-controller-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "httpmock",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-controller-k8s-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "ci-controller-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "ci-core-dependency-isolation"
 version = "0.1.0"
 dependencies = [
@@ -7427,60 +7481,6 @@ dependencies = [
  "serde",
  "serde_json",
  "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-ci-controller-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "futures",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-github-adapter",
- "oya-ci-controller-k8s-adapter",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-controller-github-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-controller-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-controller-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-ci-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
 ]
 
 [[package]]

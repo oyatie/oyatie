@@ -32,7 +32,7 @@
     { "id": "editorconfig",          "kind": "exact",  "value": ".editorconfig",       "reason": "editor config (if present)" }
   ],
   "allowed_root_dirs": [
-    ".cargo", ".claude", ".codex", ".config", ".github", ".grok", ".omc",
+    ".cargo", ".claude", ".codex", ".config", ".cursor", ".github", ".grok", ".omc",
     "app", "audit", "base", "benchmarks", "billing", "build", "cell", "ci",
     "cloud", "comms",
     "compliance", "compute", "console", "contracts", "data", "docs",
