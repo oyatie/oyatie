@@ -73,7 +73,7 @@ The PRD enumerates 18 bounded contexts in full detail. The summary view:
 ## 3. Quick-start (developer)
 
 This µservice is **Rust-strict-only** per the global `feedback_rust_strict_only_no_python_2026_05_20`
-constraint. The crates live under `microservices/patient-monitoring/src/` per ADR-0131.
+constraint. The crates live under `app/patient-monitoring/src/` per ADR-0131.
 
 ```bash
 # Build
