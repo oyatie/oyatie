@@ -1,0 +1,35 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-workplace-integration-esign-initiate-availability
+  displayName: Workplace Integration Esign Initiate Availability
+  labels:
+    service: workplace-integration
+    adr: ADR-0320
+spec:
+  description: Workplace Integration SLO for esign-initiate-availability using route=/workplace/esign/sessions
+  service: workplace-integration
+  indicator:
+    metadata:
+      name: oya-workplace-integration-esign-initiate-availability-sli
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(oya_workplace_integration_esign_sign_success_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(oya_workplace_integration_esign_sign_total[5m]))
+  objectives:
+    - displayName: Esign Initiate Availability
+      target: 0.9995
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+naming_justifications:
+  bnf_v4: "workplace-integration.slo.esign-initiate-availability"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"

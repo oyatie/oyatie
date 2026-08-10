@@ -1,0 +1,30 @@
+schema_version: 2
+name: clock-attest
+microservice: workplace-integration
+tier: T1
+risk_class: moderate
+description: Workplace Integration capability for clock-attest on WorkplaceAgreement
+related_adrs:
+  - ADR-0105
+  - ADR-0131
+  - ADR-0243
+  - ADR-0244
+  - ADR-0263
+  - ADR-0319
+  - ADR-0320
+naming_justifications:
+  bnf_v4: "workplace-integration.clock-attest.execute"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
+inputs:
+  - tenant_id
+  - sub_scope_path
+  - principal_id
+  - audit_chain_ref
+outputs:
+  - decision
+  - evidence_ref
+  - state
+observability:
+  metric: oya_workplace_integration_clock_attest_total
+  trace: workplace-integration.clock-attest
+  audit_event: WorkplaceClockEventAttested

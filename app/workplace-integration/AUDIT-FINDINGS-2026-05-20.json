@@ -1,0 +1,25 @@
+{
+  "audit_date": "2026-05-20",
+  "microservice": "workplace-integration",
+  "verdict": "APPROVE_WITH_DOCUMENTED_EVIDENCE",
+  "artifact_count": 124,
+  "checks": [
+    "PRD line floor",
+    "ARCHITECTURE line floor",
+    "compliance line floor",
+    "OpenAPI 3.2.0 exact",
+    "AsyncAPI 3.1.0 exact",
+    "proto3 syntax",
+    "BNF v4 naming",
+    "13-layer-enum conformance"
+  ],
+  "related_adrs": [
+    "ADR-0105",
+    "ADR-0131",
+    "ADR-0243",
+    "ADR-0244",
+    "ADR-0263",
+    "ADR-0319",
+    "ADR-0320"
+  ]
+}
