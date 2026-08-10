@@ -243,6 +243,42 @@ pub fn frontmatter(text: &str) -> Option<&str> {
     Some(&rest[..end])
 }
 
+/// Does this document DECLARE ITSELF an authority surface while `declared` omits it?
+///
+/// The rejected-authority rule is scoped to `authority_surfaces`, a hand-curated list, and a
+/// hand-curated list can only ever check what someone remembered to put in it. The list held
+/// `docs/AGENTS.md` — which mandates Rejected ADR-0347 as active doctrine — while
+/// `docs/AGENTS-OPERATING-CONTRACT.md` asserted the SAME rejected doctrine under its own
+/// `## ADR-0347` heading, one directory over, and was structurally invisible: the rule cannot fire
+/// on a surface nobody declared. That is the omission half of the staleness problem, and the
+/// declared-half guard (`every_declared_authority_surface_exists_and_was_scanned`) cannot see it,
+/// because it iterates the very list that is incomplete.
+///
+/// The remedy is to stop trusting the list as the definition and derive candidates from what each
+/// document says about ITSELF. `marker` is a whole frontmatter line, supplied as policy DATA
+/// (`authority_surface_marker`), so another repo adopts this by repointing it. Read from the `---`
+/// head only: the same string in body prose is a document TALKING about operating contracts, not
+/// claiming to be one, and matching it there would manufacture surfaces.
+///
+/// Per-file rather than corpus-wide on purpose — the caller already streams every tracked file's
+/// text through the walk, so a per-file answer keeps the 16.5k-file corpus out of memory.
+#[must_use]
+pub fn undeclared_authority_surface(
+    path: &str,
+    text: &str,
+    marker: &str,
+    declared: &[String],
+) -> Option<String> {
+    let head = frontmatter(text)?;
+    if !head.lines().any(|line| line.trim() == marker) {
+        return None;
+    }
+    if declared.iter().any(|surface| surface == path) {
+        return None;
+    }
+    Some(path.to_owned())
+}
+
 /// A fail-closed frontmatter parse error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FrontmatterError(pub String);
@@ -1203,6 +1239,72 @@ mod tests {
         assert_eq!(frontmatter("---\na: 1\n---\nbody\n"), Some("a: 1"));
         assert_eq!(frontmatter("body\n---\na: 1\n---\n"), None);
         assert_eq!(frontmatter("no frontmatter"), None);
+    }
+
+    // THE OMISSION GUARD, proven to FIRE without a filesystem. The live-tree binding asserts this
+    // returns nothing; that assertion is only evidence if the function is capable of returning
+    // something, and only the synthetic case can show that while the corpus is clean.
+    //
+    // Executed RED before the fix, on the real tree, by the live-tree binding
+    // `a_document_declaring_itself_an_operating_contract_is_a_declared_surface` at
+    // tests/adr_citation_closure.rs:640 — see the full panic text recorded there.
+    #[test]
+    fn a_document_declaring_the_marker_and_missing_from_the_list_is_reported() {
+        const MARKER: &str = "doc_class: Operating-Contract";
+        let doc = "---\ndoc_class: Operating-Contract\nauthority_tier: 2\n---\n# body\n";
+        let declared = vec!["docs/AGENTS.md".to_owned()];
+
+        assert_eq!(
+            undeclared_authority_surface("docs/OTHER-CONTRACT.md", doc, MARKER, &declared),
+            Some("docs/OTHER-CONTRACT.md".to_owned()),
+            "a document that declares itself an operating contract and is not in the list is \
+             exactly the invisible-surface case this guard exists for"
+        );
+        assert_eq!(
+            undeclared_authority_surface("docs/AGENTS.md", doc, MARKER, &declared),
+            None,
+            "already declared"
+        );
+        assert_eq!(
+            undeclared_authority_surface(
+                "docs/notes.md",
+                "---\ndoc_class: Reference\n---\nbody\n",
+                MARKER,
+                &declared
+            ),
+            None,
+            "a different doc_class claims nothing"
+        );
+        assert_eq!(
+            undeclared_authority_surface(
+                "docs/README.md",
+                "no frontmatter at all\n",
+                MARKER,
+                &declared
+            ),
+            None,
+            "no frontmatter, no self-declaration"
+        );
+    }
+
+    // The marker is read from the HEAD ONLY. A document that DISCUSSES operating contracts — this
+    // repo has several, and the mapping document for this very goal is one — must not be promoted
+    // into an authority surface by quoting the key in its prose. Body matching would silently widen
+    // the rejected-authority rule onto commentary.
+    #[test]
+    fn the_marker_is_read_from_frontmatter_and_never_from_body_prose() {
+        const MARKER: &str = "doc_class: Operating-Contract";
+        assert_eq!(
+            undeclared_authority_surface(
+                "docs/commentary.md",
+                "---\ndoc_class: Reference\n---\nSurfaces are keyed by `doc_class: \
+                 Operating-Contract` in frontmatter.\ndoc_class: Operating-Contract\n",
+                MARKER,
+                &[]
+            ),
+            None,
+            "the same line in the BODY is a document talking about surfaces, not claiming to be one"
+        );
     }
 
     const HEAD: &str = "---\nstatus: Superseded\nsupersedes: []\nsuperseded_by: [ADR-0700]\n---\n";
