@@ -6,6 +6,10 @@
       "prefix": ".claude/BUCK"
     },
     {
+      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
+      "prefix": ".claude/workflows/"
+    },
+    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
       "prefix": ".codex/BUCK"
     },
@@ -156,18 +160,6 @@
     {
       "anchor": "ADR-0388 amendment (E4 preparation): docs/ideas/BUCK and its narrow OWNERS marker expose only the byte-frozen, non-authoritative idea-archive candidate corpus to the cross-artifact evaluator; no archive closure or planning dispatch is implied.",
       "prefix": "docs/ideas/"
-    },
-    {
-      "anchor": "Lane disposition plan mapping for re-root-or-delete of seven dark lifecycle lanes (impl/lom-dark-lifecycle-lanes; absorbed via integ/docs #1645). Review convention only — not plan authority.",
-      "prefix": "docs/plans/lifecycle-lane-disposition/"
-    },
-    {
-      "anchor": "Founder ruling oyatie-0s8 mechanical mapping for capability-root <root>/manifest.json conversion units (absorbed via integ/docs #1645). Review convention; not plan authority.",
-      "prefix": "docs/programs/capability-root-manifests/"
-    },
-    {
-      "anchor": "G004 burn-down-enforcement-debt unit mapping binding conventions for impl/g004-enforcement-debt (absorbed via integ/docs #1645). Review convention; not plan authority.",
-      "prefix": "docs/programs/g004-enforcement-debt/"
     },
     {
       "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live oya-ci-required cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",

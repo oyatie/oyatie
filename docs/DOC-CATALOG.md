@@ -79,6 +79,11 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
 |---|---|---|---|---|---|---|---|
 | `doc.masterplan` | `MASTERPLAN.md` | `council-architecture` | master-plan authority or sequencing change | per change + quarterly | PRD.md, DESIGN.md, ROADMAP.md, RACI-OWNERSHIP.md, RISK-REGISTER.md | `master-plan-completion`, `doc-catalog-self-coverage` | NO |
+| `doc.foundry_supervisor_readme` | `docs/foundry/supervisor/README.md` | `axis-foundry` | architecture change | quarterly | RACI-OWNERSHIP.md | `doc-catalog-self-coverage` | YES |
+| `doc.foundry_supervisor_arch` | `docs/foundry/supervisor/architecture.md` | `axis-foundry` | 4-crate boundary change | quarterly | DESIGN.md | `doc-catalog-self-coverage` | NO |
+| `doc.foundry_supervisor_ops` | `docs/foundry/supervisor/operations.md` | `axis-foundry` | signal/lifecycle change | quarterly | - | `doc-catalog-self-coverage` | YES |
+| `doc.foundry_supervisor_security` | `docs/foundry/supervisor/security.md` | `axis-foundry` | secret-ref or tier change | quarterly | SECURITY-PLAN.md | `doc-catalog-self-coverage` | NO |
+| `doc.foundry_supervisor_samples` | `docs/foundry/supervisor/sample-payloads.md` | `axis-foundry` | contract/schema change | quarterly | contracts/ | `doc-catalog-self-coverage` | YES |
 | `doc.decision_principles` | `/specs/decision-principles.json` | `council-architecture` | doctrinal authority change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.forbidden_operations` | `/specs/forbidden-operations.json` | `council-architecture` | doctrinal prohibition change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.spec_agent_durable_goal` | `/specs/agent-durable-goal.json` | `council-architecture + axis-foundry` | autonomous-Foundry contract change (review tiering, score cards, source/doubt-driven, autonomy ceiling) | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion`, `spec-contract-mirror` | NO |
