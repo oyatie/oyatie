@@ -61,12 +61,6 @@
   },
   "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only. Agents read this JSON to discover canonical entry points.",
   "entry_points": {
-    "session_handoff": {
-      "current_path": "HANDOFF.md",
-      "kind": "doc",
-      "purpose": "Founder-authorized thin fresh-session redirect. It carries no plan, backlog, baseline-SHA, or completion claims; agents follow it to this root hub, docs/AGENTS.md, masterplan_v2, Accepted ADRs, and live Git/GitHub state.",
-      "target_path_after_md_retirement": "same"
-    },
     "_retired_constitutional_authority": {
       "retired_on": "2026-05-15",
       "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Strike executed 2026-05-15. Content redistributed to 4 machine-readable successor specs (see decision_principles, forbidden_operations, decision_rights, governance_amendment entry_points below). docs/CONSTITUTION.md deleted; crates/oya-check-constitution-cite deleted; oya-dev-cli constitution-cite gate removed. Per-file citation sweep tracked as follow-up.",
@@ -123,6 +117,33 @@
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZE-jenkins-argocd-self-hostable-ci-cd-substrate",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
+    "adr_0710_kubernetes_admission_substrate": {
+      "current_path": "docs/decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md",
+      "kind": "doc",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. This entry exists so the proposal is discoverable, not so it can be acted on. Until ADR-0710 is Accepted the admission clauses of ADR-0183, ADR-0379 and ADR-0338 REMAIN IN FORCE and are NOT replaced; an agent implementing against this entry today is implementing unratified law. What it proposes: the Kubernetes admission substrate is the API SERVER rather than a policy webhook — ValidatingAdmissionPolicy + CEL for validation, Pod Security Admission for the pod-security baseline, MutatingAdmissionPolicy for mutation where the running version supports it, with Kyverno, Kubewarden and Gatekeeper/OPA as adapters only; resource generation as a controller concern, never admission; cross-resource data projected into a paramKind resource rather than fetched; image provenance moved to CI signing plus a CI-issued verified-digest allowlist that admission checks (digest pinning ALONE is explicitly not sufficient); and the owned Cedar-compatible + Zanzibar ReBAC PDP kept OUT of the admission path on shape and coupling grounds. It stays Proposed because clause D-8 (tenant isolation comes from topology, not policy) awaits WORKLOAD-boundary evidence — whether two tenants can share a node, hypervisor or physical host — which control-plane separation does not supply. ADR-0338's tier MODEL is unaffected under either outcome.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_census_epoch_control_plane": {
+      "current_path": "/registry/adr-census-epoch/control-plane.json",
+      "kind": "registry",
+      "migration_phase": "P2 bootstrap active; P3 dormant",
+      "purpose": "Non-authoritative pointer-only selector for the active ADR census epoch. Protected producer and gate code retain the immutable P2 replay and dormant P3 successor semantics; this descriptor supplies no executor or source identity.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_census_epoch_control_plane_schema": {
+      "current_path": "/specs/adr-census-epoch-control-plane.schema.json",
+      "kind": "schema",
+      "migration_phase": "P2 bootstrap active; P3 dormant",
+      "purpose": "Fail-closed schema for the pointer-only ADR census epoch selector; protected producer and gate code, not mutable descriptor fields, bind replay and successor execution identities. It makes no planning or closure claim.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_census_epoch_receipt_schema": {
+      "current_path": "/specs/adr-census-epoch-receipt.schema.json",
+      "kind": "schema",
+      "migration_phase": "P2 bootstrap active; P3 dormant",
+      "purpose": "Fail-closed schema for ignored controller-produced ADR census epoch receipts; receipt validity does not authorize planning, dispatch, or closure.",
+      "target_path_after_md_retirement": "same"
+    },
     "agent_durable_goal": {
       "current_path": "/evidence/goals/fd001-planning-closure-implementation-goal-2026-05-19.json",
       "kind": "goal_prompt",
@@ -160,39 +181,11 @@
       "purpose": "API contract SSOT (CS-LAUNCH-API-CONTRACT-SSOT-001): one Rust-native source generating/validating public REST (OpenAPI 3.2.0), versioned webhooks, events (AsyncAPI 3.1.0), SSE, and WebSocket plus internal-only gRPC/proto3 and gRPC streaming. ZERO GraphQL per ADR-0565; exposure boundaries and transport posture are governed by the Accepted product-protocol contract. Target spec; no generators or runtime claimed.",
       "target_path_after_md_retirement": "same"
     },
-    "product_protocol_contract": {
-      "current_path": "/specs/product-protocol-contract.json",
-      "kind": "spec",
-      "migration_phase": "w0-b-accepted",
-      "purpose": "Accepted ADR-0632 product protocol posture: public HTTPS REST, versioned webhooks, AsyncAPI events, SSE, and WebSocket; internal-only gRPC over HTTP/2 with proto3 and SPIFFE-shaped mTLS/TLS 1.3; JSON/OpenAPI externally; FlatBuffers and owned-fabric/RDMA profiles remain evidence-gated.",
-      "target_path_after_md_retirement": "same"
-    },
     "artifact_capabilities_registry": {
       "current_path": "/registry/artifact-capabilities-registry.json",
       "kind": "registry",
       "migration_phase": "complete (10 baseline rows; per-artifact rows added incrementally)",
       "purpose": "Control plane: one row per machine-readable artifact + artifact_profile + capability_overrides.",
-      "target_path_after_md_retirement": "same"
-    },
-    "adr_census_epoch_control_plane": {
-      "current_path": "/registry/adr-census-epoch/control-plane.json",
-      "kind": "registry",
-      "migration_phase": "P2 bootstrap active; P3 dormant",
-      "purpose": "Non-authoritative pointer-only selector for the active ADR census epoch. Protected producer and gate code retain the immutable P2 replay and dormant P3 successor semantics; this descriptor supplies no executor or source identity.",
-      "target_path_after_md_retirement": "same"
-    },
-    "adr_census_epoch_control_plane_schema": {
-      "current_path": "/specs/adr-census-epoch-control-plane.schema.json",
-      "kind": "schema",
-      "migration_phase": "P2 bootstrap active; P3 dormant",
-      "purpose": "Fail-closed schema for the pointer-only ADR census epoch selector; protected producer and gate code, not mutable descriptor fields, bind replay and successor execution identities. It makes no planning or closure claim.",
-      "target_path_after_md_retirement": "same"
-    },
-    "adr_census_epoch_receipt_schema": {
-      "current_path": "/specs/adr-census-epoch-receipt.schema.json",
-      "kind": "schema",
-      "migration_phase": "P2 bootstrap active; P3 dormant",
-      "purpose": "Fail-closed schema for ignored controller-produced ADR census epoch receipts; receipt validity does not authorize planning, dispatch, or closure.",
       "target_path_after_md_retirement": "same"
     },
     "artifact_profile_defaults": {
@@ -232,76 +225,6 @@
       "purpose": "Machine-readable W4 contract for the ADR-0518 DECLARE/ADMIT/LEASE/ISOLATE/AUTHOR/GATE/ATTEST/INTEGRATE/PROPAGATE/OBSERVE bespoke SCM pipeline. Metadata-only; locks typed stage envelopes, handoff invariants, and RED/GREEN fixtures without claiming native SCM storage, virtual filesystem runtime, CD runtime, or bridge cutover.",
       "target_path_after_md_retirement": "same (machine-readable W4 bespoke SCM stage contract)"
     },
-    "regulatory_identity_source_of_truth": {
-      "current_path": "/specs/regulatory-identity-source-of-truth.json",
-      "kind": "spec",
-      "migration_phase": "planning-source-of-truth",
-      "purpose": "Planning-only source index, source-blocker register, claim ceiling, and machine-readable control backlog for Korean/global identity, KYC, passkey, compliance, PCI, and PQC source rows. It carries explicit no-readiness/no-certification claims and blocks downstream policy/runtime work when official sources are unresolved.",
-      "target_path_after_md_retirement": "same"
-    },
-    "regulatory_identity_kyc_policy_evidence_architecture": {
-      "current_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
-      "kind": "spec",
-      "migration_phase": "regid-002-planning-architecture",
-      "purpose": "Design-only architecture map for passkey-first KYC/CDD/EDD policy decisions, evidence packets, tenant state, compliance packs, retention, consent, residency, and accreditation packets. It preserves no-service/no-CLI constraints and keeps row-level implementation blocked on REGID-001 source extraction.",
-      "target_path_after_md_retirement": "same"
-    },
-    "derived_compliance_cell_placement_contract": {
-      "current_path": "/specs/derived-compliance-cell-placement-contract.json",
-      "kind": "spec",
-      "migration_phase": "regcell-002-planning-contract",
-      "purpose": "Contract/schema-only REGCELL-002 artifact for deriving standard/regulated/CDE/identity-assurance/sovereign/airgap placement labels from tenant home/dr cells, jurisdiction/residency, data classes, compliance packs, pack cell_eligibility, workload labels, regulatory-pack bindings, and audit decisions without creating a parallel source-of-truth cell taxonomy or runtime placement claim.",
-      "target_path_after_md_retirement": "same"
-    },
-    "residency_attestation_schema": {
-      "current_path": "/specs/residency-attestation-schema.json",
-      "kind": "schema",
-      "migration_phase": "residency-001-contract-slice",
-      "purpose": "Contract/schema-only ADR-0326 RESIDENCY-001 artifact for signed per-tenant residency footprints, tier conditionals, source-registry hashes, signing principals, cross-border policy, and offline-channel references without runtime attestation, placement, or migration claims.",
-      "target_path_after_md_retirement": "same"
-    },
-    "residency_region_registry": {
-      "current_path": "/specs/regions/registry.json",
-      "kind": "registry",
-      "migration_phase": "residency-001-contract-slice",
-      "purpose": "Contract-only region id registry for RESIDENCY-001 attestations. Names allowed region ids, jurisdiction families, supported tiers, cell-group patterns, and data-boundary semantics without claiming live cell inventory or certification.",
-      "target_path_after_md_retirement": "same"
-    },
-    "residency_regulatory_regime_registry": {
-      "current_path": "/specs/regulatory-regimes/registry.json",
-      "kind": "registry",
-      "migration_phase": "residency-001-contract-slice",
-      "purpose": "Contract-only regulatory regime registry for ADR-0326 residency attestations. Names regime ids, default minimum tiers, region allowlists, cross-border transfer policies, attestor requirements, and compliance-pack implications without legal-sufficiency or runtime policy claims.",
-      "target_path_after_md_retirement": "same"
-    },
-    "compliance_pack_residency_matrix": {
-      "current_path": "/specs/compliance-pack-residency-matrix.json",
-      "kind": "spec",
-      "migration_phase": "residency-001-contract-slice",
-      "purpose": "Contract-only compliance-pack residency matrix for ADR-0326 D-8/D-13. Maps HIPAA, GDPR, SOC2, CSAP, KR PIPA, PCI, and EU AI Act pack families to minimum tiers, region sets, regime refs, strictest-tier resolution, and pack-binding refusal codes without pack activation or certification claims.",
-      "target_path_after_md_retirement": "same"
-    },
-    "residency_placement_audit_events": {
-      "current_path": "/specs/residency-placement-audit-events.json",
-      "kind": "spec",
-      "migration_phase": "residency-001-contract-slice",
-      "purpose": "Contract-only ADR-0326 audit-event specification for residency attestation, placement decision/refusal, cross-border permit/refusal, pack-binding, regulatory-attestor, and offline sovereign-channel semantics without claiming emitters or audit-chain delivery exist.",
-      "target_path_after_md_retirement": "same"
-    },
-    "residency_contract_slice_checker": {
-      "current_path": "/ci/facade/contract-slice-conformance/contract-slice-policy.json",
-      "kind": "test",
-      "migration_phase": "residency-001-contract-slice",
-      "purpose": "Owned Rust/Buck2 cloud-ci contract-slice-conformance gate validation for the ADR-0326 RESIDENCY-001 slice (residency-001-attestation, residency-001-regions, residency-001-regimes, residency-001-audit-events, residency-001-pack-matrix). Retires the prior local Python validator bridge; merge authority is oya-ci-required.",
-      "target_path_after_md_retirement": "same"
-    },
-    "security_validation_pipeline_matrix": {
-      "current_path": "/specs/security-validation-pipeline-matrix.json",
-      "kind": "spec",
-      "migration_phase": "planning-gate-matrix",
-      "purpose": "Productized runner-neutral security validation pipeline matrix. Defines SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS/purple-team, security chaos, automated pen-test, and continuous-control evidence lanes with scope, cadence, pass/fail policy, false-positive/VEX handling, API evidence records, and no CLI/scanner-as-authority claim.",
-      "target_path_after_md_retirement": "same"
-    },
     "check_empirical_evidence": {
       "current_path": "/registry/check-empirical-evidence",
       "kind": "registry",
@@ -322,20 +245,6 @@
       "migration_phase": "complete",
       "purpose": "Canonical shape of the context bundle a ci_fixer role consumes when diagnosing CI lane failures.",
       "target_path_after_md_retirement": "same"
-    },
-    "lane_supervisor_bridge": {
-      "current_path": "registry/catalog/oya-lane-supervisor-app.yaml",
-      "kind": "registry",
-      "migration_phase": "local-bridge-until-cloud-ci-lane-state",
-      "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/oya-lane-supervisor-app.yaml. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
-      "target_path_after_md_retirement": "cloud-ci durable lane orchestration state"
-    },
-    "reorg_codemod_bridge": {
-      "current_path": "registry/catalog/oya-reorg-codemod-app.yaml",
-      "kind": "registry",
-      "migration_phase": "phase-0-reorg-machinery-ships-unused-until-strangler",
-      "purpose": "Catalog row for the ADR-0562 Phase-0 reversible capability-move codemod + pre-move green-snapshot oracle (oya-reorg-codemod-app). Local bridge only; ships UNUSED until the per-capability strangler PRs invoke it; moves no real capability. Merge authority remains in cloud-ci/oya-ci required contexts.",
-      "target_path_after_md_retirement": "governance/capability-registry strangler tooling"
     },
     "cloud_authorization_target": {
       "current_path": "/specs/cloud-authorization-target.json",
@@ -386,18 +295,18 @@
       "purpose": "Superseded bridge target for P-TOOLCHAIN. Current shape-neutral successor is /specs/platform-delivery-fabric-productization.json. /specs/bespoke-cloud-toolchain-services.json remains valuable as tenant-isolation and first-party Rust-control-plane source evidence, but its oya-/cloud-prefixed examples are migration aliases, not destination names.",
       "target_path_after_md_retirement": "same"
     },
-    "platform_delivery_fabric_productization": {
-      "current_path": "/specs/platform-delivery-fabric-productization.json",
-      "kind": "spec",
-      "migration_phase": "p-toolchain-shape-neutral-productization",
-      "purpose": "Shape-neutral universal productized pipeline/control-plane target: Rust first-party API services, adapter-only GitHub/GitLab/legacy-controller/Argo/Snyk/Trivy/driftctl/Kubernetes/Linux references, no CLI/shell authority, no new oya-/cloud-prefixed destination debt, parity harnesses, current-state rows, serialized promotion gates, and observability contract artifacts /contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml plus /contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml.",
-      "target_path_after_md_retirement": "same"
-    },
     "codeview_read_surface": {
       "current_path": "/specs/codeview-read-surface.json",
       "kind": "spec",
       "migration_phase": "complete",
       "purpose": "Canonical read surface for code-view queries; what an agent can ask for + what fields are returned.",
+      "target_path_after_md_retirement": "same"
+    },
+    "compliance_pack_residency_matrix": {
+      "current_path": "/specs/compliance-pack-residency-matrix.json",
+      "kind": "spec",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only compliance-pack residency matrix for ADR-0326 D-8/D-13. Maps HIPAA, GDPR, SOC2, CSAP, KR PIPA, PCI, and EU AI Act pack families to minimum tiers, region sets, regime refs, strictest-tier resolution, and pack-binding refusal codes without pack activation or certification claims.",
       "target_path_after_md_retirement": "same"
     },
     "crate_naming_audit": {
@@ -421,12 +330,26 @@
       "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md §Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md.",
       "target_path_after_md_retirement": "same"
     },
+    "delivery_readiness_reconciliation": {
+      "current_path": "/specs/delivery-readiness-reconciliation.json",
+      "kind": "spec",
+      "migration_phase": "ouroboros-materialized-current-state-2026-06-29",
+      "purpose": "Shape-neutral reconciliation contract for full Oyatie Cloud, product, and toolchain completion: full-delivery universe row lifecycle/source precedence, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, audit artifacts, freshness, and lifecycle states. Current oya-* and cloud-* path shapes are observations only, not readiness predicates.",
+      "target_path_after_md_retirement": "same"
+    },
     "deployment_ops_contract": {
       "current_path": "/specs/deployment-ops-contract.json",
       "kind": "spec",
       "migration_phase": "complete",
       "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD; root Makefile owns operator entry; no manual SSH troubleshooting.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
+    },
+    "derived_compliance_cell_placement_contract": {
+      "current_path": "/specs/derived-compliance-cell-placement-contract.json",
+      "kind": "spec",
+      "migration_phase": "regcell-002-planning-contract",
+      "purpose": "Contract/schema-only REGCELL-002 artifact for deriving standard/regulated/CDE/identity-assurance/sovereign/airgap placement labels from tenant home/dr cells, jurisdiction/residency, data classes, compliance packs, pack cell_eligibility, workload labels, regulatory-pack bindings, and audit decisions without creating a parallel source-of-truth cell taxonomy or runtime placement claim.",
+      "target_path_after_md_retirement": "same"
     },
     "design_audit_evidence_timeline": {
       "current_path": "/specs/design-system/audit-evidence-timeline.json",
@@ -605,13 +528,6 @@
       "purpose": "Machine-readable claim ceiling for production-ready, hyperscaler-grade, mechanically-enforced, secure, isolated, tenant-facing, retired, done, parity, full, complete, automatic, and equivalent language. Defines target/spec/enforced/production/hyperscaler tiers and evidence domains; blocks empty promises through cloud-ci/Rust gate evidence rather than new oya CLI surfaces.",
       "target_path_after_md_retirement": "same (machine-readable claim/evidence contract)"
     },
-    "delivery_readiness_reconciliation": {
-      "current_path": "/specs/delivery-readiness-reconciliation.json",
-      "kind": "spec",
-      "migration_phase": "ouroboros-materialized-current-state-2026-06-29",
-      "purpose": "Shape-neutral reconciliation contract for full Oyatie Cloud, product, and toolchain completion: full-delivery universe row lifecycle/source precedence, manual-curation handoff extracts, clearance matrix, promotion packets, fixuptask links, audit artifacts, freshness, and lifecycle states. Current oya-* and cloud-* path shapes are observations only, not readiness predicates.",
-      "target_path_after_md_retirement": "same"
-    },
     "iterative_fix_loop": {
       "current_path": "/specs/iterative-fix-loop.json",
       "kind": "spec",
@@ -679,6 +595,13 @@
       "purpose": "Regional KR pack authority for FD-001 planning closure. Direct pointer for Korea regulatory bindings, agency surfaces, i18n/currency/calendar/tax/payment/identity foundations, cross-border transfer constraints, and regional operational gates.",
       "target_path_after_md_retirement": "machine-readable successor after regional-pack projection retirement"
     },
+    "lane_supervisor_bridge": {
+      "current_path": "registry/catalog/oya-lane-supervisor-app.yaml",
+      "kind": "registry",
+      "migration_phase": "local-bridge-until-cloud-ci-lane-state",
+      "purpose": "Retirement-marked local bridge catalog row for the lane-supervisor app. Supporting local-only surfaces are .omc/ultragoal/OWNERS, .omc/ultragoal/TEAMMATE-PREAMBLE.md, .omc/ultragoal/friction-ledger.jsonl, .omc/ultragoal/premise.txt, .omc/ultragoal/review-verdict.txt, registry/catalog/OWNERS, and registry/catalog/oya-lane-supervisor-app.yaml. Merge authority remains in cloud-ci/oya-ci required contexts per ADR-0363.",
+      "target_path_after_md_retirement": "cloud-ci durable lane orchestration state"
+    },
     "loop_recovery_patterns": {
       "current_path": "/registry/loop-recovery-patterns",
       "kind": "registry",
@@ -724,14 +647,15 @@
       "purpose": "Semantics for parked PRs in the vcs-orchestrator merge queue (per ADR-0111); admission criteria + unpark transitions. Originally framed as the Foundry merge queue; ownership relocated to vcs-orchestrator per ADR-0335 (Wave 15I) — see ADR-0335 Absorption Map row 'Merge queue projected state'.",
       "target_path_after_md_retirement": "same"
     },
-    "retired_multispectrum_review": {
+    "multispectrum_evidence_cloud_intelligence_xproxy": {
       "current_path": null,
-      "retired_path": "/specs/multispectrum-review.json",
-      "retired_by_commit": "fd06b0ad2",
-      "retirement_reason": "Deleted with retired Oya VCS admission / provider crates and Jenkins adapter; the standalone evidence-file convention no longer has a live cloud-ci gate.",
-      "kind": "retired-spec",
-      "migration_phase": "retired",
-      "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/oya-ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
+      "historical_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
+      "historical_owners_path": "evidence/multispectrum/OWNERS",
+      "kind": "retired-evidence",
+      "migration_phase": "retired-historical-provenance",
+      "current_coverage_claim": false,
+      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
+      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as immutable provenance only after the evidence-file convention retirement."
     },
     "multispectrum_evidence_g011_wiring": {
       "current_path": null,
@@ -742,16 +666,6 @@
       "current_coverage_claim": false,
       "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
       "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as immutable provenance only after the evidence-file convention retirement."
-    },
-    "multispectrum_evidence_cloud_intelligence_xproxy": {
-      "current_path": null,
-      "historical_path": "evidence/multispectrum/cloud-intelligence-xproxy-20260610-1781062794.json",
-      "historical_owners_path": "evidence/multispectrum/OWNERS",
-      "kind": "retired-evidence",
-      "migration_phase": "retired-historical-provenance",
-      "current_coverage_claim": false,
-      "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
-      "purpose": "Historical multispectrum evidence bundle for cloud-intelligence XPROXY external-proxy parity commissioning lane (PR #644, ADR-0542); retained as immutable provenance only after the evidence-file convention retirement."
     },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
@@ -773,6 +687,13 @@
       "migration_phase": "phase0_p0_0_gap_packet_not_green",
       "purpose": "P0.0 cloud-ci/oya-ci enforcement and tenant-isolation baseline (historically Prow-shaped). Records current branch-protection/config/live-status gaps, no-oya-CLI authority boundary, trusted producer/candidate-untrusted contract, TTL reviewer/audit override contract, and T0.0 RED/GREEN fixture paths without claiming Phase-0 completion.",
       "target_path_after_md_retirement": "same (machine-readable P0.0 baseline/gap packet)"
+    },
+    "phase0_ci_enforcement_result_schema": {
+      "current_path": "/specs/phase0-ci-enforcement-result-schema.json",
+      "kind": "spec",
+      "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
+      "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
+      "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
     },
     "phase0_claim_evidence_map": {
       "current_path": "/specs/phase0-claim-evidence-map.json",
@@ -807,6 +728,13 @@
       "absorbed_into": "/specs/masterplan.json#masterplan_v2",
       "purpose": "Evidence ledger for former planning-closure status claims. It may support evidence references but cannot mint live work-item IDs or surface unverified done status outside /specs/masterplan.json.",
       "target_path_after_md_retirement": "archive-or-generated-projection-only"
+    },
+    "platform_delivery_fabric_productization": {
+      "current_path": "/specs/platform-delivery-fabric-productization.json",
+      "kind": "spec",
+      "migration_phase": "p-toolchain-shape-neutral-productization",
+      "purpose": "Shape-neutral universal productized pipeline/control-plane target: Rust first-party API services, adapter-only GitHub/GitLab/legacy-controller/Argo/Snyk/Trivy/driftctl/Kubernetes/Linux references, no CLI/shell authority, no new oya-/cloud-prefixed destination debt, parity harnesses, current-state rows, serialized promotion gates, and observability contract artifacts /contracts/openapi/platform/platform-delivery-fabric-observability-v1.yaml plus /contracts/openapi/platform/platform-delivery-fabric-observability-v1.meta.yaml.",
+      "target_path_after_md_retirement": "same"
     },
     "prd_accounting": {
       "current_path": "/specs/microservices/accounting.json",
@@ -1094,13 +1022,12 @@
       "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec.",
       "target_path_after_md_retirement": "same"
     },
-    "retired_pre_pr_multispectrum_checklist": {
-      "current_path": null,
-      "retired_path": "/templates/checklists/pre-pr-multispectrum.json",
-      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template was previously treated as canonical)",
-      "kind": "retired-template",
-      "migration_phase": "retired",
-      "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets for current review evidence."
+    "product_protocol_contract": {
+      "current_path": "/specs/product-protocol-contract.json",
+      "kind": "spec",
+      "migration_phase": "w0-b-accepted",
+      "purpose": "Accepted ADR-0632 product protocol posture: public HTTPS REST, versioned webhooks, AsyncAPI events, SSE, and WebSocket; internal-only gRPC over HTTP/2 with proto3 and SPIFFE-shaped mTLS/TLS 1.3; JSON/OpenAPI externally; FlatBuffers and owned-fabric/RDMA profiles remain evidence-gated.",
+      "target_path_after_md_retirement": "same"
     },
     "reachability_audit": {
       "current_path": "docs/architecture/six-hops-reachability-audit-2026-05-20.md",
@@ -1110,6 +1037,95 @@
       "purpose": "Audit-only six-hop reachability snapshot. Track A does not promote /specs/reachability-registry.json because no schema/owner/gate-backed registry exists in this checkout; resolver authority is root-hub pointer validation plus this audit artifact.",
       "session_worktree_state_authority": "none; .gjc session/worktree copies are non-authoritative for reachability classification",
       "target_path_after_md_retirement": "same audit artifact until a schema/owner/gate-backed reachability registry is explicitly promoted"
+    },
+    "regulatory_identity_kyc_policy_evidence_architecture": {
+      "current_path": "/specs/regulatory-identity-kyc-policy-evidence-architecture.json",
+      "kind": "spec",
+      "migration_phase": "regid-002-planning-architecture",
+      "purpose": "Design-only architecture map for passkey-first KYC/CDD/EDD policy decisions, evidence packets, tenant state, compliance packs, retention, consent, residency, and accreditation packets. It preserves no-service/no-CLI constraints and keeps row-level implementation blocked on REGID-001 source extraction.",
+      "target_path_after_md_retirement": "same"
+    },
+    "regulatory_identity_source_of_truth": {
+      "current_path": "/specs/regulatory-identity-source-of-truth.json",
+      "kind": "spec",
+      "migration_phase": "planning-source-of-truth",
+      "purpose": "Planning-only source index, source-blocker register, claim ceiling, and machine-readable control backlog for Korean/global identity, KYC, passkey, compliance, PCI, and PQC source rows. It carries explicit no-readiness/no-certification claims and blocks downstream policy/runtime work when official sources are unresolved.",
+      "target_path_after_md_retirement": "same"
+    },
+    "reorg_codemod_bridge": {
+      "current_path": "registry/catalog/oya-reorg-codemod-app.yaml",
+      "kind": "registry",
+      "migration_phase": "phase-0-reorg-machinery-ships-unused-until-strangler",
+      "purpose": "Catalog row for the ADR-0562 Phase-0 reversible capability-move codemod + pre-move green-snapshot oracle (oya-reorg-codemod-app). Local bridge only; ships UNUSED until the per-capability strangler PRs invoke it; moves no real capability. Merge authority remains in cloud-ci/oya-ci required contexts.",
+      "target_path_after_md_retirement": "governance/capability-registry strangler tooling"
+    },
+    "reset_eligibility_current_observation": {
+      "current_path": "/registry/reset-eligibility/w0-d-20260801.json",
+      "kind": "historical-registry-evidence",
+      "migration_phase": "wave-0-d-preservation-migration",
+      "observation_status": "historical-expired-non-authorizing",
+      "expired_at": "2026-08-02T17:59:29Z",
+      "purpose": "Historical W0-D read-only, undigested/unverified discovery observation. It expired on 2026-08-02, records RESET INELIGIBLE, and represents preservation migration only. It is not actuation authority, contains no verified evidence digest, and must be recaptured before any future eligibility decision.",
+      "target_path_after_md_retirement": "same"
+    },
+    "reset_eligibility_schema": {
+      "current_path": "/specs/reset-eligibility.schema.json",
+      "kind": "schema",
+      "migration_phase": "wave-0-d-reset-discovery",
+      "purpose": "Fail-closed schema for time-bounded infrastructure reset observations. Unknowns, hard stops, incomplete recovery, missing approvals, or stale positive evidence prohibit reset; absence of evidence is never deletion authority.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_attestation_schema": {
+      "current_path": "/specs/residency-attestation-schema.json",
+      "kind": "schema",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract/schema-only ADR-0326 RESIDENCY-001 artifact for signed per-tenant residency footprints, tier conditionals, source-registry hashes, signing principals, cross-border policy, and offline-channel references without runtime attestation, placement, or migration claims.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_contract_slice_checker": {
+      "current_path": "/ci/facade/contract-slice-conformance/contract-slice-policy.json",
+      "kind": "test",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Owned Rust/Buck2 cloud-ci contract-slice-conformance gate validation for the ADR-0326 RESIDENCY-001 slice (residency-001-attestation, residency-001-regions, residency-001-regimes, residency-001-audit-events, residency-001-pack-matrix). Retires the prior local Python validator bridge; merge authority is oya-ci-required.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_placement_audit_events": {
+      "current_path": "/specs/residency-placement-audit-events.json",
+      "kind": "spec",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only ADR-0326 audit-event specification for residency attestation, placement decision/refusal, cross-border permit/refusal, pack-binding, regulatory-attestor, and offline sovereign-channel semantics without claiming emitters or audit-chain delivery exist.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_region_registry": {
+      "current_path": "/specs/regions/registry.json",
+      "kind": "registry",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only region id registry for RESIDENCY-001 attestations. Names allowed region ids, jurisdiction families, supported tiers, cell-group patterns, and data-boundary semantics without claiming live cell inventory or certification.",
+      "target_path_after_md_retirement": "same"
+    },
+    "residency_regulatory_regime_registry": {
+      "current_path": "/specs/regulatory-regimes/registry.json",
+      "kind": "registry",
+      "migration_phase": "residency-001-contract-slice",
+      "purpose": "Contract-only regulatory regime registry for ADR-0326 residency attestations. Names regime ids, default minimum tiers, region allowlists, cross-border transfer policies, attestor requirements, and compliance-pack implications without legal-sufficiency or runtime policy claims.",
+      "target_path_after_md_retirement": "same"
+    },
+    "retired_multispectrum_review": {
+      "current_path": null,
+      "retired_path": "/specs/multispectrum-review.json",
+      "retired_by_commit": "fd06b0ad2",
+      "retirement_reason": "Deleted with retired Oya VCS admission / provider crates and Jenkins adapter; the standalone evidence-file convention no longer has a live cloud-ci gate.",
+      "kind": "retired-spec",
+      "migration_phase": "retired",
+      "purpose": "Historical provenance only. Keep the multi-lens review practice through independent reviewer-agent passes, cloud-ci/oya-ci gate packets, and typed quality-gate artifacts; do not create new evidence/multispectrum files."
+    },
+    "retired_pre_pr_multispectrum_checklist": {
+      "current_path": null,
+      "retired_path": "/templates/checklists/pre-pr-multispectrum.json",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template was previously treated as canonical)",
+      "kind": "retired-template",
+      "migration_phase": "retired",
+      "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets for current review evidence."
     },
     "reusable_building_blocks_registry": {
       "current_path": "docs/decisions/ADR-0709-general-live-apex.md",
@@ -1134,6 +1150,19 @@
       "migration_phase": "complete",
       "purpose": "Concrete deterministic score-card inventory consumed by the loop-recovery-patterns gate. Legacy `oya` mirror invocations are migration evidence only until ported to cloud-ci/Rust gate contexts. Companion to agent_durable_goal.score_cards.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
+    },
+    "security_validation_pipeline_matrix": {
+      "current_path": "/specs/security-validation-pipeline-matrix.json",
+      "kind": "spec",
+      "migration_phase": "planning-gate-matrix",
+      "purpose": "Productized runner-neutral security validation pipeline matrix. Defines SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS/purple-team, security chaos, automated pen-test, and continuous-control evidence lanes with scope, cadence, pass/fail policy, false-positive/VEX handling, API evidence records, and no CLI/scanner-as-authority claim.",
+      "target_path_after_md_retirement": "same"
+    },
+    "session_handoff": {
+      "current_path": "HANDOFF.md",
+      "kind": "doc",
+      "purpose": "Founder-authorized thin fresh-session redirect. It carries no plan, backlog, baseline-SHA, or completion claims; agents follow it to this root hub, docs/AGENTS.md, masterplan_v2, Accepted ADRs, and live Git/GitHub state.",
+      "target_path_after_md_retirement": "same"
     },
     "spec_agentic_slo_gated_promotion": {
       "current_path": "/specs/agentic-slo-gated-promotion.json",
@@ -1177,19 +1206,19 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Canonical JSON Schema 2020-12 contract for Cedar policy schema manifests. Binds ADR-0243 Cedar-as-universal-gate and ADR-0294 Cedar fragment soak/anomaly rollback doctrine into a machine-readable schema for entity types, action types, bounded context, private attributes, permit sets, fragment bindings, fixtures, validation, soak controls, fallback policy, audit mapping, and promotion gates."
     },
-    "spec_cell_topology_manifest_contract": {
-      "current_path": "/specs/cell-topology-manifest-contract.json",
-      "kind": "spec",
-      "migration_phase": "root-hub-covered-2026-07-01-cell-001r",
-      "conflict_class": "repo-governance-specs-docs",
-      "purpose": "CELL-001R manifest contract for cell tier, residency class, region disposition, storage class, and quarterly isolation evidence handles. Validation is owned by a cloud-ci Rust gate; retired local command output is provenance only."
-    },
     "spec_cell_002_promotion_automation_contract": {
       "current_path": "/specs/cell-002-promotion-automation-contract.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-07-09-cell-002",
       "conflict_class": "repo-governance-specs-docs",
       "purpose": "CELL-002 service-plan and fixture-only contract tying ADR-0351 cell-lifecycle/cell-rebalancer boundaries to ADR-0341 six-input promotion gates, ADR-0348 sharding_automation manifest checks, residency-honoring rebalance filters, and rollback audit-row fixture shape. Validation is owned by the cloud-ci Rust gate //ci/facade/contract-slice-conformance; no runtime mutation or readiness claims."
+    },
+    "spec_cell_topology_manifest_contract": {
+      "current_path": "/specs/cell-topology-manifest-contract.json",
+      "kind": "spec",
+      "migration_phase": "root-hub-covered-2026-07-01-cell-001r",
+      "conflict_class": "repo-governance-specs-docs",
+      "purpose": "CELL-001R manifest contract for cell tier, residency class, region disposition, storage class, and quarterly isolation evidence handles. Validation is owned by a cloud-ci Rust gate; retired local command output is provenance only."
     },
     "spec_chaos_engineering_substrate_canonical": {
       "current_path": "/specs/chaos-engineering-substrate-canonical.json",
@@ -1283,6 +1312,12 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Canonical JSON Schema 2020-12 contract for compliance pack overlays. Binds ADR-0251 compliance-pack overlay execution and ADR-0316 capability-tier compliance overlay requirements into a machine-readable surface for jurisdiction scope, tenant scope, data classes, regulated decisions, Cedar bindings, ontology projection constraints, workflow constraints, audit obligations, evidence requirements, precedence, lifecycle, ownership, and promotion gates."
     },
+    "spec_pci_dss_level_1_readiness_plan": {
+      "current_path": "/specs/pci-dss-level-1-readiness-plan.json",
+      "kind": "spec",
+      "migration_phase": "regid-003-planning-spec",
+      "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
+    },
     "spec_per_microservice_flat_layout": {
       "current_path": "/specs/per-microservice-flat-layout.json",
       "kind": "spec",
@@ -1349,6 +1384,12 @@
       "migration_phase": "root-hub-covered-2026-05-20",
       "purpose": "Layered throttling tiers canonical schema"
     },
+    "spec_vulnerability_intelligence_sbom_vex_pipeline": {
+      "current_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
+      "kind": "spec",
+      "migration_phase": "regsec-001-planning-contract",
+      "purpose": "Planning-only cloud-native vulnerability intelligence and SBOM/VEX pipeline contract covering CVE/NVD/OSV/RustSec/GitHub/vendor advisory ingestion, dual-format SBOMs, VEX, KEV/EPSS/CVSS/SSVC prioritization, remediation SLAs, expiring exceptions, audit evidence, and deployment/admission blocking without scanner CLI authority."
+    },
     "spec_workspace_hygiene": {
       "current_path": "/specs/workspace-hygiene.json",
       "kind": "spec",
@@ -1360,6 +1401,15 @@
       "kind": "spec",
       "migration_phase": "complete",
       "purpose": "SC-01..SC-09 stop conditions for autonomous master-plan loop.",
+      "target_path_after_md_retirement": "same"
+    },
+    "substrate_dependency_graph_v2": {
+      "current_path": "/specs/substrate-dependency-dag.json",
+      "kind": "spec",
+      "migration_phase": "W0-C-bounded-graph-v2-topology-coverage-required",
+      "purpose": "ADR-0635 bounded face-aware substrate topology authority: a closed 19-unit slice spanning 11 of 24 capabilities plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure. Full ADR-0280 D-13.G and B0-hosting parity is unclaimed pending no-new-baseline W0-C-TOPOLOGY-COVERAGE.",
+      "topology_coverage_follow_up": "https://github.com/jason931225/oyatie/issues/1537",
+      "schema_path": "/specs/substrate-dependency-dag.schema.json",
       "target_path_after_md_retirement": "same"
     },
     "talos_001_substrate_slice": {
@@ -1390,13 +1440,6 @@
       "purpose": "T0.0 tenant pipeline isolation fixture contract for tenant=oyatie-internal and customer tenants across identity, secrets, runners/workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and audit events. This is fixture evidence only until required cloud-ci context runs it.",
       "target_path_after_md_retirement": "same (machine-readable T0.0 tenant isolation fixture contract)"
     },
-    "work_area_content_hash_contract": {
-      "current_path": "/specs/work-area-content-hash-contract.json",
-      "kind": "spec",
-      "migration_phase": "w1-interface-lock",
-      "purpose": "W1 machine-readable contract for the single content-addressed work-area hash from ADR-0517/ADR-0520: canonical inputs from WorkAreaTree/scm-facts and byte-identical outputs for SCM change id, buck2/RBE key, and CD artifact hash. Metadata-only; no SCM/RBE/CD runtime claim.",
-      "target_path_after_md_retirement": "same (machine-readable W1 hash/id contract)"
-    },
     "wave_15_zf_doctrine_propagation_adr_0346_0349": {
       "current_path": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZF-doctrine-propagation-adr-0346-0349",
       "kind": "batch-control",
@@ -1410,49 +1453,12 @@
       "retired_canonical_brief_path": ".omc/state/wave-15-zf-canonical-brief.md",
       "canonical_brief_status": "retired-from-tracked-tree-local-only; use specs/master-plan-sequencing.json plus git history for provenance"
     },
-    "phase0_ci_enforcement_result_schema": {
-      "current_path": "/specs/phase0-ci-enforcement-result-schema.json",
+    "work_area_content_hash_contract": {
+      "current_path": "/specs/work-area-content-hash-contract.json",
       "kind": "spec",
-      "migration_phase": "phase0_p0_0_result_schema_not_live_authority",
-      "purpose": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs; evidence input only until a trusted required context is live.",
-      "target_path_after_md_retirement": "same (machine-readable T0.0 result schema)"
-    },
-    "spec_vulnerability_intelligence_sbom_vex_pipeline": {
-      "current_path": "/specs/vulnerability-intelligence-sbom-vex-pipeline.json",
-      "kind": "spec",
-      "migration_phase": "regsec-001-planning-contract",
-      "purpose": "Planning-only cloud-native vulnerability intelligence and SBOM/VEX pipeline contract covering CVE/NVD/OSV/RustSec/GitHub/vendor advisory ingestion, dual-format SBOMs, VEX, KEV/EPSS/CVSS/SSVC prioritization, remediation SLAs, expiring exceptions, audit evidence, and deployment/admission blocking without scanner CLI authority."
-    },
-    "spec_pci_dss_level_1_readiness_plan": {
-      "current_path": "/specs/pci-dss-level-1-readiness-plan.json",
-      "kind": "spec",
-      "migration_phase": "regid-003-planning-spec",
-      "purpose": "Planning-only PCI DSS Level 1 readiness and regulated-data control-pack contract for CDE scope, tokenization, PAN/CVV/track-data prohibitions, QSA/ROC/AOC evidence, ASV scans, segmentation, KMS/PDP/audit bindings, retention, incident response, and tenant pack activation gates."
-    },
-    "substrate_dependency_graph_v2": {
-      "current_path": "/specs/substrate-dependency-dag.json",
-      "kind": "spec",
-      "migration_phase": "W0-C-bounded-graph-v2-topology-coverage-required",
-      "purpose": "ADR-0635 bounded face-aware substrate topology authority: a closed 19-unit slice spanning 11 of 24 capabilities plus exactly five typed graphs; only steady_state_request is acyclic and failure_brownout_propagation is its derived max-min reverse transitive closure. Full ADR-0280 D-13.G and B0-hosting parity is unclaimed pending no-new-baseline W0-C-TOPOLOGY-COVERAGE.",
-      "topology_coverage_follow_up": "https://github.com/jason931225/oyatie/issues/1537",
-      "schema_path": "/specs/substrate-dependency-dag.schema.json",
-      "target_path_after_md_retirement": "same"
-    },
-    "reset_eligibility_schema": {
-      "current_path": "/specs/reset-eligibility.schema.json",
-      "kind": "schema",
-      "migration_phase": "wave-0-d-reset-discovery",
-      "purpose": "Fail-closed schema for time-bounded infrastructure reset observations. Unknowns, hard stops, incomplete recovery, missing approvals, or stale positive evidence prohibit reset; absence of evidence is never deletion authority.",
-      "target_path_after_md_retirement": "same"
-    },
-    "reset_eligibility_current_observation": {
-      "current_path": "/registry/reset-eligibility/w0-d-20260801.json",
-      "kind": "historical-registry-evidence",
-      "migration_phase": "wave-0-d-preservation-migration",
-      "observation_status": "historical-expired-non-authorizing",
-      "expired_at": "2026-08-02T17:59:29Z",
-      "purpose": "Historical W0-D read-only, undigested/unverified discovery observation. It expired on 2026-08-02, records RESET INELIGIBLE, and represents preservation migration only. It is not actuation authority, contains no verified evidence digest, and must be recaptured before any future eligibility decision.",
-      "target_path_after_md_retirement": "same"
+      "migration_phase": "w1-interface-lock",
+      "purpose": "W1 machine-readable contract for the single content-addressed work-area hash from ADR-0517/ADR-0520: canonical inputs from WorkAreaTree/scm-facts and byte-identical outputs for SCM change id, buck2/RBE key, and CD artifact hash. Metadata-only; no SCM/RBE/CD runtime claim.",
+      "target_path_after_md_retirement": "same (machine-readable W1 hash/id contract)"
     }
   },
   "specs_directory_audit_2026_05_20": {
