@@ -1,0 +1,37 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: itsm-mttr-objective
+  labels:
+    service: itsm
+    suite: local-operational-primitive
+    adr: ADR-0130
+    promotion_gate: ADR-0139
+spec:
+  service: itsm
+  description: Incidents restored inside MTTR objective for incident, change, problem, CMDB, knowledge base, and service-level management operations.
+  indicator:
+    metadata:
+      name: mttr-objective
+      labels:
+        domain_object: ServiceManagementRecord
+        operator_audience: IT_SERVICE_MANAGER
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_itsm_mttr_objective_good_total[30d])) by (tenant_id, cell_tier)
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_itsm_mttr_objective_total[30d])) by (tenant_id, cell_tier)
+  objectives:
+    - displayName: Incidents restored inside MTTR objective
+      target: 0.99
+  timeWindow:
+    - duration: 30d
+      isRolling: true
