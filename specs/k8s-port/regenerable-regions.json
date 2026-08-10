@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema_version": "1.0.0",
   "artifact": "kubernetes-port-regenerable-regions",
-  "_comment": "Registered regenerable regions for the Kubernetes Go-to-Rust port, plus the origin classification of every first-party crate leaf in the two capabilities the port seam runs between. ADR-637 D2, live via ADR-0704: output in a registered regenerable region is emitted by the registered producer and is NEVER hand-edited; a red result is an engine, rule or policy defect, never repaired by editing emitted Rust. `regions` is EMPTY and stays empty until a producer exists: build/port-engine and specs/port-rules are absent from the tree and specs/k8s-port/scope.json reports no package enumeration has run. The value of this file today is the DENOMINATOR, not the numerator. A boundary partition that classifies leaf by leaf reports the same clean result over an empty region set whether the corpus is genuinely clean or the walk collapsed and saw nothing; enumerating every existing leaf as first-party is what makes that zero honest instead of vacuous. Contract: docs/programs/k8s-port/seam/os-k8s-seam-mapping.md, sections 3.1, 5 and 6.",
+  "_comment": "Registered regenerable regions for the Kubernetes Go-to-Rust port, plus the origin classification of every first-party crate leaf in the two capabilities the port seam runs between. ADR-637 D2, live via ADR-0704: output in a registered regenerable region is emitted by the registered producer and is NEVER hand-edited; a red result is an engine, rule or policy defect, never repaired by editing emitted Rust. `regions` is EMPTY and stays empty until a PRODUCER exists, which is not the same claim as the engine path being absent: build/port-engine/core/port-engine-kernel IS on the tree (7 tracked files, 924 lines) and registers no producer -- it is a W0 skeleton with no front end, no rule data and no renderer -- while specs/port-rules is genuinely absent and specs/k8s-port/scope.json reports no package enumeration has run. A consumer must be able to tell 'engine present, not yet a producer' from 'engine absent'. The value of this file today is the DENOMINATOR, not the numerator. A boundary partition that classifies leaf by leaf reports the same clean result over an empty region set whether the corpus is genuinely clean or the walk collapsed and saw nothing; enumerating every existing leaf as first-party is what makes that zero honest instead of vacuous. Contract: docs/programs/k8s-port/seam/os-k8s-seam-mapping.md, sections 3.1, 5 and 6.",
   "authority": {
     "apex": "ADR-0704",
     "clauses": [
@@ -17,7 +17,7 @@
     "state": "empty_no_producer",
     "statement": "No regenerable region is registered. Nothing in the repository emits Kubernetes Rust output, so no path is under producer ownership and every byte under k8s/ and os/ is legitimately hand-edited today.",
     "evidence": [
-      "build/port-engine/** absent from the tree.",
+      "build/port-engine/core/port-engine-kernel present (7 tracked files) but registers no producer: an ADR-0637 D4 W0 seam skeleton with no source-language front end, no rule data and no renderer, so it emits no output and owns no path.",
       "specs/port-rules/** absent from the tree.",
       "specs/k8s-port/scope.json enumeration_state.state = pending_source_model_manifest."
     ],
