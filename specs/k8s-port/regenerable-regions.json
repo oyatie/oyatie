@@ -405,6 +405,6 @@
     "That any producer, engine, rule pack or seam crate exists.",
     "That any os/ to k8s/ dependency edge is authorized; ADR-638 D6 defers that to W0-G and this file does not pre-empt it.",
     "That the candidate upstream module paths in emit_predicate.name_function.examples were confirmed against the pinned SourceModel.",
-    "That the fail_closed_conditions above are enforced by anything today. They are the specification a reader gate implements; until one exists this file is a reviewed declaration, not an enforced one."
+    "That emit_predicate resolution (no-match / equal-highest-rank) is enforced by a reader today — that fail_closed condition remains specification until the producer evaluates it. Origin classification, region producer/receipt/overlap, and first-party-vs-generated coverage ARE enforced by ci-k8s-program-docs when this file is loaded."
   ]
 }

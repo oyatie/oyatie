@@ -217,9 +217,10 @@ pub struct Corpus {
     pub declared_leaves: DeclaredLeaves,
     /// The divergence ledger's own growth knobs plus its observed row count.
     pub divergence_ledger: DivergenceLedger,
-    /// INV-1 / INV-2: forbidden package/target edges parsed from `os|k8s/**/{Cargo.toml,BUCK}`
-    /// (inline tables, named dependency tables, `.workspace = true`, `package =` renames,
-    /// and Buck `//os/`↔`//k8s/` deps).
+    /// INV-1 / INV-2: forbidden package/target edges parsed from
+    /// `os|k8s/**/{Cargo.toml,BUCK,BUCK.v2}` (inline tables including quoted keys, named
+    /// dependency tables, `.workspace = true`, `package =` renames, and Buck `//os/`↔`//k8s/`
+    /// deps). `BUCK.v2` is scanned because buck2's buildfile precedence lets it shadow `BUCK`.
     pub cross_seam_edges: Vec<CrossSeamEdge>,
 }
 
@@ -382,7 +383,7 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             FindingCode::CrossSeamDependency,
             &edge.path,
             &format!(
-                "manifest declares forbidden cross-seam dependency `{}`; INV-1/INV-2 forbid os↔k8s Cargo/Buck edges in any TOML spelling (inline `{{ path }}`, named `[*.dependencies.<pkg>]` tables, `.workspace = true`, `package =` renames) or Buck `//os/`↔`//k8s/` target edges",
+                "manifest declares forbidden cross-seam dependency `{}`; INV-1/INV-2 forbid os↔k8s Cargo/Buck edges in any TOML spelling (inline `{{ path }}`, quoted keys, named `[*.dependencies.<pkg>]` tables, `.workspace = true`, `package =` renames) or Buck `//os/`↔`//k8s/` target edges in `BUCK`/`BUCK.v2`",
                 edge.dependency
             ),
         ));
@@ -626,13 +627,17 @@ fn scan_crate_leaves(repo_root: &Path) -> Result<Vec<String>, LoadError> {
     Ok(leaves)
 }
 
-/// INV-1 / INV-2: parse Cargo manifests and BUCK graphs under `os/` and `k8s/` for
+/// INV-1 / INV-2: parse Cargo manifests and Buck buildfiles under `os/` and `k8s/` for
 /// forbidden cross-seam edges.
 ///
 /// A formatting-specific `git grep` for `pkg = { path` misses named dependency tables
-/// (`[dependencies.k8s-foo]`), workspace inheritance (`k8s-foo.workspace = true`), and
-/// `package = "k8s-…"` renames. BUCK target edges (`//k8s/…` from `os/`, `//os/…` from
-/// `k8s/`) are the same seam crossed through the Buck graph.
+/// (`[dependencies.k8s-foo]`), quoted keys (`"k8s-foo" = { path = … }`), workspace
+/// inheritance (`k8s-foo.workspace = true`), and `package = "k8s-…"` renames. Buck target
+/// edges (`//k8s/…` from `os/`, `//os/…` from `k8s/`) are the same seam crossed through the
+/// Buck graph — including `BUCK.v2`, which buck2 prefers over `BUCK` when both exist.
+///
+/// Only recognized manifest/buildfile basenames are read as UTF-8. Binary fixtures under
+/// `os/` or `k8s/` (e.g. DER certs in `testdata/`) must not trip `R-DOC-SEAM-MANIFEST-UNREADABLE`.
 fn scan_cross_seam_edges(repo_root: &Path) -> Result<Vec<CrossSeamEdge>, LoadError> {
     let mut edges = Vec::new();
     for (capability, forbidden_prefix, forbidden_buck_root) in [
@@ -647,10 +652,10 @@ fn scan_cross_seam_edges(repo_root: &Path) -> Result<Vec<CrossSeamEdge>, LoadErr
             let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
                 continue;
             };
-            let contents = read_utf8(&path, "R-DOC-SEAM-MANIFEST-UNREADABLE")?;
             let rel = display_path(repo_root, &path);
             match name {
                 "Cargo.toml" => {
+                    let contents = read_utf8(&path, "R-DOC-SEAM-MANIFEST-UNREADABLE")?;
                     for dependency in forbidden_package_deps(&contents, forbidden_prefix) {
                         edges.push(CrossSeamEdge {
                             path: rel.clone(),
@@ -658,7 +663,8 @@ fn scan_cross_seam_edges(repo_root: &Path) -> Result<Vec<CrossSeamEdge>, LoadErr
                         });
                     }
                 }
-                "BUCK" => {
+                "BUCK" | "BUCK.v2" => {
+                    let contents = read_utf8(&path, "R-DOC-SEAM-MANIFEST-UNREADABLE")?;
                     for dependency in forbidden_buck_deps(&contents, forbidden_buck_root) {
                         edges.push(CrossSeamEdge {
                             path: rel.clone(),
@@ -779,20 +785,37 @@ fn classify_dependency_header(inner: &str) -> Option<Option<String>> {
     after
         .strip_prefix('.')
         .filter(|package| !package.is_empty())
-        .map(|package| Some(package.to_owned()))
+        .and_then(toml_bare_or_quoted_key)
+        .map(Some)
 }
 
 fn dependency_key(line: &str) -> Option<String> {
     let key = line.split_once('=')?.0.trim();
     let name = key.split('.').next()?.trim();
-    if name.is_empty()
-        || !name
+    toml_bare_or_quoted_key(name)
+}
+
+/// Bare TOML keys, or single-/double-quoted keys with an otherwise bare package name.
+///
+/// Cargo accepts `"k8s-foo" = { path = "…" }` and `[dependencies."k8s-foo"]`; rejecting the
+/// surrounding quotes would leave INV-1 green over a real cross-seam edge.
+fn toml_bare_or_quoted_key(raw: &str) -> Option<String> {
+    let raw = raw.trim();
+    if raw.is_empty() {
+        return None;
+    }
+    let unquoted = match raw.as_bytes() {
+        [b'"', .., b'"'] | [b'\'', .., b'\''] if raw.len() >= 2 => &raw[1..raw.len() - 1],
+        _ => raw,
+    };
+    if unquoted.is_empty()
+        || !unquoted
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
     {
         return None;
     }
-    Some(name.to_owned())
+    Some(unquoted.to_owned())
 }
 
 /// `package = "k8s-foo"` / `package = 'k8s-foo'` inside an inline table or named dep section.
@@ -835,6 +858,10 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
     // have silently pinned the comparison to the wrong number.
     const CODE: &str = "R-DOC-K8S-PORT-REGIONS-MALFORMED";
     let document = read_json(&path, CODE)?;
+    // Validate `/regions` unconditionally — before leaf origin checks — so a region covering only
+    // first-party leaves, missing a producer/receipt, or overlapping another region cannot hide
+    // behind an all-`first-party` census (fail_closed_conditions in regenerable-regions.json).
+    let regions = load_validated_regions(&document, &path, CODE)?;
     let leaves = document
         .pointer("/origin_classification/leaves")
         .and_then(Value::as_array)
@@ -870,21 +897,12 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
                 ),
             ));
         }
-        // Vocabulary: every generated leaf MUST resolve to exactly one registered
-        // region. With `regions` empty (W0: no producer), `generated` is refuse.
-        if origin == "generated" {
-            let regions = document
-                .pointer("/regions")
-                .and_then(Value::as_array)
-                .map(|a| a.as_slice())
-                .unwrap_or(&[]);
-            let covered = regions.iter().any(|region| {
-                region
-                    .get("path_prefix")
-                    .and_then(Value::as_str)
-                    .is_some_and(|prefix| value == prefix || value.starts_with(&format!("{prefix}/")))
-            });
-            if !covered {
+        let covered = regions.iter().any(|prefix| region_covers(prefix, value));
+        // Vocabulary: every generated leaf MUST resolve to exactly one registered region.
+        // With `regions` empty (W0: no producer), `generated` is refuse. A first-party leaf
+        // MUST NOT fall inside a registered region path_prefix.
+        match origin {
+            "generated" if !covered => {
                 return Err(load_error(
                     CODE,
                     &path,
@@ -893,6 +911,16 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
                     ),
                 ));
             }
+            "first-party" if covered => {
+                return Err(load_error(
+                    CODE,
+                    &path,
+                    &format!(
+                        "first-party leaf `{value}` falls inside a registered region path_prefix; generated ownership and hand-edit ownership cannot share a path"
+                    ),
+                ));
+            }
+            _ => {}
         }
         rows.push(value.to_owned());
     }
@@ -917,6 +945,129 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
             CODE,
         )?,
     })
+}
+
+/// Six-axis receipt keys required on every registered regenerable region.
+const REGION_RECEIPT_AXES: &[&str] = &[
+    "pin",
+    "snapshot_digest",
+    "engine_digest",
+    "rulepack_digest",
+    "toolchain_digest",
+    "formatter_digest",
+];
+
+/// Load `/regions`, validate producer + six receipt axes + disjoint prefixes, return prefixes.
+fn load_validated_regions(
+    document: &Value,
+    path: &Path,
+    code: &'static str,
+) -> Result<Vec<String>, LoadError> {
+    let Some(regions_value) = document.get("regions") else {
+        return Err(load_error(
+            code,
+            path,
+            "`regions` must be present (use `[]` while no producer exists)",
+        ));
+    };
+    let regions = regions_value.as_array().ok_or_else(|| {
+        load_error(code, path, "`regions` must be an array")
+    })?;
+    let mut prefixes: Vec<String> = Vec::with_capacity(regions.len());
+    for (index, region) in regions.iter().enumerate() {
+        let region_id = region
+            .get("region_id")
+            .and_then(Value::as_str)
+            .filter(|id| !id.is_empty())
+            .ok_or_else(|| {
+                load_error(
+                    code,
+                    path,
+                    &format!("regions[{index}] must carry a non-empty string `region_id`"),
+                )
+            })?;
+        let prefix = region
+            .get("path_prefix")
+            .and_then(Value::as_str)
+            .filter(|prefix| !prefix.is_empty())
+            .ok_or_else(|| {
+                load_error(
+                    code,
+                    path,
+                    &format!("region `{region_id}` must carry a non-empty string `path_prefix`"),
+                )
+            })?;
+        if region.get("origin").and_then(Value::as_str).is_none() {
+            return Err(load_error(
+                code,
+                path,
+                &format!("region `{region_id}` must carry a string `origin`"),
+            ));
+        }
+        match region.get("producer") {
+            Some(Value::String(producer)) if !producer.is_empty() => {}
+            Some(Value::Object(producer)) if !producer.is_empty() => {}
+            Some(Value::Null) | None => {
+                return Err(load_error(
+                    code,
+                    path,
+                    &format!(
+                        "region `{region_id}` is registered without a producer; a no-hand-edit region with no regeneration owner is unmaintainable"
+                    ),
+                ));
+            }
+            Some(_) => {
+                return Err(load_error(
+                    code,
+                    path,
+                    &format!(
+                        "region `{region_id}` producer must be a non-empty string or object"
+                    ),
+                ));
+            }
+        }
+        let receipt = region.get("receipt").and_then(Value::as_object).ok_or_else(|| {
+            load_error(
+                code,
+                path,
+                &format!("region `{region_id}` must carry an object `receipt` with all six axes"),
+            )
+        })?;
+        for axis in REGION_RECEIPT_AXES {
+            if !receipt.contains_key(*axis) || receipt.get(*axis).is_some_and(Value::is_null) {
+                return Err(load_error(
+                    code,
+                    path,
+                    &format!(
+                        "region `{region_id}` receipt is missing axis `{axis}`; all six receipt axes are required"
+                    ),
+                ));
+            }
+        }
+        for prior in &prefixes {
+            if path_prefixes_overlap(prior, prefix) {
+                return Err(load_error(
+                    code,
+                    path,
+                    &format!(
+                        "region path prefixes `{prior}` and `{prefix}` overlap; two regions claiming the same path make the no-hand-edit owner ambiguous"
+                    ),
+                ));
+            }
+        }
+        prefixes.push(prefix.to_owned());
+    }
+    Ok(prefixes)
+}
+
+fn region_covers(prefix: &str, leaf: &str) -> bool {
+    leaf == prefix || leaf.starts_with(&format!("{prefix}/"))
+}
+
+fn path_prefixes_overlap(left: &str, right: &str) -> bool {
+    left == right
+        || left.starts_with(&format!("{right}/"))
+        || right.starts_with(&format!("{left}/"))
 }
 
 /// What one pass over `os/**/*.rs` observed.
@@ -2058,7 +2209,8 @@ mod tests {
             .expect("the fixture tree is creatable");
         fs::write(
             &path,
-            r#"{"somewhere_else": {"path": "os/core/relocated"},
+            r#"{"regions": [],
+                "somewhere_else": {"path": "os/core/relocated"},
                 "origin_classification": {"leaves": [],
                   "census": {"k8s_leaves": 0, "os_leaves": 0, "total_leaves": 0}}}"#,
         )
@@ -2124,6 +2276,23 @@ mod tests {
             vec!["k8s-foo".to_owned()]
         );
 
+        // Quoted keys are valid TOML; INV-1 must not treat the quotes as an illegal key charset.
+        let quoted = "[dependencies]\n\"k8s-foo\" = { path = \"../../k8s/ports/foo\" }\n";
+        assert_eq!(
+            forbidden_package_deps(quoted, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+        let quoted_named = "[dependencies.\"k8s-foo\"]\npath = \"../../k8s/ports/foo\"\n";
+        assert_eq!(
+            forbidden_package_deps(quoted_named, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+        let quoted_workspace = "[dependencies]\n\"k8s-foo\".workspace = true\n";
+        assert_eq!(
+            forbidden_package_deps(quoted_workspace, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+
         let clean = "[dependencies]\nserde = { workspace = true }\nos-kernel = { path = \"../kernel\" }\n";
         assert!(forbidden_package_deps(clean, "k8s-").is_empty());
 
@@ -2144,6 +2313,42 @@ mod tests {
             &evaluate(&corpus),
             FindingCode::CrossSeamDependency
         ));
+    }
+
+    #[test]
+    fn scan_cross_seam_edges_reads_buck_v2_and_skips_binary_fixtures() {
+        let root = std::env::temp_dir().join(format!(
+            "r-doc-seam-buck-v2-binary-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        let crate_dir = root.join("os/core/fixture-domain");
+        fs::create_dir_all(crate_dir.join("testdata")).expect("fixture dirs");
+        // Legitimate binary fixture must not force UTF-8 decode of the whole tree.
+        fs::write(crate_dir.join("testdata/cert.der"), [0xff, 0xfe, 0x00, 0x80])
+            .expect("binary fixture");
+        fs::write(
+            crate_dir.join("Cargo.toml"),
+            "[package]\nname = \"fixture-domain\"\nversion = \"0.0.0\"\nedition = \"2021\"\n",
+        )
+        .expect("cargo");
+        // Clean BUCK shadowed by a BUCK.v2 that crosses the seam — INV-1 must see BUCK.v2.
+        fs::write(crate_dir.join("BUCK"), "rust_library(name = \"ok\", deps = [])\n")
+            .expect("buck");
+        fs::write(
+            crate_dir.join("BUCK.v2"),
+            "rust_library(\n    name = \"fixture\",\n    deps = [\"//k8s/ports/foo:k8s-foo\"],\n)\n",
+        )
+        .expect("buck.v2");
+        let edges = scan_cross_seam_edges(&root).expect("scan");
+        let _ = fs::remove_dir_all(&root);
+        assert_eq!(
+            edges,
+            vec![CrossSeamEdge {
+                path: "os/core/fixture-domain/BUCK.v2".to_owned(),
+                dependency: "//k8s/ports/foo:k8s-foo".to_owned(),
+            }]
+        );
     }
 
     #[test]
@@ -2168,6 +2373,163 @@ mod tests {
         assert_eq!(
             result.expect_err("generated without a region is malformed").code,
             "R-DOC-K8S-PORT-REGIONS-MALFORMED"
+        );
+    }
+
+    #[test]
+    fn regions_are_validated_even_when_every_leaf_is_first_party() {
+        let root = std::env::temp_dir().join(format!(
+            "r-doc-regions-independent-{}",
+            std::process::id()
+        ));
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
+        // Region covers a first-party leaf, has no producer, incomplete receipt, and would
+        // overlap a second region — all fail_closed conditions independent of `generated`.
+        fs::write(
+            &path,
+            r#"{
+              "regions": [
+                {
+                  "region_id": "ports",
+                  "path_prefix": "k8s/ports",
+                  "origin": "generated",
+                  "receipt": {"pin": "x"}
+                },
+                {
+                  "region_id": "ports-nested",
+                  "path_prefix": "k8s/ports/upstream-api",
+                  "origin": "generated",
+                  "producer": "build/port-engine",
+                  "receipt": {
+                    "pin": "x",
+                    "snapshot_digest": "a",
+                    "engine_digest": "b",
+                    "rulepack_digest": "c",
+                    "toolchain_digest": "d",
+                    "formatter_digest": "e"
+                  }
+                }
+              ],
+              "origin_classification": {
+                "leaves": [{"path": "k8s/ports/tenant-quota-api", "origin": "first-party"}],
+                "census": {"k8s_leaves": 1, "os_leaves": 0, "total_leaves": 1}
+              }
+            }"#,
+        )
+        .expect("write");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        let err = result.expect_err("invalid region table must fail closed");
+        assert_eq!(err.code, "R-DOC-K8S-PORT-REGIONS-MALFORMED");
+        assert!(
+            err.message.contains("producer") || err.message.contains("receipt"),
+            "expected producer/receipt validation, got: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn overlapping_region_prefixes_fail_closed() {
+        let root = std::env::temp_dir().join(format!(
+            "r-doc-regions-overlap-{}",
+            std::process::id()
+        ));
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
+        fs::write(
+            &path,
+            r#"{
+              "regions": [
+                {
+                  "region_id": "ports",
+                  "path_prefix": "k8s/ports",
+                  "origin": "generated",
+                  "producer": "build/port-engine",
+                  "receipt": {
+                    "pin": "x",
+                    "snapshot_digest": "a",
+                    "engine_digest": "b",
+                    "rulepack_digest": "c",
+                    "toolchain_digest": "d",
+                    "formatter_digest": "e"
+                  }
+                },
+                {
+                  "region_id": "ports-nested",
+                  "path_prefix": "k8s/ports/upstream-api",
+                  "origin": "generated",
+                  "producer": "build/port-engine",
+                  "receipt": {
+                    "pin": "x",
+                    "snapshot_digest": "a",
+                    "engine_digest": "b",
+                    "rulepack_digest": "c",
+                    "toolchain_digest": "d",
+                    "formatter_digest": "e"
+                  }
+                }
+              ],
+              "origin_classification": {
+                "leaves": [],
+                "census": {"k8s_leaves": 0, "os_leaves": 0, "total_leaves": 0}
+              }
+            }"#,
+        )
+        .expect("write");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        let err = result.expect_err("overlapping prefixes are malformed");
+        assert_eq!(err.code, "R-DOC-K8S-PORT-REGIONS-MALFORMED");
+        assert!(
+            err.message.contains("overlap"),
+            "expected overlap message, got: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn first_party_leaf_inside_registered_region_fails_closed() {
+        let root = std::env::temp_dir().join(format!(
+            "r-doc-first-party-in-region-{}",
+            std::process::id()
+        ));
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
+        fs::write(
+            &path,
+            r#"{
+              "regions": [
+                {
+                  "region_id": "ports",
+                  "path_prefix": "k8s/ports",
+                  "origin": "generated",
+                  "producer": "build/port-engine",
+                  "receipt": {
+                    "pin": "x",
+                    "snapshot_digest": "a",
+                    "engine_digest": "b",
+                    "rulepack_digest": "c",
+                    "toolchain_digest": "d",
+                    "formatter_digest": "e"
+                  }
+                }
+              ],
+              "origin_classification": {
+                "leaves": [{"path": "k8s/ports/tenant-quota-api", "origin": "first-party"}],
+                "census": {"k8s_leaves": 1, "os_leaves": 0, "total_leaves": 1}
+              }
+            }"#,
+        )
+        .expect("write");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        let err = result.expect_err("first-party under a region is malformed");
+        assert_eq!(err.code, "R-DOC-K8S-PORT-REGIONS-MALFORMED");
+        assert!(
+            err.message.contains("first-party"),
+            "expected first-party coverage refusal, got: {}",
+            err.message
         );
     }
 }
