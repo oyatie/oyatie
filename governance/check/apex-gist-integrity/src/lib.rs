@@ -306,26 +306,40 @@ impl SourceIndex {
 /// them ends at a block end, and a reworded carry reports nothing at all. Both are under-detection,
 /// which is the safe direction for a code that pins an equality ratchet — `ends_midword` stays as
 /// the fallback that catches part of what this misses.
+/// Source-oracle outcome for a carried block.
+///
+/// `None` — no source, empty carry, or no verbatim occurrence (inconclusive; shape fallback may run).
+/// `Some(false)` — at least one occurrence ends on a source block boundary (positively faithful).
+/// `Some(true)` — every occurrence is a proper prefix of a longer source block (cut).
 #[must_use]
-pub fn cut_from_source(carried: &str, source: Option<&SourceIndex>) -> bool {
-    let Some(source) = source else {
-        return false;
-    };
+pub fn cut_from_source(carried: &str, source: Option<&SourceIndex>) -> Option<bool> {
+    let source = source?;
     let carried = normalize_ws(&carried.to_lowercase());
     if carried.is_empty() {
-        return false;
+        return None;
     }
     let mut found = false;
     let mut from = 0usize;
     while let Some(rel) = source.reflowed[from..].find(&carried) {
-        let end = from + rel + carried.len();
+        let start = from + rel;
+        let end = start + carried.len();
         if source.block_ends.contains(&end) {
-            return false; // carried right up to a block boundary — a faithful carry
+            return Some(false); // carried right up to a block boundary — a faithful carry
         }
         found = true;
-        from += rel + 1;
+        // Advance by one UTF-8 character from the match start so the next slice stays char-aligned.
+        let step = source.reflowed[start..]
+            .chars()
+            .next()
+            .map(|c| c.len_utf8())
+            .unwrap_or(1);
+        from = start + step;
     }
-    found
+    if found {
+        Some(true)
+    } else {
+        None
+    }
 }
 
 /// True when the block leaves a Markdown code fence open.
@@ -416,8 +430,8 @@ pub fn evaluate(
             // The source oracle, tried FIRST. `ends_midword` is consulted only for the blocks this
             // could not decide, so the two codes partition the cut population instead of
             // double-counting the blocks that happen to satisfy both.
-            let is_cut = cut_from_source(&block.text, sources.get(block.member_id.as_str()));
-            if is_cut {
+            let source_cut = cut_from_source(&block.text, sources.get(block.member_id.as_str()));
+            if source_cut == Some(true) {
                 push(
                     CODE_CUT_FROM_SOURCE,
                     &apex.id,
@@ -432,7 +446,7 @@ pub fn evaluate(
                     ),
                     &mut verdict,
                 );
-            } else if ends_midword(&block.text) {
+            } else if source_cut.is_none() && ends_midword(&block.text) {
                 push(
                     CODE_TRUNCATED_MIDWORD,
                     &apex.id,
