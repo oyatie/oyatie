@@ -12,16 +12,16 @@
       "docs/AGENTS.md",
       "/templates/checklists/done-definition-checklist.md",
       "/templates/checklists/agent-completion-checklist.md",
-      "docs/checklists/wave-gate.md",
-      "docs/checklists/release-readiness-checklist.md",
-      "docs/checklists/per-phase-completion-checklist.md",
-      "docs/checklists/agent-completion-checklist.md"
+      "templates/checklists/wave-gate.md",
+      "templates/checklists/release-readiness-checklist.md",
+      "templates/checklists/per-phase-completion-checklist.md",
+      "templates/checklists/agent-completion-checklist.md"
     ],
     "deduplicates_existing": [
-      "docs/checklists/wave-gate.md",
-      "docs/checklists/release-readiness-checklist.md",
-      "docs/checklists/per-phase-completion-checklist.md",
-      "docs/checklists/agent-completion-checklist.md"
+      "templates/checklists/wave-gate.md",
+      "templates/checklists/release-readiness-checklist.md",
+      "templates/checklists/per-phase-completion-checklist.md",
+      "templates/checklists/agent-completion-checklist.md"
     ]
   },
   "may_stop_only_when": [
