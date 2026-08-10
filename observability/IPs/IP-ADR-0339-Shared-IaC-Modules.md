@@ -56,12 +56,12 @@ DOSSIER-CRATE-012: Existing crate `oya-observability-slo-engine-rest` remains un
 DOSSIER-CRATE-013: Existing crate `oya-observability-slo-engine-sdk` remains untouched by this document-stage IP.
 DOSSIER-CRATE-014: Existing crate `oya-observability-slo-engine-usecase` remains untouched by this document-stage IP.
 DOSSIER-CRATE-015: Existing crate `oya-observability-slo-engine-worker` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/observability/contracts/openapi/slo-engine.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/observability/contracts/asyncapi/eligibility-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/observability/contracts/proto/slo-engine.proto.
-DOSSIER-CAPABILITY-001: T1 eligibility-query risk=minimal file=microservices/observability/capabilities/eligibility-query.yaml.
-DOSSIER-CAPABILITY-002: T0 openslo-validate risk=none file=microservices/observability/capabilities/openslo-validate.yaml.
-DOSSIER-CAPABILITY-003: T2 slo-evaluate risk=limited file=microservices/observability/capabilities/slo-evaluate.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: observability/contracts/openapi/slo-engine.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: observability/contracts/asyncapi/eligibility-events.yaml.
+DOSSIER-CONTRACT-003: proto3: observability/contracts/proto/slo-engine.proto.
+DOSSIER-CAPABILITY-001: T1 eligibility-query risk=minimal file=observability/capabilities/eligibility-query.yaml.
+DOSSIER-CAPABILITY-002: T0 openslo-validate risk=none file=observability/capabilities/openslo-validate.yaml.
+DOSSIER-CAPABILITY-003: T2 slo-evaluate risk=limited file=observability/capabilities/slo-evaluate.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
