@@ -147,8 +147,6 @@
         "oya-tenancy-kernel",
         "oya-tenant-rbac-app",
         "oya-tooling-agent-read",
-        "oya-workflow-engine-event-bus-adapter-nats",
-        "oya-workflow-engine-event-bus-adapter-redpanda",
         "oya-workflow-engine-event-bus-worker",
         "oya-workflow-engine-trigger-orchestrator-worker",
         "oya-workflow-studio-dsl-emitter-domain",
