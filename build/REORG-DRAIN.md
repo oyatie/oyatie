@@ -23,6 +23,8 @@
   missing/omitted fixtures refuse load) — hermetic mirror only; forever tree still integ/specs.
 - W0-B Slice 11: `port-engine-transform` applies plan constructions/preconditions → `RustIr`;
   facade `transform` + pipeline pin→admit→plan→transform→emit→receipt.
+- W0-B Slice 12: receipt hardening — golden receipt, byte-identical re-run (`delta`/`verify`),
+  `render` entrypoint; **no** bulk `k8s/` corpus emission (W0-B / out-of-envelope).
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink. Slice 9 mirrors those bytes
@@ -45,6 +47,8 @@
    until then). Bootstrap Go extractor remains out-of-band only (Slice 8 admits artifacts only).
 4. **Richer constructions** — expand beyond `pass_through` / `empty_canary` once forever
    `specs/port-rules/**` lands; keep kernel free of construction vocabulary.
+5. **k8s/ materializer emit** — regenerable output into `k8s/` waits integ/k8s rail + ADR-0597
+   materializer; W0-B forbids bulk corpus emission from integ/build.
 
 ## Out of envelope (do not touch from `integ/build`)
 

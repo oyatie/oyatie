@@ -1,6 +1,6 @@
 rust_library(
     name = "port-engine-app",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
     crate = "port_engine_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -21,7 +21,7 @@ rust_library(
 
 rust_test(
     name = "port-engine-app-unittest",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
     crate = "port_engine_app",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],

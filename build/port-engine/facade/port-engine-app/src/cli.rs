@@ -1,4 +1,4 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 11).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 12).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
@@ -6,10 +6,11 @@
 use std::process::ExitCode;
 
 use crate::driver;
+use crate::receipt_codec;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 11)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 12)
 
 Usage:
   port-engine-app <command> [args]
@@ -25,10 +26,13 @@ Commands:
   plan              Plan embedded rulepack against example units
   admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture
   transform         Admit→plan→apply constructions → RustIr region count
+  render            Transform+emit; print region count + emit tree digest
   engine            Print Slice 9 engine identity digest
   toolchain         Print Slice 9 dual-home toolchain corpus digest
   pipeline          pin→admit→plan→transform→emit→six-axis receipt
-  receipt           Alias for pipeline (print receipt axes)
+  receipt           Print canonical receipt; fail closed vs golden
+  verify            Deterministic re-run classify (alias of delta)
+  delta             Re-run pipeline twice; expect Unchanged/Green
   verify-e2e        Run six-axis receipt end-to-end scenarios
 
 Exit codes: 0 ok · 1 error · 2 usage
@@ -52,9 +56,12 @@ pub fn run(args: &[String]) -> ExitCode {
         "plan" => cmd_plan(),
         "admit-snapshot" => cmd_admit_snapshot(),
         "transform" => cmd_transform(),
+        "render" => cmd_render(),
         "engine" => cmd_engine(),
         "toolchain" => cmd_toolchain(),
-        "pipeline" | "receipt" => cmd_pipeline(),
+        "pipeline" => cmd_pipeline(),
+        "receipt" => cmd_receipt(),
+        "verify" | "delta" => cmd_delta(),
         "verify-e2e" => cmd_verify_e2e(),
         other => {
             eprintln!("port-engine-app: unknown command `{other}`");
@@ -187,6 +194,19 @@ fn cmd_transform() -> ExitCode {
     }
 }
 
+fn cmd_render() -> ExitCode {
+    match driver::smoke_render() {
+        Ok((regions, digest)) => {
+            println!("render=ok regions={regions} emit_digest={}", digest.0);
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: render failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn cmd_engine() -> ExitCode {
     let digest = driver::smoke_engine_digest();
     println!("engine=ok digest={}", digest.0);
@@ -202,21 +222,45 @@ fn cmd_toolchain() -> ExitCode {
 fn cmd_pipeline() -> ExitCode {
     match driver::smoke_pipeline() {
         Ok(report) => {
-            let r = &report.receipt;
             println!(
-                "pipeline=ok plan_steps={} emit_regions={}",
-                report.plan_steps, report.emit_regions
+                "pipeline=ok plan_steps={} emit_regions={} emit_digest={}",
+                report.plan_steps, report.emit_regions, report.emit_digest.0
             );
-            println!("pin={}", r.pin);
-            println!("snapshot_digest={}", r.snapshot_digest.0);
-            println!("engine_digest={}", r.engine_digest.0);
-            println!("rulepack_digest={}", r.rulepack_digest.0);
-            println!("toolchain_digest={}", r.toolchain_digest.0);
-            println!("formatter_digest={}", r.formatter_digest.0);
+            print!("{}", receipt_codec::format_receipt(&report.receipt));
             ExitCode::SUCCESS
         }
         Err(err) => {
             eprintln!("port-engine-app: pipeline failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn cmd_receipt() -> ExitCode {
+    match driver::smoke_receipt_golden() {
+        Ok(text) => {
+            println!("receipt=ok golden=true");
+            print!("{text}");
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: receipt failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn cmd_delta() -> ExitCode {
+    match driver::smoke_delta() {
+        Ok(verification) => {
+            println!(
+                "delta=ok verdict={:?} delta={:?}",
+                verification.verdict, verification.delta
+            );
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: delta/verify failed: {err}");
             ExitCode::from(1)
         }
     }
@@ -256,16 +300,19 @@ mod tests {
     }
 
     #[test]
-    fn slice11_commands_succeed() {
+    fn slice12_commands_succeed() {
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["transform"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["render"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["toolchain"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["pipeline"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["receipt"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["delta"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["verify"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["verify-e2e"])), ExitCode::SUCCESS);
     }
 

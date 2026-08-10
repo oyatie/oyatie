@@ -1,10 +1,12 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 11 wires plan→RustIr transform (construction/precondition apply) into the pipeline.
-//! Cell remap remains PARKED.
+//! Slice 12 hardens receipts (golden + deterministic re-run) and exposes render/verify/delta.
+//! No bulk `k8s/` emission. Cell remap remains PARKED.
+
+use std::collections::BTreeMap;
 
 use port_engine_api::{
-    Digest, Receipt, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
+    Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
 };
 use port_engine_frontend_go::w0_ready as frontend_ready;
 use port_engine_hash::{digest_str, w0_ready as hash_ready};
@@ -18,7 +20,9 @@ use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::{toolchain_digest, w0_ready as toolchain_ready};
 use port_engine_transform::{apply, TransformError, w0_ready as transform_ready};
 
-/// Slice 11 readiness: prior adapters + transform apply path.
+use crate::receipt_codec::{emit_tree_digest, format_receipt, matches_golden};
+
+/// Slice 12 readiness: prior adapters + receipt hardening surface.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -115,7 +119,7 @@ pub fn smoke_toolchain_digest() -> Digest {
     toolchain_digest()
 }
 
-/// Outcome of the Slice 9 pin→admit→plan→emit→receipt pipeline.
+/// Outcome of the pin→admit→plan→transform→emit→receipt pipeline.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PipelineReport {
     /// Bound six-axis receipt.
@@ -124,6 +128,10 @@ pub struct PipelineReport {
     pub plan_steps: usize,
     /// Emitted region count from syn/quote path.
     pub emit_regions: usize,
+    /// Emitted region tree (for verify/delta / determinism).
+    pub emitted: BTreeMap<RegionId, Vec<u8>>,
+    /// Content digest of [`Self::emitted`].
+    pub emit_digest: Digest,
 }
 
 /// Typed refusal from the Slice 11 pipeline.
@@ -205,10 +213,72 @@ pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
     }
 
     Ok(PipelineReport {
-        receipt,
         plan_steps: plan.steps.len(),
         emit_regions: emitted.len(),
+        emit_digest: emit_tree_digest(&emitted),
+        emitted,
+        receipt,
     })
+}
+
+/// Transform + syn emit (Slice 12 `render` entrypoint).
+///
+/// # Errors
+/// [`PipelineError`] on admit/rulepack/plan/transform/emit refusal.
+pub fn smoke_render() -> Result<(usize, Digest), PipelineError> {
+    let report = smoke_pipeline()?;
+    Ok((report.emit_regions, report.emit_digest))
+}
+
+/// Re-run the pipeline twice and classify with kernel [`verify`](port_engine_kernel::verify).
+///
+/// Identical six axes + identical emit bytes → `Unchanged` / Green (W0-B Slice 6 acceptance).
+///
+/// # Errors
+/// [`PipelineError`] on pipeline failure, or unexpected verdict.
+pub fn smoke_delta() -> Result<port_engine_kernel::Verification, PipelineError> {
+    let previous = smoke_pipeline()?;
+    let current = smoke_pipeline()?;
+    let verification = port_engine_kernel::verify(
+        &previous.receipt,
+        &previous.emitted,
+        &current.receipt,
+        &current.emitted,
+    );
+    if verification.verdict != port_engine_kernel::Verdict::Green
+        || !matches!(
+            verification.delta,
+            port_engine_kernel::Delta::Unchanged
+        )
+    {
+        return Err(PipelineError::Emit(port_engine_api::PortError::Render {
+            detail: format!(
+                "deterministic re-run expected Unchanged/Green, got {:?}",
+                verification
+            ),
+        }));
+    }
+    if previous.receipt != current.receipt || previous.emit_digest != current.emit_digest {
+        return Err(PipelineError::Emit(port_engine_api::PortError::Render {
+            detail: "deterministic re-run receipt/emit digests diverged".into(),
+        }));
+    }
+    Ok(verification)
+}
+
+/// Pipeline receipt must match the embedded golden (fail closed).
+///
+/// # Errors
+/// [`PipelineError`] on pipeline failure or golden mismatch.
+pub fn smoke_receipt_golden() -> Result<String, PipelineError> {
+    let report = smoke_pipeline()?;
+    let text = format_receipt(&report.receipt);
+    if !matches_golden(&report.receipt) {
+        return Err(PipelineError::Emit(port_engine_api::PortError::Render {
+            detail: format!("receipt golden mismatch:\n{text}"),
+        }));
+    }
+    Ok(text)
 }
 
 /// Typed refusal from the Slice 7 plan smoke.
@@ -276,7 +346,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice11_driver_wiring_is_ready() {
+    fn slice12_driver_wiring_is_ready() {
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
@@ -305,6 +375,14 @@ mod tests {
         assert!(report.receipt.incomplete_axes().is_empty());
         assert_eq!(report.receipt.engine_digest, eng);
         assert_eq!(report.receipt.toolchain_digest, tc);
+        assert!(matches_golden(&report.receipt));
+        let golden = smoke_receipt_golden().expect("golden receipt");
+        assert!(golden.contains("snapshot_digest=sha256:"));
+        let (render_regions, render_digest) = smoke_render().expect("render");
+        assert_eq!(render_regions, 3);
+        assert_eq!(render_digest, report.emit_digest);
+        let verification = smoke_delta().expect("delta re-run");
+        assert_eq!(verification.verdict, port_engine_kernel::Verdict::Green);
         let (_pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform) =
             adapter_readiness();
         assert!(
