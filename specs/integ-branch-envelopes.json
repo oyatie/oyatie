@@ -1696,10 +1696,13 @@
         "evidence": [
           "find docs/foundry -type f → 6",
           "ADR-0709/brand retirement lineage",
-          "Amendment B provisional said reorg_now→intelligence — overturned by 16-lens read"
+          "Amendment B provisional said reorg_now→intelligence — overturned by 16-lens read",
+          "integ/docs tip: paths absent",
+          "landed_on_integ_docs_#1645 shas 7b49c450c+f134923cc"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "explicit-path delete on integ/docs after 10-min harvest skim; no reachability prefix today"
+        "land_when": "landed_on_integ_docs_#1645 shas 7b49c450c+f134923cc",
+        "land_status": "landed"
       },
       {
         "path": "docs/harness/",
@@ -2776,10 +2779,13 @@
         "evidence": [
           "docs/audits/convention-audit-2026-05-12.md date 2026-05-12 n=140",
           "no specs/reachability-registry prefix for docs/audits/",
-          "glossary warning-sources.tsv cites path for acronym rows only"
+          "glossary warning-sources.tsv cites path for acronym rows only",
+          "integ/docs tip: paths absent",
+          "landed_on_integ_docs_#1645 shas 7b49c450c+f134923cc"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "envelope-clean explicit-path delete on integ/docs; prefer same-land scrub of registry/glossary-vocabulary/warning-sources.tsv rows if that path is in-envelope — else note stale-source follow-up; do NOT touch reachability"
+        "land_when": "landed_on_integ_docs_#1645 shas 7b49c450c+f134923cc",
+        "land_status": "landed"
       }
     ],
     "first_wave": [
@@ -2816,7 +2822,7 @@
         "action": "delete_permanently",
         "redesign": "delete",
         "destination_integ": "integ/docs",
-        "status": "ready_to_land_explicit_path_no_reachability"
+        "status": "landed_on_integ_docs_#1645_shas_7b49c450c_f134923cc"
       },
       {
         "id": "W1-eval-docs-foundry-delete",
@@ -2825,7 +2831,7 @@
         "action": "delete_permanently",
         "redesign": "delete",
         "destination_integ": "integ/docs",
-        "status": "ready_to_land_explicit_path_no_reachability_after_retired_skim"
+        "status": "landed_on_integ_docs_#1645_shas_7b49c450c_f134923cc"
       },
       {
         "id": "W1-eval-docs-ideas-delete",
