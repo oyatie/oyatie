@@ -6,7 +6,7 @@ date: 2026-05-20
 owner_team: axis-marketplace
 primary_adr: ADR-0314
 related_adrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0249, ADR-0314]
-companion_docs: [microservices/marketplace/README.md, docs/standards/documentation-rigor.md]
+companion_docs: [marketplace/README.md, docs/standards/documentation-rigor.md]
 planned_enforcement_ref: oya-governance-marketplace-doc-set
 naming_justifications: BNF v4 service_action_resource grammar and 12-layer-enum conformance are declared inline in this document
 ---

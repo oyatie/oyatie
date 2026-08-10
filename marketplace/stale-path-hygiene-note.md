@@ -26,3 +26,14 @@ Do not invent missing IP/PRD/ARCHITECTURE homes. No hubs, no `Cargo.lock`, no me
 - Missing IP/implementation-plan markdown under nested faces (do not invent).
 - Cross-cap `microservices/observability/iac/helm/...prometheusrule.yaml#…` hyperscaler_benchmark cites.
 - Missing PRD/capacity-model/architecture homes still on legacy paths.
+
+## Wave-4 Seat A follow-through (2026-08-10)
+
+Retargeted verified `microservices/marketplace/**` → `marketplace/**`, including `slos/**` → `marketplace/observability/slos/**` for OpenSLO files that exist. Runbook/dashboard/contract/capability/policy cites remapped when destinations exist.
+
+### Deferred
+
+- Missing `iac/kustomize/base/kustomization.yaml` (tree has `marketplace/iac/kustomization.yaml` at face root — not invented as nested base).
+- Singular `policy/` directory cites (policies live under `marketplace/policies/`).
+- Cross-cap / missing IP-journey homes.
+- No hubs, no `Cargo.lock`, no merge.
