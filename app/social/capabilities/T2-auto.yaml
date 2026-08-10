@@ -1,0 +1,167 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:social:t2-auto:v1
+name: content-moderation-classifier-and-ranking-and-ads-stub
+namespace: social
+display_name: Content Moderation Classifier + Algorithmic Ranking Model + Ads-Substrate Stub (off by default)
+description: |
+  T2 capability: autonomous classification + side-effecting actions on the
+  feed-render and moderation pipelines. Three sub-capabilities:
+
+  1. Content-moderation classifier — per-post / per-comment verdict (spam,
+     abuse, hate-speech, csam-suspect, self-harm-suspect, harassment, sensitive-
+     media-unflagged). Auto-hides on high-confidence verdicts; flags + queues
+     to human reviewer otherwise. Appeal workflow per EU DSA Art. 20.
+  2. Algorithmic ranking model — feed-render rank when user selects algorithmic
+     mode. Inputs: engagement signals + recency + author trust + follow graph
+     proximity. Output: ranked feed slice.
+  3. Ads-substrate-stub — DISABLED BY DEFAULT. Stubbed for future activation
+     per ADR-SOC successor-IP. When activated by tenant-admin opt-in, surfaces
+     promoted posts in feed; off-by-default protects against accidental rollout.
+
+  All three preserve user content; none delete or send. Auto-hide is reversible
+  via appeal.
+
+  *** EU AI Act 2024/1689 HIGH-RISK CLASSIFICATION applies to sub-capabilities
+      1 (moderation) and 2 (ranking). Obligations per Arts. 9-15 + Art. 50
+      transparency are operative; see compliance.md + ADR-SOC-0003. ***
+
+owner_team: axis-social + axis-foundry-runtime + council-privacy
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-SOC-0001, ADR-SOC-0003]
+related_artifacts:
+  - microservices/social/PRD.md
+  - microservices/social/policy/dual-context-isolation.md
+  - microservices/social/runbooks/content-moderation-rollback.md
+
+autonomy_tier: T2
+# T2 = autonomous classification + side-effects on feed view + auto-hide;
+# reversible via appeal; full audit-chain trail.
+
+risk_classification:
+  classification: HIGH_RISK
+  basis: |
+    Annex III §1(a) (recommender systems including content-moderation systems
+    that significantly influence user-facing content). Both sub-capabilities
+    1 (moderation) and 2 (ranking) qualify.
+  obligations_satisfied:
+    art_9_risk_management_system: see microservices/social/dpia.md Step 6 + R-13 + R-14
+    art_10_data_governance: training-dataset SHA + bias-audit per release; evidence_topic record
+    art_11_technical_documentation: model card per release (foundry-runtime evidence pipeline)
+    art_13_transparency: classifier verdicts carry eu_ai_act_label per asyncapi schema
+    art_14_human_oversight: appeal workflow + manual reviewer mandatory above confidence threshold
+    art_15_accuracy_robustness: per-release reference-set eval + adversarial robustness eval
+    art_50_transparency: client SDK helpers + UI label "AI-assessed"
+    art_52_codes_of_conduct: voluntary alignment
+
+inputs:
+  - name: post
+    type: object
+    required: true
+  - name: target_user_ref
+    type: string
+    description: only for ranking sub-capability
+    required: false
+
+outputs:
+  - name: moderation_verdict
+    type: object
+    properties:
+      verdict: {type: string, enum: [ok, spam, abuse, hate_speech, csam_suspect, self_harm_suspect, harassment, sensitive_media_unflagged]}
+      confidence: {type: number}
+      action_taken: {type: string, enum: [auto_hide, flag_for_review, no_action]}
+      statement_of_reasons:
+        type: object
+        properties:
+          grounds: {type: string}
+          facts_and_circumstances: {type: string}
+          automated_means: {type: boolean, default: true}
+          redress: {type: string, description: appeal URL}
+      eu_ai_act_label: {type: string, enum: [ai_generated_assessment, human_assessment, hybrid]}
+  - name: ranking_score
+    type: object
+    properties:
+      score: {type: number, minimum: 0, maximum: 1}
+      contributing_signals:
+        type: array
+        items:
+          type: object
+          properties:
+            signal: {type: string, enum: [recency, engagement, author_trust, follow_proximity, topic_match, language_match]}
+            weight: {type: number}
+            value: {type: number}
+        description: EU AI Act Art. 27 + EU DSA Art. 27 — recommender transparency
+  - name: ads_substrate_decision
+    type: object
+    properties:
+      enabled: {type: boolean, default: false}  # OFF BY DEFAULT per ADR successor-IP
+      reason: {type: string, description: explanation; ads substrate not active}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+
+context_kind_constraint:
+  Personal: server-side enabled on user's own + visible posts; ranking is per-user
+  Professional: server-side; tenant-admin must opt-in per-tenant
+  enforcement: oya-check-dual-context-isolation + Cedar permit only when entitlement present
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+
+pack_overrides:
+  pack-us-healthcare:
+    auto_moderation_disabled_for_phi_accounts: true
+    reason: HIPAA — no automated assessment over PHI per §164.502(b) safe-harbor
+  pack-eu:
+    risk_classification:
+      moderation: high_risk
+      ranking: high_risk
+      ads_stub: not_applicable (disabled)
+    eu_dsa_transparency_obligations:
+      art_17_statement_of_reasons: every verdict emits SoR
+      art_20_appeal_workflow: 7-day SLA appeal handling
+      art_24_transparency_report: per-tenant quarterly export
+      art_27_recommender_transparency: ranking signals explanation API
+      art_28_minor_protection: minor accounts get chronological-only by default
+    transparency_obligation: tenant-admin must disclose to end-users in privacy notice + per-verdict UI label
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in + per-user end-user notice
+    kr_pipa_art29_2_automated_decision: per Art. 29-2 individual right to opt-out of automated decision; UI surface enables opt-out
+  pack-uk:
+    uk_online_safety_act_2023: Ofcom safety-by-design report; illegal-content priority detection
+
+evidence_topic: oya.social.capability.t2_auto.evidence
+
+cost_profile:
+  type: per-post-and-per-feed-render
+  estimated_cost_usd_per_call_moderation: 0.0002  # batched; classifier is small open-weights
+  estimated_cost_usd_per_call_ranking: 0.0001  # batched feed slice
+  estimated_cost_usd_per_call_ads_stub: 0  # disabled
+  cost_drivers:
+    - Moderation classifier inference (medium model, batched per 100)
+    - Ranking model inference (feed-slice batched per 50 posts)
+    - Embedding lookup for topic-match signal
+
+cedar_policy_fragments:
+  - microservices/social/policy/tenant-scope.cedar
+  - microservices/social/policy/public-read.cedar
+
+eval_set:
+  reference_inputs_path: microservices/social/capabilities/eval/t2-auto-reference.jsonl
+  pass_threshold: 0.95  # higher than T0/T1 due to high-risk classification
+  eval_metric: |
+    moderation classifier macro-F1 over 8 verdict labels;
+    moderation false-positive rate < 2 % at production threshold;
+    ranking nDCG@10 vs held-out preference dataset;
+    bias audit: disparity ratio (4/5 rule) across protected groups (race, gender, age, locale)
+  cadence: per-release + monthly drift-monitor
+  reference: HELM benchmark; NIST AI RMF; EU AI Act Art. 15 accuracy requirement
+
+rollback:
+  ttl_seconds: 0  # T2 verdicts are reversible via appeal; "rollback" = pause classifier + restore auto-hidden content
+  audit_trail: every verdict + ranking decision emits to evidence_topic with hash + reasoning_token
+  rollback_runbook: microservices/social/runbooks/content-moderation-rollback.md
+
+sunset:
+  status: none
+  note: ads_substrate_stub may be removed (rather than activated) per future ADR-SOC review (PRD Open Question 3)

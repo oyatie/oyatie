@@ -1,0 +1,69 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: social-content-policy-enforcement-correctness
+  displayName: "social: content-policy + dual-context enforcement correctness ≥ 100 %"
+  labels:
+    microservice: social
+    bc: cross-cutting
+    sli_class: correctness
+    tier: hero-product
+    owner_team: axis-social + ops-security + council-privacy
+    pack_scope: all
+spec:
+  description: |
+    Correctness SLO covering load-bearing policy invariants: dual-context
+    isolation (DCI-02, DCI-08), pack residency (FM-13), tenant-scope
+    (T-I-01), age-attestation isolation (FM-15), Personal-tier never-
+    federates (DCI-08).
+
+    A measurement window is "good" when the sum of the following violation
+    counters is exactly zero:
+      - oya_social_dual_context_denied_total
+      - oya_social_personal_tier_federation_attempt_total
+      - oya_social_pack_residency_violation_total
+      - oya_social_age_attestation_unauthorized_read_total
+      - oya_social_four_eyes_pairing_violation_total
+
+    Target: 100 %. Any non-zero violation is a Sev-1 incident and burns the
+    entire 30d window's budget (zero-budget; no error budget for security
+    invariants).
+  service: social
+  indicator:
+    metadata:
+      name: social-content-policy-enforcement-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                # Number of 5-minute windows with zero violations across all invariants
+                count_over_time(
+                  (
+                    (sum(increase(oya_social_dual_context_denied_total[5m])) or vector(0)) +
+                    (sum(increase(oya_social_personal_tier_federation_attempt_total[5m])) or vector(0)) +
+                    (sum(increase(oya_social_pack_residency_violation_total[5m])) or vector(0)) +
+                    (sum(increase(oya_social_age_attestation_unauthorized_read_total[5m])) or vector(0)) +
+                    (sum(increase(oya_social_four_eyes_pairing_violation_total[5m])) or vector(0))
+                    == 0
+                  )[5m:5m]
+                )
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                count_over_time(vector(1)[5m:5m])
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      displayName: "100 % correctness over 30d (zero violation tolerance)"
+  alertPolicies:
+    - alertPolicyRef: social-correctness-immediate-page

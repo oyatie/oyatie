@@ -1,0 +1,33 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: social-kr
+
+resources:
+  - ../../base
+
+# Pack-KR overlay per /specs/regulatory-packs.json#pack-kr
+# Residency: KR data centers only; cross-pack federation forbidden by default.
+# Retention floor: KR PIPA Art. 21 + Art. 28.
+# Age-gate: KR 청소년 보호법 + PIPA Art. 8 — minor < 14y requires parental consent.
+# eDiscovery: 전자문서법 (Electronic Document Act) compliance.
+# Federation: Professional-tier opt-in only; Personal-tier NEVER federates.
+
+patches:
+  - target: {kind: HelmRelease, name: social}
+    patch: |-
+      - op: replace
+        path: /spec/values/global/pack
+        value: kr
+      - op: replace
+        path: /spec/values/ageVerificationPolicy/packKrMinorThreshold
+        value: 14
+  - target: {kind: ConfigMap, name: social-retention-policy}
+    patch: |-
+      - op: replace
+        path: /data/pack-kr-floor-days
+        value: "365"  # 1 year for work-context default per KR PIPA Art. 21
+      - op: replace
+        path: /data/pack-kr-ceiling-days
+        value: "1825"  # 5 years default; tenant-configurable up to 7y

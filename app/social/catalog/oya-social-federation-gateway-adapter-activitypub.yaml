@@ -1,0 +1,28 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-community-social-federation-gateway-adapter-activitypub
+role: adapter
+context: social
+plane: data
+slo: hero-product
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-eu, oya-pack-us, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]  # pack-kr + pack-us-healthcare federation OFF by default
+lifecycle: {state: scheduled-for-distinct-tracked-work, preview_since: 2026-05-17, activation_target: M02-P02}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-SOC-0004]
+allowed_dependency_edges: [kernel, domain, usecase]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, SECRET]
+operational_classes_owned: [SECRET]
+autonomy_tier_required: T2
+backend: activitypub
+backend_version: "W3C-Rec-2018"  # ActivityPub W3C Recommendation 2018-01-23
+implements:
+  - ActivityPubGateway
+runtime_invariants:
+  - HTTP Signatures verification (RFC 9421)
+  - peer allowlist enforced
+  - per-peer rate limit
+  - Personal-tier outbox refused at compile-time (DCI-08)
+  - opt-in per tenant; audit-chain seal of opt-in
+  - pack-us-healthcare federation OFF by default

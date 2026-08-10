@@ -1,0 +1,102 @@
+{{- $imageDigest := .Values.image.digest | default "" -}}
+{{- if and .Values.image.cosign.required (not (and (regexMatch "^sha256:[0-9a-f]{64}$" $imageDigest) (regexMatch "[1-9a-f]" (trimPrefix "sha256:" $imageDigest)))) -}}
+{{- fail "image.digest must be set to a real non-zero sha256 digest when image.cosign.required=true" -}}
+{{- end -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.microservice.id | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/cargo-package: {{ .Values.microservice.cargoPackage | quote }}
+    oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+    oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+    oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+    oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+    oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+    oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+        app.kubernetes.io/part-of: oyatie-microservices
+        istio.io/dataplane-mode: ambient
+        oyatie.com/tenant-class: {{ .Values.microservice.tenantClass | quote }}
+        oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+        oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+        oya.io/workload-class: {{ .Values.workloadLabels.workloadClass | quote }}
+        oya.io/regulatory-pack: {{ .Values.workloadLabels.regulatoryPack | quote }}
+        oyatie.com/dogfood-substrate: {{ .Values.workloadLabels.dogfoodSubstrate | quote }}
+        oyatie.com/product-goal: {{ .Values.workloadLabels.productGoal | quote }}
+      annotations:
+        cosign.sigstore.dev/required: {{ .Values.image.cosign.required | quote }}
+        oyatie.com/image-digest: {{ $imageDigest | quote }}
+        oyatie.com/image-promotion-policy: {{ .Values.image.cosign.policy | quote }}
+        oyatie.com/audit-chain-event: "microservice-deployment"
+    spec:
+      runtimeClassName: {{ .Values.podRuntime.runtimeClassName | quote }}
+      serviceAccountName: {{ .Values.serviceAccount.name | quote }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken }}
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      {{ if .Values.topologySpread.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+      {{ end }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}{{- if $imageDigest }}@{{ $imageDigest }}{{- else }}:{{ .Values.image.tag }}{{- end }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: OYA_MICROSERVICE
+              value: {{ .Values.microservice.id | quote }}
+            - name: OYA_CARGO_PACKAGE
+              value: {{ .Values.microservice.cargoPackage | quote }}
+            - name: OYA_OTEL_ENDPOINT
+              value: {{ .Values.otel.endpoint | quote }}
+            - name: OYA_IMAGE_PROMOTION_POLICY
+              value: {{ .Values.config.imagePromotionPolicy | quote }}
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

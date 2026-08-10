@@ -1,0 +1,32 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-community-social-post-composition-adapter-ffmpeg
+role: adapter
+context: social
+plane: data
+slo: hero-product
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-SOC-0006]
+allowed_dependency_edges: [kernel, domain]
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+autonomy_tier_required: T2
+backend: ffmpeg
+backend_version: "7.x"  # ffmpeg 7.x LTS
+implements:
+  - VideoTranscoder
+sandbox: gvisor  # mandatory per threat-model T-E-05
+runtime_invariants:
+  - non-root user
+  - read-only root filesystem
+  - no network egress except S3 quarantine + production
+  - weekly CVE scan via Trivy + Grype
+output_format: HLS (RFC 8216)
+variants_supported:
+  - hls_low (360p, 800kbps)
+  - hls_med (720p, 2500kbps)
+  - hls_high (1080p, 5000kbps)
