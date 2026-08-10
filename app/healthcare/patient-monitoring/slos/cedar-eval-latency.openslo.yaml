@@ -1,0 +1,44 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-patient-monitoring-cedar-eval-latency
+  displayName: "patient-monitoring: Cedar policy eval latency p99 ≤ 5 ms"
+  labels:
+    microservice: patient-monitoring
+    bounded_context: alarm-management
+    sli_class: latency
+    tier: product
+    plane: control
+    owner_team: axis-clinical-realtime
+    pack_scope: all
+spec:
+  service: patient-monitoring
+  description: |
+    Cedar policy evaluation latency p99 SLO ≤ 5 ms. Inline with every
+    view + ack + suppress + code-blue + bundle-write boundary check.
+  indicator:
+    metadata:
+      name: cedar-eval-latency-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_cedar_eval_duration_seconds_bucket{le="0.005"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_cedar_eval_duration_seconds_count[5m]))
+  objectives:
+    - target: 0.99
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window

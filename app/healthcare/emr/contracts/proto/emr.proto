@@ -1,0 +1,575 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+// SPDX-License-Identifier: proprietary
+// oyatie EMR gRPC contract — proto3
+// Per ADR-0145 §D-3 direct-gRPC inter-microservice communication.
+// Per ADR-0244 tenant scoping on every request envelope.
+// Per ADR-0263 observability emission contract.
+// Wave 15M-B authored 2026-05-21.
+
+syntax = "proto3";
+
+package oyatie.emr.v1;
+
+option go_package = "oyatie/emr/v1;emrv1";
+option java_multiple_files = true;
+option java_package = "dev.oyatie.emr.v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+
+// =============================================================================
+// Common envelopes
+// =============================================================================
+
+message AuditEnvelope {
+  string event_id              = 1;  // UUID
+  string tenant_id             = 2;
+  string principal_id          = 3;
+  PrincipalType principal_type = 4;
+  string action                = 5;
+  PurposeOfUse purpose_of_use  = 6;
+  string data_class            = 7;  // default: phi-protected-health-information
+  string pack_overlay          = 8;  // e.g., HIPAA-2024
+  string idempotency_key       = 9;
+  string trace_id              = 10;
+  google.protobuf.Timestamp emitted_at = 11;
+}
+
+enum PrincipalType {
+  PRINCIPAL_TYPE_UNSPECIFIED = 0;
+  PRINCIPAL_TYPE_CLINICIAN   = 1;
+  PRINCIPAL_TYPE_PATIENT     = 2;
+  PRINCIPAL_TYPE_PROXY       = 3;
+  PRINCIPAL_TYPE_SYSTEM      = 4;
+  PRINCIPAL_TYPE_BREAK_GLASS = 5;
+}
+
+enum PurposeOfUse {
+  PURPOSE_OF_USE_UNSPECIFIED = 0;
+  PURPOSE_OF_USE_TREATMENT    = 1;
+  PURPOSE_OF_USE_PAYMENT      = 2;
+  PURPOSE_OF_USE_OPERATIONS   = 3;
+  PURPOSE_OF_USE_RESEARCH     = 4;
+  PURPOSE_OF_USE_PUBLIC_HEALTH = 5;
+  PURPOSE_OF_USE_LEGAL        = 6;
+  PURPOSE_OF_USE_BREAK_GLASS  = 7;
+}
+
+// =============================================================================
+// Service 1: PatientService
+// =============================================================================
+
+service PatientService {
+  rpc CreatePatient(CreatePatientRequest) returns (CreatePatientResponse);
+  rpc ReadPatient(ReadPatientRequest) returns (ReadPatientResponse);
+  rpc SearchPatient(SearchPatientRequest) returns (SearchPatientResponse);
+  rpc MergePatient(MergePatientRequest) returns (MergePatientResponse);
+  rpc UnmergePatient(UnmergePatientRequest) returns (UnmergePatientResponse);
+}
+
+message CreatePatientRequest {
+  AuditEnvelope audit          = 1;
+  string given_name            = 2;
+  string family_name           = 3;
+  string middle_name           = 4;
+  string suffix                = 5;
+  string birth_date            = 6;  // ISO 8601
+  Gender gender                = 7;
+  string sex_at_birth          = 8;
+  string race                  = 9;
+  string ethnicity             = 10;
+  string preferred_language    = 11;
+  string mrn                   = 12;
+  repeated Identifier identifier = 13;
+  repeated Telecom telecom     = 14;
+  repeated Address address     = 15;
+}
+
+message CreatePatientResponse {
+  string patient_id            = 1;
+}
+
+message ReadPatientRequest {
+  AuditEnvelope audit = 1;
+  string patient_id   = 2;
+  FhirVersion fhir_version = 3;
+}
+
+message ReadPatientResponse {
+  google.protobuf.Struct fhir_resource = 1;
+}
+
+enum FhirVersion {
+  FHIR_VERSION_UNSPECIFIED = 0;
+  FHIR_VERSION_R5          = 1;  // default
+  FHIR_VERSION_R4          = 2;
+}
+
+enum Gender {
+  GENDER_UNSPECIFIED = 0;
+  GENDER_MALE        = 1;
+  GENDER_FEMALE      = 2;
+  GENDER_OTHER       = 3;
+  GENDER_UNKNOWN     = 4;
+}
+
+message Identifier {
+  string system = 1;
+  string value  = 2;
+}
+
+message Telecom {
+  string system = 1;  // phone, email, etc.
+  string value  = 2;
+  string use    = 3;  // home, work, mobile, etc.
+}
+
+message Address {
+  string use         = 1;
+  repeated string line = 2;
+  string city        = 3;
+  string state       = 4;
+  string postal_code = 5;
+  string country     = 6;
+}
+
+message SearchPatientRequest {
+  AuditEnvelope audit = 1;
+  string family       = 2;
+  string given        = 3;
+  string birthdate    = 4;
+  string identifier   = 5;
+  int32 page_size     = 6;
+  string page_token   = 7;
+}
+
+message SearchPatientResponse {
+  repeated google.protobuf.Struct matches = 1;
+  string next_page_token = 2;
+}
+
+message MergePatientRequest {
+  AuditEnvelope audit       = 1;
+  string survivor_id        = 2;
+  string retired_id         = 3;
+  string justification      = 4;
+}
+
+message MergePatientResponse {
+  string merged_patient_id            = 1;
+  google.protobuf.Timestamp reversible_until = 2;
+  int32 references_resolved_count     = 3;
+}
+
+message UnmergePatientRequest {
+  AuditEnvelope audit = 1;
+  string survivor_id  = 2;
+  string retired_id   = 3;
+}
+
+message UnmergePatientResponse {
+  string restored_patient_id = 1;
+}
+
+// =============================================================================
+// Service 2: EncounterService
+// =============================================================================
+
+service EncounterService {
+  rpc StartEncounter(StartEncounterRequest) returns (StartEncounterResponse);
+  rpc TransferEncounter(TransferEncounterRequest) returns (TransferEncounterResponse);
+  rpc DischargeEncounter(DischargeEncounterRequest) returns (DischargeEncounterResponse);
+  rpc ReopenEncounter(ReopenEncounterRequest) returns (ReopenEncounterResponse);
+  rpc ReadEncounter(ReadEncounterRequest) returns (ReadEncounterResponse);
+}
+
+enum EncounterType {
+  ENCOUNTER_TYPE_UNSPECIFIED          = 0;
+  ENCOUNTER_TYPE_INPATIENT_ADMISSION   = 1;
+  ENCOUNTER_TYPE_ED_VISIT              = 2;
+  ENCOUNTER_TYPE_OUTPATIENT_OFFICE     = 3;
+  ENCOUNTER_TYPE_TELEHEALTH_VIDEO      = 4;
+  ENCOUNTER_TYPE_TELEHEALTH_AUDIO_ONLY = 5;
+  ENCOUNTER_TYPE_OBSERVATION           = 6;
+  ENCOUNTER_TYPE_AMBULATORY_SURGERY    = 7;
+  ENCOUNTER_TYPE_URGENT_CARE           = 8;
+  ENCOUNTER_TYPE_VIRTUAL_SECOND_OPINION = 9;
+}
+
+message StartEncounterRequest {
+  AuditEnvelope audit         = 1;
+  string patient_id           = 2;
+  EncounterType encounter_type = 3;
+  string location_id          = 4;
+  string chief_complaint      = 5;
+  repeated string initial_care_team = 6;
+  string admit_source         = 7;
+  string admit_priority       = 8;
+}
+message StartEncounterResponse {
+  string encounter_id = 1;
+}
+
+message TransferEncounterRequest {
+  AuditEnvelope audit  = 1;
+  string encounter_id  = 2;
+  string new_location_id = 3;
+  string transfer_reason = 4;
+}
+message TransferEncounterResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message DischargeEncounterRequest {
+  AuditEnvelope audit          = 1;
+  string encounter_id          = 2;
+  string disposition_code      = 3;
+  string discharge_summary_id  = 4;
+  repeated string discharge_meds = 5;
+  string follow_up_appointment_id = 6;
+}
+message DischargeEncounterResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message ReopenEncounterRequest {
+  AuditEnvelope audit  = 1;
+  string encounter_id  = 2;
+  string physician_attestation = 3;
+}
+message ReopenEncounterResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message ReadEncounterRequest {
+  AuditEnvelope audit = 1;
+  string encounter_id = 2;
+}
+message ReadEncounterResponse {
+  google.protobuf.Struct fhir_resource = 1;
+}
+
+// =============================================================================
+// Service 3: MedicationService
+// =============================================================================
+
+service MedicationService {
+  rpc Prescribe(PrescribeRequest) returns (PrescribeResponse);
+  rpc Reconcile(ReconcileRequest) returns (ReconcileResponse);
+  rpc Discontinue(DiscontinueRequest) returns (DiscontinueResponse);
+  rpc Refill(RefillRequest) returns (RefillResponse);
+}
+
+enum DeaSchedule {
+  DEA_SCHEDULE_UNSPECIFIED = 0;
+  DEA_SCHEDULE_NONE        = 1;  // non-controlled
+  DEA_SCHEDULE_II          = 2;
+  DEA_SCHEDULE_III         = 3;
+  DEA_SCHEDULE_IV          = 4;
+  DEA_SCHEDULE_V           = 5;
+}
+
+message PrescribeRequest {
+  AuditEnvelope audit        = 1;
+  string patient_id          = 2;
+  string encounter_id        = 3;
+  string rxnorm_code         = 4;
+  string ndc_code            = 5;
+  string dose                = 6;
+  string strength            = 7;
+  string route               = 8;
+  string frequency           = 9;
+  string duration            = 10;
+  int32 refill_count         = 11;
+  string indication_problem_id = 12;
+  DeaSchedule dea_schedule   = 13;
+  string epcs_2fa_attestation = 14;
+  string pdmp_query_receipt   = 15;
+}
+message PrescribeResponse {
+  string medication_request_id = 1;
+  string pharmacy_dispatch_id  = 2;
+}
+
+message ReconcileRequest {
+  AuditEnvelope audit   = 1;
+  string patient_id     = 2;
+  repeated ReconciledMedication medications = 3;
+}
+message ReconciledMedication {
+  string rxnorm_code = 1;
+  string status      = 2;  // active | discontinued | held | completed
+  string source      = 3;  // patient-reported | pharmacy-fill-history | provider
+}
+message ReconcileResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message DiscontinueRequest {
+  AuditEnvelope audit       = 1;
+  string medication_request_id = 2;
+  string discontinuation_reason = 3;
+}
+message DiscontinueResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message RefillRequest {
+  AuditEnvelope audit       = 1;
+  string medication_request_id = 2;
+  int32 refill_count        = 3;
+}
+message RefillResponse {
+  string new_medication_request_id = 1;
+}
+
+// =============================================================================
+// Service 4: OrderService (CPOE)
+// =============================================================================
+
+service OrderService {
+  rpc EnterOrder(EnterOrderRequest) returns (EnterOrderResponse);
+  rpc EnterOrderSet(EnterOrderSetRequest) returns (EnterOrderSetResponse);
+  rpc VerifyOrder(VerifyOrderRequest) returns (VerifyOrderResponse);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+}
+
+enum OrderType {
+  ORDER_TYPE_UNSPECIFIED = 0;
+  ORDER_TYPE_MEDICATION  = 1;
+  ORDER_TYPE_LAB         = 2;
+  ORDER_TYPE_IMAGING     = 3;
+  ORDER_TYPE_CONSULT     = 4;
+  ORDER_TYPE_DIET        = 5;
+  ORDER_TYPE_ACTIVITY    = 6;
+  ORDER_TYPE_NURSING     = 7;
+}
+
+message EnterOrderRequest {
+  AuditEnvelope audit  = 1;
+  string patient_id    = 2;
+  string encounter_id  = 3;
+  OrderType order_type = 4;
+  string code          = 5;
+  string code_system   = 6;  // LOINC | SNOMED | RxNorm | etc.
+  string indication    = 7;
+  string priority      = 8;
+  string ordering_clinician_id = 9;
+  google.protobuf.Struct extra = 10;
+}
+message EnterOrderResponse {
+  string order_id = 1;
+}
+
+message EnterOrderSetRequest {
+  AuditEnvelope audit  = 1;
+  string patient_id    = 2;
+  string encounter_id  = 3;
+  string order_set_id  = 4;
+  google.protobuf.Struct parameter_overrides = 5;
+}
+message EnterOrderSetResponse {
+  repeated string order_ids = 1;
+}
+
+message VerifyOrderRequest {
+  AuditEnvelope audit = 1;
+  string order_id     = 2;
+}
+message VerifyOrderResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message CancelOrderRequest {
+  AuditEnvelope audit = 1;
+  string order_id     = 2;
+  string reason       = 3;
+}
+message CancelOrderResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+// =============================================================================
+// Service 5: NoteService
+// =============================================================================
+
+service NoteService {
+  rpc DraftNote(DraftNoteRequest) returns (DraftNoteResponse);
+  rpc AutosaveNote(AutosaveNoteRequest) returns (AutosaveNoteResponse);
+  rpc SignNote(SignNoteRequest) returns (SignNoteResponse);
+  rpc AmendNote(AmendNoteRequest) returns (AmendNoteResponse);
+  rpc CoSignNote(CoSignNoteRequest) returns (CoSignNoteResponse);
+}
+
+message DraftNoteRequest {
+  AuditEnvelope audit  = 1;
+  string patient_id    = 2;
+  string encounter_id  = 3;
+  string note_type     = 4;  // SOAP | H&P | Procedure | Discharge | Consult | Progress
+  string author_id     = 5;
+  string template_id   = 6;
+}
+message DraftNoteResponse {
+  string note_id = 1;
+}
+
+message AutosaveNoteRequest {
+  AuditEnvelope audit       = 1;
+  string note_id            = 2;
+  bytes crdt_delta          = 3;
+  int64 sequence_no         = 4;
+}
+message AutosaveNoteResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message SignNoteRequest {
+  AuditEnvelope audit = 1;
+  string note_id      = 2;
+}
+message SignNoteResponse {
+  google.protobuf.Timestamp signed_at = 1;
+}
+
+message AmendNoteRequest {
+  AuditEnvelope audit    = 1;
+  string note_id         = 2;
+  string amendment_block = 3;
+  string reason          = 4;
+}
+message AmendNoteResponse {
+  string amendment_id = 1;
+}
+
+message CoSignNoteRequest {
+  AuditEnvelope audit = 1;
+  string note_id      = 2;
+  string cosigner_id  = 3;
+}
+message CoSignNoteResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+// =============================================================================
+// Service 6: VitalService
+// =============================================================================
+
+service VitalService {
+  rpc RecordVital(RecordVitalRequest) returns (RecordVitalResponse);
+  rpc TrendVital(TrendVitalRequest) returns (TrendVitalResponse);
+}
+
+message RecordVitalRequest {
+  AuditEnvelope audit = 1;
+  string patient_id   = 2;
+  string encounter_id = 3;
+  string loinc_code   = 4;
+  double value        = 5;
+  string unit         = 6;
+  string device_id    = 7;
+  google.protobuf.Timestamp observed_at = 8;
+  string observer_id  = 9;
+}
+message RecordVitalResponse {
+  string observation_id = 1;
+}
+
+message TrendVitalRequest {
+  AuditEnvelope audit = 1;
+  string patient_id   = 2;
+  string loinc_code   = 3;
+  google.protobuf.Timestamp from = 4;
+  google.protobuf.Timestamp to   = 5;
+  string downsample   = 6;  // raw | hourly | daily
+}
+message TrendVitalResponse {
+  repeated VitalPoint points = 1;
+}
+message VitalPoint {
+  google.protobuf.Timestamp at = 1;
+  double value = 2;
+}
+
+// =============================================================================
+// Service 7: ResultService
+// =============================================================================
+
+service ResultService {
+  rpc ReceiveResult(ReceiveResultRequest) returns (ReceiveResultResponse);
+  rpc ReviewResult(ReviewResultRequest) returns (ReviewResultResponse);
+  rpc AcknowledgeResult(AcknowledgeResultRequest) returns (AcknowledgeResultResponse);
+}
+
+message ReceiveResultRequest {
+  AuditEnvelope audit  = 1;
+  string order_id      = 2;
+  string patient_id    = 3;
+  google.protobuf.Struct fhir_diagnostic_report = 4;
+}
+message ReceiveResultResponse {
+  string result_id = 1;
+}
+
+message ReviewResultRequest {
+  AuditEnvelope audit = 1;
+  string result_id    = 2;
+  string reviewer_id  = 3;
+  string comment      = 4;
+}
+message ReviewResultResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+message AcknowledgeResultRequest {
+  AuditEnvelope audit = 1;
+  string result_id    = 2;
+  string ack_text     = 3;
+}
+message AcknowledgeResultResponse {
+  google.protobuf.Empty ok = 1;
+}
+
+// =============================================================================
+// Service 8: PortalSessionService
+// =============================================================================
+
+service PortalSessionService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc InitiateProxyGrant(InitiateProxyGrantRequest) returns (InitiateProxyGrantResponse);
+  rpc BulkExport(BulkExportRequest) returns (BulkExportResponse);
+}
+
+message LoginRequest {
+  AuditEnvelope audit          = 1;
+  string subject_user_id       = 2;
+  string passkey_assertion     = 3;
+  string proxy_grant_id        = 4;
+  string tenant_id             = 5;
+}
+message LoginResponse {
+  string session_id            = 1;
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message InitiateProxyGrantRequest {
+  AuditEnvelope audit       = 1;
+  string subject_patient_id = 2;
+  string proxy_user_id      = 3;
+  string proxy_kind         = 4;  // POA | guardian | personal-representative | parent-of-minor
+  string poa_document_ref   = 5;
+}
+message InitiateProxyGrantResponse {
+  string saga_id = 1;
+}
+
+message BulkExportRequest {
+  AuditEnvelope audit  = 1;
+  string subject_patient_id = 2;
+  repeated string resource_types = 3;
+}
+message BulkExportResponse {
+  string export_job_id = 1;
+}

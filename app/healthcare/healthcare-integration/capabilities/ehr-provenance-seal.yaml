@@ -1,0 +1,16 @@
+apiVersion: oyatie.dev/v2
+kind: CapabilityRecord
+metadata:
+  name: healthcare-integration-ehr-provenance-seal
+  service: healthcare-integration
+spec:
+  businessCapability: clinical-interoperability
+  capability: ehr-provenance-seal
+  tier: product
+  bindingAdrs: [ADR-0105, ADR-0243, ADR-0244, ADR-0257, ADR-0314, ADR-0321]
+  benchmarks: ["Epic", "Cerner", "Allscripts", "Veeva", "FHIR/HL7 connectors"]
+  tenantScope:
+    requiredFields: [tenant_id, principal_id, audience_type, purpose, data_class]
+  marketplaceSettlement: DealSet
+  policyEvaluationMode: caller_side_library_first
+  ontologyReadMode: library_first

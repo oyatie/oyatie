@@ -1,0 +1,365 @@
+asyncapi: 3.0.0
+info:
+  title: oyatie patient-monitoring events
+  version: 1.0.0-wave-15m-f
+  description: |
+    AsyncAPI event surface for the patient-monitoring µservice. CloudEvents-shaped
+    envelopes; durable at-least-once delivery via the stream-platform µservice
+    (Kafka/Redpanda).
+  contact:
+    name: axis-clinical-realtime
+    email: patient-monitoring-stewards@oyatie.com
+servers:
+  oyatie-stream-platform:
+    host: stream-platform.oyatie.internal
+    protocol: kafka
+    description: |
+      Per ADR-MS-001, this AsyncAPI surface is the durable fan-out channel.
+      Realtime client streaming is via gRPC bidi (see contracts/proto/).
+channels:
+  vital.streamed:
+    address: oya.patient-monitoring.v1.vital.streamed
+    messages:
+      VitalStreamed:
+        $ref: '#/components/messages/VitalStreamed'
+  waveform.streamed:
+    address: oya.patient-monitoring.v1.waveform.streamed
+    messages:
+      WaveformStreamed:
+        $ref: '#/components/messages/WaveformStreamed'
+  alarm.fired:
+    address: oya.patient-monitoring.v1.alarm.fired
+    messages:
+      AlarmFired:
+        $ref: '#/components/messages/AlarmFired'
+  alarm.acked:
+    address: oya.patient-monitoring.v1.alarm.acked
+    messages:
+      AlarmAcked:
+        $ref: '#/components/messages/AlarmAcked'
+  alarm.suppressed:
+    address: oya.patient-monitoring.v1.alarm.suppressed
+    messages:
+      AlarmSuppressed:
+        $ref: '#/components/messages/AlarmSuppressed'
+  deterioration.predicted:
+    address: oya.patient-monitoring.v1.deterioration.predicted
+    messages:
+      DeteriorationPredicted:
+        $ref: '#/components/messages/DeteriorationPredicted'
+  sepsis.warning:
+    address: oya.patient-monitoring.v1.sepsis.warning
+    messages:
+      SepsisWarning:
+        $ref: '#/components/messages/SepsisWarning'
+  code.blue.activated:
+    address: oya.patient-monitoring.v1.code.blue.activated
+    messages:
+      CodeBlueActivated:
+        $ref: '#/components/messages/CodeBlueActivated'
+  telemetry.coverage.lost:
+    address: oya.patient-monitoring.v1.telemetry.coverage.lost
+    messages:
+      TelemetryCoverageLost:
+        $ref: '#/components/messages/TelemetryCoverageLost'
+  telemetry.coverage.restored:
+    address: oya.patient-monitoring.v1.telemetry.coverage.restored
+    messages:
+      TelemetryCoverageRestored:
+        $ref: '#/components/messages/TelemetryCoverageRestored'
+  wearable.session.started:
+    address: oya.patient-monitoring.v1.wearable.session.started
+    messages:
+      WearableSessionStarted:
+        $ref: '#/components/messages/WearableSessionStarted'
+  wearable.session.ended:
+    address: oya.patient-monitoring.v1.wearable.session.ended
+    messages:
+      WearableSessionEnded:
+        $ref: '#/components/messages/WearableSessionEnded'
+  wearable.reading.received:
+    address: oya.patient-monitoring.v1.wearable.reading.received
+    messages:
+      WearableReadingReceived:
+        $ref: '#/components/messages/WearableReadingReceived'
+  bundle.element.missed:
+    address: oya.patient-monitoring.v1.bundle.element.missed
+    messages:
+      BundleElementMissed:
+        $ref: '#/components/messages/BundleElementMissed'
+  rpm.adherence.degraded:
+    address: oya.patient-monitoring.v1.rpm.adherence.degraded
+    messages:
+      RpmAdherenceDegraded:
+        $ref: '#/components/messages/RpmAdherenceDegraded'
+  rpm.consent.changed:
+    address: oya.patient-monitoring.v1.rpm.consent.changed
+    messages:
+      RpmConsentChanged:
+        $ref: '#/components/messages/RpmConsentChanged'
+  cell.migration.window.opened:
+    address: oya.patient-monitoring.v1.cell.migration.window.opened
+    messages:
+      CellMigrationOpened:
+        $ref: '#/components/messages/CellMigrationOpened'
+  cell.migration.completed:
+    address: oya.patient-monitoring.v1.cell.migration.completed
+    messages:
+      CellMigrationCompleted:
+        $ref: '#/components/messages/CellMigrationCompleted'
+  ml.model.published:
+    address: oya.patient-monitoring.v1.ml.model.published
+    messages:
+      MlModelPublished:
+        $ref: '#/components/messages/MlModelPublished'
+  ml.model.rollback:
+    address: oya.patient-monitoring.v1.ml.model.rollback
+    messages:
+      MlModelRollback:
+        $ref: '#/components/messages/MlModelRollback'
+components:
+  messageTraits:
+    CloudEventsEnvelope:
+      headers:
+        type: object
+        properties:
+          ce-id: { type: string }
+          ce-source: { type: string }
+          ce-type: { type: string }
+          ce-time: { type: string, format: date-time }
+          ce-tenant: { type: string, description: tenant_id }
+          ce-cell: { type: string }
+          ce-hlc: { type: string, description: HLC timestamp }
+  messages:
+    VitalStreamed:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id_or_patient_id: { type: string }
+          channel_id: { type: string }
+          parameter_loinc: { type: string }
+          t_device_clock: { type: string, format: date-time }
+          t_emit_hlc: { type: string }
+          value: { type: number }
+          unit_code: { type: string }
+          quality_indicator: { type: string }
+          lead_confidence: { type: number }
+          source_device_id: { type: string }
+          replay_flag: { type: boolean, default: false }
+    WaveformStreamed:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          channel_id: { type: string }
+          waveform_type: { type: string, enum: [ecg, pleth, art, cvp, icp, pap, resp, capnogram, eeg, emg] }
+          sample_rate_hz: { type: integer }
+          bit_depth: { type: integer }
+          batch_start_hlc: { type: string }
+          batch_duration_ms: { type: integer }
+          batch_payload_ref: { type: string, description: "object-storage URI for FlatBuffers payload" }
+          alarm_episode_flag: { type: boolean, default: false }
+    AlarmFired:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          alarm_id: { type: string }
+          bed_id: { type: string }
+          rule_id: { type: string }
+          severity: { type: string, enum: [informational, low, medium, high, critical, life-threatening] }
+          parameters_breached:
+            type: array
+            items:
+              type: object
+              properties:
+                parameter_loinc: { type: string }
+                value: { type: number }
+                threshold: { type: number }
+          t_fire_hlc: { type: string }
+          compound_flag: { type: boolean }
+    AlarmAcked:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          alarm_id: { type: string }
+          clinician_id: { type: string }
+          device_id: { type: string }
+          t_ack_hlc: { type: string }
+    AlarmSuppressed:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          alarm_id: { type: string }
+          physician_id: { type: string }
+          justification_hash: { type: string }
+          duration_minutes: { type: integer }
+          t_suppress_hlc: { type: string }
+    DeteriorationPredicted:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          scoring_method: { type: string }
+          score: { type: number }
+          delta_from_prior: { type: number }
+          threshold_breached: { type: string, nullable: true }
+          lineage_id: { type: string }
+          t_predicted_hlc: { type: string }
+    SepsisWarning:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          sepsis_score: { type: number }
+          qsofa: { type: integer }
+          sofa: { type: integer }
+          alert_class: { type: string, enum: [moderate, high, code-sepsis-suggested] }
+          lineage_id: { type: string }
+          t_warn_hlc: { type: string }
+    CodeBlueActivated:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          activator_id: { type: string }
+          activation_class: { type: string, enum: [manual, auto-non-ack, suggested-sepsis, suggested-deterioration] }
+          type: { type: string, enum: [code-blue, rapid-response, code-sepsis, code-stroke, code-trauma] }
+          t_activated_hlc: { type: string }
+    TelemetryCoverageLost:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          channel_id: { type: string }
+          reason: { type: string, enum: [lead-off-persistent, signal-quality-low, device-fault, network-loss] }
+          t_lost_hlc: { type: string }
+    TelemetryCoverageRestored:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          channel_id: { type: string }
+          t_restored_hlc: { type: string }
+    WearableSessionStarted:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          patient_id: { type: string }
+          wearable_class: { type: string }
+          device_identifier: { type: string }
+          consent_id: { type: string }
+          t_started_hlc: { type: string }
+    WearableSessionEnded:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          patient_id: { type: string }
+          wearable_class: { type: string }
+          reason: { type: string, enum: [consent-revoked, device-disconnected, program-completed, error] }
+          t_ended_hlc: { type: string }
+    WearableReadingReceived:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          patient_id: { type: string }
+          wearable_class: { type: string }
+          parameter_loinc: { type: string }
+          value: { type: number }
+          unit_code: { type: string }
+          t_reading_hlc: { type: string }
+    BundleElementMissed:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          bed_id: { type: string }
+          bundle_kind: { type: string }
+          bundle_element: { type: string }
+          t_missed_hlc: { type: string }
+    RpmAdherenceDegraded:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          patient_id: { type: string }
+          previous_score: { type: number }
+          current_score: { type: number }
+          t_degraded_hlc: { type: string }
+    RpmConsentChanged:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          patient_id: { type: string }
+          consent_id: { type: string }
+          change: { type: string, enum: [granted, modified, revoked] }
+          t_changed_hlc: { type: string }
+    CellMigrationOpened:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          source_cell_id: { type: string }
+          destination_cell_id: { type: string }
+          t_window_opened_hlc: { type: string }
+    CellMigrationCompleted:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          source_cell_id: { type: string }
+          destination_cell_id: { type: string }
+          t_completed_hlc: { type: string }
+          waveform_loss_count: { type: integer, description: "must be 0 to satisfy zero-loss guarantee" }
+    MlModelPublished:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          model_class: { type: string, enum: [rothman-analog, epic-di-analog, sepsis-watch] }
+          model_version: { type: string }
+          model_card_hash: { type: string }
+          t_published_hlc: { type: string }
+    MlModelRollback:
+      traits: [{ $ref: '#/components/messageTraits/CloudEventsEnvelope' }]
+      payload:
+        type: object
+        properties:
+          tenant_id: { type: string }
+          model_class: { type: string }
+          from_version: { type: string }
+          to_version: { type: string }
+          reason: { type: string }
+          t_rollback_hlc: { type: string }
