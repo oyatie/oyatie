@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.18",
+    "version": "1.16.19",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
-    "prior_version": "1.16.17"
+    "prior_version": "1.16.18"
   },
   "admission": {
     "trunk": "dev",
@@ -54,6 +54,14 @@
         "app/docs/**"
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/docs/**; product dump oya/docs/ forever app/docs/** — NOT docs/ plane (integ/docs owns docs/**+templates/**). Product subtree claims via integ/app-docs — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
+    },
+    "application": {
+      "branch": "integ/application",
+      "envelope_globs": [
+        "app/application/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/application/**; rehome from oya/application. Product subtree claims via integ/application — integ/app is composition glue only (MUST NOT serialize N products).",
       "forward_declared": true
     },
     "audit": {
@@ -110,6 +118,14 @@
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
+    "community": {
+      "branch": "integ/community",
+      "envelope_globs": [
+        "app/community/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/community/**; rehome from oya/community. Product subtree claims via integ/community — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
+    },
     "compliance": {
       "branch": "integ/compliance",
       "envelope_globs": [
@@ -152,6 +168,22 @@
         "data/**"
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "design-collaboration": {
+      "branch": "integ/design-collaboration",
+      "envelope_globs": [
+        "app/design-collaboration/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/design-collaboration/**; rehome from oya/design-collaboration. Product subtree claims via integ/design-collaboration — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
+    },
+    "financial-planning": {
+      "branch": "integ/financial-planning",
+      "envelope_globs": [
+        "app/financial-planning/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/financial-planning/**; rehome from oya/financial-planning. Product subtree claims via integ/financial-planning — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
     },
     "flags": {
       "branch": "integ/flags",
@@ -248,11 +280,27 @@
       "note": "Top-level owned-stack kernel root (ADR-0701). Forward-declared envelope hole close (northstar-envelope-holes).",
       "forward_declared": true
     },
+    "learning-management": {
+      "branch": "integ/learning-management",
+      "envelope_globs": [
+        "app/learning-management/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/learning-management/**; rehome from oya/learning-management. Product subtree claims via integ/learning-management — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
+    },
     "libs": {
       "branch": "integ/libs",
       "envelope_globs": [
         "libs/**"
       ]
+    },
+    "marketing-automation": {
+      "branch": "integ/marketing-automation",
+      "envelope_globs": [
+        "app/marketing-automation/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/marketing-automation/**; rehome from oya/marketing-automation. Product subtree claims via integ/marketing-automation — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
     },
     "marketplace": {
       "branch": "integ/marketplace",
@@ -323,6 +371,14 @@
         "app/payroll/**"
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/payroll/**; rehome from oya/payroll; NOT billing/. Product subtree claims via integ/payroll — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
+    },
+    "performance-management": {
+      "branch": "integ/performance-management",
+      "envelope_globs": [
+        "app/performance-management/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/performance-management/**; rehome from oya/performance-management. Product subtree claims via integ/performance-management — integ/app is composition glue only (MUST NOT serialize N products).",
       "forward_declared": true
     },
     "plant-maintenance": {
@@ -446,6 +502,14 @@
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/warehouse/**; rehome from oya/warehouse; NOT data/data-warehouse substrate. Product subtree claims via integ/warehouse — integ/app is composition glue only (MUST NOT serialize N products).",
       "forward_declared": true
     },
+    "whiteboard": {
+      "branch": "integ/whiteboard",
+      "envelope_globs": [
+        "app/whiteboard/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/whiteboard/**; rehome from oya/whiteboard. Product subtree claims via integ/whiteboard — integ/app is composition glue only (MUST NOT serialize N products).",
+      "forward_declared": true
+    },
     "workflow": {
       "branch": "integ/workflow",
       "envelope_globs": [
@@ -514,6 +578,14 @@
         "app/procurement/**"
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/procurement/**; source-to-pay reclaim from CRM-misplaced oya-procurement-source-to-pay-domain (NOT marketplace). Holding absorb #1672 tip f810bd811 DONE.",
+      "forward_declared": true
+    },
+    "production-planning": {
+      "branch": "integ/production-planning",
+      "envelope_globs": [
+        "app/production-planning/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/production-planning/**; rehome from oya/production-planning. Product subtree claims via integ/production-planning — integ/app is composition glue only (MUST NOT serialize N products).",
       "forward_declared": true
     }
   },
@@ -1207,7 +1279,16 @@
       "target/": "delete_permanently",
       "wt-1616/": "delete_permanently",
       "docs/checklists/": "reorg_now",
-      "docs/audits/": "delete_permanently"
+      "docs/audits/": "delete_permanently",
+      "oya/application/": "reorg_now",
+      "oya/community/": "reorg_now",
+      "oya/design-collaboration/": "reorg_now",
+      "oya/financial-planning/": "reorg_now",
+      "oya/learning-management/": "reorg_now",
+      "oya/marketing-automation/": "reorg_now",
+      "oya/performance-management/": "reorg_now",
+      "oya/production-planning/": "reorg_now",
+      "oya/whiteboard/": "reorg_now"
     },
     "rows": [
       {
@@ -4738,6 +4819,294 @@
         "destination_integ": "integ/docs",
         "land_when": "landed_on_integ_docs_#1645 shas 7b49c450c+f134923cc",
         "land_status": "landed"
+      },
+      {
+        "path": "oya/application/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/application/",
+        "destination": "app/application/",
+        "shape": "8-crate multi-month product rewrite into app/application/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 161 files; 8 Cargo.toml files; 42 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the application SaaS product. 4) It must exist at app/application/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/application/.",
+        "evidence": [
+          "origin/dev oya/application: 161 paths, Cargo.toml=8, rust=42",
+          "NO_RAIL census: no registered integ/application envelope before this packet",
+          "rule 3d: product forever home app/application/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/application",
+        "land_status": "ready_for_integ_application",
+        "land_when": "integ/application absorbs oya/application/ → app/application/; Phase 2 shrink-only: integ/oya deletes oya/application/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/application/",
+        "name_forever": "app/application/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/application/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify application as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/application/; no mega-rail",
+          "pragmatism: destination integ/application owns the full app/application/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/community/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/community/",
+        "destination": "app/community/",
+        "shape": "14-crate multi-month product rewrite into app/community/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 182 files; 14 Cargo.toml files; 18 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the community SaaS product. 4) It must exist at app/community/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/community/.",
+        "evidence": [
+          "origin/dev oya/community: 182 paths, Cargo.toml=14, rust=18",
+          "NO_RAIL census: no registered integ/community envelope before this packet",
+          "rule 3d: product forever home app/community/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/community",
+        "land_status": "ready_for_integ_community",
+        "land_when": "integ/community absorbs oya/community/ → app/community/; Phase 2 shrink-only: integ/oya deletes oya/community/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/community/",
+        "name_forever": "app/community/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/community/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify community as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/community/; no mega-rail",
+          "pragmatism: destination integ/community owns the full app/community/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/design-collaboration/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/design-collaboration/",
+        "destination": "app/design-collaboration/",
+        "shape": "1-crate multi-month product rewrite into app/design-collaboration/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 133 files; 1 Cargo.toml files; 8 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the design-collaboration SaaS product. 4) It must exist at app/design-collaboration/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/design-collaboration/.",
+        "evidence": [
+          "origin/dev oya/design-collaboration: 133 paths, Cargo.toml=1, rust=8",
+          "NO_RAIL census: no registered integ/design-collaboration envelope before this packet",
+          "rule 3d: product forever home app/design-collaboration/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/design-collaboration",
+        "land_status": "ready_for_integ_design_collaboration",
+        "land_when": "integ/design-collaboration absorbs oya/design-collaboration/ → app/design-collaboration/; Phase 2 shrink-only: integ/oya deletes oya/design-collaboration/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/design-collaboration/",
+        "name_forever": "app/design-collaboration/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/design-collaboration/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify design-collaboration as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/design-collaboration/; no mega-rail",
+          "pragmatism: destination integ/design-collaboration owns the full app/design-collaboration/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/financial-planning/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/financial-planning/",
+        "destination": "app/financial-planning/",
+        "shape": "1-crate multi-month product rewrite into app/financial-planning/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 135 files; 1 Cargo.toml files; 11 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the financial-planning SaaS product. 4) It must exist at app/financial-planning/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/financial-planning/.",
+        "evidence": [
+          "origin/dev oya/financial-planning: 135 paths, Cargo.toml=1, rust=11",
+          "NO_RAIL census: no registered integ/financial-planning envelope before this packet",
+          "rule 3d: product forever home app/financial-planning/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/financial-planning",
+        "land_status": "ready_for_integ_financial_planning",
+        "land_when": "integ/financial-planning absorbs oya/financial-planning/ → app/financial-planning/; Phase 2 shrink-only: integ/oya deletes oya/financial-planning/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/financial-planning/",
+        "name_forever": "app/financial-planning/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/financial-planning/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify financial-planning as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/financial-planning/; no mega-rail",
+          "pragmatism: destination integ/financial-planning owns the full app/financial-planning/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/learning-management/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/learning-management/",
+        "destination": "app/learning-management/",
+        "shape": "1-crate multi-month product rewrite into app/learning-management/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 141 files; 1 Cargo.toml files; 8 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the learning-management SaaS product. 4) It must exist at app/learning-management/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/learning-management/.",
+        "evidence": [
+          "origin/dev oya/learning-management: 141 paths, Cargo.toml=1, rust=8",
+          "NO_RAIL census: no registered integ/learning-management envelope before this packet",
+          "rule 3d: product forever home app/learning-management/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/learning-management",
+        "land_status": "ready_for_integ_learning_management",
+        "land_when": "integ/learning-management absorbs oya/learning-management/ → app/learning-management/; Phase 2 shrink-only: integ/oya deletes oya/learning-management/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/learning-management/",
+        "name_forever": "app/learning-management/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/learning-management/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify learning-management as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/learning-management/; no mega-rail",
+          "pragmatism: destination integ/learning-management owns the full app/learning-management/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/marketing-automation/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/marketing-automation/",
+        "destination": "app/marketing-automation/",
+        "shape": "1-crate multi-month product rewrite into app/marketing-automation/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 213 files; 1 Cargo.toml files; 11 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the marketing-automation SaaS product. 4) It must exist at app/marketing-automation/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/marketing-automation/.",
+        "evidence": [
+          "origin/dev oya/marketing-automation: 213 paths, Cargo.toml=1, rust=11",
+          "NO_RAIL census: no registered integ/marketing-automation envelope before this packet",
+          "rule 3d: product forever home app/marketing-automation/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/marketing-automation",
+        "land_status": "ready_for_integ_marketing_automation",
+        "land_when": "integ/marketing-automation absorbs oya/marketing-automation/ → app/marketing-automation/; Phase 2 shrink-only: integ/oya deletes oya/marketing-automation/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/marketing-automation/",
+        "name_forever": "app/marketing-automation/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/marketing-automation/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify marketing-automation as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/marketing-automation/; no mega-rail",
+          "pragmatism: destination integ/marketing-automation owns the full app/marketing-automation/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/performance-management/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/performance-management/",
+        "destination": "app/performance-management/",
+        "shape": "1-crate multi-month product rewrite into app/performance-management/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 194 files; 1 Cargo.toml files; 8 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the performance-management SaaS product. 4) It must exist at app/performance-management/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/performance-management/.",
+        "evidence": [
+          "origin/dev oya/performance-management: 194 paths, Cargo.toml=1, rust=8",
+          "NO_RAIL census: no registered integ/performance-management envelope before this packet",
+          "rule 3d: product forever home app/performance-management/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/performance-management",
+        "land_status": "ready_for_integ_performance_management",
+        "land_when": "integ/performance-management absorbs oya/performance-management/ → app/performance-management/; Phase 2 shrink-only: integ/oya deletes oya/performance-management/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/performance-management/",
+        "name_forever": "app/performance-management/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/performance-management/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify performance-management as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/performance-management/; no mega-rail",
+          "pragmatism: destination integ/performance-management owns the full app/performance-management/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/production-planning/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/production-planning/",
+        "destination": "app/production-planning/",
+        "shape": "2-crate multi-month product rewrite into app/production-planning/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 128 files; 2 Cargo.toml files; 13 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the production-planning SaaS product. 4) It must exist at app/production-planning/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/production-planning/.",
+        "evidence": [
+          "origin/dev oya/production-planning: 128 paths, Cargo.toml=2, rust=13",
+          "NO_RAIL census: no registered integ/production-planning envelope before this packet",
+          "rule 3d: product forever home app/production-planning/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/production-planning",
+        "land_status": "ready_for_integ_production_planning",
+        "land_when": "integ/production-planning absorbs oya/production-planning/ → app/production-planning/; Phase 2 shrink-only: integ/oya deletes oya/production-planning/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/production-planning/",
+        "name_forever": "app/production-planning/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/production-planning/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify production-planning as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/production-planning/; no mega-rail",
+          "pragmatism: destination integ/production-planning owns the full app/production-planning/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/whiteboard/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/whiteboard/",
+        "destination": "app/whiteboard/",
+        "shape": "1-crate multi-month product rewrite into app/whiteboard/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 134 files; 1 Cargo.toml files; 11 Rust files. 2) Brand-prefixed oya/ product surface is not its durable home. 3) Provide the whiteboard SaaS product. 4) It must exist at app/whiteboard/. 5) Fit app_products registry and rule 3d. 6) rewrite-into-durable-shape. 7) Forever: app/whiteboard/.",
+        "evidence": [
+          "origin/dev oya/whiteboard: 134 paths, Cargo.toml=1, rust=11",
+          "NO_RAIL census: no registered integ/whiteboard envelope before this packet",
+          "rule 3d: product forever home app/whiteboard/**, not integ/app composition glue"
+        ],
+        "destination_integ": "integ/whiteboard",
+        "land_status": "ready_for_integ_whiteboard",
+        "land_when": "integ/whiteboard absorbs oya/whiteboard/ → app/whiteboard/; Phase 2 shrink-only: integ/oya deletes oya/whiteboard/ after destination receipt.",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/whiteboard/",
+        "name_forever": "app/whiteboard/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/whiteboard/ is a real product surface, not an empty scaffold",
+          "cartesian_doubt: do not misclassify whiteboard as a capability or nest it beneath integ/app",
+          "essentialism_yagni: one durable product home app/whiteboard/; no mega-rail",
+          "pragmatism: destination integ/whiteboard owns the full app/whiteboard/** subtree",
+          "systems_thinking: destination receipt precedes integ/oya shrink; preserve one-writer boundaries"
+        ],
+        "shrink_source_integ": "integ/oya"
       }
     ],
     "first_wave": [
@@ -5627,6 +5996,60 @@
           "forever": "app/procurement/**",
           "shrink_source_integ": "integ/crm",
           "note": "CRM-misplaced source-to-pay crate → app/procurement/** via integ/procurement (#1672 DONE); NOT marketplace"
+        },
+        "oya/application/": {
+          "destination_integ": "integ/application",
+          "forever": "app/application/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/application owns app/application/**; integ/app glue only"
+        },
+        "oya/community/": {
+          "destination_integ": "integ/community",
+          "forever": "app/community/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/community owns app/community/**; integ/app glue only"
+        },
+        "oya/design-collaboration/": {
+          "destination_integ": "integ/design-collaboration",
+          "forever": "app/design-collaboration/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/design-collaboration owns app/design-collaboration/**; integ/app glue only"
+        },
+        "oya/financial-planning/": {
+          "destination_integ": "integ/financial-planning",
+          "forever": "app/financial-planning/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/financial-planning owns app/financial-planning/**; integ/app glue only"
+        },
+        "oya/learning-management/": {
+          "destination_integ": "integ/learning-management",
+          "forever": "app/learning-management/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/learning-management owns app/learning-management/**; integ/app glue only"
+        },
+        "oya/marketing-automation/": {
+          "destination_integ": "integ/marketing-automation",
+          "forever": "app/marketing-automation/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/marketing-automation owns app/marketing-automation/**; integ/app glue only"
+        },
+        "oya/performance-management/": {
+          "destination_integ": "integ/performance-management",
+          "forever": "app/performance-management/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/performance-management owns app/performance-management/**; integ/app glue only"
+        },
+        "oya/production-planning/": {
+          "destination_integ": "integ/production-planning",
+          "forever": "app/production-planning/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/production-planning owns app/production-planning/**; integ/app glue only"
+        },
+        "oya/whiteboard/": {
+          "destination_integ": "integ/whiteboard",
+          "forever": "app/whiteboard/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "rule 3d: integ/whiteboard owns app/whiteboard/**; integ/app glue only"
         }
       },
       "process_kit": {
@@ -5793,7 +6216,16 @@
       "oya/healthcare-integration/",
       "oya/emr/",
       "oya/pharmacy/",
-      "oya/patient-monitoring/"
+      "oya/patient-monitoring/",
+      "oya/application/",
+      "oya/community/",
+      "oya/design-collaboration/",
+      "oya/financial-planning/",
+      "oya/learning-management/",
+      "oya/marketing-automation/",
+      "oya/performance-management/",
+      "oya/production-planning/",
+      "oya/whiteboard/"
     ],
     "banned_operations": [
       "git_mv_only_without_judgment",
@@ -5947,6 +6379,27 @@
             "recommendation": "absorb procurement under marketplace",
             "reason": "source-to-pay ≠ marketplace product boundary",
             "challenge": "cartesian_doubt: marketplace charter is not procurement S2P"
+          }
+        ]
+      },
+      {
+        "scout_id": "tip-free-packets-no-rail-20260810",
+        "absorbed_at_version": "1.16.17",
+        "accepted": [
+          "NO_RAIL forward-declared product roots: application, community, design-collaboration, financial-planning, learning-management, marketing-automation, performance-management, production-planning, whiteboard",
+          "nine reorg_now product judgments with destination-first shrink rules",
+          "rule 3d product rails route each app/<product>/** subtree to integ/<product>"
+        ],
+        "rejected": [
+          {
+            "recommendation": "place NO_RAIL product surfaces under integ/app",
+            "reason": "integ/app is composition glue and must not serialize product programs",
+            "challenge": "systems_thinking: a mega-rail recreates shared-writer contention"
+          },
+          {
+            "recommendation": "restore roots.healthcare",
+            "reason": "healthcare is a soft SKU/portfolio cluster, not a product-owner rail",
+            "challenge": "rule 3d: product ownership stays flat and explicit"
           }
         ]
       }
