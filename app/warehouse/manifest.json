@@ -346,10 +346,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/warehouse/ARCHITECTURE.md",
-    "microservices/warehouse/IP-017-picking-wave-optimization-tsp-steiner.md",
-    "microservices/warehouse/IP-018-cross-docking-workflow.md",
-    "microservices/warehouse/IP-024-hazmat-segregation.md"
+    "app/warehouse/ARCHITECTURE.md",
+    "app/warehouse/IP-017-picking-wave-optimization-tsp-steiner.md",
+    "app/warehouse/IP-018-cross-docking-workflow.md",
+    "app/warehouse/IP-024-hazmat-segregation.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -362,10 +362,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/warehouse/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/warehouse/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/warehouse/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/warehouse/contracts/asyncapi-v1.yaml"
       }
     }
   },

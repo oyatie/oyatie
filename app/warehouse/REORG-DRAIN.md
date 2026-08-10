@@ -12,6 +12,8 @@
 - Wave-1 absorb: copied `oya/warehouse/**` → `app/warehouse/**` (127 files) from `origin/dev`.
 - In-tree cites retargeted `oya/warehouse` → `app/warehouse` and `//oya/warehouse` → `//app/warehouse`.
 
+- **Deepen hygiene (2026-08-10):** rewritten product-local `microservices/warehouse/` → `app/warehouse/` path cites inside forever home (hub `specs/microservices/**` + cross-product microservices cites left intact). Dest-verify COMPLETE [f60e93b2]; shrink gate ALLOWED. PARKED — no merge.
+
 ## Remaining
 
 1. Verify destination tip contains forever bytes (this tip).

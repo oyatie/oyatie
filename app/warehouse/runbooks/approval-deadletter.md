@@ -56,8 +56,8 @@ Create an evidence record, attach dashboard snapshots, update this runbook if a 
 
 ## G. References
 - docs/standards/documentation-rigor.md
-- microservices/warehouse/failure-modes.md
-- microservices/warehouse/incident-response.md
+- app/warehouse/failure-modes.md
+- app/warehouse/incident-response.md
 - SAP EWM Extended Warehouse Management | Oracle Fusion Warehouse Management | Workday inventory-operations counterpart | NetSuite WMS | Microsoft Dynamics 365 Warehouse Management
 - Runbook detail 001: approval-deadletter for Warehouse.outbound-delivery preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
 - Runbook detail 002: approval-deadletter for Warehouse.outbound-delivery preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.

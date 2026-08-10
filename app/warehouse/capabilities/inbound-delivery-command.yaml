@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-WAREHOUSE-INBOUND_DELIVERY-COMMAND
 policy_fragments:
-  - microservices/warehouse/policy/inbound-delivery-authorization.cedar
+  - app/warehouse/policy/inbound-delivery-authorization.cedar
 benchmarks:
   - "SAP EWM Extended Warehouse Management"
   - "Oracle Fusion Warehouse Management"
