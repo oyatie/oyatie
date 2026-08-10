@@ -72,7 +72,7 @@ image.digest must be set to a real non-zero sha256 digest when image.cosign.requ
 
 ### Fix
 
-Two changes in `microservices/observability/iac/k8s/helm/values.yaml`:
+Two changes in `observability/iac/k8s/helm/values.yaml`:
 
 1. **Set `image.cosign.required: false`** for dev-cell — prevents `helm template` failure that was blocking ArgoCD manifest generation:
    ```yaml
@@ -153,7 +153,7 @@ kubectl logs observability-mimir-distributor-... -n observability --previous
 
 ### Fix
 
-`microservices/observability/iac/k8s/helm/values.yaml` — under the `mimir:` block:
+`observability/iac/k8s/helm/values.yaml` — under the `mimir:` block:
 
 ```yaml
 mimir:
@@ -256,6 +256,6 @@ The 3 Error pods were garbage-collected automatically.
 ## Files modified
 
 - `infra/talos/cilium-values.yaml` (+10 lines: hubble.relay.startupProbe)
-- `microservices/observability/iac/k8s/helm/values.yaml` (+28 lines: cosign off, kafka off, ingest_storage off, compactor data_dir, devBootstrapSecret)
-- `microservices/observability/iac/k8s/helm/templates/grafana-admin-bootstrap-secret.yaml` (new, +48 lines)
-- `microservices/observability/runbooks/diagnose-broken-pods-2026-05-28.md` (this file)
+- `observability/iac/k8s/helm/values.yaml` (+28 lines: cosign off, kafka off, ingest_storage off, compactor data_dir, devBootstrapSecret)
+- `observability/iac/k8s/helm/templates/grafana-admin-bootstrap-secret.yaml` (new, +48 lines)
+- `observability/runbooks/diagnose-broken-pods-2026-05-28.md` (this file)

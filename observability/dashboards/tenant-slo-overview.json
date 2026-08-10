@@ -5,8 +5,8 @@
     "microservice": "observability",
     "owner_team": "axis-observability",
     "related_artifacts": [
-      "microservices/observability/contracts/openapi/slo-engine.yaml",
-      "microservices/observability/policy/tenant-scope.cedar"
+      "observability/contracts/openapi/slo-engine.yaml",
+      "observability/policy/tenant-scope.cedar"
     ],
     "audience": "tenant operators",
     "tenant_scoped": true,

@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
-  "microservice": "observability",
+  "capability": "observability",
+  "_comment": "Capability-root manifest for observability/ (ADR-0562). Every crate, capability file path, contract path, OpenSLO path and accounting count below was read off the tree at authoring time. microservices/observability dump-path cites are retargeted only when the destination exists under observability/; missing historical IP/PRD assets keep their legacy cite rather than inventing files.",
   "tier": "substrate",
   "tier_subtype": "substrate-observability",
   "dr_tier": "T1",
@@ -18,34 +19,66 @@
       "intelligence",
       "ontology",
       "workflow-engine"
-    ]
+    ],
+    "_note": "stratum=S0 from specs/capability-registry.json name=observability. depends_on/consumed_by_substrates retained from the pre-existing governed manifest facet set (registry entry currently declares stratum only)."
   },
+  "_tier_source": "specs/capability-registry.json name=observability dag_node=observability stratum=S0; tier=substrate copied from registry. tier_subtype=substrate-observability retained from the governed prior + specs/platform-architecture.json microservice_taxonomy.tier_subtype_enum (capability-registry omits tier_subtype; removing it would fail cloud-ci-tier-field-coverage).",
+  "_tier_subtype_note": "RETAINED for governed_service_roots coverage — substrate-observability is in the closed platform tier_subtype_enum and was already declared on this manifest. Unlike messaging/compute (ungoverned roots that omit ungrounded subtype), observability must keep the facet.",
+  "_openslo_note": "OpenSLO artifacts live at observability/observability/slos/*.openslo.yaml (wave-26 residual home of oya/observability). Manifest `slos[].file` cites those verified paths; interior runbook/docs that still said observability/observability/slos/ are retargeted to the same tree.",
   "version": "0.1.0",
   "owner": "axis-observability",
+  "purpose": "Metrics/logs/traces/SLO substrate (ADR-0139 SLO-gated promotion): capability-root kernels under observability/core/, tracing adapter under observability/adapters/, contracts/capabilities/OpenSLO/IaC/runbooks colocated under observability/. diagnostics/ is an absorbed sub-tree with its own manifest.",
   "bounded_contexts": [
     {
-      "name": "observability",
-      "description": "Bounded context 'observability' within observability (data plane)",
-      "crates": []
+      "name": "observability-adapters",
+      "description": "Driven adapters under observability/adapters/.",
+      "crates": [
+        "observability-tracing-adapter"
+      ]
+    },
+    {
+      "name": "observability-core",
+      "description": "Pure kernel/domain/api/aggregate surfaces under observability/core/.",
+      "crates": [
+        "observability-aggregate",
+        "observability-api",
+        "observability-domain",
+        "observability-kernel"
+      ]
     }
   ],
   "layers": [
-    "adapter",
-    "api",
-    "app",
-    "domain",
-    "kernel",
-    "rest",
-    "sdk",
-    "usecase",
-    "worker"
+    "adapters",
+    "core"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 5,
+    "crates_by_layer": {
+      "adapters": 1,
+      "core": 4
+    },
+    "crates_covered_by_no_other_manifest": 5,
+    "catalog_rows": [
+      "registry/catalog/observability-aggregate.yaml",
+      "registry/catalog/observability-api.yaml",
+      "registry/catalog/observability-domain.yaml",
+      "registry/catalog/observability-kernel.yaml",
+      "registry/catalog/observability-tracing-adapter.yaml"
+    ],
+    "absorbed_services": [
+      {
+        "service": "diagnostics",
+        "manifest": "observability/diagnostics/manifest.json"
+      }
+    ],
+    "_overlap_note": "Five workspace members under observability/{core,adapters} are owned by this capability root. observability/diagnostics carries its own sub-manifest and is listed as absorbed, not double-counted in crates_under_capability_root."
+  },
   "contracts": {
     "openapi": [
-      "microservices/observability/contracts/openapi/slo-engine.yaml"
+      "observability/contracts/openapi/slo-engine.yaml"
     ],
     "asyncapi": [
-      "microservices/observability/contracts/asyncapi/eligibility-events.yaml"
+      "observability/contracts/asyncapi/eligibility-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -53,25 +86,26 @@
       "contracts": [
         "observability/contracts/proto/slo-engine.proto"
       ]
-    }
+    },
+    "contract_status": "verified in-tree under observability/contracts/"
   },
   "capabilities": [
     {
       "tier": "T1",
       "name": "eligibility-query",
-      "file": "microservices/observability/capabilities/eligibility-query.yaml",
+      "file": "observability/capabilities/eligibility-query.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T0",
       "name": "openslo-validate",
-      "file": "microservices/observability/capabilities/openslo-validate.yaml",
+      "file": "observability/capabilities/openslo-validate.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T2",
       "name": "slo-evaluate",
-      "file": "microservices/observability/capabilities/slo-evaluate.yaml",
+      "file": "observability/capabilities/slo-evaluate.yaml",
       "risk_class": "limited"
     }
   ],
@@ -203,6 +237,18 @@
       "title": "IP-015: Canary cohort weighting",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-015-canary-cohort-weighting.md"
+    },
+    {
+      "id": "IP-ADR-0339-Shared-IaC-Modules",
+      "title": "Shared IaC modules (ADR-0339)",
+      "acceptance_status": "documented",
+      "file": "observability/IPs/IP-ADR-0339-Shared-IaC-Modules.md"
+    },
+    {
+      "id": "IP-WAVE-15-ZD-sharding-automation",
+      "title": "Wave-15 ZD sharding automation",
+      "acceptance_status": "documented",
+      "file": "observability/IPs/IP-WAVE-15-ZD-sharding-automation.md"
     }
   ],
   "regulatory_packs": [
@@ -219,13 +265,13 @@
     "ksa"
   ],
   "lts_pins": {
-    "alloy": "1.6.0\"  # Alloy LTS line per docs/standards/observability-slo.md",
-    "grafana": "12.0.0\"  # Grafana LTS line per docs/standards/observability-slo.md",
-    "loki": "3.5.0\"  # Loki LTS line per docs/standards/observability-slo.md",
-    "mimir": "3.3.0\"  # Mimir LTS line per docs/standards/observability-slo.md",
-    "prometheus": "3.2.0\"  # Prometheus LTS line per docs/standards/observability-slo.md",
+    "alloy": "1.6.0",
+    "grafana": "12.0.0",
+    "loki": "3.5.0",
+    "mimir": "3.3.0",
+    "prometheus": "3.2.0",
     "rust": "1.97.1",
-    "tempo": "3.0.0\"  # Tempo LTS line"
+    "tempo": "3.0.0"
   },
   "adrs": [
     {
@@ -272,10 +318,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -296,7 +342,7 @@
     "ambient_waypoint": false,
     "north_south_only": false
   },
-  "naming_justifications": "observability is a BNF v4.1 kebab-case microservice slug; generated names follow oya-observability-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "naming_justifications": "observability is the ADR-0562 capability slug (kebab-case). Crate names follow observability-<surface> under observability/{core,adapters}/; generated service names historically used oya-observability-<bounded-context>-<layer>.",
   "tenant_class_eligibility": [
     "demo_trial",
     "paid"
@@ -327,7 +373,7 @@
     "il5",
     "DORA"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x; ADR-0139 implements |; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here",
   "owner_team": "axis-observability",
   "data_classification": "AUDIT, INTERNAL_ONLY, PII_QUASI",
   "compliance_packs_applicable": [
@@ -422,7 +468,7 @@
     "microservices/observability/ARCHITECTURE.md",
     "microservices/observability/IP-006-slo-engine-adapter.md",
     "microservices/observability/IP-022-otel-to-clickhouse-bridge.md",
-    "microservices/observability/runbooks/clickhouse-restore.md"
+    "observability/runbooks/clickhouse-restore.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -445,14 +491,14 @@
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/observability/contracts/openapi/slo-engine.yaml",
-        "2026-02-21": "microservices/observability/contracts/openapi/slo-engine.yaml",
-        "2025-11-21": "microservices/observability/contracts/openapi/slo-engine.yaml"
+        "2026-05-21": "observability/contracts/openapi/slo-engine.yaml",
+        "2026-02-21": "observability/contracts/openapi/slo-engine.yaml",
+        "2025-11-21": "observability/contracts/openapi/slo-engine.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml",
-        "2026-02-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml",
-        "2025-11-21": "microservices/observability/contracts/asyncapi/eligibility-events.yaml"
+        "2026-05-21": "observability/contracts/asyncapi/eligibility-events.yaml",
+        "2026-02-21": "observability/contracts/asyncapi/eligibility-events.yaml",
+        "2025-11-21": "observability/contracts/asyncapi/eligibility-events.yaml"
       }
     }
   },
@@ -491,5 +537,27 @@
       "version_pin": "v1",
       "tenant_class_scope": "paid"
     }
+  ],
+  "implemented_source_files": [
+    "observability/core/aggregate/src/lib.rs",
+    "observability/core/api/src/authz.rs",
+    "observability/core/api/src/lib.rs",
+    "observability/core/api/tests/cloud_observability_audit_api.rs",
+    "observability/core/domain/src/lib.rs",
+    "observability/core/domain/src/severity.rs",
+    "observability/core/domain/src/slo.rs",
+    "observability/core/domain/tests/severity_threshold_gate.rs",
+    "observability/core/domain/tests/slo_burn_rate.rs",
+    "observability/core/kernel/src/lib.rs",
+    "observability/adapters/tracing/src/lib.rs",
+    "observability/adapters/tracing/tests/slo_breach_observer.rs"
+  ],
+  "foundation_non_claims": [
+    "this manifest describes the five crates under observability/{core,adapters} plus verified contracts/capabilities/OpenSLO/IaC colocated under observability/",
+    "historical IP-001..015 / PRD / ARCHITECTURE paths that do not exist under observability/ are left on microservices/observability cites rather than invented",
+    "diagnostics is absorbed via observability/diagnostics/manifest.json and is not re-stated as crates of this root"
+  ],
+  "explicit_non_claims": [
+    "no claim that every OpenSLO under observability/observability/slos/ is listed in `slos` — the six self-SLOs above are the verified governed set cited by this root"
   ]
 }

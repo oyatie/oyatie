@@ -215,8 +215,8 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/diagnostics/PRD.md",
     "microservices/diagnostics/ARCHITECTURE.md",
-    "microservices/diagnostics/manifest.json",
-    "microservices/diagnostics/contracts/openapi.yaml"
+    "observability/diagnostics/manifest.json",
+    "observability/diagnostics/contracts/openapi.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

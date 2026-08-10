@@ -27,7 +27,7 @@ customer capability ladders.
 - Architecture walkthrough: `ARCHITECTURE.md`
 - Manifest: `manifest.json`
 - Cost budget: `cost-budget.md`
-- SLOs: `slos/*.openslo.yaml`
+- SLOs: `observability/slos/*.openslo.yaml`
 - Cedar fragments: `policy/*.cedar`
 - ADR-0330: `../../docs/decisions/ADR-0702-identity-authz-live-apex.md`
 

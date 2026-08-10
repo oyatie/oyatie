@@ -15,8 +15,8 @@ related_adrs: [ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json]
 related_artifacts:
   - microservices/observability/PRD.md
-  - microservices/observability/contracts/openapi/slo-engine.yaml
-  - microservices/observability/policy/tenant-scope.cedar
+  - observability/contracts/openapi/slo-engine.yaml
+  - observability/policy/tenant-scope.cedar
 
 autonomy_tier: T2
 # T2 = read-only sensitive data + write to ledger; not a tier-3 destructive op
@@ -83,8 +83,8 @@ cost_profile:
     - Recording-rule pre-aggregation (amortized)
 
 cedar_policy_fragments:
-  - microservices/observability/policy/tenant-scope.cedar
-  - microservices/observability/policy/ci-scope.cedar
+  - observability/policy/tenant-scope.cedar
+  - observability/policy/ci-scope.cedar
 
 eval_set:
   reference_inputs_path: microservices/observability/capabilities/eval/slo-evaluate-reference.jsonl

@@ -75,8 +75,8 @@ doc_status: published
 19. Inspect circuit breaker: `oya ops breaker status observability-evaluator-down-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n observability rollout history deploy/observability-evaluator-down-worker | tail -20`.
 21. Check policy file: `test -f microservices/observability/policy/tenant-isolation.cedar || test -f microservices/observability/policy/tenant-isolation.md`.
-22. Check SLO files: `ls microservices/observability/slos/*.openslo.yaml | sort`.
-23. Check catalog components: `find microservices/observability/catalog -maxdepth 1 -type f | sort | rg "observability|evaluator"`.
+22. Check SLO files: `ls observability/observability/slos/*.openslo.yaml | sort`.
+23. Check catalog components: `find observability/catalog -maxdepth 1 -type f | sort | rg "observability|evaluator"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_observability_evaluator_down_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice observability --runbook evaluator-down --output evidence/incidents/$INCIDENT_ID.json`.
 
@@ -116,7 +116,7 @@ Evaluator Down incident decision tree
 12. Raise HPA cap if saturation: `kubectl -n observability patch hpa observability-evaluator-down-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface observability.evaluator-down --rps 25 --ttl 30m`.
 14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/observability/runbooks/evaluator-down.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths observability/runbooks/evaluator-down.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice observability --incident $INCIDENT_ID --channel #inc-observability-live`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-observability --incident $INCIDENT_ID --summary evaluator-down`.
 18. Confirm breaker effect: `oya ops breaker status observability-evaluator-down-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -142,14 +142,14 @@ Evaluator Down incident decision tree
   - Required audit: emit `EVT-OBSERVABILITY-EVALUATOR_DOWN-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "evaluator_down|ObservabilityEvaluatorDownCritical|observability.evaluator_down.incident_state" crates microservices/observability -g "!microservices/observability/runbooks/**"`.
+1. Identify code owner path: `rg "evaluator_down|ObservabilityEvaluatorDownCritical|observability.evaluator_down.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where evaluator_down state transition is validated`.
 3. Patch API guard: `edit microservices/observability/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/observability/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-observability-domain evaluator_down_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate observability-evaluator-down --fixture incident-evaluator-down.json`.
-8. Add SLO assertion: `update microservices/observability/slos/* with alert ObservabilityEvaluatorDownCritical when this was a missing alert`.
+8. Add SLO assertion: `update observability/observability/slos/* with alert ObservabilityEvaluatorDownCritical when this was a missing alert`.
 9. Add dashboard panel: `update microservices/observability/dashboards/tail-sampling-fidelity.json with oya_observability_evaluator_down_error_ratio, oya_observability_evaluator_down_lag_seconds, and oya_observability_evaluator_down_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-observability-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-observability-domain --all-features`.
@@ -167,10 +167,10 @@ Evaluator Down incident decision tree
 - `oya-observability-domain`: inspect for evaluator_down invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
 - `oya-cloud-observability-api`: inspect for evaluator_down invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-dev-cli`: inspect for evaluator_down invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
-- `microservices/observability/contracts/`: verify this surface only when the incident evidence points there.
+- `observability/contracts/`: verify this surface only when the incident evidence points there.
 - `microservices/observability/dashboards/tail-sampling-fidelity.json`: verify this surface only when the incident evidence points there.
-- `microservices/observability/slos/`: verify this surface only when the incident evidence points there.
-- `microservices/observability/policy/tenant-isolation.*`: verify this surface only when the incident evidence points there.
+- `observability/observability/slos/`: verify this surface only when the incident evidence points there.
+- `observability/policy/tenant-isolation.*`: verify this surface only when the incident evidence points there.
 
 ## Verification Checklist
 - ObservabilityEvaluatorDownCritical and ObservabilityEvaluatorDownSloBurn are both resolved in Alertmanager for 30 minutes.
@@ -264,8 +264,8 @@ evidence_hash: <sha256>
 - Close only after EVT-OBSERVABILITY-EVALUATOR_DOWN-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/observability/dashboards/` for dashboard names and operational panels.
-- `microservices/observability/slos/` for OpenSLO alert vocabulary and threshold alignment.
-- `microservices/observability/policy/` for named policy and authorization surfaces.
-- `microservices/observability/catalog/` for component and owner vocabulary.
+- `observability/dashboards/` for dashboard names and operational panels.
+- `observability/observability/slos/` for OpenSLO alert vocabulary and threshold alignment.
+- `observability/policy/` for named policy and authorization surfaces.
+- `observability/catalog/` for component and owner vocabulary.
 - Existing thin runbook topic `evaluator-down` was preserved as the scenario anchor while replacing generic steps with concrete commands.

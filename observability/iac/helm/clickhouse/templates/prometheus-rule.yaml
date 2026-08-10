@@ -20,7 +20,7 @@ spec:
             slo_window: 5m
           annotations:
             summary: "ClickHouse query p99 > 500ms — tenant-dashboard SLO at risk"
-            runbook: "microservices/observability/runbooks/clickhouse.md#query-latency"
+            runbook: "observability/runbooks/clickhouse.md#query-latency"
 
     - name: clickhouse.ingest.health
       interval: 30s

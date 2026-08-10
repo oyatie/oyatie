@@ -12,7 +12,7 @@ annotations:
   oyatie.com/adr-0383: "reconciles supersession of ADR-0042; AGPL-3 stack allowed when self-hosted"
   oyatie.com/license-class: "mixed-internal+agpl3-self-hosted"
   oyatie.com/deployment-surface: "dev-cell-umbrella; production guarded by templates/production-guard.yaml"
-  oyatie.com/component-values-root: "microservices/observability/iac/helm"
+  oyatie.com/component-values-root: "observability/iac/helm"
   oyatie.com/dependency-resolution: "Chart.lock pinned; mirror before air-gap promotion"
 dependencies:
   - name: loki

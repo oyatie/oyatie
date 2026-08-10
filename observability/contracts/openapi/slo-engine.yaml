@@ -5,7 +5,7 @@ info:
   summary: REST API for the observability µservice's SLO engine — manifest CRUD, eligibility queries, release-pointer reads, on-demand burn-rate evaluation
   description: |
     Tenant-facing and operator-facing REST surface for the SLO engine. All endpoints
-    require OIDC + Cedar policy authorization (per `microservices/observability/policy/*.cedar`)
+    require OIDC + Cedar policy authorization (per `observability/policy/*.cedar`)
     and are tenant-scoped via the X-Scope-OrgID header convention from
     `/specs/agentic-slo-gated-promotion.json` §`mimir_multi_tenancy`.
 

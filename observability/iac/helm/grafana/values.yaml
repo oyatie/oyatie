@@ -37,7 +37,7 @@ grafana:
   dashboardsProvider:
     enabled: true
   dashboardsConfigMaps:
-    - configMapName: oya-observability-dashboards  # bundles microservices/observability/dashboards/*.json
+    - configMapName: oya-observability-dashboards  # bundles observability/dashboards/*.json
   # SSO + RBAC declared via OpenTofu; UI editing forbidden
   grafana.ini:
     security:

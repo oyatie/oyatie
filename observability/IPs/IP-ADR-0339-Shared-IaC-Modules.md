@@ -283,9 +283,9 @@ LEADER-018: `observability` leader-scale posture keeps primitive selection expli
 
 ## 12. API And Contract Documentation Impact
 API-001: `observability` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `observability` remain: OpenAPI 3.2.0: microservices/observability/contracts/openapi/slo-engine.yaml
-API-003: AsyncAPI 3.1.0 references for `observability` remain: AsyncAPI 3.1.0: microservices/observability/contracts/asyncapi/eligibility-events.yaml
-API-004: proto3 references for `observability` remain: proto3: microservices/observability/contracts/proto/slo-engine.proto
+API-002: OpenAPI 3.2.0 references for `observability` remain: OpenAPI 3.2.0: observability/contracts/openapi/slo-engine.yaml
+API-003: AsyncAPI 3.1.0 references for `observability` remain: AsyncAPI 3.1.0: observability/contracts/asyncapi/eligibility-events.yaml
+API-004: proto3 references for `observability` remain: proto3: observability/contracts/proto/slo-engine.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -309,7 +309,7 @@ ALT-004: Delay `observability` manifest declaration until implementation; reject
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/observability/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `observability/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.
