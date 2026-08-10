@@ -1,0 +1,23 @@
+apiVersion: catalog.oyatie/v2
+kind: Component
+metadata:
+  name: oya-notes-share-link-adapter-postgres
+  namespace: notes
+spec:
+  microservice: notes
+  bounded_context: share-link
+  layer: adapter
+  language: rust
+  binding_adrs:
+    - ADR-NOTES-0001
+    - ADR-0244
+  storage:
+    backend: postgres
+    table: notes_share_tokens
+    rls_enabled: true
+  emits_audit_classes:
+    - oya.notes.share-link-issue
+    - oya.notes.share-link-redeem
+    - oya.notes.share-link-revoke
+    - oya.notes.share-link-expire
+  cedar_fragment: policy/share-link-scope.cedar

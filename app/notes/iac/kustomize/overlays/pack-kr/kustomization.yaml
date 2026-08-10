@@ -1,0 +1,19 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: notes
+resources: [../../base]
+commonAnnotations:
+  oyatie/pack: "kr"
+  oyatie/region: "ap-northeast-2"
+  oyatie/legal-citations: |
+    KR PIPA Arts. 15/17/22-2/23/28/29 + 통신비밀보호법 Art. 3 + 정보통신망법 Art. 28.
+    E2E personal-tier default ON per ADR-NOTES-0001.
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args
+        value: ["--component=note-store-rest", "--pack=kr"]
+    target:
+      kind: Deployment
+      name: notes-note-store-rest

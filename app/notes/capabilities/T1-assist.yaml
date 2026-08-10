@@ -1,0 +1,142 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:notes:t1-assist:v1
+name: summarize-and-tag-suggest-and-link-suggest
+namespace: notes
+display_name: Note summarize + Tag-suggest + Link-suggest
+description: |
+  T1 capability — user-invoked AI assist. Three sub-modes:
+    - summarize: bullet-point summary of a note (≤ 10 bullets).
+    - tag_suggest: suggest tags for the note, drawn from the user's vocab + open vocab.
+    - link_suggest: suggest `[[wikilinks]]` from semantically similar notes in the user's vault.
+  Refused STRUCTURALLY on Personal-tier (E2E) per ADR-NOTES-0005 + DCI-08.
+  Allowed on Professional-tier with tenant-admin opt-in + per-user consent + EU AI Act Art. 50 label.
+
+owner_team: axis-notes + axis-foundry-runtime
+maturity: preview
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-NOTES-0001, ADR-NOTES-0005]
+related_artifacts:
+  - microservices/notes/PRD.md (FR-18; AC-03)
+  - microservices/notes/policy/e2e-personal-tier-default.md
+  - microservices/notes/policy/tenant-scope.cedar
+  - microservices/notes/runbooks/ai-classifier-rollback-e2e-respect.md
+
+autonomy_tier: T1
+# T1 = user-invoked; human-in-loop; no autonomous write to user's notes.
+
+inputs:
+  - name: note_id
+    type: string
+    required: true
+  - name: invoking_user_ref
+    type: string
+    required: true
+  - name: capability_kind
+    type: enum
+    values: [summarize, tag_suggest, link_suggest]
+    required: true
+  - name: context_kind
+    type: enum
+    values: [Personal, Professional]
+    required: true
+
+outputs:
+  summarize:
+    type: object
+    properties:
+      bullet_points: {type: array, items: {type: string}, max_items: 10}
+      key_entities: {type: array, items: {type: string}}
+      sentiment: {type: string, enum: [neutral, positive, negative, mixed]}
+      content_hash: {type: string}
+  tag_suggest:
+    type: array
+    max_items: 12
+    items:
+      type: object
+      properties:
+        tag_name: {type: string, maxLength: 80}
+        existing_tag_id: {type: string, format: ulid, nullable: true}
+        confidence: {type: number, minimum: 0, maximum: 1}
+  link_suggest:
+    type: array
+    max_items: 8
+    items:
+      type: object
+      properties:
+        target_note_id: {type: string, format: ulid}
+        target_title: {type: string}
+        snippet: {type: string, maxLength: 200}
+        cosine_similarity: {type: number, minimum: 0, maximum: 1}
+        confidence: {type: number, minimum: 0, maximum: 1}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - PHI  # pack-us-healthcare professional notes; disabled by default
+
+context_kind_constraint:
+  Personal: REFUSED server-side per ADR-NOTES-0005 + DCI-08. Structural impossibility — type-system + Cedar + CI lane + runtime metric. Client SDK MAY do on-device assist if feature-built.
+  Professional: server-side via tenant-DEK; tenant-admin entitlement required; per-user consent at first-use; per-pack overlay applies.
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+
+pack_overrides:
+  pack-us-healthcare:
+    requires: signed BAA + explicit per-notebook opt-in
+    reason: HIPAA 45 CFR §164.502(b) — minimum necessary
+  pack-eu:
+    risk_classification: limited_risk
+    transparency_obligation: must-label-as-AI-generated; must store evidence_topic record per Art. 50 + Art. 13
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in required + 정보통신망법 Art. 50-5 transparency
+
+evidence_topic: oya.notes.capability.t1_assist.evidence
+
+cost_profile:
+  type: per-invocation
+  estimated_cost_usd_per_call:
+    summarize: 0.012
+    tag_suggest: 0.003
+    link_suggest: 0.005
+  cost_drivers:
+    - LLM inference (medium open-weights model for summarize; small for tag_suggest)
+    - Embedding lookup over per-vault notes index (link_suggest only)
+    - Per-call latency budget per PRD §NFR Performance
+
+cedar_policy_fragments:
+  - microservices/notes/policy/tenant-scope.cedar
+
+eval_set:
+  reference_inputs_path: microservices/notes/capabilities/eval/t1-assist-reference.jsonl
+  pass_threshold: 0.92
+  eval_metric:
+    summarize: ROUGE-Lsum + summary-faithfulness Likert
+    tag_suggest: precision@5 over multi-label tags
+    link_suggest: precision@3 over ground-truth links
+  cadence: per-release
+  reference: HELM benchmark + human-rater evaluation
+
+e2e_refusal:
+  enforced_at:
+    - type_system: AssistInvoker::invoke(ProfessionalNoteRef)
+    - cedar: forbid Action::"invoke_ai_assist" when context_kind == "Personal"
+    - ci_lane: oya-check-e2e-ai-refusal (BLOCKER on dev)
+    - runtime_metric: oya_notes_ai_call_blocked_e2e_total > 0 → Sev-1
+  on_device_personal:
+    allowed: true
+    feature_flag: on-device-ai
+
+opt_in:
+  tenant_admin: required
+  per_user: required at first-use
+  reversal: per-user opt-out immediate; per-tenant opt-out 24h propagation
+
+provider:
+  primary: foundry-runtime medium model (open-weights, per-pack pinned)
+  fallback: foundry-runtime small model
+  DPA_clause: no-train-on-tenant-data
+  pack_pinning:
+    pack-eu: EU-regional providers only
+
+sunset:
+  status: none
