@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0",
-  "microservice": "cloud-intelligence",
+  "capability": "intelligence",
+  "_comment": "Capability-root manifest for intelligence/ (ADR-0562). Every crate, capability file path, contract path, OpenSLO path, fixture path and accounting count below was read off the tree at authoring time, not transcribed from legacy microservices/cloud-intelligence or oya-cloud-intelligence-* dump paths.",
   "tier": "substrate",
   "tier_subtype": "substrate-ai",
   "dr_tier": "T1",
@@ -18,33 +19,159 @@
     ],
     "consumed_by_substrates": [
       "workflow-engine"
-    ]
+    ],
+    "_note": "specs/capability-registry.json name=intelligence dag_node=intelligence stratum=S4; depends_on/consumed_by retained from specs/microservice-tier-classification.json services.intelligence/manifest.json (grounded, not invented)"
   },
+  "_tier_source": "specs/capability-registry.json name=intelligence dag_node=intelligence stratum=S4; tier_subtype=substrate-ai + dr_tier=T1 + depends_on from specs/microservice-tier-classification.json",
   "version": "0.1.0",
-  "owner": "council-foundry",
+  "owner": "axis-cloud-platform",
+  "purpose": "AI/intelligence substrate (ADR-0562 charter): OAuth subscription-pool gateway (ADR-0384 Path B) multiplexes the AI-agent fleet over pooled provider credentials; pure seat-pool state machine in intelligence-kernel; axum reverse-proxy + SSE lease lifecycle in intelligence-rest; transient authz-cedar + openbao + eventsink adapters; facade composition roots (intelligence-app, intelligence-worker). Also hosts SDK/provider adapters, agentic kernels, and the absorbed intelligence/detection/ sub-tree (owns its own absorbed sub-service manifest). Fifty workspace members under intelligence/{adapters,core,facade}/ are accounted below; intelligence/testing/third-party-test-deps is support-only and excluded from crate accounting.",
   "bounded_contexts": [
     {
-      "name": "cloud-intelligence",
-      "description": "OAuth subscription-pool gateway (ADR-0384 Path B): multiplexes the AI-agent fleet over OAuth-subscription-backed pooled provider credentials. The kernel crate owns the pure seat-pool state machine (round-robin / fill-first selection, RAII SeatLease concurrency guard, per-seat failure-count blacklist threshold, Released / RefreshFailed / RateLimited429 outcomes, owned policy-engine AuthzGate seam). The rest crate owns the axum reverse proxy, async reqwest::Client (shared, TLS-amortised), upstream OAuth singleflight per handle (broadcast-channel coalescer), SSE streaming passthrough with pool-lease lifecycle extended to span the full streamed response (SseStreamWithLease), hop-by-hop header enforcement, 1 MiB body-size limit, EventSink fan-out trait. The authz-cedar-adapter crate is a transient adapter that wires the bundled cloud-intelligence.cedar fixture to the kernel AuthzGate seam until the owned policy-engine service is the default binding. The app crate is the composition root: wires kernel + policy-engine adapter + in-process stubs + shared reqwest::Client into build_app() -> Arc<AppState>, and serves the axum router via the cloud-intelligence binary.",
+      "name": "intelligence-adapters",
+      "description": "Transient-infra and provider adapters under intelligence/adapters/ (REST proxy, authz-cedar, openbao, eventsinks, SDK/provider adapters, supervisor/ops).",
       "crates": [
-        "oya-cloud-intelligence-kernel",
-        "oya-cloud-intelligence-rest",
-        "oya-cloud-intelligence-authz-cedar-adapter",
-        "oya-cloud-intelligence-app"
+        "intelligence-account-adapter-inmemory",
+        "intelligence-authz-cedar-adapter",
+        "intelligence-claude-agent-sdk",
+        "intelligence-cli-session-driver",
+        "intelligence-codex-adapter",
+        "intelligence-codex-sdk",
+        "intelligence-eventsink-clickhouse-adapter",
+        "intelligence-eventsink-valkey-adapter",
+        "intelligence-gemini-adapter",
+        "intelligence-jsonl-supervisor-adapter",
+        "intelligence-openbao-adapter",
+        "intelligence-ops-infrastructure",
+        "intelligence-rest",
+        "intelligence-settings-template-adapter",
+        "intelligence-supervisor-security-adapter"
+      ]
+    },
+    {
+      "name": "intelligence-core",
+      "description": "Pure kernels and domains under intelligence/core/ (seat-pool kernel, oauth-subscription, provider-pool, route-policy, supervisor, autonomy-ceiling, capability-registry, and related domains).",
+      "crates": [
+        "intelligence-account-domain",
+        "intelligence-account-kernel",
+        "intelligence-adapter-kernel",
+        "intelligence-api-rest-kernel",
+        "intelligence-api-semver-domain",
+        "intelligence-architecture-map-kernel",
+        "intelligence-autonomy-ceiling-app",
+        "intelligence-autonomy-ceiling-domain",
+        "intelligence-autonomy-ceiling-kernel",
+        "intelligence-bypass-ledger-kernel",
+        "intelligence-capability-domain",
+        "intelligence-capability-registry-kernel",
+        "intelligence-cargo-prefix-domain",
+        "intelligence-catalog-domain",
+        "intelligence-kernel",
+        "intelligence-mdbook-domain",
+        "intelligence-mdbook-kernel",
+        "intelligence-oauth-subscription-kernel",
+        "intelligence-openapi-domain",
+        "intelligence-policy-domain",
+        "intelligence-provider-pool-kernel",
+        "intelligence-rag-endpoint-domain",
+        "intelligence-route-policy-kernel",
+        "intelligence-run-domain",
+        "intelligence-settings-template-kernel",
+        "intelligence-step-domain",
+        "intelligence-subagent-runtime-kernel",
+        "intelligence-supervisor-kernel",
+        "intelligence-tool-compat-kernel",
+        "intelligence-translation-kernel",
+        "intelligence-usage-window-kernel",
+        "intelligence-wire-kernel",
+        "intelligence-write-gate-kernel"
+      ]
+    },
+    {
+      "name": "intelligence-facade",
+      "description": "Composition roots under intelligence/facade/ (cloud-intelligence binary app + worker).",
+      "crates": [
+        "intelligence-app",
+        "intelligence-worker"
       ]
     }
   ],
   "layers": [
-    "kernel",
-    "rest",
-    "app"
+    "adapters",
+    "core",
+    "facade"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 50,
+    "crates_by_layer": {
+      "adapters": 15,
+      "core": 33,
+      "facade": 2
+    },
+    "crates_covered_by_no_other_manifest": 50,
+    "catalog_rows": [
+      "registry/catalog/intelligence-account-adapter-inmemory.yaml",
+      "registry/catalog/intelligence-account-domain.yaml",
+      "registry/catalog/intelligence-account-kernel.yaml",
+      "registry/catalog/intelligence-adapter-kernel.yaml",
+      "registry/catalog/intelligence-api-rest-kernel.yaml",
+      "registry/catalog/intelligence-api-semver-domain.yaml",
+      "registry/catalog/intelligence-app.yaml",
+      "registry/catalog/intelligence-architecture-map-kernel.yaml",
+      "registry/catalog/intelligence-authz-cedar-adapter.yaml",
+      "registry/catalog/intelligence-autonomy-ceiling-app.yaml",
+      "registry/catalog/intelligence-autonomy-ceiling-domain.yaml",
+      "registry/catalog/intelligence-autonomy-ceiling-kernel.yaml",
+      "registry/catalog/intelligence-bypass-ledger-kernel.yaml",
+      "registry/catalog/intelligence-capability-domain.yaml",
+      "registry/catalog/intelligence-capability-registry-kernel.yaml",
+      "registry/catalog/intelligence-cargo-prefix-domain.yaml",
+      "registry/catalog/intelligence-catalog-domain.yaml",
+      "registry/catalog/intelligence-cli-session-driver.yaml",
+      "registry/catalog/intelligence-codex-adapter.yaml",
+      "registry/catalog/intelligence-eventsink-clickhouse-adapter.yaml",
+      "registry/catalog/intelligence-eventsink-valkey-adapter.yaml",
+      "registry/catalog/intelligence-jsonl-supervisor-adapter.yaml",
+      "registry/catalog/intelligence-kernel.yaml",
+      "registry/catalog/intelligence-mdbook-domain.yaml",
+      "registry/catalog/intelligence-mdbook-kernel.yaml",
+      "registry/catalog/intelligence-oauth-subscription-kernel.yaml",
+      "registry/catalog/intelligence-openapi-domain.yaml",
+      "registry/catalog/intelligence-openbao-adapter.yaml",
+      "registry/catalog/intelligence-policy-domain.yaml",
+      "registry/catalog/intelligence-provider-pool-kernel.yaml",
+      "registry/catalog/intelligence-rag-endpoint-domain.yaml",
+      "registry/catalog/intelligence-rest.yaml",
+      "registry/catalog/intelligence-route-policy-kernel.yaml",
+      "registry/catalog/intelligence-run-domain.yaml",
+      "registry/catalog/intelligence-settings-template-adapter.yaml",
+      "registry/catalog/intelligence-settings-template-kernel.yaml",
+      "registry/catalog/intelligence-step-domain.yaml",
+      "registry/catalog/intelligence-subagent-runtime-kernel.yaml",
+      "registry/catalog/intelligence-supervisor-kernel.yaml",
+      "registry/catalog/intelligence-supervisor-security-adapter.yaml",
+      "registry/catalog/intelligence-usage-window-kernel.yaml",
+      "registry/catalog/intelligence-write-gate-kernel.yaml"
+    ],
+    "catalog_rows_count": 42,
+    "crates_missing_catalog_rows": [
+      "intelligence-claude-agent-sdk",
+      "intelligence-codex-sdk",
+      "intelligence-gemini-adapter",
+      "intelligence-ops-infrastructure",
+      "intelligence-tool-compat-kernel",
+      "intelligence-translation-kernel",
+      "intelligence-wire-kernel",
+      "intelligence-worker"
+    ],
+    "_overlap_note": "The fifty adapters/core/facade workspace members under intelligence/ are owned by this capability root. intelligence/detection/ carries its own absorbed sub-service manifest (intelligence/detection/manifest.json) and is NOT double-counted here. intelligence/testing/third-party-test-deps is excluded from crate accounting (test support only). Eight crates lack registry/catalog/intelligence-*.yaml rows at authoring time — listed, not invented."
+  },
   "contracts": {
     "openapi": [
-      "microservices/cloud-intelligence/contracts/cloud-intelligence.openapi.yaml"
+      "intelligence/contracts/cloud-intelligence.openapi.yaml"
     ],
     "asyncapi": [
-      "microservices/cloud-intelligence/contracts/cloud-intelligence.asyncapi.yaml"
+      "intelligence/contracts/cloud-intelligence.asyncapi.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -52,44 +179,84 @@
       "contracts": [
         "intelligence/contracts/cloud-intelligence.proto"
       ]
-    }
+    },
+    "contract_status": "openapi+asyncapi+proto present under intelligence/contracts/; verified at manifest authoring time"
   },
   "capabilities": [
     {
       "tier": "T2",
       "name": "oauth-subscription-pool-state-machine-round-robin-seat-lease-blacklist-cooldown-restore",
-      "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-kernel/src/lib.rs",
+      "file": "intelligence/core/kernel/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "async-reqwest-reverse-proxy-shared-client-tls-amortised",
-      "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs",
+      "file": "intelligence/adapters/rest/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "upstream-oauth-singleflight-broadcast-coalescer-per-handle",
-      "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs",
+      "file": "intelligence/adapters/rest/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "sse-stream-with-lease-full-response-lifecycle",
+      "file": "intelligence/adapters/rest/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "policy-engine-authz-gate-per-tenant-forbid-wins-isolation",
-      "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-authz-cedar-adapter/src/lib.rs",
+      "file": "intelligence/adapters/authz-cedar-adapter/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
       "name": "owned-secret-provider-refresh-token-storage-seam",
-      "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs",
+      "file": "intelligence/adapters/openbao-adapter/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
+      "name": "eventsink-fanout-clickhouse-valkey",
+      "file": "intelligence/adapters/rest/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
       "name": "app-composition-root-cloud-intelligence-binary",
-      "file": "microservices/cloud-intelligence/crates/oya-cloud-intelligence-app/src/lib.rs",
+      "file": "intelligence/facade/app/src/lib.rs",
       "risk_class": "limited"
+    }
+  ],
+  "conformance_fixtures": [
+    {
+      "name": "authz-cedar-cross-tenant-forbid",
+      "file": "intelligence/adapters/authz-cedar-adapter/tests/cross_tenant_forbid.rs",
+      "policy": "intelligence/policy/cloud-intelligence.cedar"
+    },
+    {
+      "name": "rest-sse-streaming-lease",
+      "file": "intelligence/adapters/rest/tests/d3_sse_streaming.rs",
+      "adapter": "intelligence/adapters/rest/src/lib.rs"
+    },
+    {
+      "name": "rest-singleflight-upstream",
+      "file": "intelligence/adapters/rest/tests/d3_singleflight_upstream.rs",
+      "adapter": "intelligence/adapters/rest/src/lib.rs"
+    },
+    {
+      "name": "kernel-seat-lease-no-double-allocation",
+      "file": "intelligence/core/kernel/tests/concurrency_no_double_allocation.rs",
+      "kernel": "intelligence/core/kernel/src/lib.rs"
+    },
+    {
+      "name": "kernel-d7-cross-tenant-forbid",
+      "file": "intelligence/core/kernel/tests/d7_cross_tenant_forbid.rs",
+      "kernel": "intelligence/core/kernel/src/lib.rs"
     }
   ],
   "slos": [
@@ -129,7 +296,7 @@
       "id": "IP-001",
       "title": "Cloud Intelligence production design-spec package and clean-room key-pool reverse-proxy implementation (kernel state machine + axum SSE-passthrough rest adapter + app composition layer, owned secret-provider-sourced keys, two-realm constant-time auth, OTel-aligned metrics, hash-only logging, OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts, policy-engine adapter fixture, OpenSLO, runbooks, threat-model + design dossier)",
       "acceptance_status": "ga",
-      "file": "microservices/cloud-intelligence/IP-001-cloud-intelligence-design.md"
+      "file": "intelligence/IP-001-cloud-intelligence-design.md"
     }
   ],
   "regulatory_packs": [
@@ -137,6 +304,7 @@
     "kr"
   ],
   "lts_pins": {
+    "rust": "1.97.1",
     "axum": "0.8.x",
     "tokio": "1.x",
     "tower": "0.5.x",
@@ -147,31 +315,82 @@
   },
   "adrs": [
     {
-      "id": "ADR-0105",
-      "title": "Layered architecture (kernel/domain/usecase/app/adapter/rest/...) layer enum",
-      "scope": "repo"
+      "id": "ADR-0083",
+      "title": "Kernel Tier Dependency Free Invariant",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
     },
     {
-      "id": "ADR-0131",
-      "title": "Per-microservice flat layout; new microservices ship under microservices/<ms>/",
-      "scope": "repo"
-    },
-    {
-      "id": "ADR-0090",
-      "title": "Hyper canonical HTTP backbone",
-      "scope": "repo"
+      "id": "ADR-0132",
+      "title": "No Grouping Microservices",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
       "id": "ADR-0373",
       "title": "cloud-intelligence gateway production design: provider-abstraction + canonical OpenAI-compatible surface, key-pool resilience state machine + per-tenant pools honoring Retry-After, Bedrock-shaped immutable audit + default-off body logging, OpenSLO SLI set",
-      "scope": "microservice"
+      "scope": "capability",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0384",
+      "title": "OAuth subscription-pool Path B for AI-agent fleet multiplexing",
+      "scope": "capability",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0536",
+      "title": "Sixteen Substrate Domains",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0562",
+      "title": "Capability First Repo Organization",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
+  "implemented_source_files": [
+    "intelligence/adapters/authz-cedar-adapter/src/lib.rs",
+    "intelligence/adapters/authz-cedar-adapter/tests/cross_tenant_forbid.rs",
+    "intelligence/adapters/openbao-adapter/src/lib.rs",
+    "intelligence/adapters/rest/src/lib.rs",
+    "intelligence/adapters/rest/tests/d3_singleflight_upstream.rs",
+    "intelligence/adapters/rest/tests/d3_sse_streaming.rs",
+    "intelligence/contracts/cloud-intelligence.asyncapi.yaml",
+    "intelligence/contracts/cloud-intelligence.openapi.yaml",
+    "intelligence/contracts/cloud-intelligence.proto",
+    "intelligence/core/kernel/src/lib.rs",
+    "intelligence/core/kernel/tests/concurrency_no_double_allocation.rs",
+    "intelligence/core/kernel/tests/d7_cross_tenant_forbid.rs",
+    "intelligence/facade/app/src/lib.rs",
+    "intelligence/facade/app/src/main.rs",
+    "intelligence/observability/slos/availability.openslo.yaml",
+    "intelligence/observability/slos/completeness.openslo.yaml",
+    "intelligence/observability/slos/end-to-end-latency.openslo.yaml",
+    "intelligence/observability/slos/error-rate.openslo.yaml",
+    "intelligence/observability/slos/ttft.openslo.yaml",
+    "intelligence/policy/cloud-intelligence.cedar"
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "legacy microservices/cloud-intelligence and oya-cloud-intelligence-* dump paths are retired; all capability cites must resolve under intelligence/** (ADR-0562)",
+    "intelligence/detection/ is absorbed but owns its own sub-service manifest — this root does not restate detection crate accounting or detection OpenSLO files",
+    "eight workspace crates lack registry/catalog rows at authoring time and are listed under crates_missing_catalog_rows rather than invented",
+    "measured live SLO burn / scrape wiring to Alloy/VictoriaMetrics is deployment-time; OpenSLO files are authored but live burn is not claimed for local-foundation"
+  ],
+  "explicit_non_claims": [
+    "no claim that all fifty crates have catalog rows (42 present; 8 missing listed)",
+    "no claim that intelligence/testing/third-party-test-deps is a product crate",
+    "no claim that ADR-0105/ADR-0131/ADR-0090 markdown files exist as standalone docs/decisions/*.md — historical IDs map through live-apex disposition where cited",
+    "per-tenant token-bucket rate limiting remains Unimplemented::PerTenantRateLimit (501) — deferred, not claimed shipped"
+  ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "Per-key failure-count blacklist threshold + jittered cooldown in oya-cloud-intelligence-kernel acts as a per-upstream-key circuit breaker (open on N consecutive failures, half-open on cooldown expiry via lazy restore). Per-provider fallback chain is implemented via the group routing layer: multiple groups can serve the same channel class with independent pools, and the failover loop rotates across keys within a group. No cross-process shared breaker state is claimed.",
+    "circuit_breaker": "Per-key failure-count blacklist threshold + jittered cooldown in intelligence-kernel acts as a per-upstream-key circuit breaker (open on N consecutive failures, half-open on cooldown expiry via lazy restore). Per-provider fallback chain is implemented via the group routing layer: multiple groups can serve the same channel class with independent pools, and the failover loop rotates across keys within a group. No cross-process shared breaker state is claimed.",
     "tenant_rate_limit": "The gateway authenticates ingress proxy-keys and implements per-key failure isolation. Per-tenant token-bucket rate limiting is tracked as a deferred item at registry/placeholder-debt/adr-follow-ups.yaml#adr-0373-cloud-intelligence-per-tenant-rate-limit and surfaced as Unimplemented::PerTenantRateLimit (501) when invoked.",
     "golden_signals": "OTel-aligned metrics via structured tracing events expose request outcomes, per-key success/failure, retries, upstream latency, and active-key gauge (oya_cloud_intelligence_*) with Prometheus text exposition at /metrics. Scrape wiring to Alloy/VictoriaMetrics is deployment-time.",
-    "error_budget_burn": "OpenSLO error-rate and availability SLO files authored at microservices/cloud-intelligence/slos/. Burn-rate alert wiring to VictoriaMetrics is deployment-time; no live SLO burn is claimed for the local-foundation phase."
+    "error_budget_burn": "OpenSLO error-rate and availability SLO files authored at intelligence/observability/slos/. Burn-rate alert wiring to VictoriaMetrics is deployment-time; no live SLO burn is claimed for the local-foundation phase."
   },
   "sharding_automation": {
     "autosharding": {
@@ -209,7 +428,7 @@
     "provider": "owned-cloud-secrets-cloud-kms",
     "format": "secret-ref://<scope>/<name> or kms-ref://<scope>/<name>",
     "transient_adapters": [
-      "oya-cloud-intelligence-openbao-adapter"
+      "intelligence-openbao-adapter"
     ]
   },
   "ontology_projections": [],
@@ -225,10 +444,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "The agent-dispatch gateway brokers pooled provider credentials and is intended Tier-2 isolation (first-party application microservice, runc). No runtime pod deployment is claimed for the local-foundation phase; tier is retained as the intended isolation class.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/cloud-intelligence/crates/oya-cloud-intelligence-kernel/src/lib.rs",
-    "microservices/cloud-intelligence/crates/oya-cloud-intelligence-rest/src/lib.rs",
-    "microservices/cloud-intelligence/crates/oya-cloud-intelligence-authz-cedar-adapter/src/lib.rs",
-    "microservices/cloud-intelligence/crates/oya-cloud-intelligence-app/src/lib.rs"
+    "intelligence/core/kernel/src/lib.rs",
+    "intelligence/adapters/rest/src/lib.rs",
+    "intelligence/adapters/authz-cedar-adapter/src/lib.rs",
+    "intelligence/facade/app/src/lib.rs"
   ],
   "capacity_model": {
     "baseline_cpu_per_tenant": 0.1,
@@ -253,10 +472,10 @@
     "supports_per_tenant_pinning": true,
     "public_surface_files": {
       "openapi": {
-        "2026-05-27": "microservices/cloud-intelligence/contracts/cloud-intelligence.openapi.yaml"
+        "2026-05-27": "intelligence/contracts/cloud-intelligence.openapi.yaml"
       },
       "asyncapi": {
-        "2026-05-27": "microservices/cloud-intelligence/contracts/cloud-intelligence.asyncapi.yaml"
+        "2026-05-27": "intelligence/contracts/cloud-intelligence.asyncapi.yaml"
       }
     }
   },
