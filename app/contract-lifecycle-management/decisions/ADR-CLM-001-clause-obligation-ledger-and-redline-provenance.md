@@ -275,16 +275,16 @@ decision_owner: axis-contract-lifecycle-management
 
 ## References
 
-- Internal: microservices/contract-lifecycle-management/PRD.md.
-- Internal: microservices/contract-lifecycle-management/ARCHITECTURE.md.
-- Internal: microservices/contract-lifecycle-management/policy/contract-obligation-authorization.cedar.
-- Internal: microservices/contract-lifecycle-management/policies/local-clause-policy-evaluation.cedar.
-- Internal: microservices/contract-lifecycle-management/policies/local-redline-thread-access.cedar.
-- Internal: microservices/contract-lifecycle-management/slos/local-obligation-extract-completeness.openslo.yaml.
-- Internal: microservices/contract-lifecycle-management/slos/local-redline-turnaround-latency.openslo.yaml.
-- Internal: microservices/contract-lifecycle-management/slos/local-renewal-risk-freshness.openslo.yaml.
-- Internal: microservices/contract-lifecycle-management/runbooks/legal-hold-activation.md.
-- Internal: microservices/contract-lifecycle-management/runbooks/contract-export-redaction.md.
+- Internal: app/contract-lifecycle-management/PRD.md.
+- Internal: app/contract-lifecycle-management/ARCHITECTURE.md.
+- Internal: app/contract-lifecycle-management/policy/contract-obligation-authorization.cedar.
+- Internal: app/contract-lifecycle-management/policies/local-clause-policy-evaluation.cedar.
+- Internal: app/contract-lifecycle-management/policies/local-redline-thread-access.cedar.
+- Internal: app/contract-lifecycle-management/slos/local-obligation-extract-completeness.openslo.yaml.
+- Internal: app/contract-lifecycle-management/slos/local-redline-turnaround-latency.openslo.yaml.
+- Internal: app/contract-lifecycle-management/slos/local-renewal-risk-freshness.openslo.yaml.
+- Internal: app/contract-lifecycle-management/runbooks/legal-hold-activation.md.
+- Internal: app/contract-lifecycle-management/runbooks/contract-export-redaction.md.
 - DocuSign eSignature API documentation.
 - DocuSign CLM documentation.
 - Ironclad API documentation.
