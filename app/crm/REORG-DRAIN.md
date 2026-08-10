@@ -9,14 +9,14 @@
 ## Completed (this rail)
 
 - Slice 1: product metadata absorb — `manifest.json`, `README.md`, `IPs/**`, `slos/**`.
+- Slice 2: top-level IP docs + audit — `IP-024-*.md`, `IP-025-*.md`, `AUDIT-FINDINGS-*.json`.
 
 ## Next gaps (ordered)
 
-1. **Top-level IP docs + audit** — `IP-024-*.md`, `IP-025-*.md`, `AUDIT-FINDINGS-*.json` from `oya/crm`.
-2. **Contracts + policy** — `contracts/`, `policy/`, `cedar/`, `catalog/` from `oya/crm`.
-3. **Capabilities + crates** — bounded-context manifests and `oya-crm-*` crate rehome (exclude procurement eviction judgment).
-4. **IaC + dashboards** — `iac/`, `dashboards/`, `runbooks/`, `scorecards/`, `dpia/`, `decisions/`, `evidence/`.
-5. **Shrink-only burn** — after verify, delete absorbed paths on `integ/oya` (not this rail).
+1. **Contracts + policy** — `contracts/`, `policy/`, `cedar/`, `catalog/` from `oya/crm`.
+2. **Capabilities + crates** — bounded-context manifests and `oya-crm-*` crate rehome (exclude procurement eviction judgment).
+3. **IaC + dashboards** — `iac/`, `dashboards/`, `runbooks/`, `scorecards/`, `dpia/`, `decisions/`, `evidence/`.
+4. **Shrink-only burn** — after verify, delete absorbed paths on `integ/oya` (not this rail).
 
 ## Out of envelope (do not touch from `integ/crm`)
 
