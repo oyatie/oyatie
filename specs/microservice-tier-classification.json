@@ -12,14 +12,13 @@
     "source": "specs/capability-registry.json x ADR-0536 x specs/substrate-dependency-dag.json x specs/platform-architecture.json microservice_taxonomy enums",
     "enforced_by": "oya-cloud-ci-tier-field-coverage-app (born-blocking coverage + enum validity + no type-overload)"
   },
-  "_reprojection_0s8_2026_08_09": "service_count 96 -> 101 and tier_distribution.substrate 55 -> 60, re-projected in the SAME change that raised ci/facade/product-protocol-policy expected_total 96 -> 101. FIVE capability-root manifests are added by founder ruling oyatie-0s8 and every one is named: cell/manifest.json, comms/manifest.json, data/manifest.json, iam/manifest.json, workflow/manifest.json. MEASURED, NOT PREDICTED: the governed walk was reproduced exactly as ci/facade/product-protocol-policy/tests/product_protocol_policy.rs runs it (collect_named_files over the 22 governed_roots, skipping tests/ as FIXTURE directories) and it yields 101 paths whose set is EQUAL to this file's services keys, with the set difference in BOTH directions empty. Before the re-projection that same walk differed from this file by exactly these five and by nothing else, which is what identifies the move as an ADD rather than a re-derivation of the projection rule: the walk, the governed roots and the tests/ skip are all unchanged. tier_distribution follows from the entries rather than being asserted beside them - all five declare tier=substrate, so substrate moves +5 to 60, product is untouched at 41, and 60 + 41 = 101 = service_count = len(services), the three-way identity that fails if any one of them is hand-typed. THE DRIFT THIS CLOSES, stated plainly because it is the reason the entry exists: NO Rust gate reads this file. specs/platform-architecture.json references it as microservice_taxonomy.tier_classification_table_ref and specs/reachability-registry.json carries its row, but the coverage enforcement named in _provenance.enforced_by walks the live manifests directly and never opens this projection, so a stale count here is caught by nothing and would have shipped green. Each of the five entries is projected VERBATIM from its manifest's tier/tier_subtype/dr_tier/substrate_dag_position, _note included, which is the same fidelity rule the storage/ and network/ root entries already follow; iam/ forward-declares its stratum exactly as storage/ does, so no S1-or-S3 ruling is settled here by omission. KNOWN PROSE ARTIFACT of that verbatim rule: the iam _note ends by pointing at absorbed_service_facet_divergence 'below', which exists in iam/manifest.json and not in this roll-up - fidelity to the source facet was preferred over editing projected text.",
   "tier_distribution": {
-    "substrate": 60,
+    "substrate": 55,
     "product": 41,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 101,
+  "service_count": 96,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -56,7 +55,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "billing/manifest.json": {
@@ -70,7 +69,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "billing/tax/manifest.json": {
@@ -84,21 +83,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "cell/manifest.json": {
-      "service": "cell",
-      "manifest": "cell/manifest.json",
-      "capability": "cell",
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "ADR-0562 capability-registry declares cell tier=substrate stratum=S2; both absorbed services declare the same value."
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cell/cell-lifecycle/manifest.json": {
@@ -196,7 +181,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "secrets/kms/manifest.json": {
@@ -259,7 +244,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "secrets/manifest.json": {
@@ -294,7 +279,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "k8s/managed-cluster-lifecycle/manifest.json": {
@@ -374,20 +359,6 @@
           "policy-engine",
           "workflow-engine"
         ]
-      }
-    },
-    "comms/manifest.json": {
-      "service": "comms",
-      "manifest": "comms/manifest.json",
-      "capability": "comms",
-      "tier": "substrate",
-      "tier_subtype": "substrate-comms",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "ADR-0562 capability-registry declares comms tier=substrate stratum=S2; all six absorbed services declare the same value."
       }
     },
     "comms/comms-email/manifest.json": {
@@ -500,20 +471,6 @@
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "data/manifest.json": {
-      "service": "data",
-      "manifest": "data/manifest.json",
-      "capability": "data",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S3",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "ADR-0562 capability-registry declares data tier=substrate stratum=S3; all five absorbed services declare the same value."
       }
     },
     "data/analytics/manifest.json": {
@@ -647,7 +604,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "gateway/connector/manifest.json": {
@@ -690,20 +647,6 @@
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "iam/manifest.json": {
-      "service": "iam",
-      "manifest": "iam/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-identity",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "DELIBERATELY NOT S1 OR S3. The ADR-0562 capability-registry lists iam among the nine capabilities whose tier facets are undeclared pending a founder/architecture ruling, on the stated ground that iam SPANS S1+S3: iam/cloud-iam and iam/identity declare S1 while iam/consent-graph declares S3. Picking either value here would settle that ruling by omission from a manifest, so this root forward-declares per ADR-0280 Appendix C (the same class storage/ uses) and the split is recorded in absorbed_service_facet_divergence below."
       }
     },
     "iam/cloud-iam/manifest.json": {
@@ -770,7 +713,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/community/manifest.json": {
@@ -920,7 +863,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/financial-planning/manifest.json": {
@@ -930,20 +873,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
-    },
-    "workflow/manifest.json": {
-      "service": "workflow",
-      "manifest": "workflow/manifest.json",
-      "capability": "workflow",
-      "tier": "substrate",
-      "tier_subtype": "substrate-orchestration",
-      "dr_tier": "T0",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "ADR-0562 capability-registry declares workflow tier=substrate stratum=S4; all four absorbed services declare the same value."
-      }
     },
     "workflow/forms/manifest.json": {
       "service": "workflow/forms",
@@ -1024,7 +953,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/incident-management/manifest.json": {
@@ -1118,7 +1047,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/notes/manifest.json": {
@@ -1260,7 +1189,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/sheets/manifest.json": {

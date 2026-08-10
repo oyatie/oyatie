@@ -66,10 +66,6 @@
       "prefix": "cell/BUCK"
     },
     {
-      "anchor": "ADR-0245 tier-as-manifest-facet + ADR-0562 closed capability registry (founder ruling oyatie-0s8): the cell capability-root service manifest. This is the `<root>/manifest.json` shape, which cloud-ci-tier-field-coverage classifies as a TOP-LEVEL service manifest and reads for tier / tier_subtype / dr_tier / substrate_dag_position / the ADR-0348 sharding_automation block / OpenSLO coverage, and which cloud-ci-product-protocol-policy counts in its equality-pinned manifest inventory. It exists because the capability-first rehome left the 8 crates directly under cell/ (core 5, ports 3) declared by NO manifest: each cell/*/manifest.json covers its own service only. Two live gates read it, so this is a registration for a consumed artifact, not a filed document. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: cell/ holds crate subtrees reachable via cargo-members plus observability and contracts subtrees that carry their own reasons.",
-      "prefix": "cell/manifest.json"
-    },
-    {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
       "prefix": "ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"
     },
@@ -96,10 +92,6 @@
     {
       "anchor": "ADR-0541: Buck package marker for the comms capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "comms/BUCK"
-    },
-    {
-      "anchor": "ADR-0245 tier-as-manifest-facet + ADR-0562 closed capability registry (founder ruling oyatie-0s8): the comms capability-root service manifest. This is the `<root>/manifest.json` shape, which cloud-ci-tier-field-coverage classifies as a TOP-LEVEL service manifest and reads for tier / tier_subtype / dr_tier / substrate_dag_position / the ADR-0348 sharding_automation block / OpenSLO coverage, and which cloud-ci-product-protocol-policy counts in its equality-pinned manifest inventory. It exists because the capability-first rehome left the 24 crates directly under comms/ (core 12, ports 5, facade 5, adapters 2) declared by NO manifest: each comms/*/manifest.json covers its own service only. Two live gates read it, so this is a registration for a consumed artifact, not a filed document. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: comms/ holds crate subtrees reachable via cargo-members plus messenger chaos/resilience and observability subtrees already registered separately.",
-      "prefix": "comms/manifest.json"
     },
     {
       "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 \u00a710.16; justified in docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
@@ -148,10 +140,6 @@
     {
       "anchor": "ADR-0565 zero-GraphQL owned API surface: the oya-analytics-api catalog record, the second of the two files ADR-0565 names verbatim (with contracts.json) as where the analytics API surface is registered - cited at the pre-move path oya/analytics/catalog/oya-analytics-api.json. The ADR-0562 capability move to data/analytics/ relocated it and the citation stayed at the old path. EXACT path, not a tree: data/analytics/catalog/ holds sixteen further records with unrelated reasons that this registration deliberately does not claim.",
       "prefix": "data/analytics/catalog/oya-analytics-api.json"
-    },
-    {
-      "anchor": "ADR-0245 tier-as-manifest-facet + ADR-0562 closed capability registry (founder ruling oyatie-0s8): the data capability-root service manifest. This is the `<root>/manifest.json` shape, which cloud-ci-tier-field-coverage classifies as a TOP-LEVEL service manifest and reads for tier / tier_subtype / dr_tier / substrate_dag_position / the ADR-0348 sharding_automation block / OpenSLO coverage, and which cloud-ci-product-protocol-policy counts in its equality-pinned manifest inventory. It exists because the capability-first rehome left 21 of the 23 crates directly under data/ (core 16, facade 5, ports 2) declared by NO manifest; the two exceptions, data-cloud-domain and data-cloud-kernel, are also declared by data/cloud-data/manifest.json and the overlap is recorded rather than hidden. It is also the manifest that owns data/observability/slos/data-substrate/, a capability-level OpenSLO home that belonged to no sub-service. Two live gates read it, so this is a registration for a consumed artifact, not a filed document. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: data/ holds crate subtrees reachable via cargo-members plus analytics, observability and ops subtrees already registered separately.",
-      "prefix": "data/manifest.json"
     },
     {
       "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate OpenSLO skeleton home; static evidence-required SLO manifest for future operator reconciliation measurement, no measured-window claim.",
@@ -300,10 +288,6 @@
     {
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg.",
       "prefix": "iam/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
-    },
-    {
-      "anchor": "ADR-0245 tier-as-manifest-facet + ADR-0562 closed capability registry (founder ruling oyatie-0s8): the iam capability-root service manifest. This is the `<root>/manifest.json` shape, which cloud-ci-tier-field-coverage classifies as a TOP-LEVEL service manifest and reads for tier / tier_subtype / dr_tier / substrate_dag_position / the ADR-0348 sharding_automation block / OpenSLO coverage, and which cloud-ci-product-protocol-policy counts in its equality-pinned manifest inventory. It exists because the capability-first rehome left all 68 crates directly under iam/ (core 18, ports 14, facade 22, adapters 14) declared by NO manifest: each iam/*/manifest.json covers its own service only. It is also the manifest that owns the capability-level OpenSLO homes iam/observability/slos/tenant-rbac/ and the two identity-workload-svid subtrees, which belonged to no sub-service. Its substrate_dag_position.stratum stays forward-declared on purpose: ADR-0562 lists iam among the capabilities left undeclared pending a founder ruling because it SPANS S1+S3, and picking a value in a manifest would settle that ruling by omission. Two live gates read it, so this is a registration for a consumed artifact, not a filed document. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iam/ holds crate subtrees reachable via cargo-members plus cloud-iam, identity and observability subtrees already registered separately.",
-      "prefix": "iam/manifest.json"
     },
     {
       "anchor": "ADR-0562 \u00a710.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/oya-identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention \u2014 all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old\u2192new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir",
@@ -652,10 +636,6 @@
     {
       "anchor": "ADR-0541: Buck package marker for the workflow capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "workflow/BUCK"
-    },
-    {
-      "anchor": "ADR-0245 tier-as-manifest-facet + ADR-0562 closed capability registry (founder ruling oyatie-0s8): the workflow capability-root service manifest. This is the `<root>/manifest.json` shape, which cloud-ci-tier-field-coverage classifies as a TOP-LEVEL service manifest and reads for tier / tier_subtype / dr_tier / substrate_dag_position / the ADR-0348 sharding_automation block / OpenSLO coverage, and which cloud-ci-product-protocol-policy counts in its equality-pinned manifest inventory. It exists because the capability-first rehome left all 48 crates directly under workflow/ (ports 16, core 12, adapters 11, facade 9) declared by NO manifest: each workflow/*/manifest.json covers its own service only. Two live gates read it, so this is a registration for a consumed artifact, not a filed document. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: workflow/ holds crate subtrees reachable via cargo-members plus the forms, tasks, workflow-engine and workflow-studio service subtrees that carry their own reasons.",
-      "prefix": "workflow/manifest.json"
     }
   ]
 }
