@@ -111,6 +111,43 @@ case "$cmd" in
     ;;
 
   commit)
+    if has_flag -a || has_flag --all; then
+      deny "git commit -a/--all is banned — stage explicit paths, then commit with pathspecs"
+    fi
+    if has_flag --amend; then
+      deny "git commit --amend is banned — history rewriting is orchestrator-only"
+    fi
+    # Require explicit pathspecs so workers cannot commit a pre-populated index.
+    pathspecs=()
+    ci=0
+    while (( ci < ${#rest[@]} )); do
+      a="${rest[$ci]}"
+      case "$a" in
+        --)
+          pathspecs+=("${rest[@]:$((ci + 1))}")
+          break
+          ;;
+        -m|--message|-F|--file|--author|--date|--cleanup|--trailer)
+          ci=$((ci + 2))
+          continue
+          ;;
+        -m*|-F*|--author=*|--date=*|--cleanup=*|--trailer=*|-S|--gpg-sign|--gpg-sign=*|-s|--signoff|-n|--no-verify|--allow-empty|--no-edit|-q|--quiet|-v|--verbose|-e|--edit|--only|--include)
+          ci=$((ci + 1))
+          continue
+          ;;
+        -*)
+          deny "git commit option not allowlisted in lane shells: $a"
+          ;;
+        *)
+          pathspecs+=("$a")
+          ci=$((ci + 1))
+          continue
+          ;;
+      esac
+    done
+    if ((${#pathspecs[@]} == 0)); then
+      deny "git commit requires explicit pathspecs (no bare index commit)"
+    fi
     exec "$GIT_REAL" "${args[@]}"
     ;;
 

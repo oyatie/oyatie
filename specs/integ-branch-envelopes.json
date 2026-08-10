@@ -281,22 +281,26 @@
     "waiver_row_fields": [
       "branch",
       "hub",
-      "reason"
+      "reason",
+      "expires_at_or_wave"
     ],
     "active_waivers": [
       {
         "branch": "integ/specs",
         "hub": "docs/ADR-INDEX.md",
         "reason": "Index ADR-0711 in the same bootstrap PR that introduces the ADR and envelopes (sole-owner hub waiver).",
-        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-0711-bootstrap.yaml"
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-0711-bootstrap.yaml",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       },
       {
         "branch": "integ/specs",
         "hub": "governance/check/adr-citation-closure/adr-citation-closure-policy.json",
         "reason": "Absorb #1628+#1629 leaf residuals: files_scanned freeze coupled to lifecycle-config deletions on integ/specs (ADR-0711 dual-trunk closeout).",
-        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-citation-closure-1628-1629.yaml"
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-citation-closure-1628-1629.yaml",
+        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       }
-    ]
+    ],
+    "_waiver_expiry_rule": "Every active_waivers row MUST carry expires_at_or_wave. Claim REFUSES a hub edit authorized only by a waiver whose expires_at_or_wave wave has already landed (or whose calendar expiry is past). Bootstrap waivers die at the named wave."
   },
   "adjunct_claims": {
     "description": "A unit may touch paths outside envelope(R) only when an explicit adjunct claim is recorded for this wave. Claims are fail-closed: absent claim = refuse.",
