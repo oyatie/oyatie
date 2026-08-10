@@ -31,7 +31,7 @@ Lane infrastructure in `crates/oya-check-raw-secret-emission/` (under governance
 | `crates/oya-check-raw-secret-emission/tests/fixtures/{positive,negative}/` | create — 100+ entries each |
 | `.github/workflows/lean-a11.yml` | create — PR-time CI |
 | `.gitignore` | update — confirm `.omc/state/` excluded |
-| `microservices/cloud-secrets/IP-015-…md` | this file |
+| `secrets/IP-015-lean-a11-raw-secret-emission-lane-wiring.md` | this file |
 
 ## Pattern Catalog (excerpt)
 

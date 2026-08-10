@@ -84,7 +84,7 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 - Availability target for `secret-resolution` hot path: **99.99 % monthly** (≈4.3 min/month error budget). Resolution must remain available even when adjacent µservices are degraded — failure cascades through every consumer.
 - Availability target for `secret-rotation` and `audit-emission`: 99.95 % monthly.
 - RTO: ≤2 min (hot-path resolution). RPO: ≤1s (audit emission backlog acceptable; rotation schedule re-derivable from KV state).
-- Self-observability: OpenSLO manifest at `microservices/cloud-secrets/slos/{secret-resolution,rotation-completeness,audit-emission-completeness}.openslo.yaml` (authored under the `observability` µservice gate per ADR-0139).
+- Self-observability: OpenSLO manifest at `secrets/observability/slos/cloud-secrets/{secret-resolve-latency,key-rotation-correctness,audit-log-completeness}.openslo.yaml` (authored under the `observability` µservice gate per ADR-0139).
 
 ### DR posture (ADR-0343)
 

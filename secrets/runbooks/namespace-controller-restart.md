@@ -63,7 +63,7 @@ vault token capabilities <controller-token> sys/namespaces/
 If drift detected: re-apply IaC.
 
 ```bash
-kubectl -n cloud-secrets-<pack> apply -k microservices/cloud-secrets/iac/kustomize/overlays/pack-<pack>
+kubectl -n cloud-secrets-<pack> apply -k secrets/iac/kustomize/overlays/pack-<pack>
 ```
 
 ### B.2 — OpenBao policy error

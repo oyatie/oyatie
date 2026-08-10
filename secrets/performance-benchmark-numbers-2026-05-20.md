@@ -2,7 +2,7 @@
 
 Audit owner: Wave 2 Batch 2.1 sole-owner audit for `cloud-secrets`.
 Methodology disclosure: the Oyatie numbers in this document are target numbers and provenance-aligned planning numbers, not measured benchmark results.
-Measurement disclosure: no service-local benchmark evidence bundle was present under `microservices/cloud-secrets/` during this audit.
+Measurement disclosure: no service-local benchmark evidence bundle was present under `secrets/` during this audit.
 Build-phase disclosure: measured benchmarks must be added later in the build phase under ADR-0212-style evidence discipline before any production performance claim is made.
 Counterpart disclosure: AWS and Google public numbers below are primarily published quota numbers; HashiCorp numbers are official limits/advisory limits plus documented behavior, not a universal SaaS throughput promise.
 

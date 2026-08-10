@@ -25,10 +25,10 @@ Pure governance + observability wiring; no Rust code.
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-secrets/slos/secret-resolution.openslo.yaml` | create |
-| `microservices/cloud-secrets/slos/rotation-completeness.openslo.yaml` | create |
-| `microservices/cloud-secrets/slos/audit-emission-completeness.openslo.yaml` | create |
-| `microservices/cloud-secrets/slos/hsm-attestation.openslo.yaml` | create |
+| `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml` | exists |
+| `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml` | exists |
+| `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml` | exists |
+| `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml` | exists |
 | `registry/authority-cohesion/HG-CLOUD-SECRETS.yaml` | create |
 | `.github/branch-protection.yaml` | update — require cloud-secrets gates on PRs touching the µservice |
 
@@ -63,7 +63,7 @@ Cloud-secrets cannot promote on paper-only SLOs or unregistered authority. Its g
 Bind the service's OpenSLO manifests, dashboards, authority-cohesion registration, and branch-protection checks into the promotion path. This IP turns PRD availability/security claims into machine-checkable gates.
 
 ### C. Deliverables
-- OpenSLO files under `microservices/cloud-secrets/slos/`.
+- OpenSLO files under `secrets/observability/slos/cloud-secrets/`.
 - Dashboards `secret-resolution-rate.json`, `rotation-compliance.json`, and `audit-emission-completeness.json`.
 - `registry/authority-cohesion/HG-CLOUD-SECRETS.yaml`.
 - Branch protection requiring cloud-secrets gates on touched PRs.

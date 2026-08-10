@@ -203,7 +203,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 13. Severity for probe 2: P1, because SLOs drive readiness gates and benchmark claims.
 14. The PRD names expected SLO files `secret-resolution`, `rotation-completeness`, and `audit-emission-completeness`; citation: `secrets/PRD.md:84-87`.
 15. Actual SLO files use `secret-resolve-latency`, `key-rotation-correctness`, and `audit-log-completeness`.
-16. `IP-014-slo-alerting.md` repeats the PRD SLO filename expectation; citation: `microservices/cloud-secrets/IP-014-slo-alerting.md:28-30`.
+16. `IP-014-observability-slo-branch-protection-hg-cloud-secrets.md` repeats the PRD SLO filename expectation; citation: `secrets/IP-014-observability-slo-branch-protection-hg-cloud-secrets.md:28-30`.
 17. Contradiction probe 3: SLO file names are not internally stable between PRD/IP and actual SLO directory.
 18. Severity for probe 3: P2, because it breaks automation by path but not the product concept.
 19. The PRD acceptance criteria cite `tests/bench/resolution-latency.rs`; citation: `secrets/PRD.md:310-313`.
@@ -262,7 +262,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 18. Reverse reference: `registry/tenant-class-adoption/vendor-tenant_class-mapping.yaml:847` and related nearby entries map AWS/GCP/HashiCorp vendor tenant_class equivalents.
 19. Reverse reference: `registry/brownout/coverage-tracker.tsv:13` names `cloud-secrets` in coverage tracking.
 20. Reverse reference: `registry/throttling/coverage-tracker.tsv:31` names `cloud-secrets` as default or N/A-internal.
-21. Reverse reference: `registry/api-surface-classification/coverage-tracker.tsv:31` points to `microservices/cloud-secrets/contracts/openapi.yaml`.
+21. Reverse reference: `registry/api-surface-classification/coverage-tracker.tsv:31` points to `secrets/contracts/openapi/cloud-secrets.yaml`.
 22. Actual OpenAPI path is `secrets/contracts/openapi/cloud-secrets.yaml`.
 23. Reverse reference classification: registry API path is broken and should be corrected during aggregation.
 24. Reverse reference: `specs/microservices/manifests-index.json:127-128` maps the service manifest.
@@ -680,8 +680,8 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 | P1 | D7 | No OpenTofu modules, state backends, or attestation wiring | `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495`; `secrets/PRD.md:317` | Wrap Helm/Kustomize behind signed OpenTofu modules. |
 | P1 | D8 | No `supported-oses.json` or OS package/CI matrix | `specs/master-plan-sequencing.json:777-816` | Add manifest with Tier-1/Tier-2/out-of-scope, packages, and CI lanes. |
 | P1 | D9 | Docs prescribe TypeScript/Python SDK/tooling without exception | `secrets/IP-008-sdk-ts-python-bindings.md:14-58`; `secrets/PRD.md:124-130` | Delete or convert to generated SDK exception with provenance. |
-| P1 | D4 | OCI demo_trial tenant_class is not mapped to Always Free | `microservices/cloud-secrets/retired tenant_class adoption artifact:11-27`; `secrets/cost-budget.md:22-30` | Add `iac/oci-guest/always-free/` and tenant_class limits. |
-| P2 | D1 | SLO filenames in PRD/IP do not match actual SLO files | `secrets/PRD.md:84-87`; `microservices/cloud-secrets/IP-014-slo-alerting.md:28-30` | Rename or update references. |
+| P1 | D4 | OCI demo_trial tenant_class is not mapped to Always Free | `secrets/tenant-class-adoption-deltas-vs-counterparts-2026-05-20.md:11-27`; `secrets/cost-budget.md:22-30` | Add `iac/oci-guest/always-free/` and tenant_class limits. |
+| P2 | D1 | SLO filenames in PRD/IP do not match actual SLO files | `secrets/PRD.md:84-87`; `secrets/IP-014-observability-slo-branch-protection-hg-cloud-secrets.md:28-30` | Rename or update references. |
 | P2 | D1 | Test references are broken because service has no `tests/` tree | `secrets/PRD.md:310-313`; `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:230-252` | Add tests or revise acceptance criteria. |
 | P2 | D1 | Architecture file declares itself unfinished | `secrets/ARCHITECTURE.md:3` | Complete architecture or remove stale warning after review. |
 | P2 | D1 | Proto path is wrong in handoff doc | `secrets/cross-microservice-handoffs.md:15-16` | Change underscore path to actual dashed path. |
@@ -689,7 +689,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 | P2 | D1 | Incident/compliance legal references are missing | `secrets/incident-response.md:76`; `secrets/compliance.md:64-147` | Add service-local legal contact appendix or canonical external pointer. |
 | P2 | D7 | FAQ references Terraform/Pulumi state after OpenTofu-only doctrine | `secrets/faqs/security-engineer-faq.md:77` | Rewrite to OpenTofu state and forbidden-tool warning. |
 | P2 | D5 | Benchmark doc claims measured numbers without service-local evidence | `secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md:1-15`; `secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md:95-105` | Mark prior numbers as imported/evidence-pending or attach evidence. |
-| P2 | D6 | Provider-specific HSM/KMS examples leak into generic tenant_class model | `microservices/cloud-secrets/retired tenant_class adoption artifact:29-81` | Replace with abstract adapters plus per-context overlays. |
+| P2 | D6 | Provider-specific HSM/KMS examples leak into generic tenant_class model | `secrets/tenant-class-adoption-deltas-vs-counterparts-2026-05-20.md:29-81` | Replace with abstract adapters plus per-context overlays. |
 | P3 | D1 | PRD crate count differs from catalog count | `secrets/PRD.md:166`; `secrets/manifest.json:1-49` | Reconcile catalog count and manifest. |
 | P3 | D2 | Historic reverse-audit docs contain stale entries | `docs/architecture/corpus-rigor-audit-2026-05-20-mid-remediation-snapshot.md:5462-5469` | Let aggregation mark stale vs active. |
 | P3 | D8 | No false out-of-scope OS claims were found, but explicit exclusions are absent | service inventory; `specs/master-plan-sequencing.json:777-816` | Add explicit out-of-scope block. |
@@ -716,7 +716,7 @@ P3: 4.
 
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-secrets
-  deliverables_landed: secrets/coherence-audit-2026-05-20.md (731 lines); secrets/feature-parity-matrix-2026-05-20.md (409 lines); secrets/performance-benchmark-numbers-2026-05-20.md (437 lines); microservices/cloud-secrets/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (353 lines)
+  deliverables_landed: secrets/coherence-audit-2026-05-20.md (731 lines); secrets/feature-parity-matrix-2026-05-20.md (409 lines); secrets/performance-benchmark-numbers-2026-05-20.md (437 lines); secrets/tenant-class-adoption-deltas-vs-counterparts-2026-05-20.md (353 lines)
   inventory_files_seen: 134
   inventory_lines_read: 20339
   chat_history_matches_processed: 194

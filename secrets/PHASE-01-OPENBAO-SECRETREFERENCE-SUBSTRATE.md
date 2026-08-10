@@ -130,4 +130,4 @@ kubectl --dry-run=client apply -k secrets/iac/kustomize/overlays/pack-kr
 - `secrets/incident-response.md`
 - `docs/adr-archive/ADR-0131-per-microservice-flat-layout.md`
 - `docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md` (if registered)
-- `microservices/cloud-secrets/IP-{001..015}-*.md`
+- `secrets/IP-{001..015}-*.md`
