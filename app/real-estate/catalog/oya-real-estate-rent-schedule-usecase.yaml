@@ -14,8 +14,8 @@ benchmarks:
   - "NetSuite Fixed Assets and lease-accounting counterpart"
   - "Microsoft Dynamics 365 Finance Lease Accounting"
 contracts:
-  openapi: microservices/real-estate/contracts/openapi-v1.yaml
-  asyncapi: microservices/real-estate/contracts/asyncapi-v1.yaml
-  proto: microservices/real-estate/contracts/real-estate-v1.proto
-policy_fragment: microservices/real-estate/policy/rent-schedule-authorization.cedar
+  openapi: app/real-estate/contracts/openapi-v1.yaml
+  asyncapi: app/real-estate/contracts/asyncapi-v1.yaml
+  proto: app/real-estate/contracts/real-estate-v1.proto
+policy_fragment: app/real-estate/policy/rent-schedule-authorization.cedar
 settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

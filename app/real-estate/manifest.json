@@ -343,10 +343,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/real-estate/ARCHITECTURE.md",
-    "microservices/real-estate/IP-016-ifrs16-right-of-use-computation.md",
-    "microservices/real-estate/IP-022-rent-roll-generation.md",
-    "microservices/real-estate/IP-025-portfolio-analytics-dashboard.md"
+    "app/real-estate/ARCHITECTURE.md",
+    "app/real-estate/IP-016-ifrs16-right-of-use-computation.md",
+    "app/real-estate/IP-022-rent-roll-generation.md",
+    "app/real-estate/IP-025-portfolio-analytics-dashboard.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -359,10 +359,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/real-estate/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/real-estate/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/real-estate/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/real-estate/contracts/asyncapi-v1.yaml"
       }
     }
   },
