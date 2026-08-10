@@ -1,6 +1,6 @@
 use port_engine_rust_ir::w0_ready;
 
 #[test]
-fn slice3_claims_rust_ir_stub_readiness() {
+fn slice5_claims_rust_ir_syn_quote_readiness() {
     assert!(w0_ready());
 }

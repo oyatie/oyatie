@@ -6,10 +6,12 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//build/port-engine/ports/port-engine-api:port-engine-api",
+        "third-party//:quote",
+        "third-party//:syn",
     ],
 )
 
-# Compiles #[cfg(test)] modules in src/lib.rs (empty renderer stub).
+# Compiles #[cfg(test)] modules in src/lib.rs (syn/quote path + leakage fences).
 rust_test(
     name = "port-engine-rust-ir-unittest",
     srcs = glob(["src/**/*.rs"]),
@@ -18,6 +20,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//build/port-engine/ports/port-engine-api:port-engine-api",
+        "third-party//:quote",
+        "third-party//:syn",
     ],
 )
 
