@@ -1,5 +1,5 @@
 ---
-description: Universal per-dispatch ritual — every agent (implementation, audit, review, planning, scout, recon) runs this checklist at start and end of every dispatch. North-star strategy lives in the programme SSOT plan; this card is the tactical ritual. Canonical copy also at docs/checklists/swarm-agent-ritual.md.
+description: Universal per-dispatch ritual — every agent (implementation, audit, review, planning, scout, recon) runs this checklist at start and end of every dispatch. North-star strategy lives in the programme SSOT plan; this card is the tactical ritual. Canonical copy also at templates/checklists/swarm-agent-ritual.md.
 alwaysApply: true
 ---
 
@@ -7,7 +7,7 @@ alwaysApply: true
 
 Two instruction tiers exist. **Tier 1 (north-star):** the programme SSOT plan — where we are going, waves, topology. **Tier 2 (this card):** the ritual you run on every dispatch regardless of role. Trivial read-only / babysit tasks MAY use the short form (A1 + D only).
 
-Canonical in-repo copy (INV-DOC-9): `docs/checklists/swarm-agent-ritual.md`.
+Canonical in-repo copy (INV-DOC-9): `templates/checklists/swarm-agent-ritual.md`.
 
 ## Visual forms (where applicable)
 
@@ -37,6 +37,6 @@ Canonical in-repo copy (INV-DOC-9): `docs/checklists/swarm-agent-ritual.md`.
 
 ## D. Close (before you exit)
 
-1. **Receipt** — role-scaled evidence (see `docs/checklists/swarm-agent-ritual.md`).
+1. **Receipt** — role-scaled evidence (see `templates/checklists/swarm-agent-ritual.md`).
 2. **Flow delta** — one line for your consumer.
 3. **Exit** — no CI-watch loops; babysit owns waiting. Elevate process defects; retain to hindsight; update bead.
