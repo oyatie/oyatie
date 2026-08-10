@@ -1,0 +1,113 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# T2-auto capabilities — sites µservice
+#
+# Autonomy Tier 2: "auto with material reversibility". The system takes a
+# more consequential action; the user has a longer reversibility window or an
+# explicit accept step before the action becomes permanent. Higher EU AI Act
+# scrutiny applies — Art. 50 transparency mandatory; Annex III §3 high-risk
+# overlay APPLIES if HR/legal/medical context engaged.
+#
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 (retired per ADR-0145) + ADR-SITES-0006.
+
+doc_class: AutonomyTierCatalog
+microservice: sites
+tier: T2
+owner_team: axis-sites + foundry-runtime + council-privacy
+date: 2026-05-17
+review_cadence: per-capability-launch + quarterly + after-each-incident
+
+capabilities:
+  - id: T2-sites-ai-page-build
+    name: "Generate page from prompt (T2 AI-page-build)"
+    description: |
+      User provides a prompt + a context overlay (marketing / blog / product /
+      landing / intranet_general). The system generates a complete page
+      (title, blocks, SEO meta, schema.org JSON-LD) and presents it for review.
+      User must explicitly accept within a 30-second reversibility window;
+      after acceptance, the page enters DRAFT state (NOT auto-published —
+      tenant must still trigger publish). After window expiry without
+      acceptance, the suggestion is discarded.
+
+      **EU AI Act bounds (per ADR-SITES-0006):**
+      - REFUSED for HR / legal / medical / employment-decision / credit-
+        decision contexts pending future ADR-SITES-XXXX conformity assessment
+        under Annex III §3.
+      - LIMITED-RISK for marketing / blog / product / landing /
+        intranet_general (Art. 50 transparency label required).
+      - Cross-tenant training is structurally forbidden.
+      - Prompts are tenant-DEK-wrapped before transit to LLM provider.
+
+    surface: editor-ui (REST POST /v1/assist/ai-build)
+    triggers:
+      - editor explicitly invokes "AI build" with prompt + context
+    consent_basis:
+      personal_context: explicit-on-invocation (per request)
+      professional_context: explicit-on-invocation + tenant-policy-admission + Cedar tier-gate (pro+ only)
+    data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
+    data_class_emitted: BEHAVIORAL_TENANT_PRODUCT (suggested page; not yet published)
+    reversibility:
+      window_seconds: 30
+      action_on_cancel: discard suggested page; no state mutation
+      cancel_surface: in-product banner
+    cross_tenant_consultation:
+      allowed: no
+      surface: n/a (per-tenant DEK-wrapped; no cross-tenant context in prompt)
+    model:
+      primary: tenant-default-llm (text + multimodal where image-block needed)
+      fallback: T1 content-suggest mode (block-level only; not full-page)
+      private_inference: tenant-DEK-wrapped prompt; no cross-tenant training; foundry-runtime private-inference channel; pack-eu LLM providers EU-resident only
+    latency_budget_p99_ms: 5000
+    audit_event: AiPageBuildAccepted (Ed25519-sealed; payload — page id hash + build id + model id + prompt hash + output hash + EU AI Act classification + accepted_by user_id + reversibility window expiry)
+    fallback_on_model_failure: fall back to T1 (block-level suggestions)
+    risk_classification: limited-risk-default; high-risk-REFUSED for HR/legal/medical/employment/credit overlays
+    user_label: "AI is suggesting this page — review before accept; undo within 30s"
+
+  - id: T2-sites-newsletter-from-collection
+    name: "Generate newsletter email from CMS-collection entries"
+    description: |
+      User selects entries from a CMS-collection (e.g., recent Articles); the
+      system generates a newsletter email draft (HTML + plain-text) using
+      the collection's portable-text rendered through a newsletter theme.
+      Cross-µservice integration with `mail` µservice (newsletter delivery).
+      User reviews + accepts; the system schedules delivery via Workflow.
+      30s reversibility window before scheduled delivery.
+
+    surface: editor-ui (REST POST /v1/assist/newsletter-build)
+    triggers:
+      - editor explicitly invokes "build newsletter"
+    consent_basis: explicit-on-invocation + tenant-policy-admission
+    data_class_processed: [BEHAVIORAL_TENANT_PRODUCT, PII_IDENTIFYING (subscriber list via mail)]
+    data_class_emitted: PII_IDENTIFYING (email send via mail µservice)
+    reversibility:
+      window_seconds: 30
+      action_on_cancel: discard draft; no scheduling
+      cancel_surface: in-product banner
+    model:
+      primary: tenant-default-llm (text rendering + subject-line)
+      fallback: rule-based (concatenate collection entries)
+      private_inference: tenant-DEK-wrapped
+    latency_budget_p99_ms: 5000
+    audit_event: SitesNewsletterBuildAccepted
+    fallback_on_model_failure: fall back to rule-based
+    risk_classification: limited-risk (commercial communication)
+    user_label: "AI drafted newsletter — review before send; undo within 30s"
+
+verification:
+  - All T2 actions emit Cedar-evaluable principal/action/resource BEFORE acting.
+  - All T2 actions emit audit-chain Ed25519-sealed events with EU AI Act classification field.
+  - All T2 actions are labelled per Art. 50 + offer Art. 14 cancel control.
+  - All T2 actions are tenant-tenant_class-gated: Cedar admits T2 only for tenant_class values ≥ pro.
+  - All T2 actions respect tenant-isolation: cross-tenant prompt construction structurally forbidden.
+  - HR/legal/medical/employment/credit overlays: T2 REFUSED at Cedar; pack-eu enforced strictly.
+  - All T2 prompts are tenant-DEK-wrapped before transit; LLM provider sees ciphertext only via foundry-runtime private-inference channel.
+  - Post-publish safety classifier reviews T2 output asynchronously; flagged outputs trigger runbook `ai-page-build-rollback.md`.
+
+references:
+  - /specs/agentic-tiers.json — autonomy tier spec.
+  - ADR-0140 — Cedar policy enforcement substrate.
+  - ADR-0133 — autonomy tiering as industry-best-practice axis.
+  - ADR-SITES-0006 — AI-page-build EU AI Act bounds.
+  - EU AI Act Regulation (EU) 2024/1689 — Art. 14, Art. 50, Annex III §3.
+  - microservices/sites/PRD.md §FR-22 (AI-page-build).
+  - microservices/sites/runbooks/ai-page-build-rollback.md.
+  - microservices/sites/policy/editor-isolation.md Invariant 4.

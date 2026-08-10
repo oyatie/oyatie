@@ -1,0 +1,41 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: sites-publish-latency
+  displayName: "sites: publish latency p95 (100-page site)"
+  labels:
+    microservice: sites
+    bc: cdn-delivery
+    sli_class: latency
+    tier: hero-product
+    owner_team: axis-sites
+    pack_scope: all
+    data_classes: PUBLIC_BY_TENANT_CHOICE,BEHAVIORAL_TENANT_PRODUCT
+spec:
+  description: |
+    Publish-pipeline p95 duration SLO. A publish of a 100-page site is "good"
+    when it completes in ≤ 5s. Per PRD-sites §"Performance" target. Includes
+    SSG rendering, S3 upload, sitemap regeneration, signed CDN purge.
+  service: sites
+  indicator:
+    metadata: {name: sites-publish-100-pages-p95}
+    spec:
+      thresholdMetric:
+        metricSource:
+          type: Prometheus
+          spec:
+            query: |
+              histogram_quantile(0.95, sum(rate(oya_sites_publish_duration_seconds_bucket{site_size_class="medium"}[5m])) by (le))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Timeslices
+  objectives:
+    - target: 0.95
+      op: lte
+      value: 5.0
+      displayName: "30d rolling p95 ≤ 5s for medium site (100 pages)"
+  alertPolicies:
+    - alertPolicyRef: sites-publish-fast-burn-1h-14x
+    - alertPolicyRef: sites-publish-slow-burn-6h-6x

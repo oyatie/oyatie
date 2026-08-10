@@ -1,0 +1,299 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
+syntax = "proto3";
+
+package oya.sites.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "oyatie.dev/sites/v1;sitesv1";
+
+// =====================================================================================
+// Sites µservice gRPC contracts.
+//
+// Per ADR-0135 (unbundle) + ADR-0132 (no-grouping policy) + ADR-0131
+// (per-µservice flat layout). Mirrors the REST surface in
+// `contracts/openapi/sites.yaml`.
+//
+// Authentication: SPIFFE-bound mTLS/TLS 1.3 for this internal-only gRPC contract.
+// Public OIDC/API-key authentication belongs to the REST/OpenAPI surface.
+// Authorisation: Cedar policies per `policy/*.cedar`.
+// =====================================================================================
+
+// ==================== Common ====================
+
+enum SiteVisibility {
+  SITE_VISIBILITY_UNSPECIFIED = 0;
+  SITE_VISIBILITY_PUBLIC = 1;
+  SITE_VISIBILITY_INTRANET = 2;
+  SITE_VISIBILITY_PRIVATE = 3;
+  SITE_VISIBILITY_DRAFT = 4;
+}
+
+enum PageState {
+  PAGE_STATE_UNSPECIFIED = 0;
+  PAGE_STATE_DRAFT = 1;
+  PAGE_STATE_SCHEDULED = 2;
+  PAGE_STATE_INTERNAL_REVIEW = 3;
+  PAGE_STATE_PUBLISHED = 4;
+}
+
+enum BlockKind {
+  BLOCK_KIND_UNSPECIFIED = 0;
+  BLOCK_KIND_PARAGRAPH = 1;
+  BLOCK_KIND_HEADING = 2;
+  BLOCK_KIND_IMAGE = 3;
+  BLOCK_KIND_VIDEO = 4;
+  BLOCK_KIND_EMBED = 5;
+  BLOCK_KIND_FORM = 6;
+  BLOCK_KIND_CMS_COLLECTION = 7;
+  BLOCK_KIND_CODE = 8;
+  BLOCK_KIND_QUOTE = 9;
+  BLOCK_KIND_DIVIDER = 10;
+}
+
+enum AcmeChallengeKind {
+  ACME_CHALLENGE_KIND_UNSPECIFIED = 0;
+  ACME_CHALLENGE_KIND_DNS01 = 1;
+  ACME_CHALLENGE_KIND_HTTP01 = 2;
+  ACME_CHALLENGE_KIND_TLS_ALPN_01 = 3;
+}
+
+enum RedirectStatus {
+  REDIRECT_STATUS_UNSPECIFIED = 0;
+  REDIRECT_STATUS_MOVED_PERMANENTLY = 301;
+  REDIRECT_STATUS_FOUND = 302;
+  REDIRECT_STATUS_GONE = 410;
+}
+
+message Site {
+  string site_id = 1;
+  string tenant_id = 2;
+  string name = 3;
+  SiteVisibility visibility = 4;
+  string owner_user_id = 5;
+  int64 version = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  bool legal_hold_open = 9;
+}
+
+message Block {
+  string block_id = 1;
+  BlockKind kind = 2;
+  // portable-text JSON; opaque to gRPC layer
+  string portable_text_json = 3;
+  int64 version = 4;
+}
+
+message SeoMeta {
+  string title = 1;
+  string description = 2;
+  string canonical_url = 3;
+  OpenGraphTags og = 4;
+  TwitterCardTags twitter = 5;
+  repeated string json_ld_documents = 6; // JSON-LD strings
+  repeated HreflangEntry hreflang = 7;
+}
+
+message OpenGraphTags {
+  string title = 1;
+  string description = 2;
+  string image = 3;
+  string og_type = 4;
+}
+
+message TwitterCardTags {
+  string card = 1;  // "summary" | "summary_large_image"
+  string title = 2;
+  string description = 3;
+  string image = 4;
+}
+
+message HreflangEntry {
+  string lang = 1;
+  string url = 2;
+}
+
+message Page {
+  string page_id = 1;
+  string site_id = 2;
+  string tenant_id = 3;
+  string route = 4;
+  string title = 5;
+  PageState page_state = 6;
+  int64 draft_version = 7;
+  int64 published_version = 8;
+  bool legal_hold_open = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  repeated Block blocks = 12;
+  SeoMeta seo_meta = 13;
+}
+
+message Domain {
+  string domain = 1;
+  string site_id = 2;
+  string tenant_id = 3;
+  bool dns_verified = 4;
+  google.protobuf.Timestamp dns_verified_at = 5;
+  string cert_serial = 6;
+  google.protobuf.Timestamp cert_not_after = 7;
+}
+
+message CollectionType {
+  string collection_id = 1;
+  string site_id = 2;
+  string name = 3;
+  int64 schema_version = 4;
+  string schema_hash = 5;
+  repeated FieldDefinition fields = 6;
+}
+
+message FieldDefinition {
+  string name = 1;
+  string type = 2;  // string|text|number|boolean|datetime|image|link|relationship
+  bool required = 3;
+}
+
+message Entry {
+  string entry_id = 1;
+  string collection_id = 2;
+  string tenant_id = 3;
+  string fields_json = 4;  // opaque JSON
+  int64 version = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message Redirect {
+  string from_path = 1;
+  string to_path = 2;
+  RedirectStatus status = 3;
+  string site_id = 4;
+}
+
+// ==================== Services ====================
+
+service SiteService {
+  rpc CreateSite(CreateSiteRequest) returns (Site);
+  rpc GetSite(GetSiteRequest) returns (Site);
+  rpc UpdateSite(UpdateSiteRequest) returns (Site);
+  rpc DeleteSite(DeleteSiteRequest) returns (google.protobuf.Empty);
+  rpc ListSites(ListSitesRequest) returns (ListSitesResponse);
+  rpc PublishSite(PublishSiteRequest) returns (google.protobuf.Empty);
+  rpc UnpublishSite(UnpublishSiteRequest) returns (google.protobuf.Empty);
+}
+
+service PageService {
+  rpc CreatePage(CreatePageRequest) returns (Page);
+  rpc GetPage(GetPageRequest) returns (Page);
+  rpc UpdatePage(UpdatePageRequest) returns (Page);
+  rpc PublishPage(PublishPageRequest) returns (google.protobuf.Empty);
+  rpc RevertPage(RevertPageRequest) returns (google.protobuf.Empty);
+  rpc DeletePage(DeletePageRequest) returns (google.protobuf.Empty);
+  rpc AiPageBuild(AiPageBuildRequest) returns (AiPageBuildResponse);
+}
+
+service DomainService {
+  rpc BindDomain(BindDomainRequest) returns (Domain);
+  rpc UnbindDomain(UnbindDomainRequest) returns (google.protobuf.Empty);
+  rpc RequestCert(RequestCertRequest) returns (google.protobuf.Empty);
+  rpc RevokeCert(RevokeCertRequest) returns (google.protobuf.Empty);
+}
+
+service UrlRoutingService {
+  rpc CreateRedirect(CreateRedirectRequest) returns (Redirect);
+  rpc DeleteRedirect(DeleteRedirectRequest) returns (google.protobuf.Empty);
+  rpc ListRedirects(ListRedirectsRequest) returns (ListRedirectsResponse);
+}
+
+service SeoService {
+  rpc EmitSitemap(EmitSitemapRequest) returns (EmitSitemapResponse);
+  rpc EmitRobots(EmitRobotsRequest) returns (EmitRobotsResponse);
+}
+
+service CmsCollectionService {
+  rpc CreateCollection(CreateCollectionRequest) returns (CollectionType);
+  rpc UpdateCollection(UpdateCollectionRequest) returns (CollectionType);
+  rpc CreateEntry(CreateEntryRequest) returns (Entry);
+  rpc GetEntry(GetEntryRequest) returns (Entry);
+  rpc UpdateEntry(UpdateEntryRequest) returns (Entry);
+  rpc DeleteEntry(DeleteEntryRequest) returns (google.protobuf.Empty);
+  rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse);
+}
+
+service SearchService {
+  rpc Query(SearchQueryRequest) returns (SearchQueryResponse);
+}
+
+service CdnService {
+  rpc Purge(PurgeRequest) returns (google.protobuf.Empty);
+}
+
+// ==================== Request/Response messages ====================
+
+message CreateSiteRequest { string name = 1; SiteVisibility visibility = 2; }
+message GetSiteRequest    { string site_id = 1; }
+message UpdateSiteRequest { string site_id = 1; string name = 2; SiteVisibility visibility = 3; }
+message DeleteSiteRequest { string site_id = 1; string two_person_rule_approval_id = 2; }
+message ListSitesRequest  { string cursor = 1; int32 limit = 2; }
+message ListSitesResponse { repeated Site items = 1; string next_cursor = 2; }
+message PublishSiteRequest   { string site_id = 1; }
+message UnpublishSiteRequest { string site_id = 1; string reason = 2; }
+
+message CreatePageRequest { string site_id = 1; string route = 2; string title = 3; }
+message GetPageRequest    { string page_id = 1; }
+message UpdatePageRequest { string page_id = 1; string title = 2; repeated Block blocks = 3; SeoMeta seo_meta = 4; }
+message PublishPageRequest { string page_id = 1; }
+message RevertPageRequest  { string page_id = 1; int64 to_version = 2; string reason = 3; }
+message DeletePageRequest  { string page_id = 1; }
+
+message AiPageBuildRequest {
+  string page_id = 1;
+  string prompt = 2;
+  string context_overlay = 3; // marketing|blog|product|landing|intranet_general
+}
+message AiPageBuildResponse {
+  string build_id = 1;
+  repeated Block suggested_blocks = 2;
+  SeoMeta suggested_seo_meta = 3;
+  string eu_ai_act_classification = 4; // limited_risk|minimal_risk|high_risk_refused
+  google.protobuf.Timestamp reversibility_window_expires_at = 5;
+}
+
+message BindDomainRequest   { string site_id = 1; string domain = 2; AcmeChallengeKind prefer_challenge = 3; }
+message UnbindDomainRequest { string site_id = 1; string domain = 2; string reason = 3; }
+message RequestCertRequest  { string domain = 1; AcmeChallengeKind challenge = 2; }
+message RevokeCertRequest   { string domain = 1; string cert_serial = 2; string reason = 3; string two_person_rule_approval_id = 4; }
+
+message CreateRedirectRequest { string site_id = 1; string from_path = 2; string to_path = 3; RedirectStatus status = 4; }
+message DeleteRedirectRequest { string site_id = 1; string from_path = 2; }
+message ListRedirectsRequest  { string site_id = 1; }
+message ListRedirectsResponse { repeated Redirect items = 1; }
+
+message EmitSitemapRequest  { string site_id = 1; }
+message EmitSitemapResponse { string sitemap_xml = 1; }
+
+message EmitRobotsRequest   { string site_id = 1; }
+message EmitRobotsResponse  { string robots_txt = 1; }
+
+message CreateCollectionRequest { string site_id = 1; string name = 2; repeated FieldDefinition fields = 3; }
+message UpdateCollectionRequest { string collection_id = 1; repeated FieldDefinition fields = 2; }
+message CreateEntryRequest      { string collection_id = 1; string fields_json = 2; }
+message GetEntryRequest         { string entry_id = 1; }
+message UpdateEntryRequest      { string entry_id = 1; string fields_json = 2; }
+message DeleteEntryRequest      { string entry_id = 1; }
+message ListEntriesRequest      { string collection_id = 1; string cursor = 2; int32 limit = 3; }
+message ListEntriesResponse     { repeated Entry items = 1; string next_cursor = 2; }
+
+message SearchQueryRequest  { string site_id = 1; string q = 2; int32 limit = 3; string scope = 4; }
+message SearchQueryResponse {
+  repeated SearchHit hits = 1;
+  string next_cursor = 2;
+}
+message SearchHit { string page_id = 1; string route = 2; string title = 3; string snippet = 4; float score = 5; }
+
+message PurgeRequest { string site_id = 1; string pattern = 2; string scope = 3; }

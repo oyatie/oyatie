@@ -1,0 +1,53 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: sites-seo-meta-correctness
+  displayName: "sites: SEO meta correctness (100%)"
+  labels:
+    microservice: sites
+    bc: seo
+    sli_class: correctness
+    tier: correctness-bound
+    owner_team: axis-sites
+    pack_scope: all
+    data_classes: PUBLIC_BY_TENANT_CHOICE
+spec:
+  description: |
+    SEO meta correctness SLO. A published page is "good" when its emitted
+    SEO surface conforms 100% to:
+    - sitemap.xml validates against Sitemap protocol XSD.
+    - schema.org JSON-LD validates against the schema.org JSON-LD context.
+    - Open Graph protocol tags well-formed.
+    - Twitter Cards well-formed.
+    - canonical URL stable + hreflang reciprocity.
+    Target is 100% (any miss = SLO breach). Per PRD-sites §"Performance".
+  service: sites
+  indicator:
+    metadata: {name: sites-seo-meta-correctness}
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_sites_seo_meta_validation_total{result="passed"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_sites_seo_meta_validation_total[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      op: gte
+      value: 1.0
+      displayName: "30d rolling 100% SEO meta correctness"
+  alertPolicies:
+    - alertPolicyRef: sites-seo-correctness-any-fail-page

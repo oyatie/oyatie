@@ -1,0 +1,96 @@
+{{/*
+Mesh-only ingress for REST; egress to OpenBao + Postgres + Valkey +
+Meilisearch + cert-manager + cross-µservice (forms / drive / community
+/ docs / mail / workflow-engine / observability / audit-chain /
+tenancy / ontology / foundry-runtime) + Loro CRDT relay + ACME server
++ CDN provider API.
+*/}}
+{{- if $.Values.networkPolicy.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-sites-default-deny
+  namespace: sites
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-sites-allow-mesh-ingress
+  namespace: sites
+spec:
+  podSelector:
+    matchLabels: {microservice: sites}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {istio-injection: enabled}}
+        - podSelector: {matchLabels: {app.kubernetes.io/component: gateway}}
+      ports:
+        - {port: 9101, protocol: TCP}   # site
+        - {port: 9102, protocol: TCP}   # page
+        - {port: 9103, protocol: TCP}   # block
+        - {port: 9104, protocol: TCP}   # theme
+        - {port: 9105, protocol: TCP}   # navigation
+        - {port: 9106, protocol: TCP}   # url-routing
+        - {port: 9107, protocol: TCP}   # domain-binding
+        - {port: 9108, protocol: TCP}   # seo
+        - {port: 9109, protocol: TCP}   # cms-collection
+        - {port: 9110, protocol: TCP}   # search
+        - {port: 9111, protocol: TCP}   # cdn-delivery
+        - {port: 9090, protocol: TCP}   # metrics
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-sites-allow-egress
+  namespace: sites
+spec:
+  podSelector:
+    matchLabels: {microservice: sites}
+  policyTypes: [Egress]
+  egress:
+    # OpenBao for secret reference resolution + per-tenant DEK
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: openbao}}
+      ports: [{port: 8200, protocol: TCP}]
+    # Postgres
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-postgres}}
+      ports: [{port: 5432, protocol: TCP}]
+    # Valkey
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-valkey}}
+      ports: [{port: 6379, protocol: TCP}]
+    # Meilisearch
+    - to:
+        - podSelector: {matchLabels: {app.kubernetes.io/name: oya-sites-meilisearch}}
+      ports: [{port: 7700, protocol: TCP}]
+    # cert-manager
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: cert-manager}}
+      ports: [{port: 9402, protocol: TCP}]
+    # cross-µservice (forms, drive, community, docs, mail, workflow-engine, observability, audit-chain, tenancy, ontology, foundry-runtime)
+    - to:
+        - namespaceSelector: {matchLabels: {oyatie.dev/control-plane: "true"}}
+      ports: [{port: 9000, protocol: TCP}, {port: 9090, protocol: TCP}, {port: 4317, protocol: TCP}]
+    # Loro CRDT relay (shared-crdt µservice)
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: shared-crdt}}
+      ports: [{port: 7777, protocol: TCP}]
+    # foundry-runtime (T2 AI-page-build private inference)
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: foundry-runtime}}
+      ports: [{port: 9000, protocol: TCP}]
+    # DNS
+    - to:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}
+      ports: [{port: 53, protocol: UDP}, {port: 53, protocol: TCP}]
+    # ACME (Let's Encrypt) + CDN provider API + IANA tzdb — egress to public internet 443 only
+    - to:
+        - ipBlock: {cidr: 0.0.0.0/0, except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]}
+      ports: [{port: 443, protocol: TCP}]
+{{- end }}

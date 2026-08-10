@@ -1,0 +1,380 @@
+asyncapi: 3.1.0
+info:
+  title: oyatie Sites µservice — AsyncAPI Event Catalog
+  version: 1.0.0
+  description: |
+    AsyncAPI definitions for sites µservice events on the oyatie Workflow event bus.
+
+    Per ADR-0131 + ADR-0132, sites emits events that may be consumed by:
+    - audit-chain (seal emission)
+    - workflow-engine (event-bound automation triggers)
+    - search (reindex on publish)
+    - cdn-delivery (cache purge cascade)
+    - social (refresh Open Graph meta)
+    - observability (telemetry)
+    - forms (form binding handshake)
+    - community (comment-count refresh)
+    - docs (cross-link refresh)
+    - mail (newsletter from CMS-collection)
+
+    Per Bominal ADR-0028: every event carries a content hash + audit-chain seal pointer.
+
+defaultContentType: application/cloudevents+json
+
+servers:
+  workflow-event-bus:
+    host: workflow.{pack}.oyatie.com
+    protocol: nats
+    description: per-pack Workflow event bus
+    variables:
+      pack:
+        enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa]
+
+channels:
+  sites.site.lifecycle.v1:
+    address: sites.site.lifecycle.v1
+    description: Site lifecycle
+    messages:
+      SitePublished: {$ref: '#/components/messages/SitePublished'}
+      SiteUnpublished: {$ref: '#/components/messages/SiteUnpublished'}
+      SiteDeleted: {$ref: '#/components/messages/SiteDeleted'}
+
+  sites.page.lifecycle.v1:
+    address: sites.page.lifecycle.v1
+    description: Page lifecycle (create / update / publish / revert / delete)
+    messages:
+      PagePublished: {$ref: '#/components/messages/PagePublished'}
+      PageReverted: {$ref: '#/components/messages/PageReverted'}
+      PageDeleted: {$ref: '#/components/messages/PageDeleted'}
+
+  sites.domain.lifecycle.v1:
+    address: sites.domain.lifecycle.v1
+    description: Custom-domain lifecycle
+    messages:
+      DomainBound: {$ref: '#/components/messages/DomainBound'}
+      DomainUnbound: {$ref: '#/components/messages/DomainUnbound'}
+
+  sites.domain.cert.v1:
+    address: sites.domain.cert.v1
+    description: ACME cert lifecycle
+    messages:
+      CertIssued: {$ref: '#/components/messages/CertIssued'}
+      CertRenewed: {$ref: '#/components/messages/CertRenewed'}
+      CertRevoked: {$ref: '#/components/messages/CertRevoked'}
+
+  sites.cms.collection.v1:
+    address: sites.cms.collection.v1
+    description: CMS collection lifecycle
+    messages:
+      CmsCollectionUpdated: {$ref: '#/components/messages/CmsCollectionUpdated'}
+      CmsEntryWritten: {$ref: '#/components/messages/CmsEntryWritten'}
+
+  sites.forms.binding.v1:
+    address: sites.forms.binding.v1
+    description: Form-block ↔ forms µservice binding
+    messages:
+      FormBound: {$ref: '#/components/messages/FormBound'}
+
+  sites.ai.page_build.v1:
+    address: sites.ai.page_build.v1
+    description: T2 AI-page-build acceptance + rollback
+    messages:
+      AiPageBuildAccepted: {$ref: '#/components/messages/AiPageBuildAccepted'}
+      AiPageBuildPostHocReverted: {$ref: '#/components/messages/AiPageBuildPostHocReverted'}
+
+  audit.sites.legal_hold.v1:
+    address: audit.sites.legal_hold.v1
+    description: Legal hold transitions
+    messages:
+      LegalHoldApplied: {$ref: '#/components/messages/LegalHoldApplied'}
+      LegalHoldReleased: {$ref: '#/components/messages/LegalHoldReleased'}
+
+operations:
+  publishPagePublished:
+    action: send
+    channel: {$ref: '#/channels/sites.page.lifecycle.v1'}
+    messages:
+      - $ref: '#/channels/sites.page.lifecycle.v1/messages/PagePublished'
+
+  publishCertRenewed:
+    action: send
+    channel: {$ref: '#/channels/sites.domain.cert.v1'}
+    messages:
+      - $ref: '#/channels/sites.domain.cert.v1/messages/CertRenewed'
+
+components:
+  messages:
+    SitePublished:
+      name: SitePublished
+      contentType: application/cloudevents+json
+      payload: {$ref: '#/components/schemas/SitePublishedPayload'}
+
+    SiteUnpublished:
+      name: SiteUnpublished
+      contentType: application/cloudevents+json
+      payload: {$ref: '#/components/schemas/SiteUnpublishedPayload'}
+
+    SiteDeleted:
+      name: SiteDeleted
+      contentType: application/cloudevents+json
+      payload: {$ref: '#/components/schemas/SiteDeletedPayload'}
+
+    PagePublished:
+      name: PagePublished
+      contentType: application/cloudevents+json
+      payload: {$ref: '#/components/schemas/PagePublishedPayload'}
+
+    PageReverted:
+      name: PageReverted
+      contentType: application/cloudevents+json
+      payload: {$ref: '#/components/schemas/PageRevertedPayload'}
+
+    PageDeleted:
+      name: PageDeleted
+      contentType: application/cloudevents+json
+      payload: {$ref: '#/components/schemas/PageDeletedPayload'}
+
+    DomainBound:
+      name: DomainBound
+      payload: {$ref: '#/components/schemas/DomainBoundPayload'}
+
+    DomainUnbound:
+      name: DomainUnbound
+      payload: {$ref: '#/components/schemas/DomainUnboundPayload'}
+
+    CertIssued:
+      name: CertIssued
+      payload: {$ref: '#/components/schemas/CertIssuedPayload'}
+
+    CertRenewed:
+      name: CertRenewed
+      payload: {$ref: '#/components/schemas/CertRenewedPayload'}
+
+    CertRevoked:
+      name: CertRevoked
+      payload: {$ref: '#/components/schemas/CertRevokedPayload'}
+
+    CmsCollectionUpdated:
+      name: CmsCollectionUpdated
+      payload: {$ref: '#/components/schemas/CmsCollectionUpdatedPayload'}
+
+    CmsEntryWritten:
+      name: CmsEntryWritten
+      payload: {$ref: '#/components/schemas/CmsEntryWrittenPayload'}
+
+    FormBound:
+      name: FormBound
+      payload: {$ref: '#/components/schemas/FormBoundPayload'}
+
+    AiPageBuildAccepted:
+      name: AiPageBuildAccepted
+      payload: {$ref: '#/components/schemas/AiPageBuildAcceptedPayload'}
+
+    AiPageBuildPostHocReverted:
+      name: AiPageBuildPostHocReverted
+      payload: {$ref: '#/components/schemas/AiPageBuildPostHocRevertedPayload'}
+
+    LegalHoldApplied:
+      name: LegalHoldApplied
+      payload: {$ref: '#/components/schemas/LegalHoldAppliedPayload'}
+
+    LegalHoldReleased:
+      name: LegalHoldReleased
+      payload: {$ref: '#/components/schemas/LegalHoldReleasedPayload'}
+
+  schemas:
+    Envelope:
+      type: object
+      properties:
+        specversion: {type: string, const: "1.0"}
+        type: {type: string, description: "CloudEvents type, e.g., dev.oyatie.sites.page.published.v1"}
+        source: {type: string, description: "URI ref of producer"}
+        id: {type: string, description: "Event UUID"}
+        time: {type: string, format: date-time}
+        tenant_id: {type: string, format: uuid}
+        pack_tag: {type: string}
+        audit_chain_seal_pointer: {type: string, description: "Ed25519 seal pointer per Bominal ADR-0028"}
+
+    SitePublishedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            visibility: {type: string, enum: [public, intranet, private]}
+            owner_user_id: {type: string, format: uuid}
+            content_hash: {type: string}
+
+    SiteUnpublishedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            reason: {type: string}
+
+    SiteDeletedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            two_person_rule_approval_id: {type: string, format: uuid}
+
+    PagePublishedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            page_id: {type: string, format: uuid}
+            version: {type: integer}
+            route: {type: string}
+            content_hash: {type: string}
+            wcag_aa_score: {type: number, format: float, description: "1.0 == 100% conformance"}
+            seo_meta_correctness: {type: number, format: float}
+
+    PageRevertedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            page_id: {type: string, format: uuid}
+            reverted_from_version: {type: integer}
+            reverted_to_version: {type: integer}
+            reason: {type: string}
+
+    PageDeletedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            page_id: {type: string, format: uuid}
+
+    DomainBoundPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            domain: {type: string}
+            dns_verified_at: {type: string, format: date-time}
+
+    DomainUnboundPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            domain: {type: string}
+            reason: {type: string}
+
+    CertIssuedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            domain: {type: string}
+            cert_serial: {type: string}
+            issuer: {type: string}
+            not_before: {type: string, format: date-time}
+            not_after: {type: string, format: date-time}
+
+    CertRenewedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            domain: {type: string}
+            cert_serial: {type: string}
+            prior_serial: {type: string}
+            renewed_at: {type: string, format: date-time}
+
+    CertRevokedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            domain: {type: string}
+            cert_serial: {type: string}
+            reason: {type: string}
+            two_person_rule_approval_id: {type: string, format: uuid}
+
+    CmsCollectionUpdatedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            collection_id: {type: string, format: uuid}
+            schema_version: {type: integer}
+            schema_hash: {type: string}
+
+    CmsEntryWrittenPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            collection_id: {type: string, format: uuid}
+            entry_id: {type: string, format: uuid}
+            fields_hash: {type: string}
+
+    FormBoundPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            page_id: {type: string, format: uuid}
+            form_id: {type: string, format: uuid}
+
+    AiPageBuildAcceptedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            page_id: {type: string, format: uuid}
+            build_id: {type: string, format: uuid}
+            model_id: {type: string}
+            model_version: {type: string}
+            prompt_hash: {type: string}
+            output_hash: {type: string}
+            accepted_by_user_id: {type: string, format: uuid}
+            risk_classification: {type: string, enum: [minimal_risk, limited_risk, high_risk_refused]}
+            context_overlay: {type: string}
+
+    AiPageBuildPostHocRevertedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            site_id: {type: string, format: uuid}
+            page_id: {type: string, format: uuid}
+            build_id: {type: string, format: uuid}
+            reverter_user_id: {type: string, format: uuid}
+            reason: {type: string}
+
+    LegalHoldAppliedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            page_id: {type: string, format: uuid}
+            hold_id: {type: string, format: uuid}
+            opened_by_user_id: {type: string, format: uuid}
+            opened_at: {type: string, format: date-time}
+
+    LegalHoldReleasedPayload:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            page_id: {type: string, format: uuid}
+            hold_id: {type: string, format: uuid}
+            released_by_user_id: {type: string, format: uuid}
+            released_at: {type: string, format: date-time}
+            two_person_rule_approval_id: {type: string, format: uuid}

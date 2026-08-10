@@ -1,0 +1,35 @@
+{{/*
+Per-BC HPA. Sites is CPU + latency bound at the publish + render paths.
+*/}}
+{{- if $.Values.autoscaling.enabled }}
+{{- range $bc := list "site" "page" "block" "theme" "navigation" "url-routing" "domain-binding" "seo" "cms-collection" "search" "cdn-delivery" }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: oya-sites-{{ $bc }}-app-hpa
+  namespace: sites
+  labels:
+    microservice: sites
+    bc: {{ $bc }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: oya-sites-{{ $bc }}-app
+  minReplicas: {{ $.Values.autoscaling.minReplicas }}
+  maxReplicas: {{ $.Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: {{ $.Values.autoscaling.targetCPUUtilizationPercentage }}}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies: [{type: Percent, value: 100, periodSeconds: 30}]
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies: [{type: Percent, value: 10, periodSeconds: 60}]
+{{- end }}
+{{- end }}

@@ -1,0 +1,22 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-sites-block-adapter-loro
+role: adapter
+context: sites
+bc: block
+plane: data
+slo: preview-data-plane
+contracts_consumed: [oya-sites-block-kernel.port.BlockStore]
+contracts_exposed: []
+backend: loro-crdt
+backend_lts_pin: "1.x"
+backend_residency: per-pack
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-SITES-0001]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, PUBLIC_BY_TENANT_CHOICE]
+notes: |
+  Backend-qualified adapter per ADR-0105 Amendment 3. Loro CRDT engine
+  aligned with docs + sheets + slides + workflow-studio µservices per
+  ADR-WS-0001 + sibling docs ADR-DOCS-0001. Per-tenant CRDT log
+  namespace; cross-tenant op refused at session-token validation.

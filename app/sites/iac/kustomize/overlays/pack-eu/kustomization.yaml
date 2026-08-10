@@ -1,0 +1,38 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+# Kustomize overlay — pack-eu (GDPR + ePrivacy + EU AI Act + EU DSA + eIDAS + NIS2).
+# Per ADR-0131 + ADR-0133.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sites
+
+resources:
+  - ../../base
+
+commonLabels:
+  oyatie.dev/pack: eu
+  oyatie.dev/data-residency: eu-frankfurt-1
+
+configMapGenerator:
+  - name: oya-sites-pack-config
+    namespace: sites
+    literals:
+      - PACK_REGION=eu
+      - DATA_RESIDENCY=eu-frankfurt-1
+      - DEFAULT_LOCALE=de-DE
+      - DEFAULT_TIMEZONE=Europe/Berlin
+      - GDPR_ART_17_ERASURE=enabled
+      - EU_AI_ACT_ART_50_LABEL=enforce
+      - EU_AI_ACT_ANNEX_III_3_HR_REFUSE=enforce
+      - EU_DSA_ART_14_TRANSPARENCY=enforce
+      - EPRIVACY_ART_5_3_CONSENT=enforce
+      - EIDAS_ART_26_ADES=enabled
+      - NIS2_INCIDENT_24H_72H=enabled
+      - LLM_PROVIDER_PACK_RESTRICTION=eu-only
+
+patches:
+  - target: {kind: Deployment, name: oya-sites-page-app}
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/env/2/value
+        value: eu
