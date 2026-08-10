@@ -653,7 +653,7 @@
 
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-network
-  deliverables_landed: network/coherence-audit-2026-05-20.md (668 lines); network/feature-parity-matrix-2026-05-20.md (411 lines); network/performance-benchmark-numbers-2026-05-20.md (422 lines); microservices/cloud-network/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (355 lines)
+  deliverables_landed: network/coherence-audit-2026-05-20.md (668 lines); network/feature-parity-matrix-2026-05-20.md (411 lines); network/performance-benchmark-numbers-2026-05-20.md (422 lines); network/tenant-class-adoption-deltas-vs-counterparts-2026-05-20.md (355 lines)
   inventory_files_seen: 10
   inventory_lines_read: 1942
   chat_history_matches_processed: 52
