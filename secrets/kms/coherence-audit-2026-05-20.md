@@ -5,20 +5,20 @@ microservice: cloud-kms
 status: landed
 owner: solo-audit-agent
 date: 2026-05-20
-write_scope: /Users/jasonlee/oyatie/microservices/cloud-kms/
+write_scope: /Users/jasonlee/oyatie/secrets/kms/
 read_scope: canonical direction, cloud-kms artifacts, reverse references, chat history, official counterpart docs
 
 ## Citation Anchor Block
 
 1. Canonical deployment/IaC/OS/language/OCI audit rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2235`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2494`, `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable canonical sequence: `specs/master-plan-sequencing.json:704-868`, including deployment contexts, OpenTofu substrate, OS matrix, Rust language policy, and OCI Always Free profile.
-3. Microservice-owned product purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `microservices/cloud-kms/faqs/kms-engineer-faq.md:7-12`, with the missing local `PRD.md` recorded as a finding.
+3. Microservice-owned product purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `secrets/kms/faqs/kms-engineer-faq.md:7-12`, with the missing local `PRD.md` recorded as a finding.
 4. Architecture equivalent read: `crates/oya-cloud-kms-domain/src/lib.rs:1-7`, `contracts/openapi/cloud/cloud-kms-v1.yaml:1-12`, `docs/products/cloud/PRD.md:121-121`, because `microservices/cloud-kms/ARCHITECTURE.md` is absent.
 5. Documentation rigor anchors: `docs/standards/documentation-rigor.md:133-190`, `docs/standards/brief-template.md:101-117`, `docs/standards/brief-template.md:666-1304`, `docs/standards/brief-template.md:1720-1854`.
 
 ## Executive Verdict
 
-This audit did not find a source tree for a deployable cloud-kms service under `microservices/cloud-kms/`.
+This audit did not find a source tree for a deployable cloud-kms service under `secrets/kms/`.
 The local path contains ten documentation artifacts and no local PRD, architecture file, OpenAPI contract, OpenSLO file, OpenTofu context directory, supported OS manifest, Rust source, or local tests.
 The repo does contain canonical cloud-kms runtime artifacts outside the microservice path: `contracts/openapi/cloud/cloud-kms-v1.yaml`, `crates/oya-cloud-kms-domain`, `crates/oya-cloud-kms-api`, and `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs`.
 That split is the central coherence problem.
@@ -42,7 +42,7 @@ Layer one is currently implemented in Rust as policy-bound authorization and rec
 Layer two is described in local docs as a broader KMS control plane for lifecycle, custody, HSM partitions, rotation, cryptoshredding, and external provider adapters.
 The current artifacts do not yet reconcile those layers.
 The local documentation reads like a mature key-management service.
-The local machine-readable surface under `microservices/cloud-kms/` reads like a documentation-only pack.
+The local machine-readable surface under `secrets/kms/` reads like a documentation-only pack.
 The repo-level contract and crates prove there is implementation elsewhere, but they are not mirrored or owned in the microservice folder.
 For Wave 14 aggregation, cloud-kms should be treated as a high-risk Phase 0 service with a real Rust nucleus and an incomplete ownership envelope.
 
@@ -124,9 +124,9 @@ Severity for Dimension 1: P1 for local ownership-envelope gaps and P2 for intern
 ### Section 3.2 - Dimension 2: Outbound Cross-References
 
 Dimension verdict: drifted-fixable with missing reciprocal ownership evidence.
-Outbound reference 1: `microservices/cloud-kms/runbooks/hsm-cluster-failover.md:250-262` names cloud-iam, cloud-network, foundry, audit-chain, tenancy, cloud-billing, observability, comms-email, security, compliance, support, and workflow-engine. These are plausible dependencies, but no local handoff file exists.
-Outbound reference 2: `microservices/cloud-kms/runbooks/key-material-quorum-loss.md:250-262` repeats the same cross-service handoff set. Target services mostly exist, but reciprocal handoffs are not centralized.
-Outbound reference 3: `microservices/cloud-kms/runbooks/rotation-cadence-drift-detection.md:248-260` repeats cross-service handoffs. The pattern is consistent but not linked to `cross-microservice-handoffs.md`, which is absent.
+Outbound reference 1: `secrets/kms/runbooks/hsm-cluster-failover.md:250-262` names cloud-iam, cloud-network, foundry, audit-chain, tenancy, cloud-billing, observability, comms-email, security, compliance, support, and workflow-engine. These are plausible dependencies, but no local handoff file exists.
+Outbound reference 2: `secrets/kms/runbooks/key-material-quorum-loss.md:250-262` repeats the same cross-service handoff set. Target services mostly exist, but reciprocal handoffs are not centralized.
+Outbound reference 3: `secrets/kms/runbooks/rotation-cadence-drift-detection.md:248-260` repeats cross-service handoffs. The pattern is consistent but not linked to `cross-microservice-handoffs.md`, which is absent.
 Outbound reference 4: `faqs/kms-engineer-faq.md:132-136` references cloud-iam. Reverse references exist in cloud-iam runbooks: `microservices/cloud-iam/runbooks/federated-identity-provider-stall.md:129`, `:162`, `:239`, `:249`.
 Outbound reference 5: `faqs/kms-engineer-faq.md:172-176` references Foundry hooks and audit evidence. Reverse references appear in `docs/products/cloud/PRD.md:549` and runtime bindings, but no local event schema file exists.
 Outbound reference 6: `migration-playbooks/from-aws-kms-and-vault-enterprise.md:11-38` references AWS KMS and Vault Enterprise. It does not include Google Cloud KMS despite Google being one of the top-3 counterparts for this audit.
@@ -163,7 +163,7 @@ Severity for Dimension 2: P1 for missing local handoff and SLO anchors; P2 for s
 ### Section 3.3 - Dimension 3: Substance Bar and Intern-Buildability
 
 Dimension verdict: not intern-buildable from the microservice path alone.
-The docs are substantive in their domain content, but they are not sufficient to let a cold intern build or deploy cloud-kms end to end from `microservices/cloud-kms/`.
+The docs are substantive in their domain content, but they are not sufficient to let a cold intern build or deploy cloud-kms end to end from `secrets/kms/`.
 The missing local PRD prevents a reader from seeing the service problem statement, personas, hard non-goals, product boundaries, and acceptance criteria in one place.
 The missing local architecture document prevents a reader from understanding how the domain crate, API crate, adapters, HSMs, provider KMSes, OpenBao/Vault, cloud-iam, audit-chain, cloud-iac, and observability fit together.
 The missing local OpenAPI contract is especially important because the repo-level contract is stable and real, yet the microservice folder does not point to it.
@@ -425,17 +425,17 @@ Severity for Dimension 8: P1.
 ### Section 3.9 - Dimension 9: Rust-Strict Language Coverage
 
 Dimension verdict: source-file clean, workflow-doc drift.
-Forbidden source scan result: no `.py` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.js` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.ts` or `.tsx` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.rb` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.go` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.java` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.scala` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.groovy` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.php` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.fs` or `.fsx` files under `microservices/cloud-kms/`.
-Forbidden source scan result: no `.cs` files under `microservices/cloud-kms/`.
+Forbidden source scan result: no `.py` files under `secrets/kms/`.
+Forbidden source scan result: no `.js` files under `secrets/kms/`.
+Forbidden source scan result: no `.ts` or `.tsx` files under `secrets/kms/`.
+Forbidden source scan result: no `.rb` files under `secrets/kms/`.
+Forbidden source scan result: no `.go` files under `secrets/kms/`.
+Forbidden source scan result: no `.java` files under `secrets/kms/`.
+Forbidden source scan result: no `.scala` files under `secrets/kms/`.
+Forbidden source scan result: no `.groovy` files under `secrets/kms/`.
+Forbidden source scan result: no `.php` files under `secrets/kms/`.
+Forbidden source scan result: no `.fs` or `.fsx` files under `secrets/kms/`.
+Forbidden source scan result: no `.cs` files under `secrets/kms/`.
 Authorized markdown: all ten local files are `.md`, allowed by ADR-0328 language policy.
 Authorized YAML/JSON/OpenAPI/Proto files: none local.
 Authorized Cedar files: none local.
@@ -467,7 +467,7 @@ Severity for Dimension 9: P1 for canonical workflow drift; no P0/P1 forbidden so
 |---|---|---|---|---|
 | P1 | 1,3 | Local PRD is absent for a Phase 0 service with broad external dependencies. | `docs/standards/documentation-rigor.md:175-190`; inventory in Section 2 | Add `PRD.md` with purpose, personas, API scope, non-goals, and acceptance criteria. |
 | P1 | 1,3 | Local architecture doc is absent; closest architecture is outside path. | `crates/oya-cloud-kms-domain/src/lib.rs:1-7`; inventory in Section 2 | Add `ARCHITECTURE.md` mapping domain/API/adapters/HSM/audit/cloud-iac. |
-| P1 | 2,3 | Local contract folder absent despite stable repo contract bindings. | `docs/SPEC.md:155`; `registry/openapi/runtime-bindings.tsv:5-6` | Add local contract pointer or mirrored ownership manifest under `microservices/cloud-kms/contracts/`. |
+| P1 | 2,3 | Local contract folder absent despite stable repo contract bindings. | `docs/SPEC.md:155`; `registry/openapi/runtime-bindings.tsv:5-6` | Add local contract pointer or mirrored ownership manifest under `secrets/kms/contracts/`. |
 | P1 | 1,3 | SLO files absent despite four tenant_class SLO claims. | `retired tenant_class adoption artifact:24-25`; `:42-43`; `:60-61`; `:78-79` | Add OpenSLO specs per tenant_class and context. |
 | P1 | 4,6,7 | Six deployment contexts have no local manifest or IaC directories. | `specs/master-plan-sequencing.json:704-746`; `docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:1730-2235` | Add context manifest and OpenTofu modules or explicit N/A records. |
 | P1 | 7 | OpenTofu coverage absent for all required context paths. | `specs/master-plan-sequencing.json:747-776`; `feedback_zero_handroll_opentofu_only_2026_05_20.md:20-35` | Add `iac/<context>/` with pinned OpenTofu modules, state backend, signing, and README. |
@@ -496,7 +496,7 @@ P3: 2.
 
 ## Section 5 - Open Questions for Wave 14 Aggregation
 
-Open question 1: Should `microservices/cloud-kms/` own local copies of contracts and Rust crate pointers, or should the repo standard define a machine-readable microservice ownership manifest that points to `contracts/` and `crates/`?
+Open question 1: Should `secrets/kms/` own local copies of contracts and Rust crate pointers, or should the repo standard define a machine-readable microservice ownership manifest that points to `contracts/` and `crates/`?
 Open question 2: Should cloud-kms expose full KMS control-plane APIs locally, or should it intentionally remain an authorization/receipt API while another service owns key CRUD?
 Open question 3: Is Vault in Oyatie an internal backing substrate, an external counterpart, or both, and how should "Vault Enterprise" docs be reconciled with the audit requirement for self-hosted HashiCorp Vault?
 Open question 4: Should Google Cloud KMS become a first-class migration playbook because it is in the top-3 counterpart set?
@@ -591,9 +591,9 @@ The Rust source scan is clean for forbidden local source files, but docs need to
 <!-- ORCHESTRATOR REPORT
   microservice: cloud-kms
   deliverables_landed:
-    - /Users/jasonlee/oyatie/microservices/cloud-kms/coherence-audit-2026-05-20.md (609 lines)
-    - /Users/jasonlee/oyatie/microservices/cloud-kms/feature-parity-matrix-2026-05-20.md (411 lines)
-    - /Users/jasonlee/oyatie/microservices/cloud-kms/performance-benchmark-numbers-2026-05-20.md (314 lines)
+    - /Users/jasonlee/oyatie/secrets/kms/coherence-audit-2026-05-20.md (609 lines)
+    - /Users/jasonlee/oyatie/secrets/kms/feature-parity-matrix-2026-05-20.md (411 lines)
+    - /Users/jasonlee/oyatie/secrets/kms/performance-benchmark-numbers-2026-05-20.md (314 lines)
     - /Users/jasonlee/oyatie/microservices/cloud-kms/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (370 lines)
   inventory_files_seen: 10
   inventory_lines_read: 1942

@@ -1,7 +1,7 @@
 # cloud-secrets coherence audit - 2026-05-20
 
 Audit owner: sole-agent Wave 2 Batch 2.1 microservice ownership-coherence audit.
-Scope: `/Users/jasonlee/oyatie/microservices/cloud-secrets/` only.
+Scope: `/Users/jasonlee/oyatie/secrets/` only.
 Target microservice: `cloud-secrets`.
 Deployable-context assumption under test: all six canonical contexts unless evidence proves a correctly documented N/A.
 Counterpart bar: AWS Secrets Manager, Google Secret Manager, HashiCorp Vault Secrets.
@@ -50,7 +50,7 @@ Chat-history source: `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/8f
 
 ## §2 Inventory snapshot
 
-Total files seen under `microservices/cloud-secrets/`: 134.
+Total files seen under `secrets/`: 134.
 Total service lines audited by inventory pass: 20,339.
 Inventory source: recursive file listing plus `wc -l` over service files.
 
@@ -616,7 +616,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 
 1. Rust-strict headline: actual source-file scan is clean; documentation/build plans are not clean.
 2. Source scan included forbidden extensions `.py`, `.js`, `.ts`, `.tsx`, `.rb`, `.pl`, `.php`, `.java`, `.scala`, `.groovy`, `.go`, `.fs`, `.fsx`, `.cs`, plus package/build manifests.
-3. Source scan found zero forbidden implementation files under `microservices/cloud-secrets/`.
+3. Source scan found zero forbidden implementation files under `secrets/`.
 4. This means no P0 forbidden code-file finding is warranted from current service inventory.
 5. Whitelisted non-Rust files present include Markdown, YAML, JSON, Proto, OpenSLO YAML, SQL, HCL, and Cedar.
 6. `.md` files are authorized documentation.

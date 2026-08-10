@@ -10,7 +10,7 @@ counterpart_set: AWS KMS / Google Cloud KMS / HashiCorp Vault self-hosted
 
 1. Canonical audit mandate: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Canonical machine-readable constraints: `specs/master-plan-sequencing.json:704-868`.
-3. Local microservice purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `microservices/cloud-kms/faqs/kms-engineer-faq.md:7-12`.
+3. Local microservice purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `secrets/kms/faqs/kms-engineer-faq.md:7-12`.
 4. Runtime/contract anchor: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `crates/oya-cloud-kms-domain/src/lib.rs:1-113`.
 5. Documentation rigor: `docs/standards/documentation-rigor.md:133-190`, `docs/standards/brief-template.md:1720-1854`.
 
@@ -391,7 +391,7 @@ Wave 14 should treat this service as a real Rust nucleus with a missing KMS cont
 
 Classification note 01: "present" means the current repo has either local docs plus repo-level code/contract evidence, not merely aspirational prose.
 Classification note 02: "present-doc" means the local microservice path documents the capability but this audit did not find a local machine-readable contract or implementation pointer.
-Classification note 03: "present-repo" means the capability exists in `contracts/` or `crates/` but is not represented inside `microservices/cloud-kms/`.
+Classification note 03: "present-repo" means the capability exists in `contracts/` or `crates/` but is not represented inside `secrets/kms/`.
 Classification note 04: "present-additive" means Oyatie has a stronger or more specific product concept than the counterparts, but may still need enforcement artifacts.
 Classification note 05: "gap-api" means the capability needs an OpenAPI/gRPC/event contract or an explicit non-goal decision.
 Classification note 06: "gap-iac" means the capability depends on deployable substrate modules under OpenTofu context directories.

@@ -29,7 +29,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/quorum?orgId=1&var-cell=prod-us-east-1`.
 - Custody dashboard: `https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/operator-custody?orgId=1&var-tenant_class=paid`.
 - Loki query: `{namespace="cloud-kms",runbook="key-material-quorum-loss"}`.
-- Canonical FAQ: `microservices/cloud-kms/faqs/kms-engineer-faq.md`.
+- Canonical FAQ: `secrets/kms/faqs/kms-engineer-faq.md`.
 - Related action: `cloud_kms::Action::Cryptoshred`.
 - Related action: `cloud_kms::Action::RotateCmk`.
 - Related action: `cloud_kms::Action::ImportByokMaterial`.

@@ -17,9 +17,9 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-kms/manifest.json
-  - microservices/cloud-kms/PRD.md
-  - microservices/cloud-kms/README.md
+  - secrets/kms/manifest.json
+  - secrets/kms/PRD.md
+  - secrets/kms/README.md
 ---
 
 # Architecture: Cloud KMS

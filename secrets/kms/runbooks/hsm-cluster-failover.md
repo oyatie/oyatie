@@ -30,8 +30,8 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/hsm-clusters?orgId=1&var-cell=prod-us-east-1`.
 - Crypto dashboard: `https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/crypto-ops?orgId=1&var-tenant_class=paid`.
 - Loki query: `{namespace="cloud-kms",runbook="hsm-cluster-failover"}`.
-- Canonical FAQ: `microservices/cloud-kms/faqs/kms-engineer-faq.md`.
-- Related tutorial: `microservices/cloud-kms/tutorials/envelope-encrypt-rotate-and-cryptoshred.md`.
+- Canonical FAQ: `secrets/kms/faqs/kms-engineer-faq.md`.
+- Related tutorial: `secrets/kms/tutorials/envelope-encrypt-rotate-and-cryptoshred.md`.
 
 ## Trigger Conditions
 - Alert `CloudKmsHsmClusterDegradedCritical` fires.

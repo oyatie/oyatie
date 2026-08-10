@@ -21,7 +21,7 @@ related_adrs:
 
 ## Scope
 
-cloud-secrets owns OpenBao-backed key handles, per-pack signing keys, and TTL rotation for j99-cross-jurisdiction-multi-pack-conflict-resolution. The slice is a flat per-microservice implementation plan under microservices/cloud-secrets/, matching ADR-0131.
+cloud-secrets owns OpenBao-backed key handles, per-pack signing keys, and TTL rotation for j99-cross-jurisdiction-multi-pack-conflict-resolution. The slice is a flat per-microservice implementation plan under secrets/, matching ADR-0131.
 The service participates in EU-GDPR + US-CCPA + KR-PIPA + AU-Privacy; exact article anchors are inherited from the journey and repeated below for implementer cold-start buildability.
 
 ## Exact regulatory anchors

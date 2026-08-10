@@ -29,8 +29,8 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/rotation?orgId=1&var-cell=prod-us-east-1`.
 - Compliance dashboard: `https://grafana.dev.oyatie.internal/d/cloud-kms-substrate/compliance-evidence?orgId=1&var-surface=rotation`.
 - Loki query: `{namespace="cloud-kms",runbook="rotation-cadence-drift-detection"}`.
-- Canonical FAQ: `microservices/cloud-kms/faqs/kms-engineer-faq.md`.
-- Related migration guide: `microservices/cloud-kms/migration-playbooks/from-aws-kms-and-vault-enterprise.md`.
+- Canonical FAQ: `secrets/kms/faqs/kms-engineer-faq.md`.
+- Related migration guide: `secrets/kms/migration-playbooks/from-aws-kms-and-vault-enterprise.md`.
 
 ## Trigger Conditions
 - Alert `CloudKmsRotationCadenceDrift` fires.

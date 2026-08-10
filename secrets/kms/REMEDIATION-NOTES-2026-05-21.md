@@ -1,7 +1,7 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- None; inventory found no Redis references in `microservices/cloud-kms/`.
+- None; inventory found no Redis references in `secrets/kms/`.
 
 Counterpart-fact preservations:
 - None.
@@ -11,7 +11,7 @@ Files renamed (git mv):
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
-D3-BUCKET-1 did not modify `PRD.md` because `microservices/cloud-kms/PRD.md` and `microservices/cloud-kms/manifest.json` are absent. The D-3 procedure requires manifest-bound values before PRD doctrine can be propagated.
+D3-BUCKET-1 did not modify `PRD.md` because `secrets/kms/PRD.md` and `secrets/kms/manifest.json` are absent. The D-3 procedure requires manifest-bound values before PRD doctrine can be propagated.
 
 Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_version_pinning, or OSS stewardship declarations were available. ADRs implicated once artifacts exist: ADR-0338, ADR-0340, ADR-0342 if public/operator key APIs exist, ADR-0343, ADR-0344, and ADR-0345; ADR-0341 likely applies because key custody is cell-placement sensitive; ADR-0339 applies only if `iac/<context>/` wrappers exist. Alternatives considered: infer KMS posture from billing invoice-signing needs or cloud-k8s control-plane encryption; rejected because key custody and HSM/BYOK behavior need their own manifest truth. Cost: missing PRD/manifest keeps KMS doctrine propagation blocked until foundational artifacts exist.
 
@@ -53,7 +53,7 @@ Follow-ups:
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-kms/README.md, microservices/cloud-kms/feature-parity-matrix-2026-05-20.md, microservices/cloud-kms/runbooks/hsm-cluster-failover.md.
+- Values: pod_runtime_tier=1; evidence=secrets/kms/README.md, secrets/kms/feature-parity-matrix-2026-05-20.md, secrets/kms/runbooks/hsm-cluster-failover.md.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-0.
 - Why: Foundation key-management substrate: cloud-kms touches tenant key metadata, HSM operations, signing, and crypto-shred receipts, matching ADR-0338 Tier-1 and ADR-0340 Tier-0 placement.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.
