@@ -51,9 +51,17 @@ for hole in ("kernel", "base", "app"):
         raise SystemExit(f"missing forward-declared root {hole}")
 if "process_meta" not in e["planes"]:
     raise SystemExit("missing planes.process_meta")
+# root-ops-contract-route: root survival hubs + .cursor must be routable via process_meta
+pm_globs = set(e["planes"]["process_meta"].get("envelope_globs") or [])
+need_pm = {"AGENTS.md", "CLAUDE.md", "README.md", ".cursor/**"}
+missing_pm = sorted(need_pm - pm_globs)
+if missing_pm:
+    raise SystemExit(f"planes.process_meta missing root-ops globs: {missing_pm}")
+if e["planes"]["process_meta"].get("branch") != "integ/ci":
+    raise SystemExit("planes.process_meta.branch must remain integ/ci (forever owner)")
 print("ok")
 PY
-if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift + merge_windows + holes"; fi
+if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift + merge_windows + holes + root-ops process_meta"; fi
 
 # 2) Registry ↔ envelopes concurrent-safe parity (narrowed evidence)
 python3 - "$ENVELOPES" "$REGISTRY" <<'PY' || fail_msg "concurrent-safe parity"
