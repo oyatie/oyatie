@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.13.1",
+    "version": "1.14.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -43,7 +43,7 @@
       "envelope_globs": [
         "app/**"
       ],
-      "note": "Forward-declared multi-capability tenant composition root (ADR-0562/0615). Directory may be vacant until compositions land; Claim still routes app/** here.",
+      "note": "Composition glue + non-product-owned app/** only (programme plan rule 3d). Durable multi-month products claim via integ/<product> with app/<product>/**; integ/app MUST NOT own all products.",
       "forward_declared": true
     },
     "audit": {
@@ -120,6 +120,14 @@
         "console/**"
       ]
     },
+    "crm": {
+      "branch": "integ/crm",
+      "envelope_globs": [
+        "app/crm/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/crm/**; rehome from oya/crm. Product subtree claims via integ/crm — integ/app is composition glue only.",
+      "forward_declared": true
+    },
     "data": {
       "branch": "integ/data",
       "envelope_globs": [
@@ -167,6 +175,14 @@
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
+    "itsm": {
+      "branch": "integ/itsm",
+      "envelope_globs": [
+        "app/itsm/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/itsm/**; rehome from oya/itsm. Product subtree claims via integ/itsm — integ/app is composition glue only.",
+      "forward_declared": true
+    },
     "k8s": {
       "branch": "integ/k8s",
       "envelope_globs": [
@@ -208,12 +224,28 @@
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
+    "notes": {
+      "branch": "integ/notes",
+      "envelope_globs": [
+        "app/notes/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/notes/**; rehome from oya/notes. Product subtree claims via integ/notes — integ/app is composition glue only.",
+      "forward_declared": true
+    },
     "observability": {
       "branch": "integ/observability",
       "envelope_globs": [
         "observability/**"
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "office": {
+      "branch": "integ/office",
+      "envelope_globs": [
+        "app/office/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/office/**; rehome from oya/office. Product subtree claims via integ/office — integ/app is composition glue only.",
+      "forward_declared": true
     },
     "os": {
       "branch": "integ/os",
@@ -226,6 +258,14 @@
       "envelope_globs": [
         "oya/**"
       ]
+    },
+    "payments": {
+      "branch": "integ/payments",
+      "envelope_globs": [
+        "app/payments/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/payments/**; rehome from oya/payments. Product subtree claims via integ/payments — integ/app is composition glue only.",
+      "forward_declared": true
     },
     "policy": {
       "branch": "integ/policy",
@@ -246,6 +286,22 @@
         "secrets/**"
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "sheets": {
+      "branch": "integ/sheets",
+      "envelope_globs": [
+        "app/sheets/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/sheets/**; rehome from oya/sheets. Product subtree claims via integ/sheets — integ/app is composition glue only.",
+      "forward_declared": true
+    },
+    "slides": {
+      "branch": "integ/slides",
+      "envelope_globs": [
+        "app/slides/**"
+      ],
+      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/slides/**; rehome from oya/slides. Product subtree claims via integ/slides — integ/app is composition glue only.",
+      "forward_declared": true
     },
     "storage": {
       "branch": "integ/storage",
