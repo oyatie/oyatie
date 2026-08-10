@@ -37,8 +37,8 @@ Rough vocabulary replacements in this service: about 175. Corpus-wide assigned b
 
 ## Verification
 
-- `rg -i 'bronze|silver|gold|platinum' microservices/cloud-billing/ | grep -v REMEDIATION-NOTES | grep -v capability-tiers` returns zero matches.
-- `rg -i 'capability_tier|max_tier|tier_threshold' microservices/cloud-billing/ | grep -v REMEDIATION-NOTES` returns zero matches.
+- `rg -i 'bronze|silver|gold|platinum' billing/ | grep -v REMEDIATION-NOTES | grep -v capability-tiers` returns zero matches.
+- `rg -i 'capability_tier|max_tier|tier_threshold' billing/ | grep -v REMEDIATION-NOTES` returns zero matches.
 - `ls microservices/cloud-billing/capability-tiers/` reports no such file or directory.
 
 ## Outstanding follow-ups

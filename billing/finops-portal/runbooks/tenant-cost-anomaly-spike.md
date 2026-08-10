@@ -79,9 +79,9 @@ doc_status: published
 19. Inspect feature flags: `oya flags get oya.finops-portal.tenant_cost_anomaly_spike.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status finops-portal-tenant-cost-anomaly-spike-circuit-breaker --cell $CELL --tenant $TENANT`.
 21. Check recent deploy: `kubectl -n finops-portal rollout history deploy/finops-portal-tenant-cost-anomaly-spike-worker | tail -20`.
-22. Check policy file: `test -f billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar || find microservices/finops-portal/policy -maxdepth 2 -type f | sort`.
-23. Check SLO files: `ls microservices/finops-portal/slos/*.openslo.yaml | sort | rg "tenant|tenant"`.
-24. Check catalog components: `find microservices/finops-portal/catalog -maxdepth 1 -type f | sort | rg "budget|forecasting|showback|chargeback|rightsizing|commitment"`.
+22. Check policy file: `test -f billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar || find billing/finops-portal/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls billing/finops-portal/slos/*.openslo.yaml | sort | rg "tenant|tenant"`.
+24. Check catalog components: `find billing/finops-portal/catalog -maxdepth 1 -type f | sort | rg "budget|forecasting|showback|chargeback|rightsizing|commitment"`.
 25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from finops_portal_tenant_cost_anomaly_spike_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
 26. Confirm no cross-cell spread: `oya ops cells query --metric oya_finops_portal_tenant_cost_anomaly_spike_error_ratio --window 30m --threshold 0.02`.
 27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice finops-portal --runbook tenant-cost-anomaly-spike --output evidence/incidents/$INCIDENT_ID.json`.
@@ -148,7 +148,7 @@ Tenant Cost Anomaly Spike incident decision tree
   - Required audit: emit `EVT_FINOPS_PORTAL_TENANT_COST_ANOMALY_SPIKE_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "tenant_cost_anomaly_spike|FinopsPortalTenantCostAnomalySpikeCritical|finops_portal.tenant_cost_anomaly_spike.incident_state" crates microservices/finops-portal -g "!microservices/finops-portal/runbooks/**"`.
+1. Identify code owner path: `rg "tenant_cost_anomaly_spike|FinopsPortalTenantCostAnomalySpikeCritical|finops_portal.tenant_cost_anomaly_spike.incident_state" crates microservices/finops-portal -g "!billing/finops-portal/runbooks/**"`.
 2. Patch domain invariant: `edit oya-cloud-finops-domain where tenant_cost_anomaly_spike state transition is validated`.
 3. Patch API guard: `edit billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar with explicit deny/permit branch and tenant/cell scope`.
@@ -178,8 +178,8 @@ Tenant Cost Anomaly Spike incident decision tree
 - `billing/finops-portal/contracts/focus-export-internal.asyncapi.yaml`: verify request/response or event contract only when incident evidence points there.
 - `billing/finops-portal/contracts/cost-allocation-policy-internal.proto`: verify request/response or event contract only when incident evidence points there.
 - `billing/finops-portal/dashboards/tenant-cost-drilldown.grafana.json`: verify panel coverage for `oya_finops_portal_tenant_cost_anomaly_spike_error_ratio`, `oya_finops_portal_tenant_cost_anomaly_spike_lag_seconds`, and `oya_finops_portal_tenant_cost_anomaly_spike_allocation_delta_cents`.
-- `microservices/finops-portal/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
-- `microservices/finops-portal/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
+- `billing/finops-portal/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `billing/finops-portal/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
 ## Verification Checklist
 - `FinopsPortalTenantCostAnomalySpikeCritical` and `FinopsPortalTenantCostAnomalySpikeSloBurn` are both resolved in Alertmanager for 30 minutes.
@@ -274,8 +274,8 @@ evidence_hash: <sha256>
 - Close only after `EVT_FINOPS_PORTAL_TENANT_COST_ANOMALY_SPIKE_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/finops-portal/dashboards/` for dashboard names and operational panels: tenant-cost-drilldown.grafana.json, budget-alerts.grafana.json, rightsizing-recommendations.grafana.json, anomaly-investigation.grafana.json.
-- `microservices/finops-portal/slos/` for OpenSLO alert vocabulary and threshold alignment: tenant-invoice-render-latency.openslo.yaml, focus-export-availability.openslo.yaml, cost-allocation-policy-change-latency.openslo.yaml, anomaly-explanation-latency.openslo.yaml.
-- `microservices/finops-portal/policy/` for named policy and authorization surfaces: policy/cedar/ops-finops-dashboard-access.cedar, policy/cedar/tenant-isolation.cedar, policy/cedar/regulator-evidence-emit.cedar.
-- `microservices/finops-portal/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/tenant-invoice-public.openapi.yaml, contracts/focus-export-internal.asyncapi.yaml, contracts/cost-allocation-policy-internal.proto.
-- `microservices/finops-portal/catalog/` for component and owner vocabulary; existing runbook topic `tenant-cost-anomaly-spike` was preserved as the scenario anchor.
+- `billing/finops-portal/dashboards/` for dashboard names and operational panels: tenant-cost-drilldown.grafana.json, budget-alerts.grafana.json, rightsizing-recommendations.grafana.json, anomaly-investigation.grafana.json.
+- `billing/finops-portal/slos/` for OpenSLO alert vocabulary and threshold alignment: tenant-invoice-render-latency.openslo.yaml, focus-export-availability.openslo.yaml, cost-allocation-policy-change-latency.openslo.yaml, anomaly-explanation-latency.openslo.yaml.
+- `billing/finops-portal/policy/` for named policy and authorization surfaces: policy/cedar/ops-finops-dashboard-access.cedar, policy/cedar/tenant-isolation.cedar, policy/cedar/regulator-evidence-emit.cedar.
+- `billing/finops-portal/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/tenant-invoice-public.openapi.yaml, contracts/focus-export-internal.asyncapi.yaml, contracts/cost-allocation-policy-internal.proto.
+- `billing/finops-portal/catalog/` for component and owner vocabulary; existing runbook topic `tenant-cost-anomaly-spike` was preserved as the scenario anchor.

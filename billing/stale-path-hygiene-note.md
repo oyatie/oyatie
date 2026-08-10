@@ -25,3 +25,16 @@ Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
 
 - Cross-cap observability prometheusrule cites.
 - Any remaining missing historical assets without in-tree counterparts.
+
+## Wave-4 Seat A follow-through (2026-08-10)
+
+Continued verified remaps:
+
+- `microservices/cloud-billing/slos/**` → `billing/observability/slos/**`
+- Additional `contracts/`, `policies/`, `iac/`, `implementation-plans/` directory cites
+- `microservices/finops-portal/**` → `billing/finops-portal/**` where present
+
+### Deferred
+
+- Missing `src/`, `capability-tiers/`, `policies/_tests/`, `runbooks/cell-migration.md`, partial ADR/IP filename stems.
+- No hubs, no `Cargo.lock`, no merge.

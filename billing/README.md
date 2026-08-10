@@ -134,7 +134,7 @@ See `ARCHITECTURE.md` for the full architectural specification.
 ## Directory layout
 
 ```
-microservices/cloud-billing/
+billing/
 ├── PRD.md                              # Product Requirements
 ├── ARCHITECTURE.md                     # Architecture specification
 ├── README.md                           # This file

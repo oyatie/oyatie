@@ -59,7 +59,7 @@ Root pointer read: `specs/root-hub-pointers.json`.
 
 Operating contract read: `docs/AGENTS.md`.
 
-Microservice directory inspected: `microservices/cloud-billing/`.
+Microservice directory inspected: `billing/`.
 
 Command evidence used:
 
@@ -67,7 +67,7 @@ Command evidence used:
 - `find microservices/cloud-billing -maxdepth 3 -type d`
 - `wc -l $(rg --files microservices/cloud-billing | sort)`
 - `rg -n "CB-F-00[1-9]|CB-F-010|CB-F-011|CB-F-012|P0" billing/coherence-audit-2026-05-20.md`
-- `ls -la microservices/cloud-billing/decisions microservices/cloud-billing/implementation-plans microservices/cloud-billing/iac microservices/cloud-billing/iac/* microservices/cloud-billing/iac/oci-guest/always-free`
+- `ls -la microservices/cloud-billing/decisions billing/implementation-plans billing/iac billing/iac/* microservices/cloud-billing/iac/oci-guest/always-free`
 - `rg -n "foundry|Bronze|Silver|Gold|Platinum|--tier|TIER=" microservices/cloud-billing`
 - `sed -n` reads of PRD, ARCHITECTURE, README, contracts, SLOs, policies, supported-oses, and IaC files.
 
@@ -143,7 +143,7 @@ Existing operational/supporting docs:
 Directory-only artifacts observed:
 
 - `microservices/cloud-billing/decisions/` exists but contains no files.
-- `microservices/cloud-billing/implementation-plans/` exists but contains no files.
+- `billing/implementation-plans/` exists but contains no files.
 - `iac/guest-on-aws/` exists but contains no files.
 - `iac/guest-on-oci/` exists but contains no files.
 - `iac/on-prem/` exists but contains no files.
@@ -614,7 +614,7 @@ This is the honest closure boundary for Wave 15B finalization.
 
 Date: 2026-05-21.
 
-Scope: truth-up every IP-declared crate/type/contract/Cedar-entity reference under `microservices/cloud-billing/`.
+Scope: truth-up every IP-declared crate/type/contract/Cedar-entity reference under `billing/`.
 
 Doctrine references: `feedback_verify_deliverables_not_just_line_count_2026_05_20`, `feedback_no_silent_regression`, ADR-0212 buildability doctrine, ADR-0131 per-µservice flat layout.
 
@@ -625,7 +625,7 @@ IPs scanned: 0.
 Filesystem evidence:
 
 - `find microservices/cloud-billing -name "IP-*.md" -type f` returns no rows.
-- `microservices/cloud-billing/implementation-plans/` is an empty directory (consistent with section 3 directory-only artifact observation above).
+- `billing/implementation-plans/` is an empty directory (consistent with section 3 directory-only artifact observation above).
 - `microservices/cloud-billing/decisions/` is an empty directory (no per-µservice ADR files).
 
 Implication: Wave 15-IP-substance did not author or rewrite any cloud-billing IP files in this tree. The deferred items in section 10 (`IP-001` through `IP-015`) remain unwritten. There are therefore zero stamped IP claims to truth-up for this µservice.

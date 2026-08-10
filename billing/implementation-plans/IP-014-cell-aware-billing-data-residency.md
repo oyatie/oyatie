@@ -193,7 +193,7 @@ For now, cross-cell traffic is gated by the cell-mesh policy (out of scope here)
 
 ### §F.1 Source files (cell topology)
 
-- IaC scaffold under `microservices/cloud-billing/iac/oyatie-public-cloud/` (cell-aware deployment plan).
+- IaC scaffold under `billing/iac/oyatie-public-cloud/` (cell-aware deployment plan).
 - IaC `microservices/cloud-billing/iac/oci-guest/always-free/` (Tier-3 cell for demo_trial).
 - proto3 `DeploymentContext` enum (cloud-billing.proto lines 33–41) signals cell context per RPC.
 

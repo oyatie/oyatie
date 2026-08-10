@@ -236,7 +236,7 @@ The five-phase journey is summarized as a state machine:
 
 ### §F.1 Source files
 
-- All six Cedar fragments under `microservices/cloud-billing/policies/`.
+- All six Cedar fragments under `billing/policies/`.
 - proto3 ConvertTenantToPaid + MutateBillingComponents + IssueInvoice RPCs.
 - `oya-cloud-billing-domain::BillingAccount::new` (lines 530–551).
 - IaC `microservices/cloud-billing/iac/oci-guest/always-free/` (demo_trial substrate).

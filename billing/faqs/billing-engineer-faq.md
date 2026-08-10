@@ -197,4 +197,4 @@ Fraud events anchor to `audit-chain` with severity `Suspicious`.
 
 Foundry pipelines themselves consume `cloud-compute-k8s` minutes for their runners; those costs are attributed to the
 `oyatie.foundry.<pipeline-id>` tenant + cost center `infra-substrate`. Foundry's substrate cost is amortised across all
-oyatie-tenants per the substrate allocation policy (see `microservices/finops-portal/`).
+oyatie-tenants per the substrate allocation policy (see `billing/finops-portal/`).

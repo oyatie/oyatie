@@ -828,7 +828,7 @@ Deliverables shipped under this sprint:
 
 NO COMMITS produced per execution rules. NO scripting/stamping.
 KERNEL PRESERVED — crates/oya-cloud-billing-domain untouched.
-SPEC AUTHORING ONLY — microservices/cloud-billing/ scope only.
+SPEC AUTHORING ONLY — billing/ scope only.
 -->
 
 ## ADR-0339 adoption
