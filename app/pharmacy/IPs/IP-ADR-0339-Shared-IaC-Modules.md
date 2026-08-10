@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `pharmacy` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `pharmacy` until the service-owned wrapper files under `microservices/pharmacy/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `pharmacy` until the service-owned wrapper files under `app/pharmacy/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `pharmacy`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -66,9 +66,9 @@ DOSSIER-CRATE-017: Existing crate `oya-pharmacy-formulary-kernel` remains untouc
 DOSSIER-CRATE-018: Existing crate `oya-pharmacy-formulary-rest` remains untouched by this document-stage IP.
 DOSSIER-CRATE-019: Existing crate `oya-pharmacy-formulary-sdk` remains untouched by this document-stage IP.
 DOSSIER-CRATE-020: Existing crate `oya-pharmacy-formulary-usecase` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/pharmacy/contracts/openapi/pharmacy.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/pharmacy/contracts/asyncapi/pharmacy-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/pharmacy/contracts/proto/pharmacy.proto.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: app/pharmacy/contracts/openapi/pharmacy.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: app/pharmacy/contracts/asyncapi/pharmacy-events.yaml.
+DOSSIER-CONTRACT-003: proto3: app/pharmacy/contracts/proto/pharmacy.proto.
 DOSSIER-CAPABILITY-001: T0 medication-catalog-read risk=none file=manifest-only.
 DOSSIER-CAPABILITY-002: T0 formulary-read risk=none file=manifest-only.
 DOSSIER-CAPABILITY-003: T1 drug-interaction-evaluate risk=limited file=manifest-only.
@@ -305,9 +305,9 @@ LEADER-018: `pharmacy` leader-scale posture keeps primitive selection explicit, 
 
 ## 12. API And Contract Documentation Impact
 API-001: `pharmacy` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `pharmacy` remain: OpenAPI 3.2.0: microservices/pharmacy/contracts/openapi/pharmacy.yaml
-API-003: AsyncAPI 3.1.0 references for `pharmacy` remain: AsyncAPI 3.1.0: microservices/pharmacy/contracts/asyncapi/pharmacy-events.yaml
-API-004: proto3 references for `pharmacy` remain: proto3: microservices/pharmacy/contracts/proto/pharmacy.proto
+API-002: OpenAPI 3.2.0 references for `pharmacy` remain: OpenAPI 3.2.0: app/pharmacy/contracts/openapi/pharmacy.yaml
+API-003: AsyncAPI 3.1.0 references for `pharmacy` remain: AsyncAPI 3.1.0: app/pharmacy/contracts/asyncapi/pharmacy-events.yaml
+API-004: proto3 references for `pharmacy` remain: proto3: app/pharmacy/contracts/proto/pharmacy.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -331,7 +331,7 @@ ALT-004: Delay `pharmacy` manifest declaration until implementation; rejected be
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/pharmacy/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `app/pharmacy/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.
