@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: treasury-availability
+  labels:
+    service: treasury
+    sap_code: "TRM"
+spec:
+  description: "Treasury treasury-availability objective; benchmarks SAP TRM Treasury and Risk Management | Oracle Fusion Cash Management | Workday Financial Management cash and treasury counterpart | NetSuite Cash Management | Microsoft Dynamics 365 Finance Cash and Bank"
+  service: treasury
+  indicator:
+    metadata:
+      name: treasury-availability-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_requests_total{service=\"treasury\",status=~\"2..\"}[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_requests_total{service=\"treasury\"}[5m]))"
+  objectives:
+    - displayName: treasury-availability
+      target: 0.999

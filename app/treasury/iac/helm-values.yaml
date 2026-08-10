@@ -1,0 +1,15 @@
+replicaCount: 3
+image:
+  repository: registry.example/oya-treasury
+  tag: 0.1.0
+transport:
+  default: HTTP/3
+  fallback: [HTTP/2, HTTP/1.1]
+  ech: true
+  pqcHybrid: X25519MLKEM768
+benchmarks:
+  - "SAP TRM Treasury and Risk Management"
+  - "Oracle Fusion Cash Management"
+  - "Workday Financial Management cash and treasury counterpart"
+  - "NetSuite Cash Management"
+  - "Microsoft Dynamics 365 Finance Cash and Bank"
