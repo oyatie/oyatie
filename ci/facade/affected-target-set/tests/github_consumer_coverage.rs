@@ -118,15 +118,18 @@ fn github_path_with_no_owner_resolves_to_affected_through_the_shipped_policy() {
 }
 
 /// `.github/**` overlaps the `**/*.md` declaration (issue/PR templates live there).
-/// `synthetic_seeds` UNIONS every matching pattern, so neither class may shadow the other — a
-/// `.github/ISSUE_TEMPLATE/*.md` edit still has to reach every `.github/**` consumer, AND it must
-/// additionally carry the citation-closure gate that `**/*.md` now seeds. Pinned because the
-/// opposite semantics (first-match-wins, or one class dominating) would silently reintroduce the
+/// `synthetic_seeds` UNIONS every matching pattern, so neither declaration may shadow the other —
+/// a `.github/ISSUE_TEMPLATE/*.md` edit still has to reach the `.github` consumers. Pinned because
+/// the opposite semantics (first-match-wins, or inert-dominates) would silently reintroduce the
 /// PR #1389 hole for exactly the file class the templates live in.
+///
+/// SUPERSET, not equality (bead oyatie-1ld): `**/*.md` used to be declared `[]`, so the union was
+/// numerically identical to the `.github` list and equality read as a stronger assertion than it
+/// was. It now carries its own whole-tree census seeds, and asserting equality would force this
+/// test to be re-hand-edited whenever either list moves — the maintenance shape that gets a seed
+/// quietly deleted to make a test pass. Containment is the property actually at stake.
 #[test]
-fn a_markdown_file_under_github_unions_both_classes_and_is_shadowed_by_neither() {
-    const CITATION_GATE: &str =
-        "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate";
+fn a_markdown_file_under_github_is_not_shadowed_by_the_md_declaration() {
     let root = repo_root();
     let policy = shipped_policy(&root);
     let plan = plan_changes(
@@ -139,14 +142,11 @@ fn a_markdown_file_under_github_unions_both_classes_and_is_shadowed_by_neither()
     let Decision::Affected { seeds: yml_seeds } = resolve_github_probe(&root) else {
         panic!("`{PROBE_PATH}` must resolve to Affected");
     };
-    let mut expected = yml_seeds;
-    expected.push(CITATION_GATE.to_owned());
-    expected.sort();
-    expected.dedup();
-    assert_eq!(
-        seeds, expected,
-        "a `.github` markdown change must union the `.github/**` seeds with the `**/*.md` \
-         citation-closure seed; neither class may shadow the other"
+    let missing: Vec<&String> = yml_seeds.iter().filter(|s| !seeds.contains(s)).collect();
+    assert!(
+        missing.is_empty(),
+        "the `**/*.md` declaration must UNION with (not shadow) the `.github/**` seeds; \
+         missing {missing:?}"
     );
 }
 

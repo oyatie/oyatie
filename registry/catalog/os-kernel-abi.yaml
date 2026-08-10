@@ -1,0 +1,18 @@
+context: os
+role: kernel
+capability: kernel-abi-port
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: os/ports/kernel-abi/Cargo.toml
+non_claims:
+  - defines the kernel-ABI port surface only; it performs no syscall and links no raw-ABI crate
+  - models the rtnetlink configuration operations only, not every network operation PID 1 issues, and not Talos's full kernel surface
+  - not a completed swappability boundary; os-init-app still reaches Linux directly for /sys/class/net discovery and MAC reads, /proc/net/if_inet6 parsing, if_nametoindex, setsockopt, and the SIOCSIFFLAGS link-up fallback
+  - the in-memory implementation is a test substrate, not a kernel emulator
+  - no gate yet forbids raw-ABI dependencies outside adapters, so the isolation is convention until one lands
