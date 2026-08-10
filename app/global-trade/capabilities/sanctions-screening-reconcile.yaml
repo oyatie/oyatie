@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-GLOBAL_TRADE-SANCTIONS_SCREENING-RECONCILE
 policy_fragments:
-  - microservices/global-trade/policy/sanctions-screening-authorization.cedar
+  - app/global-trade/policy/sanctions-screening-authorization.cedar
 benchmarks:
   - "SAP GTS Global Trade Services"
   - "Oracle Global Trade Management"

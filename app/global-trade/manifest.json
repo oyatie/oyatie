@@ -353,10 +353,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/global-trade/ARCHITECTURE.md",
-    "microservices/global-trade/IP-017-denied-party-screening-lookup-with-cedar-consent.md",
-    "microservices/global-trade/IP-019-broker-edi-ingestion-cusdec.md",
-    "microservices/global-trade/IP-022-embargo-event-audit-chain-anchor.md"
+    "app/global-trade/ARCHITECTURE.md",
+    "app/global-trade/IP-017-denied-party-screening-lookup-with-cedar-consent.md",
+    "app/global-trade/IP-019-broker-edi-ingestion-cusdec.md",
+    "app/global-trade/IP-022-embargo-event-audit-chain-anchor.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -369,10 +369,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/global-trade/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/global-trade/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/global-trade/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/global-trade/contracts/asyncapi-v1.yaml"
       }
     }
   },

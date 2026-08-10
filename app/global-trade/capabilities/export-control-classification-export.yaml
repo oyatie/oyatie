@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-GLOBAL_TRADE-EXPORT_CONTROL_CLASSIFICATION-EXPORT
 policy_fragments:
-  - microservices/global-trade/policy/export-control-classification-authorization.cedar
+  - app/global-trade/policy/export-control-classification-authorization.cedar
 benchmarks:
   - "SAP GTS Global Trade Services"
   - "Oracle Global Trade Management"
