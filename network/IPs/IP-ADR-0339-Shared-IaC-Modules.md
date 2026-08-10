@@ -44,11 +44,11 @@ DOSSIER-BC-001: Bounded context `cloud-network` states: Bounded context 'cloud-n
 DOSSIER-CRATE-001: Existing crate `oya-cloud-network-domain` remains untouched by this document-stage IP.
 DOSSIER-CRATE-002: Existing crate `oya-cloud-network-vpc-api` remains untouched by this document-stage IP.
 DOSSIER-CRATE-003: Existing crate `oya-cloud-network-lb-api` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: contracts/openapi/cloud/cloud-network-vpc-v1.yaml, contracts/openapi/cloud/cloud-network-lb-v1.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml, network/contracts/openapi/cloud/cloud-network-lb-v1.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: no public asyncapi file declared in manifest.
 DOSSIER-CONTRACT-003: proto3: no public proto file declared in manifest.
-DOSSIER-CAPABILITY-001: T? tenant-vpc risk=high file=microservices/cloud-network/feature-parity-matrix-2026-05-20.md.
-DOSSIER-CAPABILITY-002: T? load-balancer risk=high file=microservices/cloud-network/performance-benchmark-numbers-2026-05-20.md.
+DOSSIER-CAPABILITY-001: T? tenant-vpc risk=high file=network/feature-parity-matrix-2026-05-20.md.
+DOSSIER-CAPABILITY-002: T? load-balancer risk=high file=network/performance-benchmark-numbers-2026-05-20.md.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -270,7 +270,7 @@ LEADER-018: `cloud-network` leader-scale posture keeps primitive selection expli
 
 ## 12. API And Contract Documentation Impact
 API-001: `cloud-network` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `cloud-network` remain: OpenAPI 3.2.0: contracts/openapi/cloud/cloud-network-vpc-v1.yaml, contracts/openapi/cloud/cloud-network-lb-v1.yaml
+API-002: OpenAPI 3.2.0 references for `cloud-network` remain: OpenAPI 3.2.0: network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml, network/contracts/openapi/cloud/cloud-network-lb-v1.yaml
 API-003: AsyncAPI 3.1.0 references for `cloud-network` remain: AsyncAPI 3.1.0: no public asyncapi file declared in manifest
 API-004: proto3 references for `cloud-network` remain: proto3: no public proto file declared in manifest
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
@@ -296,7 +296,7 @@ ALT-004: Delay `cloud-network` manifest declaration until implementation; reject
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/cloud-network/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `network/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

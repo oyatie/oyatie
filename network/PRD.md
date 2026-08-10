@@ -34,7 +34,7 @@ doc_status: drafted
 
 - Target: RTO ≤600s and RPO ≤300s for network control-plane state, route policies, mTLS policy, and flow-telemetry checkpoints, matching manifest `dr.rto_p99_seconds=600` and `dr.rpo_p99_seconds=300`.
 - Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 600s, RPO 300s, multi-region for regulated cells.
-- Failover runbook: `microservices/cloud-network/runbooks/network-control-plane-failover.md`, matching manifest `dr.failover_runbook`; mTLS and edge-attack recovery use `microservices/cloud-network/runbooks/mtls-handshake-failure-cascade.md` and `microservices/cloud-network/runbooks/ddos-mitigation-engagement.md`.
+- Failover runbook: `network/runbooks/network-control-plane-failover.md`, matching manifest `dr.failover_runbook`; mTLS and edge-attack recovery use `network/runbooks/mtls-handshake-failure-cascade.md` and `network/runbooks/ddos-mitigation-engagement.md`.
 - Multi-region active-active: yes for control-plane policy and route intent; data-plane forwarding keeps last-known-good policy while control cells recover.
 - WHY: tenants keep private connectivity and enforceable isolation during control-plane loss without accepting silent route or firewall drift.
 

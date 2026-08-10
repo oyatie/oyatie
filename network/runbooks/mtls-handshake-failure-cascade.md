@@ -30,7 +30,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-network-substrate/mtls?orgId=1&var-cell=prod-us-east-1`.
 - Certificate dashboard: `https://grafana.dev.oyatie.internal/d/cloud-network-substrate/certificates?orgId=1&var-surface=spiffe`.
 - Loki query: `{namespace="cloud-network",runbook="mtls-handshake-failure-cascade"}`.
-- Canonical FAQ: `microservices/cloud-network/faqs/network-engineer-faq.md`.
+- Canonical FAQ: `network/faqs/network-engineer-faq.md`.
 - Related action: `cloud_network::Action::ManageEgressIpAllowlist`.
 - Related dependency: `cloud-kms` tenant CA.
 - Related dependency: `cloud-iam` workload principals.

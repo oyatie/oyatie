@@ -5,7 +5,7 @@
 1. Canonical sequence: `/Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, `:3140-3235`, and `:4081-4151`.
 2. Canonical machine plan: `/Users/jasonlee/oyatie/specs/master-plan-sequencing.json:704-867` for deployment contexts, OpenTofu substrate, supported OSes, language policy, and OCI Always Free.
 3. Service tenant_class source: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/retired tenant_class adoption artifact:12-82`.
-4. Service operating guides: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/faqs/dns-engineer-faq.md:7-93` and `/Users/jasonlee/oyatie/microservices/cloud-network-dns/tutorials/provision-zone-dnssec-geo-routing-and-doq.md:12-87`.
+4. Service operating guides: `/Users/jasonlee/oyatie/network/dns/faqs/dns-engineer-faq.md:7-93` and `/Users/jasonlee/oyatie/network/dns/tutorials/provision-zone-dnssec-geo-routing-and-doq.md:12-87`.
 5. External counterpart sources: AWS Route 53 Developer Guide `https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/`, Google Cloud DNS docs `https://docs.cloud.google.com/dns/docs/`, Cloudflare DNS docs `https://developers.cloudflare.com/dns/`.
 
 ## Scope and delta method
@@ -58,7 +58,7 @@ demo_trial has no SLO file, OpenSLO artifact, or local health-check contract pro
 demo_trial has no local Cedar policy files even though Cedar permits are promised.
 demo_trial has no local DNSSEC key-management ADR even though DNSSEC is included.
 demo_trial has no local record API contract even though the FAQ and tutorial describe record administration.
-demo_trial has a narrow external API proof for tenant DNS zone creation through `contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12`.
+demo_trial has a narrow external API proof for tenant DNS zone creation through `network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12`.
 demo_trial can therefore be considered an intended managed authoritative DNS entry tier, not a build-closed tier.
 
 ### §1.2 paid definition from current artifacts

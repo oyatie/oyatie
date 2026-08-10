@@ -11,8 +11,8 @@ VCS CLAIM: `./bin/oya vcs claim --agent codex-cloud-network-dns-audit --intent "
 
 1. ADR-0328 §D-15..§D-20: deployment contexts, OpenTofu, OS matrix, Rust-strict, OCI Always Free, and audit dimensions are canonical; key line ranges read include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
 2. Master plan machine contract: `specs/master-plan-sequencing.json:704-867` defines the six deployment contexts, OpenTofu substrate, supported OS matrix, Rust-strict language policy, and OCI Always Free profile.
-3. Service PRD anchor: `microservices/cloud-network-dns/PRD.md` is absent in the service inventory; nearest service-local product-purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`.
-4. Service architecture anchor: `microservices/cloud-network-dns/ARCHITECTURE.md` is absent in the service inventory; nearest service-local architecture-equivalent evidence is `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5` and `microservices/cloud-network-dns/faqs/dns-engineer-faq.md:26-30`.
+3. Service PRD anchor: `network/dns/PRD.md` is absent in the service inventory; nearest service-local product-purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`.
+4. Service architecture anchor: `microservices/cloud-network-dns/ARCHITECTURE.md` is absent in the service inventory; nearest service-local architecture-equivalent evidence is `network/dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5` and `network/dns/faqs/dns-engineer-faq.md:26-30`.
 5. Documentation rigor anchor: `docs/standards/documentation-rigor.md:62-80` requires the full per-microservice doc set, and `docs/standards/documentation-rigor.md:133-156` defines intern-buildability plus hyperscaler-grade rigor.
 
 ## Investigation basis
@@ -33,9 +33,9 @@ The onboarding guide turns that purpose into a week-one path: provision a tenant
 The tutorial provides the most concrete operator path, including `./bin/oya dns zone create`, record creation, DNSSEC enablement, geo records, health checks, transport queries, and query-log inspection (`tutorials/provision-zone-dnssec-geo-routing-and-doq.md:11-222`).
 The reference implementation positions the SDK as a Rust client capable of creating a tenant zone, enabling DNSSEC, adding geo-routed record sets, adding health checks, and querying via DoH/3 and DoQ (`reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5`).
 The current service-local product story is therefore broad: authoritative DNS, recursive resolver behavior, registrar-facing DNSSEC chain-of-trust, traffic steering, health monitoring, telemetry, audit anchoring, Cedar permissions, migration from Route 53/NS1, and private/internal DNS.
-The implementation evidence outside the service path is much narrower: the OpenAPI contract is a tenant-scoped DNS zone create contract only (`contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12`).
-The Rust API crate similarly describes tenant DNS zone creation, request normalization, idempotency, and authenticated projection before handing typed zone creation to the cloud network kernel (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`).
-The runtime tests prove public-zone creation, idempotent replay, and private-zone binding to a known VPC (`crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211`).
+The implementation evidence outside the service path is much narrower: the OpenAPI contract is a tenant-scoped DNS zone create contract only (`network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12`).
+The Rust API crate similarly describes tenant DNS zone creation, request normalization, idempotency, and authenticated projection before handing typed zone creation to the cloud network kernel (`network/ports/dns/src/lib.rs:1-5`).
+The runtime tests prove public-zone creation, idempotent replay, and private-zone binding to a known VPC (`network/ports/dns/tests/cloud_network_dns_api.rs:146-211`).
 This creates the core audit result: the service docs describe a full hyperscaler DNS product, but current local contract and runtime evidence only prove a zone-create control-plane slice.
 The right product boundary should remain ambitious because ADR-0328 places `cloud-network-dns` in Phase 0 shared infrastructure (`docs/decisions/ADR-0700-ci-admission-live-apex.md:450-465`).
 The service belongs in the network seam for public cloud and provider-mode contexts (`docs/decisions/ADR-0700-ci-admission-live-apex.md:1752-1754` and `:1996`).
@@ -63,8 +63,8 @@ The audit recommends preserving the DNS-substrate ambition while reducing curren
 | `slos/` | 0 | missing | OpenSLO evidence | no: documentation-rigor requires OpenSLO docs (`docs/standards/documentation-rigor.md:73`) |
 | `iac/` | 0 | missing | OpenTofu deployment modules | no: ADR-0328 requires per-service and per-context IaC (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2295`) |
 | `supported-oses.json` or manifest field | 0 | missing | OS matrix | no: master plan requires per-microservice manifest (`specs/master-plan-sequencing.json:777-815`) |
-| `src/` and service-local `Cargo.toml` | 0 | missing | Runtime implementation | no: runtime code is outside service path and proves only zone-create slice (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`) |
-| `tests/` | 0 | missing service-local | Test evidence | no: tests are outside service path and only prove zone-create behavior (`crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211`) |
+| `src/` and service-local `Cargo.toml` | 0 | missing | Runtime implementation | no: runtime code is outside service path and proves only zone-create slice (`network/ports/dns/src/lib.rs:1-5`) |
+| `tests/` | 0 | missing service-local | Test evidence | no: tests are outside service path and only prove zone-create behavior (`network/ports/dns/tests/cloud_network_dns_api.rs:146-211`) |
 
 Inventory verdict: the service-local directory is a seven-document design pack, not a full microservice ownership bundle.
 Inventory risk: every service-local artifact is newly added or untracked in the current worktree, so orchestrator aggregation should review ownership provenance before assuming these are canonical.
@@ -142,9 +142,9 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 13. ADR-0273 expects `microservices/cloud-network-dns/iac/helm/dns-orchestrator/` (`docs/adr-archive/ADR-0273-per-tenant-dkim-spf-dmarc-email-deliverability.md:1330-1332`), but no `iac/` directory exists; P1 inbound broken expectation.
 14. `docs/products/cloud/PRD.md:138-143` lists `oya-cloud-network-dns-api` as the DNS zone create REST API, narrowing the runtime surface.
 15. `docs/products/cloud/PRD.md:161-176` places the DNS contract in the VPC/Network API family with p99 <=500 ms create-boundary SLO.
-16. `contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` confirms the only read contract is zone create.
-17. `crates/oya-cloud-network-dns-api/src/lib.rs:1-5` confirms API-boundary ownership is zone creation, request normalization, idempotency, and authenticated projection.
-18. `crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211` confirms tests for zone-create idempotency and private-zone VPC binding.
+16. `network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` confirms the only read contract is zone create.
+17. `network/ports/dns/src/lib.rs:1-5` confirms API-boundary ownership is zone creation, request normalization, idempotency, and authenticated projection.
+18. `network/ports/dns/tests/cloud_network_dns_api.rs:146-211` confirms tests for zone-create idempotency and private-zone VPC binding.
 19. Chat history line 12411 records 0/7 doc-surface coverage for `cloud-network-dns` before the Wave 9 gapfill.
 20. Chat history line 12417 dispatched Wave 9 to create seven docs and named the DNS substrate hook: per-tenant zone scoping, DNSSEC, geo-routing, latency routing, and health checks.
 21. Chat history line 15231 names current Wave 2 Batch 2.1 audit scope and includes `cloud-network-dns`.
@@ -188,7 +188,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 6. A cold intern cannot deploy the service because `iac/` is absent despite ADR-0328's per-service IaC directory contract (`docs/adr-archive/ADR-0328-substance-bar-as-canonical-sequence-and-batch-discipline.md:2275-2295`).
 7. A cold intern cannot verify OS support because the manifest/supported_oses field is absent despite `specs/master-plan-sequencing.json:777-815`.
 8. A cold intern cannot build the runtime from the service path because no `src/` or service-local `Cargo.toml` exists.
-9. A cold intern can find an external Rust API crate, but it only proves zone-create behavior (`crates/oya-cloud-network-dns-api/src/lib.rs:1-5`).
+9. A cold intern can find an external Rust API crate, but it only proves zone-create behavior (`network/ports/dns/src/lib.rs:1-5`).
 10. A cold intern can run conceptual CLI steps, but the commands reference `make` and service-specific `./bin/oya dns` surfaces that are not proven by service-local source (`onboarding/...:22-35`, `tutorials/...:6-21`).
 11. A cold intern can copy the reference implementation, but the SDK crate `oya-cloud-network-dns-sdk` version is not proven in the service path (`reference-implementations/...:14-22`).
 12. A cold intern cannot implement Cedar policy because no policy directory defines `cloud_network_dns::Action::*` despite tier/FAQ references (`tenant-class-adoption/...:26-80`, `faqs/...:82-93`).
@@ -217,7 +217,7 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 35. Versioning/deprecation is absent: no API versioning, RR codec ABI versioning, event versioning, or transport deprecation policy is service-local.
 36. The docs are more useful than scaffold: the seven artifacts include real commands, product surfaces, tiers, and named counterpart gaps.
 37. The docs are still below substance bar because the mandatory machine-readable and deployable surfaces are missing.
-38. The current best intern-buildable slice is "zone create control-plane API", using `contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` and crate tests `:146-211`.
+38. The current best intern-buildable slice is "zone create control-plane API", using `network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` and crate tests `:146-211`.
 39. The current service-local docs should label all broad DNS substrate capabilities as target-state until contracts/source/IaC land.
 40. Required remediation: add PRD with bounded first deliverable, architecture with DNS authoritative/recursive/control-plane boundaries, contract index, and slice map to existing Rust crate.
 41. Required remediation: add OpenAPI for record CRUD, DNSSEC enable/disable, routing policy CRUD, health-check CRUD, query-log read, and zone rollback.
@@ -536,8 +536,8 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 36. Reference implementation uses Rust 2024 edition and Rust dependencies (`reference-implementations/...:6-22`); this is aligned.
 37. Reference implementation imports `oya_cloud_network_dns_sdk` and `oya_trace` (`reference-implementations/...:26-34`); aligned if crates exist and are Rust.
 38. Service-local absence of `Cargo.toml` means no direct release build can be run from the service path.
-39. Existing external runtime crate is Rust (`crates/oya-cloud-network-dns-api/src/lib.rs:7-15`).
-40. Existing external tests are Rust (`crates/oya-cloud-network-dns-api/tests/cloud_network_dns_api.rs:146-211`).
+39. Existing external runtime crate is Rust (`network/ports/dns/src/lib.rs:7-15`).
+40. Existing external tests are Rust (`network/ports/dns/tests/cloud_network_dns_api.rs:146-211`).
 41. No non-Rust generated SDK output exists to classify as authorized.
 42. No OpenTofu `.tf` files exist to classify.
 43. No Cedar `.cedar` files exist to classify.
@@ -553,9 +553,9 @@ Inventory count: 7 files seen, 1,219 lines read, 0 service-local machine-readabl
 
 | Severity | Dimension | Finding | Citation | Remediation hint |
 |---|---|---|---|---|
-| P1 | D1/D3 | PRD missing despite service claiming broad DNS substrate ownership | `docs/standards/documentation-rigor.md:64-66`; missing `microservices/cloud-network-dns/PRD.md` | Add PRD with bounded first deliverable and target-state sections |
+| P1 | D1/D3 | PRD missing despite service claiming broad DNS substrate ownership | `docs/standards/documentation-rigor.md:64-66`; missing `network/dns/PRD.md` | Add PRD with bounded first deliverable and target-state sections |
 | P1 | D1/D3 | ARCHITECTURE missing despite anycast/DNSSEC/HSM/ODoH claims | `docs/standards/documentation-rigor.md:64-66`; `retired tenant_class adoption artifact:7-10` | Add architecture with control/data/resolver boundaries |
-| P1 | D1/D2 | Service-local docs claim full DNS product, but proven contract is zone create only | `contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12`; `crates/oya-cloud-network-dns-api/src/lib.rs:1-5` | Add contract roadmap or reduce claims to target-state |
+| P1 | D1/D2 | Service-local docs claim full DNS product, but proven contract is zone create only | `network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12`; `network/ports/dns/src/lib.rs:1-5` | Add contract roadmap or reduce claims to target-state |
 | P1 | D1/D3 | Cedar permits referenced but no service-local policy directory exists | `retired tenant_class adoption artifact:26,44,62,80`; `faqs/dns-engineer-faq.md:82-93` | Add Cedar fragments and permit registry |
 | P1 | D1/D3 | Audit/event/query stream claims lack AsyncAPI/event schemas | `retired tenant_class adoption artifact:90-91`; `faqs/dns-engineer-faq.md:82-86` | Add AsyncAPI and event schema entries |
 | P1 | D1 | HSM/KSK import tenant_class statement is internally contradictory | `migration-playbooks/from-route53-and-ns1.md:88-98`; `retired tenant_class adoption artifact:74-80` | Rewrite import policy by tier: software key vs HSM |
@@ -617,9 +617,9 @@ Severity totals: P0 = 0, P1 = 19, P2 = 12, P3 = 3.
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-network-dns
   deliverables_landed:
-    - /Users/jasonlee/oyatie/microservices/cloud-network-dns/coherence-audit-2026-05-20.md (635 lines)
-    - /Users/jasonlee/oyatie/microservices/cloud-network-dns/feature-parity-matrix-2026-05-20.md (400 lines)
-    - /Users/jasonlee/oyatie/microservices/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md (326 lines)
+    - /Users/jasonlee/oyatie/network/dns/coherence-audit-2026-05-20.md (635 lines)
+    - /Users/jasonlee/oyatie/network/dns/feature-parity-matrix-2026-05-20.md (400 lines)
+    - /Users/jasonlee/oyatie/network/dns/performance-benchmark-numbers-2026-05-20.md (326 lines)
     - /Users/jasonlee/oyatie/microservices/cloud-network-dns/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (484 lines)
   inventory_files_seen: 7
   inventory_lines_read: 1219

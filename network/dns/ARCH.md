@@ -17,9 +17,9 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-network-dns/manifest.json
-  - microservices/cloud-network-dns/PRD.md
-  - microservices/cloud-network-dns/README.md
+  - network/dns/manifest.json
+  - network/dns/PRD.md
+  - network/dns/README.md
 ---
 
 # Architecture: Cloud Network Dns

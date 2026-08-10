@@ -33,7 +33,7 @@ doc_status: drafted
 
 - Target: RTO ≤300s and RPO ≤60s for zone control-plane state, DNSSEC key metadata, routing policies, and health-check configuration, matching manifest `dr.rto_p99_seconds=300` and `dr.rpo_p99_seconds=60`.
 - Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 300s, RPO 60s, multi-region for regulated zones.
-- Failover runbook: `microservices/cloud-network-dns/runbooks/dns-zone-failover.md`, matching manifest `dr.failover_runbook`; migration cutover remains documented in `microservices/cloud-network-dns/migration-playbooks/from-route53-and-ns1.md`.
+- Failover runbook: `network/dns/runbooks/dns-zone-failover.md`, matching manifest `dr.failover_runbook`; migration cutover remains documented in `network/dns/migration-playbooks/from-route53-and-ns1.md`.
 - Multi-region active-active: yes for zone intent, health-check policy, and authoritative publication; recursive resolver caches use bounded TTLs and refresh from the nearest healthy control cell.
 - WHY: tenant endpoints remain discoverable during regional failure, and DNS failover decisions keep legal auditability instead of becoming manual console edits.
 
