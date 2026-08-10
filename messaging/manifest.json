@@ -1,12 +1,215 @@
 {
   "schema_version": "1.0",
   "capability": "messaging",
+  "_comment": "Capability-root manifest for messaging/ (ADR-0562). Every crate, capability file path, fixture path and accounting count below was read off the tree at authoring time, not transcribed from legacy microservices/ or libs/oya-messaging-* dump paths.",
   "tier": "substrate",
   "substrate_dag_position": {
-    "stratum": "S0"
+    "stratum": "S0",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "specs/capability-registry.json name=messaging dag_node=messaging stratum=S0"
   },
   "_tier_source": "specs/capability-registry.json name=messaging dag_node=messaging stratum=S0",
   "_tier_subtype_note": "UNGROUNDED — capability-registry declares no tier_subtype and no absorbed legacy service manifest provides one. Deliberately ABSENT rather than invented; it lands when a grounded subtype exists.",
-  "_stratum_note": "S0 from ADR-0562 capability-registry (dag_node messaging). Restores messaging/manifest.json authored on fix/tier-classify-capability-roots (blob 1d5a748f) but never landed on dev; stratum updated from forward-declared to the now-grounded registry value rather than inventing a new facet set.",
-  "_openslo_note": "No messaging/observability/slos/*.openslo.yaml exists in-tree. OpenSLO refs are omitted rather than invented; SLO authoring lands with a runtime SLI, not this root-manifest slice. messaging is not in governed_service_roots today, so tier-field OpenSLO coverage does not yet apply."
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "purpose": "Event bus / messaging substrate (ADR-0536 D-13): ONE owned substrate port (`messaging-substrate-kernel`), queue/stream/bus boundary kernels composed over it, transactional outbox domain + CloudEvent envelope, and a file-backed outbox adapter. Apache Pulsar is the validated transitional broker behind the port (ADR-0510); no deployed broker runtime, REST server, measured SLO, or OpenSLO file is claimed by this capability-root slice.",
+  "bounded_contexts": [
+    {
+      "name": "messaging-adapters",
+      "description": "Transient-infra driven adapters under messaging/adapters/.",
+      "crates": [
+        "messaging-file-adapter"
+      ]
+    },
+    {
+      "name": "messaging-core",
+      "description": "Pure kernel/domain surfaces under messaging/core/ (substrate port, D-13 boundary kernels, outbox domain).",
+      "crates": [
+        "messaging-bus-boundary-kernel",
+        "messaging-domain",
+        "messaging-queue-boundary-kernel",
+        "messaging-stream-boundary-kernel",
+        "messaging-substrate-kernel"
+      ]
+    }
+  ],
+  "layers": [
+    "adapters",
+    "core"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 6,
+    "crates_by_layer": {
+      "adapters": 1,
+      "core": 5
+    },
+    "crates_covered_by_no_other_manifest": 6,
+    "catalog_rows": [
+      "registry/catalog/messaging-bus-boundary-kernel.yaml",
+      "registry/catalog/messaging-domain.yaml",
+      "registry/catalog/messaging-file-adapter.yaml",
+      "registry/catalog/messaging-queue-boundary-kernel.yaml",
+      "registry/catalog/messaging-stream-boundary-kernel.yaml",
+      "registry/catalog/messaging-substrate-kernel.yaml"
+    ],
+    "_overlap_note": "All six workspace members under messaging/ are owned exclusively by this capability root; no absorbed sub-service manifests exist yet."
+  },
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
+    "contract_status": "kernel_and_adapter_only; no OpenAPI/AsyncAPI/proto contract files exist under messaging/ today"
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "messaging-substrate-port-at-least-once-per-key-ordering-loss-classes",
+      "file": "messaging/core/substrate-kernel/src/lib.rs",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T0",
+      "name": "substrate-conformance-harness-d13-scenarios",
+      "file": "messaging/core/substrate-kernel/src/conformance.rs",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T0",
+      "name": "in-memory-reference-substrate-conformance-fixture",
+      "file": "messaging/core/substrate-kernel/tests/reference_substrate.rs",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "queue-boundary-competing-consumers-dead-letter",
+      "file": "messaging/core/queue-boundary-kernel/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "bus-boundary-fan-out-typed-events",
+      "file": "messaging/core/bus-boundary-kernel/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "stream-boundary-seekable-cursor",
+      "file": "messaging/core/stream-boundary-kernel/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "transactional-outbox-idempotent-publish",
+      "file": "messaging/core/domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "cloudevent-envelope-topic-naming",
+      "file": "messaging/core/domain/src/cloud_event.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "file-backed-outbox-adapter-append-only-durability",
+      "file": "messaging/adapters/file/src/lib.rs",
+      "risk_class": "medium"
+    }
+  ],
+  "conformance_fixtures": [
+    {
+      "name": "reference-substrate-harness",
+      "file": "messaging/core/substrate-kernel/tests/reference_substrate.rs",
+      "harness": "messaging/core/substrate-kernel/src/conformance.rs"
+    },
+    {
+      "name": "file-outbox-adapter-integration",
+      "file": "messaging/adapters/file/tests/file_outbox.rs",
+      "adapter": "messaging/adapters/file/src/lib.rs"
+    }
+  ],
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_no_runtime_sli",
+    "owner": "axis-cloud-platform",
+    "rationale": "No messaging/observability/slos/*.openslo.yaml exists in-tree and no measured broker/runtime SLI is implemented for this local-foundation slice; OpenSLO refs are omitted rather than invented. messaging is not in governed_service_roots today, so tier-field OpenSLO coverage does not yet apply.",
+    "cutover_on": "2026-12-31",
+    "evidence": "verified glob messaging/observability/slos/*.openslo.yaml returns zero files at manifest authoring time"
+  },
+  "ips": [
+    {
+      "id": "CS-MESSAGING-SUBSTRATE-001",
+      "title": "Owned messaging substrate port, D-13 conformance harness, and in-memory reference substrate",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "messaging/core/substrate-kernel/tests/reference_substrate.rs"
+    },
+    {
+      "id": "CS-MESSAGING-OUTBOX-001",
+      "title": "Transactional outbox domain + file-backed append-only adapter",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "messaging/adapters/file/tests/file_outbox.rs"
+    }
+  ],
+  "lts_pins": {
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0083",
+      "title": "Kernel Tier Dependency Free Invariant",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "No Grouping Microservices",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0510",
+      "title": "Apache Pulsar Transitional Messaging Substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0536",
+      "title": "Sixteen Substrate Domains",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0562",
+      "title": "Capability First Repo Organization",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    }
+  ],
+  "implemented_source_files": [
+    "messaging/adapters/file/src/lib.rs",
+    "messaging/adapters/file/tests/file_outbox.rs",
+    "messaging/core/bus-boundary-kernel/src/lib.rs",
+    "messaging/core/domain/src/cloud_event.rs",
+    "messaging/core/domain/src/lib.rs",
+    "messaging/core/queue-boundary-kernel/src/lib.rs",
+    "messaging/core/stream-boundary-kernel/src/lib.rs",
+    "messaging/core/substrate-kernel/src/conformance.rs",
+    "messaging/core/substrate-kernel/src/lib.rs",
+    "messaging/core/substrate-kernel/src/reference.rs",
+    "messaging/core/substrate-kernel/tests/reference_substrate.rs"
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "no deployed broker (Pulsar/Kafka/RabbitMQ), REST server, SDK, worker, Kubernetes controller, measured SLO, capacity telemetry, active-active DR, or audit-chain runtime persistence is implemented by this capability-root slice",
+    "legacy libs/oya-messaging-* and oya/eventing paths are retired; all six crates are homed under messaging/ per ADR-0562 §10.5/§10.27/§10.28 and must not be re-cited from dump paths in this manifest"
+  ],
+  "explicit_non_claims": [
+    "OpenAPI/AsyncAPI/proto contracts are absent under messaging/ and are not claimed",
+    "OpenSLO files are absent under messaging/observability/slos/ and are not claimed; slo_exemption above is the measured statement"
+  ]
 }

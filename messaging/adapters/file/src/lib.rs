@@ -1,4 +1,4 @@
-//! File-backed eventing outbox adapter.
+//! File-backed messaging outbox adapter.
 //!
 //! This adapter gives the dev/runtime surface an append-only durability seam for
 //! the kernel outbox without pulling a database driver into the kernel layer.
