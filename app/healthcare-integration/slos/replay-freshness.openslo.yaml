@@ -1,0 +1,31 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: healthcare-integration-replay-freshness
+  labels:
+    service: healthcare-integration
+    adr: ADR-0139
+spec:
+  service: healthcare-integration
+  indicator:
+    metadata:
+      name: replay-freshness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_healthcare_integration_replay_freshness_good_total[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_healthcare_integration_replay_freshness_total[5m]))
+  objectives:
+    - displayName: Healthcare Integration replay-freshness
+      target: 0.999
+  timeWindow:
+    - duration: 30d
+      isRolling: true

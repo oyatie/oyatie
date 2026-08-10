@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 39,
+  "title": "Healthcare Integration abuse-defence-outcomes",
+  "tags": [
+    "healthcare-integration",
+    "adr-0321",
+    "operating-bar"
+  ],
+  "timezone": "utc",
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "tenant_id",
+        "type": "query",
+        "query": "label_values(tenant_id)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "fhir-read abuse-defence-outcomes",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_healthcare_integration_fhir_read_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "hl7-route abuse-defence-outcomes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_healthcare_integration_hl7_route_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "break-glass-authorize abuse-defence-outcomes",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_healthcare_integration_break_glass_authorize_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "consent-sync abuse-defence-outcomes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_healthcare_integration_consent_sync_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "ehr-provenance-seal abuse-defence-outcomes",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_healthcare_integration_ehr_provenance_seal_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "patient-match-review abuse-defence-outcomes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_healthcare_integration_patient_match_review_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    }
+  ]
+}
