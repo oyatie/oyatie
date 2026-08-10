@@ -1,0 +1,19 @@
+[package]
+name = "oya-office-drive-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-office-authz-domain = { path = "../oya-office-authz-domain" }
+oya-office-kernel = { path = "../oya-office-kernel" }
+
+[lib]
+name = "oya_office_drive_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

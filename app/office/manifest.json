@@ -3,8 +3,8 @@
   "microservice": "office",
   "tier": "product",
   "tier_subtype": "product-consumer",
-  "status": "forward_declared",
-  "phase": "inventory_only",
+  "status": "wave1_absorbed",
+  "phase": "destination_absorb_wave1",
   "title": "Oya Office (suite composition)",
   "date": "2026-08-10",
   "inventory_root": "app/office",
@@ -13,27 +13,28 @@
     "tip": "origin/dev",
     "top_level_manifest": null,
     "top_level_cargo_toml": null,
-    "note": "19-crate forest with no top-level product manifest or workspace Cargo.toml under oya/office on origin/dev. This file is inventory-only; crate code remains at source until a later absorb slice."
+    "note": "19-crate forest absorbed into app/office on integ/office. Source dual-home remains until integ/oya shrink-only delete."
   },
   "claim_boundary": {
     "non_claims": [
-      "no crate code moved into app/office on this tip",
       "no GA or production-readiness claim",
-      "no deployed Office runtime or measured SLO claimed by this inventory slice",
-      "no substrate-port burn completed (storage/search/tenant/authz rewrite is planned in REORG-DRAIN only)",
-      "no specs/capability-registry or hub retarget on this rail"
+      "no deployed Office runtime or measured SLO claimed by this absorb",
+      "no substrate-port burn completed (storage/search/tenant/authz rewrite planned in REORG-DRAIN)",
+      "no specs/capability-registry or hub retarget on this rail",
+      "no oya/office/** deletes on this rail"
     ]
   },
   "substrate_dag_position": {
-    "stratum": "forward-declared",
+    "stratum": "app_product_composition",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "Office is an app/<product>/ composition (capability-registry app_products_note), not a capability root. forward_declared marks this inventory stub until absorb + substrate-port rewrite land."
+    "_note": "Office is an app/<product>/ composition (capability-registry app_products_note), not a capability root. Wave-1 dual-homes crates under app/office; substrate-port candidates burn later."
   },
   "crate_inventory": {
+    "forever_root": "app/office",
     "source_root": "oya/office",
     "crate_count": 19,
-    "tracked_files_under_source_root": 63,
+    "tracked_crate_files_absorbed": 63,
     "crate_dirs": [
       "oya-office-api-app",
       "oya-office-authz-domain",
@@ -92,7 +93,7 @@
   "substrate_ports_rewrite": {
     "status": "planned",
     "authority": "app/office/REORG-DRAIN.md",
-    "mode": "rewrite_not_git_mv",
+    "mode": "rewrite_not_forever_git_mv",
     "candidates": [
       {
         "crate_dir": "oya-office-storage-kernel",
@@ -117,5 +118,6 @@
     ]
   },
   "doc_class": "Machine-Readable-Spec",
-  "reorg_drain": "app/office/REORG-DRAIN.md"
+  "reorg_drain": "app/office/REORG-DRAIN.md",
+  "wave1_receipt": "app/office/evidence/wave1-absorb-receipt.md"
 }

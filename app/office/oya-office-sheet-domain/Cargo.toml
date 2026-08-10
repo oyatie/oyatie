@@ -1,0 +1,20 @@
+[package]
+name = "oya-office-sheet-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-office-drive-domain = { path = "../oya-office-drive-domain" }
+oya-office-format-domain = { path = "../oya-office-format-domain" }
+oya-office-kernel = { path = "../oya-office-kernel" }
+
+[lib]
+name = "oya_office_sheet_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

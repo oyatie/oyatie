@@ -1,0 +1,19 @@
+[package]
+name = "oya-office-api-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_office_api_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-office-api-app"
+path = "src/main.rs"
+
+[lints]
+workspace = true
