@@ -7,10 +7,10 @@ owner_team: ops-legal + council-privacy + ops-security
 deciders: ops-legal, ops-security, council-privacy, council-architecture, axis-cloud-secrets
 review_cadence: annually + on every regulation change + on every audit cycle
 related_artifacts:
-  - microservices/cloud-secrets/threat-model.md
-  - microservices/cloud-secrets/dpia.md
-  - microservices/cloud-secrets/policy/data-residency.md
-  - microservices/cloud-secrets/policy/secret-isolation.md
+  - secrets/threat-model.md
+  - secrets/dpia.md
+  - secrets/policy/data-residency.md
+  - secrets/policy/secret-isolation.md
 doc_status: published
 ---
 
@@ -111,7 +111,7 @@ This document maps cloud-secrets controls to legal + regulatory frameworks acros
 | CC7.5 | Recovery + restoration | runbooks + drills | `runbooks/*` |
 | CC8.1 | Change management | PR-review + LEAN gates + reviewer-agent | per governance µservice |
 | A1.1 | Capacity | `capacity-model.md` | per above |
-| A1.2 | Availability | SLOs in `microservices/cloud-secrets/slos/*` | per above |
+| A1.2 | Availability | SLOs in `secrets/observability/slos/cloud-secrets/*` | per above |
 
 ## §6: ISO 27001:2022 (Annex A controls applicable)
 
@@ -203,12 +203,12 @@ Annual third-party audit:
 
 ## References
 
-- `microservices/cloud-secrets/threat-model.md`
-- `microservices/cloud-secrets/dpia.md`
-- `microservices/cloud-secrets/policy/data-residency.md`
-- `microservices/cloud-secrets/policy/secret-isolation.md`
-- `microservices/cloud-secrets/incident-response.md`
-- `microservices/cloud-secrets/runbooks/*.md`
+- `secrets/threat-model.md`
+- `secrets/dpia.md`
+- `secrets/policy/data-residency.md`
+- `secrets/policy/secret-isolation.md`
+- `secrets/incident-response.md`
+- `secrets/runbooks/*.md`
 - `microservices/cloud-secrets/legal/*.md` (Slice D)
 - KR PIPA + Enforcement Decree
 - HIPAA 45 CFR §164
@@ -237,7 +237,7 @@ This anchor is closed for `cloud-secrets` against ADR-0250 §D-1: certification-
 ### Service-specific answer
 - Certification scope for `cloud-secrets` covers packs `kr`, `eu`, `us`, `us-healthcare`, `jp`, `sg`; +5 more.
 - Evidence collector classes: policy decision log, audit event seal, SLO burn-rate report, contract-schema validation, dependency/SBOM attestation, and runbook drill record.
-- Primary evidence files: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +9 more.
+- Primary evidence files: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +9 more.
 - Example: `audit-query` readiness requires a signed audit event, an OpenAPI/AsyncAPI schema, an SLO target, and a pack-specific retention statement before launch.
 - Retrofit is forbidden: controls land before certification audit, and audit artifacts are generated continuously rather than assembled after an incident.
 - SOC 2 maps to access, change, logging, and incident controls; ISO 27001 maps to Annex A domains; regional packs add local regulator timing.
@@ -247,20 +247,20 @@ This anchor is closed for `cloud-secrets` against ADR-0250 §D-1: certification-
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -298,7 +298,7 @@ This anchor is closed for `cloud-secrets` against ADR-0251 §D-2: pack activatio
 
 ### Service-specific answer
 - Active/expected pack roster: `kr`, `eu`, `us`, `us-healthcare`, `jp`, `sg`; +5 more.
-- Pack overlays modify Cedar fragments `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar` without changing domain code.
+- Pack overlays modify Cedar fragments `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar` without changing domain code.
 - Data classes under pack control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Higher-restriction-wins: if GDPR conflicts with another pack, the stricter storage, transfer, notice, or access rule applies until legal workflow resolves it.
 - CN-PIPL-2021 is activated on CN `jurisdiction_code`; KR packs pin data to KR cells; EU sovereign packs prevent non-EU failover unless explicitly allowed.
@@ -309,20 +309,20 @@ This anchor is closed for `cloud-secrets` against ADR-0251 §D-2: pack activatio
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -371,20 +371,20 @@ This anchor is closed for `cloud-secrets` against ADR-0295 §D-2: Tier-1 bootstr
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -423,7 +423,7 @@ This anchor is closed for `cloud-secrets` against ADR-0284 §D-1: platform_owner
 ### Service-specific answer
 - Runtime platform-owner string is configured as `platform_owner.display_name`; `cloud-secrets` does not hard-code user-visible owner names in API or UI output.
 - Internal principal names may retain `oyatie.*` because ADR-0242 treats `oyatie` as the platform tenant, not as user-visible branding.
-- Surfaces audited for display strings: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`; +15 more.
+- Surfaces audited for display strings: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`; +15 more.
 - API responses expose owner references as opaque ids or config-resolved display names; logs keep stable tenant/platform ids for auditability.
 - Example: `audit-query` error text says `platform owner` or config-resolved name, while audit event principal remains `oyatie.cloud-secrets.runtime`.
 - Grep-audit evidence records exceptions: principal slugs, ADR citations, internal package names, and provenance fields are allowed when not user-visible.
@@ -433,20 +433,20 @@ This anchor is closed for `cloud-secrets` against ADR-0284 §D-1: platform_owner
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -485,7 +485,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.6
 ### Service-specific answer
 - `cloud-secrets` emits detection signals through ADR-0263 audit pipeline, not an ungoverned side channel.
 - Detection families applicable here: policy violation, insider risk, account-takeover, content/transaction abuse where `audit-query` touches those data classes.
-- Signal sources: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`; +9 more.
+- Signal sources: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`; +9 more.
 - Example event class: `oya.cloud.secrets.audit.query.risk_signal_emitted` with risk score, reason code, and tenant-safe dimensions.
 - Routing topology: µservice audit event -> observability collector -> detection substrate -> investigation workflow when threshold and policy allow.
 - False positives feed back through investigation labels; thresholds are versioned and auditable.
@@ -495,20 +495,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.6
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -557,20 +557,20 @@ This anchor is closed for `cloud-secrets` against ADR-0310 §D-1: detection-to-i
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -609,7 +609,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Service-specific answer
 - Operators of `cloud-secrets` have no standing unredacted tenant-data access; JIT elevation uses identity step-up and Cedar approval.
 - Break-glass access requires reason, scope, expiry, reviewer where required, and post-hoc audit review.
-- Sensitive surfaces: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `cloud_secrets.cloud_secrets`.
+- Sensitive surfaces: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `cloud_secrets.cloud_secrets`.
 - UEBA signals include unusual export volume, after-hours privileged reads, cross-cell access, pack-boundary reads, and repeated denied Cedar decisions.
 - Example: reading `cloud_secrets.cloud_secrets` outside declared incident purpose creates a high-risk insider signal and routes to investigation.
 - Privileged-access review cadence is monthly for Tier 0/1, quarterly otherwise, and after every SEV/security incident.
@@ -619,20 +619,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -671,7 +671,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Service-specific answer
 - `cloud-secrets` consumes central threat intelligence for IP/domain reputation, credential stuffing, bot fingerprints, sanctions/abuse lists where applicable, and malicious package indicators.
 - Feed freshness SLOs: ≤1h for IP/domain/bot reputation, ≤24h for credential corpus, immediate for emergency blocklists and compromised provider credentials.
-- Enforcement points: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`; +10 more.
+- Enforcement points: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`; +10 more.
 - Example: `audit-query` with malicious IP reputation receives stricter quota/challenge; high-risk legal/financial flows can halt pending investigation.
 - Feed outage degraded mode raises sensitivity only on suspicious paths and never adds default friction to clean traffic.
 - Feed source, version, checksum, and last refresh timestamp are emitted in audit evidence.
@@ -681,20 +681,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -735,7 +735,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 - OpenBao dynamic credentials rotate at TTL ≤60s for provider/API secrets unless sidecar keeps the raw secret isolated.
 - Encryption/data keys rotate at ≤1 year or pack-specific shorter cadence; ECH keys rotate at ≤90 days; PQC cert chains follow signing-key cadence.
 - Secret paths use `${openbao:secret/<tenant_id>/cloud-secrets/<key-class>}` and never embed raw tenant ids in metrics labels.
-- Runbook evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- Runbook evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 - Example: `audit-query` credential rotation drains in-flight requests with old key id, validates new key id, then retires old leases after audit-chain seal.
 - Rotation failure alerts within 5 minutes for Tier 0/1 and within 15 minutes otherwise.
 - Rollback uses previous active key version only inside the documented grace window and emits an exception event.
@@ -743,20 +743,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -796,7 +796,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 - `cloud-secrets` uses algorithm policy from sidecar/config; domain code never hard-codes cipher or signature choices.
 - Current floor: TLS 1.3, AEAD-only suites, X25519, hybrid X25519MLKEM768 where supported, Ed25519 plus ML-DSA-65 for new platform-rooted chains.
 - Forbidden: SHA-1, MD5, RSA-1024/2048 for new signatures, static DH, CBC-only TLS, self-signed production certs, and bespoke crypto.
-- Affected surfaces: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/iac/helm/hsm-operator/Chart.yaml`, `microservices/cloud-secrets/iac/helm/hsm-operator/values.yaml`, `microservices/cloud-secrets/iac/helm/openbao/Chart.yaml`; +7 more.
+- Affected surfaces: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/iac/helm/hsm-operator/Chart.yaml`, `secrets/iac/helm/hsm-operator/values.yaml`, `secrets/iac/helm/openbao/Chart.yaml`; +7 more.
 - Migration trigger: NIST/IETF/browser deprecation notice, active exploit, pack regulator requirement, or platform crypto policy update.
 - Migration window: 90 days for normal deprecation, 24h emergency block for actively exploited algorithms, with compatibility fallback only when safe.
 - Example: `audit-query` accepts classical TLS during PQC migration but prefers hybrid when both peers support it and records negotiated group in telemetry.
@@ -805,20 +805,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -856,7 +856,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 
 ### Service-specific answer
 - `cloud-secrets` is in annual full-scope pentest and every major `audit-query` launch adds targeted test scope before production promotion.
-- In-scope assets: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/iac/helm/hsm-operator/Chart.yaml`, `microservices/cloud-secrets/iac/helm/hsm-operator/values.yaml`, `microservices/cloud-secrets/iac/helm/openbao/Chart.yaml`; +13 more.
+- In-scope assets: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/iac/helm/hsm-operator/Chart.yaml`, `secrets/iac/helm/hsm-operator/values.yaml`, `secrets/iac/helm/openbao/Chart.yaml`; +13 more.
 - Bug bounty intake accepts auth, tenant-isolation, policy bypass, data exposure, abuse-defence false positive/negative, supply-chain, and crypto findings.
 - Critical findings block promotion; remediation SLO is 24h containment, 7d fix for critical/high, 30d medium unless regulator pack is stricter.
 - Example: a researcher bypassing `cloud-secrets` tenant scoping gets safe-harbor handling and an investigation case, not abuse-defence friction by default.
@@ -867,20 +867,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -929,20 +929,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -980,7 +980,7 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 
 ### Service-specific answer
 - `cloud-secrets` dependency inventory spans crates/catalog, containers, Helm/Kustomize/OpenTofu, Cedar fragments, contracts, and generated SDKs.
-- Inventory artifacts: `microservices/cloud-secrets/catalog/oya-cloud-secrets-audit-emitter-adapter-audit-chain-bridge.yaml`, `microservices/cloud-secrets/catalog/oya-cloud-secrets-audit-emitter-api.yaml`, `microservices/cloud-secrets/catalog/oya-cloud-secrets-audit-emitter-app.yaml`, `microservices/cloud-secrets/catalog/oya-cloud-secrets-audit-emitter-kernel.yaml`, `microservices/cloud-secrets/catalog/oya-cloud-secrets-audit-emitter-usecase.yaml`, `microservices/cloud-secrets/catalog/oya-cloud-secrets-hsm-integration-adapter-hsm.yaml`; +19 more.
+- Inventory artifacts: `secrets/catalog/oya-cloud-secrets-audit-emitter-adapter-audit-chain-bridge.yaml`, `secrets/catalog/oya-cloud-secrets-audit-emitter-api.yaml`, `secrets/catalog/oya-cloud-secrets-audit-emitter-app.yaml`, `secrets/catalog/oya-cloud-secrets-audit-emitter-kernel.yaml`, `secrets/catalog/oya-cloud-secrets-audit-emitter-usecase.yaml`, `secrets/catalog/oya-cloud-secrets-hsm-integration-adapter-hsm.yaml`; +19 more.
 - Every build emits SBOM, provenance, source commit, builder identity, dependency digests, and signature/transparency-log pointers.
 - Dependencies are pinned to exact versions/digests; unpinned charts/images/crates block promotion.
 - Example: `audit-query` image promotion requires cosign signature, SLSA provenance, vulnerability scan, license check, and matching manifest/catalog record.
@@ -991,20 +991,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -1053,20 +1053,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.5
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.
@@ -1115,20 +1115,20 @@ This anchor is closed for `cloud-secrets` against documentation-rigor.md §3.2.4
 ### Concrete inventory used
 - Service: `cloud-secrets`; owner `axis-cloud-secrets`; tier `substrate`; audience `B2B_TENANT + INTERNAL_OPERATOR`.
 - Bounded contexts used for this answer: `cloud-secrets`.
-- Capability records cited: `microservices/cloud-secrets/capabilities/audit-query.yaml`, `microservices/cloud-secrets/capabilities/secret-reference-resolve.yaml`, `microservices/cloud-secrets/capabilities/secret-rotate.yaml`.
-- API surfaces cited: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`; +10 more.
+- Capability records cited: `secrets/capabilities/audit-query.yaml`, `secrets/capabilities/secret-reference-resolve.yaml`, `secrets/capabilities/secret-rotate.yaml`.
+- API surfaces cited: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar/policy artifacts cited: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`; +10 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`.
-- Cedar binding: `microservices/cloud-secrets/policy/auditor-scope.cedar`, `microservices/cloud-secrets/policy/ci-scope.cedar`, `microservices/cloud-secrets/policy/data-residency.md`, `microservices/cloud-secrets/policy/public-read.cedar`, `microservices/cloud-secrets/policy/secret-isolation.md`, `microservices/cloud-secrets/policy/tenant-scope.cedar`.
+- API surface binding: `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/proto/cloud-secrets.proto`.
+- Cedar binding: `secrets/policy/auditor-scope.cedar`, `secrets/policy/ci-scope.cedar`, `secrets/policy/data-residency.md`, `secrets/policy/public-read.cedar`, `secrets/policy/secret-isolation.md`, `secrets/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_secrets.cloud_secrets`.
 - Capability binding: `audit-query`, `secret-reference-resolve`, `secret-rotate`.
-- SLO binding: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml`, `microservices/cloud-secrets/slos/hsm-availability.openslo.yaml`, `microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml`, `microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml`, `microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml`.
-- Runbook binding: `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`, `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`, `microservices/cloud-secrets/runbooks/secret-leak-detected.md`.
+- SLO binding: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/hsm-availability.openslo.yaml`, `secrets/observability/slos/cloud-secrets/key-rotation-correctness.openslo.yaml`, `secrets/observability/slos/cloud-secrets/pki-cert-issuance-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml`, `secrets/observability/slos/cloud-secrets/secret-write-latency.openslo.yaml`.
+- Runbook binding: `secrets/runbooks/audit-emission-backlog.md`, `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/namespace-controller-restart.md`, `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/rotation-cascade-recovery.md`, `secrets/runbooks/secret-leak-detected.md`.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-secrets`.

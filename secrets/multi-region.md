@@ -6,9 +6,9 @@ date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-sre
 related_adrs: [ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/policy/data-residency.md
-  - microservices/cloud-secrets/capacity-model.md
-  - microservices/cloud-secrets/incident-response.md
+  - secrets/policy/data-residency.md
+  - secrets/capacity-model.md
+  - secrets/incident-response.md
 review_cadence: annually + on every pack activation
 doc_status: published
 ---
@@ -144,11 +144,11 @@ Annual ops-sre review: verify each active pack's DR posture matches this documen
 
 - ADR-0117 (Cloud-native infrastructure)
 - ADR-0131 (Cloud split)
-- `microservices/cloud-secrets/policy/data-residency.md`
-- `microservices/cloud-secrets/capacity-model.md`
-- `microservices/cloud-secrets/incident-response.md`
-- `microservices/cloud-secrets/runbooks/openbao-restart.md`
-- `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`
+- `secrets/policy/data-residency.md`
+- `secrets/capacity-model.md`
+- `secrets/incident-response.md`
+- `secrets/runbooks/openbao-restart.md`
+- `secrets/runbooks/hsm-key-rotation.md`
 - OCI region documentation
 - OpenBao Raft consensus model
 - Patroni HA documentation
@@ -183,7 +183,7 @@ Per ADR-0164, the cloud-secrets µservice ships a per-pack air-gap variant. The 
 
 - OpenBao auto-unseal uses the in-cell HSM partition (PKCS#11 interface; HSM choice per pack — Thales Luna in sovereign packs; Marvell LiquidSec in some on-prem packs).
 - Recovery keys split per ADR-0043 quorum (Shamir 5-of-9 default; per-pack overlay).
-- Air-gap seal recovery requires regulator-witnessed quorum (per `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`).
+- Air-gap seal recovery requires regulator-witnessed quorum (per `secrets/runbooks/hsm-key-rotation.md`).
 
 ### encryption-key BYOK + sovereign tenant key custody (ADR-0251 §D-10)
 

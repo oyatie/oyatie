@@ -408,5 +408,5 @@ GitHub Actions Secrets is cited only for CI secret-distribution verification in 
 - Per-call audit row emission MUST include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` on the same metering/audit event.
 - Carbon-aware scheduling eligibility: eligible only when the workload is not Tier 0/Tier 1 and not one of `eu-ai-act-annex-iii`, `hipaa-em-incident-response`, or `pci-dss-realtime-fraud-detection`; excluded calls emit `defer_rejected`.
 - finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
-- Cost source: `microservices/cloud-secrets/manifest.json#paid_billing_components_emitted` is absent; this section is triggered by IP text and must be reconciled with the manifest billing model.
-- Surface evidence: `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-journey-j92-br-lgpd-us-parent-dsar.md`.
+- Cost source: `secrets/manifest.json#paid_billing_components_emitted` is absent; this section is triggered by IP text and must be reconciled with the manifest billing model.
+- Surface evidence: `secrets/manifest.json`, `secrets/IP-journey-j92-br-lgpd-us-parent-dsar.md`.

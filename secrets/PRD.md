@@ -90,7 +90,7 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 
 - Target: RTO ≤120s for hot-path secret resolution and RPO ≤1s for secret access/rotation audit emission, matching manifest `dr.rto_p99_seconds=120` and `dr.rpo_p99_seconds=1`.
 - Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is the stricter cloud-secrets posture: RTO 120s, RPO 1s, multi-region required.
-- Failover runbook: `microservices/cloud-secrets/runbooks/secret-substrate-failover.md`, matching manifest `dr.failover_runbook`; operational recovery fans into `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`, and `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`.
+- Failover runbook: `secrets/runbooks/secret-substrate-failover.md`, matching manifest `dr.failover_runbook`; operational recovery fans into `secrets/runbooks/openbao-restart.md`, `secrets/runbooks/namespace-controller-restart.md`, and `secrets/runbooks/audit-emission-backlog.md`.
 - Multi-region active-active: yes for tenant namespace control, audit bridge backlog, and read-side SecretReference resolution; pack-pinned HSM material never leaves its owning partition.
 - WHY: tenant workloads can continue resolving secrets during regional degradation without exposing raw secret material or losing the audit trail for secret reads and rotations.
 

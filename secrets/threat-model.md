@@ -52,7 +52,7 @@ All components introduced by ADR-0131 Cloud split and this PRD, deployed in a **
 | Thales Luna HSM (pack-kr regulated tenants) | `oya-cloud-secrets-hsm-integration-*` (5 crates) |
 | cert-manager (mTLS issuance) | `oya-cloud-secrets-per-tenant-namespace-controller-*` (6 crates) |
 | SPIRE (SPIFFE identity issuance to µservice consumers) | `oya-cloud-secrets-audit-emitter-*` (5 crates) |
-| | SecretReference URI spec at `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto` |
+| | SecretReference URI spec at `secrets/contracts/proto/cloud-secrets.proto` |
 | | LEAN-A11 raw-secret-emission lane configuration |
 
 ### Out-of-scope
@@ -149,7 +149,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | Rotation policy definitions | `INTERNAL_ONLY` | Low | append-only git history + OpenBao policy store | repo + OpenBao |
 | HSM attestation reports | `AUDIT` | High | 7y (regulatory) | audit-chain |
 | Per-µservice SPIFFE workload certs | `SECRET` (short-lived; ≤24h) | Critical | 24h TTL | cert-manager |
-| Cedar policy fragments | `INTERNAL_ONLY` (policy text) | Medium | git history | `microservices/cloud-secrets/policy/*.cedar` |
+| Cedar policy fragments | `INTERNAL_ONLY` (policy text) | Medium | git history | `secrets/policy/*.cedar` |
 | OpenBao operator service-account tokens | `SECRET` | Critical | per-deployment rotation | OpenBao (bootstrap via auto-unseal) |
 | BYOK uploads from tenants | `SECRET` (sub-class: TENANT_BYOK) | Critical | per tenant DPA; wrapped under our KEK-of-KEKs | OpenBao + HSM |
 | Cache contents (in-process resolver) | `SECRET` (transient in-memory) | Critical | TTL ≤60s; flushed on revocation push | consumer µservice process memory |
@@ -210,7 +210,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - Tenant context carried in inbound request (from tenancy µservice); SDK validates via signed tenant token.
   - OpenBao namespace policies are strict-match on tenant_id; cross-namespace reads denied.
-  - Cedar policy at `microservices/cloud-secrets/policy/tenant-scope.cedar` enforces `principal.tenant_id == resource.tenant_id`.
+  - Cedar policy at `secrets/policy/tenant-scope.cedar` enforces `principal.tenant_id == resource.tenant_id`.
   - Per-tenant DEK ensures even bypass of policy yields ciphertext only.
 - Owner: ops-security + axis-cloud-secrets
 - Residual: L (multiple-layer bypass required)
@@ -487,14 +487,14 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 
 ## References
 
-- `microservices/cloud-secrets/PRD.md`
-- `microservices/cloud-secrets/dpia.md`
-- `microservices/cloud-secrets/policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`
-- `microservices/cloud-secrets/policy/secret-isolation.md`
-- `microservices/cloud-secrets/policy/data-residency.md`
-- `microservices/cloud-secrets/incident-response.md`
-- `microservices/cloud-secrets/runbooks/secret-leak-detected.md`
-- `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`
+- `secrets/PRD.md`
+- `secrets/dpia.md`
+- `secrets/policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`
+- `secrets/policy/secret-isolation.md`
+- `secrets/policy/data-residency.md`
+- `secrets/incident-response.md`
+- `secrets/runbooks/secret-leak-detected.md`
+- `secrets/runbooks/hsm-key-rotation.md`
 - ADR-0028 (audit-chain + data-class taxonomy, Bominal-inherited)
 - ADR-0131 (Cloud split)
 - NIST SP 800-57 Part 1 (Key Management)

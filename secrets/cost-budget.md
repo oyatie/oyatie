@@ -105,7 +105,7 @@ Quarterly: ops-finance + axis-cloud-secrets joint review; reconciliation against
 
 - ADR-0117 (Cloud-native infrastructure)
 - ADR-0131 (Cloud split)
-- `microservices/cloud-secrets/capacity-model.md`
-- `microservices/cloud-secrets/multi-region.md`
+- `secrets/capacity-model.md`
+- `secrets/multi-region.md`
 - OCI public pricing (canonical source of unit costs)
 - Thales Luna HSM list price (CapEx-equivalent monthly amortisation)

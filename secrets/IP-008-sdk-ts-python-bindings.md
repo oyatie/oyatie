@@ -115,14 +115,14 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is cited for CI packa
 ## API Versioning (per ADR-0342)
 
 - Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
-- Initial declared_version: `microservices/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Initial declared_version: `secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
 - Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
 - Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
-- Surface evidence: `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md`.
+- Surface evidence: `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/IP-008-sdk-ts-python-bindings.md`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - `pod_runtime_tier: 0`.
 - Justification: tenant-customer code is present in this IP's execution path; Tier 0 requires Kata plus Cloud Hypervisor isolation.
-- Surface evidence: `microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md`; matched trigger term(s): `sandbox`.
+- Surface evidence: `secrets/IP-008-sdk-ts-python-bindings.md`; matched trigger term(s): `sandbox`.
 - Admission expectation: spawned workloads for this path use `kata-cloud-hypervisor`; first-party helpers may only run outside Tier 0 when split into a separate non-tenant-customer IP.

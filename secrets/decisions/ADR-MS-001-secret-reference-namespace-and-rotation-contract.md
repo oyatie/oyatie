@@ -168,7 +168,7 @@ decision_owner: axis-cloud-secrets + ops-security
 ### Follow-up work
 
 - Add conformance tests for every `SecretReference` parser in SDK bindings.
-- Add OpenBao namespace drift detection to `microservices/cloud-secrets/scorecards/`.
+- Add OpenBao namespace drift detection to `secrets/scorecards/`.
 - Add revocation push replay fixtures for sidecars that are offline for more than 30 seconds.
 - Add dashboard panels for `RotationOverdue` by tenant pack and microservice.
 - Add evidence correlation from `/audit/query` to downstream service deploy promotions.

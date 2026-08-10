@@ -32,7 +32,7 @@ One new crate at `…/oya-cloud-secrets-secret-reference-resolver-adapter-openba
 | `…/src/kv_v2.rs` | create — KV v2 read/write/list |
 | `…/src/revoke.rs` | create — revoke endpoint |
 | `…/src/sse.rs` | create — server-sent events client for revocation push |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-adapter-openbao.yaml` | create |
+| `secrets/catalog/oya-cloud-secrets-secret-reference-resolver-adapter-openbao.yaml` | create |
 
 ## Acceptance Gates
 
@@ -96,16 +96,16 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is mentioned only for
 
 ## DR posture (per ADR-0343)
 
-- Target source: `microservices/cloud-secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Target source: `secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
 - Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
 - RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
 - Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
 - backup_substrate: [`openbao_seal_unseal`, `postgres_wal_g`, `audit_chain_merkle_seal`].
-- Surface evidence: `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-006-resolver-adapter-openbao.md`.
+- Surface evidence: `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/openbao-restart.md`, `secrets/manifest.json`, `secrets/IP-006-resolver-adapter-openbao.md`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - `pod_runtime_tier: 0`.
 - Justification: tenant-customer code is present in this IP's execution path; Tier 0 requires Kata plus Cloud Hypervisor isolation.
-- Surface evidence: `microservices/cloud-secrets/IP-006-resolver-adapter-openbao.md`; matched trigger term(s): `sandbox`.
+- Surface evidence: `secrets/IP-006-resolver-adapter-openbao.md`; matched trigger term(s): `sandbox`.
 - Admission expectation: spawned workloads for this path use `kata-cloud-hypervisor`; first-party helpers may only run outside Tier 0 when split into a separate non-tenant-customer IP.

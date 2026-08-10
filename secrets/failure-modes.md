@@ -6,9 +6,9 @@ date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-sre + ops-security
 related_adrs: [ADR-0028, ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/threat-model.md
-  - microservices/cloud-secrets/incident-response.md
-  - microservices/cloud-secrets/runbooks/*.md
+  - secrets/threat-model.md
+  - secrets/incident-response.md
+  - secrets/runbooks/*.md
 review_cadence: quarterly + post every Sev-1/Sev-2
 doc_status: published
 ---
@@ -261,8 +261,8 @@ This document enumerates the failure modes the cloud-secrets substrate can exper
 
 ## References
 
-- `microservices/cloud-secrets/threat-model.md`
-- `microservices/cloud-secrets/incident-response.md`
-- `microservices/cloud-secrets/runbooks/*.md`
-- `microservices/cloud-secrets/capacity-model.md`
+- `secrets/threat-model.md`
+- `secrets/incident-response.md`
+- `secrets/runbooks/*.md`
+- `secrets/capacity-model.md`
 - Google SRE Workbook ch. 14 ("Managing Load") + ch. 22 ("Addressing Cascading Failures")

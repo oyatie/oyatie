@@ -93,8 +93,8 @@ Phase-01 closes with this IP green + all 14 preceding IPs merged.
 
 ## References
 
-- `microservices/cloud-secrets/policy/secret-isolation.md` §"TI-03 SecretReference is the law"
-- `microservices/cloud-secrets/threat-model.md` T-I-01, T-I-02
+- `secrets/policy/secret-isolation.md` §"TI-03 SecretReference is the law"
+- `secrets/threat-model.md` T-I-01, T-I-02
 - gitleaks (canonical pattern source)
 - tartufo (entropy analysis)
 - OpenBao leak-detection patterns
@@ -110,5 +110,5 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is the CI secret-dist
 - Per-call audit row emission MUST include `cost_usd_minor_units`, `co2_grams`, and `watt_hours` on the same metering/audit event.
 - Carbon-aware scheduling eligibility: eligible only when the workload is not Tier 0/Tier 1 and not one of `eu-ai-act-annex-iii`, `hipaa-em-incident-response`, or `pci-dss-realtime-fraud-detection`; excluded calls emit `defer_rejected`.
 - finops-portal rollup axes affected: `tenant`, `product`, `capability`, `provider`, `cell`.
-- Cost source: `microservices/cloud-secrets/manifest.json#paid_billing_components_emitted` is absent; this section is triggered by IP text and must be reconciled with the manifest billing model.
-- Surface evidence: `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-015-lean-a11-raw-secret-emission-lane-wiring.md`.
+- Cost source: `secrets/manifest.json#paid_billing_components_emitted` is absent; this section is triggered by IP text and must be reconciled with the manifest billing model.
+- Surface evidence: `secrets/manifest.json`, `secrets/IP-015-lean-a11-raw-secret-emission-lane-wiring.md`.

@@ -9,10 +9,10 @@ owner_team: council-privacy + axis-cloud-secrets
 deciders: council-privacy, ops-security, axis-cloud-secrets, ops-legal
 related_adrs: [ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/threat-model.md (T-I-04, T-I-05; HSM compromise + backup leak)
-  - microservices/cloud-secrets/dpia.md (R-06, R-07, R-11; cross-pack misroute)
-  - microservices/cloud-secrets/policy/secret-isolation.md
-  - microservices/cloud-secrets/multi-region.md
+  - secrets/threat-model.md (T-I-04, T-I-05; HSM compromise + backup leak)
+  - secrets/dpia.md (R-06, R-07, R-11; cross-pack misroute)
+  - secrets/policy/secret-isolation.md
+  - secrets/multi-region.md
 review_cadence: annually + on every regional-pack activation
 doc_status: published
 ---
@@ -217,10 +217,10 @@ cargo run -p oya-dev-cli -- gate validate cross-pack-replication-forbidden --mic
 
 - ADR-0117 (Cloud-native infrastructure)
 - ADR-0131 (Cloud split)
-- `microservices/cloud-secrets/threat-model.md`
-- `microservices/cloud-secrets/dpia.md`
-- `microservices/cloud-secrets/policy/secret-isolation.md`
-- `microservices/cloud-secrets/multi-region.md`
+- `secrets/threat-model.md`
+- `secrets/dpia.md`
+- `secrets/policy/secret-isolation.md`
+- `secrets/multi-region.md`
 - `microservices/cloud-secrets/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa}.md` (Slice D)
 - GDPR Arts. 44–50
 - EDPB Recommendations 01/2020

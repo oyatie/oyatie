@@ -27,14 +27,14 @@ One cohesive ChangeSet: 3 Helm chart bundles (openbao, postgres, hsm-operator) +
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/cloud-secrets/iac/helm/openbao/Chart.yaml` | create | OpenBao 2.x LTS chart |
-| `microservices/cloud-secrets/iac/helm/openbao/values.yaml` | create | HA Raft 5-node; auto-unseal PKCS#11; Postgres storage; mTLS |
-| `microservices/cloud-secrets/iac/helm/postgres/Chart.yaml` | create | Patroni-HA Postgres chart |
-| `microservices/cloud-secrets/iac/helm/postgres/values.yaml` | create | 3-node HA; LUKS at rest; encrypted backups |
-| `microservices/cloud-secrets/iac/helm/hsm-operator/Chart.yaml` | create | HSM operator chart |
-| `microservices/cloud-secrets/iac/helm/hsm-operator/values.yaml` | create | PKCS#11 client; partition discovery; attestation cron |
-| `microservices/cloud-secrets/iac/kustomize/base/kustomization.yaml` | create | Shared base referencing all 3 charts |
-| `microservices/cloud-secrets/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (Thales Luna; OCI ap-seoul-1) |
+| `secrets/iac/helm/openbao/Chart.yaml` | create | OpenBao 2.x LTS chart |
+| `secrets/iac/helm/openbao/values.yaml` | create | HA Raft 5-node; auto-unseal PKCS#11; Postgres storage; mTLS |
+| `secrets/iac/helm/postgres/Chart.yaml` | create | Patroni-HA Postgres chart |
+| `secrets/iac/helm/postgres/values.yaml` | create | 3-node HA; LUKS at rest; encrypted backups |
+| `secrets/iac/helm/hsm-operator/Chart.yaml` | create | HSM operator chart |
+| `secrets/iac/helm/hsm-operator/values.yaml` | create | PKCS#11 client; partition discovery; attestation cron |
+| `secrets/iac/kustomize/base/kustomization.yaml` | create | Shared base referencing all 3 charts |
+| `secrets/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (Thales Luna; OCI ap-seoul-1) |
 
 ## Crate Naming
 
@@ -109,10 +109,10 @@ hsmOperator:
 ## Acceptance Gates
 
 ```bash
-helm lint microservices/cloud-secrets/iac/helm/openbao
-helm lint microservices/cloud-secrets/iac/helm/postgres
-helm lint microservices/cloud-secrets/iac/helm/hsm-operator
-kubectl --dry-run=client apply -k microservices/cloud-secrets/iac/kustomize/overlays/pack-kr
+helm lint secrets/iac/helm/openbao
+helm lint secrets/iac/helm/postgres
+helm lint secrets/iac/helm/hsm-operator
+kubectl --dry-run=client apply -k secrets/iac/kustomize/overlays/pack-kr
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-secrets
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets   # no raw secrets in IaC
@@ -137,8 +137,8 @@ cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets 
 ## References
 
 - ADR-0131 (Cloud split)
-- `microservices/cloud-secrets/multi-region.md`
-- `microservices/cloud-secrets/capacity-model.md`
+- `secrets/multi-region.md`
+- `secrets/capacity-model.md`
 - `docs/standards/version-pinning.md`
 - OpenBao 2.x release notes
 
@@ -150,9 +150,9 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is cited only for the
 
 ## DR posture (per ADR-0343)
 
-- Target source: `microservices/cloud-secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Target source: `secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
 - Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
 - RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
 - Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
 - backup_substrate: [`openbao_seal_unseal`, `postgres_wal_g`, `audit_chain_merkle_seal`].
-- Surface evidence: `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-001-layer-a-openbao-postgres-hsm-iac.md`.
+- Surface evidence: `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/openbao-restart.md`, `secrets/manifest.json`, `secrets/IP-001-layer-a-openbao-postgres-hsm-iac.md`.

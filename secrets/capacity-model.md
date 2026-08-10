@@ -6,8 +6,8 @@ date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-sre
 related_adrs: [ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/cost-budget.md
-  - microservices/cloud-secrets/failure-modes.md
+  - secrets/cost-budget.md
+  - secrets/failure-modes.md
 review_cadence: quarterly + on every pack activation
 doc_status: published
 ---
@@ -117,9 +117,9 @@ Tenants approaching limits receive quota-warning events 7d ahead; exceeding trig
 
 ## References
 
-- `microservices/cloud-secrets/cost-budget.md`
-- `microservices/cloud-secrets/failure-modes.md`
-- `microservices/cloud-secrets/PRD.md`
-- `microservices/cloud-secrets/slos/*.openslo.yaml` (authored under observability gate)
+- `secrets/cost-budget.md`
+- `secrets/failure-modes.md`
+- `secrets/PRD.md`
+- `secrets/observability/slos/cloud-secrets/*.openslo.yaml` (authored under observability gate)
 - OpenBao performance benchmarks (informing OpenBao expectations)
 - OCI Cloud-HSM published throughput

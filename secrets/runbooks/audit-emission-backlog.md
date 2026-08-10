@@ -162,9 +162,9 @@ cargo run -p oya-audit-chain-app -- verify-seal --pack <pack> --window "last 1h"
 
 ## References
 
-- `microservices/cloud-secrets/failure-modes.md` FM-04
-- `microservices/cloud-secrets/threat-model.md` T-D-03
-- `microservices/cloud-secrets/IP-013-audit-emitter-bridge-to-audit-chain.md`
-- `microservices/cloud-secrets/incident-response.md`
+- `secrets/failure-modes.md` FM-04
+- `secrets/threat-model.md` T-D-03
+- `secrets/IP-013-audit-emitter-bridge-to-audit-chain.md`
+- `secrets/incident-response.md`
 - `microservices/audit-chain/runbooks/*.md` (audit-chain µservice runbooks)
 - Bominal ADR-0028 (audit-chain posture)

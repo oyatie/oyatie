@@ -99,10 +99,10 @@ cargo run -p oya-dev-cli -- gate validate port-location --microservice cloud-sec
 cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud-secrets
 cargo run -p oya-dev-cli -- gate validate data-class --microservice cloud-secrets
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
-helm lint microservices/cloud-secrets/iac/helm/openbao
-helm lint microservices/cloud-secrets/iac/helm/postgres
-helm lint microservices/cloud-secrets/iac/helm/hsm-operator
-kubectl --dry-run=client apply -k microservices/cloud-secrets/iac/kustomize/overlays/pack-kr
+helm lint secrets/iac/helm/openbao
+helm lint secrets/iac/helm/postgres
+helm lint secrets/iac/helm/hsm-operator
+kubectl --dry-run=client apply -k secrets/iac/kustomize/overlays/pack-kr
 ```
 
 ## Phase Halt Conditions
@@ -124,10 +124,10 @@ kubectl --dry-run=client apply -k microservices/cloud-secrets/iac/kustomize/over
 
 ## Related artifacts
 
-- `microservices/cloud-secrets/PRD.md`
-- `microservices/cloud-secrets/threat-model.md`
-- `microservices/cloud-secrets/dpia.md`
-- `microservices/cloud-secrets/incident-response.md`
+- `secrets/PRD.md`
+- `secrets/threat-model.md`
+- `secrets/dpia.md`
+- `secrets/incident-response.md`
 - `docs/adr-archive/ADR-0131-per-microservice-flat-layout.md`
 - `docs/adr-archive/ADR-0133-industry-best-practice-conformance-program.md` (if registered)
 - `microservices/cloud-secrets/IP-{001..015}-*.md`

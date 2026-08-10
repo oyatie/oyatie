@@ -11,8 +11,8 @@ Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2225`
 Citation anchor 1b: `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495` for §D-16 OpenTofu-only IaC and forbidden patterns.
 Citation anchor 1c: `docs/decisions/ADR-0700-ci-admission-live-apex.md §D-17..§D-20` for OS matrix, Rust-strict policy, OCI Always Free, and audit-agent decision tree.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for deployment contexts, OpenTofu substrate, supported OSes, language policy, and OCI Always Free.
-Citation anchor 3: `microservices/cloud-secrets/PRD.md:20-331` read for purpose, requirements, SDK, SLO, benchmark, and acceptance criteria evidence.
-Citation anchor 4: `microservices/cloud-secrets/ARCHITECTURE.md:3-704` read for architecture, dependency, tenant-scope, OpenBao, and credential-isolation evidence.
+Citation anchor 3: `secrets/PRD.md:20-331` read for purpose, requirements, SDK, SLO, benchmark, and acceptance criteria evidence.
+Citation anchor 4: `secrets/ARCHITECTURE.md:3-704` read for architecture, dependency, tenant-scope, OpenBao, and credential-isolation evidence.
 Citation anchor 5: `docs/standards/documentation-rigor.md:1-220` read for intern-buildability, substrate remediation priority, completeness invariants, and hyperscaler-grade documentation standard.
 Citation anchor 6: `docs/standards/brief-template.md:666-740` read for multi-context, cloud-family, KMS/secrets, IaC, and citation-anchor expectations.
 Constraint memory: `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_multi_context_provider_agnostic_2026_05_20.md`.
@@ -28,12 +28,12 @@ Chat-history source: `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/8f
 ## §1 microservice purpose summary
 
 1. `cloud-secrets` is intended to be Oyatie's canonical secret and credential plane, not a generic application vault wrapper.
-2. The PRD says its purpose is OpenBao-backed secret reference resolution, rotation, HSM integration, audit emission, and per-tenant namespace control; citation: `microservices/cloud-secrets/PRD.md:20-28`.
-3. The product contract forbids raw secrets in source, chat, checkpoint files, CI logs, and non-secret stores; citation: `microservices/cloud-secrets/PRD.md:20-28`.
-4. The visible runtime primitive is a `SecretReference`, not a raw credential value; citation: `microservices/cloud-secrets/PRD.md:42-51`.
-5. The microservice is substrate-class: every other service is supposed to consume it for credentials instead of embedding provider-specific secret storage; citation: `microservices/cloud-secrets/PRD.md:25-28`.
-6. The architecture positions OpenBao, tenant namespaces, policy bundles, audit bundles, HSM envelopes, and rotation workflows as first-class components; citation: `microservices/cloud-secrets/ARCHITECTURE.md:9-70`.
-7. The architecture also describes per-tenant scoping and audit-query surfaces; citation: `microservices/cloud-secrets/ARCHITECTURE.md:133-147`.
+2. The PRD says its purpose is OpenBao-backed secret reference resolution, rotation, HSM integration, audit emission, and per-tenant namespace control; citation: `secrets/PRD.md:20-28`.
+3. The product contract forbids raw secrets in source, chat, checkpoint files, CI logs, and non-secret stores; citation: `secrets/PRD.md:20-28`.
+4. The visible runtime primitive is a `SecretReference`, not a raw credential value; citation: `secrets/PRD.md:42-51`.
+5. The microservice is substrate-class: every other service is supposed to consume it for credentials instead of embedding provider-specific secret storage; citation: `secrets/PRD.md:25-28`.
+6. The architecture positions OpenBao, tenant namespaces, policy bundles, audit bundles, HSM envelopes, and rotation workflows as first-class components; citation: `secrets/ARCHITECTURE.md:9-70`.
+7. The architecture also describes per-tenant scoping and audit-query surfaces; citation: `secrets/ARCHITECTURE.md:133-147`.
 8. The immediate purpose is stronger than AWS Secrets Manager and Google Secret Manager in one respect: Oyatie wants a platform-local secret reference contract that other microservices can use without depending on provider-specific APIs.
 9. The immediate purpose is weaker than HashiCorp Vault in another respect: current docs have no complete operator-grade implementation surface for leases, mount lifecycle, namespace operations, audit-device operation, or disaster-recovery bootstrap.
 10. The service's strongest documented differentiators are zero-raw-secret doctrine, OpenBao-first implementation, Merkle/Ed25519 audit chain, tenant-specific residency, and cross-service secret reference linting.
@@ -189,50 +189,50 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 ### §3.1 Dimension 1 - internal coherence
 
 1. Internal coherence headline: partial, with multiple P1/P2 contradictions in core contracts.
-2. `PRD.md` defines the visible reference form as `${openbao:secret/<path>}`; citation: `microservices/cloud-secrets/PRD.md:20-28`.
-3. `manifest.json` repeats `${openbao:secret/<path>}` under the secrets substrate provider; citation: `microservices/cloud-secrets/manifest.json:318-321`.
-4. `contracts/openapi/cloud-secrets.yaml` accepts `openbao:secret/.+` without the `${...}` wrapper; citation: `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml:80-90`.
-5. `contracts/proto/cloud-secrets.proto` describes `openbao:secret/<tenant>/<microservice>/<name>` in the resolver RPC; citation: `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto:46-48`.
-6. `decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md` decides `secretref:v1:{tenant_id}:{home_cell}:{microservice}:{purpose}:{secret_name}:{version}`; citation: `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:56-70`.
+2. `PRD.md` defines the visible reference form as `${openbao:secret/<path>}`; citation: `secrets/PRD.md:20-28`.
+3. `manifest.json` repeats `${openbao:secret/<path>}` under the secrets substrate provider; citation: `secrets/manifest.json:318-321`.
+4. `contracts/openapi/cloud-secrets.yaml` accepts `openbao:secret/.+` without the `${...}` wrapper; citation: `secrets/contracts/openapi/cloud-secrets.yaml:80-90`.
+5. `contracts/proto/cloud-secrets.proto` describes `openbao:secret/<tenant>/<microservice>/<name>` in the resolver RPC; citation: `secrets/contracts/proto/cloud-secrets.proto:46-48`.
+6. `decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md` decides `secretref:v1:{tenant_id}:{home_cell}:{microservice}:{purpose}:{secret_name}:{version}`; citation: `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:56-70`.
 7. Contradiction probe 1: SecretReference grammar has at least four active shapes, so clients cannot implement one parser safely.
 8. Severity for probe 1: P1, because it affects the service's public contract and every consuming microservice.
-9. The PRD sets cache hit p99 <=10ms and cache miss p99 <=25ms; citation: `microservices/cloud-secrets/PRD.md:57-60`.
-10. The `secret-resolve-latency` OpenSLO sets p99 <=100ms; citation: `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml:18-42`.
-11. ADR-MS-001 repeats p99 <=100ms for resolve; citation: `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:81-85`.
+9. The PRD sets cache hit p99 <=10ms and cache miss p99 <=25ms; citation: `secrets/PRD.md:57-60`.
+10. The `secret-resolve-latency` OpenSLO sets p99 <=100ms; citation: `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml:18-42`.
+11. ADR-MS-001 repeats p99 <=100ms for resolve; citation: `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:81-85`.
 12. Contradiction probe 2: latency success can be either <=25ms or <=100ms depending on the file read.
 13. Severity for probe 2: P1, because SLOs drive readiness gates and benchmark claims.
-14. The PRD names expected SLO files `secret-resolution`, `rotation-completeness`, and `audit-emission-completeness`; citation: `microservices/cloud-secrets/PRD.md:84-87`.
+14. The PRD names expected SLO files `secret-resolution`, `rotation-completeness`, and `audit-emission-completeness`; citation: `secrets/PRD.md:84-87`.
 15. Actual SLO files use `secret-resolve-latency`, `key-rotation-correctness`, and `audit-log-completeness`.
 16. `IP-014-slo-alerting.md` repeats the PRD SLO filename expectation; citation: `microservices/cloud-secrets/IP-014-slo-alerting.md:28-30`.
 17. Contradiction probe 3: SLO file names are not internally stable between PRD/IP and actual SLO directory.
 18. Severity for probe 3: P2, because it breaks automation by path but not the product concept.
-19. The PRD acceptance criteria cite `tests/bench/resolution-latency.rs`; citation: `microservices/cloud-secrets/PRD.md:310-313`.
+19. The PRD acceptance criteria cite `tests/bench/resolution-latency.rs`; citation: `secrets/PRD.md:310-313`.
 20. No `tests/` directory was present in the 134-file inventory.
-21. `ADR-MS-001` cites load, chaos, and property tests; citation: `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:230-252`.
+21. `ADR-MS-001` cites load, chaos, and property tests; citation: `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:230-252`.
 22. Contradiction probe 4: validation criteria require tests that are not present under the service path.
 23. Severity for probe 4: P2, because it prevents intern buildability and audit verification.
-24. `ARCHITECTURE.md` line 3 explicitly says the file was created by an anchor sweep and needs content-pass expansion; citation: `microservices/cloud-secrets/ARCHITECTURE.md:3`.
-25. The same architecture later claims runbook and IaC evidence exists; citation: `microservices/cloud-secrets/ARCHITECTURE.md:29-47`.
+24. `ARCHITECTURE.md` line 3 explicitly says the file was created by an anchor sweep and needs content-pass expansion; citation: `secrets/ARCHITECTURE.md:3`.
+25. The same architecture later claims runbook and IaC evidence exists; citation: `secrets/ARCHITECTURE.md:29-47`.
 26. Contradiction probe 5: the architecture simultaneously marks itself as needing expansion and asserts evidence completeness.
 27. Severity for probe 5: P2, because it weakens trust in completeness claims.
-28. `PRD.md` says total crates introduced is 34; citation: `microservices/cloud-secrets/PRD.md:166`.
-29. The catalog inventory contains 38 crate catalog YAML files, and `manifest.json` lists a broad catalog block; citation: `microservices/cloud-secrets/manifest.json:1-49`.
+28. `PRD.md` says total crates introduced is 34; citation: `secrets/PRD.md:166`.
+29. The catalog inventory contains 38 crate catalog YAML files, and `manifest.json` lists a broad catalog block; citation: `secrets/manifest.json:1-49`.
 30. Contradiction probe 6: crate count differs between PRD and manifest/catalog.
 31. Severity for probe 6: P3, because it is count drift but could mislead implementation planning.
-32. `failure-modes.md` says secret-resolution can continue while audit lag breaches compliance; citation: `microservices/cloud-secrets/failure-modes.md:83`.
-33. `audit-log-completeness.openslo.yaml` requires sealed audit within the same request lifetime and treats missing audit as Sev-2; citation: `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml:18-43`.
+32. `failure-modes.md` says secret-resolution can continue while audit lag breaches compliance; citation: `secrets/failure-modes.md:83`.
+33. `audit-log-completeness.openslo.yaml` requires sealed audit within the same request lifetime and treats missing audit as Sev-2; citation: `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml:18-43`.
 34. Contradiction probe 7: availability-vs-audit behavior is not resolved for strict audit mode.
 35. Severity for probe 7: P1, because secrets without complete audit are a security substrate failure.
-36. `cross-microservice-handoffs.md` references `contracts/proto/cloud_secrets.proto`; citation: `microservices/cloud-secrets/cross-microservice-handoffs.md:15-16`.
+36. `cross-microservice-handoffs.md` references `contracts/proto/cloud_secrets.proto`; citation: `secrets/cross-microservice-handoffs.md:15-16`.
 37. The actual file is `contracts/proto/cloud-secrets.proto`.
 38. Contradiction probe 8: internal path reference is broken by underscore/dash drift.
 39. Severity for probe 8: P2, because codegen and handoff readers can fail.
-40. `cross-microservice-handoffs.md` references `developer-scope.cedar`; citation: `microservices/cloud-secrets/cross-microservice-handoffs.md:30` and `microservices/cloud-secrets/cross-microservice-handoffs.md:162`.
+40. `cross-microservice-handoffs.md` references `developer-scope.cedar`; citation: `secrets/cross-microservice-handoffs.md:30` and `secrets/cross-microservice-handoffs.md:162`.
 41. No `developer-scope.cedar` file exists in the service inventory.
 42. Contradiction probe 9: policy handoff cites a missing Cedar artifact.
 43. Severity for probe 9: P2.
-44. `incident-response.md` references missing legal/regulator contacts; citation: `microservices/cloud-secrets/incident-response.md:76`, `microservices/cloud-secrets/incident-response.md:164`, and `microservices/cloud-secrets/incident-response.md:203`.
-45. `compliance.md` references missing `legal/*` evidence; citation: `microservices/cloud-secrets/compliance.md:64-147`.
+44. `incident-response.md` references missing legal/regulator contacts; citation: `secrets/incident-response.md:76`, `secrets/incident-response.md:164`, and `secrets/incident-response.md:203`.
+45. `compliance.md` references missing `legal/*` evidence; citation: `secrets/compliance.md:64-147`.
 46. Contradiction probe 10: incident and compliance escalation paths cite absent legal artifacts.
 47. Severity for probe 10: P2.
 48. Internal cross-reference classification: SecretReference grammar is wrong-direction because ADR, PRD, OpenAPI, and proto cannot all be canonical.
@@ -243,27 +243,27 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 ### §3.2 Dimension 2 - outbound cross-references
 
 1. Outbound coherence headline: partial, with broken service-local references and broad reverse references from docs/registry.
-2. Outbound ADR reference to ADR-MS-001 resolves; citation: `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:1-20`.
-3. Outbound reference to OpenBao resolves only as concept; service has Helm values but no complete OpenTofu module; citation: `microservices/cloud-secrets/iac/helm/openbao/Chart.yaml:1-11`.
-4. Outbound reference to `cloud-auth` appears in bounded context and handoffs; citation: `microservices/cloud-secrets/PRD.md:95-104`.
-5. Outbound reference to `audit-evidence` appears as audit event and evidence sink; citation: `microservices/cloud-secrets/cross-microservice-handoffs.md:58-88`.
+2. Outbound ADR reference to ADR-MS-001 resolves; citation: `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:1-20`.
+3. Outbound reference to OpenBao resolves only as concept; service has Helm values but no complete OpenTofu module; citation: `secrets/iac/helm/openbao/Chart.yaml:1-11`.
+4. Outbound reference to `cloud-auth` appears in bounded context and handoffs; citation: `secrets/PRD.md:95-104`.
+5. Outbound reference to `audit-evidence` appears as audit event and evidence sink; citation: `secrets/cross-microservice-handoffs.md:58-88`.
 6. Outbound reference to `messenger` appears in service docs and reverse docs; citation: `docs/standards/messenger-e2e-encryption-mls.md:125`.
-7. Outbound reference to `cloud-iac` appears in compliance and FAQ as IaC disposal/control plane; citation: `microservices/cloud-secrets/compliance.md:982`.
-8. Outbound reference to Terraform/Pulumi state appears in FAQ; citation: `microservices/cloud-secrets/faqs/security-engineer-faq.md:77`.
+7. Outbound reference to `cloud-iac` appears in compliance and FAQ as IaC disposal/control plane; citation: `secrets/compliance.md:982`.
+8. Outbound reference to Terraform/Pulumi state appears in FAQ; citation: `secrets/faqs/security-engineer-faq.md:77`.
 9. That FAQ reference is drifted after ADR-0328 because OpenTofu is canonical and Terraform/Pulumi are forbidden except as superseded/negative examples.
-10. Outbound reference to `contracts/proto/cloud_secrets.proto` is broken; citation: `microservices/cloud-secrets/cross-microservice-handoffs.md:15-16`.
-11. Outbound reference to `developer-scope.cedar` is broken; citation: `microservices/cloud-secrets/cross-microservice-handoffs.md:30`.
-12. Outbound reference to missing legal contacts is broken; citation: `microservices/cloud-secrets/incident-response.md:76`.
-13. Outbound reference to `tests/e2e/*` is broken under the service path; citation: `microservices/cloud-secrets/PRD.md:310-313`.
-14. Outbound reference to `tests/bench/resolution-latency.rs` is broken under the service path; citation: `microservices/cloud-secrets/PRD.md:310-313`.
-15. Outbound reference to `helm install` in acceptance criteria is not canonical deployment evidence; citation: `microservices/cloud-secrets/PRD.md:317`.
+10. Outbound reference to `contracts/proto/cloud_secrets.proto` is broken; citation: `secrets/cross-microservice-handoffs.md:15-16`.
+11. Outbound reference to `developer-scope.cedar` is broken; citation: `secrets/cross-microservice-handoffs.md:30`.
+12. Outbound reference to missing legal contacts is broken; citation: `secrets/incident-response.md:76`.
+13. Outbound reference to `tests/e2e/*` is broken under the service path; citation: `secrets/PRD.md:310-313`.
+14. Outbound reference to `tests/bench/resolution-latency.rs` is broken under the service path; citation: `secrets/PRD.md:310-313`.
+15. Outbound reference to `helm install` in acceptance criteria is not canonical deployment evidence; citation: `secrets/PRD.md:317`.
 16. Reverse reference search across `docs`, `specs`, and `registry` produced a large cloud-secrets surface, including registry tenant_class mapping.
 17. Reverse reference: `registry/tenant-class-adoption/microservice-tenant_class-mapping.yaml:625` maps `cloud-secrets`.
 18. Reverse reference: `registry/tenant-class-adoption/vendor-tenant_class-mapping.yaml:847` and related nearby entries map AWS/GCP/HashiCorp vendor tenant_class equivalents.
 19. Reverse reference: `registry/brownout/coverage-tracker.tsv:13` names `cloud-secrets` in coverage tracking.
 20. Reverse reference: `registry/throttling/coverage-tracker.tsv:31` names `cloud-secrets` as default or N/A-internal.
 21. Reverse reference: `registry/api-surface-classification/coverage-tracker.tsv:31` points to `microservices/cloud-secrets/contracts/openapi.yaml`.
-22. Actual OpenAPI path is `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`.
+22. Actual OpenAPI path is `secrets/contracts/openapi/cloud-secrets.yaml`.
 23. Reverse reference classification: registry API path is broken and should be corrected during aggregation.
 24. Reverse reference: `specs/microservices/manifests-index.json:127-128` maps the service manifest.
 25. Reverse reference: `specs/platform-architecture.json:396` includes `cloud-secrets` in S0 leaves.
@@ -298,8 +298,8 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 1. Intern-buildability headline: not sufficient yet.
 2. The documentation-rigor standard requires intern-buildability, meaning a cold implementer can build from docs without hidden context; citation: `docs/standards/documentation-rigor.md:133-141`.
 3. The standard also names substrate microservices including `cloud-secrets` as early remediation targets; citation: `docs/standards/documentation-rigor.md:98-100`.
-4. The PRD is substantial on product intent; citation: `microservices/cloud-secrets/PRD.md:20-130`.
-5. The architecture is broad on components but begins with a content-expansion warning; citation: `microservices/cloud-secrets/ARCHITECTURE.md:3`.
+4. The PRD is substantial on product intent; citation: `secrets/PRD.md:20-130`.
+5. The architecture is broad on components but begins with a content-expansion warning; citation: `secrets/ARCHITECTURE.md:3`.
 6. A cold intern can identify the goal: no raw secrets, OpenBao-backed references, rotation, HSM, audit, namespaces.
 7. A cold intern cannot identify a single canonical SecretReference grammar because four forms are present.
 8. A cold intern cannot run the expected tests because the cited `tests/` tree is absent.
@@ -337,7 +337,7 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 40. Buildability gap: no SDK provenance exception for non-Rust bindings.
 41. Buildability gap: no capability-tenant_class conformance tests.
 42. Buildability gap: no OCI Always Free load profile.
-43. Buildability gap: no operator runbook for the runbooks that ADR-MS-001 says are missing; citation: `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:265-267`.
+43. Buildability gap: no operator runbook for the runbooks that ADR-MS-001 says are missing; citation: `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:265-267`.
 44. Positive substance: compliance, DPIA, threat model, runbooks, dashboards, and handoff docs are non-trivial.
 45. Positive substance: event contract and REST/gRPC contracts are detailed enough to start API reconciliation.
 46. Positive substance: capability-tenant_class matrix gives a first service-specific tenant_class frame.
@@ -423,12 +423,12 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 20. HashiCorp source: `https://developer.hashicorp.com/vault/docs/enterprise/replication`.
 21. HashiCorp source: `https://developer.hashicorp.com/vault/docs/sync`.
 22. HashiCorp source: `https://developer.hashicorp.com/vault/docs/deploy/kubernetes/vso/sources/hvs`.
-23. Oyatie present: zero raw secret doctrine; citation: `microservices/cloud-secrets/PRD.md:20-28`.
-24. Oyatie present: OpenBao-backed reference resolution; citation: `microservices/cloud-secrets/PRD.md:42-51`.
-25. Oyatie present: audit event model; citation: `microservices/cloud-secrets/PRD.md:78-80`.
-26. Oyatie present: tenant namespace controller; citation: `microservices/cloud-secrets/PRD.md:42-51`.
-27. Oyatie present: HSM envelope concept; citation: `microservices/cloud-secrets/PRD.md:42-51`.
-28. Oyatie present: data residency policy; citation: `microservices/cloud-secrets/policy/data-residency.md:1-80`.
+23. Oyatie present: zero raw secret doctrine; citation: `secrets/PRD.md:20-28`.
+24. Oyatie present: OpenBao-backed reference resolution; citation: `secrets/PRD.md:42-51`.
+25. Oyatie present: audit event model; citation: `secrets/PRD.md:78-80`.
+26. Oyatie present: tenant namespace controller; citation: `secrets/PRD.md:42-51`.
+27. Oyatie present: HSM envelope concept; citation: `secrets/PRD.md:42-51`.
+28. Oyatie present: data residency policy; citation: `secrets/policy/data-residency.md:1-80`.
 29. Oyatie present: OpenSLO files for resolve, rotation, audit, availability, namespace provisioning, and seal recovery.
 30. Oyatie missing: stable secret version aliases comparable to AWS labels and Google aliases.
 31. Oyatie missing: public quota model comparable to AWS per-Region TPS and Google per-project RPM.
@@ -539,9 +539,9 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 30. Forbidden `local-exec` pattern was not found in service-local text.
 31. Forbidden `remote-exec` pattern was not found in service-local text.
 32. Forbidden SSH provisioner pattern was not found.
-33. The word `ssh` appears in migration domain context for Vault SSH secret engine mapping; citation: `microservices/cloud-secrets/migration-playbooks/from-hashicorp-vault.md:20`.
+33. The word `ssh` appears in migration domain context for Vault SSH secret engine mapping; citation: `secrets/migration-playbooks/from-hashicorp-vault.md:20`.
 34. That `ssh` reference is not an IaC provisioner finding.
-35. Terraform/Pulumi reference appears in FAQ; citation: `microservices/cloud-secrets/faqs/security-engineer-faq.md:77`.
+35. Terraform/Pulumi reference appears in FAQ; citation: `secrets/faqs/security-engineer-faq.md:77`.
 36. That reference is a P2 wording drift because post-ADR-0328 docs should say OpenTofu state, and Terraform/Pulumi only as forbidden or superseded examples.
 37. CloudFormation references were not observed in the service scan.
 38. Hand-edited tfstate references were not observed.
@@ -669,28 +669,28 @@ Inventory source: recursive file listing plus `wc -l` over service files.
 
 | severity | dimension | short description | citation | remediation hint |
 |---|---|---|---|---|
-| P1 | D1 | SecretReference grammar has four incompatible active forms | `microservices/cloud-secrets/PRD.md:20-28`; `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml:80-90`; `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto:46-48`; `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:56-70` | Choose one grammar and update PRD, OpenAPI, proto, ADR, examples, lint rules. |
-| P1 | D1 | Resolve latency target conflicts between 10/25ms and 100ms | `microservices/cloud-secrets/PRD.md:57-60`; `microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml:18-42`; `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:81-85` | Split cache-hit, cache-miss, and backend SLOs or choose one tiered target model. |
-| P1 | D1 | Audit completeness allows conflicting fail-open/fail-closed behavior | `microservices/cloud-secrets/failure-modes.md:83`; `microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml:18-43` | Define strict/degraded mode and gate secret resolution accordingly. |
+| P1 | D1 | SecretReference grammar has four incompatible active forms | `secrets/PRD.md:20-28`; `secrets/contracts/openapi/cloud-secrets.yaml:80-90`; `secrets/contracts/proto/cloud-secrets.proto:46-48`; `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:56-70` | Choose one grammar and update PRD, OpenAPI, proto, ADR, examples, lint rules. |
+| P1 | D1 | Resolve latency target conflicts between 10/25ms and 100ms | `secrets/PRD.md:57-60`; `secrets/observability/slos/cloud-secrets/secret-resolve-latency.openslo.yaml:18-42`; `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:81-85` | Split cache-hit, cache-miss, and backend SLOs or choose one tiered target model. |
+| P1 | D1 | Audit completeness allows conflicting fail-open/fail-closed behavior | `secrets/failure-modes.md:83`; `secrets/observability/slos/cloud-secrets/audit-log-completeness.openslo.yaml:18-43` | Define strict/degraded mode and gate secret resolution accordingly. |
 | P1 | D2 | Reverse references assume cloud-secrets as substrate while local paths are unstable | `docs/standards/documentation-rigor.md:98`; `registry/api-surface-classification/coverage-tracker.tsv:31` | Fix registry path and public contracts before downstream services depend on them. |
-| P1 | D3 | Cold intern cannot build or validate from current docs | `microservices/cloud-secrets/PRD.md:310-321`; `microservices/cloud-secrets/ARCHITECTURE.md:3` | Add build workspace, tests, canonical commands, and contract reconciliation. |
+| P1 | D3 | Cold intern cannot build or validate from current docs | `secrets/PRD.md:310-321`; `secrets/ARCHITECTURE.md:3` | Add build workspace, tests, canonical commands, and contract reconciliation. |
 | P1 | D4 | Five canonical constraints are not fully satisfied | `specs/master-plan-sequencing.json:704-866` | Add multi-context, OpenTofu, OS, Rust, and OCI Always Free artifacts. |
 | P1 | D5 | Industry union parity is partial | official AWS/GCP/HashiCorp sources listed in §3.5 | Add leases, quotas, version aliases, replication, endpoint, sync, and policy semantics. |
-| P1 | D6 | All six deployment contexts are missing canonical IaC | `specs/master-plan-sequencing.json:704-746`; `microservices/cloud-secrets/iac/helm/openbao/Chart.yaml:1-11` | Add per-context OpenTofu modules or complete N/A records. |
-| P1 | D7 | No OpenTofu modules, state backends, or attestation wiring | `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495`; `microservices/cloud-secrets/PRD.md:317` | Wrap Helm/Kustomize behind signed OpenTofu modules. |
+| P1 | D6 | All six deployment contexts are missing canonical IaC | `specs/master-plan-sequencing.json:704-746`; `secrets/iac/helm/openbao/Chart.yaml:1-11` | Add per-context OpenTofu modules or complete N/A records. |
+| P1 | D7 | No OpenTofu modules, state backends, or attestation wiring | `docs/decisions/ADR-0700-ci-admission-live-apex.md:2241-2495`; `secrets/PRD.md:317` | Wrap Helm/Kustomize behind signed OpenTofu modules. |
 | P1 | D8 | No `supported-oses.json` or OS package/CI matrix | `specs/master-plan-sequencing.json:777-816` | Add manifest with Tier-1/Tier-2/out-of-scope, packages, and CI lanes. |
-| P1 | D9 | Docs prescribe TypeScript/Python SDK/tooling without exception | `microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md:14-58`; `microservices/cloud-secrets/PRD.md:124-130` | Delete or convert to generated SDK exception with provenance. |
-| P1 | D4 | OCI demo_trial tenant_class is not mapped to Always Free | `microservices/cloud-secrets/retired tenant_class adoption artifact:11-27`; `microservices/cloud-secrets/cost-budget.md:22-30` | Add `iac/oci-guest/always-free/` and tenant_class limits. |
-| P2 | D1 | SLO filenames in PRD/IP do not match actual SLO files | `microservices/cloud-secrets/PRD.md:84-87`; `microservices/cloud-secrets/IP-014-slo-alerting.md:28-30` | Rename or update references. |
-| P2 | D1 | Test references are broken because service has no `tests/` tree | `microservices/cloud-secrets/PRD.md:310-313`; `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:230-252` | Add tests or revise acceptance criteria. |
-| P2 | D1 | Architecture file declares itself unfinished | `microservices/cloud-secrets/ARCHITECTURE.md:3` | Complete architecture or remove stale warning after review. |
-| P2 | D1 | Proto path is wrong in handoff doc | `microservices/cloud-secrets/cross-microservice-handoffs.md:15-16` | Change underscore path to actual dashed path. |
-| P2 | D1 | Missing `developer-scope.cedar` reference | `microservices/cloud-secrets/cross-microservice-handoffs.md:30`; `microservices/cloud-secrets/cross-microservice-handoffs.md:162` | Add policy file or update handoff. |
-| P2 | D1 | Incident/compliance legal references are missing | `microservices/cloud-secrets/incident-response.md:76`; `microservices/cloud-secrets/compliance.md:64-147` | Add service-local legal contact appendix or canonical external pointer. |
-| P2 | D7 | FAQ references Terraform/Pulumi state after OpenTofu-only doctrine | `microservices/cloud-secrets/faqs/security-engineer-faq.md:77` | Rewrite to OpenTofu state and forbidden-tool warning. |
-| P2 | D5 | Benchmark doc claims measured numbers without service-local evidence | `microservices/cloud-secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md:1-15`; `microservices/cloud-secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md:95-105` | Mark prior numbers as imported/evidence-pending or attach evidence. |
+| P1 | D9 | Docs prescribe TypeScript/Python SDK/tooling without exception | `secrets/IP-008-sdk-ts-python-bindings.md:14-58`; `secrets/PRD.md:124-130` | Delete or convert to generated SDK exception with provenance. |
+| P1 | D4 | OCI demo_trial tenant_class is not mapped to Always Free | `microservices/cloud-secrets/retired tenant_class adoption artifact:11-27`; `secrets/cost-budget.md:22-30` | Add `iac/oci-guest/always-free/` and tenant_class limits. |
+| P2 | D1 | SLO filenames in PRD/IP do not match actual SLO files | `secrets/PRD.md:84-87`; `microservices/cloud-secrets/IP-014-slo-alerting.md:28-30` | Rename or update references. |
+| P2 | D1 | Test references are broken because service has no `tests/` tree | `secrets/PRD.md:310-313`; `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:230-252` | Add tests or revise acceptance criteria. |
+| P2 | D1 | Architecture file declares itself unfinished | `secrets/ARCHITECTURE.md:3` | Complete architecture or remove stale warning after review. |
+| P2 | D1 | Proto path is wrong in handoff doc | `secrets/cross-microservice-handoffs.md:15-16` | Change underscore path to actual dashed path. |
+| P2 | D1 | Missing `developer-scope.cedar` reference | `secrets/cross-microservice-handoffs.md:30`; `secrets/cross-microservice-handoffs.md:162` | Add policy file or update handoff. |
+| P2 | D1 | Incident/compliance legal references are missing | `secrets/incident-response.md:76`; `secrets/compliance.md:64-147` | Add service-local legal contact appendix or canonical external pointer. |
+| P2 | D7 | FAQ references Terraform/Pulumi state after OpenTofu-only doctrine | `secrets/faqs/security-engineer-faq.md:77` | Rewrite to OpenTofu state and forbidden-tool warning. |
+| P2 | D5 | Benchmark doc claims measured numbers without service-local evidence | `secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md:1-15`; `secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md:95-105` | Mark prior numbers as imported/evidence-pending or attach evidence. |
 | P2 | D6 | Provider-specific HSM/KMS examples leak into generic tenant_class model | `microservices/cloud-secrets/retired tenant_class adoption artifact:29-81` | Replace with abstract adapters plus per-context overlays. |
-| P3 | D1 | PRD crate count differs from catalog count | `microservices/cloud-secrets/PRD.md:166`; `microservices/cloud-secrets/manifest.json:1-49` | Reconcile catalog count and manifest. |
+| P3 | D1 | PRD crate count differs from catalog count | `secrets/PRD.md:166`; `secrets/manifest.json:1-49` | Reconcile catalog count and manifest. |
 | P3 | D2 | Historic reverse-audit docs contain stale entries | `docs/architecture/corpus-rigor-audit-2026-05-20-mid-remediation-snapshot.md:5462-5469` | Let aggregation mark stale vs active. |
 | P3 | D8 | No false out-of-scope OS claims were found, but explicit exclusions are absent | service inventory; `specs/master-plan-sequencing.json:777-816` | Add explicit out-of-scope block. |
 | P3 | D9 | HCL policy extension needs a config-language note | `microservices/cloud-secrets/policy/openbao-tenant-policy.hcl:1-57` | Add allowlist note for OpenBao policy config. |
@@ -716,7 +716,7 @@ P3: 4.
 
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-secrets
-  deliverables_landed: microservices/cloud-secrets/coherence-audit-2026-05-20.md (731 lines); microservices/cloud-secrets/feature-parity-matrix-2026-05-20.md (409 lines); microservices/cloud-secrets/performance-benchmark-numbers-2026-05-20.md (437 lines); microservices/cloud-secrets/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (353 lines)
+  deliverables_landed: secrets/coherence-audit-2026-05-20.md (731 lines); secrets/feature-parity-matrix-2026-05-20.md (409 lines); secrets/performance-benchmark-numbers-2026-05-20.md (437 lines); microservices/cloud-secrets/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (353 lines)
   inventory_files_seen: 134
   inventory_lines_read: 20339
   chat_history_matches_processed: 194

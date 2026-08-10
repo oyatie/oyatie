@@ -9,12 +9,12 @@ owner_team: ops-security + axis-cloud-secrets
 deciders: ops-security, council-architecture, axis-cloud-secrets
 related_adrs: [ADR-0028, ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/threat-model.md (T-S-01, T-S-03, T-E-01, T-E-03)
-  - microservices/cloud-secrets/policy/data-residency.md
-  - microservices/cloud-secrets/policy/tenant-scope.cedar
-  - microservices/cloud-secrets/policy/ci-scope.cedar
-  - microservices/cloud-secrets/policy/auditor-scope.cedar
-  - microservices/cloud-secrets/policy/public-read.cedar
+  - secrets/threat-model.md (T-S-01, T-S-03, T-E-01, T-E-03)
+  - secrets/policy/data-residency.md
+  - secrets/policy/tenant-scope.cedar
+  - secrets/policy/ci-scope.cedar
+  - secrets/policy/auditor-scope.cedar
+  - secrets/policy/public-read.cedar
 review_cadence: quarterly
 doc_status: published
 ---
@@ -109,7 +109,7 @@ On `SecretRevoked`, OpenBao emits a revocation push to every consumer; consumer 
 
 ### TI-06 — Default-deny
 
-Every Cedar policy in `microservices/cloud-secrets/policy/*.cedar` begins with an unconditional `forbid (principal, action, resource);`; permits are explicit and scoped. No catch-all permit exists.
+Every Cedar policy in `secrets/policy/*.cedar` begins with an unconditional `forbid (principal, action, resource);`; permits are explicit and scoped. No catch-all permit exists.
 
 ### TI-07 — No SECRET-class data via tenant reads
 
@@ -154,7 +154,7 @@ Tenant-supplied encryption-key BYOK material (ADR-0251 §D-10) MUST be wrapped u
 cargo run -p oya-dev-cli -- gate validate lean-a11 --microservice cloud-secrets
 cargo run -p oya-dev-cli -- gate validate lean-a12 --microservice cloud-secrets   # policy-scope
 cargo run -p oya-dev-cli -- gate validate secret-newtype-leak --microservice cloud-secrets
-cargo run -p oya-dev-cli -- gate validate cedar-deny-by-default --policy microservices/cloud-secrets/policy/
+cargo run -p oya-dev-cli -- gate validate cedar-deny-by-default --policy secrets/policy/
 ```
 
 Monthly chaos drills:
@@ -165,9 +165,9 @@ Monthly chaos drills:
 
 ## References
 
-- `microservices/cloud-secrets/threat-model.md` (mitigations matrix)
-- `microservices/cloud-secrets/policy/data-residency.md`
-- `microservices/cloud-secrets/policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`
+- `secrets/threat-model.md` (mitigations matrix)
+- `secrets/policy/data-residency.md`
+- `secrets/policy/{tenant-scope,ci-scope,auditor-scope,public-read}.cedar`
 - ADR-0028, ADR-0131
 - OpenBao best-practices (informing OpenBao migration)
 - NIST SP 800-57 Part 1 (Key Management — General)

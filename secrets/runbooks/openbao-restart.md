@@ -240,9 +240,9 @@ cargo run -p oya-audit-chain-app -- verify-seal --pack <pack> --window "last 1h"
 
 ## References
 
-- `microservices/cloud-secrets/failure-modes.md` FM-01 + FM-12
-- `microservices/cloud-secrets/multi-region.md`
-- `microservices/cloud-secrets/incident-response.md`
+- `secrets/failure-modes.md` FM-01 + FM-12
+- `secrets/multi-region.md`
+- `secrets/incident-response.md`
 - OpenBao operator + Raft documentation
 - Patroni HA documentation
 - OCI region failover documentation

@@ -5,9 +5,9 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-sre
 related_artifacts:
-  - microservices/cloud-secrets/runbooks/openbao-restart.md
-  - microservices/cloud-secrets/runbooks/audit-emission-backlog.md
-  - microservices/cloud-secrets/failure-modes.md
+  - secrets/runbooks/openbao-restart.md
+  - secrets/runbooks/audit-emission-backlog.md
+  - secrets/failure-modes.md
 doc_status: published
 ---
 
@@ -138,7 +138,7 @@ Some state is intentionally not replayable:
 
 ## References
 
-- `microservices/cloud-secrets/multi-region.md`
-- `microservices/cloud-secrets/failure-modes.md` FM-01, FM-04, FM-12
-- `microservices/cloud-secrets/runbooks/openbao-restart.md`
-- `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`
+- `secrets/multi-region.md`
+- `secrets/failure-modes.md` FM-01, FM-04, FM-12
+- `secrets/runbooks/openbao-restart.md`
+- `secrets/runbooks/audit-emission-backlog.md`

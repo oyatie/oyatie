@@ -226,10 +226,10 @@ cargo run -p oya-audit-chain-app -- query \
 
 ## References
 
-- `microservices/cloud-secrets/threat-model.md` T-I-04 + T-D-02
-- `microservices/cloud-secrets/failure-modes.md` FM-02 + FM-10
-- `microservices/cloud-secrets/incident-response.md` §"Sev-1 Response: HSM Compromise"
-- `microservices/cloud-secrets/policy/data-residency.md` "KEK Lifecycle by Pack"
+- `secrets/threat-model.md` T-I-04 + T-D-02
+- `secrets/failure-modes.md` FM-02 + FM-10
+- `secrets/incident-response.md` §"Sev-1 Response: HSM Compromise"
+- `secrets/policy/data-residency.md` "KEK Lifecycle by Pack"
 - OCI Cloud-HSM documentation
 - Thales Luna HSM documentation
 - NIST SP 800-57 Part 1

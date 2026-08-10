@@ -8,8 +8,8 @@ Delta rule: compare Oyatie tenant_class intent against closest counterpart tier/
 Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2495` for deployment and OpenTofu constraints.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for contexts, OpenTofu, OS, Rust, and OCI Always Free.
 Citation anchor 3: `microservices/cloud-secrets/retired tenant_class adoption artifact:1-98` for current Oyatie tenant_class matrix.
-Citation anchor 4: `microservices/cloud-secrets/PRD.md:20-331` for product purpose and acceptance criteria.
-Citation anchor 5: `microservices/cloud-secrets/ARCHITECTURE.md:3-704` for architecture and credential isolation.
+Citation anchor 4: `secrets/PRD.md:20-331` for product purpose and acceptance criteria.
+Citation anchor 5: `secrets/ARCHITECTURE.md:3-704` for architecture and credential isolation.
 Citation anchor 6: `docs/standards/documentation-rigor.md:1-220` for substance and intern-buildability.
 AWS source: `https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html`.
 AWS source: `https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_limits.html`.

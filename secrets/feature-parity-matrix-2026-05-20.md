@@ -7,8 +7,8 @@ Method: official counterpart docs, current service docs, local inventory, and ca
 
 Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2495` for multi-context and OpenTofu constraints.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for deployment contexts, IaC substrate, OS, Rust, and OCI Always Free.
-Citation anchor 3: `microservices/cloud-secrets/PRD.md:20-331` for Oyatie product purpose and planned features.
-Citation anchor 4: `microservices/cloud-secrets/ARCHITECTURE.md:3-704` for architecture and component evidence.
+Citation anchor 3: `secrets/PRD.md:20-331` for Oyatie product purpose and planned features.
+Citation anchor 4: `secrets/ARCHITECTURE.md:3-704` for architecture and component evidence.
 Citation anchor 5: `docs/standards/documentation-rigor.md:1-220` for intern-buildability and hyperscaler-grade documentation requirements.
 AWS source 1: `https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html`.
 AWS source 2: `https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_limits.html`.
@@ -340,7 +340,7 @@ HashiCorp source 9: `https://developer.hashicorp.com/vault/docs/deploy/kubernete
 ## §6 Headline gap analysis - top 15 missing capabilities
 
 1. Gap 01: One canonical SecretReference grammar is missing.
-2. Evidence: `microservices/cloud-secrets/PRD.md:20-28`, `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml:80-90`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto:46-48`, and `microservices/cloud-secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:56-70`.
+2. Evidence: `secrets/PRD.md:20-28`, `secrets/contracts/openapi/cloud-secrets.yaml:80-90`, `secrets/contracts/proto/cloud-secrets.proto:46-48`, and `secrets/decisions/ADR-MS-001-secret-reference-namespace-and-rotation-contract.md:56-70`.
 3. Hook: make ADR-MS-001 the grammar authority or revise it, then regenerate OpenAPI/proto/examples/lint rules.
 4. Gap 02: Dynamic leases are missing.
 5. Evidence: HashiCorp lease docs and absence of lease API in OpenAPI/proto.

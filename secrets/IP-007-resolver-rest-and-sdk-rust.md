@@ -34,8 +34,8 @@ Two new crates. SDK is the public surface; REST is admin only.
 | `…/oya-cloud-secrets-secret-reference-resolver-sdk/src/lib.rs` | create — `SecretClient` |
 | `…/src/secret_wrapper.rs` | create — `Secret<T>` newtype with Zeroize + redacted Debug |
 | `…/src/with_secret.rs` | create — scoped callback API |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-rest.yaml` | create |
-| `microservices/cloud-secrets/catalog/oya-cloud-secrets-secret-reference-resolver-sdk.yaml` | create |
+| `secrets/catalog/oya-cloud-secrets-secret-reference-resolver-rest.yaml` | create |
+| `secrets/catalog/oya-cloud-secrets-secret-reference-resolver-sdk.yaml` | create |
 
 ## Code Shape
 
@@ -117,23 +117,23 @@ Grep-recognized counterpart anchor: GitHub Actions Secrets is relevant where Rus
 ## API Versioning (per ADR-0342)
 
 - Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
-- Initial declared_version: `microservices/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Initial declared_version: `secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
 - Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
 - Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
-- Surface evidence: `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`.
+- Surface evidence: `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/IP-007-resolver-rest-and-sdk-rust.md`.
 
 ## DR posture (per ADR-0343)
 
-- Target source: `microservices/cloud-secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
+- Target source: `secrets/manifest.json#dr` is absent in this checkout; DR numeric targets below use compliance-pack floors only.
 - Applicable compliance pack floor: `SOC2-T2` from `specs/compliance-pack-floors.json` with drill cadence `annual`.
 - RTO/RPO target: RTO p99 <= `14400` seconds; RPO p99 <= `900` seconds.
 - Multi-region posture: `active-active` for this HA-critical IP; applicable pack floor `multi_region_required` is `false`, so this declaration is equal to or stronger than the floor.
 - backup_substrate: [`openbao_seal_unseal`, `postgres_wal_g`, `audit_chain_merkle_seal`].
-- Surface evidence: `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`, `microservices/cloud-secrets/runbooks/openbao-restart.md`, `microservices/cloud-secrets/manifest.json`, `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`.
+- Surface evidence: `secrets/runbooks/hsm-key-rotation.md`, `secrets/runbooks/openbao-restart.md`, `secrets/manifest.json`, `secrets/IP-007-resolver-rest-and-sdk-rust.md`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - `pod_runtime_tier: 0`.
 - Justification: tenant-customer code is present in this IP's execution path; Tier 0 requires Kata plus Cloud Hypervisor isolation.
-- Surface evidence: `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`; matched trigger term(s): `sandbox`.
+- Surface evidence: `secrets/IP-007-resolver-rest-and-sdk-rust.md`; matched trigger term(s): `sandbox`.
 - Admission expectation: spawned workloads for this path use `kata-cloud-hypervisor`; first-party helpers may only run outside Tier 0 when split into a separate non-tenant-customer IP.

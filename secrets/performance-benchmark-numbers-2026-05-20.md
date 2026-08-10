@@ -8,8 +8,8 @@ Counterpart disclosure: AWS and Google public numbers below are primarily publis
 
 Citation anchor 1: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2495` for multi-context, OpenTofu, and deployment evidence constraints.
 Citation anchor 2: `specs/master-plan-sequencing.json:704-866` for six contexts, OpenTofu substrate, supported OSes, Rust policy, and OCI Always Free.
-Citation anchor 3: `microservices/cloud-secrets/PRD.md:57-65` for current latency/throughput targets.
-Citation anchor 4: `microservices/cloud-secrets/capacity-model.md:60-105` for service capacity envelope and tenant_class drift.
+Citation anchor 3: `secrets/PRD.md:57-65` for current latency/throughput targets.
+Citation anchor 4: `secrets/capacity-model.md:60-105` for service capacity envelope and tenant_class drift.
 Citation anchor 5: `docs/standards/documentation-rigor.md:133-156` for intern-buildability and hyperscaler-grade proof expectations.
 AWS source: `https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_limits.html`.
 AWS source: `https://docs.aws.amazon.com/secretsmanager/latest/userguide/replicate-secrets.html`.

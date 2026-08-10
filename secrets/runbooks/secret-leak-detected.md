@@ -197,7 +197,7 @@ cargo run -p oya-cloud-secrets-key-rotation-scheduler-app -- cascade status --in
 
 ## References
 
-- `microservices/cloud-secrets/incident-response.md`
-- `microservices/cloud-secrets/threat-model.md` T-I-01 + T-I-02
-- `microservices/cloud-secrets/failure-modes.md` FM-06 + FM-08 + FM-09 + FM-11
-- `microservices/cloud-secrets/policy/secret-isolation.md` §"TI-03 + TI-05"
+- `secrets/incident-response.md`
+- `secrets/threat-model.md` T-I-01 + T-I-02
+- `secrets/failure-modes.md` FM-06 + FM-08 + FM-09 + FM-11
+- `secrets/policy/secret-isolation.md` §"TI-03 + TI-05"

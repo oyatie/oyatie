@@ -124,4 +124,4 @@ Quarterly review:
 - Infisical OSS docs
 - Akeyless docs
 - OpenBao project (LF Edge)
-- `microservices/cloud-secrets/PRD.md` §"Competitive Benchmark"
+- `secrets/PRD.md` §"Competitive Benchmark"

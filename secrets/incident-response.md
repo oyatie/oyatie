@@ -7,9 +7,9 @@ owner_team: ops-security + axis-cloud-secrets + ops-sre
 deciders: ops-security, ops-legal, council-privacy, axis-cloud-secrets
 related_adrs: [ADR-0028, ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/threat-model.md
-  - microservices/cloud-secrets/failure-modes.md
-  - microservices/cloud-secrets/runbooks/*.md
+  - secrets/threat-model.md
+  - secrets/failure-modes.md
+  - secrets/runbooks/*.md
 review_cadence: quarterly + after every Sev-1/Sev-2
 doc_status: published
 ---
@@ -192,14 +192,14 @@ Records sealed in audit-chain with Ed25519 + Merkle.
 
 ## References
 
-- `microservices/cloud-secrets/threat-model.md`
-- `microservices/cloud-secrets/failure-modes.md`
-- `microservices/cloud-secrets/runbooks/secret-leak-detected.md`
-- `microservices/cloud-secrets/runbooks/hsm-key-rotation.md`
-- `microservices/cloud-secrets/runbooks/openbao-restart.md`
-- `microservices/cloud-secrets/runbooks/rotation-cascade-recovery.md`
-- `microservices/cloud-secrets/runbooks/namespace-controller-restart.md`
-- `microservices/cloud-secrets/runbooks/audit-emission-backlog.md`
+- `secrets/threat-model.md`
+- `secrets/failure-modes.md`
+- `secrets/runbooks/secret-leak-detected.md`
+- `secrets/runbooks/hsm-key-rotation.md`
+- `secrets/runbooks/openbao-restart.md`
+- `secrets/runbooks/rotation-cascade-recovery.md`
+- `secrets/runbooks/namespace-controller-restart.md`
+- `secrets/runbooks/audit-emission-backlog.md`
 - `microservices/cloud-secrets/legal/regulator-contacts.md` (Slice D)
 - GDPR Art. 33 (breach notification)
 - KR PIPA Art. 34

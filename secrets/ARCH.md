@@ -17,10 +17,10 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-secrets/manifest.json
-  - microservices/cloud-secrets/PRD.md
-  - microservices/cloud-secrets/README.md
-  - microservices/cloud-secrets/ARCHITECTURE.md
+  - secrets/manifest.json
+  - secrets/PRD.md
+  - secrets/README.md
+  - secrets/ARCHITECTURE.md
 ---
 
 # Architecture: Cloud Secrets

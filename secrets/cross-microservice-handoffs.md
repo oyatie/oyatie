@@ -10,10 +10,10 @@ owner_team: axis-cloud-secrets
 # Cloud Secrets Cross-Microservice Handoff Matrix
 
 This matrix records concrete handoffs for the `cloud-secrets` microservice.
-REST shapes are from `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`.
-Async shapes are from `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`.
-gRPC names are from `microservices/cloud-secrets/contracts/proto/cloud_secrets.proto`.
-Cedar policies are from `microservices/cloud-secrets/policies/`.
+REST shapes are from `secrets/contracts/openapi/cloud-secrets.yaml`.
+Async shapes are from `secrets/contracts/asyncapi/cloud-secrets-events.yaml`.
+gRPC names are from `secrets/contracts/proto/cloud-secrets.proto`.
+Cedar policies are from `secrets/policy/`.
 Audit-chain emission follows ADR-0263 with `source_microservice=cloud-secrets`.
 The service owns secret references, rotation, revocation, tenant namespaces, BYOK, KEK attestation, and revocation pushes.
 

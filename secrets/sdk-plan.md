@@ -6,8 +6,8 @@ date: 2026-05-17
 owner_team: axis-cloud-secrets
 related_adrs: [ADR-0117, ADR-0131]
 related_artifacts:
-  - microservices/cloud-secrets/contracts/proto/cloud-secrets.proto
-  - microservices/cloud-secrets/policy/secret-isolation.md
+  - secrets/contracts/proto/cloud-secrets.proto
+  - secrets/policy/secret-isolation.md
 doc_status: published
 ---
 
@@ -211,9 +211,9 @@ Bench suite at `microservices/cloud-secrets/tests/bench/sdk-resolution-latency.r
 
 ## References
 
-- `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`
-- `microservices/cloud-secrets/policy/secret-isolation.md`
-- `microservices/cloud-secrets/PRD.md` FR-01, FR-02, FR-08
+- `secrets/contracts/proto/cloud-secrets.proto`
+- `secrets/policy/secret-isolation.md`
+- `secrets/PRD.md` FR-01, FR-02, FR-08
 - Bominal ADR-0028 (audit-chain + data-class taxonomy)
 - OpenBao SDK (informing patterns)
 - AWS SDK for Secrets Manager (informing wrapper patterns)

@@ -164,7 +164,7 @@ cargo run -p oya-audit-chain-app -- query --event-type SecretRotated --since "1 
 
 ## References
 
-- `microservices/cloud-secrets/failure-modes.md` FM-03 + FM-04
-- `microservices/cloud-secrets/threat-model.md` T-T-01 + T-D-04
-- `microservices/cloud-secrets/IP-010-key-rotation-scheduler-worker.md`
-- `microservices/cloud-secrets/policy/data-residency.md` "KEK Lifecycle"
+- `secrets/failure-modes.md` FM-03 + FM-04
+- `secrets/threat-model.md` T-T-01 + T-D-04
+- `secrets/IP-010-key-rotation-scheduler-worker.md`
+- `secrets/policy/data-residency.md` "KEK Lifecycle"

@@ -1,8 +1,8 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- `microservices/cloud-secrets/onboarding/security-engineer-first-week.md`
-- `microservices/cloud-secrets/migration-playbooks/from-hashicorp-vault.md`
+- `secrets/onboarding/security-engineer-first-week.md`
+- `secrets/migration-playbooks/from-hashicorp-vault.md`
 
 Counterpart-fact preservations:
 - None.
@@ -30,38 +30,38 @@ Trigger D matches: 3.
 Manifest DR note: when `manifest.json#dr` was absent or unavailable in this checkout, DR posture sections use `specs/compliance-pack-floors.json` floors and mark manifest reconciliation as a follow-up.
 
 IP changes:
-- `microservices/cloud-secrets/IP-001-layer-a-openbao-postgres-hsm-iac.md`: Trigger B -> DR posture.
-- `microservices/cloud-secrets/IP-002-secretreference-uri-spec.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
-- `microservices/cloud-secrets/IP-003-resolver-kernel.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-004-resolver-domain.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-005-resolver-usecase.md`: Trigger A -> API Versioning; Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-006-resolver-adapter-openbao.md`: Trigger B -> DR posture; Trigger D -> Pod runtime tier.
-- `microservices/cloud-secrets/IP-007-resolver-rest-and-sdk-rust.md`: Trigger A -> API Versioning; Trigger B -> DR posture; Trigger D -> Pod runtime tier.
-- `microservices/cloud-secrets/IP-008-sdk-ts-python-bindings.md`: Trigger A -> API Versioning; Trigger D -> Pod runtime tier.
-- `microservices/cloud-secrets/IP-009-openbao-operator.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-010-key-rotation-scheduler-worker.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
-- `microservices/cloud-secrets/IP-011-hsm-integration-adapter-hsm.md`: Trigger B -> DR posture.
-- `microservices/cloud-secrets/IP-012-per-tenant-namespace-controller.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
-- `microservices/cloud-secrets/IP-013-audit-emitter-bridge-to-audit-chain.md`: Trigger A -> API Versioning; Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-014-observability-slo-branch-protection-hg-cloud-secrets.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-015-lean-a11-raw-secret-emission-lane-wiring.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j100-pack-rollout-first-action.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j25-key-envelope.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j80-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-journey-j81-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-journey-j83-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-journey-j86-provider-and-encryption-byok.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
-- `microservices/cloud-secrets/IP-journey-j87-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-journey-j88-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
-- `microservices/cloud-secrets/IP-journey-j91-us-msb-mtl-overlay.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j92-br-lgpd-us-parent-dsar.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j93-in-dpdpa-rbi-overlay.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j94-sox404-public-company-controls.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j95-iso27001-soc2-annual-audit.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j96-ksa-uae-mena-onboarding.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j97-sg-pdpa-mas-tenant.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j98-au-privacy-apra-cps234.md`: Trigger C -> Sustainability emission.
-- `microservices/cloud-secrets/IP-journey-j99-multi-pack-conflict-resolution.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-001-layer-a-openbao-postgres-hsm-iac.md`: Trigger B -> DR posture.
+- `secrets/IP-002-secretreference-uri-spec.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
+- `secrets/IP-003-resolver-kernel.md`: Trigger A -> API Versioning.
+- `secrets/IP-004-resolver-domain.md`: Trigger A -> API Versioning.
+- `secrets/IP-005-resolver-usecase.md`: Trigger A -> API Versioning; Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-006-resolver-adapter-openbao.md`: Trigger B -> DR posture; Trigger D -> Pod runtime tier.
+- `secrets/IP-007-resolver-rest-and-sdk-rust.md`: Trigger A -> API Versioning; Trigger B -> DR posture; Trigger D -> Pod runtime tier.
+- `secrets/IP-008-sdk-ts-python-bindings.md`: Trigger A -> API Versioning; Trigger D -> Pod runtime tier.
+- `secrets/IP-009-openbao-operator.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-010-key-rotation-scheduler-worker.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
+- `secrets/IP-011-hsm-integration-adapter-hsm.md`: Trigger B -> DR posture.
+- `secrets/IP-012-per-tenant-namespace-controller.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
+- `secrets/IP-013-audit-emitter-bridge-to-audit-chain.md`: Trigger A -> API Versioning; Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-014-observability-slo-branch-protection-hg-cloud-secrets.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-015-lean-a11-raw-secret-emission-lane-wiring.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j100-pack-rollout-first-action.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j25-key-envelope.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j80-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
+- `secrets/IP-journey-j81-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
+- `secrets/IP-journey-j83-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
+- `secrets/IP-journey-j86-provider-and-encryption-byok.md`: Trigger A -> API Versioning; Trigger B -> DR posture.
+- `secrets/IP-journey-j87-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
+- `secrets/IP-journey-j88-provider-and-encryption-byok.md`: Trigger A -> API Versioning.
+- `secrets/IP-journey-j91-us-msb-mtl-overlay.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j92-br-lgpd-us-parent-dsar.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j93-in-dpdpa-rbi-overlay.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j94-sox404-public-company-controls.md`: Trigger B -> DR posture; Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j95-iso27001-soc2-annual-audit.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j96-ksa-uae-mena-onboarding.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j97-sg-pdpa-mas-tenant.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j98-au-privacy-apra-cps234.md`: Trigger C -> Sustainability emission.
+- `secrets/IP-journey-j99-multi-pack-conflict-resolution.md`: Trigger C -> Sustainability emission.
 
 Unmatched IPs:
 - none.
@@ -86,7 +86,7 @@ Follow-ups:
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-secrets/PRD.md, microservices/cloud-secrets/capacity-model.md, microservices/cloud-secrets/IP-005-resolver-usecase.md.
+- Values: pod_runtime_tier=1; evidence=secrets/PRD.md, secrets/capacity-model.md, secrets/IP-005-resolver-usecase.md
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-1.
 - Why: Secret-management substrate: cloud-secrets resolves SecretReference values, manages OpenBao namespaces, HSM integration, and key rotation, directly touching tenant secret data and requiring ADR-0338 Tier-1 isolation.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

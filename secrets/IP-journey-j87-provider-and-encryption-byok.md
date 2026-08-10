@@ -25,7 +25,7 @@ Implement the `provider-and-encryption-byok` slice for `cloud-secrets` so j87 ca
 
 ## PRD row alignment
 
-- PRD anchor: microservices/cloud-secrets/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
+- PRD anchor: secrets/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
 - Journey anchor: docs/user-journeys/j87-fedramp-high-il5-air-gap-deployment/.
 - Regulator article focus: FedRAMP High Rev5 baseline.
 - Rigor row: documentation-rigor.md section 2 IP row; one service, one single-PR-sized implementation plan.
@@ -435,7 +435,7 @@ GitHub Actions Secrets is cited only for CI secret-distribution verification in 
 ## API Versioning (per ADR-0342)
 
 - Carrier: public contract calls MUST carry `Oyatie-Version: 2026-05-21`, route external HTTP through `/v/2026-05-21/...`, and reserve proto3 field tag `8001` as the `oyatie_version` carrier on public protobuf envelopes.
-- Initial declared_version: `microservices/cloud-secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
+- Initial declared_version: `secrets/manifest.json#api_versioning.declared_version` is absent in this checkout; declared_version is seeded as `2026-05-21`.
 - Support window: `N=3` public date versions remain supported for at least `180` days after deprecation notice.
 - Internal-mesh exemption: direct internal gRPC over HTTP/3 remains proto3 tag-compatible and is not version-routed at the mesh hop per ADR-0145.
-- Surface evidence: `microservices/cloud-secrets/contracts/openapi/cloud-secrets.yaml`, `microservices/cloud-secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `microservices/cloud-secrets/contracts/proto/cloud-secrets.proto`, `microservices/cloud-secrets/IP-journey-j87-provider-and-encryption-byok.md`.
+- Surface evidence: `secrets/contracts/openapi/cloud-secrets.yaml`, `secrets/contracts/asyncapi/cloud-secrets-events.yaml`, `secrets/contracts/proto/cloud-secrets.proto`, `secrets/IP-journey-j87-provider-and-encryption-byok.md`.

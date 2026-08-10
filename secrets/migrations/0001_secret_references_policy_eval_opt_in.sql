@@ -1,4 +1,4 @@
--- microservices/cloud-secrets/migrations/0001_secret_references_policy_eval_opt_in.sql
+-- secrets/migrations/0001_secret_references_policy_eval_opt_in.sql
 -- Adds ADR-0244 §D-3 / ADR-0246-amendment / ADR-0257-amendment library-first opt-in columns
 -- to the secret_references table.
 --

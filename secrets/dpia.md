@@ -11,9 +11,9 @@ methodology: GDPR Art. 35 (DPIA) + KR PIPA Art. 33 (개인정보 영향평가) +
 related_adrs: [ADR-0028, ADR-0117, ADR-0131]
 review_cadence: annually + on every change touching personal data flow
 related_artifacts:
-  - microservices/cloud-secrets/threat-model.md
-  - microservices/cloud-secrets/policy/data-residency.md
-  - microservices/cloud-secrets/policy/secret-isolation.md
+  - secrets/threat-model.md
+  - secrets/policy/data-residency.md
+  - secrets/policy/secret-isolation.md
 doc_status: published
 ---
 
@@ -216,9 +216,9 @@ Tenant DPA enumerates sub-processors; tenants are notified of additions per Art.
 
 ## 9. References
 
-- `microservices/cloud-secrets/threat-model.md`
-- `microservices/cloud-secrets/policy/secret-isolation.md`
-- `microservices/cloud-secrets/policy/data-residency.md`
+- `secrets/threat-model.md`
+- `secrets/policy/secret-isolation.md`
+- `secrets/policy/data-residency.md`
 - `microservices/cloud-secrets/legal/{ropa,sub-processors,dpa-template,baa-template,transfer-register}.md` (Slice D)
 - ADR-0028 (audit-chain + data-class taxonomy)
 - ADR-0131 (Cloud split)

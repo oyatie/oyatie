@@ -152,6 +152,6 @@ cargo run -p oya-audit-chain-app -- query \
 
 ## References
 
-- `microservices/cloud-secrets/failure-modes.md` FM-05
-- `microservices/cloud-secrets/IP-012-per-tenant-namespace-controller.md`
-- `microservices/cloud-secrets/PRD.md` FR-04
+- `secrets/failure-modes.md` FM-05
+- `secrets/IP-012-per-tenant-namespace-controller.md`
+- `secrets/PRD.md` FR-04
