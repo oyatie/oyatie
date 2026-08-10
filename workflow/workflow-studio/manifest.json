@@ -42,10 +42,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/workflow-studio/contracts/openapi/workflow-studio.yaml"
+      "workflow/workflow-studio/contracts/openapi/workflow-studio.yaml"
     ],
     "asyncapi": [
-      "microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
+      "workflow/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -59,19 +59,19 @@
     {
       "tier": "T0",
       "name": "t0-suggest",
-      "file": "microservices/workflow-studio/capabilities/T0-suggest.yaml",
+      "file": "workflow/workflow-studio/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "t1-assist",
-      "file": "microservices/workflow-studio/capabilities/T1-assist.yaml",
+      "file": "workflow/workflow-studio/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "t2-auto",
-      "file": "microservices/workflow-studio/capabilities/T2-auto.yaml",
+      "file": "workflow/workflow-studio/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -297,10 +297,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -465,7 +465,7 @@
     "microservices/workflow-studio/PRD.md",
     "microservices/workflow-studio/ARCHITECTURE.md",
     "microservices/workflow-studio/IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md",
-    "microservices/workflow-studio/contracts/openapi/workflow-studio.yaml"
+    "workflow/workflow-studio/contracts/openapi/workflow-studio.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -480,10 +480,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/workflow-studio/contracts/openapi/workflow-studio.yaml"
+        "2026-05-21": "workflow/workflow-studio/contracts/openapi/workflow-studio.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
+        "2026-05-21": "workflow/workflow-studio/contracts/asyncapi/workflow-studio-events.yaml"
       }
     }
   },

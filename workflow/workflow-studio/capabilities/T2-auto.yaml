@@ -25,9 +25,9 @@ related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md FR-04 + FR-06 + FR-07 + FR-13 + FR-14
   - microservices/workflow-studio/threat-model.md §"T-T-01" + §"T-T-02" + §"T-T-05"
-  - microservices/workflow-studio/policy/tenant-scope.cedar
+  - workflow/workflow-studio/policy/tenant-scope.cedar
   - microservices/workflow-studio/contracts/asyncapi.yaml
-  - microservices/workflow-studio/runbooks/collab-conflict-resolution.md
+  - workflow/workflow-studio/runbooks/collab-conflict-resolution.md
 
 autonomy_tier: T2
 # T2 = autonomous mutation given a human-originated trigger; default-deny policy gate.
@@ -100,9 +100,9 @@ cost_profile:
     - Cedar policy evaluation (constant-time, < 1ms)
 
 cedar_policy_fragments:
-  - microservices/workflow-studio/policy/tenant-scope.cedar
-  - microservices/workflow-studio/policy/ci-scope.cedar
-  - microservices/workflow-studio/policy/auditor-scope.cedar
+  - workflow/workflow-studio/policy/tenant-scope.cedar
+  - workflow/workflow-studio/policy/ci-scope.cedar
+  - workflow/workflow-studio/policy/auditor-scope.cedar
 
 eval_set:
   reference_inputs_path: microservices/workflow-studio/capabilities/eval/t2-auto-reference.jsonl

@@ -22,3 +22,10 @@ Retargeted verified:
 
 - Historical numbered IPs not present under nested face; missing runbooks/testing-strategy
 - No hubs, no `Cargo.lock`, no merge.
+
+## Seat A wave-6 dep-ordered (2026-08-10)
+
+- Verified remaps applied: **118** cite(s) across **43** file(s).
+- Scope: path/manifest/SLO/contract/capability/catalog high-value only; missing homes deferred.
+- Product unblock: forever cites for nested faces + observability prometheusrule alias.
+- No hubs / Cargo.lock / merge / #1661 / cloud-os absorb.

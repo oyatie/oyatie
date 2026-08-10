@@ -192,7 +192,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/workflow-studio/runbooks/collab-conflict-resolution.md",
+          "file": "workflow/workflow-studio/runbooks/collab-conflict-resolution.md",
           "hits": [
             {
               "line": 44,
@@ -210,7 +210,7 @@
           "hits_total": 5
         },
         {
-          "file": "microservices/workflow-studio/runbooks/session-storm-throttle.md",
+          "file": "workflow/workflow-studio/runbooks/session-storm-throttle.md",
           "hits": [
             {
               "line": 21,
@@ -228,7 +228,7 @@
           "hits_total": 5
         },
         {
-          "file": "microservices/workflow-studio/runbooks/run-history-replay-corruption.md",
+          "file": "workflow/workflow-studio/runbooks/run-history-replay-corruption.md",
           "hits": [
             {
               "line": 78,
@@ -298,7 +298,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/workflow-studio/capabilities/T2-auto.yaml",
+          "file": "workflow/workflow-studio/capabilities/T2-auto.yaml",
           "hits": [
             {
               "line": 8,
@@ -316,7 +316,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/workflow-studio/contracts/openapi/workflow-studio.yaml",
+          "file": "workflow/workflow-studio/contracts/openapi/workflow-studio.yaml",
           "hits": [
             {
               "line": 456,
@@ -326,7 +326,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-studio/manifest.json",
+          "file": "workflow/workflow-studio/manifest.json",
           "hits": [
             {
               "line": 108,
@@ -336,7 +336,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-studio/dashboards/collab-health.json",
+          "file": "workflow/workflow-studio/dashboards/collab-health.json",
           "hits": [
             {
               "line": 121,
