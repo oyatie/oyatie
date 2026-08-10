@@ -7,7 +7,7 @@ version: 0.1.0
 appVersion: "1.0.0"
 maintainers:
   - name: axis-recordings
-    url: https://oyatie.internal/microservices/recordings
+    url: https://oyatie.internal/storage/recordings
 dependencies:
   - name: postgres
     version: "16.x"

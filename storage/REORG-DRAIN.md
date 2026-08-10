@@ -8,6 +8,7 @@
 
 ## Completed (this rail)
 
+- **Seat A keep_forever interior (wave-6):** Chart/home + OpenAPI owner URLs for drive/recordings; legal-hold runbook OpenSLO → `storage/observability/slos/` (verified dests). See `storage/stale-path-hygiene-note.md`.
 - **Seat A wave-3:** remapped verified nested-face cites `microservices/{drive,recordings,imaging}/**` → `storage/{drive,recordings,imaging}/**` in nested manifests + runbooks (no invented IP/PRD homes).
 
 - Seat A interior prep: rewrite `storage/manifest.json` to capability-root shape (messaging@`2d1c81693` pattern): `capability` key, registry stratum **S2**, verified `storage/**` crate/contract/capability paths, eight-crate accounting + absorbed-service pointers.

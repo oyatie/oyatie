@@ -13,7 +13,7 @@ description: |
 type: application
 version: 1.0.0
 appVersion: "1.0.0"
-home: https://github.com/oyatie/oyatie/tree/main/microservices/drive
+home: https://github.com/oyatie/oyatie/tree/main/storage/drive
 maintainers:
   - name: axis-drive
     email: drive@oyatie.com
