@@ -8,7 +8,7 @@ related_adrs:
   - ADR-0263
   - ADR-0297
 companion_docs:
-  - microservices/ops-dashboard-control-center/incident-response.md
+  - console/runbooks/incident-command.md
   - microservices/ops-dashboard-control-center/compliance.md
   - console/runbooks/admin-mfa-cascade.md
   - console/runbooks/forensic-investigation-handoff.md

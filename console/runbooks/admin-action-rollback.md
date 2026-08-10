@@ -7,7 +7,7 @@ related_adrs:
   - ADR-0243
   - ADR-0263
 companion_docs:
-  - microservices/ops-dashboard-control-center/incident-response.md
+  - console/runbooks/incident-command.md
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
   - console/runbooks/forensic-investigation-handoff.md
 planned_enforcement_ref: oya-governance-microservice-doc-set

@@ -9,7 +9,7 @@ related_adrs:
   - ADR-0263
   - ADR-0276
 companion_docs:
-  - microservices/ops-dashboard-control-center/incident-response.md
+  - console/runbooks/incident-command.md
   - microservices/ops-dashboard-control-center/compliance.md
   - console/runbooks/tenant-scope-violation-detected.md
   - console/runbooks/step-up-auth-bypass-attempt.md
