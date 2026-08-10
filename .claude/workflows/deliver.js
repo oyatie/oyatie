@@ -10,7 +10,8 @@ export const meta = {
     { title: 'Trial', detail: 'do 2-3 units first and prove the process, before spending on scale' },
     { title: 'Scale', detail: '1 implementer : N adversarial reviewers per unit, onto ONE integration branch' },
     { title: 'Converge', detail: 'errors and failing tests as the work queue, until green' },
-    { title: 'Land', detail: 'open exactly ONE pull request, and only when it is already green' },
+    { title: 'Claim', detail: 'envelope verify + merge-tree preflight + hub exclusivity + reorg-target debt freeze before integ push' },
+    { title: 'Land', detail: 'upsert exactly ONE PR per integ/<root>; server-side reset after squash-merge' },
   ],
 }
 
@@ -19,7 +20,8 @@ export const meta = {
 //   goal        : REQUIRED. what to deliver.
 //   units       : array of work units. If absent, the Scout phase derives them.
 //   base        : default "origin/dev"
-//   integration : integration branch name. ALL units commit here. Default derived from goal.
+//   integration : durable integ/<root> branch (ADR-0711). ALL units assemble here.
+//                 Must match a root/plane in specs/integ-branch-envelopes.json.
 //   pr_budget   : max open PRs allowed before this workflow refuses to start (default 8)
 //   reviewers   : adversarial reviewers per unit (default 2, Bun's ratio)
 //   trial       : how many units to prove the process on before scaling (default 2)
@@ -40,6 +42,7 @@ const REVIEWERS = A.reviewers || 2
 const TRIAL_N = A.trial || 2
 const REPO = A.repo || '/Users/jasonlee/Developer/oyatie'
 const INTEG = A.integration || 'integ/deliver-run'
+const ENVELOPES = `${REPO}/specs/integ-branch-envelopes.json`
 
 // PLANNER/WORKER MODEL ASYMMETRY, adopted from Cursor's measured swarm economics: the same quality
 // cost 8x more with a frontier model in BOTH roles ($10,565) than with a frontier PLANNER and a
@@ -962,22 +965,102 @@ if (processThrash && !converged) {
 }
 
 // ---------------------------------------------------------------------------
+phase('Claim')
+
+// Swarm Delivery Law (ADR-0711): check-before-push onto durable integ/<root>.
+// Envelope verify + merge-tree preflight + hub exclusivity BEFORE Land opens/upserts a PR.
+const claimed = await agent(`${CTX}
+
+CLAIM (ADR-0711 / specs/integ-branch-envelopes.json) for integration branch \`${INTEG}\`.
+Policy file: \`${ENVELOPES}\`.
+
+This phase is a GATE. First line of summary must be exactly "CLAIM" or "REFUSE".
+
+HYPERSCALER MONOREPO PATTERNS (ADR-0711 D-9 — enforce, do not narrate): ownership=path=integ
+scope; envelopes follow capability boundaries (core/ports/adapters/facade); central docs/specs are
+hub-only (no product type-dumps); one writer queue per integ tip; workers never cargo/buck2;
+do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_monorepo_patterns.
+
+1. FETCH — \`git fetch origin\` (and any remote holding \`${INTEG}\`). Re-verify at the moment of
+   action; stale green is not authorization.
+
+2. ENVELOPE VERIFY — Load \`${ENVELOPES}\`. Resolve which root/plane \`${INTEG}\` maps to. List every
+   path this run would push onto \`${INTEG}\` (\`git diff --name-only ${BASE}...\` on unit tips and
+   the assembled tree). Every path MUST be:
+     (a) inside envelope(R), OR
+     (b) an explicitly claimed adjunct leaf recorded for this wave, OR
+     (c) a hub path with an in-diff waiver row under governance/check/integ-envelope/waivers/.
+   Concurrent-safe exemptions (.beads/**, evidence/**, .grok/programs/*/evidence/**) do not grant
+   envelope escape for product code. If any path fails, REFUSE and name it.
+   Prefer owner-colocated capability artifacts over new central specs/docs dumps.
+
+3. MERGE-TREE PREFLIGHT — Read-only conflict check against the current integ tip:
+     \`git merge-tree $(git merge-base origin/${INTEG#integ/} 2>/dev/null || git rev-parse ${BASE}) \`
+     Prefer: ensure local tip of \`${INTEG}\` matches remote, then
+     \`git merge-tree $(git merge-base ${BASE} HEAD) $(git rev-parse origin/${INTEG} 2>/dev/null || echo ${BASE}) $(git rev-parse HEAD)\`
+   Or equivalent read-only merge-tree of unit tips onto \`origin/${INTEG}\` (create tracking ref if
+   missing by comparing against ${BASE}). If merge-tree reports a content conflict, REFUSE — do not
+   guess intent. Report the conflicting paths.
+
+4. HUB EXCLUSIVITY — For every hub path listed in the envelopes spec that this run touches, check
+   open PRs (\`gh pr list --state open --json number,headRefName,files\`) and ensure no OTHER open
+   integ PR already owns that hub. One hub, one owner per wave. Missing waiver when needed = REFUSE.
+
+5. ADMIT BY CHERRY-PICK — Only if 1–4 pass: cherry-pick approved unit commits onto \`${INTEG}\` in
+   unit order (commit-producing, atomic). No stash, no reset, no force-push. \`--force-with-lease\`
+   is forbidden here — it belongs only in blessed restack/server-side-reset scripts.
+
+
+6. REORG-TARGET DEBT FREEZE (ADR-0711 Amendment B) — Load `reorg_target_debt_freeze` from
+   `${ENVELOPES}`. For every path this run would push that is a NEW birth
+   (`git diff --diff-filter=A --name-only` vs `${BASE}` / integ tip), if the path starts with
+   any `frozen_prefixes` entry (`libs/`, `cloud/`, `oya/`, `infra/`, `toolchains/`, `tools/`):
+     - ALLOW only if (a) it matches an unexpired `one_shot_exceptions` path_glob for this integ
+       wave, OR (b) the claimed bead title or body contains the marker `reorg-move-out`.
+     - Otherwise REFUSE and name the path. Envelope membership / integ/libs|cloud|oya|tools
+       ownership does NOT authorize births under frozen prefixes.
+   After `#1644` lands, `tools/swarm/**` exception is expired — tools/ is shrink-only.
+
+Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, and cherry-pick
+SHAs — or REFUSE with the concrete blocker.`,
+  { label: 'claim:envelope-merge-tree-hub', phase: 'Claim', schema: SCOUT_SCHEMA })
+
+const claimOk = claimed && /^\s*CLAIM/i.test(claimed.summary || '')
+log(claimOk ? 'CLAIM passed — envelope + merge-tree + hubs clear' : 'REFUSED — Claim gate failed; do not Land')
+if (!claimOk) {
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    refused: 'claim gate failed',
+    claim: claimed,
+    remedy: 'Fix envelope containment, resolve merge-tree conflicts, or acquire hub waiver — then re-run Claim.',
+    prs_opened: 0,
+  }
+}
+
+// ---------------------------------------------------------------------------
 phase('Land')
 
-// Exactly one PR, and only if it is already green. A PR opened red sits, decays and conflicts;
-// that is how a pile starts.
+// Exactly one PR per integ/<root>, upserted (create-or-update), and only if Claim passed and
+// the tree is already green. After squash-merge, reset is SERVER-SIDE (ADR-0711 D-4).
 const landed = await agent(`${CTX}
 
-LAND. First ASSEMBLE, then open EXACTLY ONE pull request from \`${INTEG}\` into ${BASE}.
+LAND (ADR-0711). Claim already passed for \`${INTEG}\`. Open or UPDATE exactly ONE pull request
+from \`${INTEG}\` into ${BASE}. Never open a second PR for the same integ. Never open a trunk PR
+from a unit/lane branch. One writer queue per integ tip (hyperscaler CODEOWNERS / envelope
+discipline). After squash-merge, document server-side integ reset — small frequent lands, not
+mega-branches.
 
-ASSEMBLE: each unit committed to its own branch \`${INTEG}-<unit id>\` in its own worktree. Cherry-pick
-those commits onto \`${INTEG}\` in unit order. A conflict here is real information — it means two units
-edited the same region, which the mapping should have prevented; resolve it if mechanical, and if it
-needs a judgement about intent, STOP and report rather than guessing. Verify after assembly that the
-integration branch contains every approved unit's work: \`git log --oneline ${BASE}..${INTEG}\` should
-account for all of them, and a missing unit is a lost unit, not a tidy result.
+UPSERT RULE:
+  - \`gh pr list --head ${INTEG} --base ${BASE.replace(/^origin\\//, '')} --state open --json number,url\`
+  - If one exists: update title/body and push the tip (\`gh pr edit\` / push). That IS the single PR.
+  - If none exists: \`gh pr create\` once.
+  - If more than one open PR shares this head: REFUSE and report — human must close duplicates.
 
-THE ORDER IS: PREVENT, then CATCH LOCALLY AND FIX, then — only then — open a PR. A PR is where a
+ASSEMBLE (if Claim left any unit tip not yet on \`${INTEG}\`): cherry-pick remaining approved unit
+commits in order. A conflict here is real information — STOP and report rather than guessing.
+
+THE ORDER IS: PREVENT, then CATCH LOCALLY AND FIX, then — only then — upsert the PR. A PR is where a
 defect turns expensive: it costs a 30-70 minute CI round trip to learn what a local gate run answers
 in seconds. #1620 burned 7 CI runs, 5 of them red, discovering things that were all knowable locally.
 
@@ -989,21 +1072,22 @@ think is relevant:
   - if this run MOVED anything the whole-graph build is mandatory: a move breaks targets in
     packages no unit ever opened, which is exactly how two broken targets reached CI on #1620
 
-IF ANYTHING IS RED: FIX IT, then sweep again. Do NOT open the PR and do NOT report it as a blocker.
-Reporting a red gate you could have fixed is the failure this ordering exists to remove. Escalate
-only what you genuinely cannot fix, and say what you tried.
+IF ANYTHING IS RED: FIX IT, then sweep again. Do NOT open/update the PR and do NOT report it as a
+blocker. Reporting a red gate you could have fixed is the failure this ordering exists to remove.
+Escalate only what you genuinely cannot fix, and say what you tried.
 
 Batch the INTEGRATOR-ONLY BOOKKEEPING into ONE commit here, over the final tree — hotfile
 re-anchors, generated-face materialisation, census re-freezes. Once at the end over a finished tree
 is correct and cheap; per unit produced six near-identical commits on #1620 that one would cover.
 
-PRECONDITIONS — verify each, and if any fails, DO NOT OPEN THE PR. Report instead:
+PRECONDITIONS — verify each, and if any fails, DO NOT UPSERT THE PR. Report instead:
   0. \`node .claude/workflows/auth-preflight.mjs\` passes (re-check immediately before push).
-  1. The gates governing every touched path are green locally. Paste the output.
-  2. No test was deleted, skipped or newly ignored.
-  3. The branch is not behind ${BASE} in a way that conflicts.
-  4. \`gh pr list --state open\` is still within the budget of ${PR_BUDGET}.
-  5. Any bead or wave closure claims are backed by live proof per BEAD COUNTERS ARE NOT LIVE STATE —
+  1. Claim phase returned CLAIM for this tip (envelope + merge-tree + hub exclusivity).
+  2. The gates governing every touched path are green locally. Paste the output.
+  3. No test was deleted, skipped or newly ignored.
+  4. The branch is not behind ${BASE} in a way that conflicts.
+  5. \`gh pr list --state open\` is still within the budget of ${PR_BUDGET}.
+  6. Any bead or wave closure claims are backed by live proof per BEAD COUNTERS ARE NOT LIVE STATE —
      never close a wave bead on bd notes alone; prove merge with git/gh first.
 
 If this run touched equality-pinned policy files, confirm the EQUALITY-PINNED CENSUS MERGE PROTOCOL
@@ -1014,9 +1098,13 @@ A pull request opened while red is the thing this workflow exists to prevent: it
 conflicts with everything else in flight, and has to be re-derived later. Landing nothing today is
 strictly better than adding another blocked PR to the pile.
 
-If the preconditions hold, open ONE PR whose body states: what changed, what was MEASURED (with the
-commands), what was refused and why, and what remains open. Return the PR number and URL.`,
-  { label: 'land:single-pr', phase: 'Land' })
+If the preconditions hold, UPSERT ONE PR whose body states: what changed, what was MEASURED (with the
+commands), what was refused and why, and what remains open. Return the PR number and URL.
+
+SERVER-SIDE RESET (document in the PR body; execute only AFTER squash-merge to ${BASE}, never now):
+  \`git push --force-with-lease origin ${BASE}:refs/heads/${INTEG}\`
+  No local \`git reset\`. Branch name persists for the next wave. Workers never run this.`,
+  { label: 'land:single-pr-upsert', phase: 'Land' })
 
 return {
   goal: GOAL,
@@ -1025,7 +1113,8 @@ return {
   approved: approvedUnits.length,
   trial_defects: trialDefects,
   converged,
+  claim: claimed,
   landed,
-  // One PR per run, by construction. This field exists so a reader can confirm that.
+  // One PR per integ/<root>, by construction. This field exists so a reader can confirm that.
   prs_opened: 1,
 }
