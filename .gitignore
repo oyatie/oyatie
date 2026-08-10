@@ -253,3 +253,6 @@ _ralplan_workflow.js
 # Swarm check-daemon outputs (orchestrator main-checkout only; workers read these).
 /err.txt
 /.check/
+
+# retired OMC residue (ADR-0711 Amendment B delete_permanently)
+.omc/

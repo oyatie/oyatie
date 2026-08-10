@@ -1,3 +1,0 @@
-SUNSET (keep-with-sunset, ADR-0709): this file is a path-stable residual slot only.
-Live premise gates belong in the lane dispatch brief / process kit, not under brand residue.
-Do not treat this file as mission authority; do not expand .omc/ultragoal tracked surface.

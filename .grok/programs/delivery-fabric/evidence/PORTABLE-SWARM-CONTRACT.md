@@ -52,7 +52,7 @@ bd show <id>
 12. **Do not** invent work or invent lanes for empty verified space — claim only `implementable` beads.
 13. **Do not** land paragraph narration comments — code must be self-explanatory; comments only for non-obvious intent/trade-offs/constraints (ADR-0711 Amendment A-3).
 14. **Do not** hand-edit generated artifacts — require `@generated` + generator id + SSOT pointer; regen via the one-command path; hermetic drift check owns freshness (ADR-0711 Amendment A-4).
-15. **Do not** birth new paths under reorg strangler targets (`libs/`, `cloud/`, `oya/`, `infra/`, `toolchains/`, `tools/`) — shrink/move-out/delete only (ADR-0711 Amendment B); `tools/swarm/**` on `#1644` is the sole one-shot exception.
+15. **Do not** birth new paths under `reorg_debt_freeze.prefixes` (vacating / reorg_now sources). Content must `reorg_now` or `delete_permanently` NOW — freeze ≠ keep. `tools/swarm/**` on `#1644` is the sole one-shot birth exception (then reorg_now → `.grok/`).
 
 ## Swarm Delivery Law (ADR-0711)
 
@@ -188,18 +188,20 @@ Mirror of ADR-0711 Amendment A. Obey these as Swarm Delivery Law.
    new generators.
 
 
-### Amendment B (2026-08-10) — reorg-target debt freeze
+### Amendment B (2026-08-10) — REORG NOW (ternary)
 
-Mirror of ADR-0711 Amendment B. Obey these as Swarm Delivery Law.
+Mirror of ADR-0711 Amendment B. Obey as Swarm Delivery Law.
 
-1. **Frozen prefixes — no new path births:** `libs/`, `cloud/`, `oya/`, `infra/`,
-   `toolchains/`, `tools/`. Allowed: shrink, move-out, delete, mechanical catalog fixes for
-   an in-flight move. Forbidden: new crates/domains/features/paths under those trees.
-   `#1642` allow-new for cloud-os/libs was a one-shot drain — **never repeat**.
-2. **`tools/swarm/**` one-shot:** authorized only on `integ/specs` `#1644`. After that merge,
-   `tools/` is shrink-only. Further births need an explicit `reorg-move-out` bead to a durable home.
-3. **Claim refuses frozen births** unless the claimed bead title/body contains `reorg-move-out`.
-   Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_target_debt_freeze`.
+1. **Greenfield question = placement law.** For every root/subdir: if greenfield hyperscaler
+   clean-arch, where does this belong and in what shape? That answer wins.
+2. **Ternary only:** `reorg_now` | `keep_forever` | `delete_permanently`. No gradual / eventually /
+   strangler-freeze-as-home / dual-home-forever. `libs/`, `cloud/`, `oya/`, `infra/`,
+   `toolchains/`, `tools/` are **not** `keep_forever`.
+3. **Freeze prefixes** (`reorg_debt_freeze.prefixes`) = no NEW births while moves execute — not a
+   durable home. Claim refuses births unless bead contains `reorg-move-out` naming destination.
+4. **Prefer destination `integ/<root>`** for moves. Policy-as-data:
+   `specs/integ-branch-envelopes.json` → `reorg_debt_freeze` (rows + first_wave).
+
 
 ## Auth preflight (carry-forward)
 

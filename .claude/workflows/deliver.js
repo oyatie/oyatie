@@ -1011,15 +1011,17 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
    is forbidden here — it belongs only in blessed restack/server-side-reset scripts.
 
 
-6. REORG-TARGET DEBT FREEZE (ADR-0711 Amendment B) — Load `reorg_target_debt_freeze` from
-   `${ENVELOPES}`. For every path this run would push that is a NEW birth
+6. REORG NOW TERNARY (ADR-0711 Amendment B) — Load `reorg_debt_freeze` from `${ENVELOPES}`
+   (fallback: `reorg_target_debt_freeze.frozen_prefixes`). For every NEW birth
    (`git diff --diff-filter=A --name-only` vs `${BASE}` / integ tip), if the path starts with
-   any `frozen_prefixes` entry (`libs/`, `cloud/`, `oya/`, `infra/`, `toolchains/`, `tools/`):
-     - ALLOW only if (a) it matches an unexpired `one_shot_exceptions` path_glob for this integ
-       wave, OR (b) the claimed bead title or body contains the marker `reorg-move-out`.
-     - Otherwise REFUSE and name the path. Envelope membership / integ/libs|cloud|oya|tools
-       ownership does NOT authorize births under frozen prefixes.
-   After `#1644` lands, `tools/swarm/**` exception is expired — tools/ is shrink-only.
+   any `prefixes` / `no_new_births_while_reorg_prefixes` entry:
+     - ALLOW only if (a) unexpired `one_shot_exceptions` path_glob for this integ wave, OR
+       (b) claimed bead title/body contains `reorg-move-out` naming greenfield_destination.
+     - Otherwise REFUSE and name the path.
+   Prefer landing moves on the destination integ/<root>. Source freeze roots
+   (libs/cloud/oya/infra/toolchains/tools/…) are NOT keep_forever — births there are refused
+   even when the integ owns that envelope. After `#1644` lands, expire `tools/swarm/**` and
+   schedule reorg_now of tools/swarm → .grok/.
 
 Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, and cherry-pick
 SHAs — or REFUSE with the concrete blocker.`,
