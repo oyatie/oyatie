@@ -6,6 +6,8 @@ use std::fmt;
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
+use serde_json::Value;
+
 const PROGRAM_ROOT: &str = "docs/programs/k8s-port";
 /// Required line-oriented registry: `version=1`, then
 /// `wave=<id>;ordinal=<u32>;completed=<true|false>;operations_entries=<operations-relative paths>;no_extraction_rationale=<text>`.
@@ -19,6 +21,31 @@ const SIX_AXIS_TOKENS: [&str; 6] = [
     "formatter_digest",
 ];
 
+/// Root scanned for INV-3. Every Rust file below it is read; nothing below it is written.
+const OS_ROOT: &str = "os";
+/// INV-3, frozen on `origin/dev` @ `5e452bd70`: 15 production sites plus one test fixture at
+/// `os/core/k8s-control-domain/src/manifest_controller.rs:200`. Frozen at equality — a unit that
+/// retires a site re-freezes this constant in the same commit, and no unit raises it. A bare `<=`
+/// would let a retirement bank silent headroom for the site to come back, so the gate reds on any
+/// drift in either direction. Hand-writing upstream Kubernetes wire surface is what ADR-0704
+/// charters as generated, so growth here is the defect and an unrecorded shrink is a lie.
+pub const UPSTREAM_EMIT_SITE_CEILING: usize = 16;
+/// The five upstream Kubernetes API groups that carry no `.k8s.io` suffix. Every other upstream
+/// group is recognised structurally by that suffix rather than by enumeration.
+const SUFFIXLESS_UPSTREAM_GROUPS: [&str; 5] =
+    ["apps", "batch", "autoscaling", "policy", "extensions"];
+
+/// INV-5 denominator source: the leaf classification every tracked crate leaf across the seam is
+/// checked against. Read, never trusted — the counts in it are recomputed from the tree.
+const REGENERABLE_REGIONS: &str = "specs/k8s-port/regenerable-regions.json";
+/// The two capabilities the port seam runs between; the leaf census claims nothing outside them.
+const SEAM_CAPABILITIES: [&str; 2] = ["k8s", "os"];
+/// The divergence ledger whose `growth_policy` knobs this gate is the reader for. Before this
+/// existed, `baseline_seed_count` and `max_new_rows_per_wave` each had exactly one occurrence in
+/// the tree — their own definition — while the seam mapping asserted in bold that a third row
+/// "is rejected by the ledger's own growth policy". Nothing evaluated it.
+const DIVERGENCE_LEDGER: &str = "specs/k8s-port/divergence-ledger.json";
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum FindingCode {
     EmptyProgramCorpus,
@@ -27,6 +54,10 @@ pub enum FindingCode {
     RuleWithoutJournalReference,
     DoctrineWithoutAdr,
     PrescriptionStarvation,
+    UpstreamKubernetesSurfaceGrowth,
+    UnclassifiableDynamicApiVersion,
+    UnclassifiedCrateLeaf,
+    DivergenceLedgerGrowthBudgetExceeded,
 }
 
 impl FindingCode {
@@ -38,6 +69,12 @@ impl FindingCode {
             Self::RuleWithoutJournalReference => "R-DOC-RULE-JOURNAL-REFERENCE-MISSING",
             Self::DoctrineWithoutAdr => "R-DOC-DOCTRINE-ADR-OVERDUE",
             Self::PrescriptionStarvation => "R-DOC-PRESCRIPTION-STARVATION",
+            Self::UpstreamKubernetesSurfaceGrowth => "R-DOC-OS-UPSTREAM-K8S-SURFACE-GROWTH",
+            Self::UnclassifiableDynamicApiVersion => "R-DOC-OS-DYNAMIC-APIVERSION-UNCLASSIFIABLE",
+            Self::UnclassifiedCrateLeaf => "R-DOC-K8S-PORT-LEAF-UNCLASSIFIED",
+            Self::DivergenceLedgerGrowthBudgetExceeded => {
+                "R-DOC-K8S-PORT-DIVERGENCE-GROWTH-BUDGET-EXCEEDED"
+            }
         }
     }
 }
@@ -125,6 +162,47 @@ pub struct Corpus {
     pub rules: Vec<RuleRecord>,
     pub doctrine: Vec<DoctrineRecord>,
     pub prescription_count: usize,
+    /// INV-3 observed value: upstream-Kubernetes `apiVersion:` emit sites across `os/**/*.rs`.
+    pub upstream_emit_sites: usize,
+    /// Lines across the same scan whose `apiVersion` value is BUILT AT RUNTIME. The value is not in
+    /// the source, so no grammar-aware read can classify it either — the ratchet fails closed on it
+    /// rather than counting it as absent, which is the exact hole the equality freeze exists to
+    /// close: a new hand-written serializer landing while the census stays at 16 and the gate passes.
+    pub dynamic_api_version_sites: usize,
+    /// Denominator for the line above. A zero here means the scan found nothing to read, which is a
+    /// false green, so the loader refuses it rather than reporting `0 <= 16`.
+    pub os_rust_files: usize,
+    /// Every crate leaf `<capability>/<face>/<crate>` under `k8s/` and `os/`, enumerated from the
+    /// tree. This is the denominator the declared leaf census is checked against; the loader
+    /// refuses an empty enumeration for the same reason it refuses a zero `os_rust_files`.
+    pub crate_leaves: Vec<String>,
+    /// What `specs/k8s-port/regenerable-regions.json` declares about the line above. Parsed from
+    /// the file so the equality is computed rather than read back from its own literal.
+    pub declared_leaves: DeclaredLeaves,
+    /// The divergence ledger's own growth knobs plus its observed row count.
+    pub divergence_ledger: DivergenceLedger,
+}
+
+/// `specs/k8s-port/divergence-ledger.json` read as DATA: both budget knobs come from the file, so
+/// what the declaration says is what the gate enforces. Hardcoding the budget would leave the knobs
+/// inert, which is the defect this reader exists to fix.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct DivergenceLedger {
+    pub rows: usize,
+    pub baseline_seed_count: usize,
+    pub max_new_rows_per_wave: usize,
+}
+
+/// The leaf census `specs/k8s-port/regenerable-regions.json` declares.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct DeclaredLeaves {
+    /// Every `origin_classification.leaves[].path` in declaration order. Duplicates are preserved
+    /// rather than collapsed, so a repeated row surfaces as a row-count mismatch instead of hiding
+    /// behind a per-leaf presence check that a duplicate would still satisfy.
+    pub rows: Vec<String>,
+    pub k8s_leaves: usize,
+    pub os_leaves: usize,
+    pub total_leaves: usize,
 }
 
 pub fn evaluate(corpus: &Corpus) -> Evaluation {
@@ -212,6 +290,99 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
         }
     }
 
+    if corpus.upstream_emit_sites != UPSTREAM_EMIT_SITE_CEILING {
+        findings.push(finding(
+            FindingCode::UpstreamKubernetesSurfaceGrowth,
+            OS_ROOT,
+            &format!(
+                "{} upstream-Kubernetes apiVersion emit sites across {} Rust files does not equal the frozen census of {}; the surface is chartered as generated, so growth means consume the seam instead of hand-writing it, and a retirement must lower this constant in the same commit",
+                corpus.upstream_emit_sites, corpus.os_rust_files, UPSTREAM_EMIT_SITE_CEILING
+            ),
+        ));
+    }
+
+    if corpus.dynamic_api_version_sites != 0 {
+        findings.push(finding(
+            FindingCode::UnclassifiableDynamicApiVersion,
+            OS_ROOT,
+            &format!(
+                "{} line(s) build an apiVersion value at runtime (a format placeholder), so the emitted API group is not in the source and cannot be classified as upstream or Talos by any read of it; make the value static or consume it through the k8s/ports seam, because an unclassifiable site would otherwise pass the frozen census of {} while hand-writing upstream wire surface",
+                corpus.dynamic_api_version_sites, UPSTREAM_EMIT_SITE_CEILING
+            ),
+        ));
+    }
+
+    // Both knobs are read from the ledger, so the declaration is what is enforced.
+    // CEILING: `rows` is CUMULATIVE while `max_new_rows_per_wave` is a per-wave DELTA, so this
+    // comparison is exact only while exactly one wave has elapsed (W0). Re-derive it at the next
+    // wave gate — after W1 the budget needs the per-wave delta, not the cumulative total.
+    let ledger = &corpus.divergence_ledger;
+    let budget = ledger.baseline_seed_count + ledger.max_new_rows_per_wave;
+    if ledger.rows > budget {
+        findings.push(finding(
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded,
+            DIVERGENCE_LEDGER,
+            &format!(
+                "{} divergence rows exceed the ledger's own declared budget of {} (baseline_seed_count {} + max_new_rows_per_wave {}); the growth policy is DATA in this file and this is its reader — a further divergence is recorded in the operations journal and waits for the next wave gate",
+                ledger.rows, budget, ledger.baseline_seed_count, ledger.max_new_rows_per_wave
+            ),
+        ));
+    }
+
+    // The leaf census is a denominator, so it is checked against the tree rather than against
+    // itself. `crate_leaves` comes from `read_dir`; every number below comes from the declaration.
+    let declared = &corpus.declared_leaves;
+    let declared_paths = declared.rows.iter().collect::<BTreeSet<_>>();
+    for leaf in &corpus.crate_leaves {
+        if !declared_paths.contains(leaf) {
+            findings.push(finding(
+                FindingCode::UnclassifiedCrateLeaf,
+                leaf,
+                "tracked crate leaf carries no origin_classification.leaves row; an unclassified leaf is the hole that makes a leaf-by-leaf partition report a clean result over an unseen corpus",
+            ));
+        }
+    }
+    // Presence alone cannot see a deletion or a rename: the stale row it leaves behind still
+    // satisfies every remaining leaf. The row count is what catches that direction.
+    if declared.rows.len() != corpus.crate_leaves.len() {
+        findings.push(finding(
+            FindingCode::UnclassifiedCrateLeaf,
+            REGENERABLE_REGIONS,
+            &format!(
+                "{} declared leaf rows against {} crate leaves enumerated from the tree; a deleted or renamed leaf leaves a stale row that a per-leaf presence check alone cannot see",
+                declared.rows.len(),
+                corpus.crate_leaves.len()
+            ),
+        ));
+    }
+    let k8s_leaves = corpus
+        .crate_leaves
+        .iter()
+        .filter(|leaf| leaf.starts_with("k8s/"))
+        .count();
+    let os_leaves = corpus
+        .crate_leaves
+        .iter()
+        .filter(|leaf| leaf.starts_with("os/"))
+        .count();
+    if (declared.k8s_leaves, declared.os_leaves, declared.total_leaves)
+        != (k8s_leaves, os_leaves, corpus.crate_leaves.len())
+    {
+        findings.push(finding(
+            FindingCode::UnclassifiedCrateLeaf,
+            REGENERABLE_REGIONS,
+            &format!(
+                "declared census k8s_leaves={} os_leaves={} total_leaves={} does not equal the tree at HEAD ({} / {} / {}); a stale census silently converts every count above it into a claim about a tree that no longer exists",
+                declared.k8s_leaves,
+                declared.os_leaves,
+                declared.total_leaves,
+                k8s_leaves,
+                os_leaves,
+                corpus.crate_leaves.len()
+            ),
+        ));
+    }
+
     findings.sort_by(|left, right| {
         left.code
             .cmp(&right.code)
@@ -223,7 +394,9 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             + corpus.completed_waves.len()
             + corpus.rules.len()
             + corpus.doctrine.len()
-            + corpus.prescription_count,
+            + corpus.prescription_count
+            + corpus.os_rust_files
+            + corpus.crate_leaves.len(),
         finding_count: findings.len(),
     };
     Evaluation { counters, findings }
@@ -246,13 +419,308 @@ fn load_repository_inner(repo_root: &Path) -> Result<Corpus, LoadError> {
     let rules = load_rule_records(repo_root)?;
     let doctrine = load_doctrine_records(repo_root, &program_root)?;
     let prescription_count = count_lane_entries(repo_root, &program_root.join("prescriptions"))?;
+    let scan = scan_os_upstream_emit_sites(repo_root)?;
+    let crate_leaves = scan_crate_leaves(repo_root)?;
+    let declared_leaves = load_declared_leaves(repo_root)?;
+    let divergence_ledger = load_divergence_ledger(repo_root)?;
     Ok(Corpus {
         documents,
         completed_waves,
         rules,
         doctrine,
         prescription_count,
+        upstream_emit_sites: scan.upstream_emit_sites,
+        dynamic_api_version_sites: scan.dynamic_api_version_sites,
+        os_rust_files: scan.os_rust_files,
+        crate_leaves,
+        declared_leaves,
+        divergence_ledger,
     })
+}
+
+/// Parse a JSON artifact. A malformed or unnavigable declaration is a `LoadError`, never a silent
+/// default: an empty declaration would report a clean partition over a corpus it never opened.
+fn read_json(path: &Path, code: &'static str) -> Result<Value, LoadError> {
+    serde_json::from_str(&read_utf8(path, code)?)
+        .map_err(|error| load_error(code, path, &format!("file must be valid JSON: {error}")))
+}
+
+fn json_usize(
+    document: &Value,
+    pointer: &str,
+    path: &Path,
+    code: &'static str,
+) -> Result<usize, LoadError> {
+    document
+        .pointer(pointer)
+        .and_then(Value::as_u64)
+        .and_then(|number| usize::try_from(number).ok())
+        .ok_or_else(|| {
+            load_error(
+                code,
+                path,
+                &format!("`{pointer}` must be present and a non-negative integer"),
+            )
+        })
+}
+
+/// Reads the divergence ledger's row count and its own declared growth budget.
+fn load_divergence_ledger(repo_root: &Path) -> Result<DivergenceLedger, LoadError> {
+    const CODE: &str = "R-DOC-K8S-PORT-DIVERGENCE-LEDGER-MALFORMED";
+    let path = repo_root.join(DIVERGENCE_LEDGER);
+    if !path.is_file() {
+        return Err(load_error(
+            "R-DOC-K8S-PORT-DIVERGENCE-LEDGER-MISSING",
+            &path,
+            "the divergence ledger is required; without it the growth policy is data nothing evaluates",
+        ));
+    }
+    let document = read_json(&path, CODE)?;
+    let rows = document
+        .get("rows")
+        .and_then(Value::as_array)
+        .ok_or_else(|| load_error(CODE, &path, "`rows` must be an array"))?
+        .len();
+    Ok(DivergenceLedger {
+        rows,
+        baseline_seed_count: json_usize(
+            &document,
+            "/growth_policy/baseline_seed_count",
+            &path,
+            CODE,
+        )?,
+        max_new_rows_per_wave: json_usize(
+            &document,
+            "/growth_policy/max_new_rows_per_wave",
+            &path,
+            CODE,
+        )?,
+    })
+}
+
+/// Enumerates every `<capability>/<face>/<crate>` directory holding a `Cargo.toml` under `k8s/` and
+/// `os/`, which is the census reproducer `git ls-files 'k8s/*/*/Cargo.toml' 'os/*/*/Cargo.toml'`
+/// evaluated at fixed depth.
+fn scan_crate_leaves(repo_root: &Path) -> Result<Vec<String>, LoadError> {
+    let mut leaves = Vec::new();
+    for capability in SEAM_CAPABILITIES {
+        let root = repo_root.join(capability);
+        for face in read_dir_sorted(&root, "R-DOC-SEAM-LEAF-TREE-UNREADABLE")? {
+            if !face.is_dir() {
+                continue;
+            }
+            for leaf in read_dir_sorted(&face, "R-DOC-SEAM-LEAF-TREE-UNREADABLE")? {
+                if leaf.join("Cargo.toml").is_file() {
+                    leaves.push(display_path(repo_root, &leaf));
+                }
+            }
+        }
+    }
+    leaves.sort();
+    if leaves.is_empty() {
+        return Err(load_error(
+            "R-DOC-SEAM-LEAF-TREE-EMPTY",
+            repo_root,
+            "no crate leaves were enumerated under k8s/ or os/; a zero denominator would report every declared leaf row as classified without reading the tree",
+        ));
+    }
+    Ok(leaves)
+}
+
+/// Reads the declared leaf census. Absence is a load error rather than a finding: an evaluation run
+/// against a missing declaration would report a clean partition over a corpus it never opened.
+fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
+    let path = repo_root.join(REGENERABLE_REGIONS);
+    if !path.is_file() {
+        return Err(load_error(
+            "R-DOC-K8S-PORT-REGIONS-MISSING",
+            &path,
+            "the regenerable-region declaration is required; without it the leaf census is a literal that nothing recomputes",
+        ));
+    }
+    // NAVIGATED, not line-scanned. The previous reader matched `"path": "` against every line of
+    // the file, so a leaf path relocated into ANY other object still landed in `rows`: the row
+    // count and every per-leaf presence check stayed green over a leaf that was no longer
+    // classified. `declared_count` had the same shape one level worse — `split_once` took the
+    // FIRST match anywhere in the file, so a future block mentioning `k8s_leaves` earlier would
+    // have silently pinned the comparison to the wrong number.
+    const CODE: &str = "R-DOC-K8S-PORT-REGIONS-MALFORMED";
+    let document = read_json(&path, CODE)?;
+    let leaves = document
+        .pointer("/origin_classification/leaves")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            load_error(CODE, &path, "`origin_classification.leaves` must be an array")
+        })?;
+    // A `Vec`, never a `BTreeSet`: duplicates must survive, because the row-count comparison in
+    // `evaluate` is what catches a deletion or a rename that a per-leaf presence check cannot see.
+    let mut rows = Vec::with_capacity(leaves.len());
+    for leaf in leaves {
+        let value = leaf.get("path").and_then(Value::as_str).ok_or_else(|| {
+            load_error(
+                CODE,
+                &path,
+                "every `origin_classification.leaves` row must carry a string `path`",
+            )
+        })?;
+        rows.push(value.to_owned());
+    }
+    Ok(DeclaredLeaves {
+        rows,
+        k8s_leaves: json_usize(
+            &document,
+            "/origin_classification/census/k8s_leaves",
+            &path,
+            CODE,
+        )?,
+        os_leaves: json_usize(
+            &document,
+            "/origin_classification/census/os_leaves",
+            &path,
+            CODE,
+        )?,
+        total_leaves: json_usize(
+            &document,
+            "/origin_classification/census/total_leaves",
+            &path,
+            CODE,
+        )?,
+    })
+}
+
+/// What one pass over `os/**/*.rs` observed.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+struct OsScan {
+    upstream_emit_sites: usize,
+    dynamic_api_version_sites: usize,
+    os_rust_files: usize,
+}
+
+/// Counts INV-3 emit sites over `os/**/*.rs`.
+///
+/// One line counts at most once, matching the section-8 `git grep -cE` reproducer, which counts
+/// matching lines rather than matches.
+fn scan_os_upstream_emit_sites(repo_root: &Path) -> Result<OsScan, LoadError> {
+    let root = repo_root.join(OS_ROOT);
+    let mut scan = OsScan::default();
+    for path in collect_files(&root, "R-DOC-OS-TREE-UNREADABLE")? {
+        if path.extension().is_some_and(|extension| extension == "rs") {
+            let contents = read_utf8(&path, "R-DOC-OS-SOURCE-UNREADABLE")?;
+            scan.upstream_emit_sites += upstream_emit_sites(&contents);
+            scan.dynamic_api_version_sites += dynamic_api_version_sites(&contents);
+            scan.os_rust_files += 1;
+        }
+    }
+    if scan.os_rust_files == 0 {
+        return Err(load_error(
+            "R-DOC-OS-TREE-EMPTY",
+            &root,
+            "no Rust sources were scanned; a zero denominator would report the INV-3 ceiling as satisfied without reading anything",
+        ));
+    }
+    Ok(scan)
+}
+
+/// A line the census reads at all. A `//`-leading line is DOCUMENTATION, not emission: counting
+/// `// example: apiVersion: apps/v1` would red the ratchet with a diagnostic ("consume the seam
+/// instead of hand-writing it") that is wholly wrong for someone who wrote a comment. The mechanism
+/// was live and only accidentally quiet — `os/core/config-docs-domain/src/lib.rs:12` is extracted
+/// and classified today and merely happens to be Talos.
+///
+/// ponytail: known ceiling — a TRAILING comment on a code line is still scanned, and a `//`-leading
+/// line inside a raw string literal is now skipped. Both are strictly narrower than the doc-comment
+/// case this closes; closing them needs a Rust tokenizer, which no line census is worth.
+fn is_scannable_line(line: &str) -> bool {
+    !line.trim_start().starts_with("//")
+}
+
+/// Number of lines emitting an upstream-Kubernetes `apiVersion:`.
+pub fn upstream_emit_sites(contents: &str) -> usize {
+    contents
+        .lines()
+        .filter(|line| is_scannable_line(line) && emits_upstream_group(line))
+        .count()
+}
+
+/// Number of lines whose `apiVersion` value is BUILT AT RUNTIME (`"apiVersion: {}"`,
+/// `format!("apiVersion: {group}/v1")`). A tokenizer does not help here: the value is not in the
+/// source at all, so it is unclassifiable however well the line is lexed. The gate fails closed on
+/// it rather than counting it as absent.
+pub fn dynamic_api_version_sites(contents: &str) -> usize {
+    contents
+        .lines()
+        .filter(|line| {
+            is_scannable_line(line)
+                && api_version_values(line)
+                    .iter()
+                    .any(|value| value.contains('{'))
+        })
+        .count()
+}
+
+/// Every `apiVersion` value on the line, **normalized once before classification**. Classifying raw
+/// text is what made the previous predicate under-inclusive: it enumerated spellings, so a quoted
+/// value or a quoted key fell out silently and understated the census. This tolerates a quoted key
+/// (`"apiVersion":`), leading whitespace, and a quoted value (`"apps/v1"`, `\"apps/v1\"` inside a
+/// Rust literal, `'apps/v1'`). The value terminates at the first quote, backslash escape or
+/// whitespace, so a trailing comment cannot be read as part of it.
+fn api_version_values(line: &str) -> Vec<&str> {
+    let mut values = Vec::new();
+    for (index, _) in line.match_indices("apiVersion") {
+        let mut rest = &line[index + "apiVersion".len()..];
+        rest = strip_quote(rest);
+        // No colon means this was a bare mention such as `let field = "apiVersion";`, not an emit.
+        let Some(mut rest) = rest.strip_prefix(':') else {
+            continue;
+        };
+        rest = rest.trim_start_matches([' ', '\t']);
+        rest = strip_quote(rest);
+        let end = rest
+            .find(|character: char| {
+                character == '"' || character == '\'' || character == '\\' || character.is_whitespace()
+            })
+            .unwrap_or(rest.len());
+        let value = &rest[..end];
+        if !value.is_empty() {
+            values.push(value);
+        }
+    }
+    values
+}
+
+fn strip_quote(rest: &str) -> &str {
+    rest.strip_prefix("\\\"")
+        .or_else(|| rest.strip_prefix('"'))
+        .or_else(|| rest.strip_prefix('\''))
+        .unwrap_or(rest)
+}
+
+/// The discriminator is the **API group SHAPE**, never the token `apiVersion` (trap T-1) and never a
+/// closed allowlist of the groups that happened to exist at census time. A grouped value is upstream
+/// Kubernetes when its group segment — `<group>/<version>` — either ends in `.k8s.io` or is one of
+/// the five suffix-less upstream groups; an ungrouped value is upstream only when it is exactly
+/// `v1`. Talos is excluded structurally: it emits bare `v1alpha1`/`v1beta1` with no group segment at
+/// all, so nothing slash-shaped can swallow it and the bare arm cannot either.
+fn is_upstream_api_version(value: &str) -> bool {
+    match value.split_once('/') {
+        Some((group, _)) => {
+            // A group is a DNS-subdomain-shaped token. Bounding the charset stops a trailing
+            // comment such as `apiVersion: v1alpha1 // see rbac.authorization.k8s.io/v1` from
+            // being read as a group segment.
+            !group.is_empty()
+                && group.chars().all(|character| {
+                    character.is_ascii_alphanumeric() || character == '.' || character == '-'
+                })
+                && (group.ends_with(".k8s.io") || SUFFIXLESS_UPSTREAM_GROUPS.contains(&group))
+        }
+        None => value == "v1",
+    }
+}
+
+fn emits_upstream_group(line: &str) -> bool {
+    api_version_values(line)
+        .iter()
+        .any(|value| is_upstream_api_version(value))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -389,12 +857,16 @@ fn load_wave_registry(
                 "wave identifiers and ordinals must be unique",
             ));
         }
+        // Resolved for EVERY row, not only the completed ones. Keying validation to consumption
+        // rather than to presence left any journal path on an in-flight wave an unverified string:
+        // a typo, rename or deletion stayed green until the wave eventually completed, and the
+        // backlink dangled in the meantime.
+        let entries = fields
+            .get("operations_entries")
+            .map_or(Ok(Vec::new()), |value| {
+                load_journal_entries(program_root, value)
+            })?;
         if completed == "true" {
-            let entries = fields
-                .get("operations_entries")
-                .map_or(Ok(Vec::new()), |value| {
-                    load_journal_entries(program_root, value)
-                })?;
             waves.push(CompletedWave {
                 id: id.to_owned(),
                 ordinal,
@@ -738,6 +1210,18 @@ fn collect_files_inner(
     Ok(())
 }
 
+/// One directory level, sorted. `collect_files` recurses and rejects symlinks; the leaf census only
+/// needs fixed depth, and a symlinked face is not a crate leaf either way.
+fn read_dir_sorted(root: &Path, code: &'static str) -> Result<Vec<PathBuf>, LoadError> {
+    let mut paths = fs::read_dir(root)
+        .map_err(|_| load_error(code, root, "directory is missing or unreadable"))?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| load_error(code, root, "directory entry is unreadable"))?;
+    paths.sort();
+    Ok(paths)
+}
+
 fn read_utf8(path: &Path, code: &'static str) -> Result<String, LoadError> {
     fs::read_to_string(path).map_err(|_| load_error(code, path, "file must be readable UTF-8"))
 }
@@ -787,6 +1271,28 @@ mod tests {
             }],
             doctrine: Vec::new(),
             prescription_count: 1,
+            upstream_emit_sites: UPSTREAM_EMIT_SITE_CEILING,
+            dynamic_api_version_sites: 0,
+            os_rust_files: 373,
+            crate_leaves: vec![
+                "k8s/ports/fixture-api".to_owned(),
+                "os/core/fixture-domain".to_owned(),
+            ],
+            declared_leaves: DeclaredLeaves {
+                rows: vec![
+                    "k8s/ports/fixture-api".to_owned(),
+                    "os/core/fixture-domain".to_owned(),
+                ],
+                k8s_leaves: 1,
+                os_leaves: 1,
+                total_leaves: 2,
+            },
+            // The live shape at W0: five baseline seeds plus the two rows this wave adds.
+            divergence_ledger: DivergenceLedger {
+                rows: 7,
+                baseline_seed_count: 5,
+                max_new_rows_per_wave: 2,
+            },
         }
     }
 
@@ -831,6 +1337,26 @@ mod tests {
         let error = load_wave_registry(root, &root.join(PROGRAM_ROOT))
             .expect_err("missing wave registry must fail closed without a prose escape");
         assert_eq!(error.code, "R-DOC-WAVE-REGISTRY-MISSING");
+    }
+
+    #[test]
+    fn incomplete_wave_with_unreadable_journal_path_is_red() {
+        // The regression test for resolving journal paths on EVERY row. Before the hoist this
+        // returned Ok(vec![]): nothing had completed, so nothing was resolved, and the dangling
+        // backlink stayed invisible until the wave eventually completed.
+        let root = std::env::temp_dir().join("r-doc-incomplete-wave-journal-fixture");
+        let registry = root.join(WAVE_REGISTRY);
+        fs::create_dir_all(registry.parent().expect("the registry has a parent directory"))
+            .expect("the fixture tree is creatable");
+        fs::write(
+            &registry,
+            "version=1\nwave=W0-A;ordinal=0;completed=false;operations_entries=absent.md;no_extraction_rationale=\n",
+        )
+        .expect("the fixture registry is writable");
+        let result = load_wave_registry(&root, &root.join(PROGRAM_ROOT));
+        fs::remove_dir_all(&root).ok();
+        let error = result.expect_err("an in-flight wave's journal path is resolved, not trusted");
+        assert_eq!(error.code, "R-DOC-JOURNAL-ENTRY-UNREADABLE");
     }
 
     #[test]
@@ -900,8 +1426,15 @@ mod tests {
     fn true_zero_document_scan_is_red_and_counters_are_distinct() {
         let evaluation = evaluate(&Corpus::default());
         assert_eq!(evaluation.counters.scanned_population, 0);
-        assert_eq!(evaluation.counters.finding_count, 1);
+        // Two, not one: a default corpus scanned nothing AND reports zero emit sites, and zero is
+        // no longer under a ceiling — it is a drift from the frozen census of 16. Both are red,
+        // which is the point of freezing at equality.
+        assert_eq!(evaluation.counters.finding_count, 2);
         assert!(has_code(&evaluation, FindingCode::EmptyProgramCorpus));
+        assert!(has_code(
+            &evaluation,
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
     }
 
     #[test]
@@ -910,6 +1443,236 @@ mod tests {
         assert!(evaluation.is_green());
         assert!(evaluation.counters.scanned_population > 0);
         assert_eq!(evaluation.counters.finding_count, 0);
+    }
+
+    #[test]
+    fn upstream_emit_site_census_is_frozen_at_equality() {
+        let mut corpus = live_fixture();
+        assert!(!has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+        // An unrecorded reduction is red too: a retirement that does not re-freeze the constant
+        // would otherwise bank silent headroom for the site to come back.
+        corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING - 1;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+        corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING + 1;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+    }
+
+    #[test]
+    fn the_api_group_is_the_discriminator_not_the_token_api_version() {
+        // Every group in the section-3.2 table, one per line, plus the two bare-`v1` spellings the
+        // reproducer admits: end of line and the `\n` escape inside a Rust string literal.
+        let upstream = concat!(
+            "apiVersion: v1\n",
+            "    \"apiVersion: v1\\n\",\n",
+            "        writeln!(out, \"apiVersion: v1\")?;\n",
+            "apiVersion: apps/v1\n",
+            "apiVersion: rbac.authorization.k8s.io/v1\n",
+            "apiVersion: kubelet.config.k8s.io/v1beta1\n",
+            "apiVersion: apiserver.config.k8s.io/v1\n",
+            "apiVersion: audit.k8s.io/v1\n",
+            "apiVersion: pod-security.admission.config.k8s.io/v1\n",
+            // The exact regression the closed six-entry allowlist missed: upstream groups nobody
+            // enumerated during the census. Both are counted because the group SHAPE decides.
+            "apiVersion: batch/v1\n",
+            "apiVersion: networking.k8s.io/v1\n",
+            // The spelling class the previous predicate enumerated its way past. Every one of these
+            // is a valid emission of upstream wire surface; every one returned false while the
+            // predicate classified raw text instead of a normalized value. The quoted-value idiom
+            // is already live in this corpus at os/core/machine-config-domain/src/encoder.rs:162.
+            "apiVersion: \"apps/v1\"\n",
+            "apiVersion: 'apps/v1'\n",
+            "        \"apiVersion\": \"apps/v1\",\n",
+            "apiVersion:  apps/v1\n",
+            "out.push_str(\"apiVersion: \\\"v1\\\"\\n\");\n",
+            "apiVersion: \"rbac.authorization.k8s.io/v1\"\n",
+        );
+        assert_eq!(upstream_emit_sites(upstream), 17);
+
+        // Talos's own machine-config surface. These are correct Talos output, chartered by the port
+        // of siderolabs/talos, and must never enter the count (trap T-1).
+        let talos = concat!(
+            "apiVersion: v1alpha1\n",
+            "    \"apiVersion: v1alpha1\\n\",\n",
+            "apiVersion: v1beta1\n",
+            "apiVersion:\n",
+            "let field = \"apiVersion\";\n",
+            // A trailing reference to an upstream group is not a group segment: the token between
+            // the marker and the first `/` is not DNS-subdomain-shaped, so the charset bound holds.
+            "apiVersion: v1alpha1 // see rbac.authorization.k8s.io/v1\n",
+            // Widening the spellings must not widen the group test: the live quoted-value idiom in
+            // os/core/machine-config-domain/src/encoder.rs is Talos, and it stays out.
+            "apiVersion: \"v1alpha1\"\n",
+            "apiVersion: 'v1beta1'\n",
+        );
+        assert_eq!(upstream_emit_sites(talos), 0);
+    }
+
+    #[test]
+    fn the_leaf_census_is_computed_from_the_tree_not_read_back_from_its_own_literal() {
+        // Green baseline: the declaration matches the enumeration on every axis.
+        assert!(!has_code(
+            &evaluate(&live_fixture()),
+            FindingCode::UnclassifiedCrateLeaf
+        ));
+
+        // A new leaf lands with no row. Presence catches it.
+        let mut corpus = live_fixture();
+        corpus.crate_leaves.push("k8s/core/newborn".to_owned());
+        corpus.declared_leaves.k8s_leaves = 2;
+        corpus.declared_leaves.total_leaves = 3;
+        let evaluation = evaluate(&corpus);
+        assert!(has_code(&evaluation, FindingCode::UnclassifiedCrateLeaf));
+        assert!(evaluation
+            .findings
+            .iter()
+            .any(|finding| finding.path == "k8s/core/newborn"));
+
+        // A leaf is deleted and its row is left behind. Presence alone is blind here — every
+        // surviving leaf still has a row — so the row count is what reds.
+        let mut corpus = live_fixture();
+        corpus.crate_leaves.pop();
+        corpus.declared_leaves.os_leaves = 0;
+        corpus.declared_leaves.total_leaves = 1;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UnclassifiedCrateLeaf
+        ));
+
+        // The three declared totals are pinned to the enumeration, not to each other.
+        let mut corpus = live_fixture();
+        corpus.declared_leaves.total_leaves = 59;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UnclassifiedCrateLeaf
+        ));
+    }
+
+    #[test]
+    fn a_comment_naming_an_upstream_api_version_is_documentation_not_emission() {
+        // The false-RED direction. Every spelling here is prose; none is wire surface, and the
+        // diagnostic the census would print ("consume the seam instead of hand-writing it") is
+        // wholly wrong advice for someone who wrote a comment.
+        let comments = concat!(
+            "// example: apiVersion: apps/v1\n",
+            "    /// see apiVersion: rbac.authorization.k8s.io/v1 for the shape\n",
+            "//! apiVersion: v1\n",
+        );
+        assert_eq!(upstream_emit_sites(comments), 0);
+        // ...and the skip is narrow: the same text as code still counts.
+        assert_eq!(upstream_emit_sites("writeln!(out, \"apiVersion: apps/v1\")?;\n"), 1);
+    }
+
+    #[test]
+    fn a_runtime_built_api_version_is_unclassifiable_and_fails_closed() {
+        // NEGATIVE-OF-THE-NEGATIVE. A tokenizer cannot rescue either of these: the emitted group is
+        // not in the source. Counted as absent, they are exactly how a new hand-written upstream
+        // serializer lands while the census stays frozen at 16 and the gate passes.
+        let dynamic = concat!(
+            "        writeln!(out, \"apiVersion: {}\", \"apps/v1\")?;\n",
+            "        out.push_str(&format!(\"apiVersion: {group}/v1\\n\"));\n",
+        );
+        assert_eq!(dynamic_api_version_sites(dynamic), 2);
+        // Neither reaches the upstream census, which is why silence there is not evidence.
+        assert_eq!(upstream_emit_sites(dynamic), 0);
+        // A static value is not dynamic, and a comment about one is neither.
+        assert_eq!(
+            dynamic_api_version_sites("        writeln!(out, \"apiVersion: apps/v1\")?;\n"),
+            0
+        );
+        assert_eq!(dynamic_api_version_sites("// apiVersion: {group}/v1\n"), 0);
+
+        let mut corpus = live_fixture();
+        assert!(!has_code(
+            &evaluate(&corpus),
+            FindingCode::UnclassifiableDynamicApiVersion
+        ));
+        corpus.dynamic_api_version_sites = 1;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UnclassifiableDynamicApiVersion
+        ));
+    }
+
+    #[test]
+    fn the_divergence_ledger_growth_budget_has_a_reader() {
+        // Green at the live shape: 7 rows == baseline 5 + budget 2, fully consumed.
+        let mut corpus = live_fixture();
+        assert!(!has_code(
+            &evaluate(&corpus),
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded
+        ));
+        // The eighth row is the one the seam mapping promises in bold will be rejected.
+        corpus.divergence_ledger.rows += 1;
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded
+        ));
+        // Both knobs are read from the file, so raising the declared budget is what admits it —
+        // not a constant in this crate.
+        corpus.divergence_ledger.max_new_rows_per_wave += 1;
+        assert!(!has_code(
+            &evaluate(&corpus),
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded
+        ));
+    }
+
+    #[test]
+    fn a_leaf_path_outside_origin_classification_leaves_is_not_a_declared_row() {
+        // The line-scanning reader matched `"path": "` anywhere in the file, so this document
+        // declared one row. Navigation reports zero, which is what makes the row-count comparison
+        // in `evaluate` able to see the relocation.
+        let root = std::env::temp_dir().join("r-doc-regions-navigation-fixture");
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("the declaration has a parent directory"))
+            .expect("the fixture tree is creatable");
+        fs::write(
+            &path,
+            r#"{"somewhere_else": {"path": "os/core/relocated"},
+                "origin_classification": {"leaves": [],
+                  "census": {"k8s_leaves": 0, "os_leaves": 0, "total_leaves": 0}}}"#,
+        )
+        .expect("the fixture declaration is writable");
+        let declared = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        assert_eq!(
+            declared.expect("the fixture declaration parses").rows,
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn a_malformed_declaration_is_a_load_error_not_an_empty_census() {
+        let root = std::env::temp_dir().join("r-doc-regions-malformed-fixture");
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("the declaration has a parent directory"))
+            .expect("the fixture tree is creatable");
+        fs::write(&path, r#"{"origin_classification": {"leaves": []}}"#)
+            .expect("the fixture declaration is writable");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        // An absent census must NOT degrade to zero: a clean partition reported over a corpus the
+        // gate never opened is the false green this loader exists to refuse.
+        assert_eq!(
+            result.expect_err("a missing census is malformed").code,
+            "R-DOC-K8S-PORT-REGIONS-MALFORMED"
+        );
+    }
+
+    #[test]
+    fn one_line_counts_once_like_the_line_oriented_reproducer() {
+        assert_eq!(
+            upstream_emit_sites("apiVersion: apps/v1 apiVersion: audit.k8s.io/v1"),
+            1
+        );
     }
 
     #[test]
