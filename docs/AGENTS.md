@@ -138,8 +138,8 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run [`checklists/swarm-agent-ritual.md`](checklists/swarm-agent-ritual.md). Use a **position diagram** for orientation and a **claim digraph** (directed E/I/U graph) for reasoning when ≥2 load-bearing claims depend on each other. Dispatch cards cite the checklist + role + lane mission — not the whole programme SSOT.
-- **ensure:** ritual file present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (reorg-move-out; do **not** deepen `#reorg_debt_freeze` `docs/checklists/`); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
+- **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; reorg-move-out bead tracks the templates land.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
 ## RFC-2119 normative-language statement
@@ -176,7 +176,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
-| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | [`checklists/swarm-agent-ritual.md`](checklists/swarm-agent-ritual.md) |
+| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (reorg-move-out); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
 
 ## Bounded delivery and preservation
 
