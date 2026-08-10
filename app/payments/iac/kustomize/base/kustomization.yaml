@@ -1,0 +1,32 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/ (ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base for the payments service. Pack-specific overlays under:
+#   iac/kustomize/overlays/kr/   — KR-FSS pack
+#   iac/kustomize/overlays/eu/   — EU PSD2 pack
+#   iac/kustomize/overlays/cn/   — CN PIPL data-residency (hard-pinned cell)
+# Per ADR-0251 compliance-pack-primitive; ADR-0131 flat layout.
+
+namespace: payments
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+  - network-policy.yaml
+  - pci-pod-security-policy.yaml
+
+helmCharts:
+  - name: oya-payments-app
+    valuesFile: ../../helm/payments-app/values.yaml
+    releaseName: payments-app
+    namespace: payments
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-payments
+  oyatie/microservice: payments
+  oyatie/pci-scope: "true"
+
+commonAnnotations:
+  oyatie/slo-tier: tier-0-revenue-critical
+  oyatie/adrs: "ADR-0131,ADR-0145,ADR-0248,ADR-0251,ADR-0253,ADR-0254"

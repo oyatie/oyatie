@@ -1,0 +1,242 @@
+# Canonical-base: specs/asyncapi/canonical-envelope-schema.json (per ADR-0064)
+# Authoring authority: ADR-0263 observability emission contract + ADR-0244 tenant scoping.
+asyncapi: 3.1.0
+info:
+  title: payments — domain-events channel
+  version: 1.0.0-mvp
+  description: |
+    Payment-events channel: charge / refund / payout / dispute / subscription /
+    sub-merchant lifecycle events. Every event carries `tenant_id`,
+    `audit_chain_seq`, `principal_svid`, `audit_event_class`.
+
+    Per-tenant per-event-class topic shape. AMQP-over-QUIC where supported;
+    AMQP/1.0 fallback per ADR-0253.
+  contact:
+    name: axis-payments
+defaultContentType: application/json
+servers:
+  production:
+    host: payments-events.oyatie.com:5671
+    protocol: amqp
+    description: AMQP over QUIC; per-tenant topic
+  sandbox:
+    host: payments-events-sandbox.oyatie.com:5671
+    protocol: amqp
+channels:
+  payment-events:
+    address: payment-events.{tenant_id}
+    parameters:
+      tenant_id:
+        description: Tenant id (UUID-v7)
+    description: Per-tenant fan-out of payment-events
+    messages:
+      ChargeAuthorized: { $ref: '#/components/messages/ChargeAuthorized' }
+      ChargeCaptured: { $ref: '#/components/messages/ChargeCaptured' }
+      ChargeDeclined: { $ref: '#/components/messages/ChargeDeclined' }
+      ChargeErrored: { $ref: '#/components/messages/ChargeErrored' }
+      RefundIssued: { $ref: '#/components/messages/RefundIssued' }
+      RefundFailed: { $ref: '#/components/messages/RefundFailed' }
+      PayoutScheduled: { $ref: '#/components/messages/PayoutScheduled' }
+      PayoutInitiated: { $ref: '#/components/messages/PayoutInitiated' }
+      PayoutCompleted: { $ref: '#/components/messages/PayoutCompleted' }
+      PayoutFailed: { $ref: '#/components/messages/PayoutFailed' }
+      DisputeOpened: { $ref: '#/components/messages/DisputeOpened' }
+      DisputeEvidenceSubmitted: { $ref: '#/components/messages/DisputeEvidenceSubmitted' }
+      DisputeResolved: { $ref: '#/components/messages/DisputeResolved' }
+      SubscriptionCreated: { $ref: '#/components/messages/SubscriptionCreated' }
+      SubscriptionDunningAttempted: { $ref: '#/components/messages/SubscriptionDunningAttempted' }
+      SubscriptionCancelled: { $ref: '#/components/messages/SubscriptionCancelled' }
+      SubMerchantOnboarded: { $ref: '#/components/messages/SubMerchantOnboarded' }
+      SubMerchantRestricted: { $ref: '#/components/messages/SubMerchantRestricted' }
+operations:
+  publishToPaymentEvents:
+    action: send
+    channel: { $ref: '#/channels/payment-events' }
+    summary: Publish a payment-event domain message
+  subscribeToPaymentEvents:
+    action: receive
+    channel: { $ref: '#/channels/payment-events' }
+    summary: Subscribe to per-tenant payment-events stream
+components:
+  messages:
+    ChargeAuthorized:
+      name: ChargeAuthorized
+      title: Charge authorized
+      payload: { $ref: '#/components/schemas/ChargeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    ChargeCaptured:
+      name: ChargeCaptured
+      title: Charge captured
+      payload: { $ref: '#/components/schemas/ChargeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    ChargeDeclined:
+      name: ChargeDeclined
+      title: Charge declined
+      payload: { $ref: '#/components/schemas/ChargeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    ChargeErrored:
+      name: ChargeErrored
+      title: Charge errored (internal failure)
+      payload: { $ref: '#/components/schemas/ChargeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    RefundIssued:
+      name: RefundIssued
+      title: Refund issued
+      payload: { $ref: '#/components/schemas/RefundEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    RefundFailed:
+      name: RefundFailed
+      title: Refund failed
+      payload: { $ref: '#/components/schemas/RefundEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    PayoutScheduled:
+      name: PayoutScheduled
+      title: Payout scheduled
+      payload: { $ref: '#/components/schemas/PayoutEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    PayoutInitiated:
+      name: PayoutInitiated
+      title: Payout initiated
+      payload: { $ref: '#/components/schemas/PayoutEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    PayoutCompleted:
+      name: PayoutCompleted
+      title: Payout completed
+      payload: { $ref: '#/components/schemas/PayoutEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    PayoutFailed:
+      name: PayoutFailed
+      title: Payout failed
+      payload: { $ref: '#/components/schemas/PayoutEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    DisputeOpened:
+      name: DisputeOpened
+      title: Dispute opened
+      payload: { $ref: '#/components/schemas/DisputeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    DisputeEvidenceSubmitted:
+      name: DisputeEvidenceSubmitted
+      title: Dispute representment evidence submitted
+      payload: { $ref: '#/components/schemas/DisputeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    DisputeResolved:
+      name: DisputeResolved
+      title: Dispute resolved
+      payload: { $ref: '#/components/schemas/DisputeEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    SubscriptionCreated:
+      name: SubscriptionCreated
+      title: Subscription created
+      payload: { $ref: '#/components/schemas/SubscriptionEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    SubscriptionDunningAttempted:
+      name: SubscriptionDunningAttempted
+      title: Subscription dunning attempted
+      payload: { $ref: '#/components/schemas/SubscriptionEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    SubscriptionCancelled:
+      name: SubscriptionCancelled
+      title: Subscription cancelled
+      payload: { $ref: '#/components/schemas/SubscriptionEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    SubMerchantOnboarded:
+      name: SubMerchantOnboarded
+      title: Sub-merchant onboarded
+      payload: { $ref: '#/components/schemas/SubMerchantEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+    SubMerchantRestricted:
+      name: SubMerchantRestricted
+      title: Sub-merchant restricted
+      payload: { $ref: '#/components/schemas/SubMerchantEnvelope' }
+      headers: { $ref: '#/components/schemas/EventHeaders' }
+  schemas:
+    EventHeaders:
+      type: object
+      required: [event_id, audit_event_class, tenant_id, principal_svid, audit_chain_seq, emitted_at]
+      properties:
+        event_id: { type: string, format: uuid }
+        audit_event_class: { type: string, description: ADR-0263 audit-event class }
+        tenant_id: { type: string, format: uuid }
+        principal_svid: { type: string, description: SPIFFE SVID of emitting principal }
+        audit_chain_seq: { type: integer, format: int64 }
+        emitted_at: { type: string, format: date-time }
+        trace_id: { type: string, description: W3C trace-context }
+        span_id: { type: string }
+    Money:
+      type: object
+      required: [amount_minor, currency]
+      properties:
+        amount_minor: { type: integer, format: int64 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+    ChargeEnvelope:
+      type: object
+      required: [charge_id, tenant_id, audience_type, psp, amount, state]
+      properties:
+        charge_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        audience_type: { type: string, enum: [B2B_TENANT, B2C_CONSUMER, PARTNER_AGENCY] }
+        psp: { type: string }
+        psp_charge_id: { type: string }
+        amount: { $ref: '#/components/schemas/Money' }
+        state: { type: string }
+        payment_method_id: { type: string }
+        sub_merchant_id: { type: string, format: uuid }
+        decline_reason: { type: string }
+        created_at: { type: string, format: date-time }
+    RefundEnvelope:
+      type: object
+      required: [refund_id, charge_id, tenant_id, amount, state]
+      properties:
+        refund_id: { type: string, format: uuid }
+        charge_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        amount: { $ref: '#/components/schemas/Money' }
+        state: { type: string }
+        reason: { type: string }
+        created_at: { type: string, format: date-time }
+    PayoutEnvelope:
+      type: object
+      required: [payout_id, tenant_id, bank_account_id, amount, state]
+      properties:
+        payout_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        sub_merchant_id: { type: string, format: uuid }
+        bank_account_id: { type: string, format: uuid }
+        amount: { $ref: '#/components/schemas/Money' }
+        state: { type: string }
+        failure_reason: { type: string }
+        scheduled_for: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time }
+    DisputeEnvelope:
+      type: object
+      required: [dispute_id, charge_id, tenant_id, reason_code, state]
+      properties:
+        dispute_id: { type: string, format: uuid }
+        charge_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        reason_code: { type: string }
+        state: { type: string }
+        opened_at: { type: string, format: date-time }
+        resolved_at: { type: string, format: date-time }
+        outcome: { type: string }
+    SubscriptionEnvelope:
+      type: object
+      required: [subscription_id, tenant_id, customer_id, state]
+      properties:
+        subscription_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        customer_id: { type: string, format: uuid }
+        price_id: { type: string }
+        state: { type: string }
+        dunning_attempt_number: { type: integer }
+        cancelled_reason: { type: string }
+    SubMerchantEnvelope:
+      type: object
+      required: [sub_merchant_id, tenant_id, state]
+      properties:
+        sub_merchant_id: { type: string, format: uuid }
+        tenant_id: { type: string, format: uuid }
+        legal_entity_name: { type: string }
+        state: { type: string }
+        kyc_tier: { type: string }
+        restricted_reason: { type: string }

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "payments",
+    "owner_team": "ops-treasury + axis-payments",
+    "audience": "ops-treasury + tenant-admins",
+    "tenant_scoped": true,
+    "datasource": "Mimir"
+  },
+  "uid": "payments-payout-latency",
+  "title": "Payout Latency — per-PSP",
+  "tags": ["payments", "payout", "latency"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": {"from": "now-7d", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "tenant", "type": "query", "datasource": "Mimir", "query": "label_values(payments_payout_total, tenant_id_class)"}
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Payouts pending (T+0)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(payments_payout_pending_total{tenant_id_class=~\"$tenant\"})", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Payouts initiated (24h)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(payments_payout_total{state=\"initiated\"}[24h]))", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Payouts completed (24h)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(payments_payout_total{state=\"completed\"}[24h]))", "refId": "A"}]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Payouts failed (24h)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(payments_payout_total{state=~\"failed_.*\"}[24h]))", "refId": "A"}]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Schedule → initiate lag (p50 / p95 / p99) per PSP",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (psp, le)(rate(payments_payout_schedule_initiate_lag_seconds_bucket[1h])))", "refId": "p50"},
+        {"expr": "histogram_quantile(0.95, sum by (psp, le)(rate(payments_payout_schedule_initiate_lag_seconds_bucket[1h])))", "refId": "p95"},
+        {"expr": "histogram_quantile(0.99, sum by (psp, le)(rate(payments_payout_schedule_initiate_lag_seconds_bucket[1h])))", "refId": "p99"}
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Initiate → complete lag (bank-clearance time) per PSP",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (psp, le)(rate(payments_payout_initiate_complete_lag_seconds_bucket[24h])))", "refId": "p95"}]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Payout failure-rate by reason-code",
+      "gridPos": {"x": 0, "y": 12, "w": 24, "h": 8},
+      "targets": [{"expr": "sum by (failure_reason) (increase(payments_payout_total{state=~\"failed_.*\"}[1d]))", "refId": "A"}]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Per-tenant payout volume ($)",
+      "gridPos": {"x": 0, "y": 20, "w": 24, "h": 8},
+      "targets": [{"expr": "sum by (tenant_id_class) (rate(payments_payout_amount_total{tenant_id_class=~\"$tenant\"}[1h]))", "refId": "A"}]
+    }
+  ]
+}

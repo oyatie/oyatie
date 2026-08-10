@@ -1,0 +1,166 @@
+# oya-payments-app Helm values
+# Canonical-base: microservices/payments/iac/helm/payments-app/
+# ADR-0131 flat layout; ADR-0254 K8s + Cloud Hypervisor + Kata; ADR-0253 HTTP/3
+
+global:
+  imageRegistry: registry.oyatie.dev
+  imagePullSecrets:
+    - name: oyatie-registry-creds
+  pciScope: true
+
+payments:
+  image:
+    repository: registry.oyatie.dev/oya-payments-charge-app
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 3
+  minReadySeconds: 10
+
+  # Kata VM isolation per ADR-0254
+  runtimeClassName: kata-clh
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2"
+      memory: "2Gi"
+
+  # HTTP/3 + QUIC per ADR-0253
+  service:
+    type: ClusterIP
+    port: 8443
+    metricsPort: 9090
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "external"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+
+  # Alt-Svc header for HTTP/3 upgrade
+  altSvcHeader: 'h3=":8443"; ma=86400'
+
+  # TLS: TLS 1.3 floor; PQC hybrid X25519MLKEM768 per ADR-0253
+  tls:
+    secretName: payments-tls-cert
+    minVersion: "TLSv1.3"
+    ciphers: "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256"
+    pqcKem: "X25519MLKEM768"
+
+  # ECH per ADR-0253
+  ech:
+    enabled: true
+    configSecretName: payments-ech-config
+
+  # OpenBao sidecar per ADR-0296
+  openbao:
+    enabled: true
+    role: "payments-app"
+    secretPath: "secret/data/payments"
+    ttl: "60s"
+    agent:
+      image: registry.oyatie.dev/openbao-agent:1.16.0
+
+  # SPIFFE SVID per ADR-0295
+  spiffe:
+    enabled: true
+    spireSocketPath: /run/spire/sockets/agent.sock
+
+  # HPA
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+
+  # PodDisruptionBudget
+  pdb:
+    enabled: true
+    minAvailable: 2
+
+  # Dunning worker CronJob
+  dunningWorker:
+    enabled: true
+    schedule: "0 */6 * * *"   # every 6 hours
+    image:
+      repository: registry.oyatie.dev/oya-payments-subscription-worker
+      tag: "0.1.0"
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "256Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+  # Reconciliation worker CronJob
+  reconciliationWorker:
+    enabled: true
+    schedule: "0 2 * * *"   # daily at 02:00 UTC
+    image:
+      repository: registry.oyatie.dev/oya-payments-reconciliation-worker
+      tag: "0.1.0"
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "2"
+        memory: "2Gi"
+
+  # AML monitoring CronJob
+  amlMonitoringWorker:
+    enabled: true
+    schedule: "0 4 * * *"   # daily at 04:00 UTC
+    image:
+      repository: registry.oyatie.dev/oya-payments-aml-worker
+      tag: "0.1.0"
+
+  # Liveness + readiness probes
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 9090
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: 9090
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+  # Observability: Prometheus scrape per ADR-0263
+  metrics:
+    enabled: true
+    port: 9090
+    path: /metrics
+    serviceMonitor:
+      enabled: true
+      interval: 15s
+      scrapeTimeout: 10s
+
+  # PodSecurityContext: non-root, read-only root FS (PCI Req 6)
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65534
+    fsGroup: 65534
+    seccompProfile:
+      type: RuntimeDefault
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+
+  # Topology spread for cell-aware placement per ADR-0248
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: oya-payments-app

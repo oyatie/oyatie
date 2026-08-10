@@ -1,0 +1,64 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json (per ADR-0064)
+id: cap:payments:dispute:v1
+name: dispute
+namespace: payments
+display_name: Manage chargeback lifecycle
+description: |
+  Receive PSP chargeback / inquiry / fraud-claim webhook; auto-collect evidence
+  per reason-code; assemble PII-minimised representment-bundle; submit to PSP.
+
+owner_team: axis-payments + ops-fraud + ops-customer-success
+maturity: incubating
+created_at: 2026-05-20
+related_adrs: [ADR-0244, ADR-0263]
+related_artifacts:
+  - microservices/payments/PRD.md
+  - microservices/payments/runbooks/dispute-escalation.md
+
+autonomy_tier: T2
+
+inputs:
+  - name: tenant_id
+    type: string
+    format: uuid
+    required: true
+  - name: dispute_id
+    type: string
+    format: uuid
+    required: true
+  - name: bundle
+    type: object
+    schema: DisputeEvidenceBundle
+    required: true
+
+outputs:
+  - name: dispute
+    type: object
+    schema: Dispute
+  - name: audit_event
+    type: object
+    schema: AuditEvent
+    description: oya.payments.dispute.opened|evidence-submitted|resolved
+
+data_classes_touched:
+  - PII_BILLING_ADDRESS
+  - PII_SHIPPING_ADDRESS
+  - PII_IP_ADDRESS  # masked per pack-overlay
+  - AUDIT
+
+regulatory_packs_consumed:
+  - pack-pci-dss-l1-v4
+
+evidence_topic: oya.payments.dispute
+
+cost_profile:
+  type: per-dispute
+  estimated_cost_usd_per_call: 15.00  # PSP dispute-handling fee
+  cost_drivers:
+    - PSP dispute-handling fee (Stripe: $15; varies per PSP)
+
+cedar_policy_fragments:
+  - microservices/payments/policy/abuse-defence.cedar
+
+sunset:
+  status: none

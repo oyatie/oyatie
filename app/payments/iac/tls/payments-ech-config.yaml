@@ -1,0 +1,63 @@
+# payments µservice — ECH (Encrypted Client Hello) config
+# ADR-0253: ECH enabled; HTTPS RR + ech= config-id published in DNS
+# ADR-0273: rotation ≥ 90 days; config-id rotated before expiry
+# PCI DSS Req 4: protect cardholder data with strong cryptography
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-ech-config
+  namespace: payments
+  annotations:
+    oyatie/adrs: "ADR-0253,ADR-0273"
+    oyatie/rotation-cadence: "90d"
+    oyatie/pci-req: "4"
+data:
+  # ECH outer ClientHello SNI (public-facing; does not reveal inner SNI)
+  public_name: "payments-ech.oyatie.com"
+
+  # Config rotation policy: ≥90 days per ADR-0253 amendment
+  rotation_cadence_days: "90"
+
+  # PQC KEM for ECH key: X25519MLKEM768 (per draft-kwiatkowski-tls-ecdhe-mlkem-02)
+  kem_algorithm: "X25519MLKEM768"
+
+  # DNS HTTPS RR publishing
+  # Zone: oyatie.dev; record: _https._tcp.api.payments.oyatie.com IN HTTPS 1 . ech=<base64>
+  dns_zone: "oyatie.dev"
+  dns_rr_name: "_https._tcp.api.payments.oyatie.com"
+
+---
+# PQC cert config for payments µservice
+# Hybrid signature: ed25519 + ml_dsa_65 per ADR-0253 amendment
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: payments-pqc-tls
+  namespace: payments
+  annotations:
+    oyatie/adrs: "ADR-0253"
+    oyatie/cert-type: "pqc-hybrid"
+spec:
+  secretName: payments-tls-cert
+  duration: 8760h    # 1 year
+  renewBefore: 720h  # renew 30 days before expiry
+  subject:
+    organizations:
+      - oyatie
+  commonName: api.payments.oyatie.com
+  dnsNames:
+    - api.payments.oyatie.com
+    - payments.oyatie.com
+    - "*.payments.oyatie.com"
+  issuerRef:
+    name: oyatie-pqc-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+  # PQC hybrid algorithm selection (cert-manager PQC extension)
+  privateKey:
+    algorithm: Ed25519
+    # ml_dsa_65 hybrid injected by oyatie-pqc-cert-manager-webhook
+  usages:
+    - server auth
+    - client auth
