@@ -1,39 +1,98 @@
 {
   "schema_version": "1.0",
-  "microservice": "cloud-storage",
+  "capability": "storage",
+  "_comment": "Capability-root manifest for storage/ (ADR-0562). Every crate, capability file path, fixture path and accounting count below was read off the tree at authoring time, not transcribed from legacy microservices/ or libs/oya-storage-* dump paths.",
   "tier": "substrate",
-  "tier_subtype": "substrate-data",
-  "dr_tier": "T1",
   "substrate_dag_position": {
-    "stratum": "forward-declared",
+    "stratum": "S2",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+    "_note": "specs/capability-registry.json name=storage dag_node=storage stratum=S2 (floor from storage/core/domain -> cell and storage/facade/recordings -> comms; no ranked consumer ceiling)"
   },
+  "_tier_source": "specs/capability-registry.json name=storage dag_node=storage stratum=S2",
+  "_tier_subtype_note": "Absorbed product-face manifests (drive/imaging/recordings) historically declare tier_subtype substrate-data; capability-registry does not declare a capability-root tier_subtype. Deliberately ABSENT on this root rather than inventing; subtype lands when the registry grounds one.",
   "version": "0.1.0",
   "owner": "axis-cloud-storage",
+  "purpose": "Object/blob storage + content-addressed store substrate (ADR-0536 D-11 / ADR-0520): provider-neutral object/block metadata invariants, tenant/cell object-key namespace guardrail, owned object-store/CAS kernel, deterministic S3/OCI command-shaping adapters, and storage product faces under storage/facade/{drive,recordings}. No live S3/OCI Object Storage/Block Volume/File Storage service, REST server, SDK, worker, object body persistence, volume attach, filesystem mount, measured foundation SLO, active-active DR, OpenTofu plan/apply, provider-live smoke, or audit-chain persistence is claimed by this capability-root slice.",
   "bounded_contexts": [
     {
-      "name": "cloud-storage",
-      "description": "Code-backed Cloud Storage local foundation for provider-neutral object, block, and file-storage metadata invariants plus tenant/cell object-key namespace guardrail. No live S3/OCI/Object Storage/Block Volume/File Storage service, REST server, SDK, worker, object body persistence, volume attach, filesystem mount, measured SLO, active-active DR, OpenTofu plan/apply, provider-live smoke, or audit-chain persistence is claimed by CS-CLOUD-STORAGE-001.",
+      "name": "storage-adapters",
+      "description": "Transient-infra driven adapters under storage/adapters/ (deterministic S3/OCI command shaping; nativelink CAS k8s scaffold is not a Cargo crate).",
+      "crates": [
+        "storage-oci-adapter",
+        "storage-s3-adapter"
+      ]
+    },
+    {
+      "name": "storage-core",
+      "description": "Pure kernel/domain surfaces under storage/core/ (resource residency/encryption/data-class invariants + owned object-store/CAS kernel).",
       "crates": [
         "storage-domain",
-        "storage-object-api",
+        "storage-object-store-kernel"
+      ]
+    },
+    {
+      "name": "storage-facade",
+      "description": "Capability-level product-face domain crates under storage/facade/ (Drive + Recordings kernels; not app/ multi-capability compositions).",
+      "crates": [
+        "storage-drive-domain",
+        "storage-recordings-domain"
+      ]
+    },
+    {
+      "name": "storage-ports",
+      "description": "Object/block API boundary crates under storage/ports/.",
+      "crates": [
         "storage-block-api",
-        "storage-s3-adapter",
-        "storage-oci-adapter"
+        "storage-object-api"
       ]
     }
   ],
   "layers": [
-    "domain",
-    "api",
-    "adapter"
+    "adapters",
+    "core",
+    "facade",
+    "ports"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 8,
+    "crates_by_layer": {
+      "adapters": 2,
+      "core": 2,
+      "facade": 2,
+      "ports": 2
+    },
+    "crates_covered_by_no_other_manifest": 8,
+    "catalog_rows": [
+      "registry/catalog/storage-block-api.yaml",
+      "registry/catalog/storage-domain.yaml",
+      "registry/catalog/storage-drive-domain.yaml",
+      "registry/catalog/storage-object-api.yaml",
+      "registry/catalog/storage-object-store-kernel.yaml",
+      "registry/catalog/storage-oci-adapter.yaml",
+      "registry/catalog/storage-recordings-domain.yaml",
+      "registry/catalog/storage-s3-adapter.yaml"
+    ],
+    "absorbed_services": [
+      {
+        "service": "drive",
+        "manifest": "storage/drive/manifest.json"
+      },
+      {
+        "service": "imaging",
+        "manifest": "storage/imaging/manifest.json"
+      },
+      {
+        "service": "recordings",
+        "manifest": "storage/recordings/manifest.json"
+      }
+    ],
+    "_overlap_note": "All eight Cargo workspace members under storage/ live in capability-layer directories and are owned exclusively by this capability root. Absorbed product-face manifests under storage/{drive,imaging,recordings}/ declare empty crate lists today; facade kernels (storage-drive-domain, storage-recordings-domain) remain root-owned until a grounded placement ruling moves them."
+  },
   "contracts": {
     "openapi": [
-      "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
-      "contracts/openapi/cloud/cloud-storage-block-v1.yaml"
+      "storage/contracts/openapi/cloud/cloud-storage-object-v1.yaml",
+      "storage/contracts/openapi/cloud/cloud-storage-block-v1.yaml"
     ],
     "asyncapi": [
       "storage/contracts/asyncapi/cloud-storage-design-events.yaml"
@@ -45,11 +104,7 @@
         "storage/contracts/proto/cloud-storage-design.proto"
       ]
     },
-    "service_local_contract_scaffolds": [
-      "storage/contracts/asyncapi/cloud-storage-design-events.yaml",
-      "storage/contracts/proto/cloud-storage-design.proto"
-    ],
-    "contract_status": "root_openapi_contracts_code_tested; storage/ design AsyncAPI/proto contracts are metadata-only review evidence and do not prove runtime broker/gRPC service readiness"
+    "contract_status": "storage/ OpenAPI object+block contracts exist and are exercised by ports tests; AsyncAPI/proto under storage/contracts/ are metadata-only design evidence and do not prove runtime broker/gRPC service readiness. Parallel root contracts/openapi/cloud/cloud-storage-*-v1.yaml copies also exist outside this capability tree and are not re-cited here."
   },
   "capabilities": [
     {
@@ -65,6 +120,12 @@
       "risk_class": "high"
     },
     {
+      "tier": "T0",
+      "name": "object-store-cas-kernel-tenant-scoped-blake3-worm",
+      "file": "storage/core/object-store-kernel/src/lib.rs",
+      "risk_class": "none"
+    },
+    {
       "tier": "T1",
       "name": "object-storage-api-boundary-and-idempotency-contract",
       "file": "storage/ports/object-api/tests/cloud_storage_object_api.rs",
@@ -78,18 +139,53 @@
     },
     {
       "tier": "T1",
-      "name": "deterministic-s3-and-oci-storage-command-shaping-adapters",
-      "file": "storage/adapters/s3/src/lib.rs,storage/adapters/oci/src/lib.rs",
+      "name": "deterministic-s3-storage-command-shaping-adapter",
+      "file": "storage/adapters/s3/src/lib.rs",
       "risk_class": "medium"
+    },
+    {
+      "tier": "T1",
+      "name": "deterministic-oci-storage-command-shaping-adapter",
+      "file": "storage/adapters/oci/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T1",
+      "name": "drive-facade-domain-kernel",
+      "file": "storage/facade/drive/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "recordings-facade-domain-kernel",
+      "file": "storage/facade/recordings/src/lib.rs",
+      "risk_class": "high"
+    }
+  ],
+  "conformance_fixtures": [
+    {
+      "name": "cloud-storage-foundation-guardrails",
+      "file": "storage/core/domain/tests/cloud_storage_foundation.rs",
+      "harness": "storage/core/domain/src/lib.rs"
+    },
+    {
+      "name": "object-api-boundary-contract",
+      "file": "storage/ports/object-api/tests/cloud_storage_object_api.rs",
+      "adapter": "storage/ports/object-api/src/lib.rs"
+    },
+    {
+      "name": "block-api-boundary-contract",
+      "file": "storage/ports/block-api/tests/cloud_storage_block_api.rs",
+      "adapter": "storage/ports/block-api/src/lib.rs"
     }
   ],
   "slos": [],
   "slo_exemption": {
     "status": "live_exempted_no_runtime_sli",
     "owner": "axis-cloud-storage",
-    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "rationale": "storage/observability/slos/ contains 36 OpenSLO YAML scaffolds (mostly drive/imaging/recordings product-face intents). No measured foundation SLI or burn-rate rule is implemented for the capability-root local-foundation slice, so this root keeps slos=[] rather than claiming those scaffolds as live coverage.",
     "cutover_on": "2026-12-31",
-    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    "evidence": "verified: storage/observability/slos/*.openslo.yaml exists (36 files) but CS-CLOUD-STORAGE-001 / this root slice implements no runtime SLI emitter; see storage/REORG-DRAIN.md"
   },
   "ips": [
     {
@@ -99,228 +195,64 @@
       "file": "storage/core/domain/tests/cloud_storage_foundation.rs"
     }
   ],
-  "regulatory_packs": [
-    "kr",
-    "eu",
-    "us",
-    "us-healthcare",
-    "jp",
-    "sg",
-    "au",
-    "in",
-    "br",
-    "ae",
-    "ksa"
-  ],
   "lts_pins": {
     "rust": "1.97.1"
   },
   "adrs": [
     {
-      "id": "ADR-0028",
-      "title": "Cloud Microservice Architecture",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0056",
-      "title": "Rust Clean Architecture Bnf",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0338",
-      "title": "Pod Runtime Tier 0 To 3",
+      "id": "ADR-0132",
+      "title": "No Grouping Microservices",
       "scope": "repo",
       "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
-      "id": "ADR-0340",
-      "title": "Capacity Model Per Microservice Manifest",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0342",
-      "title": "Api Versioning Hybrid Date Public Semver Sdk",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0709-general-live-apex.md"
-    },
-    {
-      "id": "ADR-0343",
-      "title": "Dr Rto Rpo Matrix Per Microservice Per Compliance Pack",
+      "id": "ADR-0520",
+      "title": "Object Store Port / Transitional Backends",
       "scope": "repo",
       "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
-      "id": "ADR-0348",
-      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "id": "ADR-0536",
+      "title": "Sixteen Substrate Domains",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     },
     {
-      "id": "ADR-0349",
-      "title": "Jenkins ArgoCD Self Hostable CI CD Substrate",
+      "id": "ADR-0562",
+      "title": "Capability First Repo Organization",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0615",
+      "title": "Storage Vs Data Port Seam",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
     }
   ],
-  "hyperscaler_inv_coverage": {
-    "circuit_breaker": "not_claimed_cs_cloud_storage_001: no implemented Cloud Storage runtime circuit-breaker, bulkhead, retry, or storage gateway evidence",
-    "tenant_rate_limit": "not_claimed_cs_cloud_storage_001: no implemented per-tenant object/block/file API quota or rate-limit enforcement",
-    "golden_signals": "not_claimed_cs_cloud_storage_001: no implemented metrics/OpenSLO/golden-signal emission evidence",
-    "error_budget_burn": "not_claimed_cs_cloud_storage_001: SLO list is empty because no measured Cloud Storage SLI or burn-rate rule is implemented yet"
-  },
-  "audit_chain": {
-    "runtime_audit_emitter": false,
-    "evidence_refs": [
-      "evidence/multispectrum/cs-cloud-storage-foundation-20260523.json"
-    ],
-    "non_claim": "CS-CLOUD-STORAGE-001 records a multispectrum evidence bundle and audit-chain row only; it does not implement Cloud Storage runtime audit emission, Merkle sealing, or persistence."
-  },
-  "secrets_substrate": {
-    "provider": "openbao",
-    "format": "SecretReference-only future integration",
-    "non_claim": "No raw storage provider credential, access key, session token, pre-signed URL, KMS material, object body, snapshot content, or mount credential is introduced or consumed by this local foundation."
-  },
-  "ontology_projections": [],
-  "mesh_layering": {
-    "cilium_l4": true,
-    "ambient_ztunnel": true,
-    "ambient_waypoint": false,
-    "north_south_only": false,
-    "runtime_policy_apply": false,
-    "non_claim": "No live Cloud Storage pod, gateway, Cilium policy, service mesh policy, or network path is deployed by CS-CLOUD-STORAGE-001."
-  },
-  "storage_namespace": {
-    "object_key_prefix_pattern": "{tenant_id}/{cell_id}/",
-    "object_versioning_required": true,
-    "object_lock_required": true,
-    "default_object_lock_required": true,
-    "block_snapshot_evidence_required": true,
-    "filesystem_mount_policy_ref_required": true,
-    "provider_evidence_refs_required": true,
-    "runtime_object_body_io": false,
-    "runtime_volume_attach": false,
-    "runtime_filesystem_mount": false,
-    "non_claim": "Rust guardrails validate tenant/cell namespace and evidence metadata only. They do not create buckets, enable provider object lock/versioning, write object bodies, create snapshots, attach block volumes, or mount filesystems."
-  },
-  "data_classification": "PUBLIC metadata, INTERNAL_ONLY control-plane metadata, AUDIT evidence; no tenant object body, volume content, or filesystem payload processing is implemented by this ChangeSet",
-  "compliance_packs_applicable": [
-    "kr",
-    "eu",
-    "us",
-    "us-healthcare",
-    "jp",
-    "sg",
-    "au",
-    "in",
-    "br",
-    "ae",
-    "ksa",
-    "gdpr",
-    "hipaa",
-    "iso27001",
-    "soc2"
-  ],
-  "depends_on_microservices": [
-    "tenancy",
-    "identity",
-    "audit-chain",
-    "observability",
-    "cloud-iam",
-    "cloud-kms",
-    "cloud-secrets",
-    "cloud-iac",
-    "cloud-network",
-    "cloud-data"
-  ],
-  "failure_domain": "cloud-storage-local-foundation",
-  "criticality_tier": "T1",
-  "layer": "domain-api-adapter",
-  "doc_class": "Machine-Readable-Spec",
-  "capacity_model": {
-    "baseline_cpu_per_tenant": 0.0,
-    "baseline_ram_per_tenant": 0,
-    "storage_per_tenant": 0,
-    "connections_per_tenant": {},
-    "scaling_dimension": "not_claimed_runtime",
-    "cell_placement_class": "Tier-1-intended-future",
-    "notes": "CS-CLOUD-STORAGE-001 is metadata/domain/API/adapter validation only. Runtime object I/O, block I/O, file mounts, capacity telemetry, autoscaling, and SLOs remain explicit non-claims."
-  },
-  "sharding_automation": {
-    "autosharding": {
-      "enabled": false,
-      "mode": "not_claimed_runtime",
-      "intended_control_plane": "control_plane_driven"
-    },
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": false
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": false
-    },
-    "non_claim": "No bucket shard split, volume placement rebalance, filesystem migration, tenant migration, or audit-chain persistence is implemented by CS-CLOUD-STORAGE-001."
-  },
-  "dr": {
-    "rto_p99_seconds": null,
-    "rpo_p99_seconds": null,
-    "multi_region_active_active": false,
-    "backup_substrate": [],
-    "failover_runbook": null,
-    "dr_tier": "not_claimed_runtime",
-    "replication_shape": "not_claimed_runtime",
-    "non_claim": "No live Cloud Storage replication, cross-region object copy, block backup policy, file replication, warm standby, failover, restore drill, or DR measurement evidence is implemented by CS-CLOUD-STORAGE-001."
-  },
-  "pod_runtime_tier": 1,
-  "pod_runtime_tier_justification": "Cloud Storage is intended Tier-1 substrate because later runtime pods will touch tenant object, block, and file data. CS-CLOUD-STORAGE-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
-  "pod_runtime_tier_surface_evidence": [
-    "storage/core/domain/src/lib.rs",
-    "storage/core/domain/tests/cloud_storage_foundation.rs",
-    "storage/ports/object-api/src/lib.rs",
-    "storage/ports/block-api/src/lib.rs"
-  ],
-  "tenant_version_pinning": {
-    "declared_versions": [],
-    "default_version": null,
-    "supported_window_size": 0,
-    "supported_window_minimum_days": 0,
-    "supports_per_tenant_pinning": false,
-    "deprecation_calendar": [],
-    "public_surface_files": {
-      "openapi": [
-        "contracts/openapi/cloud/cloud-storage-object-v1.yaml",
-        "contracts/openapi/cloud/cloud-storage-block-v1.yaml"
-      ]
-    },
-    "non_claim": "Root OpenAPI contracts are code-tested for current object/block boundary behavior, but no per-tenant API version pinning runtime is implemented by CS-CLOUD-STORAGE-001."
-  },
-  "consumes_upstream_oss": [],
-  "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [],
-  "data_classes_processed": [],
   "implemented_source_files": [
+    "storage/adapters/oci/src/lib.rs",
+    "storage/adapters/s3/src/lib.rs",
     "storage/core/domain/src/lib.rs",
     "storage/core/domain/tests/cloud_storage_foundation.rs",
-    "storage/ports/object-api/src/lib.rs",
-    "storage/ports/object-api/tests/cloud_storage_object_api.rs",
+    "storage/core/object-store-kernel/src/lib.rs",
+    "storage/facade/drive/src/lib.rs",
+    "storage/facade/recordings/src/fhir_resource_type.rs",
+    "storage/facade/recordings/src/lib.rs",
     "storage/ports/block-api/src/lib.rs",
     "storage/ports/block-api/tests/cloud_storage_block_api.rs",
-    "storage/adapters/s3/src/lib.rs",
-    "storage/adapters/oci/src/lib.rs"
+    "storage/ports/object-api/src/lib.rs",
+    "storage/ports/object-api/tests/cloud_storage_object_api.rs"
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "no live S3/OCI Object Storage/Block Volume/CSI/NFS, SeaweedFS, MinIO, bucket creation, provider retention/versioning enablement, object body I/O, volume attach, filesystem mount, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured foundation SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented by this capability-root slice",
+    "legacy microservices/{drive,imaging,recordings} and libs/oya-storage-* dump paths are retired cites; all eight crates are homed under storage/ per ADR-0562 and must not be re-cited from dump paths in this manifest"
   ],
   "explicit_non_claims": [
-    "No live S3, OCI Object Storage, OCI Block Volume, CSI, NFS/file-storage, SeaweedFS, MinIO, bucket creation, provider retention/versioning enablement, object body I/O, volume attach, filesystem mount, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
-    "Legacy Markdown benchmark/parity/runbook files under storage/ remain planning/prose and are not readiness evidence for CS-CLOUD-STORAGE-001.",
-    "The root contracts/openapi/cloud/cloud-storage-*-v1.yaml files are the code-tested API evidence for this slice; storage/contracts/asyncapi and proto files are metadata-only design evidence and not runtime readiness proof."
+    "OpenSLO YAML under storage/observability/slos/ are product-face scaffolds and are not claimed as measured foundation coverage; slo_exemption above is the measured statement",
+    "storage/contracts/asyncapi and proto files are metadata-only design evidence and not runtime readiness proof",
+    "storage/adapters/nativelink/ is a k8s CAS scaffold (OWNERS + nativelink-cas.k8s.yaml) with no Cargo.toml and is not counted as a crate",
+    "Absorbed storage/{drive,imaging,recordings}/manifest.json still carry microservices/* path cites — tracked in storage/REORG-DRAIN.md, not silently rewritten by this root enrichment"
   ]
 }
