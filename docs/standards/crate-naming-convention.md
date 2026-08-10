@@ -20,7 +20,6 @@ planned_enforcement_ref: oya-governance-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/doc-style.md
-  - docs/audits/convention-audit-2026-05-12.md
   - docs/plans/rename-plan-2026-05-12.md
   - .omc/governance-lanes/naming-convention.md
   - docs/research/hyperscaler-best-practices-2026-05-12.md

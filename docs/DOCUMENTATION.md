@@ -63,7 +63,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **ADRs** | `decisions/ADR-####-<title>.md` | author per ADR; promotion by `crew-adr-promotion` | Hand-authored; indexed in [`ADR-INDEX.md`](ADR-INDEX.md) |
 | **Runbooks** | `docs/runbooks/<runbook-id>.md` | `ops-sre-reliability` + per-axis | Hand-authored; indexed in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) |
 | **Threat models per service** | `docs/security/threat-models/<service>.md` | `ops-security` + per-team | Hand-authored; references in [`security-program/security-program.json`](security-program/security-program.json) |
-| **Audit reports** | `docs/audits/<date>-<topic>.md` | per-auditor (council member or outside auditor) | Hand-authored |
+| **Audit reports** | `evidence/audits/<date>-<topic>/` (sealed); not `docs/audits/` | per-auditor (council member or outside auditor) | Hand-authored / sealed evidence |
 | **Mistakes-and-fixes ledger** | `docs/MISTAKES-LEDGER.md` | `council-architecture` (curator) | Hand-authored on every prevention-loop trigger |
 | **Consolidated PM docs** | `docs/*.md` | per-doc owner (see DOC-CATALOG) | Hand-authored; agents may co-author per `agent_authoring_allowed` flag |
 | **Per-product PRDs** | `docs/products/<product-id>/PRD.md` | per-product team | Hand-authored using the template at `products/_TEMPLATE.md` |
