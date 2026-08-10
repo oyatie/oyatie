@@ -75,8 +75,8 @@ doc_status: published
 19. Inspect circuit breaker: `oya ops breaker status tenancy-kyb-kyc-pipeline-stalled-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n tenancy rollout history deploy/tenancy-kyb-kyc-pipeline-stalled-worker | tail -20`.
 21. Check policy file: `test -f microservices/tenancy/policy/rls-isolation.cedar || test -f tenancy/policy/rls-isolation.md`.
-22. Check SLO files: `ls microservices/tenancy/slos/*.openslo.yaml | sort`.
-23. Check catalog components: `find microservices/tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|kyb"`.
+22. Check SLO files: `ls tenancy/observability/slos/*.openslo.yaml | sort`.
+23. Check catalog components: `find tenancy/catalog -maxdepth 1 -type f | sort | rg "tenancy|kyb"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_tenancy_kyb_kyc_pipeline_stalled_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice tenancy --runbook kyb-kyc-pipeline-stalled --output evidence/incidents/$INCIDENT_ID.json`.
 
@@ -142,14 +142,14 @@ Kyb Kyc Pipeline Stalled incident decision tree
   - Required audit: emit `EVT-TENANCY-KYB_KYC_PIPELINE_STALLED-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "kyb_kyc_pipeline_stalled|TenancyKybKycPipelineStalledCritical|tenancy.kyb_kyc_pipeline_stalled.incident_state" crates microservices/tenancy -g "!microservices/tenancy/runbooks/**"`.
+1. Identify code owner path: `rg "kyb_kyc_pipeline_stalled|TenancyKybKycPipelineStalledCritical|tenancy.kyb_kyc_pipeline_stalled.incident_state" crates microservices/tenancy -g "!tenancy/runbooks/**"`.
 2. Patch domain invariant: `edit oya-tenancy-domain where kyb_kyc_pipeline_stalled state transition is validated`.
 3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.
 5. Patch runtime config: `edit microservices/tenancy/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-tenancy-domain kyb_kyc_pipeline_stalled_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate tenancy-kyb-kyc-pipeline-stalled --fixture incident-kyb-kyc-pipeline-stalled.json`.
-8. Add SLO assertion: `update microservices/tenancy/slos/* with alert TenancyKybKycPipelineStalledCritical when this was a missing alert`.
+8. Add SLO assertion: `update tenancy/observability/slos/* with alert TenancyKybKycPipelineStalledCritical when this was a missing alert`.
 9. Add dashboard panel: `update tenancy/dashboards/cell-utilization.json with oya_tenancy_kyb_kyc_pipeline_stalled_error_ratio, oya_tenancy_kyb_kyc_pipeline_stalled_lag_seconds, and oya_tenancy_kyb_kyc_pipeline_stalled_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-tenancy-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-tenancy-domain --all-features`.
@@ -167,9 +167,9 @@ Kyb Kyc Pipeline Stalled incident decision tree
 - `oya-tenancy-domain`: inspect for kyb_kyc_pipeline_stalled invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
 - `oya-tenancy-kernel`: inspect for kyb_kyc_pipeline_stalled invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-tenancy-api`: inspect for kyb_kyc_pipeline_stalled invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
-- `microservices/tenancy/contracts/`: verify this surface only when the incident evidence points there.
+- `tenancy/contracts/`: verify this surface only when the incident evidence points there.
 - `tenancy/dashboards/cell-utilization.json`: verify this surface only when the incident evidence points there.
-- `microservices/tenancy/slos/`: verify this surface only when the incident evidence points there.
+- `tenancy/observability/slos/`: verify this surface only when the incident evidence points there.
 - `microservices/tenancy/policy/rls-isolation.*`: verify this surface only when the incident evidence points there.
 
 ## Verification Checklist
@@ -264,8 +264,8 @@ evidence_hash: <sha256>
 - Close only after EVT-TENANCY-KYB_KYC_PIPELINE_STALLED-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/tenancy/dashboards/` for dashboard names and operational panels.
-- `microservices/tenancy/slos/` for OpenSLO alert vocabulary and threshold alignment.
-- `microservices/tenancy/policy/` for named policy and authorization surfaces.
-- `microservices/tenancy/catalog/` for component and owner vocabulary.
+- `tenancy/dashboards/` for dashboard names and operational panels.
+- `tenancy/observability/slos/` for OpenSLO alert vocabulary and threshold alignment.
+- `tenancy/policy/` for named policy and authorization surfaces.
+- `tenancy/catalog/` for component and owner vocabulary.
 - Existing thin runbook topic `kyb-kyc-pipeline-stalled` was preserved as the scenario anchor while replacing generic steps with concrete commands.

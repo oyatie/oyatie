@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, helm-lint, kubectl-apply-dry-run, oya-governance
 
 ## Intent
 
-Author Helm + Kustomize manifests for Postgres 16 + Citus 12.x + Patroni HA + Valkey under `microservices/tenancy/iac/helm/`. Deploys to the per-pack tenancy Kubernetes namespace per `multi-region.md`. Versions pinned to LTS per `docs/standards/observability-slo.md` §"Version Pinning". Pack-kr overlay activated at M01 launch.
+Author Helm + Kustomize manifests for Postgres 16 + Citus 12.x + Patroni HA + Valkey under `tenancy/iac/helm/`. Deploys to the per-pack tenancy Kubernetes namespace per `multi-region.md`. Versions pinned to LTS per `docs/standards/observability-slo.md` §"Version Pinning". Pack-kr overlay activated at M01 launch.
 
 ## ChangeSet boundary
 
@@ -104,11 +104,11 @@ resource "postgresql_role" "tenancy_admin_jit" {
 ## Acceptance Gates
 
 ```bash
-helm lint microservices/tenancy/iac/helm/postgres
-helm lint microservices/tenancy/iac/helm/citus
-helm lint microservices/tenancy/iac/helm/patroni
-kubectl --dry-run=client apply -k microservices/tenancy/iac/kustomize/overlays/pack-kr
-tofu validate microservices/tenancy/iac/terraform/
+helm lint tenancy/iac/helm/postgres
+helm lint tenancy/iac/helm/citus
+helm lint tenancy/iac/helm/patroni
+kubectl --dry-run=client apply -k tenancy/iac/kustomize/overlays/pack-kr
+tofu validate tenancy/iac/terraform/
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice tenancy
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 ```

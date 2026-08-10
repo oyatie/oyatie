@@ -106,7 +106,7 @@ PASS, 0 errors, 0 warnings.
 
 1. IP-015 owns the `git mv crates/oya-tenancy-* microservices/tenancy/src/crates/oya-tenancy-tenant-lifecycle-*` migration. Once IP-015 executes, the 11 scaffolded crates above will move alongside the legacy 3.
 2. The downstream-layer crates listed in the "trimmed / deferred" table need scaffolding as part of their respective IP execution PRs.
-3. Cedar policy files (`microservices/tenancy/policy/*.cedar`) and contract files (`contracts/openapi/tenancy.yaml`, `contracts/asyncapi/tenant-events.yaml`, `contracts/proto/*`) already exist on disk — they are not crates and are out of scope for this Rust-crate truth-up wave.
+3. Cedar policy files (`tenancy/policy/*.cedar`) and contract files (`contracts/openapi/tenancy.yaml`, `contracts/asyncapi/tenant-events.yaml`, `contracts/proto/*`) already exist on disk — they are not crates and are out of scope for this Rust-crate truth-up wave.
 4. The metric names (`tenancy_works_council_notify_total`, `tenancy_dsar_link_issued_total`, etc.) declared in the journey IPs are Prometheus metric labels, not Rust types — they are emitted by the future REST/worker crates and are not scaffold targets for this wave.
 
 ## Wave 15-Valkey migration (2026-05-21)

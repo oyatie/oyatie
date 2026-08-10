@@ -47,7 +47,7 @@ This phase ships the full tenancy substrate per Bominal ADR-0018 inherited 1:1 +
 This phase advances master-plan principles:
 
 - **Hyperscaler-grade in every practice** (Citus + Patroni HA; Cedar + RLS + JWT defence-in-depth; OpenBao-backed signing keys).
-- **Nothing scheduled-for-distinct-tracked-work** (the existing `oya-tenancy-{kernel,domain,api}` crates are migrated into `microservices/tenancy/` and re-shaped per ADR-0105 + ADR-0131; no parallel-stub story).
+- **Nothing scheduled-for-distinct-tracked-work** (the existing `oya-tenancy-{kernel,domain,api}` crates are migrated into `tenancy/` and re-shaped per ADR-0105 + ADR-0131; no parallel-stub story).
 - **No silent regression** (production-tier breach auto-reverts via the SLO gate; tenant validation kept on the 99.99% availability tier; rollback policy in `runbooks/rls-drift-recovery.md`).
 - **Per-microservice flat layout** (this phase is a native author under ADR-0131).
 - **Compliance is the highest-stakes axis** (tenancy authoring at SOC 2 / ISO 27001 / GDPR DPA / KR PIPC scrutiny bar; per-pack overlays for all 11 packs).
@@ -58,7 +58,7 @@ This phase advances master-plan principles:
 
 | µservice | Bounded Contexts | Files / crates affected | BNF v4.1 crate names |
 |---|---|---|---|
-| `tenancy` | `tenant-lifecycle`, `isolation-policy`, `cell-assignment`, `dsr-cascade` | All under `microservices/tenancy/` per ADR-0131 | `oya-tenancy-tenant-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` + `oya-tenancy-isolation-policy-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` + `oya-tenancy-cell-assignment-{kernel,domain,usecase,api,adapter,adapter-citus,worker,app}` + `oya-tenancy-dsr-cascade-{kernel,domain,usecase,api,adapter,rest,worker,app}` |
+| `tenancy` | `tenant-lifecycle`, `isolation-policy`, `cell-assignment`, `dsr-cascade` | All under `tenancy/` per ADR-0131 | `oya-tenancy-tenant-lifecycle-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,sdk,app}` + `oya-tenancy-isolation-policy-{kernel,domain,usecase,api,adapter,adapter-postgres,rest,worker,app}` + `oya-tenancy-cell-assignment-{kernel,domain,usecase,api,adapter,adapter-citus,worker,app}` + `oya-tenancy-dsr-cascade-{kernel,domain,usecase,api,adapter,rest,worker,app}` |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 
@@ -84,7 +84,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 
 | IP file | Intent | Status | Owner | Depends on |
 |---|---|---|---|---|
-| [`IP-001-layer-a-postgres-citus-patroni-iac.md`](IP-001-layer-a-postgres-citus-patroni-iac.md) | Helm/Kustomize charts for Postgres + Citus + Patroni HA at `microservices/tenancy/iac/helm/`; pack-kr overlay | pending | ops-sre-reliability + axis-tenancy | — |
+| [`IP-001-layer-a-postgres-citus-patroni-iac.md`](IP-001-layer-a-postgres-citus-patroni-iac.md) | Helm/Kustomize charts for Postgres + Citus + Patroni HA at `tenancy/iac/helm/`; pack-kr overlay | pending | ops-sre-reliability + axis-tenancy | — |
 | [`IP-002-tenant-lifecycle-kernel.md`](IP-002-tenant-lifecycle-kernel.md) | `oya-tenancy-tenant-lifecycle-kernel` crate: ports + entities (Tenant, TenantId, TenantStatus, JurisdictionCode, PlanTier, TenantContext) | pending | axis-tenancy | IP-001 |
 | [`IP-003-tenant-lifecycle-domain.md`](IP-003-tenant-lifecycle-domain.md) | `-domain` crate: lifecycle FSM, plan-tier rules, jurisdiction validators | pending | axis-tenancy | IP-002 |
 | [`IP-004-tenant-lifecycle-usecase.md`](IP-004-tenant-lifecycle-usecase.md) | `-usecase` crate: create/activate/suspend/resume/delete orchestrators | pending | axis-tenancy | IP-003 |
@@ -97,7 +97,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-011-audit-chain-integration.md`](IP-011-audit-chain-integration.md) | Audit-chain Ed25519 seal emission on every lifecycle event + DSR receipt + RLS policy install | pending | axis-tenancy + audit-chain | IP-004, IP-006, IP-009 |
 | [`IP-012-branch-protection-and-release-pointers.md`](IP-012-branch-protection-and-release-pointers.md) | branch-protection.yaml additions; tenancy release/<env> pointers established | pending | ops-sre-reliability | IP-007, IP-008 |
 | [`IP-013-canary-cohort-and-rollback-wiring.md`](IP-013-canary-cohort-and-rollback-wiring.md) | Tenancy canary cohort wiring + rollback runbook + production-tier auto-rollback wire-up via observability gate | pending | ops-sre-reliability | IP-012 |
-| [`IP-014-tests-load-drills-observability-slos.md`](IP-014-tests-load-drills-observability-slos.md) | k6 load tests; Patroni-failover drill; OpenSLO manifests at `microservices/tenancy/slos/*.openslo.yaml` | pending | ops-sre-reliability + axis-tenancy | IP-007, IP-008, IP-009 |
+| [`IP-014-tests-load-drills-observability-slos.md`](IP-014-tests-load-drills-observability-slos.md) | k6 load tests; Patroni-failover drill; OpenSLO manifests at `tenancy/observability/slos/*.openslo.yaml` | pending | ops-sre-reliability + axis-tenancy | IP-007, IP-008, IP-009 |
 | [`IP-015-legacy-crates-migration.md`](IP-015-legacy-crates-migration.md) | Migrate existing `crates/oya-tenancy-{kernel,domain,api}` → `microservices/tenancy/src/crates/` per ADR-0131 + ADR-0105; preserve git history | pending | axis-tenancy | IP-002 (so target shape exists first) |
 
 Coverage check vs. PRD §"Bounded Contexts": all 35 target crates landed by IPs 002–010; persistence stack by IP-001; cross-cutting (audit-chain, branch-protection, observability, migration) by IPs 011–015.
