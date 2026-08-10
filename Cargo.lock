@@ -9682,6 +9682,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-workflow-safe-metadata-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-workplace-integration-doc-set-scaffold"
 version = "0.1.0"
 
