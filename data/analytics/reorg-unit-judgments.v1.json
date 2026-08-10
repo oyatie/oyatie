@@ -106,6 +106,31 @@
       ],
       "destination_integ": "integ/data",
       "land_when": "this PR"
+    },
+    {
+      "path": "data/ports/analytics-api/",
+      "action": "keep_forever",
+      "destination": "data/ports/analytics-api/",
+      "shape": "analytics API port crate; contract path constants + integration test",
+      "rationale": "1) Layer-11 REST boundary. 2) Rust port crate. 3) Contract paths must match catalog SSOT for SDK+governance greps. 4) Must exist. 5) Fit under data/ports. 6) keep-as-is + wire contract test. 7) forever.",
+      "redesign": "none — pointer hygiene + contract runtime constants test",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "data/ports/analytics-api/",
+      "name_forever": "data/ports/analytics-api/",
+      "kind": "capability-port",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "cartesian_doubt: Cargo.toml metadata still cited oya/analytics/contracts/ while catalog already retargeted",
+        "operability_day2: ontology-api contract test pattern is the verified wiring model for port crates"
+      ],
+      "evidence": [
+        "ANALYTICS_{OPENAPI,ASYNCAPI,PROTO}_CONTRACT constants added",
+        "tests/analytics_api_contract.rs + buck2 data-analytics-api-contract target"
+      ],
+      "destination_integ": "integ/data",
+      "land_when": "this PR"
     }
   ]
 }

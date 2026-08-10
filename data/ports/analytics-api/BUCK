@@ -27,3 +27,19 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+rust_test(
+    name = "data-analytics-api-contract",
+    srcs = ["tests/analytics_api_contract.rs"],
+    crate = "data_analytics_api_contract",
+    crate_root = "tests/analytics_api_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":data-analytics-api",
+        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "//data/core/analytics-domain:data-analytics-domain",
+        "//data/core/analytics-usecase:data-analytics-usecase",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

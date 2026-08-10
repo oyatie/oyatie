@@ -30,6 +30,7 @@ ssot_todo: free-capability-data-analytics-contract
 | `data/analytics/capabilities/{dashboard-query,audit-log-query}.json` | `slo_anchor` → `data/observability/slos/analytics/...` |
 | `data/analytics/catalog/slos.json` | `directory` → `data/observability/slos/analytics/` |
 | `data/core/analytics-usecase` | Add cross-tenant refusal unit test (caller≠query tenant → `CrossTenantAccessDenied`) |
+| `data/ports/analytics-api` | Contract path constants + integration test; retarget `Cargo.toml` metadata off `oya/analytics/contracts/` |
 
 Verified destinations for every retargeted cite:
 
