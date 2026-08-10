@@ -10,7 +10,7 @@
 
 ## Completed
 
-- Hygiene deepen: retargeted `oya/docs/` + `microservices/docs/` path cites → `app/docs/` in README/manifest (forever-home authority). (this rail)
+- Hygiene deepen: retargeted `oya/docs/` + `app/docs/` path cites → `app/docs/` in README/manifest (forever-home authority). (this rail)
 
 - Wave-1 absorb: 89 files to forever home (replayed from `integ/app@f7133b24b` / prior `63f64327b`).
 
