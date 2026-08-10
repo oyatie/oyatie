@@ -36,6 +36,10 @@ deliverables:
     description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
     exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
     verified_by: "oya-ci-required"
+  - id: ADR-0711-D6
+    description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
+    exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + naming_sweep[] cite kind + grammar_compliant + lenses_applied=all-16; no mass rename without taxonomy instance."
+    verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
 
@@ -369,6 +373,93 @@ preserving accidental structure. **No dual-home. No move-now-fix-later.**
 Row fields (policy-as-data): `action`, `destination`, `shape`, `rationale`, `redesign`
 (`none|refactor|rewrite|delete`), `judgment_status` (`pending|done`).
 
+Judgments that decide renames MUST also record `name_now` → `name_forever` (topic-/role-shaped,
+hyperscaler-plain). Rename is part of `reorg_now` **or** a `keep_forever` quality fix when the
+path stays but the name is wrong. **Forbidden:** keep misleading names for history/brand.
+
+#### B-1b — Pattern-First Law (naming taxonomy)
+
+**Establish the pattern before mass renames.** Grammar, semantics, taxonomy, structure, and
+architecture MUST follow an established, maintainable, mechanically classifiable pattern.
+If none exists, author it first — then apply renames/reorgs as **instances**. No one-off
+bespoke names.
+
+Policy-as-data: [`specs/naming-taxonomy.json`](../../specs/naming-taxonomy.json).
+
+Extends (does not invent a parallel cosmology):
+
+- Capability-first roots + C/P/A/F faces (ADR-0701 / ADR-0562 lineage)
+- Flat cross-cutting `specs/` / `docs/` hubs (ADR-0119) with owner colocation (ADR-0131 / ADR-0541)
+- Role segments from crate-naming / BNF standards — **greenfield SUPERSEDES** brand-first
+  `required_prefix = "oya-"` (ADR-0017 era) as durable law
+
+**Grammar (binding highlights):**
+
+| Rule | Meaning |
+|---|---|
+| Role-first tokens | Name states behavior (`baseline-ratchet`, `merge-admission-required`) |
+| Forbidden leading brand | `oya-` / `oya_` / `cloud-` / `cloud_` as leading durable prefixes |
+| Forbidden ADR path segments | `ADR-NNNN` must not be required to navigate; indexes/frontmatter may list numbers |
+| Self-explanatory path test | Path+filename alone convey purpose |
+| Brand ≠ keep_forever | Brand prefix alone never justifies durable home |
+
+**Kinds** (see taxonomy for full set): `capability-root`, `plane-hub`, `meta-root`,
+`check-crate`, `ci-facade`, `ci-job`, `merge-gate-context`, `policy-face`,
+`service-colocation`, `decision-record`, `process-kit`, `fixture-corpus`, `shared-lib-debt`.
+
+**Mechanical classification:** given path/kind → integ envelope + name shape
+(`naming-taxonomy.json#classification_rules`). `naming_sweep[]` rows on envelopes MUST cite
+`kind` + `grammar_compliant` + `name_forever`.
+
+**Canonical instances (not one-offs):**
+
+| name_now | kind | name_forever |
+|---|---|---|
+| `oya-ci-required` | merge-gate-context | `merge-admission-required` (dual-emit until founder protection flip) |
+| `freshness (…, ADR-0539)` | ci-job | `generated-artifact-freshness (lock + faces)` |
+| `cloud-ci-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
+| `docs/decisions/ADR-NNNN-*.md` | decision-record | `docs/decisions/<topic>.md` (batched; not blind mass-rename) |
+
+**Execution order:** taxonomy lands on `integ/specs` → sweep rows cite kinds → renames execute
+as taxonomy instances on owning `integ/<root>`. Agents MUST NOT change GitHub branch protection;
+dual-emit legacy+forever merge contexts in-repo until founder flips protection in one line.
+
+#### B-1c — Full 16-lens battery (new AND existing patterns)
+
+Authority pack: [`.grok/harness/lenses.v1.json`](../../.grok/harness/lenses.v1.json).
+**Never a subset.** Every judgment that keeps, replaces, or deletes an existing pattern/decision/
+architecture/design MUST run the full battery and record:
+
+| Field | Requirement |
+|---|---|
+| `lenses_applied` | exactly `all-16` (ids below) |
+| `challenges[]` | at least one challenge when the unit is an *existing* pattern being kept or replaced |
+
+Lens ids (stable): `cartesian_doubt`, `essentialism_yagni`, `chestertons_fence`, `contrarian`,
+`socratic`, `pragmatism`, `red_team`, `systems_thinking`, `operability_day2`, `opportunity_cost`,
+`blast_radius_cell`, `constant_work`, `shared_nothing`, `finops`, `telemetry_first`, `zero_trust`.
+
+**Challenge posture:** If an existing pattern/decision/architecture is an anti-pattern, do **not**
+silently ignore or follow it. Challenge it, research north-star (authoritative sources + code
+evidence), suggest the fix. Defensibility bar: if not defensible under the full battery →
+**delete or reshape**. Chesterton's fence still applies: state why the fence existed, then
+replace it if indefensible.
+
+**Taxonomy must REPLACE indefensible naming practice — not encode it.** Prior ADR/CI naming that
+fails the battery (`oya-ci-required` brand, ADR numbers in job titles, leading `oya-`/`cloud-`
+prefixes, `firewall` metaphor) is recorded in `specs/naming-taxonomy.json#overturned_patterns`
+with fence rationale + replacement. `naming_sweep[]` / judgment rows cite those replacements.
+
+Patterns this amendment recommends overturning (mechanism may stay; brand/shape must not):
+
+| Existing practice | Fence (why it existed) | Overturn to |
+|---|---|---|
+| `oya-ci-required` as forever context name | Single required context (ADR-0515/0700) + brand cohesion | Keep **single** merge context; rename to `merge-admission-required` (dual-emit until founder protection flip) |
+| ADR numbers in CI job `name:` | Operator shortcut to governing ADR | Role-first job titles; ADR cites live in comments/docs only |
+| Leading `oya-` / `cloud-` on crates/gates/bins | ADR-0017 workspace uniqueness / AWS-style prefix | Role-first grammar; brand prefix = debt |
+| `cloud-ci-firewall` brand | Phase-0 go-live metaphor | `admission-baseline-ratchet` (+ gate-registration) |
+| `required_prefix = "oya-"` as greenfield law | Historical crate BNF | Superseded for greenfield by `naming-taxonomy.json` |
+| `docs/decisions/ADR-NNNN-*.md` path shape | Numbered decision catalogs | Topic-shaped filenames; numbers in index/frontmatter (batched renames) |
 
 #### B-2 — Freeze prefixes = no NEW births while moves execute
 
@@ -551,9 +642,12 @@ First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`)
   validation (mirror existing `[buck2]` key-verification practice); tracked as bead, not now.
 
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
+- **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
+- **Keep `oya-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
 
 ## References
 
+- Naming taxonomy: `specs/naming-taxonomy.json`
 - Policy: `specs/integ-branch-envelopes.json`
 - Portable rule text: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
 - Harness: `.claude/workflows/deliver.js` (Claim + Land)

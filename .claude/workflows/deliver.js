@@ -1011,8 +1011,8 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
    is forbidden here — it belongs only in blessed restack/server-side-reset scripts.
 
 
-6. REORG NOW + EVALUATION GATE (ADR-0711 Amendment B) — Load `reorg_debt_freeze` from
-   `${ENVELOPES}`.
+6. REORG NOW + EVALUATION GATE (ADR-0711 Amendment B) — Load `reorg_debt_freeze` +
+   `naming` from `${ENVELOPES}` (taxonomy: specs/naming-taxonomy.json).
    A) NEW BIRTHS: for every `git diff --diff-filter=A` path under `prefixes` /
       `no_new_births_while_reorg_prefixes`: ALLOW only if unexpired one_shot_exception OR bead
       contains `reorg-move-out` naming destination; else REFUSE.
@@ -1020,6 +1020,12 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
       row has `judgment_status=done` with non-empty `rationale` and `redesign` in
       {none,refactor,rewrite,delete}. REFUSE git-mv-only / rename-only waves and any change
       when judgment is `pending`. PR body MUST paste the 7-point judgment.
+   C) KEEP/REPLACE of an *existing* pattern: require `lenses_applied: all-16` (ids in
+      .grok/harness/lenses.v1.json — never a subset) and non-empty `challenges[]`.
+      Indefensible under full battery → delete/reshape; do not silently follow anti-patterns.
+   D) RENAMES: require taxonomy `kind` + `name_now`/`name_forever` + `grammar_compliant`;
+      taxonomy REPLACES brand/ADR naming anti-patterns (oya-/cloud- leading, ADR-in-job-titles,
+      firewall metaphor) — does not encode them. Prefer destination integ/<root>.
    Prefer destination integ/<root> for redesign lands. Freeze source ownership ≠ birth license.
 
 
