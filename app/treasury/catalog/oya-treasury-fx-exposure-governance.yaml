@@ -14,8 +14,8 @@ benchmarks:
   - "NetSuite Cash Management"
   - "Microsoft Dynamics 365 Finance Cash and Bank"
 contracts:
-  openapi: microservices/treasury/contracts/openapi-v1.yaml
-  asyncapi: microservices/treasury/contracts/asyncapi-v1.yaml
-  proto: microservices/treasury/contracts/treasury-v1.proto
-policy_fragment: microservices/treasury/policy/fx-exposure-authorization.cedar
+  openapi: app/treasury/contracts/openapi-v1.yaml
+  asyncapi: app/treasury/contracts/asyncapi-v1.yaml
+  proto: app/treasury/contracts/treasury-v1.proto
+policy_fragment: app/treasury/policy/fx-exposure-authorization.cedar
 settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

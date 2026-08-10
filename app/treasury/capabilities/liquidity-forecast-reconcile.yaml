@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-TREASURY-LIQUIDITY_FORECAST-RECONCILE
 policy_fragments:
-  - microservices/treasury/policy/liquidity-forecast-authorization.cedar
+  - app/treasury/policy/liquidity-forecast-authorization.cedar
 benchmarks:
   - "SAP TRM Treasury and Risk Management"
   - "Oracle Fusion Cash Management"
