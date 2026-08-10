@@ -3,38 +3,36 @@
 **Wave:** `W-tools-swarm-to-grok`  
 **Judgment:** `ready_for_port_to_grok` (`#1644@0c6284cdef`, envelopes `reorg_debt_freeze.rows` tools/swarm/)  
 **Seat:** `integ/tools` (`tools/**` envelope only)  
-**Status:** **BLOCKED** — `.grok/**` outside this envelope; port requires `.grok/` writer seat.
+**Status:** **SWARM SHRINK DONE** — `tools/swarm/**` absent on this tip; absorb verified on
+`integ/ci@076e712fa` (`.grok/swarm/` forever home). No reorg absorb on `tools/**`.
 
-## Inventory (2026-08-10)
+## Shrink receipt (2026-08-10)
 
-| Tree | `origin/dev` | `#1644@0c6284cdef` | Duplicated in `.grok/`? |
-|------|-------------:|-------------------:|:------------------------|
-| `tools/swarm/**` | **0** | **12** | **No** — net-new on #1644 tip |
-| `.grok/**` | **208** | **208** | n/a (destination) |
-| `tools/**` (total) | **130** | — | — |
+| Check | Result |
+|-------|--------|
+| `tools/swarm/**` on `integ/tools` tip | **0 files** (already absent; never landed from `origin/dev`) |
+| Delete action this seat | **no-op** — nothing to delete on disk or in tree |
+| Absorb evidence | `integ/ci@076e712fa` port + tip absorb `e4794dfbf` |
+| `.grok/swarm/**` on `origin/integ/ci` | **13 paths** (12 kit files + README; + `check-daemon-hotset`) |
+| This lane scope | `tools/**` shrink only — **no** `.grok/**` writes |
 
-`tools/swarm/` is absent on `origin/dev` until `integ/specs#1644` squash-merges. No
-delete-only residue is provable on this tip.
+## Inventory (post-shrink)
 
-## Envelope block
+| Tree | `origin/dev` | `#1644@0c6284cdef` | This tip (`integ/tools`) | `.grok/` home |
+|------|-------------:|-------------------:|:------------------------:|:--------------|
+| `tools/swarm/**` | **0** | **12** | **0** (shrunk) | n/a |
+| `.grok/swarm/**` | — | — | — (out of envelope) | landed on `integ/ci` |
 
-`specs/integ-branch-envelopes.json#roots.tools`:
+`tools/swarm/` was net-new on the `#1644` tip and never present on `integ/tools` /
+`origin/dev`. Seat B's shrink obligation is satisfied by confirming absence + drain note.
 
-- **Branch:** `integ/tools`
-- **Globs:** `tools/**` only
-- **`.grok/**` is NOT in this envelope** — writing there from this seat is an illegal
-  cross-envelope edit.
-
-No active adjunct on `integ/tools` authorizes `tools/swarm → .grok/` port. The
-`integ/specs` adjunct for `tools/swarm/**` expires at `wave-after-integ-tools-first-land`.
-
-## Exact port plan (for `.grok/` writer)
+## Historical port plan (executed on `integ/ci`, not this seat)
 
 **Redesign:** `rewrite` (not git-mv). **Shape:** process-kit vacate `tools/`; swarm
-shims land under `.grok/swarm/` (peers of existing `.grok/bin/` mm-* family).
+shims under `.grok/swarm/` (peers of existing `.grok/bin/` mm-* family).
 
-| Source (`#1644` tip) | Proposed destination | Notes |
-|----------------------|----------------------|-------|
+| Source (`#1644` tip) | Destination (integ/ci) | Notes |
+|----------------------|------------------------|-------|
 | `tools/swarm/README.md` | `.grok/swarm/README.md` | Merge swarm guardrail prose; cite PORTABLE-SWARM-CONTRACT |
 | `tools/swarm/git-shim` | `.grok/swarm/git-shim` | Worker git allowlist |
 | `tools/swarm/toolguard` | `.grok/swarm/toolguard` | cargo/buck2 deny in lanes |
@@ -48,33 +46,11 @@ shims land under `.grok/swarm/` (peers of existing `.grok/bin/` mm-* family).
 | `tools/swarm/shim-bin/cargo` | `.grok/swarm/shim-bin/cargo` | PATH shim |
 | `tools/swarm/shim-bin/buck2` | `.grok/swarm/shim-bin/buck2` | PATH shim |
 
-**After port (same wave, multi-seat):**
+**Cite rewrites (other seats, not this shrink):**
 
-1. Delete `tools/swarm/**` (reorg-move-out bead).
-2. Rewrite path cites in:
-   - `specs/integ-branch-envelopes.json` (`claim_mechanical`, `adjunct_claims`, `anti_drift.drift_grep`, `one_shot_exceptions`)
-   - `.claude/workflows/deliver.js` (Claim parser paths)
-   - `.cursor/rules/swarm-agent-ritual.mdc` (if still cites `tools/swarm/`)
-3. Run `.grok/swarm/self-check.sh` (renamed) as drift-grep authority.
-
-## Elevate: who owns `.grok/`?
-
-| Signal | Value |
-|--------|-------|
-| `.grok/OWNERS` | `cloud-ci-platform` |
-| Envelope registration | **Gap** — `.grok/**` not in `#roots` or `#planes` globs on `origin/dev` |
-| Judgment `destination_integ` (ledger) | `integ/specs` (coordination only) |
-| PROCESS_KIT peer plane | `planes.process_meta` → `integ/ci` (`.github/**`, `.claude/**`, `.cursor/**` — **not** `.grok/**` yet) |
-| Northstar | `.grok/` = `keep_forever` PROCESS_KIT (`reorg_debt_freeze.rows`) |
-
-**Required before port execute:**
-
-1. **Envelope owner** registers `.grok/**` (recommend `integ/ci` process_meta extension or
-   forward-declared `integ/grok` root) in `specs/integ-branch-envelopes.json` via `integ/specs`.
-2. **`.grok/` writer seat** opens `integ/ci` (or registered owner) lane, executes port table
-   above, then `integ/tools` deletes `tools/swarm/**`.
-
-Until both seats land, this drain note is the authoritative prep artifact for Seat B.
+- `specs/integ-branch-envelopes.json` (`claim_mechanical`, `adjunct_claims`, `anti_drift.drift_grep`, `one_shot_exceptions`)
+- `.claude/workflows/deliver.js` (Claim parser paths)
+- `.cursor/rules/swarm-agent-ritual.mdc` (if still cites `tools/swarm/`)
 
 ## Remaining `tools/**` debt (out of scope this slice)
 
