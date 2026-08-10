@@ -1,0 +1,147 @@
+{
+  "schema_version": "1.0",
+  "capability": "registry",
+  "_comment": "Capability-root inventory for registry/ (ADR-0562 layout + integ/registry envelope). Every count below was read off this tip tree at authoring time. registry/ is the monorepo catalog/control-plane corpus (not one of the 24 runtime substrate capabilities in specs/capability-registry.json#capabilities); do not invent runtime tier/stratum or crates.",
+  "tier": "process_meta",
+  "_tier_source": "UNGROUNDED as runtime substrate \u2014 registry is absent from specs/capability-registry.json#capabilities (24 named runtime caps). Envelopes roots.registry \u2192 integ/registry / registry/**. Classed process_meta/catalog corpus pending founder placement ruling; deliberately not invented as substrate-S*.",
+  "_tier_subtype_note": "ABSENT \u2014 no grounded subtype in capability-registry; catalog/control-plane corpus only.",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "No dag_node in capability-registry for registry/. forward-declared retained; R4 forbids inventing an S-rank."
+  },
+  "_openslo_note": "Zero registry/**/*.openslo.yaml on this tip. OpenSLO refs omitted rather than invented.",
+  "version": "0.1.0",
+  "owner": "council-architecture",
+  "purpose": "Monorepo registry corpus: catalog YAML package, control-plane JSON, capability templates, evidence/scorecard ledgers, and buck2 corpus-yaml-facts genrule inputs under registry/.",
+  "bounded_contexts": [
+    {
+      "name": "registry-catalog",
+      "description": "Primary catalog YAML package under registry/catalog/ (buck2 corpus-yaml-facts shard).",
+      "paths": [
+        "registry/catalog/"
+      ]
+    },
+    {
+      "name": "registry-control-planes",
+      "description": "Root and nested control-plane JSON exported via registry/BUCK.",
+      "paths": [
+        "registry/*.json",
+        "registry/adr-census-epoch/",
+        "registry/reset-eligibility/"
+      ]
+    },
+    {
+      "name": "registry-ledgers",
+      "description": "Governance ledgers and knowledge graphs under registry/ (mistakes, merge-queue, knowledge-graph, etc.).",
+      "paths": [
+        "registry/mistakes-ledger.json",
+        "registry/merge-queue-admission-log.json",
+        "registry/merge-queue-tick-log.json",
+        "registry/knowledge-graph-dynamic.json",
+        "registry/knowledge-graph-kinetic.json"
+      ]
+    }
+  ],
+  "layers": [
+    "catalog",
+    "control_plane",
+    "ledger"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 0,
+    "crates_by_layer": {},
+    "crates_covered_by_no_other_manifest": 0,
+    "files_under_capability_root": 847,
+    "files_by_top_dir": {
+      "catalog": 758,
+      "check-empirical-evidence": 14,
+      "accounts": 5,
+      "vcs": 5,
+      "foundation-bypasses": 4,
+      "stores": 4,
+      "capability-templates": 3,
+      "release": 3,
+      "loop-recovery-patterns": 3,
+      "glossary-vocabulary": 3,
+      "adr-census-epoch": 2,
+      "history-only-retirement": 2,
+      "capabilities": 2,
+      "quality": 2,
+      "reset-eligibility": 2,
+      "openapi": 2,
+      "placeholder-debt": 2,
+      "fixuptasks.jsonl": 1,
+      "test-set-registry.json": 1,
+      "mistakes-ledger.json": 1,
+      "cedar-fragments.json": 1,
+      "dependency-blessed-allowlist.json": 1,
+      "merge-queue-tick-log.json": 1,
+      "knowledge-graph-dynamic.json": 1,
+      "knowledge-graph-kinetic.json": 1,
+      "artifact-capabilities-registry.json": 1,
+      "BUCK": 1,
+      "dependency-rationales.json": 1,
+      "microservices.json": 1,
+      "bounded-contexts.json": 1,
+      "generated-artifact-control-plane.json": 1,
+      "ci-fix-loop-retry-budget.json": 1,
+      "merge-queue-admission-log.json": 1,
+      "adr": 1,
+      "saga-shape": 1,
+      "mobile-native": 1,
+      "graph": 1,
+      "hyperscaler-scorecards": 1,
+      "docs": 1,
+      "milestone-audit": 1,
+      "vendor-lockin-phaseout": 1,
+      "design-spec-maturity": 1,
+      "data-class": 1,
+      "claim-matrix": 1,
+      "layered-architecture-discipline": 1,
+      "vocabulary": 1,
+      "audit-chain": 1,
+      "governance-corpora": 1
+    },
+    "catalog_yaml_files": 758,
+    "root_control_plane_json": [
+      "artifact-capabilities-registry.json",
+      "bounded-contexts.json",
+      "cedar-fragments.json",
+      "ci-fix-loop-retry-budget.json",
+      "dependency-blessed-allowlist.json",
+      "dependency-rationales.json",
+      "generated-artifact-control-plane.json",
+      "knowledge-graph-dynamic.json",
+      "knowledge-graph-kinetic.json",
+      "merge-queue-admission-log.json",
+      "merge-queue-tick-log.json",
+      "microservices.json",
+      "mistakes-ledger.json",
+      "test-set-registry.json"
+    ],
+    "yaml_yml_files": 770,
+    "json_files": 48,
+    "_overlap_note": "Zero Cargo.toml under registry/. This tip is catalog/control-plane data + BUCK genrules only \u2014 not a Rust crate home."
+  },
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "n/a",
+      "language_profile": "n/a",
+      "contracts": []
+    }
+  },
+  "slos": [],
+  "foundation_non_claims": [
+    "No deployed registry runtime or measured SLI claimed by this manifest.",
+    "Not a member of the closed 24-capability runtime ladder in specs/capability-registry.json.",
+    "No crate reclaim / workspace membership changes on this tip."
+  ],
+  "capabilities_paths": [
+    "capabilities/foundry-internal.json",
+    "capabilities/foundry-supervisor.toml"
+  ]
+}
