@@ -399,10 +399,10 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Patient Monitoring is a life-critical PHI telemetry and alarm data-plane service with continuous physiologic streams, bedside buffers, and clinical alerting. It does not execute tenant-customer code, but its tenant data-plane blast radius requires Tier 1 isolation and Tier-2 cell placement rather than the Tier-3 edge preflight lane.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/patient-monitoring/PRD.md",
-    "microservices/patient-monitoring/ARCHITECTURE.md",
-    "microservices/patient-monitoring/manifest.json",
-    "microservices/patient-monitoring/contracts/openapi.yaml"
+    "app/patient-monitoring/PRD.md",
+    "app/patient-monitoring/ARCHITECTURE.md",
+    "app/patient-monitoring/manifest.json",
+    "app/patient-monitoring/contracts/openapi.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

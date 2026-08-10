@@ -15,7 +15,7 @@ sharding_role: tenant-state-owner
 # IP-WAVE-15-ZD-sharding-automation: Patient Monitoring Sharding Automation Stance
 
 ## 1. Scope
-SCOPE-001: This IP is scoped only to `microservices/patient-monitoring/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
+SCOPE-001: This IP is scoped only to `app/patient-monitoring/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
 SCOPE-002: This is doctrine propagation, not Rust implementation, manifest editing, runbook authoring, Cedar policy authoring, SLO authoring, or contract editing.
 SCOPE-003: patient-monitoring must interpret ADR-0348 through its own bounded context: service-owned bounded context from manifest.
 SCOPE-004: patient-monitoring uses ADR-0346 as the local verifier contract for any downstream implementation PR that turns this plan into code.
