@@ -39,7 +39,7 @@ doc_status: published
 - Alertmanager route: `oyatie-payments-payout-failed-critical`; silence only with incident commander approval and `EVT_PAYMENTS_PAYOUT_FAILED_INCIDENT` evidence.
 - Synthetic probe: `oya ops probe payments payout-failed --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
 - Drift detector: `registry/payments/payout-failed/expected-state.json` hash differs from live `https://payments.internal.oyatie.dev/v1/payments/admin/state-hash`.
-- Service-specific metric `oya_payments_payout_failed_psp_decline_ratio` exceeds the threshold documented in `microservices/payments/slos/charge-api-availability.openslo.yaml`.
+- Service-specific metric `oya_payments_payout_failed_psp_decline_ratio` exceeds the threshold documented in `app/payments/slos/charge-api-availability.openslo.yaml`.
 
 ## Symptoms
 - User-facing impact: charges, refunds, payouts, subscription renewals, and dispute evidence may be delayed, duplicated, or blocked.
@@ -75,13 +75,13 @@ doc_status: published
 15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate payments-payout-failed --production-snapshot --cell $CELL`.
 16. Run payments contract smoke: `cargo run -p oya-dev-cli -- gate validate payments-contract --microservice payments --scenario payout-failed`.
 17. Check API contract smoke: `curl -s https://payments.internal.oyatie.dev/v1/payments/payout-failed/incident-handoff -H "x-oya-tenant: $TENANT"`.
-18. Inspect config: `test -f microservices/payments/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' microservices/payments/iac/kustomize/base/kustomization.yaml`.
+18. Inspect config: `test -f app/payments/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' app/payments/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.payments.payout_failed.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status payments-payout-failed-circuit-breaker --cell $CELL --tenant $TENANT`.
 21. Check recent deploy: `kubectl -n payments rollout history deploy/payments-payout-failed-worker | tail -20`.
-22. Check policy file: `test -f microservices/payments/policy/charge-authorization.cedar || find microservices/payments/policy -maxdepth 2 -type f | sort`.
-23. Check SLO files: `ls microservices/payments/slos/*.openslo.yaml | sort | rg "charge|payout"`.
-24. Check catalog components: `find microservices/payments/catalog -maxdepth 1 -type f | sort | rg "charge|refund|dispute|payout|settlement|kyc|subscription|adapter"`.
+22. Check policy file: `test -f app/payments/policy/charge-authorization.cedar || find app/payments/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls app/payments/slos/*.openslo.yaml | sort | rg "charge|payout"`.
+24. Check catalog components: `find app/payments/catalog -maxdepth 1 -type f | sort | rg "charge|refund|dispute|payout|settlement|kyc|subscription|adapter"`.
 25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from payments_payout_failed_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
 26. Confirm no cross-cell spread: `oya ops cells query --metric oya_payments_payout_failed_error_ratio --window 30m --threshold 0.02`.
 27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice payments --runbook payout-failed --output evidence/incidents/$INCIDENT_ID.json`.
@@ -122,7 +122,7 @@ Payout Failed incident decision tree
 12. Raise HPA cap if saturation is proven: `kubectl -n payments patch hpa payments-payout-failed-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface payments.payout-failed --rps 25 --ttl 30m`.
 14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/payments/runbooks/payout-failed.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths app/payments/runbooks/payout-failed.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice payments --incident $INCIDENT_ID --channel #inc-payments`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor "Stripe enterprise support" --incident $INCIDENT_ID --summary payments-payout-failed`.
 18. Confirm breaker effect: `oya ops breaker status payments-payout-failed-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -148,15 +148,15 @@ Payout Failed incident decision tree
   - Required audit: emit `EVT_PAYMENTS_PAYOUT_FAILED_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "payout_failed|PaymentsPayoutFailedCritical|payments.payout_failed.incident_state" crates microservices/payments -g "!microservices/payments/runbooks/**"`.
-2. Patch catalog invariant: `edit microservices/payments/catalog/oya-payments-charge-domain.yaml or the matching refund/dispute/payout/KYC catalog record where payout_failed state transition is validated`.
-3. Patch API guard: `edit microservices/payments/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
-4. Patch policy: `edit microservices/payments/policy/charge-authorization.cedar with explicit deny/permit branch and tenant/cell scope`.
-5. Patch runtime config: `edit microservices/payments/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
+1. Identify code owner path: `rg "payout_failed|PaymentsPayoutFailedCritical|payments.payout_failed.incident_state" crates app/payments -g "!app/payments/runbooks/**"`.
+2. Patch catalog invariant: `edit app/payments/catalog/oya-payments-charge-domain.yaml or the matching refund/dispute/payout/KYC catalog record where payout_failed state transition is validated`.
+3. Patch API guard: `edit app/payments/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit app/payments/policy/charge-authorization.cedar with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit app/payments/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression gate: `cargo run -p oya-dev-cli -- gate validate payments-contract --fixture incident-payout-failed.json`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate payments-payout-failed --fixture incident-payout-failed.json`.
-8. Add SLO assertion: `update microservices/payments/slos/charge-api-availability.openslo.yaml with alert PaymentsPayoutFailedCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/payments/dashboards/psp-routing.json with oya_payments_payout_failed_error_ratio, oya_payments_payout_failed_lag_seconds, and oya_payments_payout_failed_queue_depth`.
+8. Add SLO assertion: `update app/payments/slos/charge-api-availability.openslo.yaml with alert PaymentsPayoutFailedCritical when this was a missing alert`.
+9. Add dashboard panel: `update app/payments/dashboards/psp-routing.json with oya_payments_payout_failed_error_ratio, oya_payments_payout_failed_lag_seconds, and oya_payments_payout_failed_queue_depth`.
 10. Rebuild validation CLI: `cargo check -p oya-dev-cli --all-targets`.
 11. Run targeted validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
@@ -170,24 +170,24 @@ Payout Failed incident decision tree
 20. Attach final evidence: `oya evidence attach --incident $INCIDENT_ID --file evidence/incidents/$INCIDENT_ID.json --kind final-resolution`.
 
 ### Code Paths To Inspect First
-- `microservices/payments/catalog/oya-payments-charge-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/payments/catalog/oya-payments-refund-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/payments/catalog/oya-payments-dispute-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/payments/catalog/oya-payments-payout-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/payments/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/payments/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/payments/contracts/payments-v1.proto`: verify request/response or event contract only when incident evidence points there.
-- `microservices/payments/contracts/psp-adapter-trait.md`: verify request/response or event contract only when incident evidence points there.
-- `microservices/payments/dashboards/psp-routing.json`: verify panel coverage for `oya_payments_payout_failed_error_ratio`, `oya_payments_payout_failed_lag_seconds`, and `oya_payments_payout_failed_psp_decline_ratio`.
-- `microservices/payments/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
-- `microservices/payments/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
+- `app/payments/catalog/oya-payments-charge-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `app/payments/catalog/oya-payments-refund-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `app/payments/catalog/oya-payments-dispute-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `app/payments/catalog/oya-payments-payout-domain.yaml`: inspect for `payout_failed` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
+- `app/payments/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
+- `app/payments/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
+- `app/payments/contracts/payments-v1.proto`: verify request/response or event contract only when incident evidence points there.
+- `app/payments/contracts/psp-adapter-trait.md`: verify request/response or event contract only when incident evidence points there.
+- `app/payments/dashboards/psp-routing.json`: verify panel coverage for `oya_payments_payout_failed_error_ratio`, `oya_payments_payout_failed_lag_seconds`, and `oya_payments_payout_failed_psp_decline_ratio`.
+- `app/payments/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `app/payments/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
 ## Verification Checklist
 - `PaymentsPayoutFailedCritical` and `PaymentsPayoutFailedSloBurn` are both resolved in Alertmanager for 30 minutes.
 - `oya_payments_payout_failed_error_ratio < 0.005` for 3 consecutive 10 minute windows.
 - `oya_payments_payout_failed_lag_seconds < 120` for all production cells.
 - `oya_payments_payout_failed_queue_depth` is draining and not growing for the affected tenant.
-- Service-specific signal `oya_payments_payout_failed_psp_decline_ratio` is below the threshold documented in `microservices/payments/slos/charge-api-availability.openslo.yaml`.
+- Service-specific signal `oya_payments_payout_failed_psp_decline_ratio` is below the threshold documented in `app/payments/slos/charge-api-availability.openslo.yaml`.
 - dashboard `https://grafana.dev.oyatie.internal/d/payments-substrate/payout-failed?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` shows green panels for the affected cell.
 - audit-chain query for `EVT_PAYMENTS_PAYOUT_FAILED_INCIDENT` returns mitigation and resolution events.
 - circuit breaker `payments-payout-failed-circuit-breaker` is closed after rollback window.
@@ -275,8 +275,8 @@ evidence_hash: <sha256>
 - Close only after `EVT_PAYMENTS_PAYOUT_FAILED_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/payments/dashboards/` for dashboard names and operational panels: psp-routing.json, settlement-reconciliation.json, fraud-signals.md, dispute-volume.json.
-- `microservices/payments/slos/` for OpenSLO alert vocabulary and threshold alignment: charge-api-availability.openslo.yaml, refund-api-availability.openslo.yaml, payout-completion-success.openslo.yaml, dispute-response-latency.openslo.yaml.
-- `microservices/payments/policy/` for named policy and authorization surfaces: charge-authorization.cedar, refund-authorization.cedar, payout-authorization.cedar, dispute-authorization.cedar, abuse-defence.cedar.
-- `microservices/payments/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/payments-v1.proto, contracts/psp-adapter-trait.md.
-- `microservices/payments/catalog/` for component and owner vocabulary; existing runbook topic `payout-failed` was preserved as the scenario anchor.
+- `app/payments/dashboards/` for dashboard names and operational panels: psp-routing.json, settlement-reconciliation.json, fraud-signals.md, dispute-volume.json.
+- `app/payments/slos/` for OpenSLO alert vocabulary and threshold alignment: charge-api-availability.openslo.yaml, refund-api-availability.openslo.yaml, payout-completion-success.openslo.yaml, dispute-response-latency.openslo.yaml.
+- `app/payments/policy/` for named policy and authorization surfaces: charge-authorization.cedar, refund-authorization.cedar, payout-authorization.cedar, dispute-authorization.cedar, abuse-defence.cedar.
+- `app/payments/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/payments-v1.proto, contracts/psp-adapter-trait.md.
+- `app/payments/catalog/` for component and owner vocabulary; existing runbook topic `payout-failed` was preserved as the scenario anchor.

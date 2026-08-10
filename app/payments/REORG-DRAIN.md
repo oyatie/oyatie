@@ -12,6 +12,7 @@
 - Slice 2: contracts + policy + capabilities + catalog + IPs + iac + dashboards + runbooks + scorecards + security + dpia + decisions.
 - Slice 3: IP journey markdown root files (6 files).
 - **Wave-1 complete:** 103 files in forever home (101 source ex-AUDIT + REORG-DRAIN + evidence).
+- Slice 4 / **Wave-2 rewrite:** durable-shape path cite fix — `microservices/payments/` → `app/payments/` inside forever home (hub `specs/microservices/payments.json` left intact); catalog `oya-payments-*` lifecycle → `deprecated` (phantom crate cluster deleted #1451); `manifest.compile_surface=zero_crate`.
 - Path cites rewritten `oya/payments` → `app/payments` inside forever home.
 - `AUDIT-FINDINGS-2026-05-20.json` excluded per judgment (delete_permanently).
 

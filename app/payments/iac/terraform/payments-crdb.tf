@@ -17,7 +17,7 @@ terraform {
   }
   backend "gcs" {
     bucket = "oyatie-terraform-state"
-    prefix = "microservices/payments/crdb"
+    prefix = "app/payments/crdb"
   }
 }
 

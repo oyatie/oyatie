@@ -902,7 +902,7 @@ States are owned by oyatie payments, not by PSP. PSP state may diverge; payments
 - Manifest target: `manifest.json` declares RTO p99 900 seconds, RPO p99 60 seconds, `multi_region_active_active: true`, `dr_tier: T1`, `replication_shape: active-active-multi-az-cross-region-warm`, and `failover_runbook: runbooks/psp-failover-cascade-execution.md`.
 - RTO/RPO target: charge, refund, payout, dispute, subscription, KYC/KYB, settlement, and webhook paths use the manifest target of RTO p99 <= 15m and RPO p99 <= 60s.
 - Compliance-pack floors: the manifest target exceeds PCI-DSS-L1-v4 24h/1h, HIPAA-2024 1h/5m, SOC2-T2 4h/15m, EU-AI-ACT-2024-HIGH-RISK 30m/5m, KR-CSAP 1h/15m, ISO27001 4h/1h, and KR-PIPA RRN 1h/5m.
-- Multi-region posture: active-active is enabled for the finance-critical runtime; PSP failover remains governed by `microservices/payments/runbooks/psp-failover-cascade-execution.md`, while `microservices/payments/multi-region.md` provides legacy regional topology detail.
+- Multi-region posture: active-active is enabled for the finance-critical runtime; PSP failover remains governed by `app/payments/runbooks/psp-failover-cascade-execution.md`, while `app/payments/multi-region.md` provides legacy regional topology detail.
 - WHY: tenants must know whether money movement is authorized, queued, declined, or under PSP failover, and must never see duplicate charges or silent payout loss during a cell event.
 
 ### E.12 Capacity model (ADR-0340)
@@ -1410,10 +1410,10 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 The following sections will be added when the corresponding Slice agents complete their work in the keystone-bundle 2026-05-20 documentation pass:
 
 - **Slice ADR-author** — link to `ADR-payments-substrate.md` (if authored) for the formal decision record.
-- **Slice runbook-author** — link to `microservices/payments/runbooks/charge-incident.md`, `subscription-renewal-incident.md`, `psp-failover.md`, `regulator-pull.md`.
+- **Slice runbook-author** — link to `app/payments/runbooks/charge-incident.md`, `subscription-renewal-incident.md`, `psp-failover.md`, `regulator-pull.md`.
 - **Slice spec-author** — link to `/specs/microservices/payments.json` (JSON Schema for charge / subscription / refund payloads + tenant model overlay).
 - **Slice user-story-bank** — extend `docs/user-stories/b2c-consumer-surfaces.md` with payment-product-surface stories; extend `b2b-work-surfaces.md` with B2B finance stories that REFERENCE this PRD.
-- **Slice testing-strategy** — link to `microservices/payments/testing-strategy.md` for E2E test catalog, fuzz-test plan, property-based subscription state-machine test, idempotency replay test, PSP-mock harness.
+- **Slice testing-strategy** — link to `app/payments/testing-strategy.md` for E2E test catalog, fuzz-test plan, property-based subscription state-machine test, idempotency replay test, PSP-mock harness.
 - **Slice synthesis** — link to the keystone-bundle synthesis doc once it consolidates payment + identity + ontology + workflow PRDs.
 - **Slice memory** — link to `feedback_payments_substrate_2026_05_20.md` (after capture by the memory Slice agent).
 

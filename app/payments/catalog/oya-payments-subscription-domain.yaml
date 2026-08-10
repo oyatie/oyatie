@@ -7,7 +7,7 @@ slo: tier-0-revenue-critical
 contracts_consumed: []
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-pci-dss-l1-v4, oya-pack-eu-psd2-sca, oya-pack-coppa-minor-refusal, oya-pack-ccpa-cpra-2023]
-lifecycle: {state: incubating, preview_since: 2026-05-20}
+lifecycle: {state: deprecated, deprecated_since: 2026-08-10}
 traceability:
   github_issue: "oya-governance-pipeline://payments-doc-set-buildout-2026-05-20"
   source_adrs: [ADR-0056, ADR-0105, ADR-0243, ADR-0244, ADR-0252, ADR-0292]

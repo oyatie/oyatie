@@ -7,10 +7,10 @@ owner_team: axis-payments + council-finance + ops-fraud + ops-treasury
 date: 2026-05-20
 related_adrs: [ADR-0145, ADR-0242, ADR-0243, ADR-0244, ADR-0245, ADR-0246, ADR-0248, ADR-0251, ADR-0253, ADR-0254, ADR-0255, ADR-0263, ADR-0273, ADR-0292]
 companion_docs:
-  - microservices/payments/PRD.md
-  - microservices/payments/ARCHITECTURE.md
-  - microservices/payments/compliance.md
-  - microservices/payments/threat-model.md
+  - app/payments/PRD.md
+  - app/payments/ARCHITECTURE.md
+  - app/payments/compliance.md
+  - app/payments/threat-model.md
 diataxis_quadrant: explanation
 doc_status: published
 ---

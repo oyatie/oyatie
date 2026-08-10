@@ -27,7 +27,7 @@ related_adrs:
 companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
-  - microservices/payments/PRD.md
+  - app/payments/PRD.md
   - microservices/identity/PRD.md
   - microservices/workflow-engine/PRD.md
   - microservices/ontology/PRD.md
@@ -422,16 +422,16 @@ IP check 152: payments/per-seat-billing satisfies observability for j40-b2b-mark
 ## DR posture (per ADR-0343)
 
 - Authority: ADR-0343.
-- Trigger evidence: `microservices/payments/IP-journey-j40-per-seat-billing.md` matched `financial, payment`.
+- Trigger evidence: `app/payments/IP-journey-j40-per-seat-billing.md` matched `financial, payment`.
 - Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
-- Applicable compliance pack floor: PCI-DSS-L1-v4(86400s/3600s), SOX-404(14400s/3600s), HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/payments/manifest.json`.
+- Applicable compliance pack floor: PCI-DSS-L1-v4(86400s/3600s), SOX-404(14400s/3600s), HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s) from `specs/compliance-pack-floors.json`; manifest evidence `app/payments/manifest.json`.
 - Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
 - Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `openbao_seal_unseal`, `audit_chain_merkle_seal`.
-- Runtime evidence: `microservices/payments/slos/charge-api-availability.openslo.yaml`, `microservices/payments/slos/charge-api-latency.openslo.yaml`, `microservices/payments/slos/payout-completion-success.openslo.yaml`, `microservices/payments/slos/dispute-response-latency.openslo.yaml`, `microservices/payments/policy/abuse-defence.cedar`.
+- Runtime evidence: `app/payments/slos/charge-api-availability.openslo.yaml`, `app/payments/slos/charge-api-latency.openslo.yaml`, `app/payments/slos/payout-completion-success.openslo.yaml`, `app/payments/slos/dispute-response-latency.openslo.yaml`, `app/payments/policy/abuse-defence.cedar`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - Authority: ADR-0338.
 - `pod_runtime_tier`: `0`.
 - Justification: tenant-customer code exists in this IP execution path; Kata Containers + Cloud Hypervisor are required.
-- Surface evidence: `microservices/payments/IP-journey-j40-per-seat-billing.md`, `microservices/payments/manifest.json`; trigger terms `plugin`.
+- Surface evidence: `app/payments/IP-journey-j40-per-seat-billing.md`, `app/payments/manifest.json`; trigger terms `plugin`.
