@@ -87,11 +87,11 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/developer-sdk/contracts/openapi/developer-sdk.yaml",
-      "microservices/developer-sdk/contracts/openapi/oya-ecosystem.yaml"
+      "marketplace/developer-sdk/contracts/openapi/developer-sdk.yaml",
+      "marketplace/developer-sdk/contracts/openapi/oya-ecosystem.yaml"
     ],
     "asyncapi": [
-      "microservices/developer-sdk/contracts/asyncapi/developer-sdk-events.yaml"
+      "marketplace/developer-sdk/contracts/asyncapi/developer-sdk-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -105,19 +105,19 @@
     {
       "tier": "T2",
       "name": "developer-onboard",
-      "file": "microservices/developer-sdk/capabilities/developer-onboard.yaml",
+      "file": "marketplace/developer-sdk/capabilities/developer-onboard.yaml",
       "risk_class": "limited"
     },
     {
       "tier": "T3",
       "name": "developer-payout-settle",
-      "file": "microservices/developer-sdk/capabilities/developer-payout-settle.yaml",
+      "file": "marketplace/developer-sdk/capabilities/developer-payout-settle.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "developer-sandbox-reset",
-      "file": "microservices/developer-sdk/capabilities/developer-sandbox-reset.yaml",
+      "file": "marketplace/developer-sdk/capabilities/developer-sandbox-reset.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -568,10 +568,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/developer-sdk/contracts/openapi/developer-sdk.yaml"
+        "2026-05-21": "marketplace/developer-sdk/contracts/openapi/developer-sdk.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/developer-sdk/contracts/asyncapi/developer-sdk-events.yaml"
+        "2026-05-21": "marketplace/developer-sdk/contracts/asyncapi/developer-sdk-events.yaml"
       }
     }
   },
