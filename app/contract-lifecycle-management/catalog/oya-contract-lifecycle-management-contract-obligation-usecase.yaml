@@ -6,13 +6,13 @@ bounded_context: contract-obligation
 layer: usecase
 layer_enum_authority: ADR-0105
 owners: [axis-contract-lifecycle-management]
-source_root: microservices/contract-lifecycle-management/src
+source_root: app/contract-lifecycle-management/src
 contracts:
-  openapi: microservices/contract-lifecycle-management/contracts/openapi-v1.yaml
-  asyncapi: microservices/contract-lifecycle-management/contracts/asyncapi-v1.yaml
-  proto: microservices/contract-lifecycle-management/contracts/contract-lifecycle-management-v1.proto
+  openapi: app/contract-lifecycle-management/contracts/openapi-v1.yaml
+  asyncapi: app/contract-lifecycle-management/contracts/asyncapi-v1.yaml
+  proto: app/contract-lifecycle-management/contracts/contract-lifecycle-management-v1.proto
 policy:
-  default_deny: microservices/contract-lifecycle-management/policy/contract-obligation-authorization.cedar
+  default_deny: app/contract-lifecycle-management/policy/contract-obligation-authorization.cedar
 compliance:
   marketplace_settlement: ADR-0314 DealSet
   transport: ADR-0253-amendment h3-h2-h1 strict tls13 ech pqc

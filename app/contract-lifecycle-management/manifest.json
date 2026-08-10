@@ -290,9 +290,9 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Contract lifecycle management is a first-party legal workflow app. It touches regulated tenant contract evidence but does not execute tenant code or own the shared key/audit substrate, so Tier 2 is the correct runtime tier.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/contract-lifecycle-management/PRD.md",
-    "microservices/contract-lifecycle-management/ARCHITECTURE.md",
-    "microservices/contract-lifecycle-management/IP-030-e-signature-provider-portability.md"
+    "app/contract-lifecycle-management/PRD.md",
+    "app/contract-lifecycle-management/ARCHITECTURE.md",
+    "app/contract-lifecycle-management/IP-030-e-signature-provider-portability.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -305,10 +305,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/contract-lifecycle-management/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/contract-lifecycle-management/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/contract-lifecycle-management/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/contract-lifecycle-management/contracts/asyncapi-v1.yaml"
       }
     }
   },

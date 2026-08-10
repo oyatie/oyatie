@@ -9,7 +9,7 @@ First-wave concern: contract state, clause controls, obligations, approvals, and
 Binding authorities: docs/standards/documentation-rigor.md sections 1.1, 1.2, 2, 3.2.1, 3.2.3, 3.2.5; ADR-0321; ADR-0131; ADR-0105; ADR-0253-amendment; ADR-0314.
 
 ## Scope and non-goals
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - scope-and-non-goals 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - scope-and-non-goals 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -21,7 +21,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - scope-and-non-goals 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Principals and tenant scope
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - principals-and-tenant-scope 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - principals-and-tenant-scope 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -33,7 +33,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - principals-and-tenant-scope 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Cedar gates and default deny
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - cedar-gates-and-default-deny 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - cedar-gates-and-default-deny 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -45,7 +45,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - cedar-gates-and-default-deny 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Data model and ontology projection
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - data-model-and-ontology-projection 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - data-model-and-ontology-projection 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -57,7 +57,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - data-model-and-ontology-projection 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Workflow and replay semantics
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - workflow-and-replay-semantics 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - workflow-and-replay-semantics 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -69,7 +69,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - workflow-and-replay-semantics 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Contracts and versioning
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - contracts-and-versioning 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - contracts-and-versioning 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -81,7 +81,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - contracts-and-versioning 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Transport and cryptography
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - transport-and-cryptography 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - transport-and-cryptography 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -93,7 +93,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - transport-and-cryptography 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Abuse defence and emergency bypass
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - abuse-defence-and-emergency-bypass 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - abuse-defence-and-emergency-bypass 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -105,7 +105,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - abuse-defence-and-emergency-bypass 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Marketplace settlement binding
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - marketplace-settlement-binding 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - marketplace-settlement-binding 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -117,7 +117,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - marketplace-settlement-binding 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Observability and audit events
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - observability-and-audit-events 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - observability-and-audit-events 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -129,7 +129,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - observability-and-audit-events 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Capacity and cost controls
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - capacity-and-cost-controls 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - capacity-and-cost-controls 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -141,7 +141,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - capacity-and-cost-controls 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Failure modes and rollback
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - failure-modes-and-rollback 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - failure-modes-and-rollback 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -153,7 +153,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - failure-modes-and-rollback 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Regional packs and residency
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - regional-packs-and-residency 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - regional-packs-and-residency 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.
@@ -165,7 +165,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - regional-packs-and-residency 008: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=renewal_risk, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against LinkSquares plus Agiloft.
 
 ## Acceptance evidence
-The contract-lifecycle-management entrypoint surface is owned inside microservices/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contract-lifecycle-management entrypoint surface is owned inside app/contract-lifecycle-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - acceptance-evidence 001: Contract Lifecycle Management binds contract-draft-create to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=contract_record, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Ironclad plus Conga CLM.
 - acceptance-evidence 002: Contract Lifecycle Management binds clause-policy-evaluate to tenant_id, principal_id, audience_type=LEGAL_OPERATIONS_OWNER, data_class=clause_control, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Conga CLM plus LinkSquares.

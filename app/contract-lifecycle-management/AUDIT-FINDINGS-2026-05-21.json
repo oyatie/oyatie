@@ -7,7 +7,7 @@
     {
       "id": "contract-lifecycle-management-doc-set-001",
       "status": "closed-by-additive-artifacts",
-      "evidence": "microservices/contract-lifecycle-management/",
+      "evidence": "app/contract-lifecycle-management/",
       "target_artifacts": 100
     },
     {
