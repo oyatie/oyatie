@@ -1222,6 +1222,9 @@ fn the_shipped_pack_wires_the_k8s_port_census_scan_roots_to_their_gate() {
     for path in [
         "os/core/kubelet-domain/src/spec.rs",
         "k8s/ports/anything/src/lib.rs",
+        // Manifest-only leaf add/delete must still select the leaf census gate.
+        "os/ports/kernel-abi/Cargo.toml",
+        "k8s/core/cluster-lifecycle-kernel/Cargo.toml",
     ] {
         let plan = plan_changes(&[Change::Present(path.into())], &p);
         let decision = resolve(&plan, &owners(&[(path, &["root//some/owner:target"])]), &p);

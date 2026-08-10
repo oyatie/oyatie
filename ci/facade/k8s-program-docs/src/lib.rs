@@ -30,6 +30,26 @@ const OS_ROOT: &str = "os";
 /// drift in either direction. Hand-writing upstream Kubernetes wire surface is what ADR-0704
 /// charters as generated, so growth here is the defect and an unrecorded shrink is a lie.
 pub const UPSTREAM_EMIT_SITE_CEILING: usize = 16;
+/// INV-3 emit-site identities (`relpath\tapiVersion`) pinned by multiset equality.
+/// A swap that keeps the count at 16 still changes this list.
+const FROZEN_UPSTREAM_EMIT_IDENTITIES: &[&str] = &[
+    "os/core/k8s-control-domain/src/admission.rs\tapiserver.config.k8s.io/v1",
+    "os/core/k8s-control-domain/src/admission.rs\tapiserver.config.k8s.io/v1",
+    "os/core/k8s-control-domain/src/admission.rs\taudit.k8s.io/v1",
+    "os/core/k8s-control-domain/src/admission.rs\tpod-security.admission.config.k8s.io/v1",
+    "os/core/k8s-control-domain/src/manifest_controller.rs\tv1",
+    "os/core/k8s-control-domain/src/static_pod_controller.rs\tv1",
+    "os/core/kubelet-domain/src/spec.rs\tkubelet.config.k8s.io/v1beta1",
+    "os/core/kubernetes-domain/src/kubeconfig.rs\tv1",
+    "os/core/kubernetes-domain/src/static_pod.rs\tv1",
+    "os/core/kubernetes-domain/src/templates.rs\tapps/v1",
+    "os/core/kubernetes-domain/src/templates.rs\tapps/v1",
+    "os/core/kubernetes-domain/src/templates.rs\trbac.authorization.k8s.io/v1",
+    "os/core/kubernetes-domain/src/templates.rs\trbac.authorization.k8s.io/v1",
+    "os/core/kubernetes-domain/src/templates.rs\tv1",
+    "os/core/kubernetes-domain/src/templates.rs\tv1",
+    "os/core/kubernetes-domain/src/templates.rs\tv1",
+];
 /// W0 divergence row identities pinned by equality so a constant cumulative size
 /// cannot hide a swap. Retirements and additions update this pin in the same commit.
 const FROZEN_DIVERGENCE_ROW_IDS: &[&str] = &[
@@ -176,6 +196,8 @@ pub struct Corpus {
     pub prescription_count: usize,
     /// INV-3 observed value: upstream-Kubernetes `apiVersion:` emit sites across `os/**/*.rs`.
     pub upstream_emit_sites: usize,
+    /// Multiset of `relpath\tapiVersion` for each INV-3 emit line (sorted).
+    pub upstream_emit_identities: Vec<String>,
     /// Lines across the same scan whose `apiVersion` value is BUILT AT RUNTIME. The value is not in
     /// the source, so no grammar-aware read can classify it either — the ratchet fails closed on it
     /// rather than counting it as absent, which is the exact hole the equality freeze exists to
@@ -198,7 +220,7 @@ pub struct Corpus {
 /// `specs/k8s-port/divergence-ledger.json` read as DATA: both budget knobs come from the file, so
 /// what the declaration says is what the gate enforces. Hardcoding the budget would leave the knobs
 /// inert, which is the defect this reader exists to fix.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct DivergenceLedger {
     pub rows: usize,
     pub baseline_seed_count: usize,
@@ -311,6 +333,22 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             &format!(
                 "{} upstream-Kubernetes apiVersion emit sites across {} Rust files does not equal the frozen census of {}; the surface is chartered as generated, so growth means consume the seam instead of hand-writing it, and a retirement must lower this constant in the same commit",
                 corpus.upstream_emit_sites, corpus.os_rust_files, UPSTREAM_EMIT_SITE_CEILING
+            ),
+        ));
+    }
+    let frozen_identities: Vec<&str> = FROZEN_UPSTREAM_EMIT_IDENTITIES.to_vec();
+    let observed_identities: Vec<&str> = corpus
+        .upstream_emit_identities
+        .iter()
+        .map(String::as_str)
+        .collect();
+    if observed_identities != frozen_identities {
+        findings.push(finding(
+            FindingCode::UpstreamKubernetesSurfaceGrowth,
+            OS_ROOT,
+            &format!(
+                "upstream emit-site identity multiset does not equal the frozen pin (observed {:?}, frozen {:?}); a swap that preserves the count of {} still changes membership — update the pin in the same commit",
+                observed_identities, frozen_identities, UPSTREAM_EMIT_SITE_CEILING
             ),
         ));
     }
@@ -456,6 +494,7 @@ fn load_repository_inner(repo_root: &Path) -> Result<Corpus, LoadError> {
         doctrine,
         prescription_count,
         upstream_emit_sites: scan.upstream_emit_sites,
+        upstream_emit_identities: scan.upstream_emit_identities,
         dynamic_api_version_sites: scan.dynamic_api_version_sites,
         os_rust_files: scan.os_rust_files,
         crate_leaves,
@@ -641,9 +680,10 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
 }
 
 /// What one pass over `os/**/*.rs` observed.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 struct OsScan {
     upstream_emit_sites: usize,
+    upstream_emit_identities: Vec<String>,
     dynamic_api_version_sites: usize,
     os_rust_files: usize,
 }
@@ -658,11 +698,21 @@ fn scan_os_upstream_emit_sites(repo_root: &Path) -> Result<OsScan, LoadError> {
     for path in collect_files(&root, "R-DOC-OS-TREE-UNREADABLE")? {
         if path.extension().is_some_and(|extension| extension == "rs") {
             let contents = read_utf8(&path, "R-DOC-OS-SOURCE-UNREADABLE")?;
+            let rel = path
+                .strip_prefix(repo_root)
+                .unwrap_or(path.as_path())
+                .to_string_lossy()
+                .into_owned();
+            for value in upstream_emit_identity_values(&contents) {
+                scan.upstream_emit_identities
+                    .push(format!("{rel}\t{value}"));
+            }
             scan.upstream_emit_sites += upstream_emit_sites(&contents);
             scan.dynamic_api_version_sites += dynamic_api_version_sites(&contents);
             scan.os_rust_files += 1;
         }
     }
+    scan.upstream_emit_identities.sort();
     if scan.os_rust_files == 0 {
         return Err(load_error(
             "R-DOC-OS-TREE-EMPTY",
@@ -684,6 +734,21 @@ fn scan_os_upstream_emit_sites(repo_root: &Path) -> Result<OsScan, LoadError> {
 /// case this closes; closing them needs a Rust tokenizer, which no line census is worth.
 fn is_scannable_line(line: &str) -> bool {
     !line.trim_start().starts_with("//")
+}
+
+
+/// One apiVersion value per INV-3 emit line (same filter as [`upstream_emit_sites`]).
+fn upstream_emit_identity_values(contents: &str) -> Vec<String> {
+    contents
+        .lines()
+        .filter(|line| is_scannable_line(line) && emits_upstream_group(line))
+        .filter_map(|line| {
+            api_version_values(line)
+                .into_iter()
+                .find(|value| is_upstream_api_version(value))
+                .map(str::to_owned)
+        })
+        .collect()
 }
 
 /// Number of lines emitting an upstream-Kubernetes `apiVersion:`.
@@ -1357,6 +1422,10 @@ mod tests {
             }],
             doctrine: Vec::new(),
             prescription_count: 1,
+            upstream_emit_identities: FROZEN_UPSTREAM_EMIT_IDENTITIES
+                .iter()
+                .map(|identity| (*identity).to_owned())
+                .collect(),
             upstream_emit_sites: UPSTREAM_EMIT_SITE_CEILING,
             dynamic_api_version_sites: 0,
             os_rust_files: 373,
@@ -1378,7 +1447,10 @@ mod tests {
                 rows: 7,
                 baseline_seed_count: 5,
                 max_new_rows_per_wave: 2,
-                            row_ids: Vec::new(),
+                row_ids: FROZEN_DIVERGENCE_ROW_IDS
+                    .iter()
+                    .map(|id| (*id).to_owned())
+                    .collect(),
             },
         }
     }
@@ -1513,14 +1585,17 @@ mod tests {
     fn true_zero_document_scan_is_red_and_counters_are_distinct() {
         let evaluation = evaluate(&Corpus::default());
         assert_eq!(evaluation.counters.scanned_population, 0);
-        // Two, not one: a default corpus scanned nothing AND reports zero emit sites, and zero is
-        // no longer under a ceiling — it is a drift from the frozen census of 16. Both are red,
-        // which is the point of freezing at equality.
-        assert_eq!(evaluation.counters.finding_count, 2);
+        // Default corpus is red on four independent equality pins: empty documents, emit-site
+        // count, emit-site identity multiset, and divergence row-id pin.
+        assert_eq!(evaluation.counters.finding_count, 4);
         assert!(has_code(&evaluation, FindingCode::EmptyProgramCorpus));
         assert!(has_code(
             &evaluation,
             FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+        assert!(has_code(
+            &evaluation,
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded
         ));
     }
 
@@ -1676,6 +1751,13 @@ mod tests {
             0
         );
         assert_eq!(dynamic_api_version_sites("// apiVersion: {group}/v1\n"), 0);
+        // Split emission: key without same-line value.
+        assert_eq!(
+            dynamic_api_version_sites("        out.push_str(\"apiVersion: \");\n"),
+            1
+        );
+        // Bare identifier is not an emission.
+        assert_eq!(dynamic_api_version_sites("let field = \"apiVersion\";\n"), 0);
 
         let mut corpus = live_fixture();
         assert!(!has_code(
