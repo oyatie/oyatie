@@ -290,7 +290,7 @@
         "contrarian: hyperscaler prefixes name the *vendor SDK surface*; inside an owned monorepo the capability/role IS the namespace",
         "essentialism_yagni: directory + capability-registry already disambiguate",
         "systems_thinking: brand prefix couples every rename to product marketing and freezes dual vocabulary (ci/facade/baseline-ratchet vs oya-cloud-ci-firewall-*)",
-        "red_team: brand residue gates already fight foundry/oya-vcs \u2014 encoding oya- as required greenfield law fights the de-brand north star",
+        "red_team: brand residue gates already fight retired brand stems \u2014 encoding oya- as required greenfield law fights the de-brand north star",
         "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag \u2014 taxonomy makes lag debt, not law"
       ],
       "chestertons_fence": "ADR-0017 / crate-naming-convention required oya- for workspace uniqueness mirroring aws-/google-cloud- prefix shapes.",
