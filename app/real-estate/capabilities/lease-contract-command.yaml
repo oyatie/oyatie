@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-REAL_ESTATE-LEASE_CONTRACT-COMMAND
 policy_fragments:
-  - microservices/real-estate/policy/lease-contract-authorization.cedar
+  - app/real-estate/policy/lease-contract-authorization.cedar
 benchmarks:
   - "SAP RE-FX Flexible Real Estate Management"
   - "Oracle Fusion Lease Accounting"

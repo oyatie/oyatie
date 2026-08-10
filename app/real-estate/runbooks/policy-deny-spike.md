@@ -56,8 +56,8 @@ Create an evidence record, attach dashboard snapshots, update this runbook if a 
 
 ## G. References
 - docs/standards/documentation-rigor.md
-- microservices/real-estate/failure-modes.md
-- microservices/real-estate/incident-response.md
+- app/real-estate/failure-modes.md
+- app/real-estate/incident-response.md
 - SAP RE-FX Flexible Real Estate Management | Oracle Fusion Lease Accounting | Workday Lease Accounting | NetSuite Fixed Assets and lease-accounting counterpart | Microsoft Dynamics 365 Finance Lease Accounting
 - Runbook detail 001: policy-deny-spike for Real Estate.rent-schedule preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
 - Runbook detail 002: policy-deny-spike for Real Estate.rent-schedule preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
