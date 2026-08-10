@@ -56,8 +56,8 @@ Create an evidence record, attach dashboard snapshots, update this runbook if a 
 
 ## G. References
 - docs/standards/documentation-rigor.md
-- microservices/plant-maintenance/failure-modes.md
-- microservices/plant-maintenance/incident-response.md
+- app/plant-maintenance/failure-modes.md
+- app/plant-maintenance/incident-response.md
 - SAP PM Plant Maintenance | Oracle Fusion Maintenance | Workday Extend asset-maintenance workflow counterpart | NetSuite Fixed Assets and Field Service counterpart | Microsoft Dynamics 365 Asset Management
 - Runbook detail 001: marketplace-settlement-blocked for Plant Maintenance.downtime-window preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
 - Runbook detail 002: marketplace-settlement-blocked for Plant Maintenance.downtime-window preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.

@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-PLANT_MAINTENANCE-MAINTENANCE_PLAN-RECONCILE
 policy_fragments:
-  - microservices/plant-maintenance/policy/maintenance-plan-authorization.cedar
+  - app/plant-maintenance/policy/maintenance-plan-authorization.cedar
 benchmarks:
   - "SAP PM Plant Maintenance"
   - "Oracle Fusion Maintenance"

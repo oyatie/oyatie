@@ -350,10 +350,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/plant-maintenance/ARCHITECTURE.md",
-    "microservices/plant-maintenance/IP-016-safety-loto-9-state-machine-with-audit-chain.md",
-    "microservices/plant-maintenance/IP-017-permit-to-work-issuance-workflow.md",
-    "microservices/plant-maintenance/IP-020-condition-based-maintenance-iot-signal-ingestion.md"
+    "app/plant-maintenance/ARCHITECTURE.md",
+    "app/plant-maintenance/IP-016-safety-loto-9-state-machine-with-audit-chain.md",
+    "app/plant-maintenance/IP-017-permit-to-work-issuance-workflow.md",
+    "app/plant-maintenance/IP-020-condition-based-maintenance-iot-signal-ingestion.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -366,10 +366,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/plant-maintenance/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/plant-maintenance/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/plant-maintenance/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/plant-maintenance/contracts/asyncapi-v1.yaml"
       }
     }
   },

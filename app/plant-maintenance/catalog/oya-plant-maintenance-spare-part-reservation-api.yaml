@@ -14,8 +14,8 @@ benchmarks:
   - "NetSuite Fixed Assets and Field Service counterpart"
   - "Microsoft Dynamics 365 Asset Management"
 contracts:
-  openapi: microservices/plant-maintenance/contracts/openapi-v1.yaml
-  asyncapi: microservices/plant-maintenance/contracts/asyncapi-v1.yaml
-  proto: microservices/plant-maintenance/contracts/plant-maintenance-v1.proto
-policy_fragment: microservices/plant-maintenance/policy/spare-part-reservation-authorization.cedar
+  openapi: app/plant-maintenance/contracts/openapi-v1.yaml
+  asyncapi: app/plant-maintenance/contracts/asyncapi-v1.yaml
+  proto: app/plant-maintenance/contracts/plant-maintenance-v1.proto
+policy_fragment: app/plant-maintenance/policy/spare-part-reservation-authorization.cedar
 settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314
