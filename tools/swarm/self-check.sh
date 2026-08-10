@@ -40,8 +40,8 @@ need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
 missing_inv = [x for x in need_inv if x not in inv]
 if missing_inv:
     raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
-if e.get("_meta", {}).get("version") != "1.16.5":
-    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.5")
+if e.get("_meta", {}).get("version") != "1.16.6":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.6")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
@@ -75,6 +75,27 @@ for rail in ("oya/itsm/", "oya/sheets/", "oya/translate/", "oya/sites/"):
     pr = (nb.get("product_rails") or {}).get(rail) or {}
     if not pr.get("destination_integ") or not pr.get("shrink_source_integ"):
         raise SystemExit(f"northstar_baseline.product_rails missing two-phase fields for {rail}")
+# rule 3d OVERRULE: multi-month products own integ/<product>, not integ/app
+want3d = {
+    "oya/translate/": "integ/translate",
+    "oya/sites/": "integ/sites",
+    "oya/docs/": "integ/app-docs",
+    "oya/hr/": "integ/hr",
+    "oya/payroll/": "integ/payroll",
+    "oya/workplace-integration/": "integ/workplace-integration",
+    "oya/incident-management/": "integ/incident-management",
+}
+for rail, want in want3d.items():
+    pr = (nb.get("product_rails") or {}).get(rail) or {}
+    got = pr.get("destination_integ")
+    if got != want:
+        raise SystemExit(f"rule3d {rail} destination_integ={got!r} want {want!r}")
+    root_key = "app-docs" if rail == "oya/docs/" else rail[len("oya/"):-1]
+    root = e.get("roots", {}).get(root_key) or {}
+    if root.get("branch") != want:
+        raise SystemExit(f"roots.{root_key}.branch={root.get('branch')!r} want {want!r}")
+if (e.get("roots", {}).get("app") or {}).get("branch") != "integ/app":
+    raise SystemExit("roots.app must remain integ/app composition glue")
 print("ok")
 PY
 if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift INV-DOC-1…9 + merge_windows + holes + root-ops process_meta + HANDOFF"; fi
