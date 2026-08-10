@@ -222,6 +222,30 @@ impl InMemoryKernelNet {
     }
 }
 
+/// Collapse default-route destination spellings the way the Linux FIB does:
+/// `None` and `Some([0,0,0,0])` at `prefix_len = 0` are one key.
+fn normalize_ipv4_route_destination(
+    destination: Option<[u8; 4]>,
+    prefix_len: u8,
+) -> Option<[u8; 4]> {
+    if prefix_len == 0 {
+        return None;
+    }
+    destination
+}
+
+/// The FIB identity Linux uses for duplicate detection under
+/// `NLM_F_CREATE | NLM_F_EXCL` — origin is provenance, not part of the key.
+fn ipv4_route_fib_key(route: &FakeRoute) -> (&str, Option<[u8; 4]>, u8, Option<[u8; 4]>, u32) {
+    (
+        route.iface.as_str(),
+        normalize_ipv4_route_destination(route.destination, route.prefix_len),
+        route.prefix_len,
+        route.gateway,
+        route.metric,
+    )
+}
+
 /// Format an IPv4 address plus prefix the way the kernel read-back path does,
 /// rejecting first what `LinuxNet::add_ipv4` rejects before it reaches netlink.
 ///
@@ -357,6 +381,11 @@ impl KernelNet for InMemoryKernelNet {
         check_ipv4_route_shape(destination, prefix_len)?;
         // A route needs its outgoing link to exist, exactly as rtnetlink does.
         self.mutate(iface, |_| ())?;
+        // Linux FIB identity collapses default-route spellings (`destination =
+        // None` vs `Some([0,0,0,0])` at prefix 0) and does not key on origin —
+        // `NLM_F_CREATE | NLM_F_EXCL` returns EEXIST for either. Compare the
+        // normalized key, not the whole `FakeRoute`.
+        let destination = normalize_ipv4_route_destination(destination, prefix_len);
         let route = FakeRoute {
             iface: iface.to_string(),
             destination,
@@ -366,7 +395,8 @@ impl KernelNet for InMemoryKernelNet {
             origin,
         };
         let mut routes = self.routes.borrow_mut();
-        if routes.contains(&route) {
+        if routes.iter().any(|existing| ipv4_route_fib_key(existing) == ipv4_route_fib_key(&route))
+        {
             return Err(already_exists("route", iface, "already installed"));
         }
         routes.push(route);
@@ -550,6 +580,38 @@ mod tests {
         )
         .unwrap();
         assert_eq!(net.routes().len(), 2);
+    }
+
+    #[test]
+    fn equivalent_default_route_spellings_are_one_fib_entry() {
+        // Linux resolves `destination = None, prefix_len = 0` and
+        // `destination = Some([0,0,0,0]), prefix_len = 0` to the same default
+        // route; a second install (even with a different origin) returns EEXIST.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+        net.add_ipv4_route(
+            "eth0",
+            None,
+            0,
+            Some([10, 0, 0, 1]),
+            1024,
+            RouteOrigin::Dhcp,
+        )
+        .unwrap();
+        assert_eq!(
+            net.add_ipv4_route(
+                "eth0",
+                Some([0, 0, 0, 0]),
+                0,
+                Some([10, 0, 0, 1]),
+                1024,
+                RouteOrigin::Boot,
+            )
+            .unwrap_err()
+            .kind(),
+            "invalid_state"
+        );
+        assert_eq!(net.routes().len(), 1);
+        assert_eq!(net.routes()[0].destination, None);
     }
 
     #[test]
