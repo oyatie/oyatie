@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.7",
+    "version": "1.16.8",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
-    "prior_version": "1.16.6"
+    "prior_version": "1.16.8"
   },
   "admission": {
     "trunk": "dev",
@@ -2460,7 +2460,10 @@
           "evidence/reorg/rr-oya-orphan-scaffold-batch1-20260806.json disposition=defer forever app/calendar",
           "peer payments row: identical zero-crate scaffold → reorg_now app/payments/",
           "scout 6544bb51 scaffold-vs-dump: calendar OVERRULE; governance KEEP delete"
-        ]
+        ],
+        "shrink_source_integ": "integ/oya",
+        "land_status": "ready_for_integ_calendar",
+        "land_when": "After this judgment: integ/calendar absorbs oya/calendar/** → app/calendar/** (destination-owned rule 3e); do NOT undelete on integ/oya first; Phase 2 shrink-only delete oya/calendar/** on integ/oya after absorb verify; hub retargets only on tip-free integ/specs — not this judgment commit"
       },
       {
         "path": "oya/governance/",
@@ -2899,6 +2902,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/contract-lifecycle-management + shrink integ/oya",
+          "systems_thinking: integ/contract-lifecycle-management forward-declared envelope owns app/contract-lifecycle-management/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
         ],
@@ -2931,6 +2935,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/global-trade + shrink integ/oya",
+          "systems_thinking: integ/global-trade forward-declared envelope owns app/global-trade/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
         ],
@@ -2963,6 +2968,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/plant-maintenance + shrink integ/oya",
+          "systems_thinking: integ/plant-maintenance forward-declared envelope owns app/plant-maintenance/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
         ],
@@ -2995,6 +3001,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/quality-management + shrink integ/oya",
+          "systems_thinking: integ/quality-management forward-declared envelope owns app/quality-management/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
         ],
@@ -3027,6 +3034,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/real-estate + shrink integ/oya",
+          "systems_thinking: integ/real-estate forward-declared envelope owns app/real-estate/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
         ],
@@ -3059,6 +3067,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/supply-chain-planning + shrink integ/oya",
+          "systems_thinking: integ/supply-chain-planning forward-declared envelope owns app/supply-chain-planning/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration",
           "socratic: is supply-chain-planning a data/warehouse capability? No — app product per registry; data/warehouse is substrate"
@@ -3092,6 +3101,7 @@
           "chestertons_fence: payments/billing adjacency is money surface — treasury remains separate app product (cash position) not payments absorb",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/treasury + shrink integ/oya",
+          "systems_thinking: integ/treasury forward-declared envelope owns app/treasury/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
         ],
@@ -3124,6 +3134,7 @@
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
           "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/warehouse + shrink integ/oya",
+          "systems_thinking: integ/warehouse forward-declared envelope owns app/warehouse/**; integ/app stays composition glue only (rule 3d OVERRULE — batch-1d must NOT absorb onto integ/app)",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration",
           "socratic: is warehouse the data capability warehouse? No — app/warehouse product vs data/data-warehouse substrate spelling collision"
@@ -4273,6 +4284,18 @@
         "two_phase_note": "Phase 1: integ/payments absorb oya/payments/** → app/payments/**; Phase 2: integ/oya shrink-only delete"
       },
       {
+        "id": "W-oya-leaf-calendar",
+        "path": "oya/calendar/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/calendar",
+        "land_status": "ready_for_integ_calendar",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_overrule_1_16_8",
+        "two_phase_note": "Phase 1: integ/calendar absorb oya/calendar/** → app/calendar/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
         "id": "W-oya-leaf-office",
         "path": "oya/office/",
         "judgment_status": "done",
@@ -4444,9 +4467,10 @@
         ],
         "product_destinations": {
           "oya/calendar/": {
-            "action": "delete_permanently",
-            "destination_integ": "integ/oya",
-            "land_status": "ready_for_integ_oya"
+            "action": "reorg_now",
+            "destination_integ": "integ/calendar",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_calendar"
           },
           "oya/governance/": {
             "action": "delete_permanently",
