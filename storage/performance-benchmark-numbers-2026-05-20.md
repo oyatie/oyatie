@@ -9,13 +9,13 @@ Methodology disclosure: every Oyatie number in this document is a target or plan
 1. Canonical sequence: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-2214`, `:2241-2494`, `:3441-3754`, and `:3756-4146`.
 2. Machine-readable direction: `specs/master-plan-sequencing.json:704-867`.
 3. Service PRD citation: service-local `PRD.md` is absent; substitute purpose evidence is `docs/decisions/ADR-0702-identity-authz-live-apex.md:8-11` and root cloud PRD `docs/products/cloud/PRD.md:1587-1665`.
-4. Service architecture citation: service-local `ARCHITECTURE.md` is absent; substitute architecture evidence is `microservices/cloud-storage/faqs/storage-engineer-faq.md:15-22` and root crate map `docs/products/cloud/PRD.md:131-137`.
+4. Service architecture citation: service-local `ARCHITECTURE.md` is absent; substitute architecture evidence is `storage/faqs/storage-engineer-faq.md:15-22` and root crate map `docs/products/cloud/PRD.md:131-137`.
 5. Documentation-rigor citation: `docs/standards/documentation-rigor.md:62-81` and `docs/standards/documentation-rigor.md:133-156`.
 
 ## Source Notes
 
-Local benchmark file claims measurements at `microservices/cloud-storage/benchmarks/cloud-storage-vs-s3-vs-gcs-vs-azure-blob-vs-r2-vs-minio.md:3-5`.
-Local benchmark file cites reproducibility path at `microservices/cloud-storage/benchmarks/cloud-storage-vs-s3-vs-gcs-vs-azure-blob-vs-r2-vs-minio.md:124-133`.
+Local benchmark file claims measurements at `storage/benchmarks/cloud-storage-vs-s3-vs-gcs-vs-azure-blob-vs-r2-vs-minio.md:3-5`.
+Local benchmark file cites reproducibility path at `storage/benchmarks/cloud-storage-vs-s3-vs-gcs-vs-azure-blob-vs-r2-vs-minio.md:124-133`.
 The referenced `.foundry/evidence/benchmarks/cloud-storage/2026-05-13T22:14:42Z` directory was not present during this audit.
 Therefore all reused local values are treated as target or unverified claimed values.
 AWS request-rate source: official AWS S3 overview at `https://aws.amazon.com/documentation-overview/s3/`.

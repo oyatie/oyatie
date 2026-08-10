@@ -17,9 +17,9 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-storage/manifest.json
-  - microservices/cloud-storage/PRD.md
-  - microservices/cloud-storage/README.md
+  - storage/manifest.json
+  - storage/PRD.md
+  - storage/README.md
 ---
 
 # Architecture: Cloud Storage

@@ -33,7 +33,7 @@ doc_status: drafted
 
 - Target: RTO ≤3600s and RPO ≤300s for bucket/object metadata, lifecycle state, replication intent, KMS binding metadata, and restore queues, matching manifest `dr.rto_p99_seconds=3600` and `dr.rpo_p99_seconds=300`.
 - Compliance-pack floors considered: EU-AI-ACT-2024-HIGH-RISK (1800s/300s, multi-region), HIPAA-2024 (3600s/300s, multi-region), KR-CSAP-v3.1 (3600s/900s, multi-region), SOC2-T2 (14400s/900s), PCI-DSS-L1-v4 (86400s/3600s), ISO27001-2022/SOX-404 (14400s/3600s), and KR-PIPA-2023-amendment (14400s/900s). Effective target is RTO 3600s, RPO 300s, multi-region for regulated buckets.
-- Failover runbook: `microservices/cloud-storage/runbooks/storage-replication-failover.md`, matching manifest `dr.failover_runbook`; migration cutover remains documented in `microservices/cloud-storage/migration-playbooks/from-s3-and-azure-blob.md`.
+- Failover runbook: `storage/runbooks/storage-replication-failover.md`, matching manifest `dr.failover_runbook`; migration cutover remains documented in `storage/migration-playbooks/from-s3-and-azure-blob.md`.
 - Multi-region active-active: yes for metadata/control-plane intent and regulated-bucket replication policy; object data locality follows tenant pack and bucket residency constraints.
 - WHY: tenants can preserve object durability, retention evidence, and restore ability through region loss without violating pack residency or object-lock guarantees.
 
