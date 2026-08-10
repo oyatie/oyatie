@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
-# W0-B Slice 7 — hash + rulepack v0 wired. No Cargo.lock absorb this tip.
+# W0-B Slice 8 — snapshot admission wired. No Cargo.lock absorb this tip.
 
 [[bin]]
 name = "port-engine-app"
@@ -21,6 +21,7 @@ port-engine-source-pin = { path = "../../adapters/port-engine-source-pin" }
 port-engine-frontend-go = { path = "../../adapters/port-engine-frontend-go" }
 port-engine-hash = { path = "../../adapters/port-engine-hash" }
 port-engine-rulepack = { path = "../../adapters/port-engine-rulepack" }
+port-engine-snapshot = { path = "../../adapters/port-engine-snapshot" }
 
 [lib]
 name = "port_engine_app"
