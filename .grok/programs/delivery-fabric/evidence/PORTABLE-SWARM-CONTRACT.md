@@ -188,19 +188,19 @@ Mirror of ADR-0711 Amendment A. Obey these as Swarm Delivery Law.
    new generators.
 
 
-### Amendment B (2026-08-10) — REORG NOW (ternary)
+### Amendment B (2026-08-10) — REORG NOW (evaluated ternary)
 
-Mirror of ADR-0711 Amendment B. Obey as Swarm Delivery Law.
+Mirror of ADR-0711 Amendment B.
 
-1. **Greenfield question = placement law.** For every root/subdir: if greenfield hyperscaler
-   clean-arch, where does this belong and in what shape? That answer wins.
-2. **Ternary only:** `reorg_now` | `keep_forever` | `delete_permanently`. No gradual / eventually /
-   strangler-freeze-as-home / dual-home-forever. `libs/`, `cloud/`, `oya/`, `infra/`,
-   `toolchains/`, `tools/` are **not** `keep_forever`.
-3. **Freeze prefixes** (`reorg_debt_freeze.prefixes`) = no NEW births while moves execute — not a
-   durable home. Claim refuses births unless bead contains `reorg-move-out` naming destination.
-4. **Prefer destination `integ/<root>`** for moves. Policy-as-data:
-   `specs/integ-branch-envelopes.json` → `reorg_debt_freeze` (rows + first_wave).
+1. **Greenfield question = placement law** — read the code; do not trust folder names.
+2. **Evaluation gate before any path change** — answer the 7 checklist items; record
+   `rationale` + `redesign` (`none|refactor|rewrite|delete`) + `judgment_status=done`.
+   **Forbidden:** git-mv-only, rename-only, move-now-fix-later, dual-home.
+3. **Ternary only after judgment:** `reorg_now` (redesign+land) | `keep_forever` |
+   `delete_permanently`. `libs/cloud/oya/infra/toolchains/tools` are not `keep_forever`.
+4. **Freeze prefixes** = no NEW births while redesign executes — not a durable home.
+5. **Claim/PR:** paste judgment; refuse path changes without `judgment_status=done`.
+   Prefer destination `integ/<root>`. Policy: `specs/integ-branch-envelopes.json#reorg_debt_freeze`.
 
 
 ## Auth preflight (carry-forward)

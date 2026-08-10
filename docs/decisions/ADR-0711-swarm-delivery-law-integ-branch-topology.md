@@ -34,7 +34,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D5
     description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
-    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; specs/integ-branch-envelopes.json#reorg_debt_freeze carries prefixes + classification + rows with ternary actions; deliver.js Claim rejects births under freeze/vacated prefixes unless bead marks reorg-move-out to greenfield_destination."
+    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
     verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
@@ -343,6 +343,33 @@ That answer **IS** placement law. Apply recursively (e.g. `docs/programs` vs `do
 `libs/`, `cloud/`, `oya/`, `infra/`, `toolchains/`, `tools/` are **NOT** `keep_forever` —
 they are `reorg_now` (or `delete_permanently` for empty residue).
 
+
+#### B-1a — Evaluation gate (mandatory before any path change)
+
+**Reorg is NOT a simple move.** `git mv` / rename-only waves are **forbidden**.
+
+Before every ternary action that changes paths, evaluate the unit (root or meaningful subtree)
+by **reading the code/docs** (do not trust folder names) and record short answers on the
+classification row (`rationale`, `redesign`, `judgment_status`):
+
+1. **What does it actually do?** Behavior, callers, contracts.
+2. **How is it written?** Clean-arch, dual-home, generated, layering, narration comments.
+3. **What is it trying to achieve?** North-star aligned?
+4. **Should it exist at all** in north-star system design?
+5. **System-design fit** — antipatterns / unwanted behavior?
+6. **Improve how?** `refactor` vs `rewrite` vs `delete` — mechanical move is insufficient when
+   shape/API/ownership is wrong. Disposition:
+   `keep-as-is` | `refactor-then-place` | `rewrite-into-durable-shape` | `delete-permanently`.
+7. **Where/why belong?** Greenfield ideal hyperscaler clean-arch shape.
+
+Only when `judgment_status=done` may a unit land as `reorg_now` (redesign+land at destination)
+or `delete_permanently`. Prefer rewrite/refactor into clean-architecture capability shape over
+preserving accidental structure. **No dual-home. No move-now-fix-later.**
+
+Row fields (policy-as-data): `action`, `destination`, `shape`, `rationale`, `redesign`
+(`none|refactor|rewrite|delete`), `judgment_status` (`pending|done`).
+
+
 #### B-2 — Freeze prefixes = no NEW births while moves execute
 
 Prefixes in `reorg_debt_freeze.prefixes` block **new path births** only while `reorg_now` /
@@ -469,12 +496,18 @@ Full machine-readable rows: `specs/integ-branch-envelopes.json#reorg_debt_freeze
 
 #### B-4 — Claim enforcement + destination integ preference
 
-`deliver.js` Claim MUST refuse new path births under freeze/vacated prefixes unless the bead
-marks `reorg-move-out` naming `greenfield_destination`. Prefer landing moves on the
-**destination** `integ/<root>` (Swarm Delivery Law). Envelope membership of a freeze source
-(`integ/libs`, `integ/cloud`, …) does **not** authorize births there.
+`deliver.js` Claim MUST:
 
-First-wave ordered backlog: `reorg_debt_freeze.first_wave` + beads under the reorg-now epic.
+1. Refuse **new path births** under freeze/vacated prefixes unless the bead marks
+   `reorg-move-out` naming `destination`, **and**
+2. Refuse **reorg path changes** (deletes/renames under classified units) unless the unit row
+   has `judgment_status=done` with `rationale` + `redesign` filled; PR body must paste the
+   7-point judgment.
+
+Prefer landing redesigns on the **destination** `integ/<root>`. Envelope membership of a freeze
+source does **not** authorize births or blind moves there.
+
+First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`), not path shuffles.
 ## Consequences
 
 ### Positive

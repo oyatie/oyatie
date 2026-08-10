@@ -1011,17 +1011,17 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
    is forbidden here — it belongs only in blessed restack/server-side-reset scripts.
 
 
-6. REORG NOW TERNARY (ADR-0711 Amendment B) — Load `reorg_debt_freeze` from `${ENVELOPES}`
-   (fallback: `reorg_target_debt_freeze.frozen_prefixes`). For every NEW birth
-   (`git diff --diff-filter=A --name-only` vs `${BASE}` / integ tip), if the path starts with
-   any `prefixes` / `no_new_births_while_reorg_prefixes` entry:
-     - ALLOW only if (a) unexpired `one_shot_exceptions` path_glob for this integ wave, OR
-       (b) claimed bead title/body contains `reorg-move-out` naming greenfield_destination.
-     - Otherwise REFUSE and name the path.
-   Prefer landing moves on the destination integ/<root>. Source freeze roots
-   (libs/cloud/oya/infra/toolchains/tools/…) are NOT keep_forever — births there are refused
-   even when the integ owns that envelope. After `#1644` lands, expire `tools/swarm/**` and
-   schedule reorg_now of tools/swarm → .grok/.
+6. REORG NOW + EVALUATION GATE (ADR-0711 Amendment B) — Load `reorg_debt_freeze` from
+   `${ENVELOPES}`.
+   A) NEW BIRTHS: for every `git diff --diff-filter=A` path under `prefixes` /
+      `no_new_births_while_reorg_prefixes`: ALLOW only if unexpired one_shot_exception OR bead
+      contains `reorg-move-out` naming destination; else REFUSE.
+   B) PATH CHANGES (diff-filter=D|R|AM under a classified unit path): ALLOW only if the unit
+      row has `judgment_status=done` with non-empty `rationale` and `redesign` in
+      {none,refactor,rewrite,delete}. REFUSE git-mv-only / rename-only waves and any change
+      when judgment is `pending`. PR body MUST paste the 7-point judgment.
+   Prefer destination integ/<root> for redesign lands. Freeze source ownership ≠ birth license.
+
 
 Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, and cherry-pick
 SHAs — or REFUSE with the concrete blocker.`,
