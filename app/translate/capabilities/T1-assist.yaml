@@ -1,0 +1,144 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:translate:t1-assist:v1
+name: translate-assist-suggest-qe-and-langdetect
+namespace: translate
+display_name: Translation-Suggest + Quality-Estimation + Auto-Detect-Language
+description: |
+  T1 assist capability: invoked by user action ("translate this segment with QE
+  scoring" / "auto-detect language and translate" / "show QE score for human
+  review"). Produces a primary translation candidate, a 0-100 quality estimate
+  (COMET-Kiwi-class), and a confidence-bound language detection result.
+  User retains final approval before any downstream artifact (TM commit,
+  workflow handoff) is created. Output is a draft the user can edit or discard.
+
+  EU AI Act CLASSIFICATION:
+    - translation-suggest:    Art. 50 transparency obligation (limited_risk)
+    - quality-estimation:     Art. 13 transparency-to-deployers + Art. 50
+                              (limited_risk; per ADR-TRANSLATE-0003 bounded)
+    - auto-detect-language:   Art. 50 transparency (minimal_risk)
+  Per-call disclosure record emitted on jurisdiction=EU invocations.
+
+owner_team: axis-translate + axis-foundry-runtime
+maturity: preview
+created_at: 2026-05-18
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003]
+related_artifacts:
+  - microservices/translate/PRD.md (FR-01, FR-03, FR-08)
+  - microservices/translate/contracts/openapi/translate.yaml
+  - microservices/translate/policy/ai-act-overlay.md
+  - microservices/translate/decisions/ADR-TRANSLATE-0003-quality-estimation-and-eu-ai-act-bounds.md
+
+autonomy_tier: T1
+# T1 = user-invoked, human-in-loop; no autonomous write to TM/termbase/workflow.
+
+inputs:
+  - name: segment_text
+    type: string
+    maxLength: 5000
+    required: true
+  - name: source_locale
+    type: string
+    pattern: '^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$'
+    required: false   # auto-detect when absent
+  - name: target_locale
+    type: string
+    pattern: '^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$'
+    required: true
+  - name: content_class
+    type: enum
+    values: [marketing, legal, medical, code_comment, ui_string, technical, generic]
+    required: true
+  - name: invoking_user_ref
+    type: string
+    required: true
+  - name: tenant_id
+    type: string
+    required: true
+  - name: pack
+    type: enum
+    values: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa, pack-cn-stub]
+    required: true
+
+outputs:
+  - name: translation
+    type: object
+    properties:
+      target_text: {type: string}
+      engine: {type: string, enum: [in-house, anthropic, openai, google-translate, deepl]}
+      tm_leverage: {type: string, enum: [exact, ice, fuzzy, none]}
+      content_hash: {type: string}
+  - name: quality_estimation
+    type: object
+    properties:
+      score: {type: number, minimum: 0, maximum: 100, description: "COMET-Kiwi-class bounded 0..100"}
+      confidence_interval: {type: array, items: {type: number}, minItems: 2, maxItems: 2}
+      qe_model_version: {type: string}
+      review_recommended: {type: boolean, description: true when score below tenant-configured threshold}
+  - name: language_detection
+    type: object
+    properties:
+      detected_bcp47: {type: string}
+      detected_iso_639_3: {type: string}
+      confidence: {type: number, minimum: 0, maximum: 1}
+      alternates:
+        type: array
+        items:
+          type: object
+          properties:
+            bcp47: {type: string}
+            confidence: {type: number}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+  - PHI  # pack-us-healthcare professional translations; disabled by default
+
+context_kind_constraint:
+  Tenant: server-side via tenant-DEK; tenant-admin entitlement required to enable
+  enforcement: oya-check-translate-tenant-isolation + Cedar permit
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa, pack-cn-stub]
+
+pack_overrides:
+  pack-us-healthcare:
+    requires: signed BAA + explicit per-channel opt-in
+    reason: HIPAA 45 CFR §164.502(b) — minimum necessary
+    forbidden_engines: [google-translate, deepl]
+    qe_disabled_for_phi: true  # COMET-Kiwi inference over PHI content forbidden absent BAA-covered endpoint
+  pack-eu:
+    risk_classification: limited_risk
+    transparency_obligation: must-label-as-AI-generated per Art. 50; must store evidence_topic record per Art. 13
+    art_13_disclosure_per_call: true
+    art_50_user_label: true
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin-opt-in required for cross-border engine
+  pack-cn-stub:
+    forbidden_engines_all_external: true
+    in_house_only: true
+
+evidence_topic: oya.translate.capability.t1_assist.evidence
+
+cost_profile:
+  type: per-invocation
+  estimated_cost_usd_per_call: 0.012
+  cost_drivers:
+    - LLM inference (medium open-weights MT + COMET-Kiwi QE)
+    - Language detection (FastText / LangID)
+    - TM leverage query (Meilisearch + Postgres)
+
+cedar_policy_fragments:
+  - microservices/translate/policy/translate-tenant-scope.cedar
+  - microservices/translate/policy/ai-act-overlay.md
+
+eval_set:
+  reference_inputs_path: microservices/translate/capabilities/eval/t1-assist-reference.jsonl
+  pass_threshold: 0.92
+  eval_metric: |
+    translation: BLEU + chrF++ + COMET on WMT-24 dev sets per (source, target) pair;
+    QE: Pearson correlation with human post-edit-distance on a 1000-segment held-out set;
+    language-detection: macro-F1 over BCP-47 tags, per ISO 639-3 mapping
+  cadence: per-release
+  reference: WMT-24 shared-task benchmarks + COMET-Kiwi + Unbabel TowerEval
+
+sunset:
+  status: none

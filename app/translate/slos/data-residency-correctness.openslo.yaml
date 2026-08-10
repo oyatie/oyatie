@@ -1,0 +1,64 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: translate-data-residency-correctness
+  displayName: "translate: data-residency invariant correctness (HARD; 100%)"
+  labels:
+    microservice: translate
+    bc: data-residency-bound-inference
+    sli_class: correctness
+    service_classification: hero-and-substrate
+    owner_team: axis-translate + council-privacy + ops-security
+    pack_scope: all
+    invariant: HARD
+    blocker: "true"
+spec:
+  description: |
+    Data-residency-correctness invariant SLO. A translation request is "good" when
+    the engine selected has `engine_region == tenant_pack_region` OR the tenant
+    has a valid `cross_border_consent_ref` on file at request time (per
+    ADR-TRANSLATE-0004). Any violation is a P0 incident (see runbooks/
+    sovereign-tenant-cross-region-leak-incident-p0.md).
+
+    Target: 100.0000 % (HARD invariant; not a budget — any violation triggers
+    immediate halt + regulator-notification chain).
+
+    Effective metric: `oya_translate_data_residency_violation_total == 0` over
+    every 1-minute window.
+
+    Covered statutes:
+      - GDPR Arts. 44-50 (cross-border)
+      - KR PIPA Art. 28 + 개인정보 국외이전
+      - APPI Art. 24
+      - DPDPA §16
+      - LGPD Art. 33
+      - UAE PDPL + KSA PDPL
+      - CN Cybersecurity Law + DSL + PIPL Arts. 38-43
+  service: translate
+  indicator:
+    metadata: {name: translate-data-residency-correctness}
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_translate_engine_routed_total{residency_compliant="true"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_translate_engine_routed_total[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      displayName: "30d rolling 100.0000 % residency-compliant routing (HARD)"
+  alertPolicies:
+    - alertPolicyRef: translate-data-residency-violation-p0

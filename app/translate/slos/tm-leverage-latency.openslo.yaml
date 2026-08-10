@@ -1,0 +1,42 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: translate-tm-leverage-latency
+  displayName: "translate: TM leverage-match latency p99"
+  labels:
+    microservice: translate
+    bc: translation-memory
+    sli_class: latency
+    service_classification: hero-and-substrate
+    owner_team: axis-translate
+    pack_scope: all
+spec:
+  description: |
+    Translation-memory leverage-match latency p99 SLO. A request is "good" when
+    `/tm-leverage` returns the best leverage candidate (exact / ICE / fuzzy) within
+    ≤ 80 ms p99 (Meilisearch + minhash-LSH per ADR-TRANSLATE-0002).
+    PRD §"Performance" FR-04.
+  service: translate
+  indicator:
+    metadata: {name: translate-tm-leverage-p99}
+    spec:
+      thresholdMetric:
+        metricSource:
+          type: Prometheus
+          spec:
+            query: |
+              histogram_quantile(0.99,
+                sum by (le) (rate(oya_translate_tm_leverage_duration_seconds_bucket[5m])))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Timeslices
+  objectives:
+    - target: 0.999
+      op: lte
+      value: 0.080
+      displayName: "30d rolling p99 ≤ 80 ms"
+  alertPolicies:
+    - alertPolicyRef: translate-tm-leverage-fast-burn-1h-14x
+    - alertPolicyRef: translate-tm-leverage-slow-burn-6h-6x
