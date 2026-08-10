@@ -9,7 +9,9 @@
 ## Completed (this rail)
 
 - Slice 1: product metadata absorb — `manifest.json`, `README.md`, `PRD.md`, `PHASE-01-PAYMENTS-MVP.md`, `slos/**`.
-- Slice 2: contracts + policy + capabilities + catalog + IPs + iac + dashboards + runbooks + scorecards + security + dpia + decisions (96 files total).
+- Slice 2: contracts + policy + capabilities + catalog + IPs + iac + dashboards + runbooks + scorecards + security + dpia + decisions.
+- Slice 3: IP journey markdown root files (6 files).
+- **Wave-1 complete:** 103 files in forever home (101 source ex-AUDIT + REORG-DRAIN + evidence).
 - Path cites rewritten `oya/payments` → `app/payments` inside forever home.
 - `AUDIT-FINDINGS-2026-05-20.json` excluded per judgment (delete_permanently).
 
