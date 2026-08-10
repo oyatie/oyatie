@@ -69,7 +69,7 @@ console/
 ## Quick links
 
 - Capability-root manifest: `manifest.json`
-- PRD / Architecture: deferred (`microservices/ops-dashboard-control-center/{PRD,ARCHITECTURE}.md` until in-tree homes land)
+- PRD / Architecture: deferred (`console/{PRD,ARCHITECTURE}.md` until in-tree homes land)
 - DPIA: `dpia/dpia.md`
 - Contracts: `contracts/openapi/`, `contracts/asyncapi/`, `contracts/proto/`
 - Cedar policy: `policy/cedar/`

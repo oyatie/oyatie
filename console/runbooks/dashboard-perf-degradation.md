@@ -8,7 +8,7 @@ related_adrs:
   - ADR-0253
   - ADR-0263
 companion_docs:
-  - microservices/ops-dashboard-control-center/incident-response.md
+  - console/runbooks/incident-command.md
   - console/slos/command-availability.openslo.yaml
   - microservices/ops-dashboard-control-center/capacity-model.md
   - console/runbooks/admin-action-rollback.md

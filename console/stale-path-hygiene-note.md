@@ -24,3 +24,16 @@ Do not invent missing IP/PRD/ARCHITECTURE homes; defer with this note.
 ## Deferred (missing legal homes or cross-capability)
 
 - (none — manifest slice complete)
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified:
+
+- `microservices/ops-dashboard-control-center/` → `console/`
+- `.../iac/` → `console/iac/`
+- `.../incident-response.md` → `console/runbooks/incident-command.md` (nearest verified runbook)
+
+### Deferred
+
+- Missing PRD/ARCHITECTURE/compliance.md/capacity-model.md dual-home docs
+- No hubs, no `Cargo.lock`, no merge.

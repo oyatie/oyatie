@@ -9,7 +9,7 @@ related_adrs:
   - ADR-0263
   - ADR-0294
 companion_docs:
-  - microservices/ops-dashboard-control-center/incident-response.md
+  - console/runbooks/incident-command.md
   - console/policy/cedar/pack-author-authorization.cedar
   - console/runbooks/forensic-investigation-handoff.md
 planned_enforcement_ref: oya-governance-microservice-doc-set
