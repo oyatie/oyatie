@@ -40,8 +40,8 @@ need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
 missing_inv = [x for x in need_inv if x not in inv]
 if missing_inv:
     raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
-if e.get("_meta", {}).get("version") != "1.16.10":
-    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.10")
+if e.get("_meta", {}).get("version") != "1.16.11":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.11")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
@@ -94,17 +94,13 @@ want3d = {
     "oya/global-trade/": "integ/global-trade",
     "oya/contract-lifecycle-management/": "integ/contract-lifecycle-management",
     "oya/social/": "integ/social",
-    "oya/healthcare-integration/": "integ/healthcare",
-    "oya/emr/": "integ/healthcare",
-    "oya/pharmacy/": "integ/healthcare",
-    "oya/patient-monitoring/": "integ/healthcare",
+    "oya/healthcare-integration/": "integ/healthcare-integration",
+    "oya/emr/": "integ/emr",
+    "oya/pharmacy/": "integ/pharmacy",
+    "oya/patient-monitoring/": "integ/patient-monitoring",
 }
 root_key_overrides = {
     "oya/docs/": "app-docs",
-    "oya/healthcare-integration/": "healthcare",
-    "oya/emr/": "healthcare",
-    "oya/pharmacy/": "healthcare",
-    "oya/patient-monitoring/": "healthcare",
 }
 for rail, want in want3d.items():
     pr = (nb.get("product_rails") or {}).get(rail) or {}
