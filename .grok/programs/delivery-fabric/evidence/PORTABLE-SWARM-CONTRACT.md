@@ -195,12 +195,28 @@ Mirror of ADR-0711 Amendment B.
 1. **Greenfield question = placement law** — read the code; do not trust folder names.
 2. **Evaluation gate before any path change** — answer the 7 checklist items; record
    `rationale` + `redesign` (`none|refactor|rewrite|delete`) + `judgment_status=done`.
-   **Forbidden:** git-mv-only, rename-only, move-now-fix-later, dual-home.
+   Also record `name_now` → `name_forever` (role-/topic-shaped). **Forbidden:** git-mv-only,
+   rename-only, move-now-fix-later, dual-home, keep misleading names for brand/history.
 3. **Ternary only after judgment:** `reorg_now` (redesign+land) | `keep_forever` |
    `delete_permanently`. `libs/cloud/oya/infra/toolchains/tools` are not `keep_forever`.
 4. **Freeze prefixes** = no NEW births while redesign executes — not a durable home.
 5. **Claim/PR:** paste judgment; refuse path changes without `judgment_status=done`.
    Prefer destination `integ/<root>`. Policy: `specs/integ-branch-envelopes.json#reorg_debt_freeze`.
+6. **Pattern-First Law (binding):** establish / follow `specs/naming-taxonomy.json` BEFORE mass
+   renames. Kinds + role-first grammar + mechanical classification rules are the pattern;
+   renames are instances. **Forbidden leading brand prefixes** on durable names: `oya-` /
+   `oya_` / `cloud-` / `cloud_`. **Forbidden:** ADR numbers as required path/filename segments
+   or inside CI job `name:` fields. Brand prefix alone ≠ `keep_forever`. Taxonomy **replaces**
+   indefensible prior naming (does not encode `oya-ci-required` / ADR-in-job-titles / brand
+   prefixes as forever grammar).
+7. **naming_sweep[]** on envelopes MUST cite taxonomy `kind` + `grammar_compliant` +
+   `name_forever`. Merge-gate contexts dual-emit legacy+forever in-repo until founder flips
+   branch protection — agents never edit protection settings.
+8. **Full 16-lens battery (binding):** every keep/replace/delete of an *existing* pattern runs
+   all ids in `.grok/harness/lenses.v1.json` — record `lenses_applied: all-16` and
+   `challenges[]` (Chesterton's fence: why it existed, then still replace if indefensible).
+   Never a subset. If not defensible under the full battery → delete or reshape; do not silently
+   follow anti-patterns.
 
 
 ## Auth preflight (carry-forward)
