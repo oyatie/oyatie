@@ -6,9 +6,9 @@ module "healthcare_integration_local_ops" {
   domain_object = "ClinicalExchange"
   event_topic = "healthcare-integration.local-ops.v1"
   primary_slo = "phi-delivery-latency"
-  policy_directory = "microservices/healthcare-integration/policies"
+  policy_directory = "app/healthcare-integration/policies"
   dashboards = [
-    "microservices/healthcare-integration/dashboards/local-slo-burn.json",
-    "microservices/healthcare-integration/dashboards/local-domain-throughput.json"
+    "app/healthcare-integration/dashboards/local-slo-burn.json",
+    "app/healthcare-integration/dashboards/local-domain-throughput.json"
   ]
 }

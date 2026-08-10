@@ -188,10 +188,10 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Healthcare Integration brokers FHIR, HL7, consent, break-glass, provider directory, and provenance workflows across tenant PHI boundaries. It does not execute tenant-customer code, but it is a tenant clinical interoperability data-plane service, so Tier 1 and Tier-2 cell placement are required.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/healthcare-integration/PRD.md",
-    "microservices/healthcare-integration/ARCHITECTURE.md",
-    "microservices/healthcare-integration/manifest.json",
-    "microservices/healthcare-integration/contracts/openapi-v1.yaml"
+    "app/healthcare-integration/PRD.md",
+    "app/healthcare-integration/ARCHITECTURE.md",
+    "app/healthcare-integration/manifest.json",
+    "app/healthcare-integration/contracts/openapi-v1.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

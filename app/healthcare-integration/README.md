@@ -13,7 +13,7 @@ Binding authorities: docs/standards/documentation-rigor.md sections 1.1, 1.2, 2,
 Healthcare Integration follows ADR-0330: `tenant_class` is `demo_trial` or `paid`, and paid contracts compose `billing_components` from `revenue_share`, `per_seat`, and `per_usage`. Clinical interoperability capabilities use `availability`, `compliance_pack`, and `cell_topology` gates rather than customer tenant_class models; demo_trial is cap-bounded, while paid is always-on subject to Cedar, PHI controls, and healthcare compliance packs.
 
 ## Scope and non-goals
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - scope-and-non-goals 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - scope-and-non-goals 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -25,7 +25,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - scope-and-non-goals 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Principals and tenant scope
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - principals-and-tenant-scope 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - principals-and-tenant-scope 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -37,7 +37,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - principals-and-tenant-scope 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Cedar gates and default deny
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - cedar-gates-and-default-deny 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - cedar-gates-and-default-deny 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -49,7 +49,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - cedar-gates-and-default-deny 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Data model and ontology projection
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - data-model-and-ontology-projection 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - data-model-and-ontology-projection 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -61,7 +61,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - data-model-and-ontology-projection 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Workflow and replay semantics
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - workflow-and-replay-semantics 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - workflow-and-replay-semantics 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -73,7 +73,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - workflow-and-replay-semantics 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Contracts and versioning
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - contracts-and-versioning 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - contracts-and-versioning 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -85,7 +85,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - contracts-and-versioning 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Transport and cryptography
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - transport-and-cryptography 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - transport-and-cryptography 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -97,7 +97,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - transport-and-cryptography 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Abuse defence and emergency bypass
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - abuse-defence-and-emergency-bypass 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - abuse-defence-and-emergency-bypass 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -109,7 +109,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - abuse-defence-and-emergency-bypass 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Marketplace settlement binding
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - marketplace-settlement-binding 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - marketplace-settlement-binding 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -121,7 +121,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - marketplace-settlement-binding 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Observability and audit events
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - observability-and-audit-events 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - observability-and-audit-events 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -133,7 +133,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - observability-and-audit-events 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Capacity and cost controls
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - capacity-and-cost-controls 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - capacity-and-cost-controls 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -145,7 +145,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - capacity-and-cost-controls 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Failure modes and rollback
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - failure-modes-and-rollback 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - failure-modes-and-rollback 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -157,7 +157,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - failure-modes-and-rollback 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Regional packs and residency
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - regional-packs-and-residency 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - regional-packs-and-residency 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
@@ -169,7 +169,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - regional-packs-and-residency 008: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=clinical_consent, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Allscripts plus Veeva.
 
 ## Acceptance evidence
-The healthcare-integration entrypoint surface is owned inside microservices/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The healthcare-integration entrypoint surface is owned inside app/healthcare-integration/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - acceptance-evidence 001: Healthcare Integration binds fhir-read to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=fhir_resource, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Epic plus Cerner.
 - acceptance-evidence 002: Healthcare Integration binds hl7-route to tenant_id, principal_id, audience_type=HEALTHCARE_OPERATOR, data_class=hl7_message, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Cerner plus Allscripts.
