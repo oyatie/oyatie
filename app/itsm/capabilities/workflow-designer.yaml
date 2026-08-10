@@ -1,0 +1,44 @@
+apiVersion: oyatie.dev/v2
+kind: CapabilityRecord
+metadata:
+  name: itsm-workflow-designer
+  service: itsm
+spec:
+  businessCapability: service-management
+  capability: workflow-designer
+  counterparts:
+    - "ServiceNow Flow Designer"
+    - "Jira Service Management Automation"
+    - "Freshservice Orchestration Center"
+  bindingAdrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0247, ADR-0249, ADR-0263, ADR-0328]
+  surface:
+    editor_kind: visual_no_code_workflow_builder
+    primitives:
+      - trigger_event
+      - decision_branch
+      - approval_gate_cedar_evaluated
+      - call_substrate_action
+      - call_marketplace_action_pack
+      - emit_audit_event
+      - rollback_compensation_step
+    cross_cell_orchestration: workflow-engine µservice owns runtime; ITSM owns template authoring
+  tenantScope:
+    requiredFields: [tenant_id, author_principal_id, audience_type, purpose, data_class]
+    dataClass: workflow_template_draft
+  cedarGate: microservices/itsm/policy/workflow-designer-authorization.cedar
+  marketplaceBinding:
+    publishable_as: workflow_template_listing
+    settlement: DealSet per ADR-0314
+  foundryAbsorptionPosture:
+    authority: ADR-0247 + ADR-0255-amendment + ADR-0328 D-12
+    workflow_template_runtime: workflow-engine µservice (absorbed foundry-template runtime)
+  performanceClaim:
+    sustained_workflows_per_second: 800
+    counterpart_servicenow_per_second: 120
+    advantage_factor: 7
+  tenantClassSupport:
+    demo_trial: true
+    paid: true
+  packs:
+    demo_trial_caps:
+      workflow_executions_per_month: 1000

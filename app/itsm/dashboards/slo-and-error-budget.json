@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 39,
+  "title": "ITSM slo-and-error-budget",
+  "tags": [
+    "itsm",
+    "adr-0321",
+    "operating-bar"
+  ],
+  "timezone": "utc",
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "tenant_id",
+        "type": "query",
+        "query": "label_values(tenant_id)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "incident-open slo-and-error-budget",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_incident_open_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "change-approve slo-and-error-budget",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_change_approve_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "problem-link slo-and-error-budget",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_problem_link_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "service-catalog-publish slo-and-error-budget",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_service_catalog_publish_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "cmdb-sync slo-and-error-budget",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_cmdb_sync_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "major-incident-bridge slo-and-error-budget",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_itsm_major_incident_bridge_total[5m])) by (tenant_id, cell_tier)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+[package]
+name = "oya-itsm-escalation-policy"
+version = "0.1.0"
+edition = "2024"
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+description = "Escalation Policy bounded context for the ITSM µservice (PagerDuty/Opsgenie/FireHydrant escalation chains)."
+
+[package.metadata.oya]
+microservice = "itsm"
+bounded_context = "escalation-policy"
+counterparts = ["PagerDuty", "Opsgenie", "FireHydrant"]
+binding_adrs = ["ADR-0105", "ADR-0131", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0263", "ADR-0328"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/supported-oses.schema.json",
+  "microservice": "itsm",
+  "authority": "feedback_os_support_matrix_2026_05_20 + ADR-0328 §D-17",
+  "tier_1_blocking_in_ci": [
+    {"slug": "talos", "min_version": "1.7", "arches": ["linux/amd64", "linux/arm64"], "package_format": "container-image"},
+    {"slug": "rhel", "min_version": "9.4", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "oracle-linux", "min_version": "9.4", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "sles", "min_version": "15-sp6", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "ubuntu", "min_version": "24.04-lts", "arches": ["linux/amd64", "linux/arm64"], "package_format": "DEB"},
+    {"slug": "debian", "min_version": "13", "arches": ["linux/amd64", "linux/arm64"], "package_format": "DEB"},
+    {"slug": "rocky", "min_version": "9.4", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "almalinux", "min_version": "9.4", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "centos-stream", "min_version": "10", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "amazon-linux", "min_version": "2023", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "flatcar", "min_version": "current-stable", "arches": ["linux/amd64", "linux/arm64"], "package_format": "container-image"},
+    {"slug": "photon", "min_version": "5.0", "arches": ["linux/amd64", "linux/arm64"], "package_format": "RPM"},
+    {"slug": "macos-apple-silicon", "min_version": "M5", "arches": ["darwin/arm64"], "package_format": "pkg-plus-Homebrew"}
+  ],
+  "tier_2_soft_gate_in_ci": [
+    {"slug": "linux-ppc64le", "min_version": "kernel-5.10+", "arches": ["linux/ppc64le"], "package_format": "container-image"},
+    {"slug": "linux-s390x", "min_version": "kernel-5.10+", "arches": ["linux/s390x"], "package_format": "container-image"}
+  ],
+  "out_of_scope": [
+    {"slug": "macos-intel", "rationale": "Intel macOS retired by Apple; no support per feedback_os_support_matrix_2026_05_20"},
+    {"slug": "macos-apple-silicon-pre-m5", "rationale": "Pre-M5 Apple Silicon retired"},
+    {"slug": "freebsd", "rationale": "out of support matrix"},
+    {"slug": "openbsd", "rationale": "out of support matrix"},
+    {"slug": "windows-server", "rationale": "out of support matrix; Windows targeted on frontend only (WinUI 3 client)"},
+    {"slug": "solaris", "rationale": "out of support matrix"}
+  ],
+  "arch_matrix": ["linux/amd64", "linux/arm64", "darwin/arm64", "linux/ppc64le", "linux/s390x"],
+  "ci_lanes": {
+    "tier_1_blocking": "ci/itsm-os-tier-1.yaml",
+    "tier_2_soft_gate": "ci/itsm-os-tier-2.yaml"
+  }
+}

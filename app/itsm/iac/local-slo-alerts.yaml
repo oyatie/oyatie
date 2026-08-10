@@ -1,0 +1,20 @@
+apiVersion: oyatie.dev/v1
+kind: SloAlertPolicy
+metadata:
+  name: itsm-local-alerts
+  labels:
+    service: itsm
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  service: itsm
+  burnWindows:
+    - short: 5m
+      long: 1h
+      pageAt: 4
+    - short: 30m
+      long: 6h
+      pageAt: 2
+  runbooks:
+    - microservices/itsm/runbooks/local-mttr-burn.md
+    - microservices/itsm/runbooks/local-change-failure-rate-spike.md
