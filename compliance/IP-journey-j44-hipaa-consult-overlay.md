@@ -28,7 +28,7 @@ companion_docs:
   - docs/standards/documentation-rigor.md
   - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
   - microservices/payments/PRD.md
-  - microservices/identity/PRD.md
+  - iam/identity/PRD.md
   - microservices/workflow-engine/PRD.md
   - microservices/ontology/PRD.md
   - microservices/messenger/PRD.md
