@@ -6,14 +6,14 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.15",
+    "version": "1.16.16",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
+    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
     "prior_version": "1.16.14"
   },
   "admission": {
@@ -184,7 +184,7 @@
       "envelope_globs": [
         ".grok/**"
       ],
-      "note": "PROCESS_KIT forever home for mm-delivery / swarm process shims (tools/swarm → .grok/). Forward-declared until .grok/ judgment closes; destination_owns_reorg_now absorb owner for rows targeting .grok/. Peer to planes.process_meta PROCESS_KIT paths on integ/ci.",
+      "note": "PROCESS_KIT forever home for mm-delivery / swarm process shims. Birth directly under .grok/ as Rust-first (automation-language-policy forbids new shell/Python under tools/). Forward-declared until .grok/ judgment closes; destination_owns_reorg_now absorb owner for rows targeting .grok/. Peer to planes.process_meta PROCESS_KIT paths on integ/ci.",
       "forward_declared": true
     },
     "hr": {
@@ -419,7 +419,7 @@
       "envelope_globs": [
         "tools/**"
       ],
-      "note": "Transitional root under Amendment B reorg-target debt freeze. tools/swarm/** one-shot process-kit land via integ/specs (#1644) is the sole authorized birth wave; after that merge, tools/ is shrink-only — further births require an explicit reorg-move-out bead to a durable home."
+      "note": "Transitional root under Amendment B reorg-target debt freeze. #1644 does NOT birth tools/swarm/** (automation-language merge-base ceiling); process kit deferred to .grok/ Rust-first. tools/ remains shrink-only — further births require an explicit reorg-move-out bead."
     },
     "translate": {
       "branch": "integ/translate",
@@ -635,12 +635,6 @@
     ],
     "active": [
       {
-        "path_glob": "tools/swarm/**",
-        "claiming_branch": "integ/specs",
-        "reason": "Bootstrap Swarm Delivery Law Phase A: land tools/swarm shims with the envelopes owner before a dedicated integ/tools wave; tools root registered in this same diff.",
-        "expires_at_or_wave": "wave-after-integ-tools-first-land"
-      },
-      {
         "path_glob": ".claude/workflows/**",
         "claiming_branch": "integ/specs",
         "reason": "deliver.js Claim/Land harness is the primary consumer of envelopes; co-land with policy-as-data on integ/specs.",
@@ -679,7 +673,7 @@
       {
         "path_glob": ".gitignore",
         "claiming_branch": "integ/specs",
-        "reason": "Ignore .check/ daemon machine output colocated with tools/swarm check-daemon.",
+        "reason": "Ignore .check/ daemon machine output (orchestrator check surface; process kit deferred to .grok/).",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
       },
       {
@@ -781,16 +775,13 @@
     "mechanical": {
       "rule": "Agent summary first token MUST be exactly CLAIM or REFUSE. Substring /^CLAIM/ is NOT sufficient (CLAIMED/not CLAIM = REFUSE). CLAIM requires docs_touched + docs_action; docs_action=n/a requires docs_action_why.",
       "parsers": [
-        ".claude/workflows/deliver.js#parseClaimPacket",
-        "tools/swarm/claim_packet.py"
+        ".claude/workflows/deliver.js#parseClaimPacket"
       ],
-      "push_check": "tools/swarm/claim-push.sh --check <root>"
+      "push_check": "deferred: .grok/ process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
     },
     "encoded_in": [
       ".claude/workflows/deliver.js#Claim",
-      "tools/swarm/claim-push.sh",
-      "tools/swarm/claim_packet.py",
-      "tools/swarm/self-check.sh"
+      ".claude/workflows/deliver.js"
     ]
   },
   "concurrent_safe_exemptions": {
@@ -834,7 +825,7 @@
       "commit --no-verify/-n",
       "push --no-verify"
     ],
-    "enforcement": "tools/swarm/git-shim (Phase A companion)"
+    "enforcement": "deferred: .grok/ git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
   },
   "worktree_topology": {
     "main_checkout": "orchestrator + check daemon only",
@@ -1003,15 +994,9 @@
       "keep_forever_on_libs_cloud_oya_infra_toolchains_tools"
     ],
     "claim_exemption_marker": "reorg-move-out",
-    "one_shot_exceptions": [
-      {
-        "path_glob": "tools/swarm/**",
-        "wave": "integ/specs#1644",
-        "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm → .grok/ after merge",
-        "expires_when": "integ/specs#1644 squash-merged to origin/dev"
-      }
-    ],
-    "judgment_gate": "See reorg_debt_freeze.evaluation_gate — path changes require judgment_status=done"
+    "one_shot_exceptions": [],
+    "judgment_gate": "See reorg_debt_freeze.evaluation_gate — path changes require judgment_status=done",
+    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit lands later under .grok/ as Rust."
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
@@ -3776,7 +3761,7 @@
         "path": "tools/",
         "action": "reorg_now",
         "greenfield_destination": ".grok/ + ci/facade/ + delete remainder",
-        "shape": "process kit leaves tools/; tools/swarm one-shot then vacate",
+        "shape": "process kit never homes under tools/; shrink-only after child drains",
         "redesign": "rewrite",
         "judgment_status": "done",
         "rationale": "1) Residual tools tree + swarm one-shot. 2) Transitional process-kit root under freeze. 3) Temporary home for swarm shims. 4) Must vacate. 5) Antipattern: tools as durable process plane. 6) rewrite leaves to .grok/ + ci/facade + delete. 7) Forever: no tools/ root.",
@@ -3792,28 +3777,28 @@
           "cartesian_doubt: DISPOSITION.md keeps pointer SSOT; swarm leaf is the live one-shot exception",
           "essentialism_yagni: no tools/ forever root in greenfield",
           "pragmatism: swarm→.grok/; governance apps→ci/facade or delete; then vacate tools/",
-          "systems_thinking: envelopes still list tools/swarm adjunct — schedule cite rewrite with port",
+          "systems_thinking: envelopes still list process-kit .grok/ cites — schedule cite rewrite with port",
           "blast_radius_cell: tools/** under freeze; lands split by leaf owner",
           "opportunity_cost: keeping tools/ invites more one-shot exceptions",
           "contrarian: REJECT scout silence on tools root — parent must close with swarm leaf",
           "zero_trust: no new tools/* unit roots without reorg-move-out",
-          "red_team: worktree-only tools/swarm copies masquerading as main forever home",
+          "red_team: worktree-only .grok/ process-kit copies masquerading as main forever home",
           "operability_day2: operators find process kit under .grok/, not tools/",
           "finops_unit_cost: one process-kit tree",
           "shared_nothing: .grok/ owns swarm process; ci/facade owns gates",
           "constant_work: judgment now; path port after #1644",
           "socratic: why would greenfield keep tools/ when .grok/ is process kit?",
-          "outside_the_box: absorb scout 0b9a2531 tools/swarm→.grok/ as binding leaf",
+          "outside_the_box: absorb scout 0b9a2531 .grok/ process-kit→.grok/ as binding leaf",
           "destination_owns_reorg_now: parent tools/ is shrink-only coordinator — absorb owned by child destination_integ rows (.grok/→integ/ci, ci/facade→integ/ci)",
           "shrink_only: integ/tools deletes remainder after leaf absorbs; REJECT integ/specs as absorb owner for tools/ parent"
         ],
         "evidence": [
           "scout 0b9a2531 tools/swarm→.grok/",
           "tools/DISPOSITION.md",
-          "one_shot_exceptions tools/swarm/**"
+          "#1644 aborted tools/swarm birth (automation-language ceiling)"
         ],
         "destination_integ": "integ/tools",
-        "land_when": "Shrink-only on integ/tools after child leaf drains (tools/swarm→.grok/ on integ/ci, governance apps→integ/ci); parent tools/ is never absorb owner",
+        "land_when": "Shrink-only on integ/tools after child leaf drains (.grok/ process-kit birth on integ/ci (no tools/swarm intermediate), governance apps→integ/ci); parent tools/ is never absorb owner",
         "land_status": "shrink_only_after_leaf_drains",
         "shrink_source_integ": "integ/tools"
       },
@@ -3822,37 +3807,33 @@
         "action": "reorg_now",
         "greenfield_destination": ".grok/",
         "destination": ".grok/",
-        "shape": "process-kit vacate tools/; swarm shims → .grok/ bin/hooks",
+        "shape": "never birth shell under tools/; process kit → .grok/ Rust-first",
         "redesign": "rewrite",
         "judgment_status": "done",
-        "disposition": "rewrite-into-durable-shape",
+        "disposition": "delete_permanently",
         "name_now": "tools/swarm/",
         "name_forever": ".grok/",
         "kind": "process-kit",
         "grammar_compliant": true,
         "lenses_applied": "inherit-root",
         "challenges": [
-          "chestertons_fence: #1644 one-shot birth under tools/swarm was transitional — expires after squash; north-star is .grok/",
-          "cartesian_doubt: tools/swarm absent on main; worktree-only copies must not become forever home",
-          "essentialism_yagni: process kit lives under .grok/; tools/ vacates",
-          "pragmatism: rewrite port claim-push/lane-shell/self-check into .grok/ then delete tools/swarm",
-          "systems_thinking: envelopes claim_exemption + deliver.js still cite tools/swarm paths — update same wave",
-          "opportunity_cost: delaying port prolongs dual process-kit homes",
-          "contrarian: REJECT keep tools/swarm forever as convenience — one_shot_exceptions.expires_when is explicit",
-          "red_team: agents treating tools/ as durable process home will birth more kits under freeze prefix",
-          "destination_owns_reorg_now: absorb owner integ/ci (.grok/** via roots.grok); integ/specs is envelopes hub only — not forever-path absorb owner"
+          "chestertons_fence: prior #1644 one-shot birth plan collided with automation-language merge-base ceiling",
+          "cartesian_doubt: tools/swarm absent on main — do not introduce shell/Python under tools/",
+          "pragmatism: Claim mechanical already lives in deliver.js#parseClaimPacket — no tip dependency on tools/swarm",
+          "systems_thinking: envelopes/ADR/PORTABLE cites retargeted off tools/swarm same wave",
+          "contrarian: REJECT keep tools/swarm as convenience exception — tip exceptions vs ceiling are forbidden"
         ],
-        "rationale": "1) Swarm Delivery Law process shims (claim-push, lane-shell, git-shim, self-check). 2) One-shot #1644 birth under tools/; north-star .grok/. 3) Lane Claim/push ritual. 4) Must live under .grok/; tools/swarm must not forever. 5) Antipattern: tools/ as process kit root. 6) rewrite-into-durable-shape → .grok/. 7) Forever: .grok/.",
+        "rationale": "1) Swarm process shims were planned as tools/swarm one-shot. 2) automation-language-policy blocks new shell/Python under tools/ vs merge-base. 3) Claim/Land mechanical already in deliver.js. 4) Forever home is .grok/ Rust-first. 5) Antipattern: tools/ as process kit root. 6) delete_permanently — never birth tools/swarm on tip. 7) Forever: .grok/.",
         "evidence": [
-          "scout 0b9a2531: tools/swarm absent on main; north-star .grok/",
-          "reorg_debt_freeze.one_shot_exceptions tools/swarm/** expires after #1644 squash",
-          "tools/DISPOSITION.md + evidence/reorg/rr-tools-disposition-20260806.json"
+          "automation-language-policy non_rust_exception_baseline ceiling (immutable merge-base)",
+          "deliver.js#parseClaimPacket owns Claim mechanical on #1644"
         ],
         "destination_integ": "integ/ci",
-        "land_when": "Phase 1: integ/ci absorbs tools/swarm → .grok/** (destination_owns_reorg_now); Phase 2: integ/tools shrink-only deletes tools/swarm/** after .grok/ verified",
+        "land_when": "No tools/swarm birth on #1644. Later: integ/ci births Rust process-kit under .grok/** (destination_owns_reorg_now); tools/ stays shrink-only.",
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "wave": "W-tools-swarm-to-grok",
-        "shrink_source_integ": "integ/tools"
+        "shrink_source_integ": "integ/tools",
+        "forever_name": "(never; .grok/ process-kit instead)"
       },
       {
         "path": "tools/oya-governance-adapter-with-no-importer-app/",
@@ -5012,8 +4993,9 @@
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "shrink_source_integ": "integ/tools",
         "status": "judgment_closed_tools_swarm_to_grok",
-        "note": "absorb owner integ/ci via roots.grok (.grok/**); integ/specs is envelopes hub only — not forever-path absorb owner",
-        "two_phase_note": "Phase 1: integ/ci absorbs tools/swarm → .grok/**; Phase 2: integ/tools shrink-only deletes tools/swarm/**"
+        "note": "absorb owner integ/ci via roots.grok (.grok/**); integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
+        "two_phase_note": "Aborted: do not birth tools/swarm. Birth Rust process-kit under .grok/ on integ/ci when ready.",
+        "disposition": "delete_permanently"
       },
       {
         "id": "W-toolchains-reorg",
@@ -5653,14 +5635,7 @@
     },
     "claim_exemption_marker": "reorg-move-out",
     "claim_exemption_rule": "New path births under no_new_births_while_reorg_prefixes are refused by deliver.js Claim unless the claimed bead title or body contains reorg-move-out naming the greenfield_destination. Prefer landing moves on the destination integ/<root>.",
-    "one_shot_exceptions": [
-      {
-        "path_glob": "tools/swarm/**",
-        "wave": "integ/specs#1644",
-        "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm → .grok/ after merge",
-        "expires_when": "integ/specs#1644 squash-merged to origin/dev"
-      }
-    ],
+    "one_shot_exceptions": [],
     "historical_never_repeat": [
       {
         "ref": "#1642",
@@ -5866,7 +5841,7 @@
         "accepted": [
           "scripts/tests/*.py rewrite→ci Rust then delete",
           "scripts/ci/regen-third-party.sh → ci/facade",
-          "tools/swarm → .grok/",
+          "tools/swarm → .grok/ (skip tools/swarm birth; land Rust under .grok/ directly)",
           "toolchains/ keep",
           "templates/foundry-supervisor delete",
           "docs/templates dual-home kill into templates/"
@@ -5960,7 +5935,8 @@
           }
         ]
       }
-    ]
+    ],
+    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit lands later under .grok/ as Rust."
   },
   "anti_drift": {
     "anti_drift_doctrine_version": "1.1.0",
@@ -5998,7 +5974,7 @@
       "INV-DOC-8",
       "INV-DOC-9"
     ],
-    "drift_grep": "tools/swarm/self-check.sh",
+    "drift_grep": "deferred: .grok/ self-check (Rust-first); interim: deliver.js Claim + manual PORTABLE drift review",
     "limitations": [
       "Mechanical Claim packet parse + Claim↔diff bind (docs_touched/paths ↔ git diff --name-only) live in deliver.js + claim_packet.py; claim-push refuses dirty porcelain",
       "Does not rewrite DOC-CATALOG corpus",
@@ -6017,11 +5993,11 @@
         "n/a"
       ],
       "docs_action_why_required_when": "n/a",
-      "parser": "tools/swarm/claim_packet.py",
+      "parser": ".claude/workflows/deliver.js#parseClaimPacket",
       "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket",
       "diff_bind": {
         "rule": "docs_touched paths (when docs_action != n/a) and optional paths inventory MUST appear in git diff --name-only BASE...HEAD",
-        "parser": "tools/swarm/claim_packet.py --bind-diff",
+        "parser": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)",
         "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)"
       }
     }

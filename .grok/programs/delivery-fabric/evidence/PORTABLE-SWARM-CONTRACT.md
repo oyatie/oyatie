@@ -52,7 +52,7 @@ bd show <id>
 12. **Do not** invent work or invent lanes for empty verified space — claim only `implementable` beads.
 13. **Do not** land paragraph narration comments — code must be self-explanatory; comments only for non-obvious intent/trade-offs/constraints (ADR-0711 Amendment A-3).
 14. **Do not** hand-edit generated artifacts — require `@generated` + generator id + SSOT pointer; regen via the one-command path; hermetic drift check owns freshness (ADR-0711 Amendment A-4).
-15. **Do not** birth new paths under `reorg_debt_freeze.prefixes` (vacating / reorg_now sources). Content must `reorg_now` or `delete_permanently` NOW — freeze ≠ keep. `tools/swarm/**` on `#1644` is the sole one-shot birth exception (then reorg_now → `.grok/`).
+15. **Do not** birth new paths under `reorg_debt_freeze.prefixes` (vacating / reorg_now sources). Content must `reorg_now` or `delete_permanently` NOW — freeze ≠ keep. `tools/swarm/**` one-shot birth on `#1644` was aborted (automation-language-policy); birth Rust process-kit under `.grok/` directly when ready.
 
 ## Swarm Delivery Law (ADR-0711)
 
@@ -182,7 +182,7 @@ Mirror of ADR-0711 Amendment A. Obey these as Swarm Delivery Law.
 2. **Fast feedback = buck2 `[check]`, never cargo.** Check daemon (main checkout,
    `SWARM_ORCHESTRATOR=1` only) runs `buck2 build //...[check]`, groups rustc diagnostics by
    crate then file into `err.txt` + `.check/errors.json`. Workers never run `cargo` or `buck2`
-   (`tools/swarm/toolguard`). Reject sccache (second build path + second cache = sprawl). Do not
+   (deferred `.grok/` toolguard). Reject sccache (second build path + second cache = sprawl). Do not
    adopt buck2 local dir-cache keys until validated against upstream source (bead-tracked;
    mirror `.buckconfig` key-verification practice).
 3. **Comment doctrine.** No paragraph comment blobs. Self-explanatory code. Comments only for
@@ -273,9 +273,9 @@ canonical docs — plan-only doctrine ≠ survived). Machine list:
 **merge_windows** — hot-set ≤4 + restack-once/window live in
 `specs/integ-branch-envelopes.json#merge_windows` (cite; do not invent plan-only dual-truth).
 
-**Ensure:** Claim prompt requires doc packet; `tools/swarm/claim_packet.py` + `deliver.js`
-bind `docs_touched`/`paths` to `git diff --name-only`; `claim-push.sh` refuses dirty porcelain;
-`tools/swarm/self-check.sh` drift-greps prose root/path enumerations.
+**Ensure:** Claim prompt requires doc packet; `deliver.js#parseClaimPacket`
+binds `docs_touched`/`paths` to `git diff --name-only`; Land/merge-tree preflight refuses dirty porcelain;
+deferred `.grok/` Rust self-check drift-greps prose root/path enumerations.
 
 **Limitations:** Mechanical Claim + Claim↔diff bind live; hub-exclusivity CI remain follow-on
 on integ/ci; no DOC-CATALOG rewrite; no mass ADR rename; INV-DOC-9 root content land =

@@ -46,7 +46,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D8
     description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
-    exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; tools/swarm/self-check.sh drift-greps prose root enumerations."
+    exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; drift-grep deferred to .grok/ Rust self-check (no tools/swarm birth on #1644)."
     verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
@@ -170,7 +170,7 @@ Destructive operations exist only inside versioned, reviewed scripts that the in
 (restack, server-side reset, worktree remove). Integrator uses cherry-pick (commit-producing,
 atomic) — still no stash/reset in its vocabulary.
 
-Enforcement shims (`tools/swarm/git-shim`, `tools/swarm/toolguard`, `tools/swarm/check-daemon`)
+Enforcement shims (deferred `.grok/` Rust process-kit: git-shim, toolguard, check-daemon — **not** birthed under `tools/swarm/` on `#1644`)
 are Phase A companions; this ADR is the law they enforce.
 
 ### D-7 — Special files and concurrent-safe exemptions
@@ -285,7 +285,7 @@ type-check equivalent (`rustc --emit=metadata`).
   diagnostics from buck2 stderr/stdout, groups by crate then file, writes `err.txt` at the
   main-checkout root and `.check/errors.json`. Single builder keeps the buck2 daemon +
   `buck-out` warm.
-- **Worker lanes:** `tools/swarm/toolguard` continues to deny **both** `cargo` and `buck2`.
+- **Worker lanes:** toolguard doctrine continues to deny **both** `cargo` and `buck2` (enforcement deferred to `.grok/` Rust process-kit).
   Workers read `err.txt`; they never build.
 - **sccache:** considered and **rejected**. It is cargo/`RUSTC_WRAPPER`-world; adopting it
   reintroduces a second build path + second cache layer (anti-cargo-culting / sprawl).
@@ -473,8 +473,7 @@ Patterns this amendment recommends overturning (mechanism may stay; brand/shape 
 
 Prefixes in `reorg_debt_freeze.prefixes` block **new path births** only while `reorg_now` /
 `delete_permanently` executes. They are not a durable home. `#1642` allow-new for cloud-os/libs
-was a one-shot drain — **never repeat**. `tools/swarm/**` on `#1644` is a one-shot process-kit
-land; schedule `reorg_now` → `.grok/` immediately after merge.
+was a one-shot drain — **never repeat**. `tools/swarm/**` one-shot birth on `#1644` was **aborted** (automation-language-policy merge-base ceiling). Process-kit lands later as Rust under `.grok/` (no `tools/` intermediate).
 
 #### B-3 — Classification table (compact)
 
@@ -590,7 +589,7 @@ Hot-set ≤4 and restack-once/window are encoded in
 Mechanical Claim packet parse + Claim↔diff bind (`docs_touched`/`paths` ↔
 `git diff --name-only`) are live in `deliver.js` + `claim_packet.py`;
 `claim-push.sh` refuses dirty porcelain. Does not rewrite DOC-CATALOG corpus; does not
-authorize mass ADR renames. Drift-grep: `tools/swarm/self-check.sh`. Root-file content land of
+authorize mass ADR renames. Drift-grep: deferred `.grok/` Rust self-check (interim: deliver.js Claim + PORTABLE review). Root-file content land of
 INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route ≠ content.
 
 ## Consequences

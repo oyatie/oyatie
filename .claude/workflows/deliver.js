@@ -439,7 +439,7 @@ const SCOUT_SCHEMA = {
 
 // Mechanical Claim packet parse (claim-mechanical + anti-drift-claim-fields).
 // `/^CLAIM/` substring matches are NOT sufficient — "CLAIMED" / "not CLAIM" must REFUSE.
-// Keep in sync with tools/swarm/claim_packet.py (self-check exercises both).
+// Claim packet parse is authoritative here (tools/swarm claim_packet.py birth aborted on #1644).
 // Claim↔diff bind (fix-1644-critic-rc): docs_touched/paths must appear in git diff --name-only.
 function parsePathList(raw) {
   if (raw == null) return []
@@ -1093,7 +1093,7 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
      \`git fetch origin ${INTEG} 2>/dev/null; INTEG_TIP=\$(git rev-parse origin/${INTEG} 2>/dev/null || git rev-parse ${BASE}); BASE_SHA=\$(git merge-base ${BASE} HEAD); git merge-tree \$BASE_SHA \$INTEG_TIP HEAD\`
    Root name for local tracking refs is \`${integRoot}\` (strip \`integ/\` from \`${INTEG}\`).
    If merge-tree reports a content conflict, REFUSE — do not guess intent. Report the conflicting
-   paths. Blessed \`tools/swarm/claim-push.sh\` re-runs this merge-tree at push time.
+   paths. Blessed claim-push (deferred `.grok/` Rust process-kit) re-runs this merge-tree at push time.
 
 4. HUB EXCLUSIVITY — For every hub path listed in envelopes#hubs.paths that this run touches, check
    open PRs (\`gh pr list --state open --limit 500 --json number,headRefName,files\`; paginate if

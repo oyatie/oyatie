@@ -650,8 +650,9 @@
       "prefix": "tools/opensk-vendored/UPSTREAM-CONFIG.json"
     },
     {
-      "anchor": "ADR-0711 D-9 / Phase A: tools/swarm process-kit (shims, claim-push, self-check) one-shot land via integ/specs adjunct; shrink-only after merge.",
-      "prefix": "tools/swarm/"
+      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy); deferred to .grok/ Rust-first. Prefix retained as tombstone / do-not-birth marker until .grok/ lands.",
+      "prefix": "tools/swarm/",
+      "status": "deferred"
     },
     {
       "anchor": "ADR-0541: Buck package marker for the workflow capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
