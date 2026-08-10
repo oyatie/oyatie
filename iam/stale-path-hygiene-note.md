@@ -26,3 +26,10 @@ Retarget only **verified** in-tree destinations under `iam/**`. No hubs, no `Car
 
 - Missing competitor-parity / testing-strategy / FIDO schema / some historical IP homes
 - Cross-cap cites (payments, ontology, messenger, …) stay deferred
+
+## Seat A wave-6 dep-ordered (2026-08-10)
+
+- Verified remaps applied: **4** cite(s) across **1** file(s).
+- Scope: path/manifest/SLO/contract/capability/catalog high-value only; missing homes deferred.
+- Product unblock: forever cites for nested faces + observability prometheusrule alias.
+- No hubs / Cargo.lock / merge / #1661 / cloud-os absorb.
