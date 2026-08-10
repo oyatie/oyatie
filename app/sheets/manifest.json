@@ -21,16 +21,16 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/sheets/contracts/openapi/sheets.yaml"
+      "app/sheets/contracts/openapi/sheets.yaml"
     ],
     "asyncapi": [
-      "microservices/sheets/contracts/asyncapi/sheets-events.yaml"
+      "app/sheets/contracts/asyncapi/sheets-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/sheets/contracts/proto/sheets.proto"
+        "app/sheets/contracts/proto/sheets.proto"
       ]
     }
   },
@@ -38,19 +38,19 @@
     {
       "tier": "T0",
       "name": "t0-suggest",
-      "file": "microservices/sheets/capabilities/T0-suggest.yaml",
+      "file": "app/sheets/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "t1-assist",
-      "file": "microservices/sheets/capabilities/T1-assist.yaml",
+      "file": "app/sheets/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "t2-auto",
-      "file": "microservices/sheets/capabilities/T2-auto.yaml",
+      "file": "app/sheets/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -59,55 +59,55 @@
       "name": "oya-sheets-cell-edit-render-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "oya/sheets/slos/cell-edit-render-latency.openslo.yaml"
+      "file": "app/sheets/slos/cell-edit-render-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-chart-render-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "oya/sheets/slos/chart-render-latency.openslo.yaml"
+      "file": "app/sheets/slos/chart-render-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-collab-cursor-sync-latency",
       "target": "99%",
       "sli": "total:",
-      "file": "oya/sheets/slos/collab-cursor-sync-latency.openslo.yaml"
+      "file": "app/sheets/slos/collab-cursor-sync-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-crdt-merge-no-silent-loss",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "oya/sheets/slos/crdt-merge-no-silent-loss.openslo.yaml"
+      "file": "app/sheets/slos/crdt-merge-no-silent-loss.openslo.yaml"
     },
     {
       "name": "oya-sheets-export-xlsx-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "oya/sheets/slos/export-xlsx-latency.openslo.yaml"
+      "file": "app/sheets/slos/export-xlsx-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-formula-engine-correctness",
       "target": "1.0 (1)",
       "sli": "total:",
-      "file": "oya/sheets/slos/formula-engine-correctness.openslo.yaml"
+      "file": "app/sheets/slos/formula-engine-correctness.openslo.yaml"
     },
     {
       "name": "oya-sheets-recalc-100k-cells-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "oya/sheets/slos/recalc-100k-cells-latency.openslo.yaml"
+      "file": "app/sheets/slos/recalc-100k-cells-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-recalc-1m-cells-latency",
       "target": "95%",
       "sli": "total:",
-      "file": "oya/sheets/slos/recalc-1m-cells-latency.openslo.yaml"
+      "file": "app/sheets/slos/recalc-1m-cells-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-sheet-open-latency",
       "target": "95% (1)",
       "sli": "total:",
-      "file": "oya/sheets/slos/sheet-open-latency.openslo.yaml"
+      "file": "app/sheets/slos/sheet-open-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -115,91 +115,91 @@
       "id": "IP-001-iac-bootstrap",
       "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres + Valkey + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-001-iac-bootstrap.md"
+      "file": "app/sheets/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-cargo-workspace-cell-grid-kernel-domain",
       "title": "IP-002: cell-grid — kernel + domain (entities + pure cell-graph algebra)",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-002-cargo-workspace-cell-grid-kernel-domain.md"
+      "file": "app/sheets/IP-002-cargo-workspace-cell-grid-kernel-domain.md"
     },
     {
       "id": "IP-003-formula-engine-kernel-domain-400-functions",
       "title": "IP-003: formula-engine — kernel + domain + usecase + api + adapter + sdk (≥400 functions; LibreOffice Calc reference corpus)",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-003-formula-engine-kernel-domain-400-functions.md"
+      "file": "app/sheets/IP-003-formula-engine-kernel-domain-400-functions.md"
     },
     {
       "id": "IP-004-recalc-engine-dep-graph-parallel",
       "title": "IP-004: recalc-engine — kernel + domain + usecase + api + adapter + worker + sdk (dep-graph + topological + parallel-task-graph per ADR-SHEETS-0004)",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
+      "file": "app/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
     },
     {
       "id": "IP-005-collab-crdt-loro-aligned-ws-0001",
       "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-valkey + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md"
+      "file": "app/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md"
     },
     {
       "id": "IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid",
       "title": "IP-006: large-sheet-storage — postgres + Arrow/Parquet hybrid substrate (per ADR-SHEETS-0003)",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md"
+      "file": "app/sheets/IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md"
     },
     {
       "id": "IP-007-cell-grid-adapter-postgres-and-materialized-views",
       "title": "IP-007: cell-grid — adapter-postgres with materialized-view caches for hot ranges",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-007-cell-grid-adapter-postgres-and-materialized-views.md"
+      "file": "app/sheets/IP-007-cell-grid-adapter-postgres-and-materialized-views.md"
     },
     {
       "id": "IP-008-formatting-pivot-charts-data-validation",
       "title": "IP-008: formatting + pivot-tables + charts + data-validation — kernel + domain + usecase + api + adapter (custom Leptos canvas chart renderer)",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-008-formatting-pivot-charts-data-validation.md"
+      "file": "app/sheets/IP-008-formatting-pivot-charts-data-validation.md"
     },
     {
       "id": "IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed",
       "title": "IP-009: import-export — kernel + domain + usecase + api + adapter + adapter-calamine + adapter-rust-xlsxwriter + adapter-clamav + adapter-opswat + worker + sdk",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed.md"
+      "file": "app/sheets/IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed.md"
     },
     {
       "id": "IP-010-sharing-acl-named-range-cedar",
       "title": "IP-010: sharing-acl + named-ranges — full BC crate sets per ADR-SHEETS-0006",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-010-sharing-acl-named-range-cedar.md"
+      "file": "app/sheets/IP-010-sharing-acl-named-range-cedar.md"
     },
     {
       "id": "IP-011-ai-formula-smart-fill-foundry-runtime-bridge",
       "title": "IP-011: ai-formula — foundry-runtime bridge with T1 advisory + T2 gated per ADR-SHEETS-0005",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-011-ai-formula-smart-fill-foundry-runtime-bridge.md"
+      "file": "app/sheets/IP-011-ai-formula-smart-fill-foundry-runtime-bridge.md"
     },
     {
       "id": "IP-012-connected-sheets-comments-version-history-trigger-embed-bridge",
       "title": "IP-012: connected-sheets + comments + version-history + trigger-bridge + embed-bridge — full BC crate sets",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md"
+      "file": "app/sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md"
     },
     {
       "id": "IP-013-cell-grid-rest-leptos-wasm-app-license-gate",
       "title": "IP-013: cell-grid — adapter-leptos-wasm + rest + sdk + app + license-gate-cedar full BC",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md"
+      "file": "app/sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md"
     },
     {
       "id": "IP-014-observability-slo-manifests-9-openslo",
       "title": "IP-014: 9 OpenSLO v1.0 manifests — sheets self-SLOs",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md"
+      "file": "app/sheets/IP-014-observability-slo-manifests-9-openslo.md"
     },
     {
       "id": "IP-015-hg-sheets-registration-and-branch-protection",
       "title": "IP-015: HG-SHEETS registration + branch-protection + competitor-parity evidence pinning + Sheets launch verification",
       "acceptance_status": "ga",
-      "file": "microservices/sheets/IP-015-hg-sheets-registration-and-branch-protection.md"
+      "file": "app/sheets/IP-015-hg-sheets-registration-and-branch-protection.md"
     }
   ],
   "regulatory_packs": [
@@ -453,10 +453,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Sheets is a first-party application for tenant workbook data. It performs formula and recalc work owned by Oyatie code, not tenant-customer code execution, so Tier 2 runtime plus Tier-3 application placement satisfies the ADR-0340 co-variance table.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/sheets/PRD.md",
-    "microservices/sheets/capacity-model.md",
-    "microservices/sheets/IP-003-formula-engine-kernel-domain-400-functions.md",
-    "microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
+    "app/sheets/PRD.md",
+    "app/sheets/capacity-model.md",
+    "app/sheets/IP-003-formula-engine-kernel-domain-400-functions.md",
+    "app/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -471,10 +471,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/sheets/contracts/openapi/sheets.yaml"
+        "2026-05-21": "app/sheets/contracts/openapi/sheets.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/sheets/contracts/asyncapi/sheets-events.yaml"
+        "2026-05-21": "app/sheets/contracts/asyncapi/sheets-events.yaml"
       }
     }
   },

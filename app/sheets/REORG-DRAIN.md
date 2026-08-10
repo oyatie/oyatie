@@ -6,7 +6,9 @@
 - **Source (read-only):** `oya/sheets/**` on `origin/dev` until shrink-only delete lands on `integ/oya`.
 - **Writes:** only under `app/sheets/**` on this tip.
 
-## Completed (this rail)
+## Completed
+
+- Hygiene deepen: retargeted `oya/sheets/` + `microservices/sheets/` path cites → `app/sheets/` in README/manifest (forever-home authority). (this rail)
 
 - Wave-1 absorb: product dump to `app/sheets/` (91 files).
 - Path cites rewritten `oya/sheets` → `app/sheets` inside forever home.
