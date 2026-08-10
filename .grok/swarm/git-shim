@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+# swarm git-shim — allowlisted git for worker lane shells.
+#
+# Placed first on PATH (as `git` via shim-bin/) so workers cannot stash/reset/
+# force-push their way into chaos. Denied verbs exist only inside reviewed
+# blessed scripts under .grok/swarm/*.sh (which call GIT_REAL directly).
+#
+# ALLOW: status, diff, log, show, fetch, merge-base, merge-tree, rev-parse,
+#        add <explicit paths> (no . / -A / -u), commit,
+#        push only when SWARM_BLESSED_PUSH=1 (and never bare --force/-f).
+# DENY:  stash, reset, clean, restore, checkout, rebase, merge,
+#        branch -D/-f, update-ref, reflog, gc, bare push --force.
+set -euo pipefail
+
+GIT_REAL="${GIT_REAL:-/usr/bin/git}"
+if [[ ! -x "$GIT_REAL" ]]; then
+  # Avoid recursing into this shim: resolve via a PATH without our prefix.
+  GIT_REAL="$(PATH="/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin" command -v git || true)"
+fi
+if [[ ! -x "${GIT_REAL:-}" ]]; then
+  echo "git-shim: cannot locate real git (set GIT_REAL)" >&2
+  exit 127
+fi
+
+deny() {
+  echo "git-shim: DENIED: $*" >&2
+  echo "git-shim: worker allowlist is read-only git + explicit add/commit; push only via blessed scripts (SWARM_BLESSED_PUSH=1). See .grok/swarm/README.md" >&2
+  exit 1
+}
+
+# Strip leading global options so the subcommand is argv[0] of the remainder.
+args=("$@")
+i=0
+while (( i < ${#args[@]} )); do
+  a="${args[$i]}"
+  case "$a" in
+    -C|-c|--git-dir|--work-tree|--namespace|--super-prefix|--config-env)
+      if (( i + 1 >= ${#args[@]} )); then
+        deny "incomplete global option: $a"
+      fi
+      i=$((i + 2))
+      ;;
+    --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--config-env=*|-c=*)
+      i=$((i + 1))
+      ;;
+    -*)
+      # Skip known and unknown globals so we can classify the verb; real git
+      # validates the forwarded argv.
+      i=$((i + 1))
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if (( i >= ${#args[@]} )); then
+  deny "missing git subcommand"
+fi
+
+cmd="${args[$i]}"
+# ponytail: set -u rejects "${rest[@]}" when empty — use ${rest[@]+...} / length guards.
+rest=()
+if (( i + 1 < ${#args[@]} )); then
+  rest=("${args[@]:$((i + 1))}")
+fi
+
+has_flag() {
+  local flag="$1" a
+  for a in ${rest[@]+"${rest[@]}"}; do
+    case "$a" in
+      "$flag"|"$flag"=*) return 0 ;;
+    esac
+  done
+  return 1
+}
+
+case "$cmd" in
+  status|diff|log|show|fetch|merge-base|merge-tree|rev-parse)
+    exec "$GIT_REAL" "${args[@]}"
+    ;;
+
+  add)
+    if ((${#rest[@]} == 0)); then
+      deny "git add requires explicit path(s); bare 'git add' is banned"
+    fi
+    for a in ${rest[@]+"${rest[@]}"}; do
+      case "$a" in
+        -A|--all|-u|--update|.|-p|--patch|-i|--interactive)
+          deny "git add $a is banned — stage explicit paths only (no '.', '-A', '-u', interactive)"
+          ;;
+        --)
+          break
+          ;;
+      esac
+    done
+    exec "$GIT_REAL" "${args[@]}"
+    ;;
+
+  commit)
+    if has_flag -a || has_flag --all; then
+      deny "git commit -a/--all is banned — stage explicit paths, then commit with pathspecs"
+    fi
+    if has_flag --amend; then
+      deny "git commit --amend is banned — history rewriting is orchestrator-only"
+    fi
+    if has_flag -n || has_flag --no-verify; then
+      deny "git commit -n/--no-verify is banned — hook bypass is never allowed in lane shells"
+    fi
+    # Require explicit pathspecs so workers cannot commit a pre-populated index.
+    pathspecs=()
+    ci=0
+    while (( ci < ${#rest[@]} )); do
+      a="${rest[$ci]}"
+      case "$a" in
+        --)
+          pathspecs+=("${rest[@]:$((ci + 1))}")
+          break
+          ;;
+        -m|--message|-F|--file|--author|--date|--cleanup|--trailer)
+          ci=$((ci + 2))
+          ;;
+        -m*|-F*|--author=*|--date=*|--cleanup=*|--trailer=*|-S|--gpg-sign|--gpg-sign=*|-s|--signoff|--allow-empty|--no-edit|-q|--quiet|-v|--verbose|-e|--edit|--only|--include)
+          ci=$((ci + 1))
+          ;;
+        -n|--no-verify)
+          deny "git commit -n/--no-verify is banned — hook bypass is never allowed in lane shells"
+          ;;
+        -*)
+          deny "git commit option not allowlisted in lane shells: $a"
+          ;;
+        *)
+          pathspecs+=("$a")
+          ci=$((ci + 1))
+          ;;
+      esac
+    done
+    if ((${#pathspecs[@]} == 0)); then
+      deny "git commit requires explicit pathspecs (no bare index commit)"
+    fi
+    # Reject broad pathspecs after -- (same discipline as git add).
+    for a in ${pathspecs[@]+"${pathspecs[@]}"}; do
+      case "$a" in
+        .|-A|--all|\*|'*')
+          deny "git commit pathspec '$a' is too broad — name specific files"
+          ;;
+      esac
+    done
+    exec "$GIT_REAL" "${args[@]}"
+    ;;
+
+  push)
+    if [[ "${SWARM_BLESSED_PUSH:-}" != "1" ]]; then
+      deny "git push is blocked in lane shells — use .grok/swarm/claim-push.sh (sets SWARM_BLESSED_PUSH=1)"
+    fi
+    if has_flag -n || has_flag --no-verify; then
+      deny "git push -n/--no-verify is banned — hook bypass is never allowed"
+    fi
+    # Bare --force / -f without lease is always denied, even in blessed mode.
+    force=0
+    lease=0
+    for a in ${rest[@]+"${rest[@]}"}; do
+      case "$a" in
+        --force|-f) force=1 ;;
+        --force-with-lease|--force-with-lease=*|--force-if-includes) lease=1 ;;
+      esac
+    done
+    if (( force == 1 && lease == 0 )); then
+      deny "bare git push --force/-f is banned; use --force-with-lease via blessed scripts"
+    fi
+    exec "$GIT_REAL" "${args[@]}"
+    ;;
+
+  stash|reset|clean|restore|checkout|rebase|merge|update-ref|reflog|gc)
+    deny "git $cmd is banned in worker lanes (destructive / shared-index chaos class)"
+    ;;
+
+  branch)
+    if has_flag "-D" || has_flag "-f" || has_flag "--force" || has_flag "--delete" || has_flag "-d"; then
+      deny "git branch delete/force (-D/-d/-f/--delete/--force) is banned in worker lanes"
+    fi
+    exec "$GIT_REAL" "${args[@]}"
+    ;;
+
+  *)
+    deny "git $cmd is not on the worker allowlist"
+    ;;
+esac
