@@ -6,9 +6,9 @@
   "authority": {
     "apex": "ADR-0704",
     "clauses": [
-      "ADR-637 D2 \u2014 output in a registered regenerable region is generated: emitted by the registered producer, never hand-edited.",
-      "ADR-638 D1 \u2014 generated Kubernetes Rust output SHALL live under k8s/; os/, cloud/cloud-k8s and the managed-Kubernetes facades consume it only through approved k8s/ports/** seams and MUST NOT become alternate homes for generated upstream code.",
-      "ADR-638 D6 \u2014 the os/ shared-types direction is deferred to W0-G. This file classifies and predicts placement; it authorizes NO runtime edge and creates no crate."
+      "ADR-637 D2 — output in a registered regenerable region is generated: emitted by the registered producer, never hand-edited.",
+      "ADR-638 D1 — generated Kubernetes Rust output SHALL live under k8s/; os/, cloud/cloud-k8s and the managed-Kubernetes facades consume it only through approved k8s/ports/** seams and MUST NOT become alternate homes for generated upstream code.",
+      "ADR-638 D6 — the os/ shared-types direction is deferred to W0-G. This file classifies and predicts placement; it authorizes NO runtime edge and creates no crate."
     ],
     "citation_convention": "ADR ids are written as bare text on purpose. docs/decisions/ holds only the live apexes, so any other id written as a path under that directory is a broken link scored against an equality-pinned census; a bare id in a value costs nothing on either census."
   },
@@ -61,7 +61,7 @@
         "face": "k8s/ports",
         "crate_dir_template": "k8s/ports/upstream-<dashed>",
         "package_name_template": "k8s-upstream-<dashed>",
-        "rationale": "Upstream itself declares staging/src/k8s.io/* the externally consumable set, published read-only with pull requests to the published repositories refused \u2014 the same no-hand-edit contract ADR-637 D2 asserts. Externally consumable upstream becomes the seam face."
+        "rationale": "Upstream itself declares staging/src/k8s.io/* the externally consumable set, published read-only with pull requests to the published repositories refused — the same no-hand-edit contract ADR-637 D2 asserts. Externally consumable upstream becomes the seam face."
       },
       {
         "id": "EMIT-FIRST-PARTY-TO-CORE",
@@ -74,14 +74,14 @@
         "face": "k8s/core",
         "crate_dir_template": "k8s/core/upstream-<dashed>",
         "package_name_template": "k8s-upstream-<dashed>",
-        "rationale": "Any other first-party upstream path \u2014 pkg/**, cmd/**, plugin/** \u2014 is not externally consumable upstream, so it becomes the engine face and carries no external dependents. The k8s charter reserves core/ for the engine we RUN."
+        "rationale": "Any other first-party upstream path — pkg/**, cmd/**, plugin/** — is not externally consumable upstream, so it becomes the engine face and carries no external dependents. The k8s charter reserves core/ for the engine we RUN."
       }
     ],
     "name_function": {
       "_comment": "Total and order-significant. Generated names are never typed by hand, so name length does not matter and a special case would only add a way to be wrong.",
       "steps": [
         "strip the leading staging/src/k8s.io/ for a staging path; strip nothing otherwise",
-        "drop any pkg/apis/, pkg/ or tools/ segment \u2014 Go layout artifacts, not identity",
+        "drop any pkg/apis/, pkg/ or tools/ segment — Go layout artifacts, not identity",
         "replace every remaining / with -",
         "lowercase; no other transformation"
       ],
@@ -105,7 +105,7 @@
           "package_name": "k8s-upstream-kubelet-config"
         }
       ],
-      "examples_note": "The second example is the one that matters: it exercises the pkg/apis/ drop, which is the only step that can silently change identity. The upstream module paths are a reading of upstream layout and are NOT confirmed against the pinned SourceModel \u2014 no package enumeration has run. They are here to pin the FUNCTION, which is exact, not to assert these modules exist at the pin."
+      "examples_note": "The second example is the one that matters: it exercises the pkg/apis/ drop, which is the only step that can silently change identity. The upstream module paths are a reading of upstream layout and are NOT confirmed against the pinned SourceModel — no package enumeration has run. They are here to pin the FUNCTION, which is exact, not to assert these modules exist at the pin."
     },
     "face_constraint": {
       "_comment": "Why upstream- inside the existing faces, and not a new root directory.",
@@ -115,12 +115,12 @@
         "*/adapters/*",
         "*/facade/*"
       ],
-      "rule": "Both emit faces are depth-3 leaves that already match a root workspace member glob, so emitting costs ZERO root Cargo.toml edit and cannot serialize this lane against every other lane on that shared array. A novel root such as build/\u2026 or k8s/generated/\u2026 matches no glob, reds the workspace-glob-coverage gate with crate_dir_not_covered, and would need an ADR-authorized members exception this lane has no authority to write.",
+      "rule": "Both emit faces are depth-3 leaves that already match a root workspace member glob, so emitting costs ZERO root Cargo.toml edit and cannot serialize this lane against every other lane on that shared array. A novel root such as build/… or k8s/generated/… matches no glob, reds the workspace-glob-coverage gate with crate_dir_not_covered, and would need an ADR-authorized members exception this lane has no authority to write.",
       "separation": "The upstream- prefix is what makes a generated leaf mechanically separable from a hand-authored product port inside the same glob. It is the whole reason the four incumbent k8s/ports/*-api product crates need a classification field rather than a new address."
     }
   },
   "origin_classification": {
-    "_comment": "The one cheap thing the incumbents actually need. Every tracked crate leaf under k8s/ and os/ is classified here, so a scan that finds zero hand-edited generated files can be distinguished from a scan that found nothing at all. Adding a leaf to the tree without adding its row here is the fail-closed condition below \u2014 an unclassified leaf is exactly the hole that makes a partition vacuous.",
+    "_comment": "The one cheap thing the incumbents actually need. Every tracked crate leaf under k8s/ and os/ is classified here, so a scan that finds zero hand-edited generated files can be distinguished from a scan that found nothing at all. Adding a leaf to the tree without adding its row here is the fail-closed condition below — an unclassified leaf is exactly the hole that makes a partition vacuous.",
     "vocabulary_closed": true,
     "vocabulary": [
       {
@@ -392,14 +392,14 @@
     ]
   },
   "fail_closed_conditions": [
-    "Reject a tracked crate leaf under k8s/ or os/ that carries no row in origin_classification.leaves \u2014 an unclassified leaf is exactly the hole that makes a leaf-by-leaf boundary partition report a clean result over an unseen corpus.",
+    "Reject a tracked crate leaf under k8s/ or os/ that carries no row in origin_classification.leaves — an unclassified leaf is exactly the hole that makes a leaf-by-leaf boundary partition report a clean result over an unseen corpus.",
     "Reject a row whose origin is outside the closed vocabulary.",
     "Reject a duplicate leaf path.",
     "Reject a leaf classified generated that resolves to no registered region, and reject a leaf classified first-party that falls inside a registered region path_prefix.",
     "Reject a region registered without a producer or without all six receipt axes.",
     "Reject two registered regions whose path prefixes overlap.",
     "Reject an emit resolution where no rule matches, or where more than one matching rule holds the highest specificity_rank.",
-    "Reject an origin_classification.census total that disagrees with the census reproducer evaluated at HEAD \u2014 a stale census silently converts every count above into a claim about a tree that no longer exists."
+    "Reject an origin_classification.census total that disagrees with the census reproducer evaluated at HEAD — a stale census silently converts every count above into a claim about a tree that no longer exists."
   ],
   "not_claimed": [
     "That any producer, engine, rule pack or seam crate exists.",
