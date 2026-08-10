@@ -82,37 +82,37 @@ path	doc_type	category	axis	status	title
 /Users/jasonlee/Developer/source/docs/bootstrap.md	guide	how-to	governance/compliance	current	Contributor Bootstrap
 /Users/jasonlee/Developer/source/docs/buck2-native-ffi-investigation.md	research	explanation	research	current	Buck2 Native-FFI Investigation Notes
 /Users/jasonlee/Developer/source/docs/CHANGELOG.md	changelog	reference	index/meta	likely-stale	Oyatie — Canonical Docs Changelog
-/Users/jasonlee/Developer/source/docs/checklists/adr-promotion.md	adr	explanation	decision/ADR	current	Oyatie Checklist — Adr Promotion
-/Users/jasonlee/Developer/source/docs/checklists/agent-completion-checklist.md	reference	reference	governance/compliance	likely-stale	Agent Completion Checklist
-/Users/jasonlee/Developer/source/docs/checklists/agent-kickoff-checklist.md	reference	reference	governance/compliance	likely-stale	Agent Kickoff Checklist
-/Users/jasonlee/Developer/source/docs/checklists/audit-readiness.md	reference	reference	governance/compliance	likely-stale	Checklist: Audit Readiness
-/Users/jasonlee/Developer/source/docs/checklists/brand-rename-batch.md	reference	reference	governance/compliance	current	Oyatie Checklist — Brand Rename Batch
-/Users/jasonlee/Developer/source/docs/checklists/build-vs-buy.md	reference	reference	governance/compliance	current	Checklist: Build-vs-Buy Decision
-/Users/jasonlee/Developer/source/docs/checklists/cross-axis-contract-change-checklist.md	reference	reference	governance/compliance	likely-stale	Cross-Axis Contract Change Checklist
-/Users/jasonlee/Developer/source/docs/checklists/cross-axis-contract-change.md	reference	reference	governance/compliance	current	Oyatie Checklist — Cross Axis Contract Change
-/Users/jasonlee/Developer/source/docs/checklists/doc-freshness-checklist.md	reference	reference	governance/compliance	likely-stale	Doc Freshness Checklist
-/Users/jasonlee/Developer/source/docs/checklists/done-definition-checklist.md	reference	reference	governance/compliance	likely-stale	Done-Definition Checklist
-/Users/jasonlee/Developer/source/docs/checklists/dsr-cascade.md	reference	reference	governance/compliance	likely-stale	Checklist: DSR Cascade Execution
-/Users/jasonlee/Developer/source/docs/checklists/escalation-checklist.md	reference	reference	governance/compliance	likely-stale	Escalation Checklist (BLOCKED_ON_HUMAN_ORCHESTRATOR)
-/Users/jasonlee/Developer/source/docs/checklists/foundation-bypass-renewal.md	reference	reference	governance/compliance	current	Oyatie Checklist — Foundation Bypass Renewal
-/Users/jasonlee/Developer/source/docs/checklists/foundry-capability-publishing.md	reference	reference	governance/compliance	likely-stale	Checklist: Foundry capability publishing
-/Users/jasonlee/Developer/source/docs/checklists/incident-response.md	reference	reference	governance/compliance	current	Checklist: Incident Response
-/Users/jasonlee/Developer/source/docs/checklists/inventory-update-checklist.md	reference	reference	governance/compliance	likely-stale	Inventory Update Checklist
-/Users/jasonlee/Developer/source/docs/checklists/legacy-adr-deletion.md	reference	reference	governance/compliance	current	Checklist: Legacy ADR Deletion (one-time, 2026-05-09)
-/Users/jasonlee/Developer/source/docs/checklists/license-tier-review.md	reference	reference	governance/compliance	current	Oyatie Checklist — License Tier Review
-/Users/jasonlee/Developer/source/docs/checklists/new-team-onboarding.md	reference	reference	governance/compliance	current	Oyatie Checklist — New Team Onboarding
-/Users/jasonlee/Developer/source/docs/checklists/per-implementation-plan-checklist.md	reference	reference	governance/compliance	current	Per-IP Completion Checklist
-/Users/jasonlee/Developer/source/docs/checklists/per-phase-completion-checklist.md	reference	reference	governance/compliance	current	Per-Phase Completion Checklist
-/Users/jasonlee/Developer/source/docs/checklists/pr-review-checklist.md	reference	reference	governance/compliance	likely-stale	PR Review Checklist
-/Users/jasonlee/Developer/source/docs/checklists/pre-flight-checklist.md	reference	reference	governance/compliance	current	Pre-flight Checklist
-/Users/jasonlee/Developer/source/docs/checklists/pre-merge.md	reference	reference	governance/compliance	likely-stale	Checklist: Pre-merge
-/Users/jasonlee/Developer/source/docs/checklists/pre-push.md	reference	reference	governance/compliance	likely-stale	Checklist: Pre-push
-/Users/jasonlee/Developer/source/docs/checklists/regional-pack-onboarding.md	reference	reference	governance/compliance	likely-stale	Checklist: Regional Pack Onboarding
-/Users/jasonlee/Developer/source/docs/checklists/release-readiness-checklist.md	reference	reference	governance/compliance	likely-stale	Release Readiness Checklist (wave-gate)
-/Users/jasonlee/Developer/source/docs/checklists/tenant-onboarding.md	reference	reference	governance/compliance	current	Oyatie Checklist — Tenant Onboarding
-/Users/jasonlee/Developer/source/docs/checklists/trust-portal-publish.md	reference	reference	governance/compliance	current	Oyatie Checklist — Trust Portal Publish
-/Users/jasonlee/Developer/source/docs/checklists/vertical-onboarding.md	reference	reference	governance/compliance	likely-stale	Checklist: Vertical Onboarding
-/Users/jasonlee/Developer/source/docs/checklists/wave-gate.md	reference	reference	governance/compliance	likely-stale	Checklist: Wave-gate passing
+/Users/jasonlee/Developer/source/templates/checklists/adr-promotion.md	adr	explanation	decision/ADR	current	Oyatie Checklist — Adr Promotion
+/Users/jasonlee/Developer/source/templates/checklists/agent-completion-checklist.md	reference	reference	governance/compliance	likely-stale	Agent Completion Checklist
+/Users/jasonlee/Developer/source/templates/checklists/agent-kickoff-checklist.md	reference	reference	governance/compliance	likely-stale	Agent Kickoff Checklist
+/Users/jasonlee/Developer/source/templates/checklists/audit-readiness.md	reference	reference	governance/compliance	likely-stale	Checklist: Audit Readiness
+/Users/jasonlee/Developer/source/templates/checklists/brand-rename-batch.md	reference	reference	governance/compliance	current	Oyatie Checklist — Brand Rename Batch
+/Users/jasonlee/Developer/source/templates/checklists/build-vs-buy.md	reference	reference	governance/compliance	current	Checklist: Build-vs-Buy Decision
+/Users/jasonlee/Developer/source/templates/checklists/cross-axis-contract-change-checklist.md	reference	reference	governance/compliance	likely-stale	Cross-Axis Contract Change Checklist
+/Users/jasonlee/Developer/source/templates/checklists/cross-axis-contract-change.md	reference	reference	governance/compliance	current	Oyatie Checklist — Cross Axis Contract Change
+/Users/jasonlee/Developer/source/templates/checklists/doc-freshness-checklist.md	reference	reference	governance/compliance	likely-stale	Doc Freshness Checklist
+/Users/jasonlee/Developer/source/templates/checklists/done-definition-checklist.md	reference	reference	governance/compliance	likely-stale	Done-Definition Checklist
+/Users/jasonlee/Developer/source/templates/checklists/dsr-cascade.md	reference	reference	governance/compliance	likely-stale	Checklist: DSR Cascade Execution
+/Users/jasonlee/Developer/source/templates/checklists/escalation-checklist.md	reference	reference	governance/compliance	likely-stale	Escalation Checklist (BLOCKED_ON_HUMAN_ORCHESTRATOR)
+/Users/jasonlee/Developer/source/templates/checklists/foundation-bypass-renewal.md	reference	reference	governance/compliance	current	Oyatie Checklist — Foundation Bypass Renewal
+/Users/jasonlee/Developer/source/templates/checklists/foundry-capability-publishing.md	reference	reference	governance/compliance	likely-stale	Checklist: Foundry capability publishing
+/Users/jasonlee/Developer/source/templates/checklists/incident-response.md	reference	reference	governance/compliance	current	Checklist: Incident Response
+/Users/jasonlee/Developer/source/templates/checklists/inventory-update-checklist.md	reference	reference	governance/compliance	likely-stale	Inventory Update Checklist
+/Users/jasonlee/Developer/source/templates/checklists/legacy-adr-deletion.md	reference	reference	governance/compliance	current	Checklist: Legacy ADR Deletion (one-time, 2026-05-09)
+/Users/jasonlee/Developer/source/templates/checklists/license-tier-review.md	reference	reference	governance/compliance	current	Oyatie Checklist — License Tier Review
+/Users/jasonlee/Developer/source/templates/checklists/new-team-onboarding.md	reference	reference	governance/compliance	current	Oyatie Checklist — New Team Onboarding
+/Users/jasonlee/Developer/source/templates/checklists/per-implementation-plan-checklist.md	reference	reference	governance/compliance	current	Per-IP Completion Checklist
+/Users/jasonlee/Developer/source/templates/checklists/per-phase-completion-checklist.md	reference	reference	governance/compliance	current	Per-Phase Completion Checklist
+/Users/jasonlee/Developer/source/templates/checklists/pr-review-checklist.md	reference	reference	governance/compliance	likely-stale	PR Review Checklist
+/Users/jasonlee/Developer/source/templates/checklists/pre-flight-checklist.md	reference	reference	governance/compliance	current	Pre-flight Checklist
+/Users/jasonlee/Developer/source/templates/checklists/pre-merge.md	reference	reference	governance/compliance	likely-stale	Checklist: Pre-merge
+/Users/jasonlee/Developer/source/templates/checklists/pre-push.md	reference	reference	governance/compliance	likely-stale	Checklist: Pre-push
+/Users/jasonlee/Developer/source/templates/checklists/regional-pack-onboarding.md	reference	reference	governance/compliance	likely-stale	Checklist: Regional Pack Onboarding
+/Users/jasonlee/Developer/source/templates/checklists/release-readiness-checklist.md	reference	reference	governance/compliance	likely-stale	Release Readiness Checklist (wave-gate)
+/Users/jasonlee/Developer/source/templates/checklists/tenant-onboarding.md	reference	reference	governance/compliance	current	Oyatie Checklist — Tenant Onboarding
+/Users/jasonlee/Developer/source/templates/checklists/trust-portal-publish.md	reference	reference	governance/compliance	current	Oyatie Checklist — Trust Portal Publish
+/Users/jasonlee/Developer/source/templates/checklists/vertical-onboarding.md	reference	reference	governance/compliance	likely-stale	Checklist: Vertical Onboarding
+/Users/jasonlee/Developer/source/templates/checklists/wave-gate.md	reference	reference	governance/compliance	likely-stale	Checklist: Wave-gate passing
 /Users/jasonlee/Developer/source/docs/ci/forge-of-record.md	spec	reference	spec/contract	likely-stale	Forge of Record — CI Gating (ADR-0363)
 /Users/jasonlee/Developer/source/docs/COMPETITIVE-GAP-ANALYSIS.md	governance	explanation	product	likely-stale	Oyatie — Competitive Gap Analysis
 /Users/jasonlee/Developer/source/docs/COMPLIANCE-MATRIX.md	governance	explanation	governance/compliance	likely-stale	Oyatie — Compliance Matrix

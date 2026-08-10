@@ -18,7 +18,7 @@ This catalog is divided into seven kinds of artifact:
 | Kind | Used by | Lives at |
 |---|---|---|
 | **Templates** | Author starting a new artifact (PR, ADR, capability, runbook, …) | `docs/templates/<artifact>.md` (or `.yaml`) |
-| **Checklists** | Author finishing or gating an artifact | `docs/checklists/<task>.md` |
+| **Checklists** | Author finishing or gating an artifact | `templates/checklists/<task>.md` |
 | **Hooks** | Claude Code / Codex / Gemini agent harnesses + git hooks | `.claude/hooks/`, `.git/hooks/`, `scripts/hooks/` |
 | **Skills** | Agents at runtime (slash commands) | Installed runtime catalogs (Codex: `~/.codex/skills`; project `.claude/skills/<id>/SKILL.md` / `.codex/skills/` when checked in); optional local `.grok/` mm-delivery kit. `.omc/skills/` is retired residual, not live authority (ADR-0619). |
 | **Tools (CLIs)** | Humans + agents at runtime | `oya <persona> <subcommand>` per the persona-split CLI in [TOOLCHAIN §3](TOOLCHAIN.md) |
@@ -55,24 +55,24 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Checklist | Path | Trigger | Owner | Validator |
 |---|---|---|---|---|
-| Pre-push | [`checklists/pre-push.md`](checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
-| Pre-merge | [`checklists/pre-merge.md`](checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
-| Wave-gate passing | [`checklists/wave-gate.md`](checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
-| Vertical onboarding | [`checklists/vertical-onboarding.md`](checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
-| Regional-pack onboarding | [`checklists/regional-pack-onboarding.md`](checklists/regional-pack-onboarding.md) | New regional pack | `regional-packs` team | `regional-pack-validator` |
-| Foundry capability publishing | [`checklists/foundry-capability-publishing.md`](checklists/foundry-capability-publishing.md) | New / updated capability | `axis-foundry` | `capability-schema-validator` + eval-set pass |
-| New team onboarding | [`checklists/new-team-onboarding.md`](checklists/new-team-onboarding.md) | New team formed | `council-architecture` | `raci-team-coverage` |
-| Audit readiness | [`checklists/audit-readiness.md`](checklists/audit-readiness.md) | Per audit cycle (annual + on-demand) | `ops-compliance` | `compliance-evidence-recency` |
-| Incident response | [`checklists/incident-response.md`](checklists/incident-response.md) | Sev 1/2 detected | Incident manager | `incident-template-completeness` |
-| DSR cascade | [`checklists/dsr-cascade.md`](checklists/dsr-cascade.md) | DSR received | `council-privacy` (DSR operator) | DSR queue dashboard |
-| Brand-rename batch | [`checklists/brand-rename-batch.md`](checklists/brand-rename-batch.md) | Per-batch (17 batches per rename agent) | per-batch lead | `brand-residue-validator` |
-| ADR promotion | [`checklists/adr-promotion.md`](checklists/adr-promotion.md) | Proposed → Accepted | `crew-adr-promotion` | `adr-supersession-graph` |
-| Foundation-bypass renewal | [`checklists/foundation-bypass-renewal.md`](checklists/foundation-bypass-renewal.md) | Per bypass expiry | per-bypass owner | `bypass-expiry-monitor` |
-| Cross-axis contract change | [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) | Any DESIGN §10 row change | All affected axis teams | `design-contracts-mirror` |
-| License-tier review | [`checklists/license-tier-review.md`](checklists/license-tier-review.md) | New external dep / version bump | `ops-security` + `axis-foundry` | `oya-governance-license` |
-| Build-vs-buy decision | [`checklists/build-vs-buy.md`](checklists/build-vs-buy.md) | New surface authored | Owning axis + `council-architecture` | `build-vs-buy-decision-validator` |
-| Tenant onboarding | [`checklists/tenant-onboarding.md`](checklists/tenant-onboarding.md) | New tenant | `gtm-customer-success` + per-vertical | `tenant-onboarding-evidence` |
-| Trust-portal publish | [`checklists/trust-portal-publish.md`](checklists/trust-portal-publish.md) | Audit-evidence regen | `ops-compliance` + `gtm-marketing` | trust-portal verification |
+| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
+| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
+| Wave-gate passing | [`../templates/checklists/wave-gate.md`](../templates/checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
+| Vertical onboarding | [`../templates/checklists/vertical-onboarding.md`](../templates/checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
+| Regional-pack onboarding | [`../templates/checklists/regional-pack-onboarding.md`](../templates/checklists/regional-pack-onboarding.md) | New regional pack | `regional-packs` team | `regional-pack-validator` |
+| Foundry capability publishing | [`../templates/checklists/foundry-capability-publishing.md`](../templates/checklists/foundry-capability-publishing.md) | New / updated capability | `axis-foundry` | `capability-schema-validator` + eval-set pass |
+| New team onboarding | [`../templates/checklists/new-team-onboarding.md`](../templates/checklists/new-team-onboarding.md) | New team formed | `council-architecture` | `raci-team-coverage` |
+| Audit readiness | [`../templates/checklists/audit-readiness.md`](../templates/checklists/audit-readiness.md) | Per audit cycle (annual + on-demand) | `ops-compliance` | `compliance-evidence-recency` |
+| Incident response | [`../templates/checklists/incident-response.md`](../templates/checklists/incident-response.md) | Sev 1/2 detected | Incident manager | `incident-template-completeness` |
+| DSR cascade | [`../templates/checklists/dsr-cascade.md`](../templates/checklists/dsr-cascade.md) | DSR received | `council-privacy` (DSR operator) | DSR queue dashboard |
+| Brand-rename batch | [`../templates/checklists/brand-rename-batch.md`](../templates/checklists/brand-rename-batch.md) | Per-batch (17 batches per rename agent) | per-batch lead | `brand-residue-validator` |
+| ADR promotion | [`../templates/checklists/adr-promotion.md`](../templates/checklists/adr-promotion.md) | Proposed → Accepted | `crew-adr-promotion` | `adr-supersession-graph` |
+| Foundation-bypass renewal | [`../templates/checklists/foundation-bypass-renewal.md`](../templates/checklists/foundation-bypass-renewal.md) | Per bypass expiry | per-bypass owner | `bypass-expiry-monitor` |
+| Cross-axis contract change | [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) | Any DESIGN §10 row change | All affected axis teams | `design-contracts-mirror` |
+| License-tier review | [`../templates/checklists/license-tier-review.md`](../templates/checklists/license-tier-review.md) | New external dep / version bump | `ops-security` + `axis-foundry` | `oya-governance-license` |
+| Build-vs-buy decision | [`../templates/checklists/build-vs-buy.md`](../templates/checklists/build-vs-buy.md) | New surface authored | Owning axis + `council-architecture` | `build-vs-buy-decision-validator` |
+| Tenant onboarding | [`../templates/checklists/tenant-onboarding.md`](../templates/checklists/tenant-onboarding.md) | New tenant | `gtm-customer-success` + per-vertical | `tenant-onboarding-evidence` |
+| Trust-portal publish | [`../templates/checklists/trust-portal-publish.md`](../templates/checklists/trust-portal-publish.md) | Audit-evidence regen | `ops-compliance` + `gtm-marketing` | trust-portal verification |
 
 ---
 
@@ -203,7 +203,7 @@ This doc is the catalog OF the catalogs. The other catalogs are:
 | Per-product PRDs | [products/](products/) | every product |
 | Standards | `standards/` (planned per §7) | every cross-cutting standard |
 | Templates | [templates/](templates/) | every artifact template |
-| Checklists | [checklists/](checklists/) | every common task |
+| Checklists | [templates/checklists/](../templates/checklists/) | every common task |
 | Skills | installed runtime + project `.claude/skills/` / `.codex/skills/` + optional `.grok/` (mm-delivery); not `.omc/skills/` | every agent skill |
 | Hooks | `.claude/hooks/` + `.git/hooks/` + `scripts/hooks/` | every gate |
 

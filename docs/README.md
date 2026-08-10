@@ -1434,7 +1434,7 @@ Wave sequence answers what happens now, what recently changed, and what comes ne
 9. [wave 3-g adjudication](architecture/wave-3-g-synthesis-adjudication-2026-05-21.md) - Wave 3-G synthesis adjudication.
 10. [post-wave rigor audit](architecture/corpus-rigor-audit-2026-05-21-post-wave-3-g.md) - post-Wave-3-G corpus rigor audit.
 11. [six-hops audit](architecture/six-hops-reachability-audit-2026-05-20.md) - six-hops audit that makes this README load-bearing.
-12. [wave gate checklist](checklists/wave-gate.md) - wave-gate checklist.
+12. [wave gate checklist](../templates/checklists/wave-gate.md) - wave-gate checklist.
 13. [wave gate evaluation runbook](runbooks/wave-gate-evaluation.md) - wave-gate evaluation runbook.
 14. [wave gate readiness runbook](runbooks/wave-gate-readiness-check.md) - wave-gate readiness runbook.
 15. [release management](RELEASE-MANAGEMENT.md) - release-management doc that consumes wave state.

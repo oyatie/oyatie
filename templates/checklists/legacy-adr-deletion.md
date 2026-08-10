@@ -80,7 +80,7 @@ Coverage verdict values: **FULL** / **PARTIAL** / **DROPPED-WITH-REASON** / **EX
 33. ☐ `git rm decisions/ADR-*.md` (the 127 legacy files at top of `decisions/`)
 34. ☐ Retain: `docs/decisions/`, `decisions/RETIRED.md`
 35. ☐ Retain: any explicitly-listed forensic-essential legacy ADRs (TBD — none expected; will surface during regression check)
-36. ☐ `git commit` with body: "Per user directive 2026-05-09 + per regression-check at docs/checklists/legacy-adr-deletion.md, retire 127 legacy ADRs in favor of docs/decisions/. Pre-deletion state at git tag pre-legacy-adr-deletion."
+36. ☐ `git commit` with body: "Per user directive 2026-05-09 + per regression-check at templates/checklists/legacy-adr-deletion.md, retire 127 legacy ADRs in favor of docs/decisions/. Pre-deletion state at git tag pre-legacy-adr-deletion."
 37. ☐ Audit-chain emit `EVT-LEGACY-ADR-DELETED` per ADR-0003
 
 ## 6. Post-deletion

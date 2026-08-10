@@ -4,7 +4,7 @@ checklist_id: CHK-REL
 status: pending approval
 purpose: |
   Milestone-level release gate. Walked at every wave-gate boundary per `docs/ROADMAP.md §2`. Trace to `.omc/plans/MASTERPLAN.md §13 Definition of done`.
-lift_target: oyatie/docs/checklists/release-readiness.md
+lift_target: oyatie/templates/checklists/release-readiness.md
 enforcing_fitness_lane: oya-governance-release-readiness
 owner_team: ops-sre-reliability + council-architecture
 related:

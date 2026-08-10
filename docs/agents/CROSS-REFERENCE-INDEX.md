@@ -51,7 +51,7 @@ doc_status: published
 | `docs/decisions/ADR-*.md` | ADR | Architectural decisions | per-ADR-owner | Tier 2 | `oya-governance-adr-shape` | per-ADR | DESIGN, IPs, MASTERPLAN |
 | `docs/standards/*.md` (lifted) | Standard | Cross-cutting norm | per-standard-owner | Tier 2 | the lane named in each standard's frontmatter | 2026-05-12 | AGENTS, IPs |
 | `docs/templates/*.md\|yaml\|json` (lifted) | Template | Canonical doc/record shape | axis-foundry + per-template-owner | Tier 2 | `oya-governance-<class>-shape` | 2026-05-12 | every PR |
-| `docs/checklists/*.md` (lifted) | Checklist | Per-class verification | axis-foundry + per-checklist-owner | Tier 2 | `guard-pr-merge-review.mjs` + per-lane | 2026-05-12 | every PR |
+| `templates/checklists/*.md` (lifted) | Checklist | Per-class verification | axis-foundry + per-checklist-owner | Tier 2 | `guard-pr-merge-review.mjs` + per-lane | 2026-05-12 | every PR |
 | `docs/products/<axis>/` | Per-axis PRD | Per-axis product spec | per-axis lead | Tier 2 | `oya-governance-prd-coverage` | per-axis | PRD, DESIGN |
 | `docs/teams/` | Team charter | Per-team norms | per-team lead | Tier 2 | `oya-governance-team-charter` | per-team | RACI |
 | `docs/regional-packs/` | Regional pack | Per-region adaptations | regional-packs lead | Tier 2 | `oya-governance-regional-pack` | per-region | ADR-0010 |
@@ -66,7 +66,7 @@ doc_status: published
 | `.omc/plans/milestones/<MNN>/phases/<PNN>/INDEX.md` | PhaseIndex | same path under `docs/` | pending approval per-phase |
 | `.omc/plans/milestones/<MNN>/phases/<PNN>/IP-*.md` | ImplementationPlan | same path under `docs/` | pending approval per-IP |
 | `.omc/standards/INDEX.md` + `*.md` | StandardsIndex / Standard | `docs/standards/` | pending approval per-standard |
-| `/templates/INDEX.md` + `*.md|yaml|json` | TemplateIndex / Template | `docs/templates/`, `docs/checklists/` | pending approval per-template |
+| `/templates/INDEX.md` + `*.md|yaml|json` | TemplateIndex / Template | `docs/templates/`, `templates/checklists/` | pending approval per-template |
 | `.omc/governance-lanes/*.md` | FitnessLane | `docs/governance-lanes/<lane>.md` | pending approval per-lane |
 
 ## Agent-kickoff files (this directory)
