@@ -1,0 +1,45 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-patient-monitoring-fhir-observation-write
+  displayName: "patient-monitoring: FHIR Observation single write p99 ≤ 150 ms"
+  labels:
+    microservice: patient-monitoring
+    bounded_context: device-interop
+    sli_class: latency
+    tier: product
+    plane: data
+    owner_team: axis-clinical-realtime
+    pack_scope: all
+spec:
+  service: patient-monitoring
+  description: |
+    FHIR Observation single-resource write p99 ≤ 150 ms. Tight latency to
+    keep the per-minute aggregate write path within budget at 5,000-bed-per-cell
+    scale.
+  indicator:
+    metadata:
+      name: fhir-observation-write-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_fhir_observation_write_seconds_bucket{le="0.15"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_fhir_observation_write_seconds_count[5m]))
+  objectives:
+    - target: 0.99
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window
