@@ -7,7 +7,7 @@ status: Accepted
 owner_team: axis-ecosystem + ops-sre-reliability
 date: 2026-05-18
 related_artifacts:
-  - microservices/plugin-app-store/slos/plugin-revoke-latency.openslo.yaml
+  - marketplace/observability/slos/plugin-revoke-latency.openslo.yaml
 doc_status: published
 ---
 

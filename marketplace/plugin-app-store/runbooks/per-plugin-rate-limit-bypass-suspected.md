@@ -7,7 +7,7 @@ status: Accepted
 owner_team: axis-ecosystem + ops-sre-reliability
 date: 2026-05-18
 related_artifacts:
-  - microservices/plugin-app-store/slos/per-plugin-rate-limit-correctness.openslo.yaml
+  - marketplace/observability/slos/per-plugin-rate-limit-correctness.openslo.yaml
 doc_status: published
 ---
 
